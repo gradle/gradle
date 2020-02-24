@@ -17,6 +17,7 @@
 package org.gradle.nativeplatform.toolchain
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -40,6 +41,7 @@ plugins { id 'cpp' }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
     @RequiresInstalledToolChain(ToolChainRequirement.GCC)
+    @ToBeFixedForInstantExecution
     def "can build with multiple tool chains"() {
         AvailableToolChains.InstalledToolChain x86ToolChain = OperatingSystem.current().isWindows() ?
                 AvailableToolChains.getToolChain(ToolChainRequirement.VISUALCPP) :

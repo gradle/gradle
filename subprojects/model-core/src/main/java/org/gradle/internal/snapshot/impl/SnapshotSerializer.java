@@ -46,7 +46,7 @@ public class SnapshotSerializer extends AbstractSerializer<ValueSnapshot> {
     private static final int DEFAULT_SNAPSHOT = 18;
 
     private final HashCodeSerializer serializer = new HashCodeSerializer();
-    private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshot.SerializerImpl();
+    private final Serializer<ImplementationSnapshot> implementationSnapshotSerializer = new ImplementationSnapshotSerializer();
 
     @Override
     public ValueSnapshot read(Decoder decoder) throws Exception {

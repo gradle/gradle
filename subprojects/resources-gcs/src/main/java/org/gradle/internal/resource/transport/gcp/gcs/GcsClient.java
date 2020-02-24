@@ -119,6 +119,14 @@ public class GcsClient {
         }
     }
 
+    @VisibleForTesting
+    InputStream getResourceStream(URI uri) throws IOException {
+        String path = cleanResourcePath(uri);
+        Storage.Objects.Get getObject = storage.objects().get(uri.getHost(), path);
+        getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
+        return getObject.executeMediaAsInputStream();
+    }
+
     @Nullable
     public List<String> list(URI uri) throws ResourceException {
         List<StorageObject> results = new ArrayList<StorageObject>();
@@ -147,13 +155,6 @@ public class GcsClient {
         }
 
         return resultStrings;
-    }
-
-    @VisibleForTesting
-    InputStream getResourceStream(StorageObject obj) throws IOException {
-        Storage.Objects.Get getObject = storage.objects().get(obj.getBucket(), obj.getName());
-        getObject.getMediaHttpDownloader().setDirectDownloadEnabled(false);
-        return getObject.executeMediaAsInputStream();
     }
 
     private static String cleanResourcePath(URI uri) {

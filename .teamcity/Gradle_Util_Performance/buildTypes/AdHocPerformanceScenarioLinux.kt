@@ -8,11 +8,12 @@ import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
+import configurations.individualPerformanceTestJavaHome
 import configurations.killAllGradleProcesses
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
 object AdHocPerformanceScenarioLinux : BuildType({
     uuid = "a3183d81-e07d-475c-8ef6-04ed60bf4053"
@@ -51,7 +52,8 @@ object AdHocPerformanceScenarioLinux : BuildType({
                 performanceTestCommandLine(
                     "clean %templates% performance:performanceAdHocTest",
                     "%baselines%",
-                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%"""
+                    """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel% %flamegraphs% %additional.gradle.parameters%""",
+                    individualPerformanceTestJavaHome(Os.linux)
                 ) +
                     buildToolGradleParameters(isContinue = false) +
                     builtInRemoteBuildCacheNode.gradleParameters(Os.linux)

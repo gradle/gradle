@@ -13,11 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.jvm.plugins;
+package org.gradle.jvm.plugins
 
-import org.gradle.integtests.fixtures.WellBehavedPluginTest;
+import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class JUnitTestSuitePluginGoodBehaviourTest extends WellBehavedPluginTest {
+
+    def setup() {
+        executer.expectDocumentedDeprecationWarning("The junit-test-suite plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
+
     @Override
     String getPluginName() {
         'junit-test-suite'

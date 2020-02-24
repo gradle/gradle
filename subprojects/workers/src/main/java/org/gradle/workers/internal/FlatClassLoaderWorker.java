@@ -28,7 +28,7 @@ public class FlatClassLoaderWorker extends AbstractClassLoaderWorker {
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
         return executeInClassLoader(spec, workerClassLoader);
     }
 }

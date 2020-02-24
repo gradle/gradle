@@ -15,7 +15,11 @@
  */
 package org.gradle.api.tasks;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
@@ -38,12 +42,18 @@ import java.util.Map;
  */
 public abstract class AbstractExecTask<T extends AbstractExecTask> extends ConventionTask implements ExecSpec {
     private final Class<T> taskType;
+    private final Property<ExecResult> execResult;
     private ExecAction execAction;
-    private ExecResult execResult;
 
     public AbstractExecTask(Class<T> taskType) {
         execAction = getExecActionFactory().newExecAction();
+        execResult = getObjectFactory().property(ExecResult.class);
         this.taskType = taskType;
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -53,7 +63,7 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
 
     @TaskAction
     protected void exec() {
-        execResult = execAction.execute();
+        execResult.set(execAction.execute());
     }
 
     /**
@@ -358,9 +368,26 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
      * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
      *
      * @return The result. Returns {@code null} if this task has not been executed yet.
+     *
+     * @see #getExecutionResult() for the preferred way of accessing this property.
      */
     @Internal
+    @Nullable
     public ExecResult getExecResult() {
+        // TODO: Once getExecutionResult is stable, make this deprecated
+        // DeprecationLogger.deprecateMethod(AbstractExecTask.class, "getExecResult()").replaceWith("AbstractExecTask.getExecutionResult()").undocumented().nagUser();
+        return execResult.getOrNull();
+    }
+
+    /**
+     * Returns the result for the command run by this task. The provider has no value if this task has not been executed yet.
+     *
+     * @return A provider of the result.
+     * @since 6.1
+     */
+    @Internal
+    @Incubating
+    public Provider<ExecResult> getExecutionResult() {
         return execResult;
     }
 }

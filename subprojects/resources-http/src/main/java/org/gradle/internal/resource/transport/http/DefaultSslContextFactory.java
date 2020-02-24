@@ -32,6 +32,10 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import java.security.cert.CertificateException;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeMap;
@@ -53,7 +57,7 @@ public class DefaultSslContextFactory implements SslContextFactory {
     );
 
     private LoadingCache<Map<String, String>, SSLContext> cache = CacheBuilder.newBuilder().softValues().build(
-            new SynchronizedSystemPropertiesCacheLoader(new SslContextCacheLoader())
+        new SynchronizedSystemPropertiesCacheLoader(new SslContextCacheLoader())
     );
 
     @Override
@@ -112,108 +116,145 @@ public class DefaultSslContextFactory implements SslContextFactory {
             // This implementation is borrowed from the Apache HttpClient project
             // https://github.com/apache/httpclient/blob/4.2.2/httpclient/src/main/java/org/apache/http/conn/ssl/SSLSocketFactory.java#L246-L354
             try {
-                TrustManagerFactory tmFactory;
-
-                String trustAlgorithm = props.get("ssl.TrustManagerFactory.algorithm");
-                if (trustAlgorithm == null) {
-                    trustAlgorithm = TrustManagerFactory.getDefaultAlgorithm();
-                }
-                String trustStoreType = props.get("javax.net.ssl.trustStoreType");
-                if (trustStoreType == null) {
-                    trustStoreType = KeyStore.getDefaultType();
-                }
-                if ("none".equalsIgnoreCase(trustStoreType)) {
-                    tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                } else {
-                    File trustStoreFile;
-                    String s = props.get("javax.net.ssl.trustStore");
-                    if (s != null) {
-                        trustStoreFile = new File(s);
-                        tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
-                        String trustStoreProvider = props.get("javax.net.ssl.trustStoreProvider");
-                        KeyStore trustStore;
-                        if (trustStoreProvider != null) {
-                            trustStore = KeyStore.getInstance(trustStoreType, trustStoreProvider);
-                        } else {
-                            trustStore = KeyStore.getInstance(trustStoreType);
-                        }
-                        String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
-                        FileInputStream instream = new FileInputStream(trustStoreFile);
-                        try {
-                            trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
-                        } finally {
-                            instream.close();
-                        }
-                        tmFactory.init(trustStore);
-                    } else {
-                        File javaHome = new File(props.get("java.home"));
-                        File file = new File(javaHome, "lib/security/jssecacerts");
-                        if (!file.exists()) {
-                            file = new File(javaHome, "lib/security/cacerts");
-                            trustStoreFile = file;
-                        } else {
-                            trustStoreFile = file;
-                        }
-                        tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-                        KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
-                        String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
-                        FileInputStream instream = new FileInputStream(trustStoreFile);
-                        try {
-                            trustStore.load(instream, trustStorePassword != null ? trustStorePassword.toCharArray() : null);
-                        } finally {
-                            instream.close();
-                        }
-                        tmFactory.init(trustStore);
-                    }
-                }
-
-                KeyManagerFactory kmFactory = null;
-                String keyAlgorithm = props.get("ssl.KeyManagerFactory.algorithm");
-                if (keyAlgorithm == null) {
-                    keyAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
-                }
-                String keyStoreType = props.get("javax.net.ssl.keyStoreType");
-                if (keyStoreType == null) {
-                    keyStoreType = KeyStore.getDefaultType();
-                }
-                if ("none".equalsIgnoreCase(keyStoreType)) {
-                    kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                } else {
-                    File keyStoreFile = null;
-                    String s = props.get("javax.net.ssl.keyStore");
-                    if (s != null) {
-                        keyStoreFile = new File(s);
-                    }
-                    if (keyStoreFile != null) {
-                        kmFactory = KeyManagerFactory.getInstance(keyAlgorithm);
-                        String keyStoreProvider = props.get("javax.net.ssl.keyStoreProvider");
-                        KeyStore keyStore;
-                        if (keyStoreProvider != null) {
-                            keyStore = KeyStore.getInstance(keyStoreType, keyStoreProvider);
-                        } else {
-                            keyStore = KeyStore.getInstance(keyStoreType);
-                        }
-                        String keyStorePassword = props.get("javax.net.ssl.keyStorePassword");
-                        FileInputStream instream = new FileInputStream(keyStoreFile);
-                        try {
-                            keyStore.load(instream, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
-                        } finally {
-                            instream.close();
-                        }
-                        kmFactory.init(keyStore, keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD);
-                    }
-                }
+                TrustManagerFactory tmFactory = initTrustManagerFactory(props);
+                KeyManagerFactory kmFactory = initKeyManagerFactory(props);
 
                 SSLContext sslcontext = SSLContext.getInstance("TLS");
-                sslcontext.init(
-                    kmFactory != null ? kmFactory.getKeyManagers() : null,
-                    tmFactory != null ? tmFactory.getTrustManagers() : null,
-                    null);
+                sslcontext.init(kmFactory.getKeyManagers(), tmFactory.getTrustManagers(), null);
 
                 return sslcontext;
             } catch (GeneralSecurityException | IOException e) {
                 throw new SSLInitializationException(e.getMessage(), e);
             }
+        }
+
+        private static TrustManagerFactory initTrustManagerFactory(Map<String, String> props) throws GeneralSecurityException, IOException {
+            TrustManagerFactory tmFactory;
+
+            String trustAlgorithm = trustAlgorithm(props);
+            String trustStoreType = trustStoreType(props);
+            if ("none".equalsIgnoreCase(trustStoreType)) {
+                tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
+            } else {
+                File trustStoreFile;
+                String s = props.get("javax.net.ssl.trustStore");
+                if (s != null) {
+                    trustStoreFile = new File(s);
+                    tmFactory = TrustManagerFactory.getInstance(trustAlgorithm);
+                    KeyStore trustStore = trustStore(props, trustStoreType);
+                    char[] trustStorePassword = trustStorePassword(props);
+                    try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
+                        trustStore.load(instream, trustStorePassword);
+                    }
+                    tmFactory.init(trustStore);
+                } else {
+                    trustStoreFile = trustStoreFile(props);
+                    tmFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+                    KeyStore trustStore = KeyStore.getInstance(KeyStore.getDefaultType());
+                    char[] trustStorePassword = trustStorePassword(props);
+                    try (FileInputStream instream = new FileInputStream(trustStoreFile)) {
+                        trustStore.load(instream, trustStorePassword);
+                    }
+                    tmFactory.init(trustStore);
+                }
+            }
+            return tmFactory;
+        }
+
+        private static KeyManagerFactory initKeyManagerFactory(Map<String, String> props) throws GeneralSecurityException, IOException {
+            KeyManagerFactory kmFactory = keyManagerFactory(props);
+
+            String keyStoreType = keyStoreType(props);
+            if (!"none".equalsIgnoreCase(keyStoreType)) {
+                char[] keyStorePassword = keystorePassword(props);
+                KeyStore keyStore = keyStore(props, keyStoreType, keyStorePassword);
+                kmFactory.init(keyStore, keyStorePassword);
+            }
+            return kmFactory;
+        }
+
+        private static String trustStoreType(Map<String, String> props) {
+            String trustStoreType = props.get("javax.net.ssl.trustStoreType");
+            return trustStoreType == null ? KeyStore.getDefaultType() : trustStoreType;
+        }
+
+        private static KeyStore trustStore(Map<String, String> props, String trustStoreType) throws NoSuchProviderException, KeyStoreException {
+            String trustStoreProvider = props.get("javax.net.ssl.trustStoreProvider");
+            if (trustStoreProvider != null) {
+                return KeyStore.getInstance(trustStoreType, trustStoreProvider);
+            } else {
+                return KeyStore.getInstance(trustStoreType);
+            }
+        }
+
+        private static File trustStoreFile(Map<String, String> props) {
+            File javaHome = new File(props.get("java.home"));
+            File file = new File(javaHome, "lib/security/jssecacerts");
+            if (!file.exists()) {
+                file = new File(javaHome, "lib/security/cacerts");
+            }
+            return file;
+        }
+
+        private static String trustAlgorithm(Map<String, String> props) {
+            String trustAlgorithm = props.get("ssl.TrustManagerFactory.algorithm");
+            return trustAlgorithm == null ? TrustManagerFactory.getDefaultAlgorithm() : trustAlgorithm;
+        }
+
+        private static char[] trustStorePassword(Map<String, String> props) {
+            String trustStorePassword = props.get("javax.net.ssl.trustStorePassword");
+            return trustStorePassword != null ? trustStorePassword.toCharArray() : null;
+        }
+
+        private static KeyManagerFactory keyManagerFactory(Map<String, String> props) throws NoSuchAlgorithmException {
+            String keyAlgorithm = props.get("ssl.KeyManagerFactory.algorithm");
+            if (keyAlgorithm == null) {
+                keyAlgorithm = KeyManagerFactory.getDefaultAlgorithm();
+            }
+            return KeyManagerFactory.getInstance(keyAlgorithm);
+        }
+
+        private static String keyStoreType(Map<String, String> props) {
+            String keyStoreType = props.get("javax.net.ssl.keyStoreType");
+            if (keyStoreType == null) {
+                keyStoreType = KeyStore.getDefaultType();
+            }
+            return keyStoreType;
+        }
+
+        private static KeyStore keyStore(Map<String, String> props, String keyStoreType, char[] keyStorePassword) throws NoSuchProviderException, KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
+            KeyStore keyStore = getKeyStoreInstance(props, keyStoreType);
+            File keyStoreFile = keyStoreFile(props);
+            if (keyStoreFile != null) {
+                try (FileInputStream instream = new FileInputStream(keyStoreFile)) {
+                    keyStore.load(instream, keyStorePassword);
+                }
+            } else {
+                keyStore.load(null, keyStorePassword);
+            }
+            return keyStore;
+        }
+
+        private static KeyStore getKeyStoreInstance(Map<String, String> props, String keyStoreType) throws NoSuchProviderException, KeyStoreException {
+            String keyStoreProvider = props.get("javax.net.ssl.keyStoreProvider");
+            if (keyStoreProvider != null) {
+                return KeyStore.getInstance(keyStoreType, keyStoreProvider);
+            } else {
+                return KeyStore.getInstance(keyStoreType);
+            }
+        }
+
+        private static File keyStoreFile(Map<String, String> props) {
+            String keystoreFilePath = props.get("javax.net.ssl.keyStore");
+            if (keystoreFilePath != null && !"none".equalsIgnoreCase(keystoreFilePath)) {
+                return new File(keystoreFilePath);
+            }
+            return null;
+        }
+
+        private static char[] keystorePassword(Map<String, String> props) {
+            String keyStorePassword = props.get("javax.net.ssl.keyStorePassword");
+            return keyStorePassword != null ? keyStorePassword.toCharArray() : EMPTY_PASSWORD;
         }
     }
 }

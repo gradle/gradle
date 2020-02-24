@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class IvyGradleModuleMetadataPublishIntegrationTest extends AbstractIvyPublishIntegTest {
@@ -53,13 +54,14 @@ class TestCapability implements Capability {
     allprojects {
         configurations { implementation }
     }
-    
+
     def testAttributes = project.services.get(org.gradle.api.internal.attributes.ImmutableAttributesFactory)
          .mutable()
          .attribute(Attribute.of('foo', String), 'value')
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "fails to generate metadata for component with no variants"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -91,6 +93,7 @@ class TestCapability implements Capability {
   - This publication must publish at least one variant"""
     }
 
+    @ToBeFixedForInstantExecution
     def "fails to generate Gradle metadata if 2 variants have the same attributes"() {
         given:
         settingsFile.text = """
@@ -105,14 +108,14 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             comp.usages.add(new TestUsage(
                     name: 'impl',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -125,7 +128,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -138,6 +141,7 @@ class TestCapability implements Capability {
   - Variants 'api' and 'impl' have the same attributes and capabilities. Please make sure either attributes or capabilities are different."""
     }
 
+    @ToBeFixedForInstantExecution
     def "generates Gradle metadata if 2 variants have the same attributes but different capabilities"() {
         given:
         settingsFile.text = """
@@ -152,14 +156,14 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             comp.usages.add(new TestUsage(
                     name: 'impl',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes,
                     capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
 
@@ -173,7 +177,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -190,6 +194,7 @@ class TestCapability implements Capability {
         module.parsedModuleMetadata.variants.size() == 2
     }
 
+    @ToBeFixedForInstantExecution
     def "fails to generate Gradle metadata if 2 variants have the same name"() {
         given:
         settingsFile.text = """
@@ -204,14 +209,14 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'impl'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'impl'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -224,7 +229,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -237,6 +242,7 @@ class TestCapability implements Capability {
   - It is invalid to have multiple variants with the same name ('api')"""
     }
 
+    @ToBeFixedForInstantExecution
     def "fails to generate Gradle metadata if a variant doesn't have attributes"() {
         given:
         settingsFile.text = """
@@ -255,8 +261,8 @@ class TestCapability implements Capability {
 
             comp.usages.add(new TestUsage(
                     name: 'impl',
-                    usage: objects.named(Usage, 'impl'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'impl'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -269,7 +275,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
         """
 
         settingsFile << "rootProject.name = 'publishTest' "
@@ -282,6 +288,53 @@ class TestCapability implements Capability {
   - Variant 'api' must declare at least one attribute."""
     }
 
+    @ToBeFixedForInstantExecution
+    def "fails to generate Gradle metadata if no dependency have a version"() {
+        given:
+        settingsFile.text = """
+            rootProject.name = 'root'
+        """
+        buildFile << """
+            apply plugin: 'ivy-publish'
+
+            group = 'group'
+            version = '1.0'
+
+            dependencies {
+                implementation("org.test:test")
+            }
+
+            def comp = new TestComponent()
+            comp.usages.add(new TestUsage(
+                    name: 'impl',
+                    usage: objects.named(Usage, 'impl'),
+                    dependencies: configurations.implementation.allDependencies,
+                    attributes: testAttributes))
+
+            publishing {
+                repositories {
+                    ivy { url "${ivyRepo.uri}" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from comp
+                    }
+                }
+            }
+
+        """
+
+        settingsFile << "rootProject.name = 'publishTest' "
+
+        when:
+        fails 'publish'
+
+        then:
+        failure.assertHasCause """Invalid publication 'ivy':
+  - Publication only contains dependencies and/or constraints without a version. You need to"""
+    }
+
+    @ToBeFixedForInstantExecution
     def "publishes ivy status"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -294,8 +347,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -324,6 +377,7 @@ class TestCapability implements Capability {
         module.parsedModuleMetadata.attributes['org.gradle.status'] == 'milestone'
     }
 
+    @ToBeFixedForInstantExecution
     def "maps project dependencies"() {
         given:
         settingsFile << """rootProject.name = 'root'
@@ -332,7 +386,7 @@ class TestCapability implements Capability {
         buildFile << """
             allprojects {
                 apply plugin: 'ivy-publish'
-    
+
                 group = 'group'
                 version = '1.0'
 
@@ -346,8 +400,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             dependencies {
@@ -362,12 +416,12 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
             project(':a') {
                 publishing {
                     publications {
                         ivy(IvyPublication) {
-                            organisation = 'group.a' 
+                            organisation = 'group.a'
                             module = 'lib_a'
                             revision = '4.5'
                         }
@@ -378,7 +432,7 @@ class TestCapability implements Capability {
                 publishing {
                     publications {
                         ivy(IvyPublication) {
-                            organisation = 'group.b' 
+                            organisation = 'group.b'
                             module = 'utils'
                             revision = '0.01'
                         }
@@ -399,6 +453,7 @@ class TestCapability implements Capability {
         api.dependencies[1].coords == 'group.b:utils:0.01'
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes component with strict and prefer dependencies"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -410,8 +465,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             dependencies {
@@ -472,6 +527,7 @@ class TestCapability implements Capability {
         variant.dependencies[2].rejectsVersion == []
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes component with dependency constraints"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -483,7 +539,7 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
@@ -523,6 +579,7 @@ class TestCapability implements Capability {
         variant.dependencyConstraints[0].rejectsVersion == []
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes component with version rejects"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -534,8 +591,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             dependencies {
@@ -582,6 +639,7 @@ class TestCapability implements Capability {
         variant.dependencies[1].rejectsVersion == []
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes dependency reasons"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -593,16 +651,16 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
 
             dependencies {
                 implementation("org:foo:1.0") {
-                   because 'version 1.0 is tested'                
+                   because 'version 1.0 is tested'
                 }
-                constraints {                
+                constraints {
                     implementation("org:bar:2.0") {
                         because 'because 2.0 is cool'
                     }
@@ -638,6 +696,7 @@ class TestCapability implements Capability {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes capabilities"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -649,7 +708,7 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     attributes: testAttributes,
                     capabilities: [new TestCapability(group:'org.test', name: 'test', version: '1')]))
 
@@ -678,6 +737,7 @@ class TestCapability implements Capability {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes dependency/constraint attributes"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -689,10 +749,10 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             def attr1 = Attribute.of('custom', String)
             def attr2 = Attribute.of('nice', Boolean)
-            
+
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
+                    usage: objects.named(Usage, 'api'),
                     dependencies: configurations.implementation.allDependencies.withType(ModuleDependency),
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
@@ -703,7 +763,7 @@ class TestCapability implements Capability {
                       attribute(attr1, 'foo')
                    }
                 }
-                constraints {                
+                constraints {
                     implementation("org:bar:2.0") {
                         attributes {
                            attribute(attr2, true)
@@ -741,6 +801,7 @@ class TestCapability implements Capability {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "publishes component with strict version constraints"() {
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -752,8 +813,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     dependencyConstraints: configurations.implementation.allDependencyConstraints,
                     attributes: testAttributes))
 
@@ -823,6 +884,7 @@ class TestCapability implements Capability {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "publishes Gradle metadata redirection marker when Gradle metadata task is enabled (enabled=#enabled)"() {
         given:
         settingsFile.text = """
@@ -838,8 +900,8 @@ class TestCapability implements Capability {
             def comp = new TestComponent()
             comp.usages.add(new TestUsage(
                     name: 'api',
-                    usage: objects.named(Usage, 'api'), 
-                    dependencies: configurations.implementation.allDependencies, 
+                    usage: objects.named(Usage, 'api'),
+                    dependencies: configurations.implementation.allDependencies,
                     attributes: testAttributes))
 
             publishing {
@@ -852,7 +914,7 @@ class TestCapability implements Capability {
                     }
                 }
             }
-            
+
             generateMetadataFileForIvyPublication.enabled = $enabled
         """
 

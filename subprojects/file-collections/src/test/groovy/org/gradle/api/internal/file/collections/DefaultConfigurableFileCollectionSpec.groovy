@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -32,16 +33,17 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def fileResolver = Mock(FileResolver)
     def taskResolver = Mock(TaskResolver)
+    def patternSetFactory = TestFiles.patternSetFactory
     def taskDependencyFactory = Stub(TaskDependencyFactory) {
         _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
     }
-    def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, [])
+    def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, [])
 
     @Override
     AbstractFileCollection containing(File... files) {
         def resolver = Stub(FileResolver)
         _ * resolver.resolve(_) >> { File f -> f }
-        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, files as List)
+        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, files as List)
     }
 
     def resolvesSpecifiedFilesUsingFileResolver() {
@@ -50,7 +52,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def file2 = new File("2")
 
         when:
-        DefaultConfigurableFileCollection collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, ["a", "b"])
+        def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, ["a", "b"])
         def from = collection.from
         def files = collection.files
 
@@ -724,6 +726,253 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         collection.files as List == [file1, file2]
+    }
+
+    def resolvesPathToFileWhenQueriedAfterFinalizeOnRead() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+
+        when:
+        collection.finalizeValueOnRead()
+
+        then:
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        then:
+        files as List == [file]
+
+        when:
+        def files2 = collection.files
+
+        then:
+        files2 as List == [file]
+
+        and:
+        0 * fileResolver._
+    }
+
+    def resolvesClosureToFilesWhenQueriedAfterFinalizeOnRead() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        def closure = Mock(Closure)
+        collection.from(closure)
+
+        when:
+        collection.finalizeValueOnRead()
+
+        then:
+        0 * closure._
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+
+        then:
+        1 * closure.call() >> ['a', 'b']
+        0 * closure._
+        1 * fileResolver.resolve('a') >> file1
+        1 * fileResolver.resolve('b') >> file2
+
+        when:
+        def files2 = collection.files
+
+        then:
+        files2 as List == [file1, file2]
+
+        and:
+        0 * closure._
+        0 * fileResolver._
+    }
+
+    def resolvesCollectionToFilesWhenQueriedAfterFinalizeOnRead() {
+        given:
+        def file1 = new File('one')
+        def file2 = new File('two')
+        def collection = Mock(Collection)
+        this.collection.from(collection)
+
+        when:
+        this.collection.finalizeValueOnRead()
+
+        then:
+        0 * collection._
+        0 * fileResolver._
+
+        when:
+        def files = this.collection.files
+
+        then:
+        files as List == [file1, file2]
+
+        then:
+        1 * collection.iterator() >> ['a', 'b'].iterator()
+        0 * collection._
+        1 * fileResolver.resolve('a') >> file1
+        1 * fileResolver.resolve('b') >> file2
+
+        when:
+        def files2 = this.collection.files
+
+        then:
+        files2 as List == [file1, file2]
+
+        and:
+        0 * collection._
+        0 * fileResolver._
+    }
+
+    def canSpecifyPathsBeforeQueriedAndFinalizeOnRead() {
+        given:
+        def file = new File('one')
+        collection.finalizeValueOnRead()
+
+        when:
+        collection.setFrom('a')
+
+        then:
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        then:
+        files as List == [file]
+    }
+
+    def canAddPathsBeforeQueriedAndFinalizeOnRead() {
+        given:
+        def file = new File('one')
+        collection.finalizeValueOnRead()
+
+        when:
+        collection.from('a')
+
+        then:
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        then:
+        files as List == [file]
+    }
+
+    def canMutateFromSetBeforeQueriedAndFinalizeOnRead() {
+        given:
+        def file = new File('one')
+        collection.finalizeValueOnRead()
+
+        when:
+        collection.from.add('a')
+
+        then:
+        0 * fileResolver._
+
+        when:
+        def files = collection.files
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        then:
+        files as List == [file]
+    }
+
+    def cannotSpecifyPathsWhenQueriedAfterFinalizeOnRead() {
+        given:
+        collection.from('a')
+        _ * fileResolver.resolve('a') >> new File('a')
+
+        collection.finalizeValueOnRead()
+        collection.files
+
+        when:
+        collection.setFrom('some', 'more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.setFrom(['some', 'more'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> is final and cannot be changed.'
+    }
+
+    def cannotAddPathsWhenQueriedAfterFinalizeOnRead() {
+        given:
+        collection.from('a')
+        _ * fileResolver.resolve('a') >> new File('a')
+
+        collection.finalizeValueOnRead()
+        collection.files
+
+        when:
+        collection.from('more')
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> is final and cannot be changed.'
+    }
+
+    def cannotMutateFromSetWhenQueriedAfterFinalizeOnRead() {
+        given:
+        collection.from('a')
+        _ * fileResolver.resolve('a') >> new File('a')
+
+        collection.finalizeValueOnRead()
+        collection.files
+
+        when:
+        collection.from.clear()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from.add('b')
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from.remove('a')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <display> is final and cannot be changed.'
+
+        when:
+        collection.from.iterator().remove()
+
+        then:
+        def e4 = thrown(IllegalStateException)
+        e4.message == 'The value for <display> is final and cannot be changed.'
     }
 
     def cannotSpecifyPathsWhenChangesDisallowed() {

@@ -31,8 +31,8 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.ConfigurationNotConsumableException;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -92,7 +92,10 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration selectedConfiguration) {
         List<String> alternatives = selectedConfiguration.getConsumptionAlternatives();
         if (alternatives != null) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(selectedConfiguration.getName(), DeprecationLogger.ConfigurationDeprecationType.CONSUMPTION, alternatives);
+            DeprecationLogger.deprecateConfiguration(selectedConfiguration.getName()).forConsumption().replaceWith(alternatives)
+                .willBecomeAnErrorInGradle7()
+                .withUserManual("java_library_plugin", "sec:java_library_configurations_graph")
+                .nagUser();
         }
     }
 
@@ -194,7 +197,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     @Override
     public String toString() {
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
-                + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
+            + (getTargetConfiguration() == null ? Dependency.DEFAULT_CONFIGURATION : getTargetConfiguration()) + '\'' + '}';
     }
 
     private class TaskDependencyImpl extends AbstractTaskDependency {

@@ -16,15 +16,18 @@
 
 package org.gradle.api.internal.project
 
-import org.gradle.api.initialization.ProjectDescriptor
+import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.groovy.scripts.TextResourceScriptSource
+import org.gradle.initialization.DefaultProjectDescriptor
+import org.gradle.internal.build.BuildState
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.resource.DefaultTextFileResourceLoader
 import org.gradle.internal.resource.EmptyFileTextResource
 import org.gradle.internal.service.scopes.ServiceRegistryFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -32,17 +35,22 @@ class ProjectFactoryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def instantiator = Mock(Instantiator)
-    def projectDescriptor = Stub(ProjectDescriptor)
+    def projectDescriptor = Stub(DefaultProjectDescriptor)
     def gradle = Stub(GradleInternal)
     def serviceRegistryFactory = Stub(ServiceRegistryFactory)
     def projectRegistry = Mock(ProjectRegistry)
     def project = Stub(DefaultProject)
-    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry)
+    def buildId = Stub(BuildIdentifier)
+    def owner = Stub(BuildState)
+    def projectStateRegistry = Stub(ProjectStateRegistry)
+    def projectState = Stub(ProjectState)
+    def factory = new ProjectFactory(instantiator, new DefaultTextFileResourceLoader(), projectRegistry, owner, projectStateRegistry)
     def rootProjectScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
 
     def setup() {
         gradle.serviceRegistryFactory >> serviceRegistryFactory
+        owner.buildIdentifier >> buildId
     }
 
     def "creates a project with build script"() {
@@ -53,13 +61,14 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.name >> "name"
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
+        projectStateRegistry.stateFor(buildId, Path.path(":name")) >> projectState
 
         when:
         def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it instanceof TextResourceScriptSource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it instanceof TextResourceScriptSource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -71,13 +80,14 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.name >> "name"
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
+        projectStateRegistry.stateFor(buildId, Path.path(":name")) >> projectState
 
         when:
         def result = factory.createProject(gradle, projectDescriptor, null, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it.resource instanceof EmptyFileTextResource }, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", null, projectDir, buildFile, { it.resource instanceof EmptyFileTextResource }, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * projectRegistry.addProject(project)
     }
 
@@ -90,13 +100,14 @@ class ProjectFactoryTest extends Specification {
         projectDescriptor.name >> "name"
         projectDescriptor.projectDir >> projectDir
         projectDescriptor.buildFile >> buildFile
+        projectStateRegistry.stateFor(buildId, Path.path(":name")) >> projectState
 
         when:
         def result = factory.createProject(gradle, projectDescriptor, parent, rootProjectScope, baseScope)
 
         then:
         result == project
-        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, serviceRegistryFactory, rootProjectScope, baseScope) >> project
+        1 * instantiator.newInstance(DefaultProject, "name", parent, projectDir, buildFile, _, gradle, projectState, serviceRegistryFactory, rootProjectScope, baseScope) >> project
         1 * parent.addChildProject(project)
         1 * projectRegistry.addProject(project)
     }

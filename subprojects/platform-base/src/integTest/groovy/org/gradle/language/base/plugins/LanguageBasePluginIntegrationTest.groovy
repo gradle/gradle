@@ -15,7 +15,9 @@
  */
 package org.gradle.language.base.plugins
 
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
+@UnsupportedWithInstantExecution(because = "software model")
 class LanguageBasePluginIntegrationTest extends WellBehavedPluginTest {
 }

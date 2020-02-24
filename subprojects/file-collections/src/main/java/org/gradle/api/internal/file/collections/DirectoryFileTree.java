@@ -92,6 +92,9 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     @Override
     public Collection<DirectoryFileTree> getLocalContents() {
+        if (dir.isFile()) {
+            return Collections.singletonList(new FileBackedDirectoryFileTree(dir));
+        }
         return Collections.singletonList(this);
     }
 
@@ -133,7 +136,7 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
 
     private void processSingleFile(File file, FileVisitor visitor, Spec<FileTreeElement> spec, AtomicBoolean stopFlag) {
         RelativePath path = new RelativePath(true, file.getName());
-        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem, false);
+        FileVisitDetails details = new DefaultFileVisitDetails(file, path, stopFlag, fileSystem, fileSystem);
         if (isAllowed(details, spec)) {
             visitor.visitFile(details);
         }

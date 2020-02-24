@@ -18,9 +18,11 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
+@UnsupportedWithInstantExecution(because = "software model")
 class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can not create a top level LSS when the language base plugin has not been applied"() {

@@ -18,6 +18,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
@@ -44,6 +45,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         module = ivyRemoteRepo.module('org.gradle', 'publish', '2').allowAll()
     }
 
+    @ToBeFixedForInstantExecution
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
@@ -58,6 +60,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         verifyPublications()
     }
 
+    @ToBeFixedForInstantExecution
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)
@@ -72,6 +75,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         verifyPublications()
     }
 
+    @ToBeFixedForInstantExecution
     def "decent error message when client can't authenticate server"() {
         keyStore.enableSslWithServerCert(server)
         initBuild()
@@ -86,6 +90,7 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
         failure.assertHasCause("Could not write to resource '${module.jar.uri}'")
     }
 
+    @ToBeFixedForInstantExecution
     def "build fails when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()
@@ -104,10 +109,16 @@ class IvyPublishHttpsIntegTest extends AbstractIvyPublishIntegTest {
     def expectPublication() {
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
         module.moduleMetadata.expectPut()
         module.moduleMetadata.sha1.expectPut()
+        module.moduleMetadata.sha256.expectPut()
+        module.moduleMetadata.sha512.expectPut()
     }
 
     def verifyPublications() {

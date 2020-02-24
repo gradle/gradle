@@ -21,7 +21,7 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
-import org.gradle.internal.classpath.CachedJarFileStore;
+import org.gradle.internal.vfs.AdditiveCache;
 
 import java.io.Closeable;
 import java.io.File;
@@ -30,7 +30,7 @@ import java.util.List;
 
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode;
 
-public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable, CachedJarFileStore {
+public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, Closeable, AdditiveCache {
 
     public static final String BASE_DIR_OVERRIDE_PROPERTY = "org.gradle.cache.internal.generatedGradleJarCacheBaseDir";
 
@@ -40,7 +40,7 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     public DefaultGeneratedGradleJarCache(CacheRepository cacheRepository, String gradleVersion) {
         this.cache = cacheBuilderFor(cacheRepository)
             .withDisplayName(CACHE_DISPLAY_NAME)
-            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .open();
         this.gradleVersion = gradleVersion;
     }
@@ -76,7 +76,7 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     }
 
     @Override
-    public List<File> getFileStoreRoots() {
+    public List<File> getAdditiveCacheRoots() {
         return Collections.singletonList(cache.getBaseDir());
     }
 }

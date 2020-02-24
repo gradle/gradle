@@ -17,6 +17,7 @@
 package org.gradle.language.cpp
 
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeSoftwareModelParallelIntegrationTest
 import org.gradle.nativeplatform.fixtures.NativeInstallationFixture
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
@@ -30,6 +31,7 @@ class CppLanguageParallelIntegrationTest extends AbstractNativeSoftwareModelPara
     HelloWorldApp app = new CppHelloWorldApp()
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @ToBeFixedForInstantExecution
     def "can produce multiple executables that use a library from a single project in parallel"() {
         given:
         def apps = [

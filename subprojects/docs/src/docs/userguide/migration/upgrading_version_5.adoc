@@ -38,13 +38,25 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Deprecations
 
-==== Dependencies should no longer be declared using the compile and runtime configurations
+==== Dependencies should no longer be declared using the `compile` and `runtime` configurations
 
-The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged for some time now.
-These configurations, and their counterparts in other sources sets (e.g. `testCompile` and `testRuntime`), should not be utilised anymore.
-Instead, use the `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
+The usage of the `compile` and `runtime` configurations in the Java ecosystem plugins has been discouraged since https://docs.gradle.org/3.4/release-notes.html#the-java-library-plugin[Gradle 3.4].
 
-==== Problems with task definitions called out during build
+These configurations are used for compiling and running code from the `main` source set.
+Other sources sets create similar configurations (e.g. `testCompile` and `testRuntime` for the `test` source set), should not be used either.
+The `implementation`, `api`, `compileOnly` and `runtimeOnly` configurations should be used to declare dependencies and the `compileClasspath` and `runtimeClasspath` configurations to resolve dependencies.
+See <<java_library_plugin.adoc#sec:java_library_configurations_graph, the relationship of these configurations>>.
+
+==== Legacy publication system is deprecated and replaced with the `*-publish` plugins
+
+The `uploadArchives` task and the `maven` plugin are deprecated.
+
+Users should migrate to the <<publishing_setup.adoc#,publishing system>> of Gradle by using either the <<publishing_maven.adoc#,`maven-publish`>> or <<publishing_ivy.adoc#,`ivy-publish`>> plugins.
+These plugins have been stable since Gradle 4.8.
+
+The publishing system is also the only way to ensure the publication of <<publishing_gradle_module_metadata.adoc#,Gradle Module Metadata>>.
+
+==== Problems with tasks emit deprecation warnings
 
 When Gradle detects problems with task definitions (such as incorrectly defined inputs or outputs) it will show the following message on the console:
 
@@ -54,7 +66,9 @@ Use '--warning-mode all' to show the individual deprecation warnings.
 See https://docs.gradle.org/6.0/userguide/command_line_interface.html#sec:command_line_warnings
 ```
 
-When executed with `--warning-mode all` the individual warnings will be shown like this:
+The deprecation warnings show up in https://scans.gradle.com/s/txrptciitl2ha/deprecations[build scans] for every build, regardless of the command-line switches used.
+
+When the build is executed with `--warning-mode all`, the individual warnings will be shown:
 
 ```
 > Task :myTask
@@ -62,57 +76,64 @@ Property 'inputDirectory' is declared without normalization specified. Propertie
 Property 'outputFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
 ```
 
-[NOTE]
-====
-You can also use `--stacktrace` to see where in the code each warning originates from.
-====
+If you own the code of the tasks in question, you can fix them by <<more_about_tasks.adoc#sec:task_input_validation, following the suggestions>>. You can also use `--stacktrace` to see where in the code each warning originates from.
 
-If you own the code of the tasks in question, you can fix them by following the instructions.
-Otherwise you'll need to report the problems to the maintainer of the relevant task or plugin.
+Otherwise, you'll need to report the problems to the maintainer of the relevant task or plugin.
 
-[NOTE]
-====
-The deprecation warnings show up in https://scans.gradle.com/s/txrptciitl2ha/deprecations[build scans] for every build, regardless of the command-line switches used.
-====
+==== Old API for incremental tasks, `IncrementalTaskInputs`, has been deprecated
 
-See <<more_about_tasks.adoc#sec:task_input_validation, the userguide>> for more information on addressing these warnings.
-
-==== Local build cache type shouldn't be specified
-
-When configuring the local build cache the use of `BuildCacheConfiguration.local(Class)` and `local(Class, Action)` has now been deprecated; use `getLocal()` or `local(Action)` instead.
-These methods now assume the local build cache type to be `DirectoryBuildCache`.
-
-==== `IncrementalTaskInputs` has been deprecated
-
-In Gradle 5.4 we introduced a new API for implementing <<custom_tasks.adoc#incremental_tasks,incremental tasks>>: link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges].
-Its predecessor `IncrementalTaskInputs` has been deprecated.
+In Gradle 5.4 we introduced a new API for implementing <<custom_tasks.adoc#incremental_tasks,incremental tasks>>: link:{groovyDslPath}/org.gradle.work.InputChanges.html[InputChanges]. The old API based on `IncrementalTaskInputs` has been deprecated.
 
 ==== Forced dependencies
 
-Forcing dependency versions using `force = true` on a first-level dependency is deprecated.
+Forcing dependency versions using `force = true` on a first-level dependency has been deprecated.
+
 Force has both a semantic and ordering issue which can be avoided by using a <<rich_versions.adoc#rich-version-constraints, strict version constraint>>.
 
-==== Invalid task definitions and configurations
+==== Search upwards related APIs in `StartParameter` have been deprecated
 
-Problems with task definitions are called out in deprecation warnings like this:
+In Gradle 5.0, we removed the `--no-search-upward` CLI parameter.
 
+The related APIs in `StartParameter` (like `isSearchUpwards()`) are now deprecated.
+
+==== APIs `BuildListener.buildStarted` and `Gradle.buildStarted` have been deprecated
+
+These methods currently do not work as expected since the callbacks will never be called after the build has started.
+
+The methods are being deprecated to avoid confusion.
+
+==== Implicit duplicate strategy for `Copy` or archive tasks has been deprecated
+
+Archive tasks `Tar` and `Zip` by default allow multiple entries for the same path to exist in the created archive.
+This can cause https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" that can trigger zip bomb detection].
+
+To prevent this from happening accidentally, encountering duplicates while creating an archive now produces a deprecation message and will fail the build starting with Gradle 7.0.
+
+`Copy` tasks also happily copy multiple sources with the same relative path to the destination directory.
+This behavior has also been deprecated.
+
+If you want to allow duplicates, you can specify that explicitly:
 ```
-Property 'options.configFile' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.
+task archive(type: Zip) {
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE // allow duplicates
+    ...
+}
 ```
 
-==== Search upwards related API in `StartParameter` has been deprecated
+==== Executing Gradle without a settings file has been deprecated
 
-In Gradle 5.0 we removed the `--no-search-upward` CLI parameter.
-The related APIs in `StartParameter` are now deprecated.
+A Gradle build is defined by a `settings.gradle[.kts]` file in the current or parent directory.
+Without a settings file, a Gradle build is undefined and will emit a deprecation warning.
 
-==== `BuildListener#buildStarted` and `Gradle#buildStarted` has been deprecated
+In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnostic command line flags, such as `--version`, with undefined builds.
 
-These methods currently do not work as expected.
-They are being deprecated to avoid confusion.
+==== Calling `Project.afterEvaluate` on an evaluated project has been deprecated
+
+Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
 
 ==== Deprecated plugins
 
-The following bundled plugins are no longer maintained and will be removed in the next major release of Gradle:
+The following bundled plugins were never announced and will be removed in the next major release of Gradle:
 
 - `org.gradle.coffeescript-base`
 - `org.gradle.envjs`
@@ -122,66 +143,148 @@ The following bundled plugins are no longer maintained and will be removed in th
 
 Some of these plugins may have replacements on the https://plugins.gradle.org/[Plugin Portal].
 
-==== Copy or archive duplicate paths without explicitly specifying a duplicates strategy has been deprecated
-
-Archive tasks `Tar` and `Zip` by default allow multiple entries for the same path to exist in the created archive.
-These https://github.com/gradle/gradle/issues/9990["grossly invalid zip files" can trigger zip bomb detection].
-To prevent this from happening accidentally, encountering duplicates while creating an archive now produces a deprecation message, and will fail the build starting with Gradle 7.0.
-
-Note that copy tasks also happily copy multiple sources with the same relative path to the destination directory.
-That behavior has also been deprecated.
-
-If you want to allow duplicates, you can specify that explicitly:
-
-```
-task archive(type: Zip) {
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE // allow duplicates
-    archiveName = 'archive.zip'
-    from 'src'
-}
-```
-
 === Potential breaking changes
 
-==== Android Gradle Plugin 3.3 and earlier is not supported anymore
+==== Android Gradle Plugin 3.3 and earlier is no longer supported
 
 Gradle 6.0 supports Android Gradle Plugin versions 3.4 and later.
 
+==== Build scan plugin 2.x is no longer supported
+
+For Gradle 6, usage of the build scan plugin must be replaced with the Gradle Enterprise plugin.
+This also requires changing how the plugin is applied.
+Please see https://gradle.com/help/gradle-6-build-scan-plugin for more information.
+
+==== Updates to bundled Gradle dependencies
+
+- Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
+- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.7.html[Ant 1.10.7].
+
+==== Updates to default integration versions
+
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.24[Checkstyle 8.24].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
+- PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
+- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.5]. Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
+
+==== Changes to build and task names in composite builds
+
+Previously, Gradle used the name of the root project as the build name for an included build.
+Now, the name of the build's root directory is used and the root project name is not considered if different.
+A different name for the build can be specified if the build is being included via a settings file.
+
+```kotlin
+includeBuild("some-other-build") {
+    name = "another-name"
+}
+```
+
+The previous behavior was problematic as it caused different names to be used at different times during the build.
+
+==== buildSrc is now reserved as a project and subproject build name
+
+Previously, Gradle did not prevent using the name “buildSrc” for a subproject of a multi-project build or as the name of an included build.
+Now, this is not allowed.
+The name “buildSrc” is now reserved for the conventional buildSrc project that builds extra build logic.
+
+Typical use of buildSrc is unaffected by this change.
+You will only be affected if your settings file specifies `include("buildSrc")` or `includeBuild("buildSrc")`.
+
+==== Scala Zinc compiler
+
+The Zinc compiler has been upgraded to version 1.3.0. Gradle no longer supports building for Scala 2.9.
+
+The minimum Zinc compiler supported by Gradle is 1.2.0 and the maximum tested version is 1.3.0.
+
+To make it easier to select the version of the Zinc compiler, you can now configure a `zincVersion` property:
+```
+scala {
+    zincVersion = "1.2.1"
+}
+```
+
+Please remove any explicit dependencies you've added to the `zinc` configuration and use this property instead.
+If you try to use the `com.typesafe.zinc:zinc` dependency, Gradle will switch to the new Zinc implementation.
+
+==== Changes to Build Cache
+
 ==== Local build cache is always a directory cache
 
-In the past it was possible to use any build cache implementation as the `local` cache.
-This is not allowed anymore as the local cache is always a `DirectoryBuildCache`.
-Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build.
-Calling these methods with the `DirectoryBuildCache` type will produce a deprecation warning.
-Use `getLocal()` and `local(Action)` instead, respectively.
-These methods now assume the local build cache type to be `DirectoryBuildCache`.
+In the past, it was possible to use any build cache implementation as the `local` cache.  This is no longer allowed as the local cache must always be a `DirectoryBuildCache`.
+
+Calls to `BuildCacheConfiguration.local(Class)` with anything other than `DirectoryBuildCache` as the type will fail the build. Calling these methods with the `DirectoryBuildCache` type will produce a deprecation warning.
+
+Use `getLocal()` and `local(Action)` instead.
 
 ==== Failing to pack or unpack cached results will now fail the build
 
-In the past when Gradle encountered a problem while packaging the results of a cached task, it would ignore the problem and try to continue running the build.
-Similarly, having encountered a corrupt cached artifact during unpacking Gradle would try to remove whatever was already unpacked of the output and re-execute the task to make sure the build had a chance to succeed.
+In the past, when Gradle encountered a problem while packing the results of a cached task, Gradle would ignore the problem and continue running the build.
 
-While this behavior could be helpful to maintain executing build no matter what, hiding the problems this way can lead to reduced cache performance.
-In Gradle 6.0 we are switching to failing fast, and both pack and unpack errors will result the build to fail.
-Doing so allows these problems to be surfaced more easily.
+When encountering a corrupt cached artifact, Gradle would remove whatever was already unpacked and re-execute the task to make sure the build had a chance to succeed.
+
+While this behavior was intended to make a build successful, this had the adverse effect of hiding problems and led to reduced cache performance.
+
+In Gradle 6.0, both pack and unpack errors will cause the build to fail, so that these problems will be surfaced more easily.
+
+==== buildSrc projects automatically use build cache configuration
+
+Previously, in order to to use the build cache for the buildSrc build you needed to duplicate your build cache config in the buildSrc build.
+Now, it automatically uses the build cache configuration defined by the top level settings script.
+
+==== Changes to Dependency Management
 
 ==== Gradle Module Metadata is always published
 
-https://blog.gradle.org/gradle-metadata-1.0[Gradle Module Metadata], officially introduced in Gradle 5.3, was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
+Officially introduced in Gradle 5.3, https://blog.gradle.org/gradle-metadata-1.0[Gradle Module Metadata] was created to solve many of the problems that have plagued dependency management for years, in particular, but not exclusively, in the Java ecosystem.
+
 With Gradle 6.0, Gradle Module Metadata is enabled by default.
-This means, if you are publishing libraries with Gradle, using the <<publishing_maven.adoc#,maven-publish>> or <<publishing_ivy.adoc#,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to the traditional metadata.
+
+This means, if you are publishing libraries with Gradle and using the <<publishing_maven.adoc#,maven-publish>> or <<publishing_ivy.adoc#,ivy-publish>> plugin, the Gradle Module Metadata file is always published *in addition* to traditional metadata.
+
 The traditional metadata file will contain a marker so that Gradle knows that there is additional metadata to consume.
+
+==== Gradle Module Metadata has stricter validation
+
+The following rules are verified when publishing Gradle Module Metadata:
+
+* Variant names must be unique,
+* Each variant must have at least <<variant_attributes.adoc#,one attribute>>,
+* Two variants cannot have the <<variant_model.adoc#,exact same attributes and capabilities>>,
+* If there are dependencies, at least one, across all variants, must carry <<rich_versions.adoc#,version information>>.
+
+These are documented in the link:https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md[specification] as well.
 
 ==== Maven or Ivy repositories are no longer queried for artifacts without metadata by default
 
 If Gradle fails to locate the metadata file (`.pom` or `ivy.xml`) of a module in a repository defined in the `repositories { }` section, it now assumes that the module does not exist in that repository.
-Similar, for dynamic versions, the `metadata.xml` for the corresponding module needs to be present in a Maven repository.
-Previously, Gradle was also looking for a default artifact (`.jar`) which usually also does not exist.
-This often caused large number of unnecessary requests when using multiple repositories.
-This change speeds up builds with many dependencies using multiple repositories.
-You can opt into the previous behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata source>>.
 
-==== buildSrc classes are no longer visible from settings scripts
+For dynamic versions, the `maven-metadata.xml` for the corresponding module needs to be present in a Maven repository.
+
+Previously, Gradle would also look for a default artifact (`.jar`).
+This behavior often caused a large number of unnecessary requests when using multiple repositories that slowed builds down.
+
+You can opt into the old behavior for selected repositories by adding the `artifact()` <<declaring_repositories.adoc#sec:supported_metadata_sources,metadata source>>.
+
+==== Changing the pom `packaging` property no longer changes the artifact extension
+
+Previously, if the pom packaging was not _jar_, _ejb_, _bundle_ or _maven-plugin_, the extension of the main artifact published to a Maven repository was changed during publishing to match the pom packaging.
+
+This behavior led to broken Gradle Module Metadata and was difficult to understand due to handling of different packaging types.
+
+Build authors can change the artifact name when the artifact is created to obtain the same result as before — e.g. by setting `jar.archiveExtension.set(pomPackaging)` explicitly.
+
+==== An `ivy.xml` published for Java libraries contains more information
+
+A number of fixes were made to produce more correct `ivy.xml` metadata in the `ivy-publish` plugin.
+
+As a consequence, the internal structure of the `ivy.xml` file has changed. The `runtime` configuration now contains more information, which corresponds to the _runtimeElements_ variant of a Java library. The `default` configuration should yield the same result as before.
+
+In general, users are advised to migrate from `ivy.xml` to the new Gradle Module Metadata format.
+
+==== Changes to Plugins and Build scripts
+
+==== Classes from `buildSrc` are no longer visible to settings scripts
 
 Previously, the buildSrc project was built before applying the project's settings script and its classes were visible within the script.
 Now, buildSrc is built after the settings script and its classes are not visible to it.
@@ -189,25 +292,22 @@ The buildSrc classes remain visible to project build scripts and script plugins.
 
 Custom logic can be used from a settings script by <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies, declaring external dependencies>>.
 
-==== pluginManagement {} in settings scripts is now isolated
+==== The `pluginManagement` block in settings scripts is now isolated
 
 Previously, any `pluginManagement {}` blocks inside a settings script were executed during the normal execution of the script.
-Now, they are executed earlier in a similar manner to `buildscript {}` or `plugins {}`.
-This also means that code inside such a block cannot reference anything declared elsewhere in the script.
 
-This change has been made so that the `pluginManagement {}` configuration can also be applied when resolving plugins for the settings script itself.
+Now, they are executed earlier in a similar manner to `buildscript {}` or `plugins {}`. This means that code inside such a block cannot reference anything declared elsewhere in the script.
 
-==== Plugins and classes loaded in settings scripts are visible to project scripts and build src
+This change has been made so that `pluginManagement` configuration can also be applied when resolving plugins for the settings script itself.
+
+==== Plugins and classes loaded in settings scripts are visible to project scripts and `buildSrc`
 
 Previously, any classes added to the a settings script by using `buildscript {}` were not visible outside of the script.
 Now, they they are visible to all of the project build scripts.
-They are also visible to the buildSrc build's script, including its settings script.
 
-This change has been made so that settings plugins can contribute logic to the entire build.
+They are also visible to the `buildSrc` build script and its settings script.
 
-==== `@Nullable` annotation is gone
-
-The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
+This change has been made so that plugins applied to the settings script can contribute logic to the entire build.
 
 ==== Plugin validation changes
 
@@ -220,7 +320,73 @@ The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annot
 - The following task validation errors now fail the build at runtime and are promoted to errors for link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]:
   * A task property is annotated with a property annotation not allowed for tasks, like `@InputArtifact`.
 
-==== `DefaultTask` and `ProjectLayout` methods replaced with `ObjectFactory`
+==== Changes to Kotlin DSL
+
+==== Using the `embedded-kotlin` plugin now requires a repository
+
+Just like when using the `kotlin-dsl` plugin, it is now required to declare a repository where Kotlin dependencies can be found if you apply the `embedded-kotlin` plugin.
+
+```kotlin
+plugins {
+    `embedded-kotlin`
+}
+
+repositories {
+    jcenter()
+}
+```
+
+==== Kotlin DSL IDE support now requires Kotlin IntelliJ Plugin >= 1.3.50
+
+With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
+Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kotlin DSL script highlighting behavior.
+
+==== Kotlin DSL script base types no longer extend `Project`, `Settings` or `Gradle`
+
+In previous versions, Kotlin DSL scripts were compiled to classes that implemented one of the three core Gradle configuration interfaces in order to implicitly expose their APIs to scripts. `org.gradle.api.Project` for project scripts, `org.gradle.api.initialization.Settings` for settings scripts and `org.gradle.api.invocation.Gradle` for init scripts.
+
+Having the script instance implement the core Gradle interface of the model object it was supposed to configure was convenient because it made the model object API immediately available to the body of the script but it was also a lie that could cause all sorts of trouble whenever the script itself was used in place of the model object, a project script **was not** a proper `Project` instance just because it implemented the core `Project` interface and the same was true for settings and init scripts.
+
+In 6.0 all Kotlin DSL scripts are compiled to classes that implement the newly introduced `org.gradle.kotlin.dsl.KotlinScript` interface and the corresponding model objects are now available as _implicit receivers_ in the body of the scripts. In other words, a project script behaves as if the body of the script is enclosed within a `with(project) { ... }` block, a settings script as if the body of the script is enclosed within a `with(settings) { ... }` block and an init script as if the body of the script is enclosed within a `with(gradle) { ... }` block. This implies the corresponding model object is also available as a property in the body of the script, the `project` property for project scripts, the `settings` property for settings scripts and the `gradle` property for init scripts.
+
+As part of the change, the `SettingsScriptApi` interface is no longer implemented by settings scripts and the `InitScriptApi` interface is no longer implemented by init scripts. They should be replaced with the corresponding model object interfaces, `Settings` and `Gradle`.
+
+==== Miscellaneous
+
+==== Javadoc and Groovydoc don't include timestamps by default
+
+Timestamps in the generated documentation have very limited practical use, however they make it impossible to have repeatable documentation builds.
+Therefore, the `Javadoc` and `Groovydoc` tasks are now configured to not include timestamps by default any more.
+
+==== User provided 'config_loc' properties are ignored by Checkstyle
+
+Gradle always uses `configDirectory` as the value for 'config_loc' when running Checkstyle.
+
+==== New Tooling API progress event
+
+In Gradle 6.0, we introduced a new progress event (link:{javadocPath}/org/gradle/tooling/events/test/TestOutputEvent.html[org.gradle.tooling.events.test.TestOutputEvent]) to expose the output of test execution. This new event breaks the convention of having a `StartEvent`-`FinisEvent` pair to express progress. `TaskOutputEvent` is a simple `ProgressEvent`.
+
+==== Changes to the task container behavior
+
+The following deprecated methods on the task container now result in errors:
+
+- `TaskContainer.add()`
+- `TaskContainer.addAll()`
+- `TaskContainer.remove()`
+- `TaskContainer.removeAll()`
+- `TaskContainer.retainAll()`
+- `TaskContainer.clear()`
+- `TaskContainer.iterator().remove()`
+
+Additionally, the following deprecated functionality now results in an error:
+
+- Replacing a task that has already been realized.
+- Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
+- Replacing a task that has never been registered.
+
+==== Replaced and Removed APIs
+
+==== Methods on `DefaultTask` and `ProjectLayout` replaced with `ObjectFactory`
 
 Use `ObjectFactory.fileProperty()` instead of the following methods that are now removed:
 
@@ -233,6 +399,10 @@ Use `ObjectFactory.directoryProperty()` instead of the following methods that ar
 - `DefaultTask.newInputDirectory()`
 - `DefaultTask.newOutputDirectory()`
 - `ProjectLayout.directoryProperty()`
+
+==== Annotation `@Nullable` has been removed
+
+The `org.gradle.api.Nullable` annotation type has been removed. Use `javax.annotation.Nullable` from JSR-305 instead.
 
 ==== The FindBugs plugin has been removed
 
@@ -264,98 +434,15 @@ Please use https://scans.gradle.com/[build scans] for build analysis and compari
 The deprecated Play plugin has been removed.
 An external replacement, the link:https://gradle.github.io/playframework[Play Framework plugin], is available from the plugin portal.
 
-==== Changes to the task container
-
-The following deprecated methods on the task container now result in errors:
-
-- `TaskContainer.add()`
-- `TaskContainer.addAll()`
-- `TaskContainer.remove()`
-- `TaskContainer.removeAll()`
-- `TaskContainer.retainAll()`
-- `TaskContainer.clear()`
-- `TaskContainer.iterator().remove()`
-
-Additionally, the following deprecated functionality now results in an error:
-
-- Replacing a task that has already been realized.
-- Replacing a registered (unrealized) task with an incompatible type. A compatible type is the same type or a sub-type of the registered type.
-- Replacing a task that has never been registered.
-
-==== `AbstractCompile.compile()` is gone
+==== Method `AbstractCompile.compile()` method has been removed
 
 The abstract method `compile()` is no longer declared by `AbstractCompile`.
+
 Tasks extending `AbstractCompile` can implement their own `@TaskAction` method with the name of their choosing.
-They are also free to add a `@TaskAction` method with an `InputChanges` parameter without having to implement a parameter-less one as well.
 
-==== Using the `embedded-kotlin` plugin now requires a repository
+They are also free to add a method annotated with `@TaskAction` using an `InputChanges` parameter without having to implement a parameter-less one as well.
 
-Just like when using the `kotlin-dsl` plugin, it is now required to declare a repository where Kotlin dependencies can be found if you apply the `embedded-kotlin` plugin.
-
-```kotlin
-plugins {
-    `embedded-kotlin`
-}
-
-repositories {
-    jcenter()
-}
-```
-
-==== Kotlin DSL IDE support now requires Kotlin IntelliJ Plugin >= 1.3.50
-
-With Kotlin IntelliJ plugin versions prior to 1.3.50, Kotlin DSL scripts will be wrongly highlighted when the _Gradle JVM_ is set to a version different from the one in _Project SDK_.
-Simply upgrade your IDE plugin to a version >= 1.3.50 to restore the correct Kotlin DSL script highlighting behavior.
-
-==== Updates to bundled Gradle dependencies
-
-- Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.8.html[Groovy 2.5.8].
-- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/08/kotlin-1-3-50-released/[Kotlin 1.3.50].
-- Ant has been updated to https://archive.apache.org/dist/ant/RELEASE-NOTES-1.10.7.html[Ant 1.10.7].
-
-==== Updates to default integration versions
-
-- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.24[Checkstyle 8.24].
-- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/master/CHANGELOG.md#version-14---may-2019[CodeNarc 1.4].
-- PMD has been updated to https://pmd.github.io/latest/pmd_release_notes.html#28-july-2019---6170[PMD 6.17.0].
-
-==== Javadoc and Groovydoc don't include timestamps by default
-
-Timestamps in the generated documentation have very limited practical use, however they make it impossible to have repeatable documentation builds.
-Therefore, the `Javadoc` and `Groovydoc` tasks are now configured to not include timestamps by default any more.
-
-==== User provided 'config_loc' properties are ignored by Checkstyle
-
-Gradle always uses `configDirectory` as the value for 'config_loc' when running Checkstyle.
-
-==== Changing the pom packaging no longer changes the artifact extension
-
-Previously, the extension of the main artifact published to a Maven repository, typically a _jar_, was changed during publishing if the pom packaging was not _jar_, _ejb_, _bundle_ or _maven-plugin_.
-This behavior led to broken Gradle Module Metadata and was difficult to understand due to different handling of different packaging types.
-Build authors can change the artifact name when the artifact is created to obtain the same result as before - e.g. by setting `jar.archiveExtension.set(pomPackaging)`.
-
-==== Ivy.xml published for Java libraries contains more information
-
-A number of fixes were made to produce more correct `ivy.xml` metadata in the `ivy-publish` plugin.
-As a consequence, the internal structure of the `ivy.xml` file has changed.
-However, selecting the `default` configuration yields the same result as before.
-Only the `runtime` configuration now contains more information which corresponds to the _runtimeElements_ variant of a Java library.
-In general, users are advised to migrate from `ivy.xml` to the new Gradle Module Metadata format.
-
-==== Executing Gradle without a settings file has been deprecated
-
-A Gradle build is defined by a `settings.gradle[.kts]` file in the current or parent directory.
-Without a settings file, a Gradle build is undefined and will emit a deprecation warning.
-
-In Gradle 7.0, Gradle will only allow you to invoke the `init` task or diagnostic command line flags, such as `--version`, with undefined builds.
-
-==== Calling afterEvaluate on an evaluated project has been deprecated
-
-Once a project is evaluated, Gradle ignores all configuration passed to `Project#afterEvaluate` and emits a deprecation warning. This scenario will become an error in Gradle 7.0.
-
-==== Miscellaneous
-
-The following breaking changes will appear as deprecation warnings with Gradle 5.6:
+==== Other Deprecated Behaviors and APIs
 
 * The `org.gradle.util.GUtil.savePropertiesNoDateComment` has been removed. There is no public replacement for this internal method.
 * The deprecated class `org.gradle.api.tasks.compile.CompilerArgumentProvider` has been removed.
@@ -389,6 +476,7 @@ The following breaking changes will appear as deprecation warnings with Gradle 5
 * The `isLegacyLayout()` method is removed from `SourceSetOutput`.
 * The map returned by `TaskInputs.getProperties()` is now unmodifiable.
   Trying to modify it will result in an `UnsupportedOperationException` being thrown.
+* There are slight changes in the incubating <<dependency_capability_conflict.adoc#sub:selecting-between-candidates,capabilities resolution>> API, which has been introduced in 5.6, to also allow variant selection based on variant name
 
 [[changes_5.6]]
 == Upgrading from 5.5 and earlier
@@ -416,7 +504,7 @@ Declare file outputs or use link:{javadocPath}/org/gradle/api/tasks/TaskOutputs.
 
 This will become an error in Gradle 6.0.
 
-==== `WorkerExecutor.submit()` is deprecated
+==== Method `WorkerExecutor.submit()` is deprecated
 
 The `WorkerExecutor.submit()` method is now deprecated.
 The new `noIsolation()`, `classLoaderIsolation()` and `processIsolation()` methods should now be used to submit work.
@@ -502,7 +590,6 @@ Gradle 5.6 introduced a new DSL element (`JavaForkOptions.debugOptions(Action<Ja
 === Scala 2.9 and Zinc compiler
 
 Gradle no longer supports building applications using Scala 2.9.
-The Zinc compiler has been upgraded to 1.2.5 and requires Scala 2.10.
 
 [[changes_5.5]]
 == Upgrading from 5.4 and earlier
@@ -542,7 +629,7 @@ Contributed by link:https://github.com/Godin[Evgeny Mandrikov]
 
 The version of Ant distributed with Gradle has been upgraded to link:https://archive.apache.org/dist/ant/RELEASE-NOTES-1.9.14.html[1.9.14] from 1.9.13.
 
-==== `DependencyHandler` now statically exposes `ExtensionAware`
+==== Type `DependencyHandler` now statically exposes `ExtensionAware`
 
 This affects Kotlin DSL build scripts that make use of `ExtensionAware` extension members such as the `extra` properties accessor inside the `dependencies {}` block. The receiver for those members will no longer be the enclosing `Project` instance but the `dependencies` object itself, the innermost `ExtensionAware` conforming receiver. In order to address `Project` extra properties inside `dependencies {}` the receiver must be explicitly qualified i.e. `project.extra` instead of just `extra`. Affected extensions also include `the<T>()` and `configure<T>(T.() -> Unit)`.
 
@@ -706,7 +793,7 @@ The incubating `operatingSystems` property on native components has been replace
 
 ===== Change in behavior for tasks extending `AbstractArchiveTask`
 
-The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#sec:lazy_configuration_reference,Provider API>>.
+The `AbstractArchiveTask` has several new properties using the <<lazy_configuration.adoc#lazy_configuration_reference,Provider API>>.
 Plugins that extend these types and override methods from the base class may no longer behave the same way.
 Internally, `AbstractArchiveTask` prefers the new properties and methods like `getArchiveName()` are façades over the new properties.
 

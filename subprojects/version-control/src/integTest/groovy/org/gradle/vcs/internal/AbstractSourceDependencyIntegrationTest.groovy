@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -119,6 +120,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         failure.assertHasCause("Could not locate default branch for Git repository at https://bad.invalid.")
     }
 
+    @ToBeFixedForInstantExecution
     def "can define unused vcs mappings"() {
         settingsFile << """
             // include the missing dep as a composite
@@ -130,6 +132,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoNotCheckedOut()
     }
 
+    @ToBeFixedForInstantExecution
     def "last vcs mapping rule wins"() {
         mappingFor("does-not-exist", "org.test:dep")
         mappingFor(repo, "org.test:dep")
@@ -138,6 +141,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
+    @ToBeFixedForInstantExecution
     def 'main build can request plugins to be applied to source dependency build'() {
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addSettingsPlugin """
@@ -160,6 +164,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoCheckedOut()
     }
 
+    @ToBeFixedForInstantExecution
     def 'injected plugin can apply other plugins to source dependency build'() {
         def pluginBuilder = new PluginBuilder(file("plugin"))
         pluginBuilder.addPlugin """
@@ -196,6 +201,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         failure.assertHasDescription("Plugin [id: 'com.example.DoesNotExist'] was not found in any of the following sources:")
     }
 
+    @ToBeFixedForInstantExecution
     def 'can build from sub-directory of repository'() {
         def subdir = repo.file("subdir")
         repo.workTree.listFiles().each {

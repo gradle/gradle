@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -82,6 +83,7 @@ task checkDeps {
         run("checkDeps")
     }
 
+    @ToBeFixedForInstantExecution
     void "can force already resolved version of a module and avoid conflict"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -238,6 +240,7 @@ project(':tool') {
         run("tool:checkDeps")
     }
 
+    @ToBeFixedForInstantExecution
     void "strict conflict strategy can be used with forced modules"() {
         mavenRepo.module("org", "foo", '1.3.3').publish()
         mavenRepo.module("org", "foo", '1.4.4').publish()
@@ -279,9 +282,10 @@ project(':tool') {
 """
 
         expect:
-        executer.expectDeprecationWarning()
+        executer.expectDocumentedDeprecationWarning("Using force on a dependency has been deprecated. " +
+            "This is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } }). " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#forced_dependencies")
         run("tool:dependencies")
-        outputContains("Using force on a dependency is not recommended. This has been deprecated and is scheduled to be removed in Gradle 7.0. Consider using strict version constraints instead (version { strictly ... } })")
     }
 
     void "can force the version of a direct dependency"() {
@@ -379,12 +383,12 @@ task checkDeps {
             configurations {
                 conf
             }
-        
+
             def d1 = project.dependencies.create("org:foo:1.1")
             def d2 = project.dependencies.create("org:foo:1.0")
             def d3 = project.dependencies.create("org:foo:1.0")
             ${forced}.force = true
-            
+
             dependencies {
                 conf d1
                 conf d2

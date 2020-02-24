@@ -19,7 +19,7 @@ package org.gradle.java.compile.incremental
 abstract class AbstractCompileAvoidanceWithIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
     def setup() {
         buildFile << """
-            allprojects {                
+            allprojects {
                 ${jcenterRepository()}
             }
        """

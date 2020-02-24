@@ -16,6 +16,7 @@
 package org.gradle.test.fixtures.server.http;
 
 import groovy.lang.Closure;
+import groovy.lang.DelegatesTo;
 import org.gradle.internal.Cast;
 import org.gradle.test.fixtures.GradleModuleMetadata;
 import org.gradle.test.fixtures.Module;
@@ -23,6 +24,7 @@ import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.test.fixtures.ivy.IvyDescriptor;
 import org.gradle.test.fixtures.ivy.IvyModule;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.Map;
 
@@ -131,6 +133,18 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     @Override
     public IvyModule withoutGradleMetadataRedirection() {
         backingModule.withoutGradleMetadataRedirection();
+        return t();
+    }
+
+    @Override
+    public IvyModule withoutExtraChecksums() {
+        backingModule.withoutExtraChecksums();
+        return t();
+    }
+
+    @Override
+    public IvyModule withExtraChecksums() {
+        backingModule.withExtraChecksums();
         return t();
     }
 
@@ -271,6 +285,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     @Override
     public T withoutDefaultVariants() {
         backingModule.withoutDefaultVariants();
+        return t();
+    }
+
+    @Override
+    public Module withSignature(@DelegatesTo(value = File.class, strategy = Closure.DELEGATE_FIRST) Closure<?> signer) {
+        backingModule.withSignature(signer);
         return t();
     }
 }

@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ConflictResolutionResult;
 
 class ReplaceSelectionWithConflictResultAction implements Action<ConflictResolutionResult> {
@@ -29,25 +28,11 @@ class ReplaceSelectionWithConflictResultAction implements Action<ConflictResolut
 
     @Override
     public void execute(final ConflictResolutionResult result) {
-        Object selected = result.getSelected();
-        final ComponentState component = findComponent(selected);
-        result.withParticipatingModules(new Action<ModuleIdentifier>() {
-            @Override
-            public void execute(ModuleIdentifier moduleIdentifier) {
-                // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
-                // matching selected configuration. For the select configuration, this mean traversing its dependencies.
-                resolveState.getModule(moduleIdentifier).restart(component);
-            }
+        result.withParticipatingModules(moduleIdentifier -> {
+            // Restart each configuration. For the evicted configuration, this means moving incoming dependencies across to the
+            // matching selected configuration. For the select configuration, this mean traversing its dependencies.
+            resolveState.getModule(moduleIdentifier).replaceWith(result.getSelected());
         });
     }
 
-    private ComponentState findComponent(Object selected) {
-        if (selected instanceof ComponentState) {
-            return (ComponentState) selected;
-        }
-        if (selected instanceof NodeState) {
-            return ((NodeState) selected).getComponent();
-        }
-        return null;
-    }
 }

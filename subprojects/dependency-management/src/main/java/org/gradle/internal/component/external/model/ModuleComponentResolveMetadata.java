@@ -20,7 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.component.model.ModuleSources;
 
 import javax.annotation.Nullable;
 
@@ -37,12 +37,6 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     ModuleComponentIdentifier getId();
 
     /**
-     * {@inheritDoc}
-     */
-    @Override
-    ModuleComponentResolveMetadata withSource(ModuleSource source);
-
-    /**
      * Creates a mutable copy of this metadata.
      *
      * Note that this method can be expensive. Often it is more efficient to use a more specialised mutation method such as {@link #withSource(ModuleSource)} rather than this method.
@@ -50,14 +44,15 @@ public interface ModuleComponentResolveMetadata extends ComponentResolveMetadata
     MutableModuleComponentResolveMetadata asMutable();
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    ModuleComponentResolveMetadata withSources(ModuleSources sources);
+
+    /**
      * Creates an artifact for this module. Does not mutate this metadata.
      */
     ModuleComponentArtifactMetadata artifact(String type, @Nullable String extension, @Nullable String classifier);
-
-    /**
-     * Returns the hash of the resource(s) from which this metadata was created.
-     */
-    HashValue getOriginalContentHash();
 
     /**
      * Returns the variants of this component

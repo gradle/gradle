@@ -17,10 +17,28 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.SingleFileReport;
 
-public class TaskGeneratedSingleFileReport extends TaskGeneratedReport implements SingleFileReport {
+import javax.inject.Inject;
+import java.io.File;
+
+public abstract class TaskGeneratedSingleFileReport extends TaskGeneratedReport implements SingleFileReport {
+    @Inject
     public TaskGeneratedSingleFileReport(String name, Task task) {
         super(name, OutputType.FILE, task);
+        // This is for backwards compatibility for plugins that attach a convention mapping to the replaced property
+        // TODO - this wiring should happen automatically (and be deprecated too)
+        getOutputLocation().convention(getProjectLayout().file(new DefaultProvider<>(() -> {
+            return (File) ((IConventionAware) TaskGeneratedSingleFileReport.this).getConventionMapping().getConventionValue(null, "destination", false);
+        })));
+        getRequired().convention(false);
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
     }
 }

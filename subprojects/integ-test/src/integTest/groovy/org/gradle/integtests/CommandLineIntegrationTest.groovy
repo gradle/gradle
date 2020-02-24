@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.internal.jvm.Jvm
@@ -29,6 +30,7 @@ import org.gradle.util.TestPrecondition
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Issue
 
 @SuppressWarnings('IntegrationTestFixtures')
 class CommandLineIntegrationTest extends AbstractIntegrationTest {
@@ -51,6 +53,7 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     void canDefineJavaHomeUsingEnvironmentVariable() {
         String javaHome = Jvm.current().javaHome
         String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
@@ -134,6 +137,8 @@ class CommandLineIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
+    @Requires(TestPrecondition.NOT_EC2_AGENT)
+    @Issue('https://github.com/gradle/gradle-private/issues/2876')
     void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
         File userHome = file('customUserHome')

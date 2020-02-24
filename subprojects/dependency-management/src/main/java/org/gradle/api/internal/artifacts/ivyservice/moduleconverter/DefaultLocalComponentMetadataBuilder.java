@@ -24,8 +24,10 @@ import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.Configurations;
 import org.gradle.api.internal.artifacts.configurations.OutgoingVariant;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
+import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.external.model.ImmutableCapability;
+import org.gradle.internal.component.external.model.ShadowedCapability;
 import org.gradle.internal.component.local.model.BuildableLocalComponentMetadata;
 import org.gradle.internal.component.local.model.BuildableLocalConfigurationMetadata;
 
@@ -78,10 +80,17 @@ public class DefaultLocalComponentMetadataBuilder implements LocalComponentMetad
         if (descriptors.isEmpty()) {
             return ImmutableCapabilities.EMPTY;
         }
-        ImmutableList.Builder<ImmutableCapability> builder = new ImmutableList.Builder<ImmutableCapability>();
+
+        ImmutableList.Builder<CapabilityInternal> builder = new ImmutableList.Builder<>();
         for (Capability descriptor : descriptors) {
-            builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
+            if (descriptor instanceof ImmutableCapability) {
+                builder.add((ImmutableCapability) descriptor);
+            } else if (descriptor instanceof ShadowedCapability) {
+                builder.add((ShadowedCapability) descriptor);
+            } else {
+                builder.add(new ImmutableCapability(descriptor.getGroup(), descriptor.getName(), descriptor.getVersion()));
+            }
         }
-        return new ImmutableCapabilities(builder.build());
+        return ImmutableCapabilities.of(builder.build());
     }
 }

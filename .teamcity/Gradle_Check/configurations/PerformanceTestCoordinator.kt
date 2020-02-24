@@ -7,9 +7,9 @@ import common.checkCleanM2
 import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep.ExecutionMode
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep.ExecutionMode
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.PerformanceTestType
 import model.Stage
@@ -38,7 +38,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
             executionMode = runnerExecutionMode
             gradleParams = (performanceTestCommandLine(task = runnerTasks, baselines = "%performance.baselines%", extraParameters = type.extraParameters) +
                     buildToolGradleParameters(isContinue = false) +
-                    distributedPerformanceTestParameters(IndividualPerformanceScenarioWorkers(model).id.toString()) +
+                    distributedPerformanceTestParameters(IndividualPerformanceScenarioWorkers(model, Os.linux).id.toString()) +
                     listOf(buildScanTag("PerformanceTest")) +
                     model.parentBuildCache.gradleParameters(Os.linux) +
                     extraParameters

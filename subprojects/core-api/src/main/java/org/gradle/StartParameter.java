@@ -21,6 +21,7 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.artifacts.verification.DependencyVerificationMode;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
@@ -34,8 +35,8 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -96,7 +97,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean buildScan;
     private boolean noBuildScan;
     private boolean writeDependencyLocks;
+    private List<String> writeDependencyVerifications = emptyList();
     private List<String> lockedDependenciesToUpdate = emptyList();
+    private DependencyVerificationMode verificationMode = DependencyVerificationMode.STRICT;
+    private boolean isRefreshKeys;
+    private boolean isExportKeys;
 
     /**
      * {@inheritDoc}
@@ -249,7 +254,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
         p.writeDependencyLocks = writeDependencyLocks;
+        p.writeDependencyVerifications = writeDependencyVerifications;
         p.lockedDependenciesToUpdate = new ArrayList<>(lockedDependenciesToUpdate);
+        p.verificationMode = verificationMode;
+        p.isRefreshKeys = isRefreshKeys;
+        p.isExportKeys = isExportKeys;
         return p;
     }
 
@@ -296,7 +305,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#useEmptySettings()");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "useEmptySettings()")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "discontinued_methods")
+            .nagUser();
         doUseEmptySettings();
         return this;
     }
@@ -313,7 +325,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#isUseEmptySettings()");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "isUseEmptySettings()")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "discontinued_methods")
+            .nagUser();
         return useEmptySettings;
     }
 
@@ -404,12 +419,18 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#isSearchUpwards()");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "isSearchUpwards()")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
+            .nagUser();
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#setSearchUpwards(boolean)");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "setSearchUpwards(boolean)")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
+            .nagUser();
         this.searchUpwards = searchUpwards;
     }
 
@@ -743,6 +764,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
             + ", maxWorkerCount=" + getMaxWorkerCount()
             + ", buildCacheEnabled=" + buildCacheEnabled
             + ", writeDependencyLocks=" + writeDependencyLocks
+            + ", verificationMode=" + verificationMode
+            + ", refreshKeys=" + isRefreshKeys
             + '}';
     }
 
@@ -838,7 +861,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      *
      * @param lockedDependenciesToUpdate the modules to update
      * @see #isWriteDependencyLocks()
-     *
      * @since 4.8
      */
     public void setLockedDependenciesToUpdate(List<String> lockedDependenciesToUpdate) {
@@ -847,13 +869,115 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     /**
+     * Indicates if a dependency verification metadata file should be written at the
+     * end of this build. If the list is not empty, then it means we need to generate
+     * or update the dependency verification file with the checksums specified in the
+     * list.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    public List<String> getWriteDependencyVerifications() {
+        return writeDependencyVerifications;
+    }
+
+    /**
+     * Tells if a dependency verification metadata file should be written at the end
+     * of this build.
+     *
+     * @param checksums the list of checksums to generate
+     * @since 6.1
+     */
+    @Incubating
+    public void setWriteDependencyVerifications(List<String> checksums) {
+        this.writeDependencyVerifications = checksums;
+    }
+
+    /**
      * Returns the list of modules that are to be allowed to update their version compared to the lockfile.
      *
      * @return a list of modules allowed to have a version update
-     *
      * @since 4.8
      */
     public List<String> getLockedDependenciesToUpdate() {
         return lockedDependenciesToUpdate;
+    }
+
+    /**
+     * Sets the dependency verification mode. There are three different modes:
+     * <ul>
+     *     <li><i>strict</i>, the default, verification is enabled as soon as a dependency verification file is present.</li>
+     *     <li><i>lenient</i>, in this mode, failure to verify a checksum, missing checksums or signatures will be logged
+     *     but will not fail the build. This mode should only be used when updating dependencies as it is inherently unsafe.</li>
+     *     <li><i>off</i>, this mode disables all verifications</li>
+     * </ul>
+     *
+     * @param verificationMode if true, enables lenient dependency verification
+     * @since 6.2
+     */
+    @Incubating
+    public void setDependencyVerificationMode(DependencyVerificationMode verificationMode) {
+        this.verificationMode = verificationMode;
+    }
+
+    /**
+     * Returns the dependency verification mode.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public DependencyVerificationMode getDependencyVerificationMode() {
+        return verificationMode;
+    }
+
+    /**
+     * Sets the key refresh flag.
+     *
+     * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.
+     * @since 6.2
+     */
+    @Incubating
+    public void setRefreshKeys(boolean refresh) {
+        isRefreshKeys = refresh;
+    }
+
+    /**
+     * If true, Gradle will try to download missing keys again.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    public boolean isRefreshKeys() {
+        return isRefreshKeys;
+    }
+
+    /**
+     * If true, after writing the dependency verification file, a public keyring
+     * file will be generated with all keys seen during generation of the file.
+     *
+     * This file can then be used as a source for public keys instead of reaching
+     * out public key servers.
+     *
+     * @return true if keys should be exported
+     * @since 6.2
+     */
+    @Incubating
+    public boolean isExportKeys() {
+        return isExportKeys;
+    }
+
+    /**
+     * If true, after writing the dependency verification file, a public keyring
+     * file will be generated with all keys seen during generation of the file.
+     *
+     * This file can then be used as a source for public keys instead of reaching
+     * out public key servers.
+     *
+     * @param exportKeys set to true if keys should be exported
+     * @since 6.2
+     */
+    @Incubating
+    public void setExportKeys(boolean exportKeys) {
+        isExportKeys = exportKeys;
     }
 }

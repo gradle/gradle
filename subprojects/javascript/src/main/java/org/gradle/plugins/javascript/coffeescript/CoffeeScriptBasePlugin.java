@@ -29,17 +29,20 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugins.javascript.base.JavaScriptExtension;
 import org.gradle.plugins.javascript.rhino.RhinoExtension;
 import org.gradle.plugins.javascript.rhino.RhinoPlugin;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.concurrent.Callable;
 
 public class CoffeeScriptBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        DeprecationLogger.nagUserOfDeprecatedPlugin("org.gradle.coffeescript-base");
+        DeprecationLogger.deprecatePlugin("org.gradle.coffeescript-base")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "deprecated_plugins")
+            .nagUser();
         project.getPluginManager().apply(RhinoPlugin.class);
 
         JavaScriptExtension jsExtension = project.getExtensions().getByType(JavaScriptExtension.class);

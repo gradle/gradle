@@ -44,8 +44,7 @@ object PropertyNames {
     const val baselines = "org.gradle.performance.baselines"
     const val buildTypeId = "org.gradle.performance.buildTypeId"
 
-    const val teamCityUsername = "teamCityUsername"
-    const val teamCityPassword = "teamCityPassword"
+    const val teamCityToken = "teamCityToken"
 }
 
 
@@ -307,14 +306,14 @@ class PerformanceTestPlugin : Plugin<Project> {
 
     private
     fun Project.configureIdePlugins(performanceTestSourceSet: SourceSet) {
-        val performanceTestCompile by configurations
-        val performanceTestRuntime by configurations
+        val performanceTestCompileClasspath by configurations
+        val performanceTestRuntimeClasspath by configurations
         plugins.withType<EclipsePlugin> {
             configure<EclipseModel> {
                 classpath {
                     plusConfigurations.apply {
-                        add(performanceTestCompile)
-                        add(performanceTestRuntime)
+                        add(performanceTestCompileClasspath)
+                        add(performanceTestRuntimeClasspath)
                     }
                 }
             }
@@ -326,8 +325,8 @@ class PerformanceTestPlugin : Plugin<Project> {
                     testSourceDirs = testSourceDirs + performanceTestSourceSet.groovy.srcDirs
                     testResourceDirs = testResourceDirs + performanceTestSourceSet.resources.srcDirs
                     scopes["TEST"]!!["plus"]!!.apply {
-                        add(performanceTestCompile)
-                        add(performanceTestRuntime)
+                        add(performanceTestCompileClasspath)
+                        add(performanceTestRuntimeClasspath)
                     }
                 }
             }
@@ -349,8 +348,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             workerTestTaskName = stringPropertyOrNull(PropertyNames.workerTestTaskName) ?: "fullPerformanceTest"
             branchName = determineCurrentBranch()
             teamCityUrl = Config.teamCityUrl
-            teamCityUsername = stringPropertyOrNull(PropertyNames.teamCityUsername)
-            teamCityPassword = stringPropertyOrNull(PropertyNames.teamCityPassword)
+            teamCityToken = stringPropertyOrNull(PropertyNames.teamCityToken)
             distributedPerformanceReporter = createPerformanceReporter()
         }
 

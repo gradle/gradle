@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.javascript.rhino
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
@@ -26,8 +27,10 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             ${mavenCentralRepository()}
         """
-        executer.expectDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
     }
 
 
@@ -47,6 +50,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         file("deps/rhino-${RhinoExtension.DEFAULT_RHINO_DEPENDENCY_VERSION}.jar").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can run rhino exec task"() {
         given:
         file("some.js") << """
@@ -84,6 +88,7 @@ class RhinoPluginIntegrationTest extends WellBehavedPluginTest {
         fails "rhino"
     }
 
+    @ToBeFixedForInstantExecution
     def "can use older rhino version"() {
         given:
         buildFile << """

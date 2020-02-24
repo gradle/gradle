@@ -117,16 +117,16 @@ Applying the plugin is as simple as inserting a  `plugins {}` block at the begin
 
 .Applying the Java Library Plugin
 ====
-include::sample[dir="userguide/antMigration/importBuild/groovy",files="build.gradle[tags=apply-plugin]"]
-include::sample[dir="userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
 To rename the `build` task, use the variant of link:{javadocPath}/org/gradle/api/AntBuilder.html#importBuild-java.lang.Object-org.gradle.api.Transformer-[AntBuilder.importBuild()] that accepts a transformer, like this:
 
 .Renaming targets on import
 ====
-include::sample[dir="userguide/antMigration/importBuild/groovy",files="build.gradle[tags=import-build]"]
-include::sample[dir="userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=import-build]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/groovy",files="build.gradle[tags=import-build]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=import-build]"]
 ====
 <1> Renames the `build` target to `ant_build` and leaves all other targets unchanged
 
@@ -136,8 +136,8 @@ Let's say the original Ant build stores these paths in Ant properties, `src.dir`
 
 .Configuring the source sets
 ====
-include::sample[dir="userguide/antMigration/importBuild/groovy",files="build.gradle[tags=source-sets]"]
-include::sample[dir="userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=source-sets]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/groovy",files="build.gradle[tags=source-sets]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=source-sets]"]
 ====
 
 You should eventually aim to switch the standard directory structure for your type of project if possible and then you'll be able to remove this customization.
@@ -148,8 +148,8 @@ Here is the required task dependency configuration required by the example scena
 
 .Configuring the task dependencies
 ====
-include::sample[dir="userguide/antMigration/importBuild/groovy",files="build.gradle[tags=task-dependencies]"]
-include::sample[dir="userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=task-dependencies]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/groovy",files="build.gradle[tags=task-dependencies]"]
+include::sample[dir="snippets/userguide/antMigration/importBuild/kotlin",files="build.gradle.kts[tags=task-dependencies]"]
 ====
 <1> Makes compilation depend on the `prepare` task
 <2> Detaches `package` from the `ant_build` task and makes it depend on `compileJava`
@@ -206,8 +206,8 @@ The following sample build script demonstrates how you can incorporate all of th
 
 .Declaring dependencies served from the filesystem
 ====
-include::sample[dir="userguide/antMigration/fileDeps/groovy",files="build.gradle[tags=file-deps]"]
-include::sample[dir="userguide/antMigration/fileDeps/kotlin",files="build.gradle.kts[tags=file-deps]"]
+include::sample[dir="snippets/userguide/antMigration/fileDeps/groovy",files="build.gradle[tags=file-deps]"]
+include::sample[dir="snippets/userguide/antMigration/fileDeps/kotlin",files="build.gradle.kts[tags=file-deps]"]
 ====
 <1> Specifies the path to the directory containing the JAR files
 <2> Declares a _file dependency_ for the unversioned JAR
@@ -275,8 +275,8 @@ As mentioned, Gradle does not automatically copy files from the dependency cache
 +
 .Copying dependencies to a local directory
 ====
-include::sample[dir="userguide/antMigration/fileDeps/groovy",files="build.gradle[tags=retrieve-deps]"]
-include::sample[dir="userguide/antMigration/fileDeps/kotlin",files="build.gradle.kts[tags=retrieve-deps]"]
+include::sample[dir="snippets/userguide/antMigration/fileDeps/groovy",files="build.gradle[tags=retrieve-deps]"]
+include::sample[dir="snippets/userguide/antMigration/fileDeps/kotlin",files="build.gradle.kts[tags=retrieve-deps]"]
 ====
 +
 A configuration is also a file collection, hence why it can be used in the `from()` configuration. You can use a similar technique to attach a configuration to a compilation task or one that produces documentation. See the chapter on <<working_with_files#working_with_files,Working with Files>> for more examples and information on Gradle's file API.
@@ -374,8 +374,8 @@ Another important factor to understand is that a Gradle build script works with 
 
 .Using task properties in place of project properties
 ====
-include::sample[dir="userguide/antMigration/fileDeps/groovy",files="build.gradle[tags=properties]"]
-include::sample[dir="userguide/antMigration/fileDeps/kotlin",files="build.gradle.kts[tags=properties]"]
+include::sample[dir="snippets/userguide/antMigration/fileDeps/groovy",files="build.gradle[tags=properties]"]
+include::sample[dir="snippets/userguide/antMigration/fileDeps/kotlin",files="build.gradle.kts[tags=properties]"]
 ====
 <1> Packages all ``javadoc``'s output files — equivalent to `from javadoc.destinationDir`
 <2> Uses the location of the Javadoc JAR held by the `javadocJar` task
@@ -416,15 +416,15 @@ Ensuring the production of the required artifacts typically means calling into o
 For example, imagine you have a web project that depends on a "util" library that's part of the same build. The Ant build file for "web" might have a target like this:
 +
 ====
-include::sample[dir="userguide/antMigration/multiProject/groovy",files="web/build.xml[tags=build-required]"]
+include::sample[dir="snippets/userguide/antMigration/multiProject/groovy",files="web/build.xml[tags=build-required]"]
 ====
 <1> `root.dir` would have to be defined by the build
 +
 This can be replaced by an inter-project task dependency in the corresponding Gradle build script, as demonstrated in the following example that assumes the "web" project's "compile" task is the thing that requires "util" to be built beforehand:
 +
 ====
-include::sample[dir="userguide/antMigration/multiProject/groovy",files="web/build.gradle[]"]
-include::sample[dir="userguide/antMigration/multiProject/kotlin",files="web/build.gradle.kts[]"]
+include::sample[dir="snippets/userguide/antMigration/multiProject/groovy",files="web/build.gradle[]"]
+include::sample[dir="snippets/userguide/antMigration/multiProject/kotlin",files="web/build.gradle.kts[]"]
 ====
 +
 This is not as robust or powerful as Gradle's <<multi_project_builds#sec:project_jar_dependencies,project dependencies>>, but it solves the immediate problem without big changes to the build. Just be careful to remove or override any dependencies on tasks that delegate to other subprojects, like the `buildRequiredProjects` task.

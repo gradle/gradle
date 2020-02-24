@@ -16,14 +16,22 @@
 
 package org.gradle.language.scala.internal;
 
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.jvm.Classpath;
 import org.gradle.language.base.sources.BaseLanguageSourceSet;
 import org.gradle.language.jvm.internal.EmptyClasspath;
 import org.gradle.language.scala.ScalaLanguageSourceSet;
 
+import javax.inject.Inject;
+
 public class DefaultScalaLanguageSourceSet extends BaseLanguageSourceSet implements ScalaLanguageSourceSet {
 
-    private final EmptyClasspath compileClasspath = new EmptyClasspath();
+    private final EmptyClasspath compileClasspath;
+
+    @Inject
+    public DefaultScalaLanguageSourceSet(ProjectLayout projectLayout) {
+        compileClasspath = new EmptyClasspath(projectLayout);
+    }
 
     @Override
     public Classpath getCompileClasspath() {

@@ -20,6 +20,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.api.Plugin
 import org.gradle.api.initialization.Settings
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
@@ -90,7 +91,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
             settingsEvaluated {
                 it.ext.addedInInit << "settingsEvaluated"
                 println "order: " + it.ext.addedInInit.join(" - ")
-            } 
+            }
         """
 
         file("settings.gradle") << """
@@ -115,6 +116,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         output.contains("subprojects: :sub1 - :sub2")
     }
 
+    @ToBeFixedForInstantExecution
     def "can apply settings plugin from init script"() {
         given:
         def pluginBuilder = new PluginBuilder(file("plugin"))
@@ -143,7 +145,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
             settingsEvaluated {
                 it.ext.addedInPlugin << "settingsEvaluated"
                 println "order: " + it.ext.addedInPlugin.join(" - ")
-            } 
+            }
         """
 
         file("settings.gradle") << """
@@ -183,17 +185,17 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         run 'help'
 
         then:
-        outputContains("${displayName} has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        outputContains("${displayName} method has been deprecated. This is scheduled to be removed in Gradle 7.0.")
 
         where:
         displayName                                | codeUnderTest
-        "StartParameter#setSearchUpwards(boolean)" | "gradle.startParameter.searchUpwards = true"
-        "StartParameter#isSearchUpwards()"         | "gradle.startParameter.searchUpwards"
-        "StartParameter#useEmptySettings()"        | "gradle.startParameter.useEmptySettings()"
-        "StartParameter#isUseEmptySettings()"      | "gradle.startParameter.useEmptySettings"
+        "StartParameter.setSearchUpwards(boolean)" | "gradle.startParameter.searchUpwards = true"
+        "StartParameter.isSearchUpwards()"         | "gradle.startParameter.searchUpwards"
+        "StartParameter.useEmptySettings()"        | "gradle.startParameter.useEmptySettings()"
+        "StartParameter.isUseEmptySettings()"      | "gradle.startParameter.useEmptySettings"
     }
 
-    private String initScript() {
+    private static String initScript() {
         """
             gradle.addListener(new TaskExecutionAdapter() {
                 public void afterExecute(Task task, TaskState state) {

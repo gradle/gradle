@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+
+import javax.annotation.Nullable;
 
 public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> implements PropertyInternal<T> {
     private enum State {
@@ -40,6 +43,17 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         this.displayName = displayName;
     }
 
+    @Nullable @Override
+    protected DisplayName getDeclaredDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    protected DisplayName getTypedDisplayName() {
+        return DEFAULT_DISPLAY_NAME;
+    }
+
+    @Override
     protected DisplayName getDisplayName() {
         if (displayName == null) {
             return DEFAULT_DISPLAY_NAME;
@@ -69,7 +83,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
      */
     protected abstract String describeContents();
 
-    // Final - implement describeContents() instead
+    // This method is final - implement describeContents() instead
     @Override
     public final String toString() {
         if (displayName != null) {
@@ -80,8 +94,12 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     @Override
-    public boolean isContentProducedByTask() {
-        return producer != null || getSupplier().isContentProducedByTask();
+    public void visitProducerTasks(Action<? super Task> visitor) {
+        if (producer != null) {
+            visitor.execute(producer);
+        } else {
+            getSupplier().visitProducerTasks(visitor);
+        }
     }
 
     @Override
@@ -110,6 +128,11 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     @Override
     public void disallowChanges() {
         disallowChanges = true;
+    }
+
+    @Override
+    public void finalizeValueOnRead() {
+        finalizeOnNextGet = true;
     }
 
     @Override
@@ -171,7 +194,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     }
 
     private boolean canMutate() {
-        if (state == State.Final && disallowChanges) {
+        if (state == State.Final) {
             throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", getDisplayName().getDisplayName()));
         } else if (disallowChanges) {
             throw new IllegalStateException(String.format("The value for %s cannot be changed any further.", getDisplayName().getDisplayName()));

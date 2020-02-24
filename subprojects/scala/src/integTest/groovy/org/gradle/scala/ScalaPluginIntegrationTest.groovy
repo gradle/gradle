@@ -15,8 +15,9 @@
  */
 package org.gradle.scala
 
-
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvider
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
@@ -192,6 +193,7 @@ task someTask
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6849")
+    @ToBeFixedForInstantExecution
     def "can publish test-only projects"() {
         using m2
         settingsFile << """
@@ -214,5 +216,57 @@ task someTask
         expect:
         executer.expectDeprecationWarning()
         succeeds("install")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "forcing an incompatible version of Scala fails with a clear error message"() {
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                implementation("org.scala-lang:scala-library")
+            }
+            configurations.all {
+                resolutionStrategy.force "org.scala-lang:scala-library:2.10.7"
+            }
+        """
+        file("src/main/scala/Foo.scala") << """
+            class Foo
+        """
+        when:
+        fails("assemble")
+
+        then:
+        failureHasCause("The version of 'scala-library' was changed while using the default Zinc version." +
+            " Version 2.10.7 is not compatible with org.scala-sbt:zinc_2.12:" + DefaultScalaToolProvider.DEFAULT_ZINC_VERSION)
+    }
+
+    def "trying to use an old version of Zinc switches to Gradle-supported version"() {
+        settingsFile << """
+            rootProject.name = "scala"
+        """
+        buildFile << """
+            apply plugin: 'scala'
+
+            repositories {
+                ${jcenterRepository()}
+            }
+            dependencies {
+                zinc("com.typesafe.zinc:zinc:0.3.6")
+                implementation("org.scala-lang:scala-library:2.12.6")
+            }
+        """
+        file("src/main/scala/Foo.scala") << """
+            class Foo
+        """
+        expect:
+        succeeds("assemble")
+        succeeds("dependencyInsight", "--configuration", "zinc", "--dependency", "zinc")
     }
 }

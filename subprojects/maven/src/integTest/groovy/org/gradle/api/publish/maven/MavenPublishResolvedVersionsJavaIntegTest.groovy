@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.attributes.Category
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.maven.MavenJavaModule
 import spock.lang.Unroll
@@ -25,6 +26,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     MavenJavaModule javaLibrary = javaLibrary(mavenRepo.module("org.gradle.test", "publishTest", "1.9"))
 
     @Unroll("can publish java-library with dependencies (#apiMapping, #runtimeMapping)")
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies (runtime last)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -111,6 +113,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     }
 
     @Unroll("can publish java-library with dependencies (#runtimeMapping, #apiMapping)")
+    @ToBeFixedForInstantExecution
     def "can publish java-library with dependencies (runtime first)"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -204,6 +207,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
      * or when the component is not a Java library and we don't have a default.
      */
     @Unroll("can publish resolved versions from a different configuration (#config)")
+    @ToBeFixedForInstantExecution
     def "can publish resolved versions from a different configuration"() {
         given:
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
@@ -280,6 +284,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     }
 
     @Unroll("can publish resolved versions from dependency constraints (#apiMapping, #runtimeMapping)")
+    @ToBeFixedForInstantExecution
     def "can publish resolved versions from dependency constraints"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -368,6 +373,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ].combinations() + [[allVariants(), noop()]])
     }
 
+    @ToBeFixedForInstantExecution
     def "dependency constraints which are unresolved are published as is"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata().publish()
@@ -444,6 +450,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     }
 
     // This test documents the existing behavior, not necessarily the best one
+    @ToBeFixedForInstantExecution
     def "import scope makes use of runtime classpath"() {
         javaLibrary(mavenRepo.module("org.test", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org.test", "bar", "1.0")).withModuleMetadata()
@@ -457,7 +464,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         createBuildScripts("""
             dependencies {
                 constraints {
-                    api platform("org.test:bar:1.0")
+                    api "org.test:bar:1.0"
                 }
                 api "org.test:foo:1.0"
                 runtimeOnly(platform("org.test:bar:1.1"))
@@ -522,6 +529,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
     // substitution rule (via a plugin for example) that you are not aware of.
     // Ideally we should warn when such things happen (linting).
     @Unroll
+    @ToBeFixedForInstantExecution
     def "substituted dependencies are also substituted in the generated POM file"() {
         javaLibrary(mavenRepo.module("org", "foo", "1.0")).withModuleMetadata().publish()
         javaLibrary(mavenRepo.module("org", "bar", "1.0"))
@@ -600,6 +608,7 @@ class MavenPublishResolvedVersionsJavaIntegTest extends AbstractMavenPublishInte
         ]
     }
 
+    @ToBeFixedForInstantExecution
     def "can substitute with a project dependency"() {
         given:
         settingsFile << """

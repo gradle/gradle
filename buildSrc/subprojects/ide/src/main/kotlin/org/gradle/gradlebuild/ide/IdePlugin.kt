@@ -16,21 +16,14 @@
 package org.gradle.gradlebuild.ide
 
 import accessors.base
-import accessors.eclipse
-import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.tasks.Copy
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.docs.RenderMarkdownTask
+import org.gradle.gradlebuild.docs.DecorateReleaseNotes
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
-import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.Application
@@ -84,40 +77,15 @@ limitations under the License."""
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        configureEclipseForAllProjects()
         configureIdeaForRootProject()
-    }
-
-    private
-    fun Project.configureEclipseForAllProjects() = allprojects {
-        apply(plugin = "eclipse")
-
-        plugins.withType<JavaPlugin> {
-            eclipse {
-                classpath {
-                    file.whenMerged(Action<Classpath> {
-                        // There are classes in here not designed to be compiled, but just used in our testing
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("src/integTest/resources") }
-                        // Workaround for some projects referring to themselves as dependent projects
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("$project.name") && it.kind == "src" }
-                        // Remove references to libraries in the build folder
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("$project.name/build") && it.kind == "lib" }
-                        // Remove references to other project's binaries
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("/subprojects") && it.kind == "lib" }
-                        // Add needed resources for running gradle as a non daemon java application
-                        entries.add(SourceFolder("build/generated-resources/main", null))
-                        if (file("build/generated-resources/test").exists()) {
-                            entries.add(SourceFolder("build/generated-resources/test", null))
-                        }
-                    })
-                }
-            }
-        }
     }
 
     private
     fun Project.configureIdeaForRootProject() {
         apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
+        allprojects {
+            apply(plugin = "idea")
+        }
         tasks.named("idea") {
             doFirst {
                 throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij")
@@ -155,23 +123,6 @@ open class IdePlugin : Plugin<Project> {
     private
     fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
         runConfigurations {
-            val gradleRunners = mapOf(
-                "Regenerate Int Test Image" to "prepareVersionsInfo intTestImage publishLocalArchives"
-            )
-            gradleRunners.forEach { (name, tasks) ->
-                create<Application>(name) {
-                    mainClass = "org.gradle.testing.internal.util.GradlewRunner"
-                    programParameters = tasks
-                    workingDirectory = rootProject.projectDir.absolutePath
-                    moduleName = "org.gradle.internalTesting.main"
-                    envs = mapOf("TERM" to "xterm")
-                    beforeRun {
-                        create<Make>("make") {
-                            enabled = false
-                        }
-                    }
-                }
-            }
             create<Application>("Run Gradle") {
                 mainClass = "org.gradle.debug.GradleRunConfiguration"
                 programParameters = "help"
@@ -290,13 +241,12 @@ open class IdePlugin : Plugin<Project> {
     private
     fun getDefaultJunitVmParameters(docsProject: Project): String {
         val rootProject = docsProject.rootProject
-        val releaseNotesMarkdown: RenderMarkdownTask by docsProject.tasks
-        val releaseNotes: Copy by docsProject.tasks
+        val releaseNotes: DecorateReleaseNotes by docsProject.tasks
         val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName)
         val vmParameter = mutableListOf(
             "-ea",
-            "-Dorg.gradle.docs.releasenotes.source=${releaseNotesMarkdown.markdownFile}",
-            "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.destinationDir.resolve(releaseNotes.property("fileName") as String)}",
+            // TODO: This breaks the provider
+            "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.getDestinationFile().get().getAsFile()}",
             "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
             "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
             "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",

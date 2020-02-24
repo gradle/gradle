@@ -27,18 +27,16 @@ import org.gradle.api.internal.tasks.compile.tooling.JavaCompileTaskSuccessResul
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.cache.internal.FileContentCacheFactory;
-import org.gradle.initialization.BuildEventConsumer;
+import org.gradle.internal.build.event.BuildEventListenerFactory;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.java.artifact.JavadocArtifact;
 import org.gradle.tooling.events.OperationType;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.SubscribableBuildActionRunnerRegistration;
 import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
@@ -62,16 +60,10 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaGlobalScopeServices {
-        SubscribableBuildActionRunnerRegistration createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
-            return new SubscribableBuildActionRunnerRegistration() {
-                @Override
-                public Iterable<Object> createListeners(BuildClientSubscriptions clientSubscriptions, BuildEventConsumer consumer) {
-                    if (clientSubscriptions.isRequested(OperationType.TASK)) {
-                        return Collections.<Object>singletonList(factory);
-                    }
-                    return emptyList();
-                }
-            };
+        BuildEventListenerFactory createJavaSubscribableBuildActionRunnerRegistration(final JavaCompileTaskSuccessResultPostProcessor factory) {
+            return (clientSubscriptions, consumer) -> clientSubscriptions.isRequested(OperationType.TASK)
+                ? Collections.singletonList(factory)
+                : emptyList();
         }
 
         public JavaCompileTaskSuccessResultPostProcessor createJavaCompileTaskSuccessResultDecoratorFactory() {
@@ -91,8 +83,8 @@ public class JavaLanguagePluginServiceRegistry extends AbstractPluginServiceRegi
     }
 
     private static class JavaProjectScopeServices {
-        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, FileSystemSnapshotter fileSystemSnapshotter, FileHasher fileHasher) {
-            return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, fileSystemSnapshotter, fileHasher);
+        public IncrementalCompilerFactory createIncrementalCompilerFactory(FileOperations fileOperations, StreamHasher streamHasher, GeneralCompileCaches compileCaches, BuildOperationExecutor buildOperationExecutor, StringInterner interner, VirtualFileSystem virtualFileSystem, FileHasher fileHasher) {
+            return new IncrementalCompilerFactory(fileOperations, streamHasher, compileCaches, buildOperationExecutor, interner, virtualFileSystem, fileHasher);
         }
     }
 }

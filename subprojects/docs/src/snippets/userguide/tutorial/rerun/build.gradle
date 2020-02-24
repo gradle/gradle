@@ -1,0 +1,10 @@
+plugins {
+    id "base"
+}
+
+task doIt(type: Copy) {
+    from projectDir, {
+        include "README.md"
+    }
+    into buildDir
+}

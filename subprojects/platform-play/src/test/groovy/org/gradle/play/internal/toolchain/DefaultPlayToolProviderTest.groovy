@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.language.base.internal.compile.CompileSpec
@@ -50,6 +51,7 @@ class DefaultPlayToolProviderTest extends Specification {
     ClassPathRegistry classPathRegistry = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
     ActionExecutionSpecFactory actionExecutionSpecFactory = Mock()
+    FileCollectionFactory fileCollectionFactory = Mock()
     Set<File> twirlClasspath = Stub(Set)
     Set<File> routesClasspath = Stub(Set)
     Set<File> javascriptClasspath = Stub(Set)
@@ -57,11 +59,11 @@ class DefaultPlayToolProviderTest extends Specification {
     DefaultPlayToolProvider playToolProvider
 
     private DefaultPlayToolProvider createProvider() {
-        return new DefaultPlayToolProvider(forkOptionsFactory, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
+        return new DefaultPlayToolProvider(forkOptionsFactory, daemonWorkingDir, workerDaemonFactory, workerProcessBuilderFactory, playPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory, fileCollectionFactory)
     }
 
     @Unroll
-    def "provides playRunner for play #playVersion"(){
+    def "provides playRunner for play #playVersion"() {
         setup:
         _ * playPlatform.getPlayVersion() >> playVersion
 

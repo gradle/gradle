@@ -1,0 +1,5 @@
+commands: [{
+    executable: gradle
+    args: greet
+    expected-output-file: greet.out
+}]

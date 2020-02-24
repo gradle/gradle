@@ -44,8 +44,8 @@ You can define a new configuration named `smokeTest` that extends from the `test
 
 .Extending a configuration from another configuration
 ====
-include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
-include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
+include::sample[dir="snippets/userguide/dependencyManagement/definingUsingConfigurations/inheritance/groovy",files="build.gradle[tags=configuration-definition]"]
+include::sample[dir="snippets/userguide/dependencyManagement/definingUsingConfigurations/inheritance/kotlin",files="build.gradle.kts[tags=configuration-definition]"]
 ====
 
 [[sec:resolvable-consumable-configs]]
@@ -63,8 +63,8 @@ For example, if I want to express that my application `app` _depends on_ library
 
 .Configurations are used to declare dependencies
 ====
-include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=declare-configuration]"]
-include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=declare-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
 ====
 
 Configurations can extend other configuration, in order to inherit their dependencies.
@@ -76,8 +76,8 @@ For this purpose, you'll often find companion configurations, which are meant to
 
 .Configurations representing concrete dependency graphs
 ====
-include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=concrete-classpath]"]
-include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
+include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=concrete-classpath]"]
+include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
 ====
 
 At this stage, we have 3 different configurations, which already have different goals:
@@ -104,8 +104,8 @@ This is expressed via the _canBeConsumed_ flag of a `Configuration`:
 
 .Setting up configurations
 ====
-include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=setup-configurations]"]
-include::sample[dir="userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
+include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/groovy",files="build.gradle[tags=setup-configurations]"]
+include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
 ====
 
 In short, a configuration role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
@@ -143,8 +143,8 @@ It's fairly simple to achieve that goal by introducing a custom configuration an
 
 .Declaring and using a custom configuration
 ====
-include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/custom/groovy",files="build.gradle[tags=custom-configuration]"]
-include::sample[dir="userguide/dependencyManagement/definingUsingConfigurations/custom/kotlin",files="build.gradle.kts[tags=custom-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/definingUsingConfigurations/custom/groovy",files="build.gradle[tags=custom-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/definingUsingConfigurations/custom/kotlin",files="build.gradle.kts[tags=custom-configuration]"]
 ====
 
 A project's configurations are managed by a `configurations` object.
@@ -161,8 +161,8 @@ Module dependencies are the most common dependencies. They refer to a module in 
 
 .Module dependencies
 ====
-include::sample[dir="userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
-include::sample[dir="userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
+include::sample[dir="snippets/userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=module-dependencies]"]
+include::sample[dir="snippets/userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=module-dependencies]"]
 ====
 
 See the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.DependencyHandler.html[DependencyHandler] class in the API documentation for more examples and a complete reference.
@@ -198,8 +198,8 @@ The following example resolves file dependencies from the directories `ant`, `li
 
 .Declaring multiple file dependencies
 ====
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/fileDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/fileDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/fileDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
 ====
 
 As you can see in the code example, every dependency has to define its exact location in the file system.
@@ -215,8 +215,8 @@ To add some files as a dependency for a configuration, you simply pass a <<worki
 
 .File dependencies
 ====
-include::sample[dir="userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
-include::sample[dir="userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
+include::sample[dir="snippets/userguide/artifacts/externalDependencies/groovy",files="build.gradle[tags=file-dependencies]"]
+include::sample[dir="snippets/userguide/artifacts/externalDependencies/kotlin",files="build.gradle.kts[tags=file-dependencies]"]
 ====
 
 File dependencies are not included in the published dependency descriptor for your project.
@@ -228,8 +228,8 @@ You might do this when, for example, the files are generated by the build.
 
 .Generated file dependencies
 ====
-include::sample[dir="userguide/artifacts/generatedFileDependencies/groovy",files="build.gradle[tags=generated-file-dependencies]"]
-include::sample[dir="userguide/artifacts/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
+include::sample[dir="snippets/userguide/artifacts/generatedFileDependencies/groovy",files="build.gradle[tags=generated-file-dependencies]"]
+include::sample[dir="snippets/userguide/artifacts/generatedFileDependencies/kotlin",files="build.gradle.kts[tags=generated-file-dependencies]"]
 ====
 
 ----
@@ -262,8 +262,8 @@ Those dependencies are called _project dependencies_ because each module is repr
 
 .Project dependencies
 ====
-include::sample[dir="java/multiproject/groovy/api",files="build.gradle[tags=project-dependencies]"]
-include::sample[dir="java/multiproject/kotlin/api",files="build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/java/multiproject/groovy/api",files="build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/java/multiproject/kotlin/api",files="build.gradle.kts[tags=project-dependencies]"]
 ====
 
 At runtime, the build automatically ensures that project dependencies are built in the correct order and added to the classpath for compilation.
@@ -275,8 +275,8 @@ The following example declares the dependencies on the `utils` and `api` project
 
 .Declaring project dependencies
 ====
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/projectDependencies/groovy",files="build.gradle[tags=project-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/projectDependencies/kotlin",files="build.gradle.kts[tags=project-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/projectDependencies/groovy",files="build.gradle[tags=project-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/projectDependencies/kotlin",files="build.gradle.kts[tags=project-dependencies]"]
 ====
 
 === Local forks of module dependencies
@@ -296,8 +296,8 @@ You can declare a dependency on the API of the current version of Gradle by usin
 
 .Gradle API dependencies
 ====
-include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
-include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=gradle-api-dependencies]"]
+include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=gradle-api-dependencies]"]
 ====
 
 [[sub:testkit_dependencies]]
@@ -307,8 +307,8 @@ You can declare a dependency on the TestKit API of the current version of Gradle
 
 .Gradle TestKit dependencies
 ====
-include::sample[dir="testKit/gradleRunner/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
-include::sample[dir="testKit/gradleRunner/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/gradleRunner/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/gradleRunner/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
 ====
 
 <<test_kit.adoc#test_kit,The TestKit chapter>> explains the use of TestKit by example.
@@ -320,8 +320,8 @@ You can declare a dependency on the Groovy that is distributed with Gradle by us
 
 .Gradle's Groovy dependencies
 ====
-include::sample[dir="customPlugin/groovy/plugin",files="build.gradle[tags=local-groovy-dependencies]"]
-include::sample[dir="customPlugin/kotlin/plugin",files="build.gradle.kts[tags=local-groovy-dependencies]"]
+include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=local-groovy-dependencies]"]
+include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=local-groovy-dependencies]"]
 ====
 
 [[sec:documenting-dependencies]]
@@ -332,8 +332,8 @@ This makes the dependency declarations in your build script and the <<viewing_de
 
 .Giving a reason for choosing a certain module version in a dependency declaration
 ====
-include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
-include::sample[dir="userguide/dependencyManagement/inspectingDependencies/dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
+include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependencyReason/groovy",files="build.gradle[tags=dependency-reason]"]
+include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependencyReason/kotlin",files="build.gradle.kts[tags=dependency-reason]"]
 ====
 
 === Example: Using the dependency insight report with custom reasons
@@ -359,8 +359,8 @@ link:https://developers.google.com/speed/libraries/[Google Hosted Libraries] is 
 
 .Resolving a JavaScript artifact for a declared dependency
 ====
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/artifactOnly/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/artifactOnly/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
 ====
 
 Some modules ship different "flavors" of the same artifact or they publish multiple artifacts that belong to a specific module version but have a different purpose. It's common for a Java library to publish the artifact with the compiled class files, another one with just the source code in it and a third one containing the Javadocs.
@@ -371,8 +371,8 @@ Let's say we wanted to download the minified artifact of the JQuery library inst
 
 .Resolving a JavaScript artifact with classifier for a declared dependency
 ====
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
-include::sample[dir="userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/groovy",files="build.gradle[tags=artifact-only-dependency-declaration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier/kotlin",files="build.gradle.kts[tags=artifact-only-dependency-declaration]"]
 ====
 
 [[sec:supported-metadata-formats]]

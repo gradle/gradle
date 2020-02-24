@@ -39,7 +39,7 @@ class DefaultObjectFactoryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this property.'
+        e.message == 'Cannot query the value of this property because it has no value available.'
     }
 
     def "cannot create property for null value"() {

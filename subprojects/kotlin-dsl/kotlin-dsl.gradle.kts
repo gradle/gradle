@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import build.futureKotlin
 import build.kotlin
 import build.kotlinVersion
 import codegen.GenerateKotlinDependencyExtensions
 import org.gradle.build.ReproduciblePropertiesWriter
+import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `kotlin-dsl-module`
@@ -91,7 +91,7 @@ dependencies {
     testImplementation(testLibrary("jackson_kotlin"))
 
     testImplementation(testLibrary("archunit"))
-    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.0.1")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.3.3")
     testImplementation("org.awaitility:awaitility-kotlin:3.1.6")
 
     testRuntimeOnly(project(":runtimeApiInfo"))
@@ -111,7 +111,7 @@ dependencies {
 // --- Enable automatic generation of API extensions -------------------
 val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
-val publishedKotlinDslPluginVersion = "1.3.1" // TODO:kotlin-dsl
+val publishedKotlinDslPluginVersion = "1.3.3" // TODO:kotlin-dsl
 
 tasks {
 
@@ -157,20 +157,21 @@ dependencies {
 
 val writeEmbeddedKotlinDependencies by tasks.registering {
     val outputFile = layout.buildDirectory.file("embeddedKotlinDependencies/gradle-kotlin-dsl-embedded-kotlin.properties")
-    inputs.files(embeddedKotlinBaseDependencies)
     outputs.file(outputFile)
+    val values = embeddedKotlinBaseDependencies
+    inputs.files(values)
+    val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
+    // https://github.com/gradle/instant-execution/issues/183
+    val modules = provider { embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
+        .asSequence()
+        .mapNotNull { it.moduleVersion }
+        .filter { it.name !in skippedModules }
+        .associate { "${it.group}:${it.name}" to it.version }
+    }
+
     doLast {
-
-        val skippedModules = setOf(project.name, "distributionsDependencies", "kotlinCompilerEmbeddable")
-
-        val modules = embeddedKotlinBaseDependencies.incoming.resolutionResult.allComponents
-            .asSequence()
-            .mapNotNull { it.moduleVersion }
-            .filter { it.name !in skippedModules }
-            .associate { "${it.group}:${it.name}" to it.version }
-
         ReproduciblePropertiesWriter.store(
-            modules,
+            modules.get(),
             outputFile.get().asFile.apply { parentFile.mkdirs() },
             null
         )

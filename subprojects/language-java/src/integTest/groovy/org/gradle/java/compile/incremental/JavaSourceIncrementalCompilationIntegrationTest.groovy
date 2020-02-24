@@ -35,7 +35,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
             import java.lang.annotation.*;
 
-            @Retention(RetentionPolicy.$retention) 
+            @Retention(RetentionPolicy.$retention)
             public @interface SomeAnnotation {}
         """
         source "@SomeAnnotation class A {}", "class B {}"
@@ -58,26 +58,37 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
     @Requires(TestPrecondition.JDK8_OR_LATER)
     def "deletes headers when source file is deleted"() {
         given:
-        buildFile << """
-            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
+        def sourceFile = file("src/main/java/my/org/Foo.java")
+        sourceFile.text = """
+            package my.org;
+
+            public class Foo {
+                public native void foo();
+
+                public static class Inner {
+                    public native void anotherNative();
+                }
+            }
         """
-        def sourceFile = source("""class Foo {
-            public native void foo();
-        }""")
+        def generatedHeaderFile = file("build/generated/sources/headers/java/main/my_org_Foo.h")
+        def generatedInnerClassHeaderFile = file("build/generated/sources/headers/java/main/my_org_Foo_Inner.h")
 
         source("""class Bar {
             public native void bar();
         }""")
 
         succeeds language.compileTaskName
+        generatedHeaderFile.assertExists()
+        generatedInnerClassHeaderFile.assertExists()
 
         when:
         sourceFile.delete()
         succeeds language.compileTaskName
 
         then:
-        file("build/headers/java/main/Foo.h").assertDoesNotExist()
-        file("build/headers/java/main/Bar.h").assertExists()
+        generatedHeaderFile.assertDoesNotExist()
+        generatedInnerClassHeaderFile.assertDoesNotExist()
+        file("build/generated/sources/headers/java/main/Bar.h").assertExists()
     }
 
     def "changed class with used non-private constant incurs full rebuild"() {

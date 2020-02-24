@@ -27,7 +27,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.plugin.management.internal.autoapply.AutoAppliedBuildScanPlugin
+import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
 import spock.lang.Unroll
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryDefinition
@@ -56,23 +56,26 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
 
     def "task output caching key is exposed when scan plugin is applied"() {
         given:
-        buildFile << customTaskCode('foo', 'bar')
-        buildFile << """
+        settingsFile << """
             buildscript {
                 repositories {
                     ${gradlePluginRepositoryDefinition()}
                 }
                 dependencies {
-                    classpath "${AutoAppliedBuildScanPlugin.GROUP}:${AutoAppliedBuildScanPlugin.NAME}:${AutoAppliedBuildScanPlugin.VERSION}"
+                    classpath "${AutoAppliedGradleEnterprisePlugin.GROUP}:${AutoAppliedGradleEnterprisePlugin.NAME}:${AutoAppliedGradleEnterprisePlugin.VERSION}"
                 }
             }
             
-            apply plugin: "com.gradle.build-scan"
-            buildScan {
-                termsOfServiceUrl = 'https://gradle.com/terms-of-service'
-                termsOfServiceAgree = 'yes'
+            apply plugin: "com.gradle.enterprise"
+            gradleEnterprise {
+                buildScan {
+                    termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+                    termsOfServiceAgree = 'yes'
+                }
             }
-        """.stripIndent()
+        """
+
+        buildFile << customTaskCode('foo', 'bar')
 
         when:
         succeeds('customTask', '-Dscan.dump')
@@ -269,21 +272,9 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                 path == file("a/src/main/java").absolutePath
                 children.size() == 3
                 with(children[0]) {
-                    path == "A.java"
-                    hash != null
-                }
-                with(children[1]) {
-                    path == "B.java"
-                    hash != null
-                }
-                with(children[2]) {
                     path == "a"
                     children.size() == 2
                     with(children[0]) {
-                        path == "A.java"
-                        hash != null
-                    }
-                    with(children[1]) {
                         path == "a"
                         children.size() == 1
                         with(children[0]) {
@@ -291,6 +282,18 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
                             hash != null
                         }
                     }
+                    with(children[1]) {
+                        path == "A.java"
+                        hash != null
+                    }
+                }
+                with(children[1]) {
+                    path == "A.java"
+                    hash != null
+                }
+                with(children[2]) {
+                    path == "B.java"
+                    hash != null
                 }
             }
         }

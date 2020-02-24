@@ -17,10 +17,12 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
 class IvyModuleResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
+    @ToBeFixedForInstantExecution
     def "wildcard on LHS of configuration mapping includes all public configurations of target module"() {
         given:
         buildFile << """
@@ -225,6 +227,7 @@ task retrieve(type: Sync) {
         "a->a(*),b(*);b->b(*)"  | ["projectB-a-1.5.jar", "projectB-b-1.5.jar", "projectC-1.7.jar", "projectD-1.7.jar"]
     }
 
+    @ToBeFixedForInstantExecution
     def "prefers revConstraint over rev when dynamic resolve mode is used"() {
         given:
         buildFile << """
@@ -284,15 +287,15 @@ task retrieve(type: Sync) {
         and:
         buildFile << """
 repositories {
-    ivy { 
-        url "${repo1.uri}" 
+    ivy {
+        url "${repo1.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()
         }
     }
-    ivy { 
-        url "${repo2.uri}" 
+    ivy {
+        url "${repo2.uri}"
         metadataSources {
             ivyDescriptor()
             artifact()

@@ -17,17 +17,30 @@
 package org.gradle.api.reporting.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.provider.DefaultProvider;
 import org.gradle.api.reporting.DirectoryReport;
 
+import javax.inject.Inject;
 import java.io.File;
 
-public class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements DirectoryReport {
-
+public abstract class TaskGeneratedSingleDirectoryReport extends TaskGeneratedReport implements DirectoryReport {
     private final String relativeEntryPath;
 
+    @Inject
     public TaskGeneratedSingleDirectoryReport(String name, Task task, String relativeEntryPath) {
         super(name, OutputType.DIRECTORY, task);
         this.relativeEntryPath = relativeEntryPath;
+        getOutputLocation().convention(getProjectLayout().dir(new DefaultProvider<>(() -> {
+            return (File) ((IConventionAware) TaskGeneratedSingleDirectoryReport.this).getConventionMapping().getConventionValue(null, "destination", false);
+        })));
+        getRequired().convention(false);
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
     }
 
     @Override

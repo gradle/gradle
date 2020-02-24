@@ -36,11 +36,11 @@ public class PathAssemblerTest {
         configuration.setZipBase(PathAssembler.GRADLE_USER_HOME_STRING);
         configuration.setZipPath("somePath");
     }
-    
+
     @Test
     public void distributionDirWithGradleUserHomeBase() throws Exception {
         configuration.setDistribution(new URI("http://server/dist/gradle-0.9-bin.zip"));
-        
+
         File distributionDir = pathAssembler.getDistribution(configuration).getDistributionDir();
         assertThat(distributionDir.getName(), equalTo("emn8ua2x0re2y4jlewhnxhasz"));
         assertThat(distributionDir.getParentFile(), equalTo(file(TEST_GRADLE_USER_HOME + "/somePath/gradle-0.9-bin")));
@@ -70,6 +70,19 @@ public class PathAssemblerTest {
     }
 
     @Test
+    public void distributionDirWithUserInfo() throws Exception {
+        configuration.setDistributionBase(PathAssembler.PROJECT_STRING);
+
+        configuration.setDistribution(new URI("http://username1:password1@server/dist/gradle-0.9-bin.zip"));
+        File distributionDir1 = pathAssembler.getDistribution(configuration).getDistributionDir();
+
+        configuration.setDistribution(new URI("http://username2:password2@server/dist/gradle-0.9-bin.zip"));
+        File distributionDir2 = pathAssembler.getDistribution(configuration).getDistributionDir();
+
+        assertThat(distributionDir1.getName(), equalTo(distributionDir2.getName()));
+    }
+
+    @Test
     public void distZipWithGradleUserHomeBase() throws Exception {
         configuration.setDistribution(new URI("http://server/dist/gradle-1.0.zip"));
 
@@ -93,7 +106,7 @@ public class PathAssemblerTest {
     private File file(String path) {
         return new File(path);
     }
-    
+
     private String currentDirPath() {
         return System.getProperty("user.dir");
     }

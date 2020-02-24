@@ -26,7 +26,6 @@ import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -38,6 +37,7 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.DependencyGraphNode;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.strict.StrictVersionConstraints;
 import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -46,6 +46,7 @@ import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 import org.gradle.internal.component.external.model.ShadowedCapability;
+import org.gradle.internal.component.external.model.VirtualComponentIdentifier;
 import org.gradle.internal.component.local.model.LocalConfigurationMetadata;
 import org.gradle.internal.component.local.model.LocalFileDependencyMetadata;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
@@ -67,7 +68,7 @@ import java.util.Set;
  * Represents a node in the dependency graph.
  */
 public class NodeState implements DependencyGraphNode {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DependencyGraphBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NodeState.class);
     private final Long resultId;
     private final ComponentState component;
     private final List<EdgeState> incomingEdges = Lists.newArrayList();
@@ -115,6 +116,7 @@ public class NodeState implements DependencyGraphNode {
     private StrictVersionConstraints ancestorsStrictVersionConstraints;
     private StrictVersionConstraints ownStrictVersionConstraints;
     private List<EdgeState> endorsesStrictVersionsFrom;
+    private boolean removingOutgoingEdges;
 
     public NodeState(Long resultId, ResolvedConfigurationIdentifier id, ComponentState component, ResolveState resolveState, ConfigurationMetadata md) {
         this.resultId = resultId;
@@ -491,10 +493,10 @@ public class NodeState implements DependencyGraphNode {
      * @param discoveredEdges the collection of edges for this component
      */
     private void visitOwners(Collection<EdgeState> discoveredEdges) {
-        ImmutableList<? extends ComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
+        ImmutableList<? extends VirtualComponentIdentifier> owners = component.getMetadata().getPlatformOwners();
         if (!owners.isEmpty()) {
             PendingDependenciesVisitor visitor = resolveState.newPendingDependenciesVisitor();
-            for (ComponentIdentifier owner : owners) {
+            for (VirtualComponentIdentifier owner : owners) {
                 if (owner instanceof ModuleComponentIdentifier) {
                     ModuleComponentIdentifier platformId = (ModuleComponentIdentifier) owner;
                     final ModuleComponentSelector cs = DefaultModuleComponentSelector.newSelector(platformId.getModuleIdentifier(), platformId.getVersion());
@@ -515,7 +517,6 @@ public class NodeState implements DependencyGraphNode {
         ComponentResolveMetadata metadata = potentialEdge.metadata;
         VirtualPlatformState virtualPlatformState = null;
         if (metadata == null || metadata instanceof LenientPlatformResolveMetadata) {
-
             virtualPlatformState = potentialEdge.component.getModule().getPlatformState();
             virtualPlatformState.participatingModule(component.getModule());
         }
@@ -918,20 +919,24 @@ public class NodeState implements DependencyGraphNode {
     }
 
     private void removeOutgoingEdges() {
-        removeOutgoingEdges(null);
-    }
-
-    private void removeOutgoingEdges(EdgeState edgeToKeep) {
-        if (!outgoingEdges.isEmpty()) {
+        boolean alreadyRemoving = removingOutgoingEdges;
+        removingOutgoingEdges = true;
+        if (!outgoingEdges.isEmpty() && !alreadyRemoving) {
             for (EdgeState outgoingDependency : outgoingEdges) {
-                if (outgoingDependency == edgeToKeep) {
+                ComponentState targetComponent = outgoingDependency.getTargetComponent();
+                if (targetComponent == component) {
+                    // if the same component depends on itself: do not attempt to cleanup the same thing several times
+                    continue;
+                }
+                if (targetComponent != null && targetComponent.getModule().isChangingSelection()) {
+                    // don't requeue something which is already changing selection
                     continue;
                 }
                 outgoingDependency.cleanUpOnSourceChange(this);
             }
+            outgoingEdges.clear();
         }
-        outgoingEdges.clear();
-        if (virtualEdges != null) {
+        if (virtualEdges != null /*&& !removingOutgoing*/) {
             for (EdgeState outgoingDependency : virtualEdges) {
                 outgoingDependency.removeFromTargetConfigurations();
                 outgoingDependency.getSelector().release();
@@ -940,6 +945,7 @@ public class NodeState implements DependencyGraphNode {
         virtualEdges = null;
         previousTraversalExclusions = null;
         virtualPlatformNeedsRefresh = false;
+        removingOutgoingEdges = alreadyRemoving;
     }
 
     public void restart(ComponentState selected) {
@@ -982,21 +988,25 @@ public class NodeState implements DependencyGraphNode {
 
     private void reselectEndorsingNode() {
         if (incomingEdges.size() == 1) {
-            if (incomingEdges.get(0).getDependencyState().getDependency().isEndorsingStrictVersions()) {
-                incomingEdges.get(0).getFrom().reselect(incomingEdges.get(0));
+            EdgeState singleEdge = incomingEdges.get(0);
+            NodeState from = singleEdge.getFrom();
+            if (singleEdge.getDependencyState().getDependency().isEndorsingStrictVersions()) {
+                // pass my own component because we are already in the process of re-selecting it
+                from.reselect();
             }
         } else {
             for (EdgeState incoming : Lists.newArrayList(incomingEdges)) {
                 if (incoming.getDependencyState().getDependency().isEndorsingStrictVersions()) {
-                    incoming.getFrom().reselect(incoming);
+                    // pass my own component because we are already in the process of re-selecting it
+                    incoming.getFrom().reselect();
                 }
             }
         }
     }
 
-    private void reselect(EdgeState edgeToKeep) {
+    private void reselect() {
         resolveState.onMoreSelected(this);
-        removeOutgoingEdges(edgeToKeep);
+        removeOutgoingEdges();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {
@@ -1023,27 +1033,44 @@ public class NodeState implements DependencyGraphNode {
      * There may be some incoming edges left at that point, but they must all be coming from constraints.
      */
     public void clearConstraintEdges(PendingDependencies pendingDependencies, NodeState backToPendingSource) {
-        for (EdgeState incomingEdge : incomingEdges) {
+        if (incomingEdges.isEmpty()) {
+            return;
+        }
+        // Cleaning has to be done on a copied collection because of the recompute happening on selector removal
+        List<EdgeState> remainingIncomingEdges = ImmutableList.copyOf(incomingEdges);
+        clearIncomingEdges();
+        for (EdgeState incomingEdge : remainingIncomingEdges) {
             assert isConstraint(incomingEdge);
             NodeState from = incomingEdge.getFrom();
             if (from != backToPendingSource) {
                 // Only remove edges that come from a different node than the source of the dependency going back to pending
                 // The edges from the "From" will be removed first
                 incomingEdge.getSelector().release();
-                from.getOutgoingEdges().remove(incomingEdge);
+                from.removeOutgoingEdge(incomingEdge);
             }
             pendingDependencies.addNode(from);
         }
-        clearIncomingEdges();
     }
 
-    void forEachCapability(Action<? super Capability> action) {
+    private void removeOutgoingEdge(EdgeState edge) {
+        if (!removingOutgoingEdges) {
+            // don't try to remove an outgoing edge if we're already doing it
+            // because removeOutgoingEdges() will clear all of them so it's not required to do it twice
+            // and it can cause a concurrent modification exception
+            outgoingEdges.remove(edge);
+        }
+    }
+
+    void forEachCapability(CapabilitiesConflictHandler capabilitiesConflictHandler, Action<? super Capability> action) {
         List<? extends Capability> capabilities = metaData.getCapabilities().getCapabilities();
         // If there's more than one node selected for the same component, we need to add
         // the implicit capability to the list, in order to make sure we can discover conflicts
-        // between variants of the same module. Note that the fact the implicit capability is
-        // in general not included is not a bug but a performance optimization
-        if (capabilities.isEmpty() && component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution()) {
+        // between variants of the same module.
+        // We also need too add the implicit capability if it was seen before as an explicit
+        // capability in order to detect the conflict between the two.
+        // Note that the fact that the implicit capability is not included in other cases
+        // is not a bug but a performance optimization.
+        if (capabilities.isEmpty() && (component.hasMoreThanOneSelectedNodeUsingVariantAwareResolution() || capabilitiesConflictHandler.hasSeenCapability(component.getImplicitCapability()))) {
             action.execute(component.getImplicitCapability());
         } else {
             // The isEmpty check is not required, might look innocent, but Guava's performance bad for an empty immutable list

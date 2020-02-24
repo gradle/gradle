@@ -16,7 +16,6 @@
 
 package org.gradle.internal.fingerprint.impl;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Describable;
 import org.gradle.api.file.FileTreeElement;
@@ -26,18 +25,16 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.util.GFileUtils;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 
 public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     private final PatternSet patternSet;
@@ -62,22 +59,22 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
     @Override
     public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
         Spec<FileTreeElement> spec = patternSet.getAsSpec();
-        return (Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) ->
-            spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, attrs, relativePath, stat));
+        return (Path path, String name, boolean isDirectory, Iterable<String> relativePath) ->
+            spec.isSatisfiedBy(new PathBackedFileTreeElement(path, name, isDirectory, relativePath, stat));
     }
 
     /**
-     * Adapts a {@link FileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
+     * Adapts a {@link CompleteFileSystemLocationSnapshot} to the {@link FileTreeElement} interface, e.g. to allow
      * passing it to a {@link org.gradle.api.tasks.util.PatternSet} for filtering.
      */
     private static class LogicalFileTreeElement implements FileTreeElement, Describable {
         private final Iterable<String> relativePathIterable;
         private final Stat stat;
-        private final FileSystemLocationSnapshot snapshot;
+        private final CompleteFileSystemLocationSnapshot snapshot;
         private RelativePath relativePath;
         private File file;
 
-        public LogicalFileTreeElement(FileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
+        public LogicalFileTreeElement(CompleteFileSystemLocationSnapshot snapshot, Iterable<String> relativePathIterable, Stat stat) {
             this.snapshot = snapshot;
             this.relativePathIterable = relativePathIterable;
             this.stat = stat;
@@ -154,15 +151,13 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
         private final Path path;
         private final String name;
         private final boolean isDirectory;
-        private final BasicFileAttributes attrs;
         private final Iterable<String> relativePath;
         private final Stat stat;
 
-        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath, Stat stat) {
+        public PathBackedFileTreeElement(Path path, String name, boolean isDirectory, Iterable<String> relativePath, Stat stat) {
             this.path = path;
             this.name = name;
             this.isDirectory = isDirectory;
-            this.attrs = attrs;
             this.relativePath = relativePath;
             this.stat = stat;
         }
@@ -179,16 +174,12 @@ public class PatternSetSnapshottingFilter implements SnapshottingFilter {
 
         @Override
         public long getLastModified() {
-            return getAttributes().lastModifiedTime().toMillis();
+            return getFile().lastModified();
         }
 
         @Override
         public long getSize() {
-            return getAttributes().size();
-        }
-
-        private BasicFileAttributes getAttributes() {
-            return Preconditions.checkNotNull(attrs, "Cannot read file attributes of %s", path);
+            return getFile().length();
         }
 
         @Override

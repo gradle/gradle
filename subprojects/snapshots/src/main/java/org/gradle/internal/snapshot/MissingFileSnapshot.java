@@ -20,14 +20,21 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
+import javax.annotation.Nullable;
+import java.util.Optional;
+
 /**
  * A snapshot of a missing file or a broken symbolic link or a named pipe.
  */
-public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
+public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
     public MissingFileSnapshot(String absolutePath, String name) {
         super(absolutePath, name);
+    }
+
+    public MissingFileSnapshot(String absolutePath) {
+        super(absolutePath, PathUtil.getFileName(absolutePath));
     }
 
     @Override
@@ -41,12 +48,21 @@ public class MissingFileSnapshot extends AbstractFileSystemLocationSnapshot {
     }
 
     @Override
-    public boolean isContentAndMetadataUpToDate(FileSystemLocationSnapshot other) {
+    public boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other) {
         return other instanceof MissingFileSnapshot;
     }
 
     @Override
     public void accept(FileSystemSnapshotVisitor visitor) {
         visitor.visitFile(this);
+    }
+
+    @Override
+    public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
+        visitor.visitNode(this, parent);
+    }
+
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+        return Optional.empty();
     }
 }

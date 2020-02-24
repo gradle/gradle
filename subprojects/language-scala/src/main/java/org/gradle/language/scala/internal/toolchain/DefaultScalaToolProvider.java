@@ -34,7 +34,7 @@ import java.io.File;
 import java.util.Set;
 
 public class DefaultScalaToolProvider implements ToolProvider {
-    public static final String DEFAULT_ZINC_VERSION = "1.2.5";
+    public static final String DEFAULT_ZINC_VERSION = "1.3.0";
 
     private final File daemonWorkingDir;
     private final WorkerDaemonFactory workerDaemonFactory;
@@ -64,7 +64,7 @@ public class DefaultScalaToolProvider implements ToolProvider {
                     new DaemonScalaCompiler<ScalaJavaJointCompileSpec>(
                             daemonWorkingDir,
                             ZincScalaCompilerFacade.class,
-                            new Object[]{resolvedScalaClasspath, resolvedZincClasspath},
+                            new Object[]{resolvedScalaClasspath},
                             workerDaemonFactory,
                             resolvedZincClasspath,
                             forkOptionsFactory,

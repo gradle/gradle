@@ -1,0 +1,14 @@
+subprojects {
+    apply plugin: "groovy"
+
+    dependencies {
+        implementation localGroovy()
+        implementation gradleApi()
+    }
+
+// tag::addToRootProject[]
+    rootProject.dependencies {
+        runtimeOnly project(path)
+    }
+// end::addToRootProject[]
+}

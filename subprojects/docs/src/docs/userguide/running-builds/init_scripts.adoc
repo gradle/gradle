@@ -61,8 +61,8 @@ You can use an init script to configure the projects in the build. This works in
 
 .Using init script to perform extra configuration before projects are evaluated
 ====
-include::sample[dir="userguide/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
-include::sample[dir="userguide/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
+include::sample[dir="snippets/userguide/initScripts/configurationInjection/groovy",files="build.gradle[];init.gradle[]"]
+include::sample[dir="snippets/userguide/initScripts/configurationInjection/kotlin",files="build.gradle.kts[];init.gradle.kts[]"]
 ====
 
 ==== Output when applying the init script
@@ -84,8 +84,8 @@ In <<tutorial_using_tasks.adoc#sec:build_script_external_dependencies,External d
 
 .Declaring external dependencies for an init script
 ====
-include::sample[dir="userguide/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
-include::sample[dir="userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
+include::sample[dir="snippets/userguide/initScripts/externalDependency/groovy",files="init.gradle[tags=declare-classpath]"]
+include::sample[dir="snippets/userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=declare-classpath]"]
 ====
 
 The closure passed to the `initscript()` method configures a link:{javadocPath}/org/gradle/api/initialization/dsl/ScriptHandler.html[ScriptHandler] instance.
@@ -97,8 +97,8 @@ Having declared the init script classpath, you can use the classes in your init 
 
 .An init script with external dependencies
 ====
-include::sample[dir="userguide/initScripts/externalDependency/groovy",files="init.gradle[tags=all]"]
-include::sample[dir="userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all]"]
+include::sample[dir="snippets/userguide/initScripts/externalDependency/groovy",files="init.gradle[tags=all]"]
+include::sample[dir="snippets/userguide/initScripts/externalDependency/kotlin",files="init.gradle.kts[tags=all]"]
 ====
 
 Output when applying the init script
@@ -121,8 +121,8 @@ Similar to a Gradle build script or a Gradle settings file, plugins can be appli
 
 .Using plugins in init scripts
 ====
-include::sample[dir="userguide/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
-include::sample[dir="userguide/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
+include::sample[dir="snippets/userguide/initScripts/plugins/groovy",files="init.gradle[tags=init-script-plugin];build.gradle[tag=show-repos-task]"]
+include::sample[dir="snippets/userguide/initScripts/plugins/kotlin",files="init.gradle.kts[tags=init-script-plugin];build.gradle.kts[tag=show-repos-task]"]
 ====
 
 Output when applying the init script

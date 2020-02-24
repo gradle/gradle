@@ -37,7 +37,9 @@ import org.gradle.internal.component.external.model.maven.MutableMavenModuleReso
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.MutableModuleSources;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableComponentArtifactsResolveResult;
@@ -75,7 +77,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
                          MavenMetadataLoader mavenMetadataLoader,
                          @Nullable InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplierFactory,
                          @Nullable InstantiatingAction<ComponentMetadataListerDetails> versionListerFactory,
-                         Instantiator injector) {
+                         Instantiator injector,
+                         ChecksumService checksumService) {
         super(name, transport.isLocal(),
             transport.getRepository(),
             transport.getResourceAccessor(),
@@ -85,7 +88,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             metadataArtifactProvider,
             componentMetadataSupplierFactory,
             versionListerFactory,
-            injector);
+            injector,
+            checksumService);
         this.mavenMetaDataLoader = mavenMetadataLoader;
         this.root = rootUri;
         updatePatterns();
@@ -132,17 +136,18 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     private void resolveUniqueSnapshotDependency(MavenUniqueSnapshotComponentIdentifier module, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result, MavenUniqueSnapshotModuleSource snapshotSource) {
-        resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(snapshotSource));
+        resolveStaticDependency(module, prescribedMetaData, result, createArtifactResolver(MutableModuleSources.of(snapshotSource)));
     }
 
     @Override
-    protected ExternalResourceArtifactResolver createArtifactResolver(ModuleSource moduleSource) {
-
-        if (moduleSource instanceof MavenUniqueSnapshotModuleSource) {
-            return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSource), (MavenUniqueSnapshotModuleSource) moduleSource);
-        }
-
-        return super.createArtifactResolver(moduleSource);
+    protected ExternalResourceArtifactResolver createArtifactResolver(final ModuleSources moduleSources) {
+        return moduleSources.withSource(MavenUniqueSnapshotModuleSource.class, source -> {
+            if (source.isPresent()) {
+                return new MavenUniqueSnapshotExternalResourceArtifactResolver(super.createArtifactResolver(moduleSources), source.get());
+            } else {
+                return super.createArtifactResolver(moduleSources);
+            }
+        });
     }
 
     public void addArtifactLocation(URI baseUri) {
@@ -255,7 +260,7 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
             } else {
                 ModuleComponentArtifactMetadata artifactMetaData = module.artifact(module.getPackaging(), module.getPackaging(), null);
 
-                if (createArtifactResolver(module.getSource()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
+                if (createArtifactResolver(module.getSources()).artifactExists(artifactMetaData, new DefaultResourceAwareResolveResult())) {
                     result.resolved(new FixedComponentArtifacts(ImmutableSet.of(artifactMetaData)));
                 } else {
                     ModuleComponentArtifactMetadata artifact = module.artifact("jar", "jar", null);

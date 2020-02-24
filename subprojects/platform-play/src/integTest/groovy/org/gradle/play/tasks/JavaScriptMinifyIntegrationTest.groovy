@@ -16,9 +16,11 @@
 
 package org.gradle.play.tasks
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
-import static org.gradle.play.integtest.fixtures.Repositories.*
+
+import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegrationTest {
 
@@ -84,6 +86,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 ":playBinary")
     }
 
+    @ToBeFixedForInstantExecution
     def "re-minifies when an output is removed" () {
         given:
         withJavaScriptSource("app/assets/test.js")
@@ -104,6 +107,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         hasProcessedJavaScript("test")
     }
 
+    @ToBeFixedForInstantExecution
     def "re-minifies when an input is changed" () {
         given:
         withJavaScriptSource("app/assets/test.js")
@@ -122,6 +126,7 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
                 ":playBinary")
     }
 
+    @ToBeFixedForInstantExecution
     def "cleans removed source file on minify" () {
         given:
         withJavaScriptSource("app/assets/test1.js")

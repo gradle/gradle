@@ -46,7 +46,7 @@ public class PathAssembler {
     }
 
     private String rootDirName(String distName, WrapperConfiguration configuration) {
-        String urlHash = getHash(configuration.getDistribution().toString());
+        String urlHash = getHash(Download.safeUri(configuration.getDistribution()).toString());
         return distName + "/" + urlHash;
     }
 
@@ -98,7 +98,7 @@ public class PathAssembler {
         }
     }
 
-    public class LocalDistribution {
+    public static class LocalDistribution {
         private final File distZip;
         private final File distDir;
 

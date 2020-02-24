@@ -19,6 +19,7 @@ package org.gradle.buildinit.plugins
 import org.gradle.buildinit.plugins.fixtures.WrapperTestFixture
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -55,6 +56,7 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "multiModule"() {
         when:
         run 'init'
@@ -66,12 +68,12 @@ class MavenConversionIntegrationTest extends AbstractIntegrationSpec {
         assertContainsPublishingConfig(file("build.gradle"), "    ")
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
     java {
-        publishSources()
+        withSourcesJar()
     }'''))
         file("webinar-impl/build.gradle").text.contains("publishing.publications.maven.artifact(testsJar)")
         file("webinar-impl/build.gradle").text.contains(TextUtil.toPlatformLineSeparators('''
 java {
-    publishJavadoc()
+    withJavadocJar()
 }'''))
         when:
         run 'clean', 'build'
@@ -113,6 +115,7 @@ Root project 'webinar-parent'
         new DefaultTestExecutionResult(file("webinar-impl")).assertTestClassesExecuted('webinar.WebinarTest')
     }
 
+    @ToBeFixedForInstantExecution
     def "flatmultimodule"() {
         when:
         executer.inDirectory(file("webinar-parent"))
@@ -145,6 +148,7 @@ Root project 'webinar-parent'
 """
     }
 
+    @ToBeFixedForInstantExecution
     def "singleModule"() {
         when:
         run 'init'
@@ -180,6 +184,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         assert text.contains(publishingBlock)
     }
 
+    @ToBeFixedForInstantExecution
     def "singleModule with explicit project dir"() {
         setup:
         resources.maybeCopy('MavenConversionIntegrationTest/singleModule')
@@ -200,6 +205,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         failure.assertHasCause("There were failing tests.")
     }
 
+    @ToBeFixedForInstantExecution
     def 'sourcesJar'() {
         when: 'build is initialized'
         run 'init'
@@ -207,7 +213,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'sourcesJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             java {
-                publishSources()
+                withSourcesJar()
             }
             '''.stripIndent().trim()))
         assertContainsPublishingConfig(buildFile)
@@ -241,6 +247,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         file('build/libs/util-2.5-tests.jar').exists()
     }
 
+    @ToBeFixedForInstantExecution
     def 'javadocJar'() {
         when: 'build is initialized'
         run 'init'
@@ -248,7 +255,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
         then: 'javadocJar task configuration is generated'
         buildFile.text.contains(TextUtil.toPlatformLineSeparators('''
             java {
-                publishJavadoc()
+                withJavadocJar()
             }
             '''.stripIndent().trim()))
         assertContainsPublishingConfig(buildFile)
@@ -365,6 +372,7 @@ ${TextUtil.indent(configLines.join("\n"), "                        ")}
     }
 
     @Issue("GRADLE-2819")
+    @ToBeFixedForInstantExecution
     def "multiModuleWithRemoteParent"() {
         setup:
         withSharedResources()

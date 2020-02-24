@@ -48,6 +48,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     def exceptionAnalyserMock = Mock(ExceptionAnalyser)
     def buildCompletionListener = Mock(BuildCompletionListener.class)
+    def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
     def includedBuildControllers = Mock(IncludedBuildControllers)
@@ -67,7 +68,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
-            buildCompletionListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
+            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
             settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
     }
 
@@ -108,7 +109,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _, _) >> buildSrcClassLoaderScope
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         DefaultGradleLauncher gradleLauncher = launcher()
@@ -126,7 +127,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         and:
         def buildSrcClassLoaderScope = Mock(ClassLoaderScope)
-        1 * buildSourceBuilder.buildAndCreateClassLoader(_, _, _) >> buildSrcClassLoaderScope
+        1 * buildSourceBuilder.buildAndCreateClassLoader(_) >> buildSrcClassLoaderScope
         1 * buildConfigurerMock.prepareProjects(gradleMock)
 
         then:
@@ -289,7 +290,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     private void isNestedBuild() {
         _ * gradleMock.parent >> Mock(GradleInternal)
-        _ * gradleMock.findIdentityPath() >> path(":nested")
+        _ * gradleMock.getIdentityPath() >> path(":nested")
         _ * gradleMock.contextualize(_) >> { "${it[0]} (:nested)" }
     }
 

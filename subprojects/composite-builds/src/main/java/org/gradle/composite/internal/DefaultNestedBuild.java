@@ -69,7 +69,6 @@ class DefaultNestedBuild extends AbstractBuildState implements StandAloneNestedB
     public <T> T run(Transformer<T, ? super BuildController> buildAction) {
         GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         try {
-            gradleLauncher.getGradle().setIdentityPath(getCurrentPrefixForProjectsInChildBuilds());
             return buildAction.transform(buildController);
         } finally {
             buildController.stop();

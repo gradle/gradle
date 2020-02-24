@@ -56,12 +56,12 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -72,6 +72,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -85,7 +86,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
     private static final String INPUT_FILE_PATH_PREFIX = "i/";
     private static final String OUTPUT_FILE_PATH_PREFIX = "o/";
 
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor;
     private final ArtifactTransformListener artifactTransformListener;
     private final CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider;
@@ -96,7 +97,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
 
     public DefaultTransformerInvocationFactory(
         WorkExecutor<ExecutionRequestContext, CachingResult> workExecutor,
-        FileSystemSnapshotter fileSystemSnapshotter,
+        VirtualFileSystem virtualFileSystem,
         ArtifactTransformListener artifactTransformListener,
         CachingTransformationWorkspaceProvider immutableTransformationWorkspaceProvider,
         FileCollectionFactory fileCollectionFactory,
@@ -105,7 +106,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         BuildOperationExecutor buildOperationExecutor
     ) {
         this.workExecutor = workExecutor;
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
+        this.virtualFileSystem = virtualFileSystem;
         this.artifactTransformListener = artifactTransformListener;
         this.immutableTransformationWorkspaceProvider = immutableTransformationWorkspaceProvider;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -124,7 +125,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         FileCollectionFingerprinter outputFingerprinter = fingerprinterRegistry.getFingerprinter(OutputNormalizer.class);
         FileCollectionFingerprinter dependencyFingerprinter = fingerprinterRegistry.getFingerprinter(transformer.getInputArtifactDependenciesNormalizer());
 
-        FileSystemLocationSnapshot inputArtifactSnapshot = fileSystemSnapshotter.snapshot(inputArtifact);
+        CompleteFileSystemLocationSnapshot inputArtifactSnapshot = virtualFileSystem.read(inputArtifact.getAbsolutePath(), Function.identity());
         String normalizedInputPath = inputArtifactFingerprinter.normalizePath(inputArtifactSnapshot);
         CurrentFileCollectionFingerprint dependenciesFingerprint = dependencies.fingerprint(dependencyFingerprinter);
 
@@ -165,7 +166,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         Transformer transformer,
         TransformationSubject subject,
         File inputArtifact,
-        FileSystemLocationSnapshot inputArtifactSnapshot,
+        CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
         ArtifactTransformDependencies dependencies,
         CurrentFileCollectionFingerprint dependenciesFingerprint,
         FileCollectionFingerprinter inputArtifactFingerprinter,
@@ -223,13 +224,13 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }));
     }
 
-    private static TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, FileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static TransformationWorkspaceIdentity getTransformationIdentity(@Nullable ProjectInternal project, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, String inputArtifactPath, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return project == null
             ? getImmutableTransformationIdentity(inputArtifactPath, inputArtifactSnapshot, transformer, dependenciesFingerprint)
             : getMutableTransformationIdentity(inputArtifactSnapshot, transformer, dependenciesFingerprint);
     }
 
-    private static TransformationWorkspaceIdentity getImmutableTransformationIdentity(String inputArtifactPath, FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static TransformationWorkspaceIdentity getImmutableTransformationIdentity(String inputArtifactPath, CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new ImmutableTransformationWorkspaceIdentity(
             inputArtifactPath,
             inputArtifactSnapshot.getHash(),
@@ -238,7 +239,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         );
     }
 
-    private static TransformationWorkspaceIdentity getMutableTransformationIdentity(FileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
+    private static TransformationWorkspaceIdentity getMutableTransformationIdentity(CompleteFileSystemLocationSnapshot inputArtifactSnapshot, Transformer transformer, CurrentFileCollectionFingerprint dependenciesFingerprint) {
         return new MutableTransformationWorkspaceIdentity(
             inputArtifactSnapshot.getAbsolutePath(),
             transformer.getSecondaryInputHash(),
@@ -277,7 +278,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         private final File inputArtifact;
         private final String identityString;
         private final ExecutionHistoryStore executionHistoryStore;
-        private final FileSystemLocationSnapshot inputArtifactSnapshot;
+        private final CompleteFileSystemLocationSnapshot inputArtifactSnapshot;
         private final ArtifactTransformDependencies dependencies;
         private final CurrentFileCollectionFingerprint dependenciesFingerprint;
         private final ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshotsBeforeExecution;
@@ -295,7 +296,7 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             TransformationWorkspace workspace,
             String identityString,
             File inputArtifact,
-            FileSystemLocationSnapshot inputArtifactSnapshot,
+            CompleteFileSystemLocationSnapshot inputArtifactSnapshot,
             ArtifactTransformDependencies dependencies,
             CurrentFileCollectionFingerprint dependenciesFingerprint,
             ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshotsBeforeExecution,
@@ -416,11 +417,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
         }
 
         @Override
-        public boolean shouldCleanupOutputsOnNonIncrementalExecution() {
-            return true;
-        }
-
-        @Override
         public long markExecutionTime() {
             return executionTimer.getElapsedMillis();
         }
@@ -438,11 +434,6 @@ public class DefaultTransformerInvocationFactory implements TransformerInvocatio
             return transformer.isCacheable()
                 ? Optional.empty()
                 : Optional.of(NOT_CACHEABLE);
-        }
-
-        @Override
-        public boolean isAllowedToLoadFromCache() {
-            return true;
         }
 
         @Override

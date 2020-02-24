@@ -1,7 +1,7 @@
-[[sec:using-platform-to-control-transitive-deps]]
+[[sec:sharing-dep-versions-between-projects]]
 = Sharing dependency versions between projects
 
-[[sub:sharing-dep-versions-between-projects]]
+[[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 
 A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
@@ -20,8 +20,8 @@ A dependency on a platform is created using the `platform` keyword:
 
 .Getting versions declared in a platform
 ====
-include::sample[dir="java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
-include::sample[dir="java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
+include::sample[dir="snippets/java-platform/recommender/groovy/consumer",files="build.gradle[tags=get-recommendations]"]
+include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="build.gradle.kts[tags=get-recommendations]"]
 ====
 
 [NOTE]
@@ -29,7 +29,7 @@ include::sample[dir="java-platform/recommender/kotlin/consumer",files="build.gra
 This `platform` notation is a short-hand notation which actually performs several operations under the hood:
 
 * it sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[org.gradle.category attribute] to `platform`, which means that Gradle will select the _platform_ component of the dependency.
-* it set the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[endorseStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
+* it sets the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[endorseStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
 
 This means that by default, a dependency to a platform triggers the inheritance of all <<rich_versions.adoc#sec:strict-version,strict versions>> defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
 This can be turned off by explicitly calling the `doNotEndorseStrictVersions` method.
@@ -44,8 +44,8 @@ In Gradle however, it is done via a regular dependency declaration on the BOM:
 
 .Depending on a BOM to import its dependency constraints
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/constraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====
 
 In the example, the versions of `gson` and `dom4j` are provided by the Spring Boot BOM.
@@ -60,6 +60,6 @@ You can enable this behavior by using the `enforcedPlatform` keyword, instead of
 
 .Importing a BOM, making sure the versions it defines override any other version found
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/groovy",files="build.gradle[tags=dependency-on-bom]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/enforcedConstraintsFromBOM/kotlin",files="build.gradle.kts[tags=dependency-on-bom]"]
 ====

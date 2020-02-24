@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories
 
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler
@@ -31,12 +30,12 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModul
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore
+import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.model.ObjectFactory
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry
 import org.gradle.internal.authentication.DefaultAuthenticationSchemeRegistry
 import org.gradle.internal.isolation.IsolatableFactory
-import org.gradle.internal.resource.cached.ExternalResourceFileStore
+import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.util.SnapshotTestUtil
@@ -49,8 +48,8 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final FileCollectionFactory fileCollectionFactory = Mock()
     final RepositoryTransportFactory transportFactory = Mock()
     final LocallyAvailableResourceFinder locallyAvailableResourceFinder = Mock()
-    final ArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
-    final ExternalResourceFileStore externalResourceFileStore = Stub()
+    final DefaultArtifactIdentifierFileStore artifactIdentifierFileStore = Stub()
+    final DefaultExternalResourceFileStore externalResourceFileStore = Stub()
     final MetaDataParser pomParser = Mock()
     final GradleModuleMetadataParser metadataParser = Mock()
     final ivyContextManager = Mock(IvyContextManager)
@@ -58,14 +57,15 @@ class DefaultBaseRepositoryFactoryTest extends Specification {
     final ImmutableModuleIdentifierFactory moduleIdentifierFactory = Mock()
     final MavenMutableModuleMetadataFactory mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     final IvyMutableModuleMetadataFactory ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
-    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver, new DocumentationRegistry());
+    final DefaultUrlArtifactRepository.Factory urlArtifactRepositoryFactory = new DefaultUrlArtifactRepository.Factory(fileResolver);
 
     final DefaultBaseRepositoryFactory factory = new DefaultBaseRepositoryFactory(
         localMavenRepoLocator, fileResolver, fileCollectionFactory, transportFactory, locallyAvailableResourceFinder,
         artifactIdentifierFileStore, externalResourceFileStore, pomParser, metadataParser, authenticationSchemeRegistry, ivyContextManager, moduleIdentifierFactory,
         TestUtil.instantiatorFactory(), Mock(FileResourceRepository), mavenMetadataFactory, ivyMetadataFactory, SnapshotTestUtil.valueSnapshotter() as IsolatableFactory, Mock(ObjectFactory),
         CollectionCallbackActionDecorator.NOOP,
-        urlArtifactRepositoryFactory
+        urlArtifactRepositoryFactory,
+        TestUtil.checksumService
     )
 
     def testCreateFlatDirResolver() {

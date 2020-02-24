@@ -20,10 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Property;
 
 /**
- * A distribution allow to bundle an application or a library including dependencies, sources...
+ * A distribution allows to bundle an application or a library including dependencies, sources...
  */
 public interface Distribution extends Named {
 
@@ -38,10 +39,12 @@ public interface Distribution extends Named {
      * <p>
      * If the {@link #getName()} of this distribution is "{@code main}" this defaults to the project's name.
      * Otherwise it is "{@code $project.name-$this.name}".
+     * </p>
      *
      * @deprecated Use #getDistributionBaseName()
      */
     @Deprecated
+    @ReplacedBy("distributionBaseName")
     String getBaseName();
 
     /**

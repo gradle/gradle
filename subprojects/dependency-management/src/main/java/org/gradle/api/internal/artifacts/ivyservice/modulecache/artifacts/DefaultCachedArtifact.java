@@ -16,26 +16,27 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 
+import org.gradle.internal.hash.HashCode;
+
 import java.io.File;
 import java.io.Serializable;
-import java.math.BigInteger;
 import java.util.Collections;
 import java.util.List;
 
 public class DefaultCachedArtifact implements CachedArtifact, Serializable {
     private final File cachedFile;
     private final long cachedAt;
-    private final BigInteger descriptorHash;
+    private final HashCode descriptorHash;
     private final List<String> attemptedLocations;
 
-    public DefaultCachedArtifact(File cachedFile, long cachedAt, BigInteger descriptorHash) {
+    public DefaultCachedArtifact(File cachedFile, long cachedAt, HashCode descriptorHash) {
         this.cachedFile = cachedFile;
         this.cachedAt = cachedAt;
         this.descriptorHash = descriptorHash;
         this.attemptedLocations = Collections.emptyList();
     }
 
-    public DefaultCachedArtifact(List<String> attemptedLocations, long cachedAt, BigInteger descriptorHash) {
+    public DefaultCachedArtifact(List<String> attemptedLocations, long cachedAt, HashCode descriptorHash) {
         this.attemptedLocations = attemptedLocations;
         this.cachedAt = cachedAt;
         this.cachedFile = null;
@@ -58,7 +59,7 @@ public class DefaultCachedArtifact implements CachedArtifact, Serializable {
     }
 
     @Override
-    public BigInteger getDescriptorHash() {
+    public HashCode getDescriptorHash() {
         return descriptorHash;
     }
 

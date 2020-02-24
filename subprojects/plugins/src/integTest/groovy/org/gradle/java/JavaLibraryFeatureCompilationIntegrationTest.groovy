@@ -489,6 +489,48 @@ class JavaLibraryFeatureCompilationIntegrationTest extends AbstractIntegrationSp
         executedAndNotSkipped ':compileTestJava', ':test'
     }
 
+    @Issue("gradle/gradle#10999")
+    def "registerFeature can be used when there is no main SourceSet"() {
+        given:
+        buildFile << """
+            apply plugin: 'java-base'
+
+            sourceSets {
+               main211 {}
+               main212 {}
+            }
+            java {
+               registerFeature('scala211') {
+                  usingSourceSet(sourceSets.main211)
+               }
+               registerFeature('scala212') {
+                  usingSourceSet(sourceSets.main212)
+               }
+            }
+        """
+        file("src/main211/java/com/foo/Foo.java") << """
+            package com.foo;
+            public class Foo {
+                public void foo() {
+                }
+            }
+        """
+        file("src/main212/java/com/bar/Bar.java") << """
+            package com.bar;
+
+            public class Bar {
+                public void bar() {
+                }
+            }
+        """
+
+        when:
+        succeeds ':compileMain211Java', ':compileMain212Java'
+
+        then:
+        executedAndNotSkipped ':compileMain211Java', ':compileMain212Java'
+    }
+
     private void packagingTasks(boolean expectExecuted, String subproject, String feature = '') {
         def tasks = [":$subproject:process${feature.capitalize()}Resources", ":$subproject:${feature.isEmpty()? 'classes' : feature + 'Classes'}", ":$subproject:${feature.isEmpty()? 'jar' : feature + 'Jar'}"]
         if (expectExecuted) {

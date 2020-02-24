@@ -94,6 +94,12 @@ abstract class ToolingApiSpecification extends Specification {
         VERSION.get()
     }
 
+    def setup() {
+        // this is to avoid the working directory to be the Gradle directory itself
+        // which causes isolation problems for tests. This one is for _embedded_ mode
+        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+    }
+
     DaemonsFixture getDaemonsFixture() {
         toolingApi.daemons
     }

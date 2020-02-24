@@ -16,9 +16,9 @@
 
 package org.gradle.integtests.samples.files
 
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll

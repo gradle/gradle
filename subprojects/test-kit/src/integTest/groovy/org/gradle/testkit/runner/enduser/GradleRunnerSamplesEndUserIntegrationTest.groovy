@@ -17,6 +17,7 @@
 
 package org.gradle.testkit.runner.enduser
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.internal.util.RetryUtil
@@ -44,6 +45,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Unroll
     @UsesSample("testKit/gradleRunner/junitQuickstart")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "junitQuickstart with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
@@ -63,6 +65,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
     @Unroll
     @UsesSample("testKit/gradleRunner/manualClasspathInjection")
     @Requires(JDK8_OR_EARLIER)
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     // Uses Gradle 2.8 which does not support Java 9
     def "manualClasspathInjection with #dsl dsl"() {
         expect:
@@ -75,6 +78,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Unroll
     @UsesSample("testKit/gradleRunner/automaticClasspathInjectionQuickstart")
+    @ToBeFixedForInstantExecution
     def "automaticClasspathInjectionQuickstart with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
@@ -86,6 +90,7 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Unroll
     @UsesSample("testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet")
+    @ToBeFixedForInstantExecution
     def "automaticClasspathInjectionCustomTestSourceSet with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))

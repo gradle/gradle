@@ -18,6 +18,7 @@ package org.gradle.jvm.plugins;
 import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.test.JUnitTestSuiteBinarySpec;
 import org.gradle.jvm.test.JUnitTestSuiteSpec;
 import org.gradle.jvm.test.JvmTestSuiteSpec;
@@ -47,10 +48,15 @@ import org.gradle.testing.base.plugins.TestingModelBasePlugin;
  * @since 2.11
  */
 @Incubating
+@Deprecated
 public class JUnitTestSuitePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        DeprecationLogger.deprecatePlugin("junit-test-suite")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
         project.getPluginManager().apply(TestingModelBasePlugin.class);
         project.getPluginManager().apply(JvmComponentPlugin.class);
         project.getPluginManager().apply(JvmTestSuiteBasePlugin.class);

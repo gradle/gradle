@@ -28,7 +28,7 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.Closeable;
 
@@ -38,15 +38,15 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
     private final ClasspathEntrySnapshotCache classpathEntrySnapshotCache;
     private final PersistentCache cache;
 
-    public DefaultUserHomeScopedCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
+    public DefaultUserHomeScopedCompileCaches(VirtualFileSystem virtualFileSystem, CacheRepository cacheRepository, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, StringInterner interner) {
         cache = cacheRepository
             .cache("javaCompile")
             .withDisplayName("Java compile cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.classpathEntrySnapshotCache = new DefaultClasspathEntrySnapshotCache(fileSystemSnapshotter, cache.createCache(jarCacheParameters));
+        this.classpathEntrySnapshotCache = new DefaultClasspathEntrySnapshotCache(virtualFileSystem, cache.createCache(jarCacheParameters));
     }
 
     @Override

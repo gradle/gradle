@@ -35,6 +35,8 @@ import static org.junit.Assert.assertTrue
 @Category(PerformanceRegressionTest)
 class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
+    public static final String INSTANT_EXECUTION_ENABLED_PROPERTY = "org.gradle.unsafe.instant-execution"
+
     private TestFile instantExecutionStateDir
 
     def setup() {
@@ -45,11 +47,11 @@ class JavaInstantExecutionPerformanceTest extends AbstractCrossVersionGradleInte
     def "assemble on #testProject #action instant execution state with #daemon daemon"() {
 
         given:
-        runner.targetVersions = ["6.0-20190925220032+0000"]
-        runner.minimumVersion = "5.6-20190625073933+0000"
+        runner.targetVersions = ["6.3-20200215132528+0000"]
+        runner.minimumBaseVersion = "5.6"
         runner.testProject = testProject.projectName
         runner.tasksToRun = ["assemble"]
-        runner.args = ["-Dorg.gradle.unsafe.instant-execution"]
+        runner.args = ["-D${INSTANT_EXECUTION_ENABLED_PROPERTY}=true"]
 
         and:
         runner.useDaemon = daemon == hot

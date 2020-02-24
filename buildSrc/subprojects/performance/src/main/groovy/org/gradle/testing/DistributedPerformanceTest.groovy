@@ -60,7 +60,7 @@ import java.util.zip.ZipInputStream
  */
 @CompileStatic
 @CacheableTask
-class DistributedPerformanceTest extends PerformanceTest {
+abstract class DistributedPerformanceTest extends PerformanceTest {
 
     @Input
     String buildTypeId
@@ -72,10 +72,7 @@ class DistributedPerformanceTest extends PerformanceTest {
     String teamCityUrl
 
     @Input
-    String teamCityUsername
-
-    @Internal
-    String teamCityPassword
+    String teamCityToken
 
     @OutputFile
     File scenarioList
@@ -449,7 +446,7 @@ class DistributedPerformanceTest extends PerformanceTest {
                     def contentUri = fileNode.content.href
                     client.get(path: contentUri, contentType: ContentType.BINARY) {
                         resp, inputStream ->
-                            testSuite = parseXmlsInZip(inputStream)
+                            testSuite = parseXmlsInZip(buildData, inputStream)
                     }
                 }
             }
@@ -457,7 +454,7 @@ class DistributedPerformanceTest extends PerformanceTest {
         return testSuite
     }
 
-    private static JUnitTestSuite parseXmlsInZip(InputStream inputStream) {
+    private static JUnitTestSuite parseXmlsInZip(Map response, InputStream inputStream) {
         List<JUnitTestSuite> parsedXmls = []
         new ZipInputStream(inputStream).withStream { zipInput ->
             def entry
@@ -467,13 +464,13 @@ class DistributedPerformanceTest extends PerformanceTest {
                 }
             }
         }
-        assert parsedXmls.size() == 1
+        assert parsedXmls.size() == 1: "Error when parsing xml: ${response}"
         parsedXmls[0]
     }
 
     private RESTClient createClient() {
-        client = new RESTClient("$teamCityUrl/httpAuth/app/rest/9.1")
-        client.auth.basic(teamCityUsername, teamCityPassword)
+        client = new RESTClient("$teamCityUrl/app/rest/9.1")
+        client.headers.putAt('Authorization', "Bearer $teamCityToken")
         client.headers.putAt('Origin', teamCityUrl)
         client.headers.putAt('Accept', ContentType.JSON.toString())
         client

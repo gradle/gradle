@@ -1,0 +1,32 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to use dependencies within a JVM multi-project build in Gradle. This is the same pattern used by all JVM languages (Java, Groovy, Scala).
+
+The `application` project has an implementation dependency on the `utilities` project:
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+Which in turn has an API dependency on the `list` project:
+
+====
+include::sample[dir="groovy",files="utilities/build.gradle[]"]
+include::sample[dir="kotlin",files="utilities/build.gradle.kts[]"]
+====
+
+To build the projects, you simply need to build the application:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew :application:run
+
+> Task :application:run
+Hello, World!
+
+BUILD SUCCESSFUL
+6 actionable tasks: 6 executed
+----
+
+For more information, see link:{userManualPath}/core_dependency_management.html[dependency management chapters].

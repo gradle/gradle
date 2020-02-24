@@ -19,6 +19,8 @@ package org.gradle.integtests.fixtures
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 
+import java.lang.annotation.Annotation
+
 /**
  * A base runner for features hidden behind a flag, convenient for executing tests with the flag on or off.
  * If a test only makes sense if the feature is enabled, then it needs to be annotated with {@link RequiredFeatures}.
@@ -29,10 +31,6 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
 
     BehindFlagFeatureRunner(Class<?> target, Map<String, Feature> features, boolean executeAllPermutations) {
         super(target, executeAllPermutations)
-        features.each { systemProperty, description ->
-            // Ensure that the system property is propagated to forked Gradle executions
-            AbstractGradleExecuter.propagateSystemProperty(systemProperty)
-        }
         this.features = features
     }
 
@@ -46,15 +44,15 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         }
     }
 
-    Map<String, String> requiredFeatures() {
-        def required = [:]
-        target.annotations.findAll {
-            RequiredFeatures.isAssignableFrom(it.getClass())
-        }.each {
-            extractRequiredFeatures((RequiredFeatures) it, required)
-        }
-
+    static Map<String, String> requiredFeatures(Annotation[] testAnnotations) {
+        Map<String, String> required = [:]
+        getAllAnnotations(testAnnotations, RequiredFeature).each { required[it.feature()] = it.value() }
+        getAllAnnotations(testAnnotations, RequiredFeatures).each { extractRequiredFeatures(it, required) }
         required
+    }
+
+    static <A> Collection<A> getAllAnnotations(testAnnotations, Class<A> annotationType) {
+        (Collection<A>) testAnnotations.findAll { annotationType.isAssignableFrom(it.getClass()) }
     }
 
     def isInvalidCombination(Map<String, String> values) {
@@ -63,7 +61,7 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
 
     @Override
     protected void createExecutions() {
-        def requiredFeatures = requiredFeatures()
+        def requiredFeatures = requiredFeatures(target.annotations)
         def allFeatures = features.values()
         def combinations = allFeatures.collect { it.displayNames.keySet() }.combinations()
         combinations.each {
@@ -101,6 +99,8 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         @Override
         protected void before() {
             featureValues.each { sysProp, value ->
+                // Ensure that the system property is propagated to forked Gradle executions
+                AbstractGradleExecuter.propagateSystemProperty(sysProp)
                 System.setProperty(sysProp, value)
             }
         }
@@ -108,21 +108,19 @@ abstract class BehindFlagFeatureRunner extends AbstractMultiTestRunner {
         @Override
         protected void after() {
             featureValues.each { sysProp, value ->
+                // Stop propagating this system property
+                AbstractGradleExecuter.doNotPropagateSystemProperty(sysProp)
                 System.properties.remove(sysProp)
             }
         }
 
         @Override
         protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-            def requiredFeatures = testDetails.getAnnotation(RequiredFeatures)
+            def requiredFeatures = requiredFeatures(testDetails.annotations)
             def enabled = true
-            if (requiredFeatures) {
-                Map<String, String> required = [:]
-                extractRequiredFeatures(requiredFeatures, required)
-                required.each { sysProp, value ->
-                    if (featureValues[sysProp] != value) {
-                        enabled = false
-                    }
+            requiredFeatures.each { sysProp, value ->
+                if (featureValues[sysProp] != value) {
+                    enabled = false
                 }
             }
             return enabled

@@ -16,9 +16,11 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
-    public void "does not cache local artifacts or metadata"() {
+    @ToBeFixedForInstantExecution
+    void "does not cache local artifacts or metadata"() {
         given:
         def repo = ivyRepo()
         def moduleA = repo.module('group', 'projectA', '1.2')
@@ -61,7 +63,8 @@ task retrieve(type: Sync) {
         file('libs/projectB-9-beta.jar').assertIsCopyOf(moduleB.jarFile)
     }
 
-    public void "does not cache resolution of dynamic versions or changing modules"() {
+    @ToBeFixedForInstantExecution
+    void "does not cache resolution of dynamic versions or changing modules"() {
         def repo = ivyRepo()
 
         given:

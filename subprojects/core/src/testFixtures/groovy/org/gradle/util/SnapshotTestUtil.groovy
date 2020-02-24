@@ -21,6 +21,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
+import org.gradle.internal.state.DefaultManagedFactoryRegistry
 
 class SnapshotTestUtil {
     static ValueSnapshotter valueSnapshotter() {
@@ -29,6 +30,6 @@ class SnapshotTestUtil {
             HashCode getClassLoaderHash(ClassLoader classLoader) {
                 return HashCode.fromInt(classLoader.hashCode())
             }
-        }, null)
+        }, new DefaultManagedFactoryRegistry(null))
     }
 }

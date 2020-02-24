@@ -18,22 +18,22 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.ClassNode
 
 class ClasspathDependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def pluginBuilder = new PluginBuilder(file('plugin'))
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly derives variants and subsequent project use of the dependency has access to derived variants'() {
         given:
         def module = mavenRepo.module('test', 'dep', '1.0').publish()
@@ -99,10 +99,10 @@ task printDeps {
         outputContains 'test-plugin applied'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly uses Java ecosystem'() {
         given:
 
@@ -202,10 +202,8 @@ buildscript {
         succeeds()
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'show that settings classpath respects attributes and thus will use the default java-runtime value'() {
         given:
         def jarFile = file('build/lib/foo.jar')
@@ -222,11 +220,11 @@ buildscript {
     configurations.classpath {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, services.get(ObjectFactory).named(Usage, Usage.JAVA_API))
     }
-    
+
     dependencies {
         classpath 'org:bar:1.0'
     }
-}    
+}
     Class.forName('org.gradle.MyClass')
 """
 

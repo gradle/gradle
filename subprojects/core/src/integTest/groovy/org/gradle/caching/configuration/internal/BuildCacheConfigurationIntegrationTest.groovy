@@ -18,6 +18,7 @@ package org.gradle.caching.configuration.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
@@ -122,23 +123,23 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     def "last remote cache configuration wins"() {
         settingsFile << """
-            import org.gradle.caching.internal.NoOpBuildCacheService
+            ${declareNoopBuildCacheService()}
 
             class CustomBuildCache extends AbstractBuildCache {}
             class AnotherBuildCache extends AbstractBuildCache {}
 
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
-                    new NoOpBuildCacheService() 
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
+                    new NoOpBuildCacheService()
                 }
             }
 
             class AnotherBuildCacheFactory implements BuildCacheServiceFactory<AnotherBuildCache> {
-                @Override BuildCacheService createBuildCacheService(AnotherBuildCache configuration, Describer describer) { 
-                    new NoOpBuildCacheService() 
+                @Override BuildCacheService createBuildCacheService(AnotherBuildCache configuration, Describer describer) {
+                    new NoOpBuildCacheService()
                 }
             }
-            
+
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
                 registerBuildCacheService(AnotherBuildCache, AnotherBuildCacheFactory)
@@ -146,7 +147,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 remote(CustomBuildCache)
                 remote(AnotherBuildCache)
             }
-            
+
             assert buildCache.remote instanceof AnotherBuildCache
         """
 
@@ -156,20 +157,21 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     def "disables remote cache with --offline"() {
         settingsFile << """
-            import org.gradle.caching.internal.NoOpBuildCacheService
+            ${declareNoopBuildCacheService()}
+
             class CustomBuildCache extends AbstractBuildCache {}
-            
+
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
-                    new NoOpBuildCacheService() 
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
+                    new NoOpBuildCacheService()
                 }
             }
-            
+
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
-                
+
                 remote(CustomBuildCache)
-            }            
+            }
         """
         expect:
         succeeds("help", "--build-cache", "--offline", "--info")
@@ -179,18 +181,19 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
     def "unregistered build cache type is reported even when disabled"() {
         settingsFile << """
             class CustomBuildCache extends AbstractBuildCache {}
-            
+
             buildCache {
                 remote(CustomBuildCache) {
                     enabled = false
                 }
-            }            
+            }
         """
         expect:
         fails("help")
         failureHasCause("Build cache type 'CustomBuildCache' has not been registered.")
     }
 
+    @ToBeFixedForInstantExecution
     def "emits a useful message when using the build cache"() {
         when:
         executer.withBuildCacheEnabled()
@@ -199,6 +202,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Using local directory build cache")
     }
 
+    @ToBeFixedForInstantExecution
     def "command-line --no-build-cache wins over system property"() {
         file("gradle.properties") << """
             org.gradle.caching=true
@@ -210,6 +214,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("Using local directory build cache")
     }
 
+    @ToBeFixedForInstantExecution
     def "command-line --build-cache wins over system property"() {
         file("gradle.properties") << """
             org.gradle.caching=false
@@ -237,7 +242,7 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         executer.withBuildCacheEnabled()
         succeeds("customTask")
         then:
-        outputContains("Task output caching is enabled, but no build caches are configured or enabled.")
+        outputContains("Using the build cache is enabled, but no build caches are configured or enabled.")
 
         and:
         localBuildCache.empty
@@ -270,14 +275,14 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             class CustomBuildCache extends AbstractBuildCache {}
             class CustomBuildCacheFactory implements BuildCacheServiceFactory<CustomBuildCache> {
-                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) { 
-                    throw new UnsupportedOperationException() 
+                @Override BuildCacheService createBuildCacheService(CustomBuildCache configuration, Describer describer) {
+                    throw new UnsupportedOperationException()
                 }
             }
-            
+
             buildCache {
                 registerBuildCacheService(CustomBuildCache, CustomBuildCacheFactory)
-                
+
                 local(CustomBuildCache)
             }
         """
@@ -298,18 +303,16 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
                 $config
             }
         """
-        executer.expectDeprecationWarning()
-
         when:
-        run "help"
+        executer.expectDocumentedDeprecationWarning(message)
 
         then:
-        output.contains(message)
+        succeeds "help"
 
         where:
         method                 | config                                           | message
-        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Use getLocal() instead."
-        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Use local(Action) instead."
+        "local(Class)"         | "local(DirectoryBuildCache).enabled = false"     | "The BuildCacheConfiguration.local(Class) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the getLocal() method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#local_build_cache_is_always_a_directory_cache"
+        "local(Class, Action)" | "local(DirectoryBuildCache) { enabled = false }" | "The BuildCacheConfiguration.local(Class, Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the local(Action) method instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#local_build_cache_is_always_a_directory_cache"
     }
 
     private static String customTaskCode() {
@@ -329,4 +332,18 @@ class BuildCacheConfigurationIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
+    static String declareNoopBuildCacheService() {
+        """
+            class NoOpBuildCacheService implements BuildCacheService {
+                @Override
+                boolean load(BuildCacheKey key, BuildCacheEntryReader reader) { false }
+
+                @Override
+                void store(BuildCacheKey key, BuildCacheEntryWriter writer) {}
+
+                @Override
+                void close() {}
+            }
+        """
+    }
 }

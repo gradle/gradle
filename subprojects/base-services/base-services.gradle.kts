@@ -17,8 +17,8 @@ gradlebuildJava {
 }
 
 dependencies {
+    api(project(":baseAnnotations"))
     api(project(":hashing"))
-    api(library("jsr305"))
 
     implementation(library("slf4j_api"))
     implementation(library("guava"))
@@ -42,11 +42,15 @@ jmh {
     include = listOf("HashingAlgorithmsBenchmark")
 }
 
-val buildReceiptPackage: String by rootProject.extra
-
+val buildReceiptPackage = "/org/gradle/"
 val buildReceiptResource = tasks.register<Copy>("buildReceiptResource") {
     from(Callable { tasks.getByPath(":createBuildReceipt").outputs.files })
     destinationDir = file("${gradlebuildJava.generatedResourcesDir}/$buildReceiptPackage")
 }
 
-sourceSets.main { output.dir(gradlebuildJava.generatedResourcesDir, "builtBy" to buildReceiptResource) }
+sourceSets.main {
+    output.dir(
+        gradlebuildJava.generatedResourcesDir,
+        "builtBy" to buildReceiptResource
+    )
+}

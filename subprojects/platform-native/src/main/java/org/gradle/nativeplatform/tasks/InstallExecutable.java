@@ -213,7 +213,7 @@ public class InstallExecutable extends DefaultTask {
     }
 
     private Provider<Directory> getLibDirectory() {
-        return getInstallDirectory().dir("lib");
+        return getInstallDirectory().getLocationOnly().map(dir -> dir.dir("lib"));
     }
 
     private void installWindows(File executable, File runScript) {

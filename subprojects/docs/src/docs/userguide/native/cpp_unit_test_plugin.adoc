@@ -22,8 +22,8 @@ The {cpp} Unit Test Plugin provides the tasks, configurations and conventions fo
 
 .Applying the {cpp} Unit Test Plugin
 ====
-include::sample[dir="userguide/cpp/cppUnitTest/groovy",files="build.gradle[tags=apply-plugin]"]
-include::sample[dir="userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/cpp/cppUnitTest/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
 [[sec:cpp_unit_test_build_varants]]
@@ -41,8 +41,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="userguide/cpp/cppUnitTest/groovy",files="build.gradle[tags=configure-target-machines]"]
-include::sample[dir="userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/userguide/cpp/cppUnitTest/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/userguide/cpp/cppUnitTest/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
 [[sec:cpp_unit_test_tasks]]
@@ -78,7 +78,7 @@ Depends on: `linkTest__Variant__` and all tasks which contribute to the runtime 
 ::
 Installs the executable and all of it's runtime dependencies for easy execution.
 
-`runTest__Variant__` (e.g. `runTest`) - link:{groovyDslPath}/org.gradle.nativeplatform.tasks.RunTestExecutable.html[RunTestExecutable]::
+`runTest__Variant__` (e.g. `runTest`) - link:{groovyDslPath}/org.gradle.nativeplatform.test.tasks.RunTestExecutable.html[RunTestExecutable]::
 Depends on: `installTest__Variant__`
 ::
 Run the installed executable.
@@ -86,7 +86,7 @@ Run the installed executable.
 [[sec:cpp_unit_test_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the {cpp} Unit Test Plugin applies automatically:
+The {cpp} Unit Test Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> — which the {cpp} Unit Test Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Aggregate task that assembles the debug variant of the tested component for the current host (if present) in the project.

@@ -57,8 +57,6 @@ import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.id.LongIdGenerator;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
@@ -198,7 +196,7 @@ public class DependencyGraphBuilder {
     }
 
     private void registerCapabilities(final ResolveState resolveState, final NodeState node) {
-        node.forEachCapability(new Action<Capability>() {
+        node.forEachCapability(capabilitiesConflictHandler, new Action<Capability>() {
             @Override
             public void execute(Capability capability) {
                 // This is a performance optimization. Most modules do not declare capabilities. So, instead of systematically registering
@@ -267,8 +265,8 @@ public class DependencyGraphBuilder {
             SelectorState selector = dependency.getSelector();
             ModuleResolveState module = selector.getTargetModule();
 
-            if (!selector.isResolved()) {
-                // Have an unprocessed/new selector for this module. Need to re-select the target version.
+            if (selector.canResolve() && module.getSelectors().size() > 0) {
+                // Have an unprocessed/new selector for this module. Need to re-select the target version (if there are any selectors that can be used).
                 performSelection(resolveState, module);
             }
 
@@ -339,12 +337,9 @@ public class DependencyGraphBuilder {
         if (requiringDownload != null && requiringDownload.size() > 1) {
             final ImmutableList<ComponentState> toDownloadInParallel = ImmutableList.copyOf(requiringDownload);
             LOGGER.debug("Submitting {} metadata files to resolve in parallel for {}", toDownloadInParallel.size(), node);
-            buildOperationExecutor.runAll(new Action<BuildOperationQueue<RunnableBuildOperation>>() {
-                @Override
-                public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                    for (final ComponentState componentState : toDownloadInParallel) {
-                        buildOperationQueue.add(new DownloadMetadataOperation(componentState));
-                    }
+            buildOperationExecutor.runAll(buildOperationQueue -> {
+                for (final ComponentState componentState : toDownloadInParallel) {
+                    buildOperationQueue.add(new DownloadMetadataOperation(componentState));
                 }
             });
         }

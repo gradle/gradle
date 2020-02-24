@@ -22,10 +22,11 @@ import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.state.Managed;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.AbstractSet;
@@ -40,7 +41,7 @@ import java.util.Set;
  */
 public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, HasConfigurableValueInternal {
     private enum State {
-        Mutable, FinalizeNextQuery, Final
+        Mutable, ImplicitFinalizeNextQuery, FinalizeNextQuery, Final
     }
 
     private final Set<Object> files;
@@ -51,7 +52,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     private State state = State.Mutable;
     private boolean disallowChanges;
 
-    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Collection<?> files) {
+    public DefaultConfigurableFileCollection(@Nullable String displayName, PathToFileResolver fileResolver, TaskDependencyFactory dependencyFactory, Factory<PatternSet> patternSetFactory, Collection<?> files) {
+        super(patternSetFactory);
         this.displayName = displayName;
         this.resolver = fileResolver;
         this.files = new LinkedHashSet<>();
@@ -61,7 +63,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
-    public boolean immutable() {
+    public boolean isImmutable() {
         return false;
     }
 
@@ -90,9 +92,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     @Override
+    public void finalizeValueOnRead() {
+        if (state == State.Mutable || state == State.ImplicitFinalizeNextQuery) {
+            state = State.FinalizeNextQuery;
+        }
+    }
+
+    @Override
     public void implicitFinalizeValue() {
         if (state == State.Mutable) {
-            state = State.FinalizeNextQuery;
+            state = State.ImplicitFinalizeNextQuery;
         }
     }
 
@@ -140,7 +149,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         } else if (disallowChanges) {
             throw new IllegalStateException("The value for " + displayNameForThisCollection() + " cannot be changed.");
         } else if (state == State.Final) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Changing the value for a FileCollection with a final value");
+            DeprecationLogger.deprecateAction("Changing the value for a FileCollection with a final value")
+                .willBecomeAnErrorInGradle7()
+                .withUserManual("lazy_configuration", "unmodifiable_property")
+                .nagUser();
             return false;
         } else {
             return true;
@@ -169,7 +181,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private void calculateFinalizedValue() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(PatternSets.getNonCachingPatternSetFactory());
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(patternSetFactory);
         UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
         nested.add(files);
         files.clear();
@@ -178,9 +190,13 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        if (state == State.FinalizeNextQuery) {
+        if (state == State.ImplicitFinalizeNextQuery) {
             calculateFinalizedValue();
             state = State.Final;
+        } else if (state == State.FinalizeNextQuery) {
+            calculateFinalizedValue();
+            state = State.Final;
+            disallowChanges = true;
         }
         if (state == State.Final) {
             context.addAll(files);

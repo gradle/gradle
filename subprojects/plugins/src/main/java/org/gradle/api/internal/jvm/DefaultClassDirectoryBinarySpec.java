@@ -123,12 +123,12 @@ public class DefaultClassDirectoryBinarySpec extends AbstractBuildableComponentS
 
     @Override
     public File getClassesDir() {
-        return sourceSet.getJava().getOutputDir();
+        return sourceSet.getJava().getDestinationDirectory().getAsFile().get();
     }
 
     @Override
     public void setClassesDir(final File classesDir) {
-        sourceSet.getJava().setOutputDir(classesDir);
+        sourceSet.getJava().getDestinationDirectory().set(classesDir);
     }
 
     @Override

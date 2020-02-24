@@ -54,7 +54,7 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
                 if (!inStackTrace) {
                     normalised.append('\n')
                 }
-            } else if (line.matches(/\s+at .+\(.+\)/)) {
+            } else if (line.matches(/\s+at .+\(.+\)/) || line.matches(/\s+\.\.\. \d+ more/)) {
                 if (!inStackTrace) {
                     normalised.append('{stacktrace}\n')
                 }

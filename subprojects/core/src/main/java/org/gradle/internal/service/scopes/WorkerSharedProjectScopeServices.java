@@ -103,13 +103,13 @@ public class WorkerSharedProjectScopeServices {
         return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
     }
 
-    FilePropertyFactory createProjectFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+    DefaultFilePropertyFactory createProjectFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
         return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
     }
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
         return new DefaultObjectFactory(
-                instantiatorFactory.injectAndDecorate(services),
+                instantiatorFactory.decorate(services),
                 namedObjectInstantiator,
                 fileResolver,
                 directoryFileTreeFactory,

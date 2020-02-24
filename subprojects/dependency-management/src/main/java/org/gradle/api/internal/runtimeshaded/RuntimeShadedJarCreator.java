@@ -26,10 +26,10 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classanalysis.AsmConstants;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.logging.progress.ProgressLogger;
@@ -57,16 +57,18 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
+
+import static java.util.Arrays.asList;
 
 class RuntimeShadedJarCreator {
 
@@ -185,12 +187,7 @@ class RuntimeShadedJarCreator {
 
         // We need to sort here since the file order obtained from the filesystem
         // can change between machines and we always want to have the same shaded jars.
-        Collections.sort(fileVisitDetails, new Comparator<FileVisitDetails>() {
-            @Override
-            public int compare(FileVisitDetails o1, FileVisitDetails o2) {
-                return o1.getPath().compareTo(o2.getPath());
-            }
-        });
+        Collections.sort(fileVisitDetails, (o1, o2) -> o1.getPath().compareTo(o2.getPath()));
 
         for (FileVisitDetails details : fileVisitDetails) {
             try {
@@ -254,7 +251,7 @@ class RuntimeShadedJarCreator {
 
     private void processServiceDescriptor(InputStream inputStream, ZipEntry zipEntry, byte[] buffer, Map<String, List<String>> services) throws IOException {
         String descriptorName = zipEntry.getName().substring(SERVICES_DIR_PREFIX.length());
-        String descriptorApiClass = periodsToSlashes(descriptorName);
+        String descriptorApiClass = periodsToSlashes(descriptorName)[0];
         String relocatedApiClassName = remapper.maybeRelocateResource(descriptorApiClass);
         if (relocatedApiClassName == null) {
             relocatedApiClassName = descriptorApiClass;
@@ -262,29 +259,34 @@ class RuntimeShadedJarCreator {
 
         byte[] bytes = readEntry(inputStream, zipEntry, buffer);
         String entry = new String(bytes, Charsets.UTF_8).replaceAll("(?m)^#.*", "").trim(); // clean up comments and new lines
-        String descriptorImplClass = periodsToSlashes(entry);
-        String relocatedImplClassName = remapper.maybeRelocateResource(descriptorImplClass);
-        if (relocatedImplClassName == null) {
-            relocatedImplClassName = descriptorImplClass;
+
+        String[] descriptorImplClasses = periodsToSlashes(separateLines(entry));
+        String[] relocatedImplClassNames = maybeRelocateResources(descriptorImplClasses);
+        if (relocatedImplClassNames.length == 0) {
+            relocatedImplClassNames = descriptorImplClasses;
         }
 
-        String serviceType = slashesToPeriods(relocatedApiClassName);
-        String serviceProvider = slashesToPeriods(relocatedImplClassName).trim();
+        String serviceType = slashesToPeriods(relocatedApiClassName)[0];
+        String[] serviceProviders = slashesToPeriods(relocatedImplClassNames);
 
         if (!services.containsKey(serviceType)) {
-            services.put(serviceType, Lists.newArrayList(serviceProvider));
+            services.put(serviceType, Lists.newArrayList(serviceProviders));
         } else {
             List<String> providers = services.get(serviceType);
-            providers.add(serviceProvider);
+            providers.addAll(asList(serviceProviders));
         }
     }
 
-    private String slashesToPeriods(String slashClassName) {
-        return slashClassName.replace('/', '.');
+    private String[] slashesToPeriods(String... slashClassNames) {
+        return asList(slashClassNames).stream().filter(Objects::nonNull)
+            .map(clsName ->  clsName.replace('/', '.')).map(String::trim)
+            .toArray(String[]::new);
     }
 
-    private String periodsToSlashes(String periodClassName) {
-        return periodClassName.replace('.', '/');
+    private String[] periodsToSlashes(String... periodClassNames) {
+        return asList(periodClassNames).stream().filter(Objects::nonNull)
+            .map(clsName ->  clsName.replace('.', '/'))
+            .toArray(String[]::new);
     }
 
     private void copyEntry(ZipOutputStream outputStream, InputStream inputStream, ZipEntry zipEntry, byte[] buffer) throws IOException {
@@ -447,5 +449,17 @@ class RuntimeShadedJarCreator {
                 }
             };
         }
+    }
+
+    private String[] maybeRelocateResources(String... resources) {
+        return asList(resources).stream()
+            .filter(Objects::nonNull)
+            .map(remapper::maybeRelocateResource)
+            .filter(Objects::nonNull)
+            .toArray(String[]::new);
+    }
+
+    private String[] separateLines(String entry){
+        return entry.split("\\n");
     }
 }

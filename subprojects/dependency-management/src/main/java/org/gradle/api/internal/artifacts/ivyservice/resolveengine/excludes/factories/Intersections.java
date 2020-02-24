@@ -83,6 +83,26 @@ class Intersections {
             return intersectModuleIdSet((ModuleIdSetExclude) left, right);
         } else if (right instanceof ModuleIdSetExclude) {
             return intersectModuleIdSet((ModuleIdSetExclude) right, left);
+        } else if (left instanceof ModuleSetExclude) {
+            return intersectModuleSet((ModuleSetExclude) left, right);
+        } else if (right instanceof ModuleSetExclude) {
+            return intersectModuleSet((ModuleSetExclude) right, left);
+        }
+        return null;
+    }
+
+    private ExcludeSpec intersectModuleSet(ModuleSetExclude left, ExcludeSpec right) {
+        if (right instanceof ModuleSetExclude) {
+            ModuleSetExclude msr = (ModuleSetExclude) right;
+            Set<String> modules = Sets.newHashSet(left.getModules());
+            modules.retainAll(msr.getModules());
+            if (modules.isEmpty()) {
+                return factory.nothing();
+            }
+            if (modules.size() == 1) {
+                return factory.module(modules.iterator().next());
+            }
+            return factory.moduleSet(modules);
         }
         return null;
     }

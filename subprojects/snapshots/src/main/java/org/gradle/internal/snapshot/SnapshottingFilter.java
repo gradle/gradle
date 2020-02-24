@@ -16,9 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import javax.annotation.Nullable;
 import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 
 public interface SnapshottingFilter {
     SnapshottingFilter EMPTY = new SnapshottingFilter() {
@@ -34,7 +32,7 @@ public interface SnapshottingFilter {
 
         @Override
         public DirectoryWalkerPredicate getAsDirectoryWalkerPredicate() {
-            return (path, name, isDirectory, attrs, relativePath) -> true;
+            return (path, name, isDirectory, relativePath) -> true;
         }
     };
 
@@ -43,10 +41,10 @@ public interface SnapshottingFilter {
     DirectoryWalkerPredicate getAsDirectoryWalkerPredicate();
 
     interface DirectoryWalkerPredicate {
-        boolean test(Path path, String name, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath);
+        boolean test(Path path, String name, boolean isDirectory, Iterable<String> relativePath);
     }
 
     interface FileSystemSnapshotPredicate {
-        boolean test(FileSystemLocationSnapshot fileSystemLocation, Iterable<String> relativePath);
+        boolean test(CompleteFileSystemLocationSnapshot fileSystemLocation, Iterable<String> relativePath);
     }
 }

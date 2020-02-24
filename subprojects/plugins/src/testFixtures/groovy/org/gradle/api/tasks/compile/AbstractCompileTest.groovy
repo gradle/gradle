@@ -16,7 +16,7 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.AbstractConventionTaskTest
 import org.gradle.util.WrapUtil
 
@@ -47,6 +47,7 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
         expect:
         compile.getDestinationDir() == null
+        compile.getDestinationDirectory().getOrNull() == null
         compile.getSourceCompatibility() == null
         compile.getTargetCompatibility() == null
         compile.getSource().isEmpty()
@@ -86,6 +87,6 @@ abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.setTargetCompatibility("1.5")
         compile.setDestinationDir(destDir)
 
-        compile.setClasspath(ImmutableFileCollection.of(new File("jar1")))
+        compile.setClasspath(TestFiles.fixed(new File("jar1")))
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.Transformer;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
@@ -26,7 +27,7 @@ import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
@@ -38,7 +39,7 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 import java.io.File;
 
-public class DefaultFilePropertyFactory implements FilePropertyFactory {
+public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
     private final FileResolver fileResolver;
     private final FileCollectionFactory fileCollectionFactory;
 
@@ -57,6 +58,18 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         return new DefaultRegularFileVar(fileResolver);
     }
 
+    @Override
+    public Directory dir(File dir) {
+        dir = fileResolver.resolve(dir);
+        return new FixedDirectory(dir, fileResolver.newResolver(dir), fileCollectionFactory);
+    }
+
+    @Override
+    public RegularFile file(File file) {
+        file = fileResolver.resolve(file);
+        return new FixedFile(file);
+    }
+
     static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
         final FileResolver fileResolver;
         private final FileCollectionFactory fileCollectionFactory;
@@ -68,7 +81,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public boolean immutable() {
+        public boolean isImmutable() {
             return true;
         }
 
@@ -126,7 +139,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
         }
 
         @Override
-        public boolean immutable() {
+        public boolean isImmutable() {
             return true;
         }
 
@@ -211,7 +224,12 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public THIS fileProvider(Provider<File> provider) {
-            set(provider.map(file -> fromFile(file)));
+            set(provider.map(new Transformer<T, File>() {
+                @Override
+                public T transform(File file) {
+                    return fromFile(file);
+                }
+            }));
             return Cast.uncheckedNonnullCast(this);
         }
 
@@ -229,17 +247,16 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Provider<T> getLocationOnly() {
-            return new AbstractReadOnlyProvider<T>() {
+            return new AbstractMinimalProvider<T>() {
                 @Nullable
                 @Override
                 public Class<T> getType() {
                     return AbstractFileVar.this.getType();
                 }
 
-                @Nullable
                 @Override
-                public T getOrNull() {
-                    return AbstractFileVar.this.getOrNull();
+                protected Value<? extends T> calculateOwnValue() {
+                    return AbstractFileVar.this.calculateOwnValue();
                 }
             };
         }
@@ -344,7 +361,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Provider<Directory> dir(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, path) {
+            return new AbstractCombiningProvider<Directory, Directory, CharSequence>(Directory.class, this, Providers.internal(path)) {
                 @Override
                 protected Directory map(Directory b, CharSequence v) {
                     return b.dir(v.toString());
@@ -364,7 +381,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory {
 
         @Override
         public Provider<RegularFile> file(final Provider<? extends CharSequence> path) {
-            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, path) {
+            return new AbstractCombiningProvider<RegularFile, Directory, CharSequence>(RegularFile.class, this, Providers.internal(path)) {
                 @Override
                 protected RegularFile map(Directory b, CharSequence v) {
                     return b.file(v.toString());

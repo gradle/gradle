@@ -40,24 +40,12 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler.delegate.delegate instanceof JdkJavaCompiler
     }
 
-    def "creates in-process compiler when JavaCompileSpec is provided and joint compilation"() {
-        expect:
-        def compiler = factory.createForJointCompilation(JavaCompileSpec.class)
-        compiler instanceof JdkJavaCompiler
-    }
-
     def "creates command line compiler when CommandLineJavaCompileSpec is provided"() {
         expect:
         def compiler = factory.create(TestCommandLineJavaSpec.class)
         compiler instanceof AnnotationProcessorDiscoveringCompiler
         compiler.delegate instanceof NormalizingJavaCompiler
         compiler.delegate.delegate instanceof CommandLineJavaCompiler
-    }
-
-    def "creates command line compiler when CommandLineJavaCompileSpec is provided and joint compilation"() {
-        expect:
-        def compiler = factory.createForJointCompilation(TestCommandLineJavaSpec)
-        compiler instanceof CommandLineJavaCompiler
     }
 
     def "creates daemon compiler when ForkingJavaCompileSpec"() {
@@ -67,12 +55,6 @@ class DefaultJavaCompilerFactoryTest extends Specification {
         compiler.delegate instanceof NormalizingJavaCompiler
         compiler.delegate.delegate instanceof DaemonJavaCompiler
         compiler.delegate.delegate.compilerClass == JdkJavaCompiler.class
-    }
-
-    def "creates in-process compiler when ForkingJavaCompileSpec is provided and joint compilation"() {
-        expect:
-        def compiler = factory.createForJointCompilation(TestForkingJavaCompileSpec)
-        compiler instanceof JdkJavaCompiler
     }
 
     private static class TestCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {

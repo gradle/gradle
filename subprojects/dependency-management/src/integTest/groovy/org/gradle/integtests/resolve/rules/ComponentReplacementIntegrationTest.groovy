@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestDependency
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
@@ -85,6 +86,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedFiles(modules.collect { new TestDependency(it).jarName } as String[])
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores replacement if not in graph"() {
         declaredDependencies 'a'
         declaredReplacements 'a->b'
@@ -92,6 +94,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a'
     }
 
+    @ToBeFixedForInstantExecution
     def "ignores replacement if org does not match"() {
         declaredDependencies 'a', 'com:b'
         declaredReplacements 'a->org:b'
@@ -99,6 +102,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a', 'com:b'
     }
 
+    @ToBeFixedForInstantExecution
     def "just uses replacement if source not in graph"() {
         declaredDependencies 'b'
         declaredReplacements 'a->b'
@@ -106,6 +110,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "replaces already resolved module"() {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
@@ -113,6 +118,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "replaces not yet resolved module"() {
         declaredDependencies 'b', 'a'
         declaredReplacements 'a->b'
@@ -120,6 +126,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses highest when it is last"() {
         declaredDependencies 'b', 'a', 'b:2'
         declaredReplacements 'a->b'
@@ -127,6 +134,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b:2'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses highest when it is last following replacedBy"() {
         declaredDependencies 'a', 'b', 'b:2'
         declaredReplacements 'a->b'
@@ -134,6 +142,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b:2'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses highest when it is first"() {
         declaredDependencies 'b:2', 'b', 'a'
         declaredReplacements 'a->b'
@@ -141,6 +150,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b:2'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses highest when it is first followed by replacedBy"() {
         declaredDependencies 'b:2', 'b', 'a'
         declaredReplacements 'a->b'
@@ -148,6 +158,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b:2'
     }
 
+    @ToBeFixedForInstantExecution
     def "evicts transitive dependencies of replaced module"() {
         declaredDependencies 'a', 'c'
         declaredReplacements 'a->e'
@@ -157,6 +168,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'c', 'd', 'e' //'b' is evicted
     }
 
+    @ToBeFixedForInstantExecution
     def "replaces transitive module"() {
         declaredDependencies 'a', 'c'
         declaredReplacements 'b->d'
@@ -165,6 +177,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a', 'd', 'c'
     }
 
+    @ToBeFixedForInstantExecution
     def "replaces module even if it was already conflict-resolved"() {
         declaredDependencies 'a:1', 'a:2'
         declaredReplacements 'a->c'
@@ -174,6 +187,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'c'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses already resolved highest version"() {
         declaredDependencies 'a:1', 'a:2'
         declaredReplacements 'c->a'
@@ -183,6 +197,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a:2', 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "latest replacement wins"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c' //2 replacements for the same source module
@@ -190,6 +205,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'c', 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "supports consecutive replacements"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'b->c'
@@ -205,6 +221,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot declare module replacement org:c->org:a because it introduces a cycle: org:c->org:a->org:b->org:c")
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement target unresolved"() {
         publishedMavenModules('a')
         buildFile << "dependencies { conf 'org:a:1', 'org:b:1' }\n"
@@ -216,6 +233,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Could not find org:b:1")
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement source unresolved"() {
         publishedMavenModules('a')
         buildFile << "dependencies { conf 'org:a:1', 'org:b:1' }\n"
@@ -245,6 +263,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         fails().assertHasCause("Cannot convert the provided notation to an object of type ModuleIdentifier: org:foo:1.0")
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement target is not used if it is excluded"() {
         declaredDependencies 'a', 'b->c'
         declaredReplacements 'a->c'
@@ -253,6 +272,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a', 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement target is used if replacement source is excluded"() {
         declaredDependencies 'a', 'b->c'
         declaredReplacements 'a->c'
@@ -261,6 +281,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'c', 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement is not used when it replaced by resolve rule"() {
         publishedMavenModules('d')
         declaredDependencies 'a', 'b'
@@ -276,6 +297,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a', 'd'
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement and resolve rule have exactly the same target"() {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
@@ -290,6 +312,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement is used when it is pulled to the graph via resolve rule"() {
         publishedMavenModules('d')
         declaredDependencies 'a', 'b'
@@ -305,6 +328,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'd'
     }
 
+    @ToBeFixedForInstantExecution
     def "both source and replacement target are pulled to the graph via resolve rule"() {
         publishedMavenModules('a', 'b')
         declaredDependencies 'c', 'd'
@@ -319,6 +343,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b'
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement target is manipulated by resolve rule and then replaced again by different module replacement declaration"() {
         publishedMavenModules 'd'
         declaredDependencies 'a', 'b', 'c'
@@ -332,6 +357,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a', 'd'
     }
 
+    @ToBeFixedForInstantExecution
     def "replacement target forms a legal cycle with resolve rule"() {
         publishedMavenModules 'd'
         declaredDependencies 'a', 'b'
@@ -346,6 +372,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'a'
     }
 
+    @ToBeFixedForInstantExecution
     def "supports multiple replacement targets"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->b', 'a->c'
@@ -353,6 +380,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'b', 'c'
     }
 
+    @ToBeFixedForInstantExecution
     def "multiple source modules have the same replacement target"() {
         declaredDependencies 'a', 'b', 'c'
         declaredReplacements 'a->c', 'b->c'
@@ -360,6 +388,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'c'
     }
 
+    @ToBeFixedForInstantExecution
     def "multiple source modules but only some are included in graph"() {
         declaredDependencies 'a', 'c'
         declaredReplacements 'a->c', 'b->c'
@@ -367,6 +396,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'c'
     }
 
+    @ToBeFixedForInstantExecution
     def "declared modules coexist with forced versions"() {
         declaredDependencies 'a', 'b'
         declaredReplacements 'a->b'
@@ -394,6 +424,7 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1472")
+    @ToBeFixedForInstantExecution
     def "handles '+' suffix in module name"() {
         declaredDependencies 'org:foo+', 'org:bar'
         declaredReplacements 'org:foo+->org:bar'
@@ -401,7 +432,18 @@ class ComponentReplacementIntegrationTest extends AbstractIntegrationSpec {
         resolvedModules 'org:bar'
     }
 
+    @Issue("gradle/gradle#11569")
+    @ToBeFixedForInstantExecution
+    def "handles replacement in parallel of de-select / re-select events"() {
+        declaredDependencies 'a', 'm'
+        declaredReplacements 'from->to'
+        publishedMavenModules 'a->b', 'm->n->o->p->q->a:2->b->c->from->to'
+        expect:
+        resolvedModules 'a:2', 'b', 'c', 'to', 'm', 'n', 'o', 'p', 'q'
+    }
+
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can provide custom replacement reason"() {
         declaredDependencies 'a', 'b'
         if (custom) {

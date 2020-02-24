@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider.runner;
 
 import org.gradle.configuration.project.ConfigureProjectBuildOperationType;
+import org.gradle.internal.build.event.BuildEventSubscriptions;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -27,19 +28,19 @@ import org.gradle.tooling.internal.protocol.events.InternalOperationFinishedProg
 import org.gradle.tooling.internal.protocol.events.InternalOperationStartedProgressEvent;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalProjectConfigurationResult.InternalPluginApplicationResult;
-import org.gradle.tooling.internal.provider.BuildClientSubscriptions;
-import org.gradle.tooling.internal.provider.events.AbstractProjectConfigurationResult;
-import org.gradle.tooling.internal.provider.events.DefaultFailure;
-import org.gradle.tooling.internal.provider.events.DefaultOperationFinishedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultOperationStartedProgressEvent;
-import org.gradle.tooling.internal.provider.events.DefaultPluginApplicationResult;
-import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationDescriptor;
-import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationFailureResult;
-import org.gradle.tooling.internal.provider.events.DefaultProjectConfigurationSuccessResult;
+import org.gradle.internal.build.event.types.AbstractProjectConfigurationResult;
+import org.gradle.internal.build.event.types.DefaultFailure;
+import org.gradle.internal.build.event.types.DefaultOperationFinishedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultOperationStartedProgressEvent;
+import org.gradle.internal.build.event.types.DefaultPluginApplicationResult;
+import org.gradle.internal.build.event.types.DefaultProjectConfigurationDescriptor;
+import org.gradle.internal.build.event.types.DefaultProjectConfigurationFailureResult;
+import org.gradle.internal.build.event.types.DefaultProjectConfigurationSuccessResult;
 import org.gradle.tooling.internal.provider.runner.PluginApplicationTracker.PluginApplication;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -60,7 +61,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
     private final BuildOperationParentTracker parentTracker;
     private final PluginApplicationTracker pluginApplicationTracker;
 
-    ClientForwardingProjectConfigurationOperationListener(ProgressEventConsumer eventConsumer, BuildClientSubscriptions clientSubscriptions, BuildOperationListener delegate,
+    ClientForwardingProjectConfigurationOperationListener(ProgressEventConsumer eventConsumer, BuildEventSubscriptions clientSubscriptions, BuildOperationListener delegate,
                                                           BuildOperationParentTracker parentTracker, PluginApplicationTracker pluginApplicationTracker) {
         super(eventConsumer, clientSubscriptions, delegate, OperationType.PROJECT_CONFIGURATION, ConfigureProjectBuildOperationType.Details.class);
         this.parentTracker = parentTracker;
@@ -108,7 +109,7 @@ class ClientForwardingProjectConfigurationOperationListener extends SubtreeFilte
         long startTime = finishEvent.getStartTime();
         long endTime = finishEvent.getEndTime();
         Throwable failure = finishEvent.getFailure();
-        List<InternalPluginApplicationResult> pluginApplicationResults = configResult.toInternalPluginApplicationResults();
+        List<InternalPluginApplicationResult> pluginApplicationResults = configResult != null ? configResult.toInternalPluginApplicationResults() : Collections.emptyList();
         if (failure != null) {
             return new DefaultProjectConfigurationFailureResult(startTime, endTime, singletonList(DefaultFailure.fromThrowable(failure)), pluginApplicationResults);
         }

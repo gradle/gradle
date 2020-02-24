@@ -23,6 +23,7 @@ import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ResolveException
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.initialization.ClassLoaderRegistry
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter
 import org.gradle.internal.logging.text.TreeFormatter
@@ -51,7 +52,8 @@ class DefaultPlayToolChainTest extends Specification {
     ClassPathRegistry classPathRegistry = Mock()
     ClassLoaderRegistry classLoaderRegistry = Mock()
     ActionExecutionSpecFactory actionExecutionSpecFactory = Mock()
-    def toolChain = new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory)
+    FileCollectionFactory fileCollectionFactory = Mock()
+    def toolChain = new DefaultPlayToolChain(forkOptionsFactory, workerDaemonFactory, configurationContainer, dependencyHandler, workerProcessBuilderFactory, workerDirectoryProvider, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory, fileCollectionFactory)
 
     def setup() {
         playPlatform.playVersion >> DefaultPlayPlatform.DEFAULT_PLAY_VERSION

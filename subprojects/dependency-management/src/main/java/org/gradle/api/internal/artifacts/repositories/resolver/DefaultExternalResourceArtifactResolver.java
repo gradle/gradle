@@ -15,11 +15,11 @@
  */
 package org.gradle.api.internal.artifacts.repositories.resolver;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 import org.gradle.internal.component.model.ModuleDescriptorArtifactMetadata;
-import org.gradle.internal.component.model.ModuleSource;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.gradle.internal.resource.ExternalResourceName;
 import org.gradle.internal.resource.ExternalResourceRepository;
@@ -52,11 +52,6 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
         this.artifactPatterns = artifactPatterns;
         this.fileStore = fileStore;
         this.resourceAccessor = resourceAccessor;
-    }
-
-    @Override
-    public ModuleSource getSource() {
-        return null;
     }
 
     @Override
@@ -105,7 +100,7 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             if (isIncomplete(resourcePattern, artifact)) {
                 continue;
             }
-            ExternalResourceName moduleDir = resourcePattern.toModuleVersionPath(artifact.getComponentId());
+            ExternalResourceName moduleDir = resourcePattern.toModuleVersionPath(normalizeComponentId(artifact));
             ExternalResourceName location = moduleDir.resolve(artifact.getRelativeUrl());
             result.attempted(location);
             LOGGER.debug("Loading {}", location);
@@ -120,6 +115,15 @@ class DefaultExternalResourceArtifactResolver implements ExternalResourceArtifac
             }
         }
         return null;
+    }
+
+    private ModuleComponentIdentifier normalizeComponentId(UrlBackedArtifactMetadata artifact) {
+        ModuleComponentIdentifier rawId = artifact.getComponentId();
+        if (rawId instanceof MavenUniqueSnapshotComponentIdentifier) {
+            // We cannot use a Maven unique snapshot id for the path part
+            return ((MavenUniqueSnapshotComponentIdentifier) rawId).getSnapshotComponent();
+        }
+        return rawId;
     }
 
     private LocallyAvailableExternalResource downloadByCoords(List<ResourcePattern> patternList, final ModuleComponentArtifactMetadata artifact, ResourceAwareResolveResult result) {

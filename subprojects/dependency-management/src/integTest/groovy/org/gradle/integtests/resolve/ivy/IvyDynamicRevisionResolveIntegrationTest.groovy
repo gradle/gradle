@@ -17,17 +17,13 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-@RequiredFeatures([
-    // this test is specific to Ivy
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
-]
-)
+// this test is specific to Ivy
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
 @IgnoreIf({ GradleContextualExecuter.parallel })
 class IvyDynamicRevisionResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -635,18 +631,9 @@ dependencies {
 
         when:
         repositoryInteractions {
-            'org.test:projectA' {
-                expectVersionListing()
-            }
             'org.test:projectA:1.1' {
                 expectGetMetadata()
                 expectGetArtifact()
-            }
-            if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
-                // todo: is single version in range something we want to allow in Gradle metadata?
-                'org.test:projectB' {
-                    expectVersionListing()
-                }
             }
             'org.test:projectB:2.0' {
                 expectGetMetadata()

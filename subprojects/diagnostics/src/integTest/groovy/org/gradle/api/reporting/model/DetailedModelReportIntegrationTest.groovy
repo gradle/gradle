@@ -17,11 +17,13 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
+@UnsupportedWithInstantExecution(because = "software model")
 class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

@@ -17,6 +17,7 @@
 package org.gradle.internal.fingerprint.impl;
 
 import com.google.common.collect.ImmutableMultimap;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.hash.HashCode;
@@ -61,12 +62,17 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     }
 
     @Override
+    public ImmutableSet<String> getRootPaths() {
+        return ImmutableSet.of();
+    }
+
+    @Override
     public String getStrategyIdentifier() {
         return identifier;
     }
 
     @Override
     public String toString() {
-        return "EMPTY{" + identifier + "}";
+        return identifier + "{EMPTY}";
     }
 }

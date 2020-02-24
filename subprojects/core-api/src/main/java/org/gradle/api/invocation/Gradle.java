@@ -28,6 +28,7 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.services.BuildServiceRegistry;
 import org.gradle.internal.HasInternalProtocol;
 
 import javax.annotation.Nullable;
@@ -362,6 +363,14 @@ public interface Gradle extends PluginAware {
      * @return this. Never returns null.
      */
     Gradle getGradle();
+
+    /**
+     * Returns the build services that are shared by all projects of this build.
+     *
+     * @since 6.1
+     */
+    @Incubating
+    BuildServiceRegistry getSharedServices();
 
     /**
      * Returns the included builds for this build.

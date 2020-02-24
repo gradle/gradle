@@ -18,10 +18,12 @@ package org.gradle.model
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.language.base.FunctionalSourceSet
 import org.gradle.platform.base.ComponentSpec
 import spock.lang.Issue
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelMapIntegrationTest extends AbstractIntegrationSpec {
     def "provides basic meta-data for map"() {
         when:

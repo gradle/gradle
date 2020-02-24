@@ -19,16 +19,14 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.encoding.Identifier
 import spock.lang.Unroll
 
-@RequiredFeatures([
-    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-])
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
 class IvySpecificComponentMetadataRulesIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
 
     def setup() {
@@ -52,6 +50,7 @@ task resolve {
         new ResolveTestFixture(buildFile).addDefaultVariantDerivationStrategy()
     }
 
+    @ToBeFixedForInstantExecution
     def "can access Ivy metadata"() {
         given:
         repository {
@@ -199,6 +198,7 @@ resolve.doLast { assert IvyRule.ruleInvoked }
         identifier << Identifier.all
     }
 
+    @ToBeFixedForInstantExecution
     def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
         given:
         repository {
@@ -260,6 +260,7 @@ resolve.doLast { assert ruleInvoked }
         succeeds 'resolve'
     }
 
+    @ToBeFixedForInstantExecution
     def "changed Ivy metadata becomes visible once module is refreshed"() {
         def baseScript = buildFile.text
 

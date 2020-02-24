@@ -24,9 +24,11 @@ import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.Transformer;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.CopyProcessingSpec;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
@@ -51,8 +53,6 @@ import java.io.FilterReader;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -64,7 +64,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final FileResolver fileResolver;
     protected final FileCollectionFactory fileCollectionFactory;
-    private final Set<Object> sourcePaths = new LinkedHashSet<>();
+    private final ConfigurableFileCollection sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
@@ -83,12 +83,24 @@ public class DefaultCopySpec implements CopySpecInternal {
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
     public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator) {
+        this(resolver, fileCollectionFactory, instantiator, resolver.getPatternSetFactory().create());
+    }
+
+    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, PatternSet patternSet) {
         this.fileResolver = resolver;
+        this.sourcePaths = fileCollectionFactory.configurableFiles();
         this.fileCollectionFactory = fileCollectionFactory;
         this.instantiator = instantiator;
-        PatternSet patternSet = resolver.getPatternSetFactory().create();
-        assert patternSet != null;
         this.patternSet = patternSet;
+    }
+
+    public DefaultCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<CopySpecInternal> children) {
+        this(resolver, fileCollectionFactory, instantiator, patternSet);
+        sourcePaths.from(source);
+        destDir = destPath;
+        for (CopySpecInternal child : children) {
+            addChildSpec(child);
+        }
     }
 
     @Override
@@ -126,7 +138,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec from(Object... sourcePaths) {
-        Collections.addAll(this.sourcePaths, sourcePaths);
+        this.sourcePaths.from(sourcePaths);
         return this;
     }
 
@@ -214,9 +226,13 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @VisibleForTesting
     public Set<Object> getSourcePaths() {
-        return sourcePaths;
+        return sourcePaths.getFrom();
     }
 
+    @Nullable
+    public String getDestPath() {
+        return destDir == null ? null : PATH_NOTATION_PARSER.parseNotation(destDir);
+    }
 
     @Override
     public CopySpec into(Object destDir) {
@@ -297,6 +313,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
         PatternMatcher matcher = PatternMatcherFactory.getPatternsMatcher(true, isCaseSensitive(), patterns);
         return eachFile(new MatchingCopyAction(matcher.negate(), action));
+    }
+
+    public PatternSet getPatterns() {
+        return patternSet;
     }
 
     @Override
@@ -468,7 +488,7 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     @Override
-    public Iterable<CopySpecInternal> getChildren() {
+    public Collection<CopySpecInternal> getChildren() {
         return childSpecs;
     }
 
@@ -487,9 +507,8 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
-    // TODO:instant-execution - remove this
-    public Set<File> resolveSourceFiles() {
-        return fileCollectionFactory.resolving(sourcePaths).getFiles();
+    public FileCollection getSourceFiles() {
+        return sourcePaths;
     }
 
     @Override
@@ -507,8 +526,8 @@ public class DefaultCopySpec implements CopySpecInternal {
     }
 
     public class DefaultCopySpecResolver implements CopySpecResolver {
-
-        private CopySpecResolver parentResolver;
+        @Nullable
+        private final CopySpecResolver parentResolver;
 
         private DefaultCopySpecResolver(@Nullable CopySpecResolver parent) {
             this.parentResolver = parent;
@@ -524,11 +543,11 @@ public class DefaultCopySpec implements CopySpecInternal {
                 parentPath = parentResolver.getDestPath();
             }
 
-            if (destDir == null) {
+            String path = DefaultCopySpec.this.getDestPath();
+            if (path == null) {
                 return parentPath;
             }
 
-            String path = PATH_NOTATION_PARSER.parseNotation(destDir);
             if (path.startsWith("/") || path.startsWith(File.separator)) {
                 return RelativePath.parse(false, path);
             }
@@ -538,7 +557,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public FileTree getSource() {
-            return fileCollectionFactory.resolving(sourcePaths).getAsFileTree().matching(this.getPatternSet());
+            return getSourceFiles().getAsFileTree().matching(this.getPatternSet());
         }
 
         @Override
@@ -698,7 +717,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         }
     }
 
-    private class DefaultCopySpecAddress implements CopySpecAddress {
+    private static class DefaultCopySpecAddress implements CopySpecAddress {
         private final DefaultCopySpecAddress parent;
         private final CopySpecInternal spec;
         private final int additionIndex;

@@ -22,7 +22,7 @@ import org.gradle.api.Named
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.properties.annotations.PropertyAnnotationHandler
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Destroys
@@ -88,7 +88,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         @InputFiles
         @PathSensitive(PathSensitivity.NONE)
-        FileCollection inputFiles = ImmutableFileCollection.of(new File("files"))
+        FileCollection inputFiles = TestFiles.fixed(new File("files"))
 
         @OutputFile
         File outputFile = new File("output")

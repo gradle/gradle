@@ -31,6 +31,10 @@ abstract class ProviderSpec<T> extends Specification {
 
     abstract T someOtherValue()
 
+    abstract T someOtherValue2()
+
+    abstract T someOtherValue3()
+
     abstract ManagedFactory managedFactory()
 
     boolean isNoValueProviderImmutable() {
@@ -39,6 +43,11 @@ abstract class ProviderSpec<T> extends Specification {
 
     String getDisplayName() {
         return "this provider"
+    }
+
+    def setup() {
+        def values = [someValue(), someOtherValue(), someOtherValue2(), someOtherValue3()]
+        assert values.unique(false) == values
     }
 
     def "can query value when it has as value"() {
@@ -52,29 +61,65 @@ abstract class ProviderSpec<T> extends Specification {
         provider.getOrElse(someOtherValue()) == someValue()
     }
 
-    def "mapped provider returns result of transformer"() {
+    def "cannot query value when it has none"() {
+        given:
+        def provider = providerWithNoValue()
+
+        expect:
+        !provider.present
+        provider.getOrNull() == null
+        provider.getOrElse(someValue()) == someValue()
+
+        when:
+        provider.get()
+
+        then:
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of ${displayName} because it has no value available."
+    }
+
+    def "mapped provider uses the result of transformer as its value"() {
         def transform = Mock(Transformer)
 
         given:
         def provider = providerWithValue(someValue())
-        def mapped = provider.map(transform)
 
         when:
-        mapped.present
+        def mapped = provider.map(transform)
 
         then:
         0 * transform._
 
         when:
-        mapped.get() == someOtherValue()
-        mapped.getOrNull() == someOtherValue()
-        mapped.getOrElse(someValue()) == someOtherValue()
+        def present = mapped.present
 
         then:
-        _ * transform.transform(someValue()) >> someOtherValue()
+        present
+
+        and:
+        1 * transform.transform(someValue()) >> someOtherValue()
+        0 * transform._
+
+        when:
+        def result = mapped.get()
+
+        then:
+        result == someOtherValue()
+
+        and:
+        1 * transform.transform(someValue()) >> someOtherValue()
+        0 * transform._
+
+        when:
+        assert mapped.getOrNull() == someOtherValue()
+        assert mapped.getOrElse(someValue()) == someOtherValue()
+
+        then:
+        2 * transform.transform(someValue()) >> someOtherValue()
+        0 * transform._
     }
 
-    def "mapped provider fails when transformer returns null"() {
+    def "mapped provider has no value when transformer returns null"() {
         given:
         def transform = Mock(Transformer)
         def provider = providerWithValue(someValue())
@@ -83,7 +128,16 @@ abstract class ProviderSpec<T> extends Specification {
         def mapped = provider.map(transform)
 
         then:
-        mapped.present
+        0 * transform._
+
+        when:
+        def present = mapped.present
+
+        then:
+        !present
+
+        and:
+        1 * transform.transform(someValue()) >> null
         0 * transform._
 
         when:
@@ -95,29 +149,99 @@ abstract class ProviderSpec<T> extends Specification {
 
         and:
         def e = thrown(IllegalStateException)
-        e.message == 'Transformer for this provider returned a null value.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
-        mapped.get()
+        def result = mapped.get()
 
         then:
+        result == someOtherValue()
+
+        and:
         1 * transform.transform(someValue()) >> someOtherValue()
         0 * transform._
     }
 
-    def "flat mapped provider returns result of transformer"() {
-        def transformer = Stub(Transformer)
-        transformer.transform(someValue()) >> providerWithValue(someOtherValue())
+    def "can chain mapped providers"() {
+        def transform1 = Mock(Transformer)
+        def transform2 = Mock(Transformer)
+        def transform3 = Mock(Transformer)
 
         given:
         def provider = providerWithValue(someValue())
+
+        when:
+        def mapped1 = provider.map(transform1)
+        def mapped2 = mapped1.map(transform2)
+        def mapped3 = mapped2.map(transform3)
+
+        then:
+        0 * _
+
+        when:
+        def present = mapped3.present
+
+        then:
+        present
+
+        and:
+        1 * transform1.transform(someValue()) >> someOtherValue()
+        1 * transform2.transform(someOtherValue()) >> someOtherValue2()
+        1 * transform3.transform(someOtherValue2()) >> someOtherValue3()
+        0 * _
+
+        when:
+        def result = mapped3.get()
+
+        then:
+        result == someOtherValue3()
+
+        and:
+        1 * transform1.transform(someValue()) >> someOtherValue()
+        1 * transform2.transform(someOtherValue()) >> someOtherValue2()
+        1 * transform3.transform(someOtherValue2()) >> someOtherValue3()
+        0 * _
+    }
+
+    def "flat mapped provider uses the result of transformer as its value"() {
+        def transformer = Mock(Transformer)
+
+        given:
+        def provider = providerWithValue(someValue())
+
+        when:
         def mapped = provider.flatMap(transformer)
 
-        expect:
-        mapped.present
-        mapped.get() == someOtherValue()
-        mapped.getOrNull() == someOtherValue()
-        mapped.getOrElse(someValue()) == someOtherValue()
+        then:
+        0 * _
+
+        when:
+        def present = mapped.present
+
+        then:
+        present
+
+        and:
+        1 * transformer.transform(someValue()) >> Providers.of(someOtherValue())
+        0 * _
+
+        when:
+        def result = mapped.get()
+
+        then:
+        result == someOtherValue()
+
+        and:
+        1 * transformer.transform(someValue()) >> providerWithValue(someOtherValue())
+        0 * _
+
+        when:
+        assert mapped.getOrNull() == someOtherValue()
+        assert mapped.getOrElse(someValue()) == someOtherValue()
+
+        then:
+        2 * transformer.transform(someValue()) >> Providers.of(someOtherValue())
+        0 * _
     }
 
     def "flat mapped provider returns result of transformer when the result has no value"() {
@@ -134,11 +258,21 @@ abstract class ProviderSpec<T> extends Specification {
         mapped.getOrElse(someOtherValue()) == someOtherValue()
     }
 
-    def "flat mapped provider fails when transformer returns null"() {
+    def "flat mapped provider has no value when transformer returns null"() {
         given:
         def transform = Mock(Transformer)
         def provider = providerWithValue(someValue())
         def mapped = provider.flatMap(transform)
+
+        when:
+        def present = mapped.present
+
+        then:
+        !present
+
+        and:
+        1 * transform.transform(someValue()) >> null
+        0 * transform._
 
         when:
         mapped.get()
@@ -149,34 +283,20 @@ abstract class ProviderSpec<T> extends Specification {
 
         and:
         def e = thrown(IllegalStateException)
-        e.message == 'Transformer for this provider returned a null value.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
-        mapped.get()
+        def result = mapped.get()
 
         then:
+        result == someOtherValue()
+
+        and:
         1 * transform.transform(someValue()) >> providerWithValue(someOtherValue())
         0 * transform._
     }
 
-    def "cannot query value when it has none"() {
-        given:
-        def provider = providerWithNoValue()
-
-        expect:
-        !provider.present
-        provider.getOrNull() == null
-        provider.getOrElse(someValue()) == someValue()
-
-        when:
-        provider.get()
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
-    }
-
-    def "mapped provider with no value does not use transformer"() {
+    def "mapped provider does not use transformer when source has no value"() {
         def transformer = { throw new RuntimeException() } as Transformer
 
         given:
@@ -192,11 +312,11 @@ abstract class ProviderSpec<T> extends Specification {
         mapped.get()
 
         then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of this provider because it has no value available."
     }
 
-    def "flat mapped provider with no value does not use transformer"() {
+    def "flat mapped provider does not use transformer when source has no value"() {
         def transformer = { throw new RuntimeException() } as Transformer
 
         given:
@@ -212,8 +332,8 @@ abstract class ProviderSpec<T> extends Specification {
         mapped.get()
 
         then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for ${displayName}."
+        def t = thrown(MissingValueException)
+        t.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "can map to provider that uses value if present or a default value"() {
@@ -231,10 +351,11 @@ abstract class ProviderSpec<T> extends Specification {
 
     def "can map to provider that uses value if present or a default value from another provider"() {
         expect:
+        def broken = brokenSupplier()
         def supplier = Providers.of(someOtherValue())
 
         def present = providerWithValue(someValue())
-        def usesValue = present.orElse(supplier)
+        def usesValue = present.orElse(broken)
 
         usesValue.present
         usesValue.get() == someValue()
@@ -250,15 +371,17 @@ abstract class ProviderSpec<T> extends Specification {
         expect:
         def supplier = Providers.notDefined()
 
-        def present = providerWithValue(someValue())
-        def usesValue = present.orElse(supplier)
-        usesValue.present
-        usesValue.get() == someValue()
-
         def notPresent = providerWithNoValue()
         def usesDefaultValue = notPresent.orElse(supplier)
         !usesDefaultValue.present
         usesDefaultValue.getOrNull() == null
+
+        when:
+        notPresent.get()
+
+        then:
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "can chain orElse"() {
@@ -279,7 +402,7 @@ abstract class ProviderSpec<T> extends Specification {
 
         expect:
         provider instanceof Managed
-        provider.immutable() == noValueProviderImmutable
+        provider.isImmutable() == noValueProviderImmutable
         def state = provider.unpackState()
         def copy = managedFactory().fromState(provider.publicType(), state)
         !copy.is(provider) || noValueProviderImmutable
@@ -293,11 +416,29 @@ abstract class ProviderSpec<T> extends Specification {
 
         expect:
         provider instanceof Managed
-        !provider.immutable()
+        !provider.isImmutable()
         def state = provider.unpackState()
         def copy = managedFactory().fromState(provider.publicType(), state)
         !copy.is(provider)
         copy.present
         copy.getOrNull() == someValue()
     }
+
+    /**
+     * A test provider that always fails.
+     */
+    ProviderInternal<T> brokenSupplier() {
+        return new AbstractMinimalProvider<T>() {
+            @Override
+            Class<T> getType() {
+                return ProviderSpec.this.type()
+            }
+
+            @Override
+            protected ValueSupplier.Value<T> calculateOwnValue() {
+                throw new RuntimeException("broken!")
+            }
+        }
+    }
+
 }

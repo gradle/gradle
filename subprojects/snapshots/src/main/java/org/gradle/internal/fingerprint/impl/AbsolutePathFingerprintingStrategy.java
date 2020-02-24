@@ -21,8 +21,8 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintHashingStrategy;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -45,7 +45,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
     }
 
     @Override
-    public String normalizePath(FileSystemLocationSnapshot snapshot) {
+    public String normalizePath(CompleteFileSystemLocationSnapshot snapshot) {
         return snapshot.getAbsolutePath();
     }
 
@@ -58,7 +58,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 private int treeDepth = 0;
 
                 @Override
-                public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     treeDepth++;
                     String absolutePath = directorySnapshot.getAbsolutePath();
                     if (processedEntries.add(absolutePath)) {
@@ -68,7 +68,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+                public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                     if (!includeMissingRoots && isRoot() && fileSnapshot.getType() == FileType.Missing) {
                         return;
                     }
@@ -79,7 +79,7 @@ public class AbsolutePathFingerprintingStrategy extends AbstractFingerprintingSt
                 }
 
                 @Override
-                public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+                public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                     treeDepth--;
                 }
 

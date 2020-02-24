@@ -17,7 +17,9 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class PolymorphicManagedTypeIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule can provide a managed model element backed by an abstract class that implements interfaces"() {

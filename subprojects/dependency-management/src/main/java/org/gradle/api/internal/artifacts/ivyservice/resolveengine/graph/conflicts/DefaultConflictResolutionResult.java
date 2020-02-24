@@ -18,16 +18,38 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflic
 
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.ComponentState;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.NodeState;
 
 import java.util.Collection;
+import java.util.stream.Collectors;
 
-class DefaultConflictResolutionResult<T> implements ConflictResolutionResult {
+class DefaultConflictResolutionResult implements ConflictResolutionResult {
+
+    private static ComponentState findComponent(Object selected) {
+        if (selected instanceof ComponentState) {
+            return (ComponentState) selected;
+        }
+        if (selected instanceof NodeState) {
+            return ((NodeState) selected).getComponent();
+        }
+        throw new IllegalArgumentException("Cannot extract a ComponentState from " + selected.getClass());
+    }
+
+
     private final Collection<? extends ModuleIdentifier> participatingModules;
-    private final T selected;
+    private final ComponentState selected;
 
-    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, T selected) {
-        this.participatingModules = participatingModules;
-        this.selected = selected;
+    public DefaultConflictResolutionResult(Collection<? extends ModuleIdentifier> participatingModules, Object selected) {
+        this.selected = findComponent(selected);
+        this.participatingModules = participatingModules.stream().sorted((first, second) -> {
+            if (this.selected.getId().getModule().equals(first)) {
+                return -1;
+            } else if (this.selected.getId().getModule().equals(second)) {
+                return 1;
+            }
+            return 0;
+        }).collect(Collectors.toList());
     }
 
     @Override
@@ -38,7 +60,7 @@ class DefaultConflictResolutionResult<T> implements ConflictResolutionResult {
     }
 
     @Override
-    public T getSelected() {
+    public ComponentState getSelected() {
         return selected;
     }
 

@@ -17,14 +17,19 @@
 package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
+import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning
+import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.withPropertyTrace
+import org.gradle.internal.instantiation.InstantiationScheme
+import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.reflect.JavaReflectionUtil
+import org.gradle.internal.service.ServiceRegistry
 import java.io.IOException
 import java.lang.reflect.Field
 import java.util.concurrent.Callable
@@ -33,19 +38,27 @@ import java.util.function.Supplier
 
 class BeanPropertyReader(
     private val beanType: Class<*>,
-    private val constructors: BeanConstructors
+    private val constructors: BeanConstructors,
+    instantiatorFactory: InstantiatorFactory
 ) : BeanStateReader {
+    // TODO should use the same scheme as the original bean
+    private
+    val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
 
     private
     val fieldSetters = relevantStateOf(beanType).map { Pair(it.name, setterFor(it)) }
 
     private
-    val constructorForSerialization by lazy {
+    val constructorForSerialization by unsafeLazy {
         constructors.constructorForSerialization(beanType)
     }
 
-    override suspend fun ReadContext.newBean() =
+    override suspend fun ReadContext.newBean(generated: Boolean) = if (generated) {
+        val services = ownerService<ServiceRegistry>()
+        instantiationScheme.withServices(services).deserializationInstantiator().newInstance(beanType, Any::class.java)
+    } else {
         constructorForSerialization.newInstance()
+    }
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
         for (field in fieldSetters) {

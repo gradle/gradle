@@ -16,6 +16,7 @@
 package org.gradle.integtests.publish.maven
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
 
@@ -24,6 +25,7 @@ class MavenEarProjectPublishIntegrationTest extends AbstractIntegrationSpec {
         executer.noDeprecationChecks()
     }
 
+    @ToBeFixedForInstantExecution
     public void "publishes EAR only for mixed java and WAR and EAR project"() {
         given:
         using m2 //uploadArchives leaks into local ~/.m2
@@ -58,7 +60,7 @@ uploadArchives {
         run "uploadArchives"
 
         then:
-        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
+        def mavenModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9").withoutExtraChecksums()
         mavenModule.assertArtifactsPublished("publishTest-1.9.pom", "publishTest-1.9.ear")
     }
 }

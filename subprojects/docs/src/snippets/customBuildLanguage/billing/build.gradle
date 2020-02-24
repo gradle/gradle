@@ -1,0 +1,8 @@
+plugins {
+    id 'product-module'
+}
+
+dependencies {
+    implementation project(':identityManagement')
+    implementation 'commons-lang:commons-lang:2.4'
+}

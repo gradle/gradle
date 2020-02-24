@@ -17,6 +17,7 @@
 package org.gradle.integtests.resource.gcs.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resource.gcs.fixtures.GcsServer
 import org.junit.Rule
 
@@ -34,6 +35,7 @@ class IvyPublishGcsIntegrationTest extends AbstractIvyPublishIntegTest {
         executer.withArgument("-D${GCS_DISABLE_AUTH_PROPERTY}=true")
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can publish to a Gcs Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo
@@ -64,10 +66,16 @@ publishing {
         def module = ivyRepo.module('org.gradle.test', 'publishGcsTest', '1.0')
         module.jar.expectUpload()
         module.jar.sha1.expectUpload()
+        module.jar.sha256.expectUpload()
+        module.jar.sha512.expectUpload()
         module.ivy.expectUpload()
         module.ivy.sha1.expectUpload()
+        module.ivy.sha256.expectUpload()
+        module.ivy.sha512.expectUpload()
         module.moduleMetadata.expectUpload()
         module.moduleMetadata.sha1.expectUpload()
+        module.moduleMetadata.sha256.expectUpload()
+        module.moduleMetadata.sha512.expectUpload()
 
         succeeds 'publish'
 

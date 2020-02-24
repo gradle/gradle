@@ -5,7 +5,7 @@ plugins {
 }
 
 val androidTools by configurations.creating
-configurations.compile { extendsFrom(androidTools) }
+configurations.implementation { extendsFrom(androidTools) }
 
 repositories {
     google()
@@ -37,7 +37,7 @@ listOf(tasks.distZip, tasks.distTar).forEach {
     it { archiveBaseName.set("android-test-app") }
 }
 
-project(":distributions").tasks.register("buildDists") {
+tasks.register("buildDists") {
     dependsOn(tasks.distZip)
 }
 

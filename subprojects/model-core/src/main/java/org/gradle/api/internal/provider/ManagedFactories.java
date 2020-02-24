@@ -59,14 +59,11 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            if (state == null) {
-                return type.cast(new DefaultProperty<>(Object.class));
-            } else {
-                return type.cast(propertyOf(state.getClass(), Cast.uncheckedCast(state)));
-            }
+            ProviderInternal<S> provider = Cast.uncheckedCast(state);
+            return type.cast(propertyOf(provider.getType(), provider));
         }
 
-        static <V> Property<V> propertyOf(Class<V> type, V value) {
+        static <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {
             return new DefaultProperty<V>(type).value(value);
         }
 

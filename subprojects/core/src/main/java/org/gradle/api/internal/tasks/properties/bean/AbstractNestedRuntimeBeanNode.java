@@ -24,7 +24,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.BeanPropertyContext;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.internal.tasks.properties.PropertyVisitor;
@@ -36,7 +35,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyMetadata;
 import org.gradle.internal.reflect.TypeValidationContext;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -98,14 +97,12 @@ public abstract class AbstractNestedRuntimeBeanNode extends RuntimeBeanNode<Obje
         public TaskDependencyContainer getTaskDependencies() {
             if (isProvider()) {
                 return (TaskDependencyContainer) valueSupplier.get();
-            } else if (isBuildable()) {
-                return new TaskDependencyContainer() {
-                    @Override
-                    public void visitDependencies(TaskDependencyResolveContext context) {
-                        Object dependency = valueSupplier.get();
-                        if (dependency != null) {
-                            context.add(dependency);
-                        }
+            }
+            if (isBuildable()) {
+                return context -> {
+                    Object dependency = valueSupplier.get();
+                    if (dependency != null) {
+                        context.add(dependency);
                     }
                 };
             }

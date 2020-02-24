@@ -105,7 +105,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public void publishJavadoc() {
+    public void withJavadocJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
@@ -113,11 +113,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public void publishSources() {
+    public void withSourcesJar() {
         TaskContainer tasks = project.getTasks();
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllJava(), findJavaComponent(components), configurations, tasks, objectFactory);
+        configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory);
     }
 
     private static String validateFeatureName(String name) {

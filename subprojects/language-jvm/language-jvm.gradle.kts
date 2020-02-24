@@ -2,13 +2,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-    gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":files"))
     implementation(project(":logging"))
@@ -37,7 +34,6 @@ dependencies {
     testFixturesImplementation(library("guava"))
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(testFixtures(project(":core")))
-    testFixturesImplementation(testFixtures(project(":launcher")))
 }
 
 gradlebuildJava {

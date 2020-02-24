@@ -38,7 +38,22 @@ class PomHttpArtifact extends HttpArtifact {
     }
 
     @Override
+    protected TestFile getSha256File() {
+        backingModule.getSha256File(file)
+    }
+
+    @Override
+    protected TestFile getSha512File() {
+        backingModule.getSha512File(file)
+    }
+
+    @Override
     TestFile getFile() {
         return backingModule.pomFile
+    }
+
+    @Override
+    String getName() {
+        return backingModule.pomFile.name
     }
 }

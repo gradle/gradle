@@ -17,22 +17,26 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
-     gradlebuild.classycle
+    gradlebuild.classycle
+    gradlebuild.`publish-public-libraries`
+    gradlebuild.`strict-compile`
 }
 
 description = "Tools to take immutable, comparable snapshots of files and other things"
 
 dependencies {
-    implementation(library("guava"))
-    implementation(library("jsr305"))
-    implementation(project(":files"))
-    implementation(project(":hashing"))
-    implementation(project(":pineapple"))
-    implementation(library("slf4j_api"))
+    api(project(":files"))
+    api(project(":hashing"))
+
+    implementation(project(":baseAnnotations"))
+
+    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(library("slf4j_api")) { version { require(libraryVersion("slf4j_api")) } }
 
     testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(project(":native"))
+    testImplementation(project(":persistentCache"))
     testImplementation(library("ant"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":coreApi")))
@@ -47,6 +51,11 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":fileCollections"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
 }
 
 gradlebuildJava {

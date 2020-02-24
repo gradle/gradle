@@ -23,15 +23,15 @@ import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.execution.MultipleBuildFailures;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.StartParameterBuildOptions;
+import org.gradle.internal.exceptions.ContextAwareException;
+import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
-import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
-import org.gradle.util.TreeVisitor;
 
 import java.util.List;
 
@@ -129,55 +129,65 @@ public class BuildExceptionReporter implements Action<Throwable> {
         formatGenericFailure(granularity, failure, details);
     }
 
-    private void formatGenericFailure(String granularity, Throwable failure, final FailureDetails details) {
+    private void formatGenericFailure(String granularity, Throwable failure, FailureDetails details) {
         details.summary.format("%s failed with an exception.", granularity);
 
         fillInFailureResolution(details);
 
-        if (failure instanceof LocationAwareException) {
-            final LocationAwareException scriptException = (LocationAwareException) failure;
-            details.failure = scriptException.getCause();
-            if (scriptException.getLocation() != null) {
-                details.location.text(scriptException.getLocation());
-            }
-            scriptException.visitReportableCauses(new TreeVisitor<Throwable>() {
-                int depth;
-
-                @Override
-                public void node(final Throwable node) {
-                    if (node == scriptException) {
-                        details.details.text(getMessage(scriptException.getCause()));
-                    } else {
-                        final LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput();
-                        output.text(getMessage(node));
-                    }
-                }
-
-                @Override
-                public void startChildren() {
-                    depth++;
-                }
-
-                @Override
-                public void endChildren() {
-                    depth--;
-                }
-
-                private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput() {
-                    details.details.format("%n");
-                    StringBuilder prefix = new StringBuilder();
-                    for (int i = 1; i < depth; i++) {
-                        prefix.append("   ");
-                    }
-                    details.details.text(prefix);
-                    prefix.append("  ");
-                    details.details.style(Info).text("> ").style(Normal);
-
-                    return new LinePrefixingStyledTextOutput(details.details, prefix, false);
-                }
-            });
+        if (failure instanceof ContextAwareException) {
+            ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
         } else {
             details.details.text(getMessage(failure));
+        }
+    }
+
+    private static class ExceptionFormattingVisitor extends ExceptionContextVisitor {
+        private final FailureDetails failureDetails;
+
+        private int depth;
+
+        private ExceptionFormattingVisitor(FailureDetails failureDetails) {
+            this.failureDetails = failureDetails;
+        }
+
+        @Override
+        protected void visitCause(Throwable cause) {
+            failureDetails.failure = cause;
+            failureDetails.details.text(getMessage(cause));
+        }
+
+        @Override
+        protected void visitLocation(String location) {
+            failureDetails.location.text(location);
+        }
+
+        @Override
+        public void node(Throwable node) {
+            LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
+            output.text(getMessage(node));
+        }
+
+        @Override
+        public void startChildren() {
+            depth++;
+        }
+
+        @Override
+        public void endChildren() {
+            depth--;
+        }
+
+        private LinePrefixingStyledTextOutput getLinePrefixingStyledTextOutput(FailureDetails details) {
+            details.details.format("%n");
+            StringBuilder prefix = new StringBuilder();
+            for (int i = 1; i < depth; i++) {
+                prefix.append("   ");
+            }
+            details.details.text(prefix);
+            prefix.append("  ");
+            details.details.style(Info).text("> ").style(Normal);
+
+            return new LinePrefixingStyledTextOutput(details.details, prefix, false);
         }
     }
 
@@ -220,7 +230,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         resolution.println();
     }
 
-    private String getMessage(Throwable throwable) {
+    private static String getMessage(Throwable throwable) {
         String message = throwable.getMessage();
         if (GUtil.isTrue(message)) {
             return message;

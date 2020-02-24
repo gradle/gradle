@@ -22,6 +22,7 @@ import org.gradle.internal.hash.HashCode;
 
 import javax.annotation.Nullable;
 import java.net.URLClassLoader;
+import java.util.function.Function;
 
 public class DummyClassLoaderCache implements ClassLoaderCache {
 
@@ -36,8 +37,8 @@ public class DummyClassLoaderCache implements ClassLoaderCache {
     }
 
     @Override
-    public <T extends ClassLoader> T put(ClassLoaderId id, T classLoader) {
-        return classLoader;
+    public ClassLoader createIfAbsent(ClassLoaderId id, ClassPath classPath, @Nullable ClassLoader parent, Function<ClassLoader, ClassLoader> factoryFunction, @Nullable HashCode implementationHash) {
+        return factoryFunction.apply(parent);
     }
 
     @Override

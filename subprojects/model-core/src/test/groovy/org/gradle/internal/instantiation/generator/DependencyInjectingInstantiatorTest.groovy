@@ -128,7 +128,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Too many parameters provided for constructor for class $HasOneInjectConstructor.name. Expected 1, received 2."
+        e.cause.message == "Too many parameters provided for constructor for type DependencyInjectingInstantiatorTest.HasOneInjectConstructor. Expected 1, received 2."
     }
 
     def "fails when supplied parameters cannot be used to call constructor"() {
@@ -140,7 +140,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Unable to determine constructor argument #1: value string not assignable to class java.lang.Number"
+        e.cause.message == "Unable to determine constructor argument #1: value string not assignable to type Number."
     }
 
     def "fails on missing service"() {
@@ -153,7 +153,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Unable to determine constructor argument #1: value 12 is not assignable to class java.lang.String, or no service of type class java.lang.String"
+        e.cause.message == "Unable to determine constructor argument #1: value 12 is not assignable to type String, or no service of type String."
     }
 
     def "fails on non-static inner class"() {
@@ -163,7 +163,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
         then:
         ObjectInstantiationException e = thrown()
         e.cause instanceof IllegalArgumentException
-        e.cause.message == "Class ${NonStatic.name} is a non-static inner class."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.NonStatic is a non-static inner class."
     }
 
     def "fails when class has multiple constructors and none are annotated"() {
@@ -172,7 +172,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class $HasNoInjectConstructor.name has no constructor that is annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasNoInjectConstructor has no constructor that is annotated with @Inject."
     }
 
     def "fails when class has multiple constructors with different visibilities and none are annotated"() {
@@ -181,7 +181,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class $HasMixedConstructors.name has no constructor that is annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMixedConstructors has no constructor that is annotated with @Inject."
     }
 
     def "fails when class has multiple constructors that are annotated"() {
@@ -190,7 +190,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class $HasMultipleInjectConstructors.name has multiple constructors that are annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMultipleInjectConstructors has multiple constructors that are annotated with @Inject."
     }
 
     def "fails when class has multiple constructors with different visibilities that are annotated"() {
@@ -199,7 +199,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "Class $HasMixedInjectConstructors.name has multiple constructors that are annotated with @Inject."
+        e.cause.message == "Class DependencyInjectingInstantiatorTest.HasMixedInjectConstructors has multiple constructors that are annotated with @Inject."
     }
 
     def "fails when class has non-public zero args constructor that is not annotated"() {
@@ -211,7 +211,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "The constructor for class $HasNonPublicNoArgsConstructor.name should be public or package protected or annotated with @Inject."
+        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasNonPublicNoArgsConstructor should be public or package protected or annotated with @Inject."
     }
 
     def "fails when class has public constructor with args and that is not annotated"() {
@@ -223,7 +223,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "The constructor for class $HasSingleConstructorWithArgsAndNoAnnotation.name should be annotated with @Inject."
+        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasSingleConstructorWithArgsAndNoAnnotation should be annotated with @Inject."
     }
 
     def "fails when class has private constructor with args and that is not annotated"() {
@@ -232,7 +232,7 @@ class DependencyInjectingInstantiatorTest extends Specification {
 
         then:
         ObjectInstantiationException e = thrown()
-        e.cause.message == "The constructor for class $HasPrivateArgsConstructor.name should be annotated with @Inject."
+        e.cause.message == "The constructor for type DependencyInjectingInstantiatorTest.HasPrivateArgsConstructor should be annotated with @Inject."
     }
 
     def "fails when null passed as constructor argument value"() {

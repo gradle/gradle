@@ -28,8 +28,8 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
     public static final String MAX_MEMORY = "-Xmx800m"
 
     def setup() {
-        runner.minimumVersion = '4.8'
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        runner.minimumBaseVersion = '4.8'
+        runner.targetVersions = ["6.3-20200215132528+0000"]
     }
 
     def "resolve large dependency graph from file repo"() {
@@ -55,7 +55,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         runner.tasksToRun = ['resolveDependencies']
         runner.gradleOpts = [MIN_MEMORY, MAX_MEMORY]
-        runner.targetVersions = ['6.0-20190919220024+0000']
+        runner.targetVersions = ["6.2-20200108160029+0000"]
         runner.args = ['-PuseHttp', "-PhttpPort=${serverPort}", '-PnoExcludes']
         if (parallel) {
             runner.args += '--parallel'
@@ -80,7 +80,7 @@ class LargeDependencyGraphPerformanceTest extends AbstractCrossVersionGradleProf
 
     @Ignore
     def "resolve large dependency graph with strict versions"() {
-        runner.minimumVersion = '5.7-20190807220120+0000'
+        runner.minimumBaseVersion = '6.0'
         runner.testProject = TEST_PROJECT_NAME
         startServer()
 

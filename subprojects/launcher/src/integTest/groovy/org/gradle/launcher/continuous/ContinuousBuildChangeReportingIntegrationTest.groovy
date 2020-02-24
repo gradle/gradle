@@ -17,6 +17,8 @@
 package org.gradle.launcher.continuous
 
 import groovy.transform.TupleConstructor
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.file.TestFile
 
@@ -24,7 +26,7 @@ import static org.gradle.internal.filewatch.DefaultFileSystemChangeWaiterFactory
 import static org.gradle.internal.filewatch.DefaultFileWatcherEventListener.SHOW_INDIVIDUAL_CHANGES_LIMIT
 
 // Developer is able to easily determine the file(s) that triggered a rebuild
-class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class ContinuousBuildChangeReportingIntegrationTest extends AbstractContinuousIntegrationTest {
     TestFile inputDir
     private static int changesLimit = SHOW_INDIVIDUAL_CHANGES_LIMIT
     // Use an extended quiet period in the test to ensure all file events are reported together.
@@ -176,6 +178,7 @@ class ContinuousBuildChangeReportingIntegrationTest extends Java7RequiringContin
         assertReportsChanges([new ChangeEntry("new file", newfile1), new ChangeEntry("modified", inputFiles[2]), new ChangeEntry("deleted", inputFiles[7]), new ChangeEntry("new file", newfile2)], true)
     }
 
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
     def "should report changes that happen when the build is executing"() {
         given:
         buildFile << """

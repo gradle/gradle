@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 
@@ -37,6 +38,7 @@ class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     public void doesNotRebuildJarIfSourceHasNotChanged() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
         executer.requireOwnGradleUserHomeDir()

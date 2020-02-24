@@ -23,7 +23,7 @@ import org.gradle.workers.WorkerConfiguration
 import spock.lang.Specification
 
 class DefaultWorkerConfigurationTest extends Specification {
-    WorkerConfiguration workerConfiguration = new DefaultWorkerConfiguration(TestFiles.execFactory().newJavaForkOptions())
+    WorkerConfiguration workerConfiguration = new DefaultWorkerConfiguration(TestFiles.execFactory())
 
     def "can accurately adapt to/from ForkMode"() {
         when:
@@ -34,10 +34,10 @@ class DefaultWorkerConfigurationTest extends Specification {
         workerConfiguration.getForkMode() == forkMode
 
         where:
-        forkMode          | isolationMode
-        ForkMode.AUTO     | IsolationMode.AUTO
-        ForkMode.NEVER    | IsolationMode.CLASSLOADER
-        ForkMode.ALWAYS   | IsolationMode.PROCESS
+        forkMode        | isolationMode
+        ForkMode.AUTO   | IsolationMode.AUTO
+        ForkMode.NEVER  | IsolationMode.CLASSLOADER
+        ForkMode.ALWAYS | IsolationMode.PROCESS
     }
 
     def "can accurately adapt to/from IsolationMode"() {

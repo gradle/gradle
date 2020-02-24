@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -50,7 +49,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
                 conf("org:databind") {
                     version { strictly '2.7.9' }
                 }
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
         """
 
@@ -140,9 +139,9 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.9.4")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind") {
@@ -159,7 +158,7 @@ class ForcingUsingStrictlyPlatformAlignmentTest extends AbstractAlignmentSpec {
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:databind:{strictly 2.7.9}'
    Constraint path ':test:unspecified' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
@@ -187,7 +186,7 @@ include 'other'
                     version { strictly '2.7.9' }
                 }
             }
-            
+
             project(':other') {
                 configurations {
                     conf
@@ -209,7 +208,7 @@ include 'other'
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:databind' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:databind:{strictly 2.7.9}'
    Constraint path ':test:unspecified' --> 'test:other:unspecified' --> 'org:core:2.9.4' --> 'org:platform:2.9.4' --> 'org:databind:2.9.4' because of the following reason: belongs to platform org:platform:2.9.4"""
     }
@@ -260,9 +259,9 @@ include 'other'
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.7.9")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind") {
@@ -279,9 +278,7 @@ include 'other'
         succeeds ':checkDeps'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     def "force to higher patch version should bring the rest of aligned group up"() {
         given:
@@ -325,9 +322,8 @@ include 'other'
 
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     def "force to lower patch version should bring the rest of aligned group up"() {
         given:

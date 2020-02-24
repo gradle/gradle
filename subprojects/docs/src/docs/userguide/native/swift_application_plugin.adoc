@@ -22,8 +22,8 @@ The Swift Application Plugin provides the tasks, configurations and conventions 
 
 .Applying the Swift Application Plugin
 ====
-include::sample[dir="userguide/swift/swiftApplication/groovy",files="build.gradle[tags=apply-plugin]"]
-include::sample[dir="userguide/swift/swiftApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/swift/swiftApplication/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/swift/swiftApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
 [[sec:swift_application_build_variants]]
@@ -46,8 +46,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="userguide/swift/swiftApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
-include::sample[dir="userguide/swift/swiftApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/userguide/swift/swiftApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/userguide/swift/swiftApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
 [[sec:swift_application_tasks]]
@@ -91,7 +91,7 @@ Aggregates tasks that assemble the specific variant of this application.
 [[sec:swift_application_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The Swift Application Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the Swift Application Plugin applies automatically:
+The Swift Application Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> — which the Swift Application Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Depends on: `linkDebug`
@@ -206,7 +206,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 [[sec:swift_application_link_task]]
 === `link__Variant__` Task
 
-The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
+The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
 Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 

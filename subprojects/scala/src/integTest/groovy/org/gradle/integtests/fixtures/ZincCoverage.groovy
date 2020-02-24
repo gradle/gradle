@@ -20,6 +20,5 @@ import static org.gradle.language.scala.internal.toolchain.DefaultScalaToolProvi
 
 
 class ZincCoverage {
-    // TODO: 1.3.0 does not work yet
-    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.2.0", "1.2.3"]
+    public static final List<String> ALL_VERSIONS = [DEFAULT_ZINC_VERSION, "1.2.0", "1.2.3", "1.2.5"]
 }

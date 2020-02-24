@@ -10,6 +10,7 @@ dependencies {
     implementation(project(":launcher"))
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
+    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":coreApi"))
@@ -23,6 +24,7 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":compositeBuilds"))
     implementation(project(":toolingApi"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy")) // for 'Closure'
     implementation(library("guava"))

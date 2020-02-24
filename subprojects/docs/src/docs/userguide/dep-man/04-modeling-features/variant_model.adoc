@@ -361,7 +361,7 @@ However, using the `platform` or `enforcedPlatform` keyword, Gradle is now looki
 
 Contrary to <<#sub:maven-mapping-to-variants, Maven>>, there is no derivation strategy implemented for Ivy files by default.
 The reason fo this is that, contrary to pom, Ivy is a flexible format that allows you to publish arbitrary many and customized _configurations_.
-So there is not notion of compile/runtime scope or compile/runtime variants in Ivy in general.
+So there is no notion of compile/runtime scope or compile/runtime variants in Ivy in general.
 Only if you use the <<publishing_ivy.adoc#publishing_ivy,ivy-publish plugin>> to publish ivy files with Gradle, you get a structure that follows a similar pattern as pom files.
 But since there is not guarantee that *all* ivy metadata files consumed by a build follow this pattern, Gradle cannot enforce a derivation strategy based on it.
 
@@ -371,8 +371,8 @@ If you know that all the ivy modules your are consuming have been published with
 
 .Deriving compile and runtime variants for Ivy metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/ivyMetadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/ivyMetadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
 ====
 
 The rule creates an `apiElements` variant based on the `compile` configuration and a `runtimeElements` variant based on the `default` configuration of each ivy module.

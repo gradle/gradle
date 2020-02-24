@@ -17,7 +17,6 @@
 package org.gradle.language.internal
 
 import org.gradle.api.Action
-import org.gradle.api.internal.provider.DefaultProviderFactory
 import org.gradle.api.specs.Spec
 import org.gradle.language.cpp.CppBinary
 import org.gradle.language.swift.SwiftBinary
@@ -25,7 +24,7 @@ import org.gradle.language.swift.SwiftSharedLibrary
 import spock.lang.Specification
 
 class DefaultBinaryCollectionTest extends Specification {
-    def container = new DefaultBinaryCollection(SwiftBinary, new DefaultProviderFactory())
+    def container = new DefaultBinaryCollection(SwiftBinary)
 
     def "can query elements when realized"() {
         def binary1 = Stub(SwiftBinary)
@@ -307,7 +306,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by name fails when no element present"() {
@@ -320,7 +319,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by name fails when multiple elements present"() {
@@ -601,7 +600,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by spec fails when no matching element present"() {
@@ -619,7 +618,7 @@ class DefaultBinaryCollectionTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this provider.'
+        e.message == 'Cannot query the value of this provider because it has no value available.'
     }
 
     def "querying the result of get by spec fails when multiple matching elements present"() {

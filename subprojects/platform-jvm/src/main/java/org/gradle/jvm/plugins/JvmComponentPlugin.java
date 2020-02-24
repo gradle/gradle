@@ -28,6 +28,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JarBinarySpec;
@@ -91,10 +92,15 @@ import static org.apache.commons.lang.StringUtils.capitalize;
  * container.
  */
 @Incubating
+@Deprecated
 public class JvmComponentPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        DeprecationLogger.deprecatePlugin("jvm-component")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
     }
 
     @SuppressWarnings("UnusedDeclaration")
@@ -135,7 +141,7 @@ public class JvmComponentPlugin implements Plugin<Project> {
                 @Override
                 public void execute(InstalledJdk installedJdk) {
                     installedJdk.setJavaHome(Jvm.current().getJavaHome());
-                    probe.current(installedJdk);
+                    probe.current().configure(installedJdk);
                 }
             });
         }

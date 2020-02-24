@@ -32,6 +32,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -86,6 +87,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
     def "task history is shared between multiple build processes"() {
         prepareTransformTask()
 

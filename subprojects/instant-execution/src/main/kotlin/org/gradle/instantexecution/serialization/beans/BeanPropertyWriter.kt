@@ -19,9 +19,7 @@ package org.gradle.instantexecution.serialization.beans
 import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.api.provider.Property
 import org.gradle.instantexecution.InstantExecutionException
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
@@ -57,16 +55,6 @@ class BeanPropertyWriter(
 
     private
     fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
-        is Property<*> -> {
-            if (!fieldValue.isPresent) {
-                // TODO - disallow using convention mapping + property types
-                val convention = conventionalValueOf(bean, fieldName)
-                if (convention != null) {
-                    (fieldValue.uncheckedCast<Property<Any>>()).convention(convention)
-                }
-            }
-            fieldValue
-        }
         is Closure<*> -> fieldValue
         // TODO - do not eagerly evaluate these types
         is Callable<*> -> fieldValue.call()

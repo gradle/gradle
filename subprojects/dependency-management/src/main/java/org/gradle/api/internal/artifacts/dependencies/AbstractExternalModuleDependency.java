@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.dependencies;
 
+import com.google.common.base.Objects;
 import com.google.common.base.Strings;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
@@ -25,7 +26,7 @@ import org.gradle.api.artifacts.MutableVersionConstraint;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.ModuleVersionSelectorStrictSpec;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public abstract class AbstractExternalModuleDependency extends AbstractModuleDependency implements ExternalModuleDependency {
     private final ModuleIdentifier moduleIdentifier;
@@ -49,10 +50,11 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     }
 
     protected boolean isContentEqualsFor(ExternalModuleDependency dependencyRhs) {
-        if (!isKeyEquals(dependencyRhs) || !isCommonContentEquals(dependencyRhs)) {
+        if (!isCommonContentEquals(dependencyRhs)) {
             return false;
         }
-        return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging();
+        return force == dependencyRhs.isForce() && changing == dependencyRhs.isChanging() &&
+            Objects.equal(getVersionConstraint(), dependencyRhs.getVersionConstraint());
     }
 
     @Override
@@ -84,7 +86,11 @@ public abstract class AbstractExternalModuleDependency extends AbstractModuleDep
     public ExternalModuleDependency setForce(boolean force) {
         validateMutation(this.force, force);
         if (force) {
-            DeprecationLogger.nagUserOfDeprecatedThing("Using force on a dependency is not recommended.", "Consider using strict version constraints instead (version { strictly ... } })");
+            DeprecationLogger.deprecate("Using force on a dependency")
+                .withAdvice("Consider using strict version constraints instead (version { strictly ... } }).")
+                .willBeRemovedInGradle7()
+                .withUpgradeGuideSection(5, "forced_dependencies")
+                .nagUser();
         }
         this.force = force;
         return this;

@@ -38,6 +38,10 @@ public class Hashing {
 
     private static final HashFunction SHA1 = MessageDigestHashFunction.of("SHA-1");
 
+    private static final HashFunction SHA256 = MessageDigestHashFunction.of("SHA-256");
+
+    private static final HashFunction SHA512 = MessageDigestHashFunction.of("SHA-512");
+
     private static final HashFunction DEFAULT = MD5;
 
     /**
@@ -120,7 +124,27 @@ public class Hashing {
         return SHA1;
     }
 
+    /**
+     * SHA-256 hashing function.
+     */
+    public static HashFunction sha256() {
+        return SHA256;
+    }
+
+    /**
+     * SHA-512 hashing function.
+     */
+    public static HashFunction sha512() {
+        return SHA512;
+    }
+
     private static abstract class MessageDigestHashFunction implements HashFunction {
+        private final int hexDigits;
+
+        public MessageDigestHashFunction(int hashBits) {
+            this.hexDigits = hashBits / 4;
+        }
+
         public static MessageDigestHashFunction of(String algorithm) {
             MessageDigest prototype;
             try {
@@ -128,11 +152,12 @@ public class Hashing {
             } catch (NoSuchAlgorithmException e) {
                 throw new IllegalArgumentException("Cannot instantiate digest algorithm: " + algorithm);
             }
+            int hashBits = prototype.getDigestLength() * 8;
             try {
                 prototype.clone();
-                return new CloningMessageDigestHashFunction(prototype);
+                return new CloningMessageDigestHashFunction(prototype, hashBits);
             } catch (CloneNotSupportedException e) {
-                return new RegularMessageDigestHashFunction(algorithm);
+                return new RegularMessageDigestHashFunction(algorithm, hashBits);
             }
         }
 
@@ -162,12 +187,18 @@ public class Hashing {
         }
 
         protected abstract MessageDigest createDigest();
+
+        @Override
+        public int getHexDigits() {
+            return hexDigits;
+        }
     }
 
     private static class CloningMessageDigestHashFunction extends MessageDigestHashFunction {
         private final MessageDigest prototype;
 
-        public CloningMessageDigestHashFunction(MessageDigest prototype) {
+        public CloningMessageDigestHashFunction(MessageDigest prototype, int hashBits) {
+            super(hashBits);
             this.prototype = prototype;
         }
 
@@ -184,7 +215,8 @@ public class Hashing {
     private static class RegularMessageDigestHashFunction extends MessageDigestHashFunction {
         private final String algorithm;
 
-        public RegularMessageDigestHashFunction(String algorithm) {
+        public RegularMessageDigestHashFunction(String algorithm, int hashBits) {
+            super(hashBits);
             this.algorithm = algorithm;
         }
 

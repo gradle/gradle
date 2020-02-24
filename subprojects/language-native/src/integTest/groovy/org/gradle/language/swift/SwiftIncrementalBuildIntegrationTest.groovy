@@ -17,6 +17,7 @@
 package org.gradle.language.swift
 
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.SourceFile
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -36,6 +37,7 @@ import org.gradle.util.VersionNumber
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "rebuilds application when a single source file changes"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalSwiftModifyExpectedOutputApp()
@@ -73,6 +75,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(assembleAppTasks)
     }
 
+    @ToBeFixedForInstantExecution
     def "rebuilds application when a single source file in library changes"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new IncrementalSwiftModifyExpectedOutputAppWithLib()
@@ -117,6 +120,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         result.assertTasksSkipped(assembleAppAndLibTasks, ":assemble")
     }
 
+    @ToBeFixedForInstantExecution
     def "removes stale object files for executable"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalSwiftStaleCompileOutputApp()
@@ -143,16 +147,17 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
-        if (toolchainUnderTest.version.major < 5) {
-            outputs.recompiledClasses('greeter', 'renamed-sum', 'main')
-        } else {
+        if (toolchainUnderTest.version.major == 5 && toolchainUnderTest.version.minor == 0) {
             outputs.recompiledClasses('renamed-sum')
+        } else {
+            outputs.recompiledClasses('greeter', 'renamed-sum', 'main')
         }
 
         outputDirectory.assertContainsDescendants(expectedIntermediateDescendants(app.alternate))
         installation("build/install/main/debug").exec().out == app.expectedAlternateOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "removes stale object files for library"() {
         def lib = new IncrementalSwiftStaleCompileOutputLib()
         def outputDirectory = file("build/obj/main/debug")
@@ -178,16 +183,17 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         outputs.deletedClasses("multiply", "sum")
 
         // See https://github.com/gradle/gradle-native/issues/1004
-        if (toolchainUnderTest.version.major < 5) {
-            outputs.recompiledClasses('greeter', 'renamed-sum')
-        } else {
+        if (toolchainUnderTest.version.major == 5 && toolchainUnderTest.version.minor == 0) {
             outputs.recompiledClasses('renamed-sum')
+        } else {
+            outputs.recompiledClasses('greeter', 'renamed-sum')
         }
 
         outputDirectory.assertContainsDescendants(expectedIntermediateDescendants(lib.alternate))
         sharedLibrary("build/lib/main/debug/Hello").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "skips compile and link tasks for executable when source doesn't change"() {
         given:
         def app = new SwiftApp()
@@ -210,6 +216,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         installation("build/install/main/debug").exec().out == app.expectedOutput
     }
 
+    @ToBeFixedForInstantExecution
     def "skips compile and link tasks for library when source doesn't change"() {
         given:
         def lib = new SwiftLib()
@@ -232,6 +239,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         sharedLibrary("build/lib/main/debug/${lib.moduleName}").assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def "removes stale installed executable and library file when all source files for executable are removed"() {
         settingsFile << "include 'app', 'greeter'"
         def app = new IncrementalSwiftStaleLinkOutputAppWithLib()
@@ -285,6 +293,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         file("greeter/build/obj/main/debug").assertHasDescendants(expectedIntermediateDescendants(app.library.alternate))
     }
 
+    @ToBeFixedForInstantExecution
     def "removes stale executable file when all source files are removed"() {
         settingsFile << "rootProject.name = 'app'"
         def app = new IncrementalSwiftStaleLinkOutputApp()
@@ -317,6 +326,7 @@ class SwiftIncrementalBuildIntegrationTest extends AbstractInstalledToolChainInt
         installation("build/install/main/debug").assertNotInstalled()
     }
 
+    @ToBeFixedForInstantExecution
     def "removes stale library file when all source files are removed"() {
         def lib = new IncrementalSwiftStaleLinkOutputLib()
         settingsFile << "rootProject.name = 'greeter'"

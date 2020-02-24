@@ -17,6 +17,7 @@
 package org.gradle.plugins.signing
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -38,6 +39,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/maven')
+    @ToBeFixedForInstantExecution
     def "upload attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -49,6 +51,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
         then:
         repoFor(dsl)
             .module('gradle', 'maven', '1.0')
+            .withoutExtraChecksums()
             .assertArtifactsPublished('maven-1.0.pom', 'maven-1.0.pom.asc', 'maven-1.0.jar', 'maven-1.0.jar.asc')
 
         where:
@@ -57,20 +60,20 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/conditional')
+    @ToBeFixedForInstantExecution
     def "conditional signing with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
 
         when:
-        executer.expectDeprecationWarnings(2)
-        run "uploadArchives"
+        run "publish"
 
         then:
-        skipped(":signArchives")
+        skipped(":signMainPublication")
 
         and:
         def module = repoFor(dsl).module('gradle', 'conditional', '1.0-SNAPSHOT')
-        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.jar")
+        module.assertArtifactsPublished("maven-metadata.xml", "conditional-${module.publishArtifactVersion}.pom", "conditional-${module.publishArtifactVersion}.module", "conditional-${module.publishArtifactVersion}.jar")
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -79,6 +82,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
     @Unroll
     @UsesSample('signing/gnupg-signatory')
     @Requires(adhoc = { GpgCmdFixture.getAvailableGpg() != null })
+    @ToBeFixedForInstantExecution
     def "use gnupg signatory with dsl #dsl"() {
         setup:
         def projectDir = sample.dir.file(dsl)
@@ -102,6 +106,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/maven-publish')
+    @ToBeFixedForInstantExecution
     def "publish attaches signatures with dsl #dsl"() {
         given:
         inDirectory(sample.dir.file(dsl))
@@ -139,6 +144,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/in-memory')
+    @ToBeFixedForInstantExecution
     def "uses in-memory PGP keys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)
@@ -160,6 +166,7 @@ class SigningSamplesSpec extends AbstractSampleIntegrationTest {
 
     @Unroll
     @UsesSample('signing/in-memory')
+    @ToBeFixedForInstantExecution
     def "uses in-memory PGP subkeys with dsl #dsl"() {
         given:
         def projectDir = sample.dir.file(dsl)

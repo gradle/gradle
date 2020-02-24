@@ -112,8 +112,8 @@ Secondary variants (*)
         buildFile << """
             plugins { id 'java-library' }
             java {
-                publishJavadoc()
-                publishSources()
+                withJavadocJar()
+                withSourcesJar()
             }
             group = 'org'
             version = '1.0'
@@ -461,7 +461,7 @@ Description = Dependencies for source set 'main' (deprecated, use 'implementatio
     def "prints explicit capabilities"() {
         buildFile << """
             plugins { id 'java-library' }
-            
+
             configurations.runtimeElements.outgoing {
                 capability("org.test:extra:1.0")
                 capability("org.test:other:3.0")
@@ -487,7 +487,7 @@ Capabilities
     def "reports artifacts without explicit type"() {
         buildFile << """
             plugins { id 'java-library' }
-            
+
             group = 'org'
             version = '1.0'
 

@@ -16,11 +16,13 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 
 class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest {
     def publishedModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9")
 
+    @ToBeFixedForInstantExecution
     def "cannot publish custom component with no usages or variants"() {
         createBuildScripts("""
             publishing {
@@ -40,6 +42,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
   - This publication must publish at least one variant"""
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish custom component with usages"() {
         createBuildScripts("""
             publishing {
@@ -62,7 +65,8 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         publishedModule.parsedModuleMetadata.variant("usage").dependencies*.coords == ['group:module:1.0']
     }
 
-    def "can publish custom component with variants"() {
+    @ToBeFixedForInstantExecution
+    def "can publish custom component with variants (with proper unique SNAPSHOT handling)"() {
         createBuildScripts("""
             publishing {
                 publications {
@@ -75,7 +79,11 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                     }
                 }
             }
+
+            version = "1.9-SNAPSHOT"
 """)
+
+        publishedModule = mavenRepo.module("org.gradle.test", "publishTest", "1.9-SNAPSHOT")
 
         when:
         run "publish"
@@ -87,9 +95,48 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
         with (publishedModule.parsedModuleMetadata.variant("usage")) { variant ->
             variant.files.empty
             variant.dependencies.empty
-            variant.availableAt.coords == 'org.gradle.test:nested:1.9'
-            variant.availableAt.url == '../../nested/1.9/nested-1.9.module'
+            variant.availableAt.coords == 'org.gradle.test:nested:1.9-SNAPSHOT'
+            variant.availableAt.url == "../../nested/1.9-SNAPSHOT/nested-1.9-SNAPSHOT.module"
         }
+
+        when:
+        mavenRepo.module('group', 'module', '1.0').publish()
+
+        def otherSettings = file('consumer/settings.gradle')
+        def otherBuild = file('consumer/build.gradle')
+
+        otherSettings << "rootProject.name = 'consumer'"
+        otherBuild << """
+            repositories {
+                maven { url "${mavenRepo.uri}" }
+            }
+
+            configurations {
+                conf
+            }
+
+            dependencies {
+                conf('org.gradle.test:publishTest:1.9-SNAPSHOT') {
+                    attributes {
+                        attribute(Attribute.of("test.attribute", String), "value")
+                    }
+                }
+            }
+
+            task resolve {
+                doLast {
+                    println configurations.conf.files
+                }
+            }
+"""
+        executer.inDirectory(file('consumer'))
+
+        and:
+        succeeds 'resolve'
+
+        then:
+        outputContains('nested-1.9-SNAPSHOT.text')
+        outputContains('module-1.0.jar')
     }
 
     def createBuildScripts(def append) {
@@ -111,7 +158,7 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
                     maven { url "${mavenRepo.uri}" }
                 }
             }
-            
+
             class TestAttributes {
                 // shared mutable state for tests, don't do this at home!
                 static AttributeContainer INSTANCE
@@ -129,11 +176,11 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
             class MyComponentWithUsages extends MySoftwareComponent {
                 static PublishArtifact publishedArtifact
                 static ModuleDependency publishedDependency
-    
+
                 Set<org.gradle.api.internal.component.UsageContext> getUsages() {
                     return [ new MyUsageContext() ]
                 }
-    
+
                 class MyUsageContext implements org.gradle.api.internal.component.UsageContext {
                     String name = "usage"
                     Usage usage = { "usageName" }
@@ -147,10 +194,10 @@ class MavenPublishCustomComponentIntegTest extends AbstractMavenPublishIntegTest
             }
             class MyComponentWithVariants extends MySoftwareComponent implements ComponentWithVariants {
                 static nestedVariant = new MyComponentWithUsages()
-                
+
                 Set<SoftwareComponent> variants = [ nestedVariant ]
             }
-            
+
 $append
 """
 

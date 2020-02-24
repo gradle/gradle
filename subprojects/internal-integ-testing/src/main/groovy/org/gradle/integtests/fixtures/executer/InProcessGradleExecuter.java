@@ -74,9 +74,10 @@ import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegi
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
 import org.gradle.util.CollectionUtils;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
+import org.gradle.util.IncubationLogger;
 import org.hamcrest.Matcher;
 
 import java.io.ByteArrayOutputStream;
@@ -144,6 +145,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
     @Override
     public GradleExecuter reset() {
         DeprecationLogger.reset();
+        IncubationLogger.reset();
         return super.reset();
     }
 
@@ -257,6 +259,8 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
             .collect(Collectors.joining(" "));
         File cpJar = new File(getDefaultTmpDir(), "daemon-classpath-manifest-" + HashUtil.createCompactMD5(cpString) + ".jar");
         if (!cpJar.isFile()) {
+            // Make sure the parent exists or the jar creation might fail
+            cpJar.getParentFile().mkdirs();
             Manifest manifest = new Manifest();
             manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
             manifest.getMainAttributes().put(Attributes.Name.CLASS_PATH, cpString);

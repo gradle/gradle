@@ -25,6 +25,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,7 +37,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
     private final ServiceRegistry sharedServices;
     private final Object provider;
     private final Lock lock = new ReentrantLock();
-    private final Map<File, Services> servicesForHomeDir = new HashMap<File, Services>();
+    private final Map<File, Services> servicesForHomeDir = new HashMap<>();
 
     public DefaultGradleUserHomeScopeServiceRegistry(ServiceRegistry sharedServices, Object provider) {
         this.sharedServices = sharedServices;
@@ -81,12 +82,7 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
                     .displayName("services for Gradle user home dir " + gradleUserHomeDir)
                     .provider(new Object() {
                         GradleUserHomeDirProvider createGradleUserHomeDirProvider() {
-                            return new GradleUserHomeDirProvider() {
-                                @Override
-                                public File getGradleUserHomeDirectory() {
-                                    return gradleUserHomeDir;
-                                }
-                            };
+                            return () -> gradleUserHomeDir;
                         }
                     })
                     .provider(provider)
@@ -96,6 +92,18 @@ public class DefaultGradleUserHomeScopeServiceRegistry implements GradleUserHome
             }
             services.count++;
             return services.registry;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public Optional<ServiceRegistry> getCurrentServices() {
+        lock.lock();
+        try {
+            return servicesForHomeDir.isEmpty()
+                ? Optional.empty()
+                : Optional.of(servicesForHomeDir.values().iterator().next().registry);
         } finally {
             lock.unlock();
         }

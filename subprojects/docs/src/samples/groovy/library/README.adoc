@@ -1,0 +1,25 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+If you are new to Gradle and wish to follow a more detailed tutorial for building Groovy libraries, we suggest you have an look at the https://guides.gradle.org/building-groovy-libraries/[Building Groovy Libraries guide].
+
+This sample shows how a Groovy library can be built with Gradle.
+The library has no dependencies aside from the Groovy runtime and the build has minimal configuration.
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+To build the library:
+
+[listing.terminal]
+----
+$ ./gradlew jar
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+For more information, see link:{userManualPath}/groovy_plugin.html[Groovy Plugin reference chapter].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:groovy_library[`gradle init`].

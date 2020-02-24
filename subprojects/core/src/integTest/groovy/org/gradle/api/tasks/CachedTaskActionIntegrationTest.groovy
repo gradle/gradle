@@ -86,14 +86,14 @@ class CachedTaskActionIntegrationTest extends AbstractIntegrationSpec implements
             def input = file("input.txt")
 
             task compileA(type: JavaCompile) {
-                destinationDir = file("build/compile-a")
+                destinationDirectory = file("build/compile-a")
                 doLast {
                     file("\$destinationDir/output.txt") << "From compile task A"
                 }
             }
- 
+
             task compileB(type: JavaCompile) {
-                destinationDir = file("build/compile-b")
+                destinationDirectory = file("build/compile-b")
                 doLast {
                     file("\$destinationDir/output.txt") << "From compile task B"
                 }

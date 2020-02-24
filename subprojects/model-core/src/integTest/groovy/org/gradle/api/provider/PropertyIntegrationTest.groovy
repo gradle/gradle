@@ -17,9 +17,11 @@
 package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution
     def "can use property as task input"() {
         given:
         taskTypeWritesPropertyValueToFile()
@@ -73,13 +75,13 @@ task thing(type: SomeTask) {
             abstract class MyTask extends DefaultTask {
                 @Input
                 abstract Property<$type> getProp()
-                
+
                 @TaskAction
                 void go() {
                     println("prop = \${prop.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 prop = $value
             }
@@ -108,17 +110,17 @@ task thing(type: SomeTask) {
             abstract class MyTask extends DefaultTask {
                 @Nested
                 abstract NestedType getNested()
-                
+
                 void nested(Action<NestedType> action) {
                     action.execute(nested)
                 }
-                
+
                 @TaskAction
                 void go() {
                     println("prop = \${nested.prop.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 nested {
                     prop = "value"
@@ -133,6 +135,68 @@ task thing(type: SomeTask) {
         outputContains("prop = value")
     }
 
+    def "fails when property with no value is queried"() {
+        given:
+        buildFile << """
+            abstract class SomeTask extends DefaultTask {
+                @Internal
+                abstract Property<String> getProp()
+
+                @TaskAction
+                def go() {
+                    prop.get()
+                }
+            }
+
+            tasks.register('thing', SomeTask)
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'prop' because it has no value available.")
+    }
+
+    def "fails when property with no value because source property has no value is queried"() {
+        given:
+        buildFile << """
+            interface SomeExtension {
+                Property<String> getSource()
+            }
+
+            abstract class SomeTask extends DefaultTask {
+                @Internal
+                abstract Property<String> getProp()
+
+                @TaskAction
+                def go() {
+                    prop.get()
+                }
+            }
+
+            def custom1 = extensions.create('custom1', SomeExtension)
+
+            def custom2 = extensions.create('custom2', SomeExtension)
+            custom2.source = custom1.source
+
+            tasks.register('thing', SomeTask) {
+                prop = custom2.source
+            }
+        """
+
+        when:
+        fails("thing")
+
+        then:
+        failure.assertHasDescription("Execution failed for task ':thing'.")
+        failure.assertHasCause("""Cannot query the value of task ':thing' property 'prop' because it has no value available.
+The value of this property is derived from:
+  - extension 'custom2' property 'source'
+  - extension 'custom1' property 'source'""")
+    }
+
     def "can finalize the value of a property using API"() {
         given:
         buildFile << """
@@ -142,11 +206,46 @@ def provider = providers.provider { ++counter }
 def property = objects.property(Integer)
 property.set(provider)
 
-assert property.get() == 1 
-assert property.get() == 2 
+assert property.get() == 1
+assert property.get() == 2
+
 property.finalizeValue()
-assert property.get() == 3 
-assert property.get() == 3 
+
+assert counter == 3 // is eager
+assert property.get() == 3
+
+counter = 45
+assert property.get() == 3
+
+property.set(12)
+"""
+
+        when:
+        fails()
+
+        then:
+        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
+    }
+
+    def "can finalize the value of a property on next read using API"() {
+        given:
+        buildFile << """
+Integer counter = 0
+def provider = providers.provider { ++counter }
+
+def property = objects.property(Integer)
+property.set(provider)
+
+assert property.get() == 1
+assert property.get() == 2
+
+property.finalizeValueOnRead()
+
+assert counter == 2 // is lazy
+assert property.get() == 3
+
+counter = 45
+assert property.get() == 3
 
 property.set(12)
 """
@@ -167,11 +266,11 @@ def provider = providers.provider { ++counter }
 def property = objects.property(Integer)
 property.set(provider)
 
-assert property.get() == 1 
-assert property.get() == 2 
+assert property.get() == 1
+assert property.get() == 2
 property.disallowChanges()
 assert property.get() == 3
-assert property.get() == 4 
+assert property.get() == 4
 
 property.set(12)
 """
@@ -189,10 +288,10 @@ property.set(12)
 class SomeTask extends DefaultTask {
     @Input
     final Property<String> prop = project.objects.property(String)
-    
+
     @OutputFile
     final Property<RegularFile> outputFile = project.objects.fileProperty()
-    
+
     @TaskAction
     void go() {
         outputFile.get().asFile.text = prop.get()
@@ -281,7 +380,7 @@ task thing(type: SomeTask) {
     prop = providers.provider { throw new RuntimeException("broken") }
     outputFile = layout.buildDirectory.file("out.txt")
 }
-            
+
         """
 
         when:
@@ -292,18 +391,19 @@ task thing(type: SomeTask) {
         failure.assertHasCause("broken")
     }
 
+    @ToBeFixedForInstantExecution
     def "task @Input property calculation is called once only when task executes"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
 
 task thing(type: SomeTask) {
-    prop = providers.provider { 
+    prop = providers.provider {
         println("calculating value")
         return "value"
     }
     outputFile = layout.buildDirectory.file("out.txt")
 }
-            
+
         """
 
         when:
@@ -332,21 +432,21 @@ task thing(type: SomeTask) {
 class SomeTask extends DefaultTask {
     @Input
     final Property<String> prop = project.objects.property(String)
-    
+
     @InputFiles @SkipWhenEmpty
     final SetProperty<RegularFile> outputFile = project.objects.setProperty(RegularFile)
-    
+
     @TaskAction
     void go() {
     }
 }
 
 task thing(type: SomeTask) {
-    prop = providers.provider { 
+    prop = providers.provider {
         throw new RuntimeException("should not be called")
     }
 }
-            
+
         """
 
         when:
@@ -361,7 +461,7 @@ task thing(type: SomeTask) {
         buildFile << """
 class SomeExtension {
     final Property<String> prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.property(String)
@@ -398,7 +498,7 @@ assert tasks.t.prop.get() == "changed"
         buildFile << """
 class SomeExtension {
     final Property<String> prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.property(String)
@@ -429,7 +529,7 @@ assert custom.prop.get() == "value 4"
         buildFile << """
 class SomeExtension {
     final Property<String> prop
-    
+
     @javax.inject.Inject
     SomeExtension(ObjectFactory objects) {
         prop = objects.property(String)
@@ -560,8 +660,8 @@ class SomeExtension {
         $prop = objects.property($type)
     }
 }
- 
-project.extensions.create("some", SomeExtension)            
+
+project.extensions.create("some", SomeExtension)
         """
 
         when:
@@ -584,10 +684,10 @@ project.extensions.create("some", SomeExtension)
             class SomeTask extends DefaultTask {
                 @Input
                 final Property<String> prop = project.objects.property(String)
-                
+
                 @OutputFile
                 final Property<RegularFile> outputFile = project.objects.fileProperty()
-                
+
                 @TaskAction
                 void go() {
                     outputFile.get().asFile.text = prop.get()

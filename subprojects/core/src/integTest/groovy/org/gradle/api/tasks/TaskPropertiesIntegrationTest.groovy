@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
     def "can define task with abstract read-only Property<T> property"() {
@@ -25,13 +26,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @Internal
                 abstract Property<Integer> getCount()
-                
+
                 @TaskAction
                 void go() {
                     println("count = \${count.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 println("property = \$count")
                 count = 12
@@ -52,13 +53,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @Internal
                 abstract Property<Integer> getCount()
-                
+
                 @TaskAction
                 void go() {
                     println("count = \${count.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
             }
         """
@@ -67,7 +68,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         fails("thing")
 
         then:
-        failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
     def "reports failure to query read-only unmanaged Property<T> with final getter"() {
@@ -76,13 +77,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @Internal
                 final Property<Integer> count = project.objects.property(Integer)
-                
+
                 @TaskAction
                 void go() {
                     println("count = \${count.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 println("property = \$count")
             }
@@ -93,7 +94,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("property = task ':thing' property 'count'")
-        failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
     def "reports failure to query read-only unmanaged Property<T>"() {
@@ -105,7 +106,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
             public abstract class MyTask extends DefaultTask {
                 private final Property<Integer> count = getProject().getObjects().property(Integer.class);
-                
+
                 @Internal
                 public Property<Integer> getCount() {
                     return count;
@@ -118,7 +119,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        buildFile << """            
+        buildFile << """
             tasks.create("thing", MyTask) {
                 println("property = \$count")
             }
@@ -129,7 +130,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("property = task ':thing' property 'count'")
-        failure.assertHasCause("No value has been specified for task ':thing' property 'count'")
+        failure.assertHasCause("Cannot query the value of task ':thing' property 'count' because it has no value available.")
     }
 
     def "can define task with abstract read-only ConfigurableFileCollection property"() {
@@ -138,13 +139,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @InputFiles
                 abstract ConfigurableFileCollection getSource()
-                
+
                 @TaskAction
                 void go() {
                     println("files = \${source.files.name}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 source.from("a", "b", "c")
             }
@@ -163,13 +164,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @InputFiles
                 abstract ConfigurableFileTree getSource()
-                
+
                 @TaskAction
                 void go() {
                     println("files = \${source.files.name.sort()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 source.from("dir")
             }
@@ -197,22 +198,53 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                     this.name = name
                 }
             }
-            
+
             abstract class MyTask extends DefaultTask {
                 @Nested
                 abstract NamedDomainObjectContainer<Bean> getBeans()
-                
+
                 @TaskAction
                 void go() {
                     println("beans = \${beans.collect { it.prop.get() } }")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 beans {
                     one { prop = '1' }
                     two { prop = '2' }
                 }
+            }
+        """
+
+        when:
+        succeeds("thing")
+
+        then:
+        outputContains("beans = [1, 2]")
+    }
+
+    def "can define task with abstract read-only DomainObjectSet<T> property"() {
+        given:
+        buildFile << """
+            class Bean {
+                @Input
+                String prop
+            }
+
+            abstract class MyTask extends DefaultTask {
+                @Nested
+                abstract DomainObjectSet<Bean> getBeans()
+
+                @TaskAction
+                void go() {
+                    println("beans = \${beans.collect { it.prop } }")
+                }
+            }
+
+            tasks.create("thing", MyTask) {
+                beans.add(new Bean(prop: '1'))
+                beans.add(new Bean(prop: '2'))
             }
         """
 
@@ -233,13 +265,13 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @Nested
                 abstract Params getParams()
-                
+
                 @TaskAction
                 void go() {
                     println("count = \${params.count.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 println("params = \$params")
                 println("params.count = \$params.count")
@@ -262,17 +294,17 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             abstract class MyTask extends DefaultTask {
                 @Internal
                 abstract Property<String> getParam()
-                
+
                 MyTask() {
                     param.convention("from convention")
                 }
-                
+
                 @TaskAction
                 void go() {
                     println("param = \${param.get()}")
                 }
             }
-            
+
             tasks.create("thing", MyTask) {
                 param.set("from configuration")
             }
@@ -298,5 +330,54 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         errorOutput.contains("java.lang.UnsupportedOperationException")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12133")
+    def "abstract super type can define concrete property"() {
+        // Problem is exposed by Java compiler
+        file("buildSrc/src/main/java/AbstractCustomTask.java") << """
+            import org.gradle.api.file.ConfigurableFileCollection;
+            import org.gradle.api.internal.AbstractTask;
+            import org.gradle.api.tasks.InputFiles;
+
+            abstract class AbstractCustomTask extends AbstractTask {
+                private final ConfigurableFileCollection sourceFiles = getProject().files();
+
+                @InputFiles
+                public ConfigurableFileCollection getSourceFiles() {
+                    System.out.println("get files from field");
+                    return sourceFiles;
+                }
+
+                public void setSourceFiles(Object files) {
+                    System.out.println("set files using field");
+                    sourceFiles.setFrom(files);
+                }
+            }
+        """
+        file("buildSrc/src/main/java/CustomTask.java") << """
+            import org.gradle.api.GradleException;
+            import org.gradle.api.tasks.TaskAction;
+
+            public class CustomTask extends AbstractCustomTask {
+                @TaskAction
+                public void checkFiles() {
+                    System.out.println("checking files");
+                    if (getSourceFiles().isEmpty()) {
+                        throw new GradleException("sourceFiles are unexpectedly empty");
+                    }
+                    System.out.println("done checking files");
+                }
+            }
+        """
+
+        buildFile << """
+            task check(type: CustomTask) {
+                check.setSourceFiles("in.txt")
+            }
+        """
+
+        expect:
+        succeeds("check")
     }
 }

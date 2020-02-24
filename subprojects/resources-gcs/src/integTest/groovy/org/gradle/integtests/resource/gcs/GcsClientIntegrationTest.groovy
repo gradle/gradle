@@ -70,7 +70,7 @@ class GcsClientIntegrationTest extends Specification {
         object.getSize() == fileContents.length()
         object.getEtag() ==~ /\w{32}/
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
-        IOUtils.copyLarge(gcsClient.getResourceStream(object), outStream)
+        IOUtils.copyLarge(gcsClient.getResourceStream(uri), outStream)
         outStream.toString() == fileContents
 
         when:
@@ -112,7 +112,7 @@ class GcsClientIntegrationTest extends Specification {
         def uri = new URI("gcs://${bucketName}/maven/release/${new Date().getTime()}-mavenTest.txt")
         gcsClient.put(stream, file.length(), uri)
         ByteArrayOutputStream outStream = new ByteArrayOutputStream()
-        IOUtils.copyLarge(gcsClient.getResourceStream(gcsClient.getResource(uri)), outStream)
+        IOUtils.copyLarge(gcsClient.getResourceStream(uri), outStream)
         outStream.toString() == fileContents
     }
 }

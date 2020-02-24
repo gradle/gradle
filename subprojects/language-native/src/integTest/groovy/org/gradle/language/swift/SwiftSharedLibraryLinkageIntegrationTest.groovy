@@ -16,6 +16,7 @@
 
 package org.gradle.language.swift
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.app.SourceElement
 import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
@@ -51,6 +52,7 @@ class SwiftSharedLibraryLinkageIntegrationTest extends AbstractSwiftIntegrationT
         return "library"
     }
 
+    @ToBeFixedForInstantExecution
     def "can create shared library binary when explicitly request a shared linkage"() {
         def library = new SwiftLib()
         buildFile << """

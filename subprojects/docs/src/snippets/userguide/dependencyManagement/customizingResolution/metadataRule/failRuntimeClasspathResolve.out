@@ -1,0 +1,31 @@
+Execution failed for task ':failRuntimeClasspathResolve'.
+> Could not resolve all files for configuration ':runtimeClasspath'.
+   > Could not resolve org.lwjgl:lwjgl:3.2.3.
+     Required by:
+         project :
+      > Cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
+          - natives-windows-runtime
+          - natives-windows-x86-runtime
+        All of them match the consumer attributes:
+          - Variant 'natives-windows-runtime' capability org.lwjgl:lwjgl:3.2.3:
+              - Unmatched attributes:
+                  - Required org.gradle.dependency.bundling 'external' but no value provided.
+                  - Required org.gradle.jvm.version '11' but no value provided.
+                  - Found org.gradle.native.architecture 'x86-64' but wasn't required.
+                  - Found org.gradle.status 'release' but wasn't required.
+              - Compatible attributes:
+                  - Required org.gradle.category 'library' and found compatible value 'library'.
+                  - Required org.gradle.libraryelements 'jar' and found compatible value 'jar'.
+                  - Required org.gradle.native.operatingSystem 'windows' and found compatible value 'windows'.
+                  - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime'.
+          - Variant 'natives-windows-x86-runtime' capability org.lwjgl:lwjgl:3.2.3:
+              - Unmatched attributes:
+                  - Required org.gradle.dependency.bundling 'external' but no value provided.
+                  - Required org.gradle.jvm.version '11' but no value provided.
+                  - Found org.gradle.native.architecture 'x86' but wasn't required.
+                  - Found org.gradle.status 'release' but wasn't required.
+              - Compatible attributes:
+                  - Required org.gradle.category 'library' and found compatible value 'library'.
+                  - Required org.gradle.libraryelements 'jar' and found compatible value 'jar'.
+                  - Required org.gradle.native.operatingSystem 'windows' and found compatible value 'windows'.
+                  - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime'.

@@ -22,14 +22,14 @@ import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectFactory;
 import org.gradle.api.Namer;
 import org.gradle.internal.Cast;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Set;
 
 public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorphicDomainObjectContainer<T>
-        implements ExtensiblePolymorphicDomainObjectContainer<T> {
+    implements ExtensiblePolymorphicDomainObjectContainer<T> {
     protected final DefaultPolymorphicNamedEntityInstantiator<T> namedEntityInstantiator;
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, Namer<? super T> namer, CollectionCallbackActionDecorator callbackDecorator) {
@@ -39,11 +39,15 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
 
     /**
      * This internal constructor is used by the 'idea-ext' plugin which we use in our build.
-     * */
+     */
     @Deprecated
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator) {
         this(type, instantiator, Named.Namer.forType(type), CollectionCallbackActionDecorator.NOOP);
-        DeprecationLogger.nagUserOfDeprecated("Internal API constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)");
+        DeprecationLogger.deprecateInternalApi("constructor DefaultPolymorphicDomainObjectContainer(Class<T>, Instantiator)")
+            .replaceWith("ObjectFactory.polymorphicDomainObjectContainer(Class<T>)")
+            .willBeRemovedInGradle7()
+            .withUserManual("custom_gradle_types", "extensiblepolymorphicdomainobjectcontainer")
+            .nagUser();
     }
 
     public DefaultPolymorphicDomainObjectContainer(Class<T> type, Instantiator instantiator, CollectionCallbackActionDecorator callbackDecorator) {
@@ -62,8 +66,8 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
         } catch (InvalidUserDataException e) {
             if (e.getCause() instanceof NoFactoryRegisteredForTypeException) {
                 throw new InvalidUserDataException(String.format("Cannot create a %s named '%s' because this container "
-                        + "does not support creating elements by name alone. Please specify which subtype of %s to create. "
-                        + "Known subtypes are: %s", getTypeDisplayName(), name, getTypeDisplayName(), namedEntityInstantiator.getSupportedTypeNames()));
+                    + "does not support creating elements by name alone. Please specify which subtype of %s to create. "
+                    + "Known subtypes are: %s", getTypeDisplayName(), name, getTypeDisplayName(), namedEntityInstantiator.getSupportedTypeNames()));
             } else {
                 throw e;
             }
@@ -99,10 +103,11 @@ public class DefaultPolymorphicDomainObjectContainer<T> extends AbstractPolymorp
     public <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType) {
         registerFactory(type, new NamedDomainObjectFactory<U>() {
             boolean named = Named.class.isAssignableFrom(implementationType);
+
             @Override
             public U create(String name) {
                 return named ? getInstantiator().newInstance(implementationType, name)
-                        : getInstantiator().newInstance(implementationType);
+                    : getInstantiator().newInstance(implementationType);
             }
         });
     }

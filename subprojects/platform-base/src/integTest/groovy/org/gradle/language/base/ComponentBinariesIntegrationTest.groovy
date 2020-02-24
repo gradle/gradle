@@ -15,8 +15,11 @@
  */
 
 package org.gradle.language.base
-import org.gradle.api.reporting.model.ModelReportOutput
 
+import org.gradle.api.reporting.model.ModelReportOutput
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+
+@UnsupportedWithInstantExecution(because = "software model")
 class ComponentBinariesIntegrationTest extends AbstractComponentModelIntegrationTest {
     def setup() {
         withCustomComponentType()

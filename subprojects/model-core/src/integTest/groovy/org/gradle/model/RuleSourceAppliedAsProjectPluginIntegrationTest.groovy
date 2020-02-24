@@ -17,7 +17,9 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin class can expose model rules"() {

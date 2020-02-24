@@ -41,8 +41,8 @@ fun <T> singleton(value: T): Codec<T> =
 
 
 internal
-inline fun <reified T> ownerService() =
-    codec<T>({ }, { readOwnerService() })
+inline fun <reified T> ownerServiceCodec() =
+    codec<T>({ }, { ownerService() })
 
 
 internal
@@ -67,9 +67,14 @@ fun <T> codec(
 }
 
 
-private
-inline fun <reified T> ReadContext.readOwnerService() =
-    isolate.owner.service<T>()
+internal
+inline fun <reified T> ReadContext.ownerService() =
+    ownerService(T::class.java)
+
+
+internal
+fun <T> ReadContext.ownerService(serviceType: Class<T>) =
+    isolate.owner.service(serviceType)
 
 
 internal
@@ -267,7 +272,7 @@ fun Decoder.readFile(): File =
 
 
 internal
-fun Encoder.writeStrings(strings: List<String>) {
+fun Encoder.writeStrings(strings: Collection<String>) {
     writeCollection(strings) {
         writeString(it)
     }
@@ -342,3 +347,30 @@ fun <E : Enum<E>> WriteContext.writeEnum(value: E) {
 
 inline fun <reified E : Enum<E>> ReadContext.readEnum(): E =
     readSmallInt().let { ordinal -> enumValues<E>()[ordinal] }
+
+
+fun WriteContext.writeShort(value: Short) {
+    BaseSerializerFactory.SHORT_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readShort(): Short =
+    BaseSerializerFactory.SHORT_SERIALIZER.read(this)
+
+
+fun WriteContext.writeFloat(value: Float) {
+    BaseSerializerFactory.FLOAT_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readFloat(): Float =
+    BaseSerializerFactory.FLOAT_SERIALIZER.read(this)
+
+
+fun WriteContext.writeDouble(value: Double) {
+    BaseSerializerFactory.DOUBLE_SERIALIZER.write(this, value)
+}
+
+
+fun ReadContext.readDouble(): Double =
+    BaseSerializerFactory.DOUBLE_SERIALIZER.read(this)

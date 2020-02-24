@@ -18,7 +18,7 @@ package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
@@ -98,12 +98,10 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
-    @RequiredFeatures([
-        // this test doesn't make sense with Gradle metadata
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false"),
-        // only test one combination
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")]
-    )
+    // this test doesn't make sense with Gradle metadata
+    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
+    // only test one combination
+    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
     def "maven module is not affected by rule requiring ivy module descriptor input"() {
         def mavenModule = mavenRepo.module("org.utils", "api", "1.1").publishWithChangedContent()
 
@@ -148,10 +146,8 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         file("libs/api-1.1.jar").assertIsCopyOf(mavenModule.artifactFile)
     }
 
-    @RequiredFeatures([
-        // Gradle metadata doesn't support parents
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")]
-    )
+    // Gradle metadata doesn't support parents
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
     def "parent is not affected by selection rules" () {
         given:
         repository {
@@ -226,10 +222,9 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         succeeds "resolveConf"
     }
 
-    @RequiredFeatures(
-        // because of the IvyModuleDescriptor rule
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
-    )
+    // because of the IvyModuleDescriptor rule
+    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
+    @ToBeFixedForInstantExecution
     def "component metadata is requested only once for rules that do require it" () {
         buildFile << """
             dependencies {
@@ -279,12 +274,11 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
         checkDependencies()
     }
 
-    @RequiredFeatures([
-        // because of the IvyModuleDescriptor rule
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy"),
-        // because of branch
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
-    ])
+    // because of the IvyModuleDescriptor rule
+    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
+    // because of branch
+    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
+    @ToBeFixedForInstantExecution
     def "changed component metadata becomes visible when module is refreshed" () {
 
         def commonBuildFile = buildFile.text + """
@@ -389,7 +383,7 @@ class ComponentSelectionRulesProcessingIntegTest extends AbstractComponentSelect
     def "copies selection rules when configuration is copied" () {
         buildFile << """
             configurations {
-                notCopy 
+                notCopy
             }
 
             dependencies {

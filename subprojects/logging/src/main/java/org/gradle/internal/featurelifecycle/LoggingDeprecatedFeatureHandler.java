@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.util.GradleVersion;
 import org.slf4j.Logger;
@@ -39,24 +40,23 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private static final Logger LOGGER = LoggerFactory.getLogger(LoggingDeprecatedFeatureHandler.class);
     private static final String ELEMENT_PREFIX = "\tat ";
     private static final String RUN_WITH_STACKTRACE_INFO = "\t(Run with --stacktrace to get the full stack trace of this deprecation warning.)";
-    private static String deprecationMessage;
     private static boolean traceLoggingEnabled;
 
     private final Set<String> messages = new HashSet<String>();
     private UsageLocationReporter locationReporter;
 
     private WarningMode warningMode = WarningMode.Summary;
-    private DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster;
+    private DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster;
     private GradleException error;
 
     public LoggingDeprecatedFeatureHandler() {
         this.locationReporter = DoNothingReporter.INSTANCE;
     }
 
-    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadaster buildOperationProgressBroadaster) {
+    public void init(UsageLocationReporter reporter, WarningMode warningMode, DeprecatedUsageBuildOperationProgressBroadcaster buildOperationProgressBroadcaster) {
         this.locationReporter = reporter;
         this.warningMode = warningMode;
-        this.buildOperationProgressBroadaster = buildOperationProgressBroadaster;
+        this.buildOperationProgressBroadcaster = buildOperationProgressBroadcaster;
     }
 
     @Override
@@ -83,13 +83,13 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     }
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage) {
-        if (buildOperationProgressBroadaster != null) {
-            buildOperationProgressBroadaster.progress(usage);
+        if (buildOperationProgressBroadcaster != null) {
+            buildOperationProgressBroadcaster.progress(usage);
         }
     }
 
     public void reset() {
-        buildOperationProgressBroadaster = null;
+        buildOperationProgressBroadcaster = null;
         messages.clear();
         error = null;
     }
@@ -167,20 +167,6 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             return traceLoggingEnabled;
         }
         return Boolean.parseBoolean(value);
-    }
-
-    private static String initDeprecationMessage() {
-        String messageBase = "is scheduled to be removed in";
-        String when = String.format("Gradle %s", GradleVersion.current().getNextMajor().getVersion());
-
-        return String.format("%s %s.", messageBase, when);
-    }
-
-    public static String getRemovalDetails() {
-        if (deprecationMessage == null) {
-            deprecationMessage = initDeprecationMessage();
-        }
-        return deprecationMessage;
     }
 
     public GradleException getDeprecationFailure() {

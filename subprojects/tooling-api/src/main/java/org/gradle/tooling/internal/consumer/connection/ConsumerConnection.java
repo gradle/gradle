@@ -22,6 +22,8 @@ import org.gradle.tooling.internal.consumer.PhasedBuildAction;
 import org.gradle.tooling.internal.consumer.TestExecutionRequest;
 import org.gradle.tooling.internal.consumer.parameters.ConsumerOperationParameters;
 
+import java.util.List;
+
 /**
  * Implementations must be thread-safe.
  */
@@ -45,4 +47,5 @@ public interface ConsumerConnection extends Stoppable {
 
     void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 
+    void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters);
 }

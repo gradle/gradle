@@ -39,9 +39,9 @@ import org.codehaus.groovy.tools.javac.JavaAwareCompilationUnit;
 import org.codehaus.groovy.tools.javac.JavaCompiler;
 import org.codehaus.groovy.tools.javac.JavaCompilerFactory;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.classloading.GroovySystemLoader;
 import org.gradle.api.internal.classloading.GroovySystemLoaderFactory;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
@@ -67,9 +67,11 @@ import static org.gradle.internal.FileUtils.hasExtension;
 
 public class ApiGroovyCompiler implements org.gradle.language.base.internal.compile.Compiler<GroovyJavaJointCompileSpec>, Serializable {
     private final Compiler<JavaCompileSpec> javaCompiler;
+    private final ProjectLayout projectLayout;
 
-    public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler) {
+    public ApiGroovyCompiler(Compiler<JavaCompileSpec> javaCompiler, ProjectLayout projectLayout) {
         this.javaCompiler = javaCompiler;
+        this.projectLayout = projectLayout;
     }
 
     private static abstract class IncrementalCompilationCustomizer extends CompilationCustomizer {
@@ -163,6 +165,13 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setTargetDirectory(spec.getDestinationDir());
         canonicalizeValues(spec.getGroovyCompileOptions().getOptimizationOptions());
 
+        VersionNumber version = parseGroovyVersion();
+        if (version.compareTo(VersionNumber.parse("2.5")) >= 0) {
+            configuration.setParameters(spec.getGroovyCompileOptions().isParameters());
+        } else if (spec.getGroovyCompileOptions().isParameters()) {
+            throw new GradleException("Using Groovy compiler flag '--parameters' requires Groovy 2.5+ but found Groovy " + version);
+        }
+
         IncrementalCompilationCustomizer customizer = IncrementalCompilationCustomizer.fromSpec(spec);
         customizer.addToConfiguration(configuration);
 
@@ -180,7 +189,6 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         configuration.setJointCompilationOptions(jointCompilationOptions);
 
         ClassLoader classPathLoader;
-        VersionNumber version = parseGroovyVersion();
         if (version.compareTo(VersionNumber.parse("2.0")) < 0) {
             // using a transforming classloader is only required for older buggy Groovy versions
             classPathLoader = new GroovyCompileTransformingClassLoader(getExtClassLoader(), DefaultClassPath.of(spec.getCompileClasspath()));
@@ -193,6 +201,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
         FilteringClassLoader.Spec groovyCompilerClassLoaderSpec = new FilteringClassLoader.Spec();
         groovyCompilerClassLoaderSpec.allowPackage("org.codehaus.groovy");
         groovyCompilerClassLoaderSpec.allowPackage("groovy");
+        groovyCompilerClassLoaderSpec.allowPackage("groovyjarjarasm");
         // Disallow classes from Groovy Jar that reference external classes. Such classes must be loaded from astTransformClassLoader,
         // or a NoClassDefFoundError will occur. Essentially this is drawing a line between the Groovy compiler and the Groovy
         // library, albeit only for selected classes that run a high risk of being statically referenced from a transform.
@@ -235,7 +244,7 @@ public class ApiGroovyCompiler implements org.gradle.language.base.internal.comp
                         if (shouldProcessAnnotations) {
                             // In order for the Groovy stubs to have annotation processors invoked against them, they must be compiled as source.
                             // Classes compiled as a result of being on the -sourcepath do not have the annotation processor run against them
-                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), ImmutableFileCollection.of(stubDir).getAsFileTree()));
+                            spec.setSourceFiles(Iterables.concat(spec.getSourceFiles(), projectLayout.files(stubDir).getAsFileTree()));
                         } else {
                             // When annotation processing isn't required, it's better to add the Groovy stubs as part of the source path.
                             // This allows compilations to complete faster, because only the Groovy stubs that are needed by the java source are compiled.

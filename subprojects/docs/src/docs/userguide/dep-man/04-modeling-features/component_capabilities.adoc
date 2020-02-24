@@ -30,8 +30,8 @@ For example, if your build file contains the following dependencies:
 
 .A build file with an implicit conflict of logging frameworks
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=dependencies]"]
 ====
 
 As is, it's pretty hard to figure out that you will end up with two logging frameworks on the classpath.
@@ -40,8 +40,8 @@ We can preemptively detect the conflict by adding a rule which will declare that
 
 .A build file with an implicit conflict of logging frameworks
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/groovy",files="build.gradle[tags=declare_capability]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/declaringCapabilities/kotlin",files="build.gradle.kts[tags=declare_capability]"]
 ====
 
 By adding this rule, we will make sure that Gradle _will_ detect conflicts and properly fail:
@@ -61,7 +61,7 @@ By adding this rule, we will make sure that Gradle _will_ detect conflicts and p
            Cannot select module with conflict on capability 'log4j:log4j:1.2.16' also provided by [org.slf4j:log4j-over-slf4j:1.7.10(compile)]
 ----
 
-See the <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps, capabilities section of the documentation>> to figure out how to fix capability conflicts.
+See the <<dependency_capability_conflict.adoc#sub:selecting-between-candidates, capabilities section of the documentation>> to figure out how to fix capability conflicts.
 
 == Declaring additional capabilities for a local component
 
@@ -71,8 +71,8 @@ However, it is also possible to declare additional _explicit capabilities_ for a
 
 .Declaring capabilities of a component
 ====
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
-include::sample[dir="userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/groovy",files="build.gradle[tags=declare-outgoing-capabilities]"]
+include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/outgoingCapabilities/kotlin",files="build.gradle.kts[tags=declare-outgoing-capabilities]"]
 ====
 
 Capabilities must be attached to _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>> of a component.

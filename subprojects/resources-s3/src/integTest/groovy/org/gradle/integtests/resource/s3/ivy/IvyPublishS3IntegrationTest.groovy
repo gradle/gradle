@@ -17,6 +17,7 @@
 package org.gradle.integtests.resource.s3.ivy
 
 import org.gradle.api.publish.ivy.AbstractIvyPublishIntegTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resource.s3.fixtures.S3IntegrationTestPrecondition
 import org.gradle.integtests.resource.s3.fixtures.S3Server
 import org.junit.Rule
@@ -31,6 +32,7 @@ class IvyPublishS3IntegrationTest extends AbstractIvyPublishIntegTest {
         executer.withArgument("-Dorg.gradle.s3.endpoint=${server.getUri()}")
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish to an S3 Ivy repository"() {
         given:
         def ivyRepo = server.remoteIvyRepo
@@ -65,10 +67,16 @@ publishing {
         def module = ivyRepo.module('org.gradle.test', 'publishS3Test', '1.0')
         module.jar.expectUpload()
         module.jar.sha1.expectUpload()
+        module.jar.sha256.expectUpload()
+        module.jar.sha512.expectUpload()
         module.ivy.expectUpload()
         module.ivy.sha1.expectUpload()
+        module.ivy.sha256.expectUpload()
+        module.ivy.sha512.expectUpload()
         module.moduleMetadata.expectUpload()
         module.moduleMetadata.sha1.expectUpload()
+        module.moduleMetadata.sha256.expectUpload()
+        module.moduleMetadata.sha512.expectUpload()
 
         succeeds 'publish'
 

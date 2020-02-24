@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.tasks
 
 import org.gradle.api.artifacts.transform.InputArtifact
 import org.gradle.api.artifacts.transform.InputArtifactDependencies
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -72,6 +73,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
+    @ToBeFixedForInstantExecution
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -84,10 +86,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 public static class Tree {
                     @Optional @Nested
                     Tree left
-            
+
                     @Optional @Nested
                     Tree right
-            
+
                     String nonAnnotated
                 }
             }
@@ -100,6 +102,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -113,7 +116,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 }
 
                 @Nested
-                Options getOptions() { 
+                Options getOptions() {
                     return null;
                 }
 
@@ -136,12 +139,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         annotation << [InputArtifact, InputArtifactDependencies]
     }
 
+    @ToBeFixedForInstantExecution
     def "can enable stricter validation"() {
         buildFile << """
             dependencies {
                 implementation localGroovy()
             }
-            
+
             validatePlugins.enableStricterValidation = project.hasProperty('strict')
         """
 
@@ -152,7 +156,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
             class MyTask extends DefaultTask {
                 @InputFile
                 File fileProp
-                
+
                 @InputFiles
                 Set<File> filesProp
 
@@ -178,6 +182,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "can validate task classes using external types"() {
         buildFile << """
             ${jcenterRepository()}
@@ -198,10 +203,10 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 public long getGoodTime() {
                     return 0;
                 }
-                
+
                 @Optional @Input
-                public Config getConfig() { return null; } 
-                
+                public Config getConfig() { return null; }
+
                 @TaskAction public void execute() {}
             }
         """
@@ -210,12 +215,13 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
+    @ToBeFixedForInstantExecution
     def "can validate task classes using types from other projects"() {
         settingsFile << """
             include 'lib'
         """
 
-        buildFile << """  
+        buildFile << """
             allprojects {
                 ${jcenterRepository()}
             }
@@ -226,7 +232,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 dependencies {
                     implementation 'com.typesafe:config:1.3.2'
                 }
-            }          
+            }
 
             dependencies {
                 implementation project(':lib')
@@ -252,11 +258,11 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 public long getGoodTime() {
                     return 0;
                 }
-                
+
                 @Input
                 public MyUtil getUtil() { return new MyUtil(); }
-                
-                @TaskAction public void execute() {} 
+
+                @TaskAction public void execute() {}
             }
         """
 
@@ -264,6 +270,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
+    @ToBeFixedForInstantExecution
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
@@ -307,7 +314,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 public String getOldThing() {
                     return null;
                 }
-                
+
                 // Unsupported annotation
                 @InputFile
                 public abstract File getInputFile();
@@ -322,6 +329,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;
@@ -370,7 +378,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 // Invalid because it has some other annotation
                 @Deprecated
                 String getOldThing();
-                
+
                 // Unsupported annotation
                 @InputArtifact
                 File getInputFile();
@@ -386,14 +394,17 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "can run old task"() {
-        executer.expectDeprecationWarning()
+        executer.expectDocumentedDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Please use the validatePlugins task instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes")
 
         when:
         run "validateTaskProperties"
+
         then:
         executedAndNotSkipped(":validatePlugins")
-        output.contains("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
     }
 
     def "tests only classes from plugin source set"() {
@@ -406,7 +417,7 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                     }
                 }
             }
-    
+
             gradlePlugin {
                 pluginSourceSet sourceSets.plugin
             }
@@ -421,8 +432,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 public long getBadProperty() {
                     return 0;
                 }
-                
-                @TaskAction public void execute() {} 
+
+                @TaskAction public void execute() {}
             }
         """
 
@@ -435,8 +446,8 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
                 public long getBadProperty() {
                     return 0;
                 }
-                
-                @TaskAction public void execute() {} 
+
+                @TaskAction public void execute() {}
             }
         """
 

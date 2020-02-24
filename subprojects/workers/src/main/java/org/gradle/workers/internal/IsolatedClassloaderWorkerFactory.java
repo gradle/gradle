@@ -32,29 +32,29 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
     private final InstantiatorFactory instantiatorFactory;
 
-    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry) {
+    public IsolatedClassloaderWorkerFactory(BuildOperationExecutor buildOperationExecutor, ServiceRegistry internalServices, ClassLoaderRegistry classLoaderRegistry, LegacyTypesSupport legacyTypesSupport, ActionExecutionSpecFactory actionExecutionSpecFactory, InstantiatorFactory instantiatorFactory) {
         this.buildOperationExecutor = buildOperationExecutor;
         this.internalServices = internalServices;
         this.classLoaderRegistry = classLoaderRegistry;
-        this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
-        this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
-        this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
+        this.legacyTypesSupport = legacyTypesSupport;
+        this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+        this.instantiatorFactory = instantiatorFactory;
     }
 
     @Override
-    public BuildOperationAwareWorker getWorker(final DaemonForkOptions forkOptions) {
+    public BuildOperationAwareWorker getWorker(WorkerRequirement workerRequirement) {
         return new AbstractWorker(buildOperationExecutor) {
             @Override
-            public DefaultWorkResult execute(ActionExecutionSpec spec, BuildOperationRef parentBuildOperation) {
-                return executeWrappedInBuildOperation(spec, parentBuildOperation, new Work() {
-                    @Override
-                    public DefaultWorkResult execute(ActionExecutionSpec spec) {
-                        ServiceRegistry workServices = new WorkerPublicServicesBuilder(internalServices).withInternalServicesVisible(spec.isInternalServicesRequired()).build();
-                        ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
-                        ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(forkOptions.getClassLoaderStructure(), workerInfrastructureClassloader, legacyTypesSupport);
-                        Worker worker = new IsolatedClassloaderWorker(workerClassLoader, workServices, actionExecutionSpecFactory, instantiatorFactory);
-                        return worker.execute(spec);
-                    }
+            public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
+                return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
+                    // Serialize the incoming class and parameters
+                    TransportableActionExecutionSpec<?> transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
+
+                    ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
+                    ClassLoaderStructure classLoaderStructure = ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure();
+                    ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, workerInfrastructureClassloader, legacyTypesSupport);
+                    WorkerProtocol worker = new IsolatedClassloaderWorker(workerClassLoader, internalServices, actionExecutionSpecFactory, instantiatorFactory);
+                    return worker.execute(transportableSpec);
                 });
             }
         };

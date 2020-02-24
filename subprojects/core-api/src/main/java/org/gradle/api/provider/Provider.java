@@ -49,10 +49,10 @@ import java.util.concurrent.Callable;
  * <p>There are a number of ways to create a {@link Provider} instance. Some common methods:</p>
  *
  * <ul>
+ *     <li>A number of Gradle types, such as {@link Property}, extend {@link Provider} and can be used directly as a provider.</li>
  *     <li>Calling {@link #map(Transformer)} to create a new provider from an existing provider.</li>
  *     <li>Using the return value of {@link org.gradle.api.tasks.TaskContainer#register(String)}, which is a provider that represents the task instance.</li>
  *     <li>Using the methods on {@link org.gradle.api.file.Directory} and {@link org.gradle.api.file.DirectoryProperty} to produce file providers.</li>
- *     <li>Many Gradle types extend {@link Provider} and can be used directly as a provider.</li>
  *     <li>By calling {@link ProviderFactory#provider(Callable)} or {@link org.gradle.api.Project#provider(Callable)} to create a new provider from a {@link Callable}.</li>
  * </ul>
  *
@@ -96,13 +96,12 @@ public interface Provider<T> {
     /**
      * Returns a new {@link Provider} whose value is the value of this provider transformed using the given function.
      *
-     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result. Whenever this provider has no value, the new provider will also have no value.
-     *
-     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer will be called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
+     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result.
+     * Whenever this provider has no value, the new provider will also have no value and the transformation will not be called.
      *
      * <p>When this provider represents a task or the output of a task, the new provider will be considered an output of the task and will carry dependency information that Gradle can use to automatically attach task dependencies to tasks that use the new provider for input values.</p>
      *
-     * @param transformer The transformer to apply to values. Should not return {@code null}.
+     * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 4.3
      */
     <S> Provider<S> map(Transformer<? extends S, ? super T> transformer);
@@ -110,13 +109,12 @@ public interface Provider<T> {
     /**
      * Returns a new {@link Provider} from the value of this provider transformed using the given function.
      *
-     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result. Whenever this provider has no value, the new provider will also have no value.
-     *
-     * <p>Note that the new provider may cache the result of the transformations and so there is no guarantee that the transformer will be called on every query of the new provider. The new provider will apply the transformation lazily, and calculate the value for the new provider when queried.
+     * <p>The new provider will be live, so that each time it is queried, it queries this provider and applies the transformation to the result.
+     * Whenever this provider has no value, the new provider will also have no value and the transformation will not be called.
      *
      * <p>Any task details associated with this provider are ignored. The new provider will use whatever task details are associated with the return value of the function.</p>
      *
-     * @param transformer The transformer to apply to values. Should not return {@code null}.
+     * @param transformer The transformer to apply to values. May return {@code null}, in which case the provider will have no value.
      * @since 5.0
      */
     @Incubating

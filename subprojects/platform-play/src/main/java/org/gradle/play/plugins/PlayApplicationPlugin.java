@@ -28,6 +28,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectIdentifier;
 import org.gradle.api.plugins.ExtensionContainer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.internal.JvmAssembly;
 import org.gradle.jvm.tasks.Jar;
@@ -72,7 +73,6 @@ import org.gradle.play.internal.platform.PlayPlatformInternal;
 import org.gradle.play.internal.toolchain.PlayToolChainInternal;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.play.tasks.PlayRun;
-import org.gradle.util.SingleMessageLogger;
 import org.gradle.util.VersionNumber;
 
 import java.io.File;
@@ -89,7 +89,11 @@ public class PlayApplicationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Application", "org.gradle.playframework-application");
+        DeprecationLogger.deprecatePlugin("Play Application")
+            .replaceWithExternalPlugin("org.gradle.playframework-application")
+            .willBeRemovedInGradle7()
+            .withUserManual("play_plugin")
+            .nagUser();
         project.getPluginManager().apply(JavaLanguagePlugin.class);
         project.getPluginManager().apply(ScalaLanguagePlugin.class);
         project.getPluginManager().apply(PlayTwirlPlugin.class);

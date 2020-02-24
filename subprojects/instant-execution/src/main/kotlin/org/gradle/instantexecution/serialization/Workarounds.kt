@@ -17,11 +17,21 @@
 package org.gradle.instantexecution.serialization
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import java.lang.reflect.Field
 import java.util.concurrent.ForkJoinPool
 
 
 internal
 object Workarounds {
+
+    private
+    val ignoredBeanFields = listOf(
+        // Ignore a lambda field for now
+        "mFolderFilter" to "com.android.ide.common.resources.DataSet"
+    )
+
+    fun isIgnoredBeanField(field: Field) =
+        ignoredBeanFields.contains(field.name to field.declaringClass.name)
 
     private
     val staticFieldsByTypeName = mapOf(
@@ -36,10 +46,14 @@ object Workarounds {
                 try {
                     val clazz = loader.loadClass(type)
                     fields.forEach { (name, value) ->
-                        clazz.getDeclaredField(name)
-                            .apply { isAccessible = true }
-                            .takeIf { it.get(null) == null }
-                            ?.set(null, value())
+                        try {
+                            clazz.getDeclaredField(name)
+                                .apply { isAccessible = true }
+                                .takeIf { it.get(null) == null }
+                                ?.set(null, value())
+                        } catch (ex: NoSuchFieldException) {
+                            // n/a
+                        }
                     }
                 } catch (ex: ClassNotFoundException) {
                     // n/a

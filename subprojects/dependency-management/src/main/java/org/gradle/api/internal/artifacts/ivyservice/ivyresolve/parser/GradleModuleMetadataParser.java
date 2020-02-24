@@ -21,8 +21,8 @@ import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.capabilities.Capability;
@@ -38,18 +38,18 @@ import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.component.external.model.DefaultShadowedCapability;
+import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.component.external.model.MutableComponentVariant;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
-import org.gradle.internal.hash.HashUtil;
 import org.gradle.internal.resource.local.LocallyAvailableExternalResource;
 import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -58,6 +58,7 @@ import java.util.List;
 import static com.google.gson.stream.JsonToken.BOOLEAN;
 import static com.google.gson.stream.JsonToken.END_ARRAY;
 import static com.google.gson.stream.JsonToken.END_OBJECT;
+import static com.google.gson.stream.JsonToken.NULL;
 import static com.google.gson.stream.JsonToken.NUMBER;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.apache.commons.lang.StringUtils.capitalize;
@@ -85,39 +86,60 @@ public class GradleModuleMetadataParser {
     }
 
     public void parse(final LocallyAvailableExternalResource resource, final MutableModuleComponentResolveMetadata metadata) {
-        resource.withContent(new Transformer<Void, InputStream>() {
-            @Override
-            public Void transform(InputStream inputStream) {
-                String version = null;
-                try {
-                    JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
-                    reader.beginObject();
-                    if (reader.peek() != JsonToken.NAME) {
-                        throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
-                    }
-                    String name = reader.nextName();
-                    if (!name.equals("formatVersion")) {
-                        throw new RuntimeException(String.format("The 'formatVersion' value should be the first value in a module metadata. Found '%s' instead.", name));
-                    }
-                    if (reader.peek() != JsonToken.STRING) {
-                        throw new RuntimeException("The 'formatVersion' value should have a string value.");
-                    }
-                    version = reader.nextString();
-                    consumeTopLevelElements(reader, metadata);
-                    File file = resource.getFile();
-                    metadata.setContentHash(HashUtil.createHash(file, "MD5"));
-                    if (!FORMAT_VERSION.equals(version)) {
-                        LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
-                    }
-                    return null;
-                } catch (Exception e) {
-                    if (version != null && !FORMAT_VERSION.equals(version)) {
-                        throw new MetaDataParseException("module metadata", resource, String.format("unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s.", version, FORMAT_VERSION), e);
-                    }
-                    throw new MetaDataParseException("module metadata", resource, e);
+        resource.withContent(inputStream -> {
+            String version = null;
+            try {
+                JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
+                reader.beginObject();
+                if (reader.peek() != JsonToken.NAME) {
+                    throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
                 }
+                String name = reader.nextName();
+                if (!name.equals("formatVersion")) {
+                    throw new RuntimeException(String.format("The 'formatVersion' value should be the first value in a module metadata. Found '%s' instead.", name));
+                }
+                if (reader.peek() != JsonToken.STRING) {
+                    throw new RuntimeException("The 'formatVersion' value should have a string value.");
+                }
+                version = reader.nextString();
+                consumeTopLevelElements(reader, metadata);
+                File file = resource.getFile();
+                if (!FORMAT_VERSION.equals(version)) {
+                    LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
+                }
+                return null;
+            } catch (Exception e) {
+                if (version != null && !FORMAT_VERSION.equals(version)) {
+                    throw new MetaDataParseException("module metadata", resource, String.format("unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s.", version, FORMAT_VERSION), e);
+                }
+                throw new MetaDataParseException("module metadata", resource, e);
             }
         });
+        maybeAddEnforcedPlatformVariant(metadata);
+    }
+
+    private void maybeAddEnforcedPlatformVariant(MutableModuleComponentResolveMetadata metadata) {
+        List<? extends MutableComponentVariant> variants = metadata.getMutableVariants();
+        if (variants == null || variants.isEmpty()) {
+            return;
+        }
+        for (MutableComponentVariant variant : ImmutableList.copyOf(variants)) {
+            AttributeValue<String> entry = variant.getAttributes().findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
+            if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get()) && variant.getCapabilities().isEmpty()) {
+                // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
+                ImmutableAttributes enforcedAttributes = attributesFactory.concat(variant.getAttributes(), MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
+                Capability enforcedCapability = buildShadowPlatformCapability(metadata.getId());
+                metadata.addVariant(variant.copy("enforced" + capitalize(variant.getName()), enforcedAttributes, enforcedCapability));
+            }
+        }
+    }
+
+    private Capability buildShadowPlatformCapability(ModuleComponentIdentifier componentId) {
+        return new DefaultShadowedCapability(new ImmutableCapability(
+                componentId.getGroup(),
+                componentId.getModule(),
+                componentId.getVersion()
+            ), "-derived-enforced-platform");
     }
 
     private void consumeTopLevelElements(JsonReader reader, MutableModuleComponentResolveMetadata metadata) throws IOException {
@@ -190,7 +212,7 @@ public class GradleModuleMetadataParser {
                     dependencyConstraints = consumeDependencyConstraints(reader);
                     break;
                 case "capabilities":
-                    capabilities = consumeCapabilities(reader);
+                    capabilities = consumeCapabilities(reader, true);
                     break;
                 case "available-at":
                     // For now just collect this as another dependency
@@ -207,13 +229,6 @@ public class GradleModuleMetadataParser {
 
         MutableComponentVariant variant = metadata.addVariant(variantName, attributes);
         populateVariant(files, dependencies, dependencyConstraints, capabilities, variant);
-        AttributeValue<String> entry = attributes.findEntry(MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE);
-        if (entry.isPresent() && Category.REGULAR_PLATFORM.equals(entry.get())) {
-            // This generates a synthetic enforced platform variant with the same dependencies, similar to what the Maven variant derivation strategy does
-            ImmutableAttributes enforcedAttributes = attributesFactory.concat(attributes, MavenImmutableAttributesFactory.CATEGORY_ATTRIBUTE, new CoercingStringValueSnapshot(Category.ENFORCED_PLATFORM, instantiator));
-            MutableComponentVariant syntheticEnforcedVariant = metadata.addVariant("enforced" + capitalize(variantName), enforcedAttributes);
-            populateVariant(files, dependencies, dependencyConstraints, capabilities, syntheticEnforcedVariant);
-        }
     }
 
     private void populateVariant(List<ModuleFile> files, List<ModuleDependency> dependencies, List<ModuleDependencyConstraint> dependencyConstraints, List<VariantCapability> capabilities, MutableComponentVariant variant) {
@@ -304,7 +319,7 @@ public class GradleModuleMetadataParser {
                         attributes = consumeAttributes(reader);
                         break;
                     case "requestedCapabilities":
-                        requestedCapabilities = consumeCapabilities(reader);
+                        requestedCapabilities = consumeCapabilities(reader, false);
                         break;
                     case "endorseStrictVersions":
                         endorseStrictVersions = reader.nextBoolean();
@@ -368,7 +383,7 @@ public class GradleModuleMetadataParser {
         return new DefaultIvyArtifactName(artifactName, type, extension, classifier);
     }
 
-    private List<VariantCapability> consumeCapabilities(JsonReader reader) throws IOException {
+    private List<VariantCapability> consumeCapabilities(JsonReader reader, boolean versionRequired) throws IOException {
         ImmutableList.Builder<VariantCapability> capabilities = ImmutableList.builder();
         reader.beginArray();
         while (reader.peek() != END_ARRAY) {
@@ -387,13 +402,19 @@ public class GradleModuleMetadataParser {
                         name = reader.nextString();
                         break;
                     case "version":
-                        version = reader.nextString();
+                        if (reader.peek() == NULL) {
+                            reader.nextNull();
+                        } else {
+                            version = reader.nextString();
+                        }
                         break;
                 }
             }
             assertDefined(reader, "group", group);
             assertDefined(reader, "name", name);
-            assertDefined(reader, "version", version);
+            if (versionRequired) {
+                assertDefined(reader, "version", version);
+            }
             reader.endObject();
 
             capabilities.add(new VariantCapability(group, name, version));

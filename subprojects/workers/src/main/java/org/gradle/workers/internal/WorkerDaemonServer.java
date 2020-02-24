@@ -22,8 +22,10 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
@@ -39,7 +41,7 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.WorkerSharedGlobalScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
-import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
+import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.ExecFactory;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
@@ -67,27 +69,26 @@ public class WorkerDaemonServer implements WorkerProtocol {
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
         return ServiceRegistryBuilder.builder()
-                .displayName("worker daemon services")
-                .parent(parent)
-                .provider(new WorkerSharedGlobalScopeServices())
-                .provider(new WorkerDaemonServices())
-                .build();
+            .displayName("worker daemon services")
+            .parent(parent)
+            .provider(new WorkerSharedGlobalScopeServices())
+            .provider(new WorkerDaemonServices())
+            .build();
     }
 
     @Override
-    public DefaultWorkResult execute(ActionExecutionSpec spec) {
+    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
         try {
-            ServiceRegistry workServices = new WorkerPublicServicesBuilder(new WorkerProjectServices(spec.getBaseDir(), internalServices))
-                    .withInternalServicesVisible(spec.isInternalServicesRequired())
-                    .build();
-            Worker worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), workServices);
-            return worker.execute(spec);
+            try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), this.internalServices)) {
+                WorkerProtocol worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
+                return worker.execute(spec);
+            }
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
     }
 
-    private Worker getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
+    private WorkerProtocol getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
         if (classLoaderStructure instanceof FlatClassLoaderStructure) {
             return new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
         } else {
@@ -107,17 +108,19 @@ public class WorkerDaemonServer implements WorkerProtocol {
         return "WorkerDaemonServer{}";
     }
 
-    private static class WorkerDaemonServices {
+    private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
+
+        // TODO: instant-execution - deprecate workers access to ProviderFactory?
+        ProviderFactory createProviderFactory() {
+            return new DefaultProviderFactory();
+        }
+
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
         ActionExecutionSpecFactory createActionExecutionSpecFactory(IsolatableFactory isolatableFactory, IsolatableSerializerRegistry serializerRegistry) {
             return new DefaultActionExecutionSpecFactory(isolatableFactory, serializerRegistry);
-        }
-
-        DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
-            return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);
         }
 
         ClassLoaderHierarchyHasher createClassLoaderHierarchyHasher() {
@@ -138,19 +141,16 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     static class WorkerProjectServices extends DefaultServiceRegistry {
-        private final File baseDir;
-
         public WorkerProjectServices(File baseDir, ServiceRegistry... parents) {
-            super("worker file services for "+ baseDir.getAbsolutePath(), parents);
-            this.baseDir = baseDir;
+            super("worker file services for " + baseDir.getAbsolutePath(), parents);
             addProvider(new WorkerSharedProjectScopeServices(baseDir));
         }
 
         protected Instantiator createInstantiator(InstantiatorFactory instantiatorFactory) {
-            return instantiatorFactory.injectAndDecorateLenient(this);
+            return instantiatorFactory.decorateLenient(this);
         }
 
-        protected ExecFactory createExecFactory(org.gradle.process.internal.ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
+        protected ExecFactory createExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
             return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory);
         }
 

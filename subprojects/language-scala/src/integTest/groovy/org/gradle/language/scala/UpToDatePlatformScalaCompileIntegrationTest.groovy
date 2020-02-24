@@ -18,6 +18,7 @@ package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import spock.lang.Unroll
 
@@ -31,7 +32,17 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         file('app/controller/Person.scala') << "class Person(name: String)"
     }
 
+    def expectDeprecationWarnings() {
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The scala-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
+
     @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
+    @ToBeFixedForInstantExecution
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
         def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
@@ -40,6 +51,7 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         scalaFixture.baseline()
         buildFile << scalaFixture.buildScript()
         when:
+        expectDeprecationWarnings()
         executer.withJavaHome(jdk8.javaHome)
         run 'compileMainJarMainScala'
 
@@ -47,12 +59,14 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
         executedAndNotSkipped(':compileMainJarMainScala')
 
         when:
+        expectDeprecationWarnings()
         executer.withJavaHome(jdk8.javaHome)
         run 'compileMainJarMainScala'
         then:
         skipped ':compileMainJarMainScala'
 
         when:
+        expectDeprecationWarnings()
         executer.withJavaHome(jdk9.javaHome)
         run 'compileMainJarMainScala'
         then:

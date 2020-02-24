@@ -221,7 +221,7 @@ public class BaseCrossBuildResultsStore<R extends CrossBuildPerformanceResults> 
         return list;
     }
 
-    private class CrossBuildResultsSchemaInitializer implements ConnectionAction<Void> {
+    private static class CrossBuildResultsSchemaInitializer implements ConnectionAction<Void> {
         @Override
         public Void execute(Connection connection) throws SQLException {
             Statement statement = connection.createStatement();

@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
@@ -37,7 +38,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             ${check ? "assert validatePlugins." + check : ""}
         """
 
-        executer.expectDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
+        executer.expectDocumentedDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Please use the validatePlugins task instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes")
 
         expect:
         succeeds "help"
@@ -57,6 +60,7 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         "getOutputFile()"                 | null
     }
 
+    @ToBeFixedForInstantExecution
     def "detects missing annotations on Java properties while emitting deprecation warning"() {
         buildFile << """
             validateTaskProperties {
@@ -138,7 +142,9 @@ class ValidateTaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        executer.expectDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. Please use the validatePlugins task instead.")
+        executer.expectDocumentedDeprecationWarning("The validateTaskProperties task has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Please use the validatePlugins task instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#plugin_validation_changes")
 
         expect:
         fails "validateTaskProperties"

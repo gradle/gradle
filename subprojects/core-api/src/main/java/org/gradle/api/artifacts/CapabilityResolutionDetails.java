@@ -16,7 +16,6 @@
 package org.gradle.api.artifacts;
 
 import org.gradle.api.Incubating;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.internal.HasInternalProtocol;
 
@@ -41,7 +40,7 @@ public interface CapabilityResolutionDetails {
     /**
      * Returns the list of components which are in conflict on this capability
      */
-    List<ComponentIdentifier> getCandidates();
+    List<ComponentVariantIdentifier> getCandidates();
 
     /**
      * Selects a particular candidate to solve the conflict. It is recommended to
@@ -49,8 +48,10 @@ public interface CapabilityResolutionDetails {
      *
      * @param candidate the selected candidate
      * @return this details instance
+     *
+     * @since 6.0
      */
-    CapabilityResolutionDetails select(ComponentIdentifier candidate);
+    CapabilityResolutionDetails select(ComponentVariantIdentifier candidate);
 
     /**
      * Selects a particular candidate to solve the conflict. It is recommended to

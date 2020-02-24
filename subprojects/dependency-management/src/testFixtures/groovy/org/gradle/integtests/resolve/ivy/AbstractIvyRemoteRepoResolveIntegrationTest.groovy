@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.server.RepositoryServer
@@ -170,6 +171,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         file('libs').assertHasDescendants '3rdParty-1.2.jar', 'original-1.1.jar'
     }
 
+    @ToBeFixedForInstantExecution
     public void "can resolve and cache dependencies from multiple remote Ivy repositories"() {
         given:
         def repo1 = server.getRemoteIvyRepo("/repo1")
@@ -228,6 +230,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
+    @ToBeFixedForInstantExecution
     public void "can resolve and cache dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -269,6 +272,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds 'listJars'
     }
 
+    @ToBeFixedForInstantExecution
     void "can resolve and cache artifact-only dependencies from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -311,6 +315,7 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
+    @ToBeFixedForInstantExecution
     def "can resolve and cache artifact-only dependencies with no descriptor from a remote Ivy repository"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -354,6 +359,10 @@ abstract class AbstractIvyRemoteRepoResolveIntegrationTest extends AbstractInteg
         succeeds('listJars')
     }
 
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP,
+        because = "IvyGcsRepoResolveIntegrationTest leaks test files"
+    )
     def "reuses cached details when switching ivy resolve mode"() {
         given:
         buildFile << """

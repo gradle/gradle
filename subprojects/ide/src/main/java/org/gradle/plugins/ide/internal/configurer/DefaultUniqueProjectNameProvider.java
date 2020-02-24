@@ -46,7 +46,7 @@ public class DefaultUniqueProjectNameProvider implements UniqueProjectNameProvid
         return deduplicated;
     }
 
-    private class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<ProjectState> {
+    private static class ProjectPathDeduplicationAdapter implements HierarchicalElementAdapter<ProjectState> {
         @Override
         public String getName(ProjectState element) {
             return element.getName();

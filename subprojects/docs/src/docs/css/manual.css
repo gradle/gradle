@@ -724,12 +724,18 @@ div.unbreakable { page-break-inside: avoid; }
 
 span.icon > .fa { cursor: default; }
 
-.admonitionblock td.icon [class^="fa icon-"] { font-size: 2.5em; text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5); cursor: default; }
-.admonitionblock td.icon .icon-note:before { content: "\f05a"; color: #19407c; }
-.admonitionblock td.icon .icon-tip:before { content: "\f0eb"; text-shadow: 1px 1px 2px rgba(155, 155, 0, 0.8); color: #111; }
-.admonitionblock td.icon .icon-warning:before { content: "\f071"; color: #bf6900; }
-.admonitionblock td.icon .icon-caution:before { content: "\f06d"; color: #bf3400; }
-.admonitionblock td.icon .icon-important:before { content: "\f06a"; color: #bf0000; }
+.admonitionblock td.icon [class^="fa icon-"] {
+    cursor: default;
+    color: transparent;
+    font-size: 3.5em;
+    text-shadow: 0 0 #00c489;
+    opacity: 0.7;
+}
+.admonitionblock td.icon .icon-note:before { content: "\2728"; }
+.admonitionblock td.icon .icon-tip:before { content: "\1F4A1"; }
+.admonitionblock td.icon .icon-warning:before { content: "\2757"; }
+.admonitionblock td.icon .icon-caution:before { content: "\26A0"; }
+.admonitionblock td.icon .icon-important:before { content: "\26A0"; }
 
 .conum[data-value] { display: inline-block; color: #fff !important; background-color: rgba(0, 0, 0, 0.8); -webkit-border-radius: 100px; border-radius: 100px; text-align: center; font-size: 0.75em; width: 1.67em; height: 1.67em; line-height: 1.67em; font-family: "Open Sans", "DejaVu Sans", sans-serif; font-style: normal; font-weight: bold; }
 .conum[data-value] * { color: #fff !important; }
@@ -992,13 +998,6 @@ table.tableblock > .title,
 .listingblock .title code {
     font-style: normal;
     font-weight: bold;
-}
-
-#content .admonitionblock .icon .title {
-    color: transparent;
-    font-size: 3.5em;
-    text-shadow: 0 0 #00c489;
-    opacity: 0.7;
 }
 
 .admonitionblock td.content > .title {
@@ -2167,4 +2166,28 @@ div.screenshot {
     width: 224px;
     height: 135px;
     margin: 12px;
+}
+
+/* Samples download button */
+.download {
+  display: flex;
+}
+
+.download a {
+  border-style: solid;
+  border-width: 1px;
+  text-decoration: none;
+  padding: 5px;
+  display: block;
+  width: 10em;
+  margin: 5px;
+}
+
+.download ul {
+  list-style: none;
+  list-style-type: none;
+}
+
+.download li {
+  float: right;
 }

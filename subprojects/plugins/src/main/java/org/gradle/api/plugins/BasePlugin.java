@@ -40,9 +40,9 @@ import org.gradle.api.tasks.Upload;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.internal.Describables;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.jvm.tasks.Jar;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -132,8 +132,12 @@ public class BasePlugin implements Plugin<Project> {
                 }
                 AtomicBoolean usesMaven = new AtomicBoolean();
                 project.getPluginManager().withPlugin("maven", p -> usesMaven.set(true));
-                uploadArchives.doFirst(task -> DeprecationLogger.nagUserOfDeprecated("The " + UPLOAD_ARCHIVES_TASK_NAME + " task",
-                    "Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead"));
+                uploadArchives.doFirst(task -> DeprecationLogger
+                    .deprecateTask(UPLOAD_ARCHIVES_TASK_NAME)
+                    .withAdvice("Use the " + (usesMaven.get() ? "'maven-publish'" : "'ivy-publish'") + " plugin instead.")
+                    .willBeRemovedInGradle7()
+                    .withUpgradeGuideSection(5, "legacy_publication_system_is_deprecated_and_replaced_with_the_publish_plugins")
+                    .nagUser());
                 boolean hasIvyRepo = !uploadArchives.getRepositories().withType(IvyArtifactRepository.class).isEmpty();
                 if (!hasIvyRepo) {
                     return;

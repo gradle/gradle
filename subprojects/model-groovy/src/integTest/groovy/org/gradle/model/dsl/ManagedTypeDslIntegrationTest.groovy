@@ -17,8 +17,11 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedTypeDslIntegrationTest extends AbstractIntegrationSpec {
+
     def "can configure a child of a managed type using a nested closure syntax"() {
         buildFile << '''
 @Managed interface Person extends Named {

@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -65,6 +64,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskStatistics;
 import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
@@ -80,7 +80,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -101,7 +100,6 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Supplier;
 
 /**
  * Contains the services for a given project.
@@ -114,14 +112,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         super(parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                registration.add(DomainObjectContext.class, project);
-                parent.get(DependencyManagementServices.class).addDslServices(registration, project);
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerProjectServices(registration);
-                }
+        register(registration -> {
+            registration.add(DomainObjectContext.class, project);
+            parent.get(DependencyManagementServices.class).addDslServices(registration, project);
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerProjectServices(registration);
             }
         });
         addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
@@ -155,10 +150,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
 
     protected DefaultResourceHandler.Factory createResourceHandlerFactory(FileResolver fileResolver, FileSystem fileSystem, TemporaryFileProvider temporaryFileProvider, ApiTextResourceAdapter.Factory textResourceAdapterFactory) {
         return DefaultResourceHandler.Factory.from(
-                fileResolver,
-                fileSystem,
-                temporaryFileProvider,
-                textResourceAdapterFactory
+            fileResolver,
+            fileSystem,
+            temporaryFileProvider,
+            textResourceAdapterFactory
         );
     }
 
@@ -167,12 +162,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(new Factory<File>() {
-            @Override
-            public File create() {
-                return new File(project.getBuildDir(), "tmp");
-            }
-        });
+        return new DefaultTemporaryFileProvider(() -> new File(project.getBuildDir(), "tmp"));
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
@@ -210,16 +200,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {
-        return new DefaultProjectFinder(buildStateRegistry, new Supplier<ProjectInternal>() {
-            @Override
-            public ProjectInternal get() {
-                return project;
-            }
-        });
+        return new DefaultProjectFinder(buildStateRegistry, () -> project);
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
-        return new DefaultModelRegistry(ruleExtractor, project.getPath());
+        return new DefaultModelRegistry(ruleExtractor, project.getPath(), run -> {
+            project.getMutationState().withMutableState(run);
+        });
     }
 
     protected ScriptHandlerInternal createScriptHandler(DependencyManagementServices dependencyManagementServices, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, DependencyMetaDataProvider dependencyMetaDataProvider, ScriptClassPathResolver scriptClassPathResolver, NamedObjectInstantiator instantiator) {
@@ -233,7 +220,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
     }
 
-    private class ScriptScopedContext implements DomainObjectContext {
+    private static class ScriptScopedContext implements DomainObjectContext {
         private final DomainObjectContext delegate;
 
         public ScriptScopedContext(DomainObjectContext delegate) {
@@ -282,11 +269,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new ServiceRegistryFactory() {
-            @Override
-            public ServiceRegistry createFor(Object domainObject) {
-                throw new UnsupportedOperationException();
-            }
+        return domainObject -> {
+            throw new UnsupportedOperationException();
         };
     }
 
@@ -326,9 +310,9 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
     }
 
-    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory) {
+    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
         return new DefaultManagedFactoryRegistry(parent).withFactories(
-            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
+            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory, patternSetFactory),
             new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver, fileCollectionFactory),
             new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory)

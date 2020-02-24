@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
+import Gradle_Check.model.JsonBasedGradleSubprojectProvider
 import common.JvmVendor
 import common.JvmVersion
 import common.Os
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTestCoordinator
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
+import model.CIBuildModel
 import model.PerformanceTestType
 import model.SpecificBuild
 import model.Stage
@@ -29,10 +31,11 @@ import model.TestCoverage
 import model.TestType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import java.io.File
 
 class PerformanceTestBuildTypeTest {
     private
-    val buildModel = model.CIBuildModel(buildScanTags = listOf("Check"))
+    val buildModel = CIBuildModel(buildScanTags = listOf("Check"), subprojects = JsonBasedGradleSubprojectProvider(File("../.teamcity/subprojects.json")))
 
     @Test
     fun `create correct PerformanceTest build type`() {
@@ -40,7 +43,7 @@ class PerformanceTestBuildTypeTest {
                 specificBuilds = listOf(
                         SpecificBuild.BuildDistributions,
                         SpecificBuild.Gradleception,
-                        SpecificBuild.SmokeTests),
+                        SpecificBuild.SmokeTestsMinJavaVersion),
                 functionalTests = listOf(
                         TestCoverage(1, TestType.platform, Os.linux, JvmVersion.java8),
                         TestCoverage(2, TestType.platform, Os.windows, JvmVersion.java11, vendor = JvmVendor.openjdk)),
@@ -63,17 +66,17 @@ class PerformanceTestBuildTypeTest {
                 "-Porg.gradle.performance.db.url=%performance.db.url%",
                 "-Porg.gradle.performance.db.username=%performance.db.username%",
                 "-Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
-                "-PteamCityUsername=%teamcity.username.restbot%",
-                "-PteamCityPassword=%teamcity.password.restbot%",
+                "-PteamCityToken=%teamcity.user.bot-gradle.token%",
                 "-PtestJavaHome=%linux.java8.oracle.64bit%",
+                "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
+                "-Dorg.gradle.unsafe.vfs.drop=true",
                 "-s",
                 "--daemon",
                 "",
                 "-I",
                 "\"%teamcity.build.checkoutDir%/gradle/init-scripts/build-scan.init.gradle.kts\"",
                 "-Dorg.gradle.internal.tasks.createops",
-                "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%",
                 "-Porg.gradle.performance.buildTypeId=Gradle_Check_IndividualPerformanceScenarioWorkersLinux",
                 "-Porg.gradle.performance.workerTestTaskName=fullPerformanceTest",
                 "-Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id%",

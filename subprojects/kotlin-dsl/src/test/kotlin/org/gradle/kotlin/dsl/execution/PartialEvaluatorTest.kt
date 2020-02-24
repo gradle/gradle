@@ -146,6 +146,27 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `a top-level Settings pluginManagement block`() {
+
+        val fragment = fragment("pluginManagement", "...")
+        val program = Program.PluginManagement(fragment)
+
+        assertThat(
+            "reduces to static program that evaluates pluginManagement block then applies default plugin requests",
+            partialEvaluationOf(
+                program,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    SetupEmbeddedKotlin,
+                    Eval(fragment.source),
+                    ApplyDefaultPluginRequests
+                )))
+    }
+
+    @Test
     fun `a top-level Project buildscript block followed by plugins block`() {
 
         val program =
@@ -297,6 +318,22 @@ class PartialEvaluatorTest {
     }
 
     @Test
+    fun `an empty Settings top-level script`() {
+
+        assertThat(
+            "reduces to static program that applies default plugin requests",
+            partialEvaluationOf(
+                Program.Empty,
+                ProgramKind.TopLevel,
+                ProgramTarget.Settings
+            ),
+            isResidualProgram(
+                Static(
+                    ApplyDefaultPluginRequests
+                )))
+    }
+
+    @Test
     fun `a non-empty Settings top-level script`() {
 
         val source =
@@ -311,7 +348,7 @@ class PartialEvaluatorTest {
             ),
             isResidualProgram(
                 Static(
-                    CloseTargetScope,
+                    ApplyDefaultPluginRequests,
                     Eval(source)
                 )))
     }
@@ -333,7 +370,7 @@ class PartialEvaluatorTest {
                 Static(
                     SetupEmbeddedKotlin,
                     Eval(fragment.source),
-                    CloseTargetScope
+                    ApplyDefaultPluginRequests
                 )))
     }
 
@@ -369,7 +406,7 @@ class PartialEvaluatorTest {
                     Static(
                         SetupEmbeddedKotlin,
                         Eval(expectedEvalSource),
-                        CloseTargetScope
+                        ApplyDefaultPluginRequests
                     ),
                     scriptSource
                 )))

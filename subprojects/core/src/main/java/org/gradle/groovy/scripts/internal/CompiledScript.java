@@ -32,4 +32,9 @@ public interface CompiledScript<T extends Script, D> {
     Class<? extends T> loadClass();
 
     D getData();
+
+    /**
+     * Called when this script is reused in a new build invocation.
+     */
+    void onReuse();
 }

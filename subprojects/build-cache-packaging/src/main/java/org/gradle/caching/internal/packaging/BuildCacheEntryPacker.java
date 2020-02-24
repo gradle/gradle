@@ -20,8 +20,8 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 public interface BuildCacheEntryPacker {
-    PackResult pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException;
+    PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;
@@ -48,9 +48,9 @@ public interface BuildCacheEntryPacker {
     class UnpackResult {
         private final OriginMetadata originMetadata;
         private final long entries;
-        private final Map<String, ? extends FileSystemLocationSnapshot> snapshots;
+        private final Map<String, ? extends CompleteFileSystemLocationSnapshot> snapshots;
 
-        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, ? extends FileSystemLocationSnapshot> snapshots) {
+        public UnpackResult(OriginMetadata originMetadata, long entries, Map<String, ? extends CompleteFileSystemLocationSnapshot> snapshots) {
             this.originMetadata = originMetadata;
             this.entries = entries;
             this.snapshots = snapshots;
@@ -64,7 +64,7 @@ public interface BuildCacheEntryPacker {
             return entries;
         }
 
-        public Map<String, ? extends FileSystemLocationSnapshot> getSnapshots() {
+        public Map<String, ? extends CompleteFileSystemLocationSnapshot> getSnapshots() {
             return snapshots;
         }
     }

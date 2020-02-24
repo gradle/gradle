@@ -19,10 +19,12 @@ package org.gradle.workers.internal;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
-import java.io.File;
-
 public interface ActionExecutionSpecFactory {
-    <T extends WorkParameters> TransportableActionExecutionSpec<T> newTransportableSpec(ActionExecutionSpec<T> spec);
-    <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, ClassLoaderStructure classLoaderStructure, File baseDir, boolean usesInternalServices);
-    <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(ActionExecutionSpec<T> spec);
+    <T extends WorkParameters> TransportableActionExecutionSpec<T> newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec);
+
+    <T extends WorkParameters> IsolatedParametersActionExecutionSpec<T> newIsolatedSpec(String displayName, Class<? extends WorkAction<T>> implementationClass, T params, WorkerRequirement workerRequirement, boolean usesInternalServices);
+
+    <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(IsolatedParametersActionExecutionSpec<T> spec);
+
+    <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec<T> spec);
 }

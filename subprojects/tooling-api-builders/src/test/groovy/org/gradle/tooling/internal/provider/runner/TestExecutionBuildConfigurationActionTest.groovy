@@ -29,7 +29,7 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.tooling.internal.protocol.test.InternalDebugOptions
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction
-import org.gradle.tooling.internal.provider.events.DefaultTestDescriptor
+import org.gradle.internal.build.event.types.DefaultTestDescriptor
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -78,6 +78,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
     def "empty test execution request configures no tasks"() {
         1 * testExecutionRequest.getTestExecutionDescriptors() >> []
         1 * testExecutionRequest.getInternalJvmTestRequests() >> []
+        1 * testExecutionRequest.getTaskAndTests() >> [:]
 
         setup:
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
@@ -95,6 +96,7 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
 
         1 * testExecutionRequest.getTestExecutionDescriptors() >> descriptors
         1 * testExecutionRequest.getInternalJvmTestRequests() >> internalJvmRequests
+        1 * testExecutionRequest.getTaskAndTests() >> tasksAndTests
 
         def buildConfigurationAction = new TestExecutionBuildConfigurationAction(testExecutionRequest, gradleInternal);
         when:
@@ -106,10 +108,11 @@ class TestExecutionBuildConfigurationActionTest extends Specification {
         1 * testFilter.setFailOnNoMatchingTests(false)
         1 * outputsInternal.upToDateWhen(Specs.SATISFIES_NONE)
         where:
-        requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter
-        "test descriptors" | [testDescriptor()] | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME
-        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null
-        "test methods"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)] | TEST_CLASS_NAME     | TEST_METHOD_NAME
+        requestType        | descriptors        | internalJvmRequests                                 | expectedClassFilter | expectedMethodFilter | tasksAndTests
+        "test descriptors" | [testDescriptor()] | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]
+        "test classes"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, null)]             | TEST_CLASS_NAME     | null     | [:]
+        "test methods"     | []                 | [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)] | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [:]
+        "test type"        | []                 | []                                                  | TEST_CLASS_NAME     | TEST_METHOD_NAME     | [':test' : [jvmTestRequest(TEST_CLASS_NAME, TEST_METHOD_NAME)]]
     }
 
     InternalJvmTestRequest jvmTestRequest(String className, String methodName) {

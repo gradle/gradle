@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -168,6 +169,7 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause('Could not find group:projectA:1.2')
     }
 
+    @ToBeFixedForInstantExecution
     def "mavenLocal reports and recovers from missing module"() {
         def module = m2.mavenRepo().module('group', 'projectA', '1.2')
 
@@ -357,6 +359,36 @@ Required by:
 
         then:
         hasArtifact(moduleARemote)
+    }
+
+    @Issue("gradle/gradle#11321")
+    def "mavenLocal version listing works without weaking metadata source configuration"() {
+        given:
+        m2.mavenRepo().module('group', 'projectA', '1.1').publish()
+        def module = m2.mavenRepo().module('group', 'projectA', '1.2').publish()
+
+        and:
+        buildFile.text = """
+                repositories {
+                    mavenLocal()
+                }
+                configurations { compile }
+                dependencies {
+                    compile 'group:projectA:[1.0,2.0['
+                }
+
+                task retrieve(type: Sync) {
+                    from configurations.compile
+                    into 'build'
+                }
+        """
+
+        when:
+        run 'retrieve'
+
+        then:
+        hasArtifact(module)
+
     }
 
     def hasArtifact(MavenModule module) {

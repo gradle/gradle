@@ -21,6 +21,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
+import org.gradle.instantexecution.DefaultInstantExecution
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
@@ -71,6 +72,9 @@ interface ReadContext : IsolateContext, MutableIsolateContext, Decoder {
 
     fun readClass(): Class<*>
 }
+
+
+suspend fun <T : Any> ReadContext.readNonNull() = read()!!.uncheckedCast<T>()
 
 
 interface IsolateContext {
@@ -191,7 +195,7 @@ sealed class PropertyTrace {
     fun StringBuilder.appendStringOf(trace: PropertyTrace) {
         when (trace) {
             is Gradle -> {
-                append("Gradle state")
+                append("Gradle runtime")
             }
             is Property -> {
                 append(trace.kind)
@@ -267,12 +271,11 @@ sealed class IsolateOwner {
     class OwnerGradle(override val delegate: Gradle) : IsolateOwner() {
         override fun <T> service(type: Class<T>): T = (delegate as GradleInternal).services.get(type)
     }
+
+    class OwnerHost(override val delegate: DefaultInstantExecution.Host) : IsolateOwner() {
+        override fun <T> service(type: Class<T>): T = delegate.getService(type)
+    }
 }
-
-
-internal
-inline fun <reified T> IsolateOwner.service() =
-    service(T::class.java)
 
 
 interface Isolate {
@@ -300,6 +303,7 @@ interface ReadIsolate : Isolate {
 
 
 interface MutableIsolateContext {
+    fun push(codec: Codec<Any?>)
     fun push(owner: IsolateOwner, codec: Codec<Any?>)
     fun pop()
 }
@@ -320,6 +324,17 @@ inline fun <T : ReadContext, R> T.withImmediateMode(block: T.() -> R): R {
 internal
 inline fun <T : MutableIsolateContext, R> T.withIsolate(owner: IsolateOwner, codec: Codec<Any?>, block: T.() -> R): R {
     push(owner, codec)
+    try {
+        return block()
+    } finally {
+        pop()
+    }
+}
+
+
+internal
+inline fun <T : MutableIsolateContext, R> T.withCodec(codec: Codec<Any?>, block: T.() -> R): R {
+    push(codec)
     try {
         return block()
     } finally {
@@ -354,6 +369,11 @@ inline fun WriteContext.encodePreservingIdentityOf(reference: Any, encode: Write
 
 
 internal
+inline fun WriteContext.encodePreservingSharedIdentityOf(reference: Any, encode: WriteContext.(Any) -> Unit) =
+    encodePreservingIdentityOf(sharedIdentities, reference, encode)
+
+
+internal
 inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, reference: Any, encode: WriteContext.(Any) -> Unit) {
     val id = identities.getId(reference)
     if (id != null) {
@@ -366,9 +386,17 @@ inline fun WriteContext.encodePreservingIdentityOf(identities: WriteIdentities, 
 
 
 internal
-inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T {
-    return decodePreservingIdentity(isolate.identities, decode)
-}
+inline fun <T> ReadContext.decodePreservingIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(isolate.identities, decode)
+
+
+internal
+inline fun <T : Any> ReadContext.decodePreservingSharedIdentity(decode: ReadContext.(Int) -> T): T =
+    decodePreservingIdentity(sharedIdentities) { id ->
+        decode(id).also {
+            sharedIdentities.putInstance(id, it)
+        }
+    }
 
 
 internal

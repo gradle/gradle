@@ -17,7 +17,9 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrationSpec {
 
     def "rule source can be applied to ModelMap element"() {

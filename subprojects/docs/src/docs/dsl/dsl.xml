@@ -198,6 +198,9 @@
             <tr>
                 <td>org.gradle.work.InputChanges</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.distribution.Distribution</td>
+            </tr>
         </table>
     </section>
 
@@ -303,6 +306,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.dsl.DependencyHandler</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.dsl.ComponentMetadataHandler</td>
             </tr>
             <tr>
                 <td>org.gradle.api.artifacts.dsl.ArtifactHandler</td>

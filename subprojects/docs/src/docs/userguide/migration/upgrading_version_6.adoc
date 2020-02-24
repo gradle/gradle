@@ -1,0 +1,167 @@
+// Copyright 2019 the original author or authors.
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[upgrading_version_6]]
+= Upgrading your build from Gradle 6.x to the latest
+
+This chapter provides the information you need to migrate your Gradle 6.x builds to the latest Gradle release. For migrating from Gradle 4.x or 5.x, see the <<upgrading_version_5.adoc#upgrading_version_5, older migration guide>> first.
+
+We recommend the following steps for all users:
+
+. Try running `gradle help --scan` and view the https://gradle.com/enterprise/releases/2018.4/#identify-usages-of-deprecated-gradle-functionality[deprecations view] of the generated build scan.
++
+image::deprecations.png[Deprecations View of a Gradle Build Scan]
++
+This is so that you can see any deprecation warnings that apply to your build.
++
+Alternatively, you could run `gradle help --warning-mode=all` to see the deprecations in the console, though it may not report as much detailed information.
+. Update your plugins.
++
+Some plugins will break with this new version of Gradle, for example because they use internal APIs that have been removed or changed. The previous step will help you identify potential problems by issuing deprecation warnings when a plugin does try to use a deprecated part of the API.
++
+. Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
+. Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
+
+[[changes_6.3]]
+== Upgrading from 6.2
+
+There were no breaking changes between Gradle 6.2 and 6.3.
+
+=== Deprecations
+
+There were no deprecations between Gradle 6.2 and 6.3.
+
+[[changes_6.2]]
+== Upgrading from 6.1
+
+=== Potential breaking changes
+
+==== Compile and runtime classpath now request library variants by default
+
+A classpath in a JVM project now explicitly requests the `org.gradle.category=library` attribute.
+This leads to clearer error messages if a certain library cannot be used.
+For example, when the library does not support the required Java version.
+The practical effect is that now all <<java_platform_plugin.adoc#sec:java_platform_consumption,platform dependencies>> have to be declared as such.
+Before, platform dependencies also worked, accidentally, when the `platform()` keyword was omitted for local platforms or platforms published with Gradle Module Metadata.
+
+==== Properties from project root `gradle.properties` are shared with `buildSrc` and included builds
+
+Before Gradle 6.2, Gradle and project properties set in the `gradle.properties` file in your project root directory were not shared with the `buildSrc` build or included builds.
+
+In Gradle 6.2, Gradle and project properties set in the `gradle.properties` file are shared with the `buildSrc` build and any builds included by the root.
+
+This might cause your build to start failing if the `buildSrc` build or an included build suddenly finds an unexpected or incompatible value for a property coming from the project root `gradle.properties` file. If it does, you can fix it by setting a compatible value to the offending property in a `gradle.properties` file in the failing project directory, as property values set there will take precedence over property values coming from the project root.
+
+=== Deprecations
+
+There were no deprecations between Gradle 6.1 and 6.2.
+
+[[changes_6.1]]
+== Upgrading from 6.0 and earlier
+
+=== Deprecations
+
+==== Querying a mapped output property of a task before the task has completed
+
+Querying the value of a mapped output property before the task has completed can cause strange build failures because it indicates stale or non-existent outputs may be used by mistake. This behavior is deprecated and will emit a deprecation warning. This will become an error in Gradle 7.0.
+
+The following example demonstrates this problem where the Producer's output file is parsed before the Producer executes:
+```
+class Consumer extends DefaultTask {
+    @Input
+    final Property<Integer> threadPoolSize = ...
+}
+
+class Producer extends DefaultTask {
+    @OutputFile
+    final RegularFileProperty outputFile = ...
+}
+
+// threadPoolSize is read from the producer's outputFile
+consumer.threadPoolSize = producer.outputFile.map { it.text.toInteger() }
+
+// Emits deprecation warning
+println("thread pool size = " + consumer.threadPoolSize.get())
+```
+
+Querying the value of `consumer.threadPoolSize` will produce a deprecation warning if done prior to `producer` completing, as the output file has not yet been generated.
+
+==== Discontinued methods
+The following methods have been discontinued and should no longer be used. They will be removed in Gradle 7.0.
+
+- `BasePluginConvention.setProject(ProjectInternal)`
+- `BasePluginConvention.getProject()`
+- `StartParameter.useEmptySettings()`
+- `StartParameter.isUseEmptySettings()`
+
+[[upgrading_jvm_plugins]]
+==== Alternative JVM plugins (a.k.a "Software Model")
+
+A set of alternative plugins for Java and Scala development were introduced in Gradle 2.x as an experiment based on the "software model".  These plugins are now deprecated and will eventually be removed.  If you are still using one of these old plugins (`java-lang`, `scala-lang`, `jvm-component`, `jvm-resources`, `junit-test-suite`) please consult the documentation on <<building_java_projects.adoc#,Building Java & JVM projects>> to determine which of the stable JVM plugins are appropriate for your project.
+
+=== Potential breaking changes
+
+==== `ProjectLayout` is no longer available to worker actions as a service
+
+In Gradle 6.0, the `ProjectLayout` service was made available to worker actions via service injection. This service allowed for mutable state to leak into a worker action and introduced a way for dependencies to go undeclared in the worker action.
+
+`ProjectLayout` has been removed from the available services.  Worker actions that were using `ProjectLayout` should switch to injecting the `projectDirectory` or `buildDirectory` as a parameter instead.
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2019/11/kotlin-1-3-60-released/[Kotlin 1.3.61].
+
+==== Updates to default tool integration versions
+
+- Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
+- PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
+
+==== Publishing Spring Boot applications
+
+Starting from Gradle 6.2, Gradle performs a sanity check before uploading, to make sure you don't upload stale files (files produced by another build).
+This introduces a problem with Spring Boot applications which are uploaded using the `components.java` component:
+
+```
+Artifact my-application-0.0.1-SNAPSHOT.jar wasn't produced by this build.
+```
+
+This is caused by the fact that the main `jar` task is disabled by the Spring Boot application, and the component expects it to be present.
+Because the `bootJar` task uses the _same file_ as the main `jar` task by default, previous releases of Gradle would either:
+
+- publish a stale `bootJar` artifact
+- or fail if the `bootJar` task hasn't been called previously
+
+A workaround is to tell Gradle what to upload.
+If you want to upload the `bootJar`, then you need to configure the outgoing configurations to do this:
+
+```
+configurations {
+   [apiElements, runtimeElements].each {
+       it.outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
+       it.outgoing.artifact(bootJar)
+   }
+}
+```
+
+Alternatively, you might want to re-enable the `jar` task, and add the `bootJar` with a different classifier.
+
+```
+jar {
+   enabled = true
+}
+
+bootJar {
+   classifier = 'application'
+}
+```

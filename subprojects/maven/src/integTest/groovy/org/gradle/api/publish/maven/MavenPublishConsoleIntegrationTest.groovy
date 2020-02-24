@@ -17,6 +17,7 @@
 package org.gradle.api.publish.maven
 
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -31,6 +32,7 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         server.start()
     }
 
+    @ToBeFixedForInstantExecution
     def "shows work-in-progress during publication"() {
         def m1 = mavenRepo.module("org.test", "test", "1.2")
 
@@ -59,16 +61,24 @@ class MavenPublishConsoleIntegrationTest extends AbstractMavenPublishIntegTest i
         def putJar = server.expectAndBlock(server.put(m1.artifact.path))
         def putJarSha = server.expectAndBlock(server.put(m1.artifact.path + ".sha1"))
         server.expect(server.put(m1.artifact.path + ".md5"))
+        server.expect(server.put(m1.artifact.path + ".sha256"))
+        server.expect(server.put(m1.artifact.path + ".sha512"))
         def putPom = server.expectAndBlock(server.put(m1.pom.path))
         def putPomSha = server.expectAndBlock(server.put(m1.pom.path + ".sha1"))
         server.expect(server.put(m1.pom.path + ".md5"))
+        server.expect(server.put(m1.pom.path + ".sha256"))
+        server.expect(server.put(m1.pom.path + ".sha512"))
         def putModule = server.expectAndBlock(server.put(m1.moduleMetadata.path))
         server.expect(server.put(m1.moduleMetadata.path + ".sha1"))
         server.expect(server.put(m1.moduleMetadata.path + ".md5"))
+        server.expect(server.put(m1.moduleMetadata.path + ".sha256"))
+        server.expect(server.put(m1.moduleMetadata.path + ".sha512"))
         def getMetaData = server.expectAndBlock(server.get(m1.rootMetaData.path).missing())
         def putMetaData = server.expectAndBlock(server.put(m1.rootMetaData.path))
         server.expect(server.put(m1.rootMetaData.path + ".sha1"))
         server.expect(server.put(m1.rootMetaData.path + ".md5"))
+        server.expect(server.put(m1.rootMetaData.path + ".sha256"))
+        server.expect(server.put(m1.rootMetaData.path + ".sha512"))
 
         executer.withTestConsoleAttached()
         executer.withConsole(ConsoleOutput.Rich)

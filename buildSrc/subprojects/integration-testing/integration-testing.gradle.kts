@@ -1,11 +1,11 @@
 dependencies {
     api(kotlin("stdlib"))
+    implementation(project(":build"))
     implementation(project(":cleanup"))
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
-    implementation(project(":versioning"))
-    implementation(project(":build"))
     implementation(project(":packaging"))
+    implementation(project(":versioning"))
     testImplementation("junit:junit:4.12")
 }
 

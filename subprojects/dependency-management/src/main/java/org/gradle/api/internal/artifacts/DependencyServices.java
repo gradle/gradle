@@ -51,6 +51,7 @@ public class DependencyServices extends AbstractPluginServiceRegistry {
         registration.addProvider(new DependencyManagementGradleServices());
     }
 
+    @SuppressWarnings("unused")
     private static class DependencyManagementGradleServices {
         ArtifactTransformListener createArtifactTransformListener(ListenerManager listenerManager) {
             return listenerManager.getBroadcaster(ArtifactTransformListener.class);

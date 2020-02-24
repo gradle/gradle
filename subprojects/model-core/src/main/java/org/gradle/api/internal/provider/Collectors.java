@@ -17,59 +17,20 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
-import org.gradle.internal.DisplayName;
 
 import javax.annotation.Nullable;
-import java.util.Collection;
 import java.util.List;
 
 public class Collectors {
     public interface ProvidedCollector<T> extends Collector<T> {
         boolean isProvidedBy(Provider<?> provider);
-    }
-
-    public static class EmptyCollection implements Collector<Object> {
-        @Override
-        public boolean present() {
-            return true;
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<Object> collector, Collection<Object> collection) {
-            return true;
-        }
-
-        @Override
-        public void collectInto(DisplayName owner, ValueCollector<Object> collector, Collection<Object> dest) {
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public boolean isContentProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
     }
 
     public static class SingleElement<T> implements Collector<T> {
@@ -80,19 +41,14 @@ public class Collectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             collector.add(element, collection);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            collector.add(element, collection);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -106,8 +62,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -146,24 +101,18 @@ public class Collectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return providerOfElement.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
-            T value = providerOfElement.get();
-            collector.add(value, collection);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            T value = providerOfElement.getOrNull();
-            if (value == null) {
-                return false;
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
+            Value<? extends T> value = providerOfElement.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
-            collector.add(value, collection);
-            return true;
+            collector.add(value.get(), collection);
+            return Value.present();
         }
 
         @Override
@@ -182,8 +131,8 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return providerOfElement.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfElement.visitProducerTasks(visitor);
         }
 
         @Override
@@ -222,19 +171,14 @@ public class Collectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
             collector.addAll(value, collection);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            collector.addAll(value, collection);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -248,8 +192,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -288,24 +231,18 @@ public class Collectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return provider.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> collection) {
-            Iterable<? extends T> value = provider.get();
-            collector.addAll(value, collection);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> collection) {
-            Iterable<? extends T> value = provider.getOrNull();
-            if (value == null) {
-                return false;
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
+            Value<? extends Iterable<? extends T>> value = provider.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
-            collector.addAll(value, collection);
-            return true;
+            collector.addAll(value.get(), collection);
+            return Value.present();
         }
 
         @Override
@@ -319,8 +256,8 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return provider.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            provider.visitProducerTasks(visitor);
         }
 
         @Override
@@ -353,51 +290,10 @@ public class Collectors {
         @Override
         public int size() {
             if (provider instanceof CollectionProviderInternal) {
-                return ((CollectionProviderInternal)provider).size();
+                return ((CollectionProviderInternal) provider).size();
             } else {
                 throw new UnsupportedOperationException();
             }
-        }
-    }
-
-    public static class NoValueCollector implements Collector<Object> {
-        @Override
-        public boolean present() {
-            return false;
-        }
-
-        @Override
-        public void collectInto(DisplayName owner, ValueCollector<Object> collector, Collection<Object> dest) {
-            throw Providers.nullValue(owner);
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<Object> collector, Collection<Object> collection) {
-            return false;
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Iterable<?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public boolean isContentProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public int size() {
-            return 0;
         }
     }
 
@@ -409,21 +305,16 @@ public class Collectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
             for (T t : value) {
                 collector.add(t, dest);
             }
-        }
-
-        @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            collectInto(null, collector, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -437,8 +328,7 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -469,27 +359,22 @@ public class Collectors {
         }
 
         @Override
-        public boolean present() {
-            return delegate.present();
+        public boolean isPresent() {
+            return delegate.isPresent();
         }
 
-        public void collectInto(Collection<T> collection) {
-            delegate.collectInto(null, valueCollector, collection);
-        }
-
-        @Override
-        public void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest) {
-            delegate.collectInto(owner, collector, dest);
+        public void collectInto(ImmutableCollection.Builder<T> builder) {
+            collectEntries(valueCollector, builder);
         }
 
         @Override
-        public boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest) {
-            return delegate.maybeCollectInto(collector, dest);
+        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            return delegate.collectEntries(collector, dest);
         }
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>)delegate).isProvidedBy(provider);
+            return delegate instanceof ProvidedCollector && ((ProvidedCollector<T>) delegate).isProvidedBy(provider);
         }
 
         @Override
@@ -503,8 +388,8 @@ public class Collectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return delegate.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            delegate.visitProducerTasks(visitor);
         }
 
         @Override

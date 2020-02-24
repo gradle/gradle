@@ -16,7 +16,13 @@
 
 package org.gradle.play.plugins;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Incubating;
+import org.gradle.api.Plugin;
+import org.gradle.api.Project;
+import org.gradle.api.Task;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
@@ -36,7 +42,6 @@ import org.gradle.play.PlayApplicationSpec;
 import org.gradle.play.internal.JavaScriptSourceCode;
 import org.gradle.play.internal.PlayApplicationBinarySpecInternal;
 import org.gradle.play.tasks.JavaScriptMinify;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -51,7 +56,10 @@ import java.util.Map;
 public class PlayJavaScriptPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play JavaScript", "org.gradle.playframework-javascript");
+        DeprecationLogger.deprecatePlugin("Play JavaScript")
+            .replaceWithExternalPlugin("org.gradle.playframework-javascript")
+            .willBeRemovedInGradle7()
+            .withUserManual("play_plugin").nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
     }
 

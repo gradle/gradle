@@ -29,9 +29,12 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceContainerPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
@@ -66,7 +69,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == BeanWithAbstractProperty
-        !bean.immutable()
+        !bean.isImmutable()
         def state = bean.unpackState()
         state.length == 1
         state[0] == null
@@ -106,7 +109,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == InterfaceBean
-        !bean.immutable()
+        !bean.isImmutable()
         def state = bean.unpackState()
         state.length == 2
         state[0] == null
@@ -178,6 +181,16 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.prop.names == ["one"] as Set
     }
 
+    def canConstructInstanceOfInterfaceWithDomainObjectSetGetter() {
+        def bean = create(InterfaceDomainSetPropertyBean)
+
+        expect:
+        bean.prop.toString() == "[]"
+        bean.prop.empty
+        bean.prop.add(Stub(NamedBean))
+        bean.prop.size() == 1
+    }
+
     def canConstructInstanceOfInterfaceWithNestedGetter() {
         def projectDir = tmpDir.testDirectory
         def bean = create(InterfaceNestedBean)
@@ -245,7 +258,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == type
-        !bean.immutable()
+        !bean.isImmutable()
         def state = bean.unpackState()
         state.length == 1
         state[0].is(bean.prop)
@@ -265,6 +278,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         InterfaceMapPropertyBean       | _
     }
 
+    def "can construct instance of class without running its constructor to use for deserialization"() {
+        def bean = createForSerialization(BrokenConstructor)
+
+        expect:
+        !bean.value.present
+        bean.bean != null
+    }
+
+    def canConstructInstanceOfInterfaceWithReadOnlyMethodsWithCovariantReturnTypeWhereOverriddenTypesAreNotSupported() {
+        def bean = create(AbstractCovariantReadOnlyPropertyBean)
+
+        expect:
+        bean.prop.toString() == "property 'prop'"
+    }
+
     def canConstructInstanceOfInterfaceWithDefaultMethodsOnly() {
         def bean = create(InterfaceWithDefaultMethods)
 
@@ -278,7 +306,7 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         expect:
         bean instanceof Managed
         bean.publicType() == InterfaceWithDefaultMethods
-        bean.immutable()
+        bean.isImmutable()
         def state = bean.unpackState()
         state.length == 0
 

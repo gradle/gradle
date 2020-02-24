@@ -16,7 +16,7 @@
 
 package org.gradle.internal.operations.notify
 
-import org.gradle.api.internal.GradleInternal
+
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListenerManager
@@ -33,7 +33,6 @@ class BuildOperationNotificationBridgeTest extends Specification {
     def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
     def broadcast = buildOperationListenerManager.broadcaster
     def listener = Mock(BuildOperationNotificationListener)
-    def gradle = Mock(GradleInternal)
 
     BuildOperationNotificationBridge bridgeInstance
 

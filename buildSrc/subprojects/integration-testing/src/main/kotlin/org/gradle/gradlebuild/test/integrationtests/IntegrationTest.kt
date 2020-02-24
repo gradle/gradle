@@ -18,7 +18,9 @@ package org.gradle.gradlebuild.test.integrationtests
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.InputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.gradlebuild.BuildEnvironment
 import java.util.Timer
 import java.util.concurrent.TimeUnit
@@ -31,10 +33,11 @@ import kotlin.concurrent.timerTask
  * been using the term 'integration test'.
  */
 @CacheableTask
-open class IntegrationTest : DistributionTest() {
+abstract class IntegrationTest : DistributionTest() {
 
-    @get:Nested
-    val distributionSamples: GradleDistributionSamples = GradleDistributionSamples(project, gradleInstallationForTest.gradleHomeDir)
+    @InputDirectory
+    @PathSensitive(PathSensitivity.RELATIVE)
+    val samplesDir = gradleInstallationForTest.gradleSnippetsDir
 
     override fun executeTests() {
         printStacktracesAfterTimeout { super.executeTests() }

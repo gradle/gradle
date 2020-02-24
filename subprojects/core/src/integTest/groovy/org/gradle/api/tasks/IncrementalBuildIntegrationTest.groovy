@@ -16,6 +16,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -105,6 +106,7 @@ public class TransformerTask extends DefaultTask {
 '''
     }
 
+    @ToBeFixedForInstantExecution
     def "skips task when output file is up-to-date"() {
         writeTransformerTask()
 
@@ -565,6 +567,7 @@ task b(type: DirTransformerTask, dependsOn: a) {
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "skips tasks when input properties have not changed"() {
         buildFile << '''
 public class GeneratorTask extends DefaultTask {
@@ -693,6 +696,7 @@ task b(type: DirTransformerTask) {
         result.assertTasksNotSkipped(":b")
     }
 
+    @ToBeFixedForInstantExecution
     def "can use up-to-date predicate to force task to execute"() {
         def inputFileName = 'src.txt'
 
@@ -824,6 +828,7 @@ task b(dependsOn: a)
         result.assertTasksSkipped(":a", ":b")
     }
 
+    @ToBeFixedForInstantExecution
     def "can share artifacts between builds"() {
         writeTransformerTask()
 
@@ -848,13 +853,13 @@ task generate(type: TransformerTask) {
         when:
         succeeds "transform"
         then:
-        result.assertTasksNotSkipped(":build:generate", ":otherBuild", ':transform')
+        result.assertTasksNotSkipped(":${testDirectory.name}:generate", ":otherBuild", ':transform')
 
         when:
         succeeds "transform"
         then:
         result.assertTasksNotSkipped(":otherBuild")
-        result.assertTasksSkipped(":build:generate", ":transform")
+        result.assertTasksSkipped(":${testDirectory.name}:generate", ":transform")
     }
 
     def "task can have outputs and no inputs"() {
@@ -956,8 +961,10 @@ task generate(type: TransformerTask) {
         writeDirTransformerTask()
         buildFile << """
             def srcDir = file('src')
-            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            // Note: task mutates inputs of transform1 just before transform1 executes
             task src1 {
+                outputs.dir(srcDir)
+                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "123"
@@ -968,9 +975,11 @@ task generate(type: TransformerTask) {
                 inputDir = srcDir
                 outputDir = file("out-1")
             }
-            // Note: task mutates inputs _without_ declaring any inputs or outputs
+            // Note: task mutates inputs of transform2 just before transform2 executes
             task src2 {
                 mustRunAfter transform1
+                outputs.dir(srcDir)
+                outputs.upToDateWhen { false }
                 doLast {
                     srcDir.mkdirs()
                     new File(srcDir, "src.txt").text = "abcd"
@@ -1066,6 +1075,7 @@ task generate(type: TransformerTask) {
         output.contains "Task 'b2' file 'output.txt' with 'output-file'"
     }
 
+    @ToBeFixedForInstantExecution
     def "task loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1100,6 +1110,7 @@ task generate(type: TransformerTask) {
         output.contains "The type of task ':customTask' was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
+    @ToBeFixedForInstantExecution
     def "task with custom action loaded with custom classloader is never up-to-date"() {
         file("input.txt").text = "data"
         buildFile << """
@@ -1148,13 +1159,14 @@ task generate(type: TransformerTask) {
     }
 
     @Issue("gradle/gradle#1168")
+    @ToBeFixedForInstantExecution
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
             apply plugin: 'base'
-            
+
             class CustomTask extends DefaultTask {
                 @OutputDirectory File outputDir = new File(project.buildDir, "output")
-                
+
                 @TaskAction
                 public void generate() {
                     File outputFile = new File(outputDir, "file.txt")
@@ -1229,7 +1241,7 @@ task generate(type: TransformerTask) {
             class TaskWithInputs extends DefaultTask {
                 @Input
                 String input
-            }            
+            }
         """
 
         when:
@@ -1245,13 +1257,13 @@ task generate(type: TransformerTask) {
         file('inputDir1').createDir()
         file('inputDir2').createDir()
         buildFile << '''
-    class MyTask extends DefaultTask{
+    class MyTask extends DefaultTask {
         @TaskAction
         void processFiles(IncrementalTaskInputs inputs) {
             inputs.outOfDate { }
         }
     }
-    
+
     task myTask (type: MyTask){
         project.ext.inputDirs.split(',').each { inputs.dir(it) }
         outputs.upToDateWhen { true }
@@ -1272,29 +1284,30 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @ToBeFixedForInstantExecution
     def "private inputs can be overridden in subclass"() {
         given:
         buildFile << '''
             class MyBaseTask extends DefaultTask {
                 @Input
                 private String getMyPrivateInput() { project.property('private') }
-                
+
                 @OutputFile
                 File getOutput() {
                     new File('build/output.txt')
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = getMyPrivateInput()
                 }
             }
-            
+
             class MyTask extends MyBaseTask {
                 @Input
                 private String getMyPrivateInput() { 'only private' }
             }
-            
+
             task myTask(type: MyTask)
         '''
 
@@ -1331,27 +1344,28 @@ task generate(type: TransformerTask) {
     }
 
     @ToBeImplemented("Private getters should be ignored")
+    @ToBeFixedForInstantExecution
     def "private inputs in superclass are respected"() {
         given:
         buildFile << '''
             class MyBaseTask extends DefaultTask {
                 @Input
                 private String getMyPrivateInput() { project.property('private') }
-                
+
                 @OutputFile
                 File getOutput() {
                     new File('build/output.txt')
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = getMyPrivateInput()
                 }
             }
-            
+
             class MyTask extends MyBaseTask {
             }
-            
+
             task myTask(type: MyTask)
         '''
 
@@ -1377,4 +1391,56 @@ task generate(type: TransformerTask) {
         outputFile.text == 'second'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/11805")
+    def "Groovy property annotated as @Internal with differently annotated getter emits warning about conflicting annotations"() {
+        def inputFile = file("input.txt")
+        inputFile.text = "original"
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                    @Internal
+                    FileCollection classpath
+
+                    @InputFiles
+                    @Classpath
+                    FileCollection getClasspath() {
+                        return classpath
+                    }
+
+                    @OutputFile
+                    File outputFile
+
+                    @TaskAction
+                    void execute() {
+                        outputFile << classpath*.name.join("\\n")
+                    }
+            }
+
+            task custom(type: CustomTask) {
+                classpath = files("input.txt")
+                outputFile = file("build/output.txt")
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        run "custom"
+        then:
+        executedAndNotSkipped ":custom"
+        outputContains("Property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+
+        when:
+        executer.expectDeprecationWarning()
+        run "custom"
+        then:
+        skipped ":custom"
+
+        when:
+        executer.expectDeprecationWarning()
+        inputFile.text = "changed"
+        run "custom"
+
+        then:
+        skipped ":custom"
+    }
 }

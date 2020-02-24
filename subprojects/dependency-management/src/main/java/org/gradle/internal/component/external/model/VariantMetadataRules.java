@@ -17,7 +17,6 @@ package org.gradle.internal.component.external.model;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.MutableVariantFilesMetadata;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
@@ -45,7 +44,6 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 public class VariantMetadataRules {
     private final ImmutableAttributesFactory attributesFactory;
@@ -55,7 +53,7 @@ public class VariantMetadataRules {
     private VariantFilesRules variantFilesRules;
     private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
     private final ModuleVersionIdentifier moduleVersionId;
-    private Map<String, String> additionalVariants = Maps.newHashMap();
+    private List<AdditionalVariant> additionalVariants = Lists.newArrayList();
 
     public VariantMetadataRules(ImmutableAttributesFactory attributesFactory, ModuleVersionIdentifier moduleVersionId) {
         this.attributesFactory = attributesFactory;
@@ -148,14 +146,14 @@ public class VariantMetadataRules {
     }
 
     public void addVariant(String name) {
-        additionalVariants.put(name, null);
+        additionalVariants.add(new AdditionalVariant(name));
     }
 
-    public void addVariant(String name, String basedOn) {
-        additionalVariants.put(name, basedOn);
+    public void addVariant(String name, String basedOn, boolean lenient) {
+        additionalVariants.add(new AdditionalVariant(name, basedOn, lenient));
     }
 
-    public Map<String, String> getAdditionalVariants() {
+    public List<AdditionalVariant> getAdditionalVariants() {
         return additionalVariants;
     }
 

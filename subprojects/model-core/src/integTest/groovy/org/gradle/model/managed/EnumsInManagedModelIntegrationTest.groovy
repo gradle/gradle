@@ -17,7 +17,9 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class EnumsInManagedModelIntegrationTest extends AbstractIntegrationSpec {
 
     def "can use enums in managed model elements"() {

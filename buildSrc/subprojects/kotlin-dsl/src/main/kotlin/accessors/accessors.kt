@@ -17,21 +17,15 @@ package accessors
 
 import org.gradle.api.Project
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-
 import org.gradle.api.file.SourceDirectorySet
 
 import org.gradle.api.plugins.BasePluginConvention
-import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.plugins.JavaPluginConvention
 
 import org.gradle.api.reporting.ReportingExtension
 
 import org.gradle.api.tasks.GroovySourceSet
 import org.gradle.api.tasks.SourceSet
-
-import org.gradle.plugins.ide.eclipse.model.EclipseModel
-import org.gradle.plugins.javascript.base.JavaScriptRepositoriesExtension
 
 import org.gradle.kotlin.dsl.*
 
@@ -50,11 +44,3 @@ val Project.reporting
 
 val SourceSet.groovy: SourceDirectorySet
     get() = withConvention(GroovySourceSet::class) { groovy }
-
-
-fun Project.eclipse(configure: EclipseModel.() -> Unit): Unit =
-    extensions.configure("eclipse", configure)
-
-
-val RepositoryHandler.javaScript
-    get() = (this as ExtensionAware).the<JavaScriptRepositoriesExtension>()

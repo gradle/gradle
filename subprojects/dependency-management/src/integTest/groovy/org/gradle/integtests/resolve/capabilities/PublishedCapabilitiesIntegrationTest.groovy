@@ -18,13 +18,10 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "can consume published capabilities"() {
@@ -82,7 +79,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                conf "cglib:cglib-nodep:3.2.4"
                conf "cglib:cglib:3.2.5"
             }
-            
+
             configurations.conf.resolutionStrategy.capabilitiesResolution.$rule
         """
 
@@ -107,11 +104,11 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
         }
 
         where:
-        rule                                                                               | reason
+        rule                                                                                  | reason
         'all { selectHighestVersion() }'                                                      | 'latest version of capability cglib:cglib'
         'withCapability("cglib:cglib") { selectHighestVersion() }'                            | 'latest version of capability cglib:cglib'
         'withCapability("cglib", "cglib") { selectHighestVersion() }'                         | 'latest version of capability cglib:cglib'
-        'all { select(candidates.find { it.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
+        'all { select(candidates.find { it.id.module == "cglib" }) because "custom reason" }' | 'On capability cglib:cglib custom reason'
 
     }
 
@@ -128,7 +125,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
 
         buildFile << """
             apply plugin: 'java-library'
-            
+
             configurations.api.outgoing {
                 capability 'org:capability:1.0'
             }
@@ -136,7 +133,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
             dependencies {
                 conf 'org:test:1.0'
             }
-            
+
             configurations {
                 conf.extendsFrom(api)
             }
@@ -237,7 +234,7 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 conf 'org:testC:1.0'
                 conf 'org:testD:1.0'
             }
-            
+
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
         """
 
@@ -317,9 +314,9 @@ class PublishedCapabilitiesIntegrationTest extends AbstractModuleDependencyResol
                 conf 'org:testC:1.0'
                 conf 'org:testD:1.0'
             }
-            
+
             configurations.conf.resolutionStrategy.capabilitiesResolution.withCapability('org:cap') {
-                select candidates.find { it.module == "$expected" }
+                select candidates.find { it.id.module == "$expected" }
                 because "prefers module ${expected}"
             }
         """

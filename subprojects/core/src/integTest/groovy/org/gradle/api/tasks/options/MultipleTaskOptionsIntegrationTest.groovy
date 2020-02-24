@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.options
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.gradle.api.tasks.options.TaskOptionFixture.taskWithMultipleOptions
 
@@ -89,6 +90,7 @@ class MultipleTaskOptionsIntegrationTest extends AbstractIntegrationSpec {
         output.count('first=true,second=null') == 1 //--second option was set only on the :someTask
     }
 
+    @ToBeFixedForInstantExecution
     def "multiple different tasks configured at single command line"() {
         given:
         buildFile << """

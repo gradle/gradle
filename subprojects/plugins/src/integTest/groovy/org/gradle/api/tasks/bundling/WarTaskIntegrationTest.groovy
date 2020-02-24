@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
 import spock.lang.Issue
@@ -283,6 +284,7 @@ class WarTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("GRADLE-3522")
+    @ToBeFixedForInstantExecution
     def "war task doesn't trigger dependency resolution early"() {
         when:
         buildFile << """
@@ -305,5 +307,47 @@ task war(type: War) {
 
         then:
         succeeds "war"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can make war task cacheable with runtime api"() {
+        given:
+        def webXml = file('web.xml') << '<web/>'
+        createDir('web-inf') {
+            webinf1 {
+                file 'file1.txt'
+            }
+        }
+        and:
+        buildFile << """
+            apply plugin: "base"
+            
+            task war(type: War) {
+                webInf {
+                    from 'web-inf'
+                }
+                webXml = file('web.xml')
+                destinationDirectory = buildDir
+                archiveFileName = 'test.war'
+                outputs.cacheIf { true }
+            }
+        """
+
+        when:
+        withBuildCache().run "clean", "war"
+
+        then:
+        def war = new JarTestFixture(file('build/test.war'))
+        war.assertContainsFile('META-INF/MANIFEST.MF')
+        war.assertContainsFile('WEB-INF/web.xml')
+        war.assertContainsFile('WEB-INF/webinf1/file1.txt')
+
+        war.assertFileContent('WEB-INF/web.xml', webXml.text)
+
+        when:
+        withBuildCache().run "clean", "war"
+
+        then:
+        skipped ":war"
     }
 }

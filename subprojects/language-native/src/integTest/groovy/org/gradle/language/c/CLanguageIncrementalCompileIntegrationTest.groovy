@@ -15,6 +15,7 @@
  */
 package org.gradle.language.c
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsIntegrationTest
 import org.gradle.nativeplatform.fixtures.app.CHelloWorldApp
 import org.gradle.nativeplatform.fixtures.app.IncrementalHelloWorldApp
@@ -27,6 +28,7 @@ class CLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageI
     }
 
     @Issue("GRADLE-3109")
+    @ToBeFixedForInstantExecution
     def "recompiles source file that includes header file on first line"() {
         given:
         sourceFile << """#include "${otherHeaderFile.name}"

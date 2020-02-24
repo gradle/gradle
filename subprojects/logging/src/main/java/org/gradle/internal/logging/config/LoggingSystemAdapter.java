@@ -65,7 +65,7 @@ public class LoggingSystemAdapter implements LoggingSourceSystem {
         configurer.configure(logLevel);
     }
 
-    private class SnapshotImpl implements Snapshot {
+    private static class SnapshotImpl implements Snapshot {
         private final boolean enabled;
         private final LogLevel level;
 

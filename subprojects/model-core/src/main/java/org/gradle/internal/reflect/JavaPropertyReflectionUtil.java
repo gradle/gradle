@@ -110,6 +110,7 @@ public class JavaPropertyReflectionUtil {
     }
 
     private static String toMethodName(String prefix, String propertyName) {
+        assert !propertyName.isEmpty();
         return prefix + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
     }
 

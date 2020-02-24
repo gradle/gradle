@@ -18,6 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache;
 
 class MissingModuleCacheEntry extends ModuleMetadataCacheEntry {
     public MissingModuleCacheEntry(long createTimestamp) {
-        super(TYPE_MISSING, false, createTimestamp, null);
+        super(TYPE_MISSING, false, createTimestamp);
     }
 }

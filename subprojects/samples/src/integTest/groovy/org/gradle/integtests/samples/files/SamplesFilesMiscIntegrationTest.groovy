@@ -17,6 +17,7 @@
 package org.gradle.integtests.samples.files
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.util.Requires
@@ -33,6 +34,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UsesSample("userguide/files/misc")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can create a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -50,6 +52,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UsesSample("userguide/files/misc")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can move a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -116,6 +119,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
     @UsesSample("userguide/files/misc")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can use the rootDir property in a child project with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

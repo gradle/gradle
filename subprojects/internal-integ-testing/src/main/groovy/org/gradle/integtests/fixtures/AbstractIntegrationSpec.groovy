@@ -76,11 +76,15 @@ class AbstractIntegrationSpec extends Specification {
     private IvyFileRepository ivyRepo
 
     protected int maxHttpRetries = 1
+    protected Integer maxUploadAttempts
 
     def setup() {
         m2.isolateMavenLocalRepo(executer)
         executer.beforeExecute {
             executer.withArgument("-Dorg.gradle.internal.repository.max.tentatives=$maxHttpRetries")
+            if (maxUploadAttempts != null) {
+                executer.withArgument("-Dorg.gradle.internal.network.retry.max.attempts=$maxUploadAttempts")
+            }
         }
     }
 
@@ -96,7 +100,7 @@ class AbstractIntegrationSpec extends Specification {
         testDirectory.file(getDefaultBuildFileName())
     }
 
-    protected TestFile getBuildKotlinFile() {
+    TestFile getBuildKotlinFile() {
         testDirectory.file(getDefaultBuildKotlinFileName())
     }
 
@@ -413,13 +417,14 @@ class AbstractIntegrationSpec extends Specification {
 
     def createZip(String name, Closure cl) {
         TestFile zipRoot = file("${name}.root")
+        zipRoot.deleteDir()
         TestFile zip = file(name)
         zipRoot.create(cl)
         zipRoot.zipTo(zip)
         return zip
     }
 
-    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl) {
+    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
     }

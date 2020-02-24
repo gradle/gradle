@@ -17,6 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
@@ -41,6 +42,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         executer.requireOwnGradleUserHomeDir()
     }
 
+    @ToBeFixedForInstantExecution
     def "error loading plugin"() {
         pluginBuilder.addUnloadablePlugin(PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
@@ -54,6 +56,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         failure.assertHasCause("Could not create plugin of type 'TestPlugin'.")
     }
 
+    @ToBeFixedForInstantExecution
     def "error creating plugin"() {
         pluginBuilder.addNonConstructiblePlugin(PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()
@@ -68,6 +71,7 @@ class PostPluginResolutionFailuresIntegrationSpec extends AbstractIntegrationSpe
         failure.assertHasCause("broken plugin")
     }
 
+    @ToBeFixedForInstantExecution
     def "error applying plugin"() {
         pluginBuilder.addPlugin("throw new Exception('throwing plugin')", PLUGIN_ID)
         pluginBuilder.publishAs(GROUP, ARTIFACT, VERSION, pluginRepo, executer).allowAll()

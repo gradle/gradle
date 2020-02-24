@@ -208,7 +208,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
 
     private void assertMutable() {
         if (state.get() != State.INIT) {
-            throw new IllegalStateException("Cannot add provide to service registry " + this + " as it is no longer mutable");
+            throw new IllegalStateException("Cannot add services to service registry " + this + " as it is no longer mutable");
         }
     }
 
@@ -801,7 +801,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         protected abstract Object invokeMethod(Object[] params);
     }
 
-    private class FactoryMethodService extends FactoryService {
+    private static class FactoryMethodService extends FactoryService {
         private final ServiceMethod method;
         private Object target;
 

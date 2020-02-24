@@ -39,7 +39,7 @@ public class IncludedBuildDependencySubstitutionsBuilder {
         DependencySubstitutionsInternal substitutions = resolveDependencySubstitutions(build);
         if (!substitutions.hasRules()) {
             // Configure the included build to discover available modules
-            LOGGER.info("[composite-build] Configuring build: " + build.getModel().getProjectDir());
+            LOGGER.info("[composite-build] Configuring build: " + build.getRootDirectory());
             context.addAvailableModules(build.getAvailableModules());
         } else {
             // Register the defined substitutions for included build

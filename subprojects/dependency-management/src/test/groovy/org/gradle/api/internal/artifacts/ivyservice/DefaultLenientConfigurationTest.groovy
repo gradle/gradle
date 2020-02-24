@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.DependencyGraphNodeResult
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactsResults
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedFileDependencyResults
@@ -41,6 +42,7 @@ class DefaultLenientConfigurationTest extends Specification {
     def fileDependencyResults = Stub(VisitedFileDependencyResults)
     def configuration = Stub(ConfigurationInternal)
     def buildOperationExecutor = Mock(BuildOperationExecutor)
+    def dependencyVerificationOverride = DependencyVerificationOverride.NO_VERIFICATION
 
     def setup() {
         _ * configuration.attributes >> ImmutableAttributes.EMPTY
@@ -54,7 +56,7 @@ class DefaultLenientConfigurationTest extends Specification {
         rootNode.children.add(child)
         def expectedResults = [child] as Set
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride)
 
         when:
         def results = lenientConfiguration.getFirstLevelModuleDependencies()
@@ -77,7 +79,7 @@ class DefaultLenientConfigurationTest extends Specification {
         def firstLevelDependencies = [(Mock(ModuleDependency)): node1, (Mock(ModuleDependency)): node2, (Mock(ModuleDependency)): node3]
         def firstLevelDependenciesEntries = firstLevelDependencies.entrySet() as List
 
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor, dependencyVerificationOverride)
 
         when:
         def result = lenientConfiguration.getFirstLevelModuleDependencies(spec)
@@ -95,7 +97,7 @@ class DefaultLenientConfigurationTest extends Specification {
 
     def "should flatten all resolved dependencies in dependency tree"() {
         given:
-        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor)
+        def lenientConfiguration = new DefaultLenientConfiguration(configuration, null, artifactsResults, fileDependencyResults, resultsLoader, transforms, buildOperationExecutor ,dependencyVerificationOverride)
 
         def (expected, root) = generateDependenciesWithChildren(treeStructure)
 

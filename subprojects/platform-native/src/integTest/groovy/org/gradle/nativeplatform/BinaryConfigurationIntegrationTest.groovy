@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform
 
 import groovy.transform.NotYetImplemented
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
@@ -32,6 +33,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 class BinaryConfigurationIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
 
+    @ToBeFixedForInstantExecution
     def "can configure the binaries of a C++ application"() {
         given:
         buildFile << """
@@ -68,6 +70,7 @@ model {
         executable.exec().out == "Hello!"
     }
 
+    @ToBeFixedForInstantExecution
     def "can build debug binaries for a C++ executable"() {
         given:
         buildFile << """
@@ -110,6 +113,7 @@ model {
     }
 
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @ToBeFixedForInstantExecution
     def "can configure the binaries of a C++ library"() {
         given:
         buildFile << """
@@ -166,6 +170,7 @@ model {
         installation("build/install/main").exec().out == "Hello!"
     }
 
+    @ToBeFixedForInstantExecution
     def "can customize binaries before and after linking"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:
@@ -212,6 +217,7 @@ model {
 
     @Issue("GRADLE-2973")
     @IgnoreIf({ !GradleContextualExecuter.isParallel() })
+    @ToBeFixedForInstantExecution
     def "releases cache lock when compilation fails with --parallel"() {
         def helloWorldApp = new CppHelloWorldApp()
         given:
@@ -240,6 +246,7 @@ subprojects {
         failure.assertThatCause(CoreMatchers.not(CoreMatchers.containsString("Could not stop")))
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure output file for binaries"() {
         given:
         def app = new CppHelloWorldApp()
@@ -283,6 +290,7 @@ model {
     @Issue("https://github.com/gradle/gradle-native/issues/368")
     @RequiresInstalledToolChain(VISUALCPP)
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @ToBeFixedForInstantExecution
     def "can configure output file for shared library on MSVC"() {
         given:
         def app = new CppHelloWorldApp()
@@ -323,6 +331,7 @@ model {
 
     @Unroll
     @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
+    @ToBeFixedForInstantExecution
     def "can link to #linkage library binary with custom output file"() {
         given:
         def app = new CppHelloWorldApp()

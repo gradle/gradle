@@ -24,8 +24,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.initialization.ClassLoaderRegistry;
-import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
+import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.logging.text.DiagnosticsVisitor;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.language.base.internal.compile.CompileSpec;
@@ -51,12 +52,13 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
     private final DependencyHandler dependencyHandler;
     private final WorkerProcessFactory workerProcessBuilderFactory;
     private final WorkerDirectoryProvider workerDirectoryProvider;
-    private final ClasspathFingerprinter fingerprinter;
+    private final FileCollectionFingerprinter fingerprinter;
     private final ClassPathRegistry classPathRegistry;
     private final ClassLoaderRegistry classLoaderRegistry;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
+    private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, ClasspathFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public DefaultPlayToolChain(JavaForkOptionsFactory forkOptionsFactory, WorkerDaemonFactory workerDaemonFactory, ConfigurationContainer configurationContainer, DependencyHandler dependencyHandler, WorkerProcessFactory workerProcessBuilderFactory, WorkerDirectoryProvider workerDirectoryProvider, FileCollectionFingerprinter fingerprinter, ClassPathRegistry classPathRegistry, ClassLoaderRegistry classLoaderRegistry, ActionExecutionSpecFactory actionExecutionSpecFactory, FileCollectionFactory fileCollectionFactory) {
         this.forkOptionsFactory = forkOptionsFactory;
         this.workerDaemonFactory = workerDaemonFactory;
         this.configurationContainer = configurationContainer;
@@ -67,6 +69,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
         this.classPathRegistry = classPathRegistry;
         this.classLoaderRegistry = classLoaderRegistry;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
+        this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
@@ -85,7 +88,7 @@ public class DefaultPlayToolChain implements PlayToolChainInternal {
             Set<File> twirlClasspath = resolveToolClasspath(TwirlCompilerAdapterFactory.createAdapter(targetPlatform).getDependencyNotation().toArray()).resolve();
             Set<File> routesClasspath = resolveToolClasspath(RoutesCompilerAdapterFactory.createAdapter(targetPlatform).getDependencyNotation()).resolve();
             Set<File> javascriptClasspath = resolveToolClasspath(GoogleClosureCompiler.getDependencyNotation()).resolve();
-            return new DefaultPlayToolProvider(forkOptionsFactory, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory);
+            return new DefaultPlayToolProvider(forkOptionsFactory, workerDirectoryProvider.getWorkingDirectory(), workerDaemonFactory, workerProcessBuilderFactory, targetPlatform, twirlClasspath, routesClasspath, javascriptClasspath, fingerprinter, classPathRegistry, classLoaderRegistry, actionExecutionSpecFactory, fileCollectionFactory);
         } catch (ResolveException e) {
             return new UnavailablePlayToolProvider(e);
         }

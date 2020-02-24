@@ -17,6 +17,7 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.LeaksFileHandles
@@ -39,6 +40,7 @@ class SamplesRepositoriesIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @LeaksFileHandles
     @UsesSample("userguide/artifacts/defineRepository")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can use repositories notation with #dsl dsl"() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.

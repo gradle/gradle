@@ -44,7 +44,10 @@ class InstantExecutionReport(
     val logger: Logger,
 
     private
-    val maxProblems: Int
+    val maxProblems: Int,
+
+    private
+    val failOnProblems: Boolean
 ) {
 
     private
@@ -52,7 +55,7 @@ class InstantExecutionReport(
 
     fun add(problem: PropertyProblem) {
         problems.add(problem)
-        if (problems.size > maxProblems) {
+        if (problems.size >= maxProblems) {
             throw TooManyInstantExecutionProblemsException()
         }
     }
@@ -71,6 +74,7 @@ class InstantExecutionReport(
 
         return fatalError?.withSuppressed(errors())
             ?: instantExecutionExceptionForErrors()
+            ?: instantExecutionExceptionForProblems()
     }
 
     private
@@ -102,6 +106,11 @@ class InstantExecutionReport(
             ?.let { errors -> InstantExecutionErrorsException().withSuppressed(errors) }
 
     private
+    fun instantExecutionExceptionForProblems(): Throwable? =
+        if (failOnProblems) InstantExecutionProblemsException()
+        else null
+
+    private
     fun Throwable.withSuppressed(errors: List<PropertyProblem.Error>) = apply {
         errors.forEach {
             addSuppressed(it.exception)
@@ -114,7 +123,7 @@ class InstantExecutionReport(
 
     private
     fun logSummary() {
-        logger.lifecycle(summary())
+        logger.warn(summary())
     }
 
     private
@@ -130,7 +139,11 @@ class InstantExecutionReport(
             propertyDescriptionFor(it) to it.message
         }
         return StringBuilder().apply {
-            appendln("${uniquePropertyProblems.size} instant execution problems found:")
+            val totalProblemCount = problems.size
+            val problemOrProblems = if (totalProblemCount == 1) "problem was" else "problems were"
+            val uniqueProblemCount = uniquePropertyProblems.size
+            val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
+            appendln("$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique:")
             uniquePropertyProblems.keys.forEach { (property, message) ->
                 append("  - ")
                 append(property)

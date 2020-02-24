@@ -1,0 +1,28 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to use a link:{userManualPath}/kotlin_dsl.html#kotdsl:precompiled_plugins[precompiled script plugin] to organize build logic in your build. A precompiled script plugin is a Kotlin script compiled as part of a regular Kotlin source-set and distributed in any way a Gradle plugin can be distributed. Precompiled script plugins can only be written in Kotlin at the moment, but these plugins can be applied in projects that use either the Groovy or Kotlin DSL.
+
+The Gradle plugin id by which the precompiled script can be referenced is derived from its name
+and optional package declaration.
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+The sample is comprised of two builds:
+
+1. The `plugin` build that contains the Gradle plugin implemented as a precompiled script. 
+2. The root build is a user of the plugin above. 
+
+Running the task added by the precompiled script plugin:
+[listing.terminal.sample-command]
+----
+$ ./gradlew greet
+
+> Task :greet
+Hello, World!
+
+BUILD SUCCESSFUL
+1 actionable task: 1 executed
+----

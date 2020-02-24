@@ -1,0 +1,25 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+If you are new to Gradle and wish to follow a more detailed tutorial for building Java libraries, we suggest you have an look at the https://guides.gradle.org/building-java-libraries/[Building Java Libraries guide].
+
+This sample shows how a Java library can be built with Gradle.
+The library has no dependencies and the build has minimal configuration.
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+To build the library:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew jar
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+For more information, see link:{userManualPath}/java_library_plugin.html[Java Library Plugin reference chapter].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:java_library[`gradle init`].

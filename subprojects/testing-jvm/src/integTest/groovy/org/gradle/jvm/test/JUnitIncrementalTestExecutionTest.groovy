@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.test
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def setup() {
@@ -25,6 +27,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         writeTestResource()
     }
 
+    @ToBeFixedForInstantExecution
     def "skips execution when nothing changes"() {
         expect:
         succeeds ':myTestBinaryTest'
@@ -33,12 +36,14 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
 
         and:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         and:
         skipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
     }
 
+    @ToBeFixedForInstantExecution
     def "re-executes test when source changes"() {
         expect:
         succeeds ':myTestBinaryTest'
@@ -50,12 +55,14 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         changeTestSource()
 
         then:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         and:
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
     }
 
+    @ToBeFixedForInstantExecution
     def "re-executes test when resource changes"() {
         when:
         succeeds ':myTestBinaryTest'
@@ -67,12 +74,14 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         changeTestResource()
 
         then:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         and:
         executedAndNotSkipped ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
+    @ToBeFixedForInstantExecution
     def "re-executes test when local library dependency changes"() {
         given:
         utilsLibrary()
@@ -85,6 +94,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':myUtilsApiJar', ':myTestBinaryTest'
 
         when:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
 
         then:
@@ -94,6 +104,7 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         updateUtilsLibrary()
 
         then:
+        expectDeprecationWarnings()
         succeeds ':myTestBinaryTest'
         executedAndNotSkipped ':myUtilsApiJar', ':myTestBinaryTest'
     }

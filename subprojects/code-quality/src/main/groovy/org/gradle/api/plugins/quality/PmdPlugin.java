@@ -35,7 +35,7 @@ import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
- * A plugin for the <a href="http://pmd.sourceforge.net/">PMD</a> source code analyzer.
+ * A plugin for the <a href="https://pmd.github.io/">PMD</a> source code analyzer.
  * <p>
  * Declares a <tt>pmd</tt> configuration which needs to be configured with the PMD library to be used.
  * <p>
@@ -48,7 +48,7 @@ import java.util.concurrent.Callable;
  */
 public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
 
-    public static final String DEFAULT_PMD_VERSION = "6.17.0";
+    public static final String DEFAULT_PMD_VERSION = "6.20.0";
     private PmdExtension extension;
 
     @Override
@@ -162,14 +162,8 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         task.getReports().all(new Action<SingleFileReport>() {
             @Override
             public void execute(final SingleFileReport report) {
-                ConventionMapping reportMapping = AbstractCodeQualityPlugin.conventionMappingOf(report);
-                reportMapping.map("enabled", Callables.returning(true));
-                reportMapping.map("destination", new Callable<File>() {
-                    @Override
-                    public File call() {
-                        return new File(extension.getReportsDir(), baseName + "." + report.getName());
-                    }
-                });
+                report.getRequired().convention(true);
+                report.getOutputLocation().convention(project.getLayout().getProjectDirectory().file(project.provider(() -> new File(extension.getReportsDir(), baseName + "." + report.getName()).getAbsolutePath())));
             }
         });
     }

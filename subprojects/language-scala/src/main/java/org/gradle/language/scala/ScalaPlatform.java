@@ -24,6 +24,7 @@ import org.gradle.platform.base.Platform;
  * Defines and configures a Scala Platform.
  */
 @Incubating
+@Deprecated
 public interface ScalaPlatform extends Platform {
     @Input
     String getScalaVersion();

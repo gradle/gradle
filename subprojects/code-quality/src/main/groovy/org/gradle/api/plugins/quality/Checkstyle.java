@@ -42,8 +42,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.VerificationTask;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.ClosureBackedAction;
-import org.gradle.util.SingleMessageLogger;
 
 import javax.annotation.Nullable;
 import javax.inject.Inject;
@@ -117,7 +117,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * @return The reports container
      */
     @Override
-    public CheckstyleReports reports(@DelegatesTo(value=CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
+    public CheckstyleReports reports(@DelegatesTo(value = CheckstyleReports.class, strategy = Closure.DELEGATE_FIRST) Closure closure) {
         return reports(new ClosureBackedAction<CheckstyleReports>(closure));
     }
 
@@ -136,9 +136,9 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * }
      * </pre>
      *
-     * @since 3.0
      * @param configureAction The configuration
      * @return The reports container
+     * @since 3.0
      */
     @Override
     public CheckstyleReports reports(Action<? super CheckstyleReports> configureAction) {
@@ -237,6 +237,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
+     *
      * @return path to other Checkstyle configuration files
      * @since 4.0
      */
@@ -248,7 +249,10 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     // @ReplacedBy("configDirectory")
     public File getConfigDir() {
         // TODO: The annotations need to be moved to the new property
-        SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.getConfigDir()", "Use Checkstyle.getConfigDirectory() instead");
+        DeprecationLogger.deprecateMethod(Checkstyle.class, "getConfigDir()").replaceWith("Checkstyle.getConfigDirectory()")
+            .willBeRemovedInGradle7()
+            .withDslReference(Checkstyle.class, "configDir")
+            .nagUser();
         File configDir = getConfigDirectory().getAsFile().getOrNull();
         if (configDir != null && configDir.exists()) {
             return configDir;
@@ -261,11 +265,15 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
+     *
      * @since 4.0
      */
     @Deprecated
     public void setConfigDir(Provider<File> configDir) {
-        SingleMessageLogger.nagUserOfReplacedMethod("Checkstyle.setConfigDir()", "Use Checkstyle.getConfigDirectory().set() instead");
+        DeprecationLogger.deprecateMethod(Checkstyle.class, "setConfigDir()").replaceWith("Checkstyle.getConfigDirectory().set()")
+            .willBeRemovedInGradle7()
+            .withDslReference(Checkstyle.class, "configDir")
+            .nagUser();
         this.configDirectory.set(getProject().getLayout().dir(configDir));
     }
 
@@ -274,6 +282,7 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * <p>
      * This path will be exposed as the variable {@code config_loc} in Checkstyle's configuration files.
      * </p>
+     *
      * @return path to other Checkstyle configuration files
      * @since 6.0
      */
@@ -324,8 +333,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * The maximum number of errors that are tolerated before breaking the build
      * or setting the failure property.
      *
-     * @since 3.4
      * @return the maximum number of errors allowed
+     * @since 3.4
      */
     @Input
     public int getMaxErrors() {
@@ -335,8 +344,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * Set the maximum number of errors that are tolerated before breaking the build.
      *
-     * @since 3.4
      * @param maxErrors number of errors allowed
+     * @since 3.4
      */
     public void setMaxErrors(int maxErrors) {
         this.maxErrors = maxErrors;
@@ -346,8 +355,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
      * The maximum number of warnings that are tolerated before breaking the build
      * or setting the failure property.
      *
-     * @since 3.4
      * @return the maximum number of warnings allowed
+     * @since 3.4
      */
     @Input
     public int getMaxWarnings() {
@@ -357,8 +366,8 @@ public class Checkstyle extends SourceTask implements VerificationTask, Reportin
     /**
      * Set the maximum number of warnings that are tolerated before breaking the build.
      *
-     * @since 3.4
      * @param maxWarnings number of warnings allowed
+     * @since 3.4
      */
     public void setMaxWarnings(int maxWarnings) {
         this.maxWarnings = maxWarnings;

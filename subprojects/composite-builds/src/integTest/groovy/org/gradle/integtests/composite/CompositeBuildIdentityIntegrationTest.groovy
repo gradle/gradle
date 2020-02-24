@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import spock.lang.Unroll
 
@@ -34,8 +35,9 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in logging output with #display"() {
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
@@ -53,14 +55,15 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         result.groupedOutput.task(":${buildName}:classes").output.contains("classes of :classes")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in dependency report with #display"() {
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
@@ -73,19 +76,19 @@ class CompositeBuildIdentityIntegrationTest extends AbstractCompositeBuildIntegr
         then:
         outputContains("""
 runtimeClasspath - Runtime classpath of source set 'main'.
-\\--- org.test:${buildName}:1.0 -> project :${buildName}
+\\--- org.test:${dependencyName}:1.0 -> project :${buildName}
      \\--- project :${buildName}:b1
 """)
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
     def "includes build identifier in error message on failure to resolve dependencies of build with #display"() {
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
@@ -103,14 +106,15 @@ Required by:
     project :${buildName}""")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in task failure error message with #display"() {
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
@@ -127,14 +131,15 @@ Required by:
         failure.assertHasCause("broken")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in dependency resolution results with #display"() {
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
         buildB.buildFile << """
@@ -160,7 +165,7 @@ Required by:
 
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 2
-                assert selectors[0].displayName == 'org.test:${buildName}:1.0'
+                assert selectors[0].displayName == 'org.test:${dependencyName}:1.0'
                 assert selectors[1].displayName == 'project :${buildName}:b1'
                 // TODO - should be build name
                 assert selectors[1].buildName == 'buildB'
@@ -172,8 +177,8 @@ Required by:
         execute(buildA, ":assemble")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 }

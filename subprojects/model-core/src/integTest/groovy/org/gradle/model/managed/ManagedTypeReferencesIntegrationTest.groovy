@@ -17,8 +17,11 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedTypeReferencesIntegrationTest extends AbstractIntegrationSpec {
+
     def "rule can provide a managed model element that references another managed model element"() {
         when:
         buildScript '''

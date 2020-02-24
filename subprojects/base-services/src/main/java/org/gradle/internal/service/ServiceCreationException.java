@@ -16,9 +16,12 @@
 
 package org.gradle.internal.service;
 
+import org.gradle.internal.exceptions.Contextual;
+
 /**
  * Thrown when a service instance cannot be created.
  */
+@Contextual
 public class ServiceCreationException extends ServiceLookupException {
     public ServiceCreationException(String message) {
         super(message);

@@ -29,7 +29,7 @@ public class FailsWithMessageExtension extends AbstractAnnotationDrivenExtension
         feature.getFeatureMethod().addInterceptor(new FailsWithMessageInterceptor(annotation));
     }
 
-    private class FailsWithMessageInterceptor implements IMethodInterceptor {
+    private static class FailsWithMessageInterceptor implements IMethodInterceptor {
         private final FailsWithMessage annotation;
 
         public FailsWithMessageInterceptor(FailsWithMessage annotation) {

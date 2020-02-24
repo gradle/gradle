@@ -15,7 +15,15 @@
  */
 
 package org.gradle.jvm.plugins
+
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JvmComponentPluginGoodBehaviourTest extends WellBehavedPluginTest {
+
+    def setup() {
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
 }

@@ -35,6 +35,38 @@ class DefaultFilePropertyFactoryTest extends Specification {
         factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
     }
 
+    def "can create directory instance from absolute file"() {
+        def location = tmpDir.createDir("dir")
+
+        expect:
+        def dir = factory.dir(location)
+        dir.asFile == location
+    }
+
+    def "can create directory instance from relative file"() {
+        def location = projectDir.createDir("dir")
+
+        expect:
+        def dir = factory.dir(new File("dir"))
+        dir.asFile == location
+    }
+
+    def "can create file instance from absolute file"() {
+        def location = tmpDir.createFile("file")
+
+        expect:
+        def file = factory.file(location)
+        file.asFile == location
+    }
+
+    def "can create file instance from relative file"() {
+        def location = projectDir.createFile("file")
+
+        expect:
+        def file = factory.file(new File("file"))
+        file.asFile == location
+    }
+
     def "can create directory property"() {
         def pathProvider = Stub(ProviderInternal)
         _ * pathProvider.get() >> { "../other-dir" }
@@ -173,35 +205,35 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this property.'
+        e.message == 'Cannot query the value of this property because it has no value available.'
 
         when:
         fileProvider.get()
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'No value has been specified for this property.'
+        e2.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         dir.get()
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'No value has been specified for this property.'
+        e3.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         file.get()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'No value has been specified for this property.'
+        e4.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         tree.files
 
         then:
         def e5 = thrown(IllegalStateException)
-        e5.message == 'No value has been specified for this property.'
+        e5.message == 'Cannot query the value of this property because it has no value available.'
     }
 
     @SuppressWarnings("GroovyAssignabilityCheck")

@@ -37,8 +37,8 @@ import org.gradle.cache.PersistentIndexedCacheParameters;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.Closeable;
 
@@ -50,11 +50,19 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
     private final PersistentCache cache;
     private final PersistentIndexedCache<String, PreviousCompilationData> previousCompilationCache;
 
-    public DefaultGeneralCompileCaches(FileSystemSnapshotter fileSystemSnapshotter, UserHomeScopedCompileCaches userHomeScopedCompileCaches, CacheRepository cacheRepository, Gradle gradle, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory, WellKnownFileLocations fileLocations, StringInterner interner) {
+    public DefaultGeneralCompileCaches(
+        AdditiveCacheLocations additiveCacheLocations,
+        CacheRepository cacheRepository,
+        Gradle gradle,
+        InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
+        StringInterner interner,
+        UserHomeScopedCompileCaches userHomeScopedCompileCaches,
+        VirtualFileSystem virtualFileSystem
+    ) {
         cache = cacheRepository
             .cache(gradle, "javaCompile")
             .withDisplayName("Java compile cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         PersistentIndexedCacheParameters<HashCode, ClassAnalysis> classCacheParameters = PersistentIndexedCacheParameters.of("classAnalysis", new HashCodeSerializer(), new ClassAnalysisSerializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(400000, true));
@@ -62,7 +70,7 @@ public class DefaultGeneralCompileCaches implements GeneralCompileCaches, Closea
 
         PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));
-        this.classpathEntrySnapshotCache = new SplitClasspathEntrySnapshotCache(fileLocations, userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(), new DefaultClasspathEntrySnapshotCache(fileSystemSnapshotter, cache.createCache(jarCacheParameters)));
+        this.classpathEntrySnapshotCache = new SplitClasspathEntrySnapshotCache(additiveCacheLocations, userHomeScopedCompileCaches.getClasspathEntrySnapshotCache(), new DefaultClasspathEntrySnapshotCache(virtualFileSystem, cache.createCache(jarCacheParameters)));
 
         PersistentIndexedCacheParameters<String, PreviousCompilationData> previousCompilationCacheParameters = PersistentIndexedCacheParameters.of("taskHistory", String.class, new PreviousCompilationData.Serializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

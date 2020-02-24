@@ -17,6 +17,7 @@
 package org.gradle.language.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.fixtures.file.TestFile
@@ -39,6 +40,15 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         blockingServer.start()
     }
 
+    def expectDeprecationWarnings() {
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The scala-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
+
     def "multi-project build is multi-process safe"() {
         given:
         def projects = (1..MAX_PARALLEL_COMPILERS)
@@ -59,6 +69,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithParallelExecuter()
 
         when:
+        expectDeprecationWarnings()
         succeeds("build")
 
         then:
@@ -67,6 +78,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         // Check that we can successfully use an existing compiler-interface.jar as well
         when:
         expectTasksWithParallelExecuter()
+        expectDeprecationWarnings()
         succeeds("clean", "build")
 
         then:
@@ -91,12 +103,14 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithParallelExecuter()
 
         when:
+        expectDeprecationWarnings()
         succeeds("build")
 
         then:
         noExceptionThrown()
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "multiple independent builds are multi-process safe" () {
         given:
         def projects = (1..MAX_PARALLEL_COMPILERS)
@@ -129,6 +143,7 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
         expectTasksWithParallelExecuter()
 
         when:
+        expectDeprecationWarnings()
         succeeds("buildAll")
 
         then:

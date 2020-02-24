@@ -1,0 +1,12 @@
+plugins {
+    id "plugina"
+    id "pluginb"
+}
+
+task showPlugins {
+    doLast {
+        project.plugins.each {
+            println it.getClass().name
+        }
+    }
+}

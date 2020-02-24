@@ -1,23 +1,36 @@
 import build.futureKotlin
-import org.gradle.gradlebuild.BuildEnvironment
-import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.testing.performance.generator.tasks.RemoteProject
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     `kotlin-library`
 }
 
 tasks {
+
+    withType<KotlinCompile>().configureEach {
+        kotlinOptions {
+            freeCompilerArgs += listOf(
+                "-XXLanguage:+NewInference",
+                "-XXLanguage:+SamConversionForKotlinFunctions"
+            )
+        }
+    }
+
     processResources {
         from({ project(":instantExecutionReport").tasks.named("assembleReport") }) {
             into("org/gradle/instantexecution")
         }
     }
+
+    instantIntegTest {
+        enabled = false
+    }
 }
 
 dependencies {
     implementation(project(":baseServices"))
+    implementation(project(":baseServicesGroovy"))
     implementation(project(":messaging"))
     implementation(project(":logging"))
     implementation(project(":coreApi"))
@@ -27,8 +40,12 @@ dependencies {
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":persistentCache"))
+    implementation(project(":kotlinDsl"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
+    // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
+    implementation(project(":toolingApi"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))
@@ -39,8 +56,13 @@ dependencies {
 
     testImplementation(testFixtures(project(":core")))
     testImplementation(testLibrary("mockito_kotlin2"))
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-debug:1.3.3")
 
+    testRuntimeOnly(project(":runtimeApiInfo"))
+
+    integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
+    integTestImplementation(project(":platformJvm"))
 
     integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
@@ -54,52 +76,8 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-
-    testRuntimeOnly(kotlin("reflect"))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
-}
-
-
-tasks {
-
-    /**
-     * Santa Tracker git URI.
-     *
-     * Note that you can change it to `file:///path/to/your/santa-tracker-clone/.git`
-     * if you need to iterate quickly on changes to Santa Tracker.
-     */
-    val gitUri = "https://github.com/gradle/santa-tracker-android.git"
-
-    val javaBranch = "agp-3.6.0-java"
-    val kotlinBranch = "agp-3.6.0"
-
-    val santaTrackerJava by registering(RemoteProject::class) {
-        remoteUri.set(gitUri)
-        branch.set(javaBranch)
-    }
-
-    val santaTrackerKotlin by registering(RemoteProject::class) {
-        remoteUri.set(gitUri)
-        branch.set(kotlinBranch)
-    }
-
-    if (BuildEnvironment.isCiServer) {
-        withType<RemoteProject>().configureEach {
-            outputs.upToDateWhen { false }
-        }
-    }
-
-    withType<IntegrationTest>().configureEach {
-        dependsOn(santaTrackerJava)
-        dependsOn(santaTrackerKotlin)
-        inputs.property("androidHomeIsSet", System.getenv("ANDROID_HOME") != null)
-    }
-
-    register<Delete>("cleanRemoteProjects") {
-        delete(santaTrackerJava.get().outputDirectory)
-        delete(santaTrackerKotlin.get().outputDirectory)
-    }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,215 +15,25 @@
  */
 package org.gradle.internal.exceptions
 
-import org.gradle.util.TreeVisitor
+
 import spock.lang.Specification
 
 class LocationAwareExceptionTest extends Specification {
-    def "visit reportable causes does not visit direct cause"() {
-        TreeVisitor visitor = Mock()
+    def "visitor visits location"() {
+        ExceptionContextVisitor visitor = Mock()
         def cause = new RuntimeException()
-        def e = new LocationAwareException(cause, null, 100)
+        def e = new LocationAwareException(cause, "location", 42)
 
         when:
-        e.visitReportableCauses(visitor)
+        e.accept(visitor)
 
         then:
-        1 * visitor.node(e)
+        1 * visitor.visitCause(cause)
+        1 * visitor.visitLocation("Location line: 42")
         0 * visitor._
 
         and:
         e.reportableCauses == []
     }
 
-    def "visit reportable causes visits indirect cause"() {
-        TreeVisitor visitor = Mock()
-        def childCause = new RuntimeException()
-        def cause = new RuntimeException(childCause)
-        def e = new LocationAwareException(cause, null, 100)
-
-        when:
-        e.visitReportableCauses(visitor)
-
-        then:
-        1 * visitor.node(e)
-
-        and:
-        1 * visitor.startChildren()
-
-        and:
-        1 * visitor.node(childCause)
-
-        and:
-        1 * visitor.endChildren()
-        0 * visitor._
-
-        and:
-        e.reportableCauses == [childCause]
-    }
-
-    def "visit reportable causes visits causes of contextual exception"() {
-        TreeVisitor visitor = Mock()
-        def childCause = new RuntimeException()
-        def cause = new TestContextualException(childCause)
-        def e = new LocationAwareException(cause, null, 100)
-
-        when:
-        e.visitReportableCauses(visitor)
-
-        then:
-        1 * visitor.node(e)
-
-        and:
-        1 * visitor.startChildren()
-
-        and:
-        1 * visitor.node(childCause)
-
-        and:
-        1 * visitor.endChildren()
-        0 * visitor._
-
-        and:
-        e.reportableCauses == [childCause]
-    }
-
-    def "visit reportable causes visits all contextual exceptions and direct cause of last contextual exception"() {
-        TreeVisitor visitor = Mock()
-        def unreportedCause = new RuntimeException()
-        def reportedCause = new RuntimeException(unreportedCause)
-        def lastContextual = new TestContextualException(reportedCause)
-        def interveningUnreported = new RuntimeException(lastContextual)
-        def contextual = new TestContextualException(interveningUnreported)
-        def interveningUnreported2 = new RuntimeException(contextual)
-        def cause = new TestContextualException(interveningUnreported2)
-        def e = new LocationAwareException(cause, null, 100)
-
-        when:
-        e.visitReportableCauses(visitor)
-
-        then:
-        1 * visitor.node(e)
-        1 * visitor.node(contextual)
-        1 * visitor.node(lastContextual)
-        1 * visitor.node(reportedCause)
-
-        and:
-        _ * visitor.startChildren()
-        _ * visitor.endChildren()
-        0 * visitor._
-
-        and:
-        e.reportableCauses == [contextual, lastContextual, reportedCause]
-    }
-
-    def "visit reportable causes visits causes of multi-cause exception"() {
-        TreeVisitor visitor = Mock()
-        def childCause1 = new RuntimeException()
-        def childCause2 = new RuntimeException()
-        def cause = new DefaultMultiCauseException("broken", childCause1, childCause2)
-        def e = new LocationAwareException(cause, null, 100)
-
-        when:
-        e.visitReportableCauses(visitor)
-
-        then:
-        1 * visitor.node(e)
-
-        and:
-        1 * visitor.startChildren()
-
-        and:
-        1 * visitor.node(childCause1)
-
-        and:
-        1 * visitor.node(childCause2)
-
-        and:
-        1 * visitor.endChildren()
-        0 * visitor._
-
-        and:
-        e.reportableCauses == [childCause1, childCause2]
-    }
-
-    def "visit reportable causes treats multi-cause exception as contextual"() {
-        TreeVisitor visitor = Mock()
-        def childCause1 = new RuntimeException()
-        def detail = new RuntimeException()
-        def childCause2 = new TestContextualException(detail)
-        def cause = new DefaultMultiCauseException("broken", childCause1, childCause2)
-        def intermediate1 = new RuntimeException("broken", cause)
-        def intermediate2 = new RuntimeException("broken", intermediate1)
-        def e = new LocationAwareException(intermediate2, null, 100)
-
-        when:
-        e.visitReportableCauses(visitor)
-
-        then:
-        1 * visitor.node(e)
-
-        and:
-        1 * visitor.startChildren()
-
-        and:
-        1 * visitor.node(cause)
-
-        and:
-        1 * visitor.startChildren()
-
-        and:
-        1 * visitor.node(childCause1)
-
-        and:
-        1 * visitor.node(childCause2)
-
-        and:
-        1 * visitor.startChildren()
-
-        and:
-        1 * visitor.node(detail)
-
-        and:
-        3 * visitor.endChildren()
-        0 * visitor._
-
-        and:
-        e.reportableCauses == [cause, childCause1, childCause2, detail]
-    }
-
-    def "visit reportable causes visits causes recursively"() {
-        TreeVisitor visitor = Mock()
-        def ignored = new RuntimeException()
-        def childCause1 = new RuntimeException(ignored)
-        def childCause2 = new RuntimeException()
-        def childCause3 = new TestContextualException(childCause2)
-        def childCause4 = new TestContextualException(childCause3)
-        def cause = new DefaultMultiCauseException("broken", childCause1, childCause4)
-        def e = new LocationAwareException(cause, null, 100)
-
-        when:
-        e.visitReportableCauses(visitor)
-
-        then:
-        1 * visitor.node(e)
-
-        and:
-        3 * visitor.startChildren()
-        1 * visitor.node(childCause1)
-        1 * visitor.node(childCause4)
-        1 * visitor.node(childCause3)
-        1 * visitor.node(childCause2)
-        3 * visitor.endChildren()
-        0 * visitor._
-
-        and:
-        e.reportableCauses == [childCause1, childCause4, childCause3, childCause2]
-    }
-
-    @Contextual
-    class TestContextualException extends RuntimeException {
-        TestContextualException(Throwable throwable) {
-            super(throwable)
-        }
-    }
 }

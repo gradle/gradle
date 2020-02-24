@@ -1,7 +1,0 @@
-apply plugin: 'product-module'
-
-dependencies {
-    implementation project(':identityManagement')
-    implementation project(':billing')
-    implementation 'commons-io:commons-io:1.2'
-}

@@ -146,7 +146,7 @@ public class JUnitPlatformTestClassProcessor extends AbstractJUnitTestClassProce
     }
 
     private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
-        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty()) {
+        if (!spec.getIncludedTests().isEmpty() || !spec.getIncludedTestsCommandLine().isEmpty() || !spec.getExcludedTests().isEmpty()) {
             TestSelectionMatcher matcher = new TestSelectionMatcher(spec.getIncludedTests(),
                 spec.getExcludedTests(), spec.getIncludedTestsCommandLine());
             requestBuilder.filters(new ClassMethodNameFilter(matcher));

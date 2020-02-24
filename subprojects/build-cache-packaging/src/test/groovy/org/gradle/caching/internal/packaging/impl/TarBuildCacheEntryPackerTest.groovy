@@ -18,7 +18,6 @@ package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.internal.file.Deleter
@@ -26,19 +25,22 @@ import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
-import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
+import static org.gradle.caching.internal.packaging.impl.AbstractTarBuildCacheEntryPackerSpec.TestCacheableTree
 import static org.gradle.internal.file.TreeType.DIRECTORY
 import static org.gradle.internal.file.TreeType.FILE
 
 class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec {
     @Override
-    protected FileSystem createFileSystem() {
-        TestFiles.fileSystem()
+    protected FilePermissionAccess createFilePermissionAccess() {
+        new FilePermissionAccess() {
+            @Delegate
+            FileSystem fs = TestFiles.fileSystem()
+        }
     }
 
     @Override
@@ -281,7 +283,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             case DIRECTORY:
@@ -291,7 +293,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
                         if (output == null) {
                             return fingerprintingStrategy.getEmptyFingerprint()
                         }
-                        return DefaultCurrentFileCollectionFingerprint.from([snapshotter.snapshot(output)], fingerprintingStrategy)
+                        return fingerprint(output, fingerprintingStrategy)
                     }
                 }
             default:

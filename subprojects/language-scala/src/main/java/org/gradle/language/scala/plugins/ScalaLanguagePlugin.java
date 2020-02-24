@@ -22,6 +22,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
 import org.gradle.jvm.internal.JvmAssembly;
@@ -58,10 +59,15 @@ import static org.gradle.util.CollectionUtils.single;
  * Registers "scala" language support with the {@link org.gradle.language.scala.ScalaLanguageSourceSet}.
  */
 @Incubating
+@Deprecated
 public class ScalaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        DeprecationLogger.deprecatePlugin("scala-lang")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
@@ -143,7 +149,7 @@ public class ScalaLanguagePlugin implements Plugin<Project> {
                     assembly.builtBy(compile);
 
                     compile.setDescription(description);
-                    compile.setDestinationDir(single(assembly.getClassDirectories()));
+                    compile.getDestinationDirectory().set(single(assembly.getClassDirectories()));
 
                     compile.getScalaCompileOptions().getIncrementalOptions().getAnalysisFile().set(
                         compile.getProject().getLayout().getBuildDirectory().file("tmp/scala/compilerAnalysis/" + compile.getName() + ".analysis")

@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.CapabilityResolutionDetails;
+import org.gradle.api.artifacts.ComponentVariantIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.capabilities.Capability;
@@ -28,6 +29,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.internal.Describables;
 import org.gradle.internal.component.external.model.CapabilityInternal;
+import org.gradle.internal.component.external.model.DefaultComponentVariantIdentifier;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.internal.typeconversion.NotationParser;
 
@@ -75,9 +77,9 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
             .forEach(e -> {
                 Capability key = e.getKey();
                 List<? extends Capability> versions = e.getValue();
-                List<ComponentIdentifier> candidateIds = versions.stream()
+                List<ComponentVariantIdentifier> candidateIds = versions.stream()
                     .flatMap(c -> details.getCandidates(c).stream())
-                    .map(CapabilitiesConflictHandler.CandidateDetails::getId)
+                    .map(detail -> new DefaultComponentVariantIdentifier(detail.getId(), detail.getVariantName()))
                     .collect(Collectors.toList());
                 DefaultCapabilityResolutionDetails resolutionDetails = new DefaultCapabilityResolutionDetails(componentNotationParser, key, candidateIds);
                 handleCapabilityAction(details, key, versions, resolutionDetails);
@@ -109,11 +111,15 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     }
 
     private void selectExplicitCandidate(DefaultCapabilityResolutionDetails resolutionDetails, CapabilityInternal version, CapabilitiesConflictHandler.CandidateDetails cand) {
-        if (cand.getId().equals(resolutionDetails.selected)) {
-            cand.select();
-            String reason = resolutionDetails.reason;
-            if (reason != null) {
-                cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
+        if (cand.getId().equals(resolutionDetails.selected.getId())) {
+            if (cand.getVariantName().equals(resolutionDetails.selected.getVariantName())) {
+                cand.select();
+                String reason = resolutionDetails.reason;
+                if (reason != null) {
+                    cand.byReason(Describables.of("On capability", version.getCapabilityId(), reason));
+                }
+            } else {
+                cand.evict();
             }
         }
     }
@@ -121,14 +127,14 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     private static class DefaultCapabilityResolutionDetails implements CapabilityResolutionDetails {
         private final NotationParser<Object, ComponentIdentifier> notationParser;
         private final Capability capability;
-        private final List<ComponentIdentifier> candidates;
+        private final List<ComponentVariantIdentifier> candidates;
 
         boolean didSomething;
         boolean useHighest;
         private String reason;
-        private ComponentIdentifier selected;
+        private ComponentVariantIdentifier selected;
 
-        private DefaultCapabilityResolutionDetails(NotationParser<Object, ComponentIdentifier> notationParser, Capability capability, List<ComponentIdentifier> candidates) {
+        private DefaultCapabilityResolutionDetails(NotationParser<Object, ComponentIdentifier> notationParser, Capability capability, List<ComponentVariantIdentifier> candidates) {
             this.notationParser = notationParser;
             this.capability = capability;
             this.candidates = candidates;
@@ -140,12 +146,12 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
         }
 
         @Override
-        public List<ComponentIdentifier> getCandidates() {
+        public List<ComponentVariantIdentifier> getCandidates() {
             return candidates;
         }
 
         @Override
-        public CapabilityResolutionDetails select(ComponentIdentifier candidate) {
+        public CapabilityResolutionDetails select(ComponentVariantIdentifier candidate) {
             didSomething = true;
             selected = candidate;
             return this;
@@ -154,16 +160,16 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
         @Override
         public CapabilityResolutionDetails select(Object notation) {
             ComponentIdentifier componentIdentifier = notationParser.parseNotation(notation);
-            for (ComponentIdentifier candidate : candidates) {
-                if (componentIdentifier.equals(candidate)) {
+            for (ComponentVariantIdentifier candidate : candidates) {
+                if (componentIdentifier.equals(candidate.getId())) {
                     select(candidate);
                     return this;
                 }
-                if (candidate instanceof ModuleComponentIdentifier && componentIdentifier instanceof ModuleComponentIdentifier) {
+                if (candidate.getId() instanceof ModuleComponentIdentifier && componentIdentifier instanceof ModuleComponentIdentifier) {
                     // because it's a capability conflict resolution, there is only one candidate per module identifier
                     // so we can be lenient wrt the version number used in the descriptor, which helps whenever the user
                     // used the convenience "notation" method
-                    ModuleComponentIdentifier candMCI = (ModuleComponentIdentifier) candidate;
+                    ModuleComponentIdentifier candMCI = (ModuleComponentIdentifier) candidate.getId();
                     ModuleComponentIdentifier compMCI = (ModuleComponentIdentifier) componentIdentifier;
                     if (candMCI.getModuleIdentifier().equals(compMCI.getModuleIdentifier())) {
                         select(candidate);

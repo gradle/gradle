@@ -62,7 +62,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can control forking via forkMode with the legacy API using fork mode #isolationMode"() {
+    def "can control forking via forkMode with the legacy API using fork mode #forkMode"() {
         executer.requireIsolatedDaemons()
         executer.withWorkerDaemonsExpirationDisabled()
 
@@ -132,7 +132,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureHasCause("A failure occurred while executing RunnableWithDifferentConstructor")
         failureHasCause("Could not create an instance of type RunnableWithDifferentConstructor.")
-        failureHasCause("Too many parameters provided for constructor for class RunnableWithDifferentConstructor. Expected 2, received 4.")
+        failureHasCause("Too many parameters provided for constructor for type RunnableWithDifferentConstructor. Expected 2, received 4.")
 
         where:
         isolationMode << ISOLATION_MODES

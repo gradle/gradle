@@ -16,6 +16,8 @@
 
 package org.gradle.integtests.fixtures.publish
 
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.Usage
 import org.gradle.test.fixtures.HttpModule
 import org.gradle.test.fixtures.HttpRepository
 import org.gradle.test.fixtures.Module
@@ -105,6 +107,10 @@ class ModuleVersionSpec {
         expectGetArtifact << new ArtifactExpectation(InteractionExpectation.HEAD_MISSING, artifact)
     }
 
+    void maybeHeadOrGetArtifact(Map<String, String> artifact) {
+        expectGetArtifact << new ArtifactExpectation(InteractionExpectation.MAYBE, artifact)
+    }
+
     void maybeGetMetadata() {
         expectGetMetadata << InteractionExpectation.MAYBE
     }
@@ -127,6 +133,24 @@ class ModuleVersionSpec {
         spec.resolveStrategy = Closure.DELEGATE_FIRST
         spec()
         variants << variant
+    }
+
+    void asPlatform() {
+        variant('apiElements') {
+            useDefaultArtifacts = false
+            noArtifacts = true
+            attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+            attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+        }
+        variant('runtimeElements') {
+            useDefaultArtifacts = false
+            noArtifacts = true
+            attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+            attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+        }
+        withModule(MavenModule) {
+            hasPackaging("pom")
+        }
     }
 
     void dependsOn(coord) {

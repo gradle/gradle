@@ -45,11 +45,16 @@ import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_TEST_KIT;
+import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.LOCAL_GROOVY;
 
 /**
  * Adapts Gradle's dependency resolution engine to the special needs of the IDE plugins.
@@ -59,11 +64,13 @@ public class IdeDependencySet {
     private final DependencyHandler dependencyHandler;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
+    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.dependencyHandler = dependencyHandler;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
+        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public void visit(IdeDependencyVisitor visitor) {
@@ -216,10 +223,24 @@ public class IdeDependencySet {
                     Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
                     javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
                     visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
+                } else if (isLocalGroovyDependency(artifact)) {
+                    File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
+                    visitor.visitGradleApiDependency(artifact, localGroovySources, isTestConfiguration(configurations.get(artifactIdentifier)));
                 } else {
                     visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
                 }
             }
+        }
+
+        private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
+            String artifactFileName = artifact.getFile().getName();
+            String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
+            return (componentIdentifier.equals(GRADLE_API.displayName) || componentIdentifier.equals(GRADLE_TEST_KIT.displayName) || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+                && artifactFileName.startsWith("groovy-all-");
+        }
+
+        private boolean shouldDownloadSources(IdeDependencyVisitor visitor) {
+            return !visitor.isOffline() && visitor.downloadSources();
         }
 
         private boolean isTestConfiguration(Set<Configuration> configurations) {

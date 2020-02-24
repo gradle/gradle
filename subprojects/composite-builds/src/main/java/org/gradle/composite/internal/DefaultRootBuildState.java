@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.initialization.GradleLauncher;
@@ -73,11 +74,12 @@ class DefaultRootBuildState extends AbstractBuildState implements RootBuildState
     public <T> T run(Transformer<T, ? super BuildController> buildAction) {
         final GradleBuildController buildController = new GradleBuildController(gradleLauncher);
         RootBuildLifecycleListener buildLifecycleListener = listenerManager.getBroadcaster(RootBuildLifecycleListener.class);
-        buildLifecycleListener.afterStart();
+        GradleInternal gradle = buildController.getGradle();
+        buildLifecycleListener.afterStart(gradle);
         try {
             return buildAction.transform(buildController);
         } finally {
-            buildLifecycleListener.beforeComplete();
+            buildLifecycleListener.beforeComplete(gradle);
         }
     }
 

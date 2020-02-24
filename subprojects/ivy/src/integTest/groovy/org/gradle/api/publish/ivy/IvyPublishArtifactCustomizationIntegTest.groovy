@@ -16,21 +16,28 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.ivy.IvyDescriptorArtifact
 
 class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTest {
 
     def module = ivyRepo.module("org.gradle.test", "ivyPublish", "2.4")
 
+    @ToBeFixedForInstantExecution
     void "can publish custom artifacts"() {
         given:
         createBuildScripts("""
+            file("customFile.foo") << 'some foo'
+            file("customFile.bar") << 'some bar'
+
             publications {
                 ivy(IvyPublication) {
                     artifact "customFile.txt"
                     artifact customDocsTask.outputFile
                     artifact regularFileTask.outputFile
                     artifact customJar
+                    artifact provider { file("customFile.foo") }
+                    artifact provider { "customFile.bar" }
                 }
             }
 """, """
@@ -46,7 +53,8 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
 
         then:
         module.assertPublished()
-        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
+        module.assertArtifactsPublished("ivy-2.4.xml", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar", "ivyPublish-2.4.html", "ivyPublish-2.4.reg", "ivyPublish-2.4.jar")
+        result.assertTasksExecuted(":customDocsTask", ":customJar", ":regularFileTask", ":generateDescriptorFileForIvyPublication", ":publishIvyPublicationToIvyRepository", ":publish")
 
         and:
         def ivy = module.parsedIvy
@@ -54,11 +62,13 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.expectArtifact('ivyPublish', 'html').hasType("html").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'jar').hasType("jar").hasConf(null)
         ivy.expectArtifact('ivyPublish', 'reg').hasType("reg").hasConf(null)
+        ivy.expectArtifact('ivyPublish', 'foo').hasType("foo").hasConf(null)
+        ivy.expectArtifact('ivyPublish', 'bar').hasType("bar").hasConf(null)
 
         and:
         resolveArtifacts(module) {
             withoutModuleMetadata {
-                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt"
+                expectFiles "ivyPublish-2.4.html", "ivyPublish-2.4.jar", "ivyPublish-2.4.reg", "ivyPublish-2.4.txt",  "ivyPublish-2.4.foo", "ivyPublish-2.4.bar"
             }
             withModuleMetadata {
                 noComponentPublished()
@@ -66,6 +76,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure custom artifacts when creating"() {
         given:
         createBuildScripts("""
@@ -125,6 +136,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish custom file artifacts with map notation"() {
         given:
         createBuildScripts("""
@@ -169,6 +181,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can set custom artifacts to override component artifacts"() {
         given:
         createBuildScripts("""
@@ -194,6 +207,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         module.parsedIvy.artifacts.collect({"${it.name}.${it.ext}"}) as Set == ["ivyPublish.txt", "ivyPublish.html", "ivyPublish.jar"] as Set
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure custom artifacts post creation"() {
         given:
         createBuildScripts("""
@@ -227,6 +241,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish artifact with no extension"() {
         given:
         file("no-extension") << "some content"
@@ -256,6 +271,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can publish artifact with classifier"() {
         given:
         createBuildScripts("""
@@ -284,6 +300,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "can add custom configurations"() {
         given:
         createBuildScripts("""
@@ -313,6 +330,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         ivy.configurations["custom"].extend == ["runtime", "base"] as Set
     }
 
+    @ToBeFixedForInstantExecution
     def "reports failure publishing when validation fails"() {
         given:
         file("a-directory.dir").createDir()
@@ -333,6 +351,7 @@ class IvyPublishArtifactCustomizationIntegTest extends AbstractIvyPublishIntegTe
         failure.assertHasCause("Invalid publication 'ivy': artifact file is a directory")
     }
 
+    @ToBeFixedForInstantExecution
     def "cannot publish when artifact does not exist"() {
         given:
         createBuildScripts("""
@@ -376,6 +395,7 @@ The following types/formats are supported:
     }
 
 
+    @ToBeFixedForInstantExecution
     def "artifact coordinates are evaluated lazily"() {
         given:
         createBuildScripts("""
@@ -434,6 +454,7 @@ The following types/formats are supported:
         """
     }
 
+    @ToBeFixedForInstantExecution
     def "dependencies with multiple dependency artifacts are mapped to multiple dependency declarations in GMM"() {
         def repoModule = javaLibrary(ivyRepo.module('group', 'root', '1.0'))
 

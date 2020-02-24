@@ -20,14 +20,19 @@ import org.gradle.integtests.fixtures.ProcessFixture
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.server.api.DaemonStateControl.State
 
-import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.*
+import java.nio.file.Files
+
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Busy
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Canceled
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idle
+import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Stopped
 
 abstract class AbstractDaemonFixture implements DaemonFixture {
     public static final int STATE_CHANGE_TIMEOUT = 20000
     final DaemonContext context
 
     AbstractDaemonFixture(File daemonLog) {
-        this.context = DaemonContextParser.parseFrom(daemonLog.text)
+        this.context = DaemonContextParser.parseFromFile(daemonLog)
         if (!this.context) {
             println "Could not parse daemon log: \n$daemonLog.text"
         }
@@ -45,6 +50,13 @@ abstract class AbstractDaemonFixture implements DaemonFixture {
 
     DaemonContext getContext() {
         context
+    }
+
+    @Override
+    boolean logContains(String searchString) {
+        Files.lines(logFile.toPath()).withCloseable { lines ->
+            lines.anyMatch{ it.contains(searchString) }
+        }
     }
 
     void becomesIdle() {

@@ -29,7 +29,7 @@ import static org.junit.Assert.assertEquals;
  * Tests that need full static typing.
  */
 public class ModelTypeJavaTest {
-    class Nested<T> {
+    static class Nested<T> {
         class Child<S extends Number & Runnable> { }
     }
 

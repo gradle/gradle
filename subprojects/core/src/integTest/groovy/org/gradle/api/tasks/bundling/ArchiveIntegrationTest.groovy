@@ -17,6 +17,7 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
@@ -44,6 +45,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file 'file2.xml'
             }
         }
+
         and:
         buildFile << '''
             task copy(type: Copy) {
@@ -54,8 +56,40 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         run 'copy'
+
         then:
+        result.assertTaskExecuted(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
+
+        when:
+        createZip('test.zip') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.xml'
+            }
+            file 'file3.txt'
+        }
+
+        run 'copy'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":copy")
+        // Copy (intentionally) leaves stuff behind
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
     }
 
     def cannotCreateAnEmptyTar() {
@@ -85,6 +119,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
                 file 'file2.xml'
             }
         }
+
         and:
         buildFile << '''
             task copy(type: Copy) {
@@ -95,8 +130,40 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 '''
         when:
         run 'copy'
+
         then:
+        result.assertTaskExecuted(":copy")
         file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
+
+        when:
+        createTar('test.tar') {
+            subdir1 {
+                file 'file1.txt'
+            }
+            subdir2 {
+                file 'file2.xml'
+            }
+            file 'file3.txt'
+        }
+
+        run 'copy'
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":copy")
+        // Copy (intentionally) leaves stuff behind
+        file('dest').assertHasDescendants('subdir1/file1.txt', 'subdir2/file2.txt', 'file3.txt')
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTasksSkipped(":copy")
     }
 
     def "handles gzip compressed tars"() {
@@ -695,7 +762,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << archiveTaskWithDuplicates(archiveType)
 
         expect:
-        executer.expectDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths.')
+        executer.expectDocumentedDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. ' +
+            'Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths. ' +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
         succeeds 'archive'
 
         where:
@@ -777,13 +846,13 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         class TaskWithAutomaticDependency extends DefaultTask {
             @InputFile
             final RegularFileProperty inputFile = project.objects.fileProperty()
-            
+
             @TaskAction
             void doNothing() {
                 // does nothing
             }
         }
-        
+
         task tar(type: Tar) {
             from 'dir1'
             archiveBaseName = "test"
@@ -801,6 +870,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle#1108")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*includeEmptyDirs=true.*")
     def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
         Assume.assumeFalse("This test case is not implemented when includeEmptyDirs=true", includeEmptyDirs)
 
@@ -864,20 +934,22 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file(archiveFile).assertExists()
 
         where:
-        taskType | prop | archiveFile
-        "Zip"    | "version"   | "build/distributions/archive.zip"
-        "Jar"    | "version"   | "build/libs/archive.jar"
-        "Tar"    | "version"   | "build/distributions/archive.tar"
+        taskType | prop       | archiveFile
+        "Zip"    | "version"  | "build/distributions/archive.zip"
+        "Jar"    | "version"  | "build/libs/archive.jar"
+        "Tar"    | "version"  | "build/distributions/archive.tar"
 
-        "Zip"    | "baseName"   | "build/distributions/1.0.zip"
-        "Jar"    | "baseName"   | "build/libs/1.0.jar"
-        "Tar"    | "baseName"   | "build/distributions/1.0.tar"
+        "Zip"    | "baseName" | "build/distributions/1.0.zip"
+        "Jar"    | "baseName" | "build/libs/1.0.jar"
+        "Tar"    | "baseName" | "build/distributions/1.0.tar"
 
     }
 
     private def createTar(String name, Closure cl) {
         TestFile tarRoot = file("${name}.root")
+        tarRoot.deleteDir()
         TestFile tar = file(name)
+        tar.delete()
         tarRoot.create(cl)
         tarRoot.tarTo(tar)
     }

@@ -16,22 +16,24 @@
 
 package org.gradle.composite.internal
 
-
+import org.gradle.api.GradleException
+import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
-import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.initialization.GradleLauncher
 import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.initialization.NestedBuildFactory
+import org.gradle.internal.Actions
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.IncludedBuildState
 import org.gradle.internal.build.RootBuildState
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.service.scopes.BuildTreeScopeServices
-import org.gradle.plugin.management.internal.DefaultPluginRequests
+import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
 import org.junit.Rule
@@ -41,7 +43,7 @@ class DefaultIncludedBuildRegistryTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
     def includedBuildFactory = Stub(IncludedBuildFactory)
-    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(ProjectStateRegistry), Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(BuildTreeScopeServices))
+    def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(BuildTreeScopeServices))
 
     def "is empty by default"() {
         expect:
@@ -107,24 +109,21 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         def dir1 = tmpDir.createDir("b1")
         def dir2 = tmpDir.createDir("other/b1")
         def dir3 = tmpDir.createDir("other2/b1")
-        def buildDefinition1 = build(dir1)
-        def buildDefinition2 = build(dir2)
-        def buildDefinition3 = build(dir3)
-        def includedBuild1 = Stub(IncludedBuildState)
-        def includedBuild2 = Stub(IncludedBuildState)
-        def includedBuild3 = Stub(IncludedBuildState)
-
-        // This just demonstrates existing behaviour, not necessarily desired behaviour
+        def buildDefinition1 = build(dir1, "b1")
+        def buildDefinition2 = build(dir2, "b2")
+        def buildDefinition3 = build(dir3, "b3")
         def id1 = new DefaultBuildIdentifier("b1")
-        def id2 = new DefaultBuildIdentifier("b1:1")
-        def id3 = new DefaultBuildIdentifier("b1:2")
-        includedBuild1.buildIdentifier >> id1
-        includedBuild2.buildIdentifier >> id2
-        includedBuild3.buildIdentifier >> id3
-
+        def id2 = new DefaultBuildIdentifier("b2")
+        def id3 = new DefaultBuildIdentifier("b3")
         def idPath1 = Path.path(":b1")
-        def idPath2 = Path.path(":b1:1")
-        def idPath3 = Path.path(":b1:2")
+        def idPath2 = Path.path(":b2")
+        def idPath3 = Path.path(":b3")
+        def includedBuild1 = Stub(IncludedBuildState) { getBuildIdentifier() >> id1 }
+        def includedBuild2 = Stub(IncludedBuildState) { getBuildIdentifier() >> id2 }
+        def includedBuild3 = Stub(IncludedBuildState) { getBuildIdentifier() >> id3 }
+        includedBuild1.identityPath >> idPath1
+        includedBuild2.identityPath >> idPath2
+        includedBuild3.identityPath >> idPath3
 
         given:
         registry.attachRootBuild(rootBuild())
@@ -173,89 +172,101 @@ class DefaultIncludedBuildRegistryTest extends Specification {
         registry.includedBuilds as List == [includedBuild]
     }
 
-    def "can add a nested build"() {
+    def "can add a buildSrc nested build"() {
         given:
         def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "nested"
+        buildDefinition.name >> "buildSrc"
+        registry.attachRootBuild(rootBuild())
+        def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
         expect:
-        def nestedBuild = registry.addNestedBuild(buildDefinition, Stub(BuildState))
+        def nestedBuild = registry.addBuildSrcNestedBuild(buildDefinition, owner)
         nestedBuild.implicitBuild
-        nestedBuild.buildIdentifier == new DefaultBuildIdentifier("nested")
-        nestedBuild.identityPath == Path.path(":nested")
+        nestedBuild.buildIdentifier == new DefaultBuildIdentifier("buildSrc")
+        nestedBuild.identityPath == Path.path(":buildSrc")
 
         registry.getBuild(nestedBuild.buildIdentifier).is(nestedBuild)
     }
 
-    def "can add multiple nested builds with same name"() {
+    def "cannot add multiple buildSrc nested builds with same name"() {
         given:
         def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "nested"
+        buildDefinition.name >> "buildSrc"
+        registry.attachRootBuild(rootBuild())
+        def owner = Stub(BuildState) { getIdentityPath() >> Path.ROOT }
 
-        expect:
-        def nestedBuild1 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
-        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
-        nestedBuild1.identityPath == Path.path(":nested")
+        when:
+        registry.addBuildSrcNestedBuild(buildDefinition, owner)
+        registry.addBuildSrcNestedBuild(buildDefinition, owner)
 
-        def nestedBuild2 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
-        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
-        nestedBuild2.identityPath == Path.path(":nested:1")
-
-        def nestedBuild3 = registry.addNestedBuild(buildDefinition, Stub(BuildState))
-        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
-        nestedBuild3.identityPath == Path.path(":nested:2")
+        then:
+        thrown GradleException
     }
 
-    def "can add multiple nested builds with same name and different levels of nesting"() {
+    def "can add multiple buildSrc nested builds with same name and different levels of nesting"() {
         given:
         def rootBuild = rootBuild()
         registry.attachRootBuild(rootBuild)
 
         def parent1Definition = Stub(BuildDefinition)
         parent1Definition.name >> "parent"
-        def parent1 = registry.addNestedBuild(parent1Definition, rootBuild)
+        def parent1 = registry.addIncludedBuild(parent1Definition)
 
         def buildDefinition = Stub(BuildDefinition)
-        buildDefinition.name >> "nested"
+        buildDefinition.name >> "buildSrc"
+        buildDefinition.buildRootDir >> new File("d")
 
         expect:
-        def nestedBuild1 = registry.addNestedBuild(buildDefinition, rootBuild)
-        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("nested")
-        nestedBuild1.identityPath == Path.path(":nested")
+        def nestedBuild1 = registry.addBuildSrcNestedBuild(buildDefinition, rootBuild)
+        nestedBuild1.buildIdentifier == new DefaultBuildIdentifier("buildSrc")
+        nestedBuild1.identityPath == Path.path(":buildSrc")
 
-        def nestedBuild2 = registry.addNestedBuild(buildDefinition, parent1)
-        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("nested:1")
+        def nestedBuild2 = registry.addBuildSrcNestedBuild(buildDefinition, parent1)
         // Shows current behaviour, not necessarily desired behaviour
-        nestedBuild2.identityPath == Path.path(":parent:nested:1")
+        nestedBuild2.buildIdentifier == new DefaultBuildIdentifier("buildSrc:1")
+        nestedBuild2.identityPath == Path.path(":parent:buildSrc")
 
-        def nestedBuild3 = registry.addNestedBuild(buildDefinition, nestedBuild1)
-        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("nested:2")
-        nestedBuild3.identityPath == Path.path(":nested:nested:2")
-
-        def nestedBuild4 = registry.addNestedBuild(buildDefinition, parent1)
-        nestedBuild4.buildIdentifier == new DefaultBuildIdentifier("nested:3")
-        nestedBuild4.identityPath == Path.path(":parent:nested:3")
+        def nestedBuild3 = registry.addBuildSrcNestedBuild(buildDefinition, nestedBuild1)
+        nestedBuild3.buildIdentifier == new DefaultBuildIdentifier("buildSrc:2")
+        nestedBuild3.identityPath == Path.path(":buildSrc:buildSrc")
     }
 
-    def build(File rootDir) {
-        return BuildDefinition.fromStartParameterForBuild(StartParameterInternal.getConstructor().newInstance(), null, rootDir, DefaultPluginRequests.EMPTY, null)
+    def build(File rootDir, String name = rootDir.name) {
+        return BuildDefinition.fromStartParameterForBuild(
+            StartParameterInternal.getConstructor().newInstance(),
+            name,
+            rootDir,
+            PluginRequests.EMPTY,
+            Actions.doNothing(),
+            null
+        )
     }
 
-    def rootBuild() {
+    RootBuildState rootBuild(String... projects) {
         def nestedBuildFactory = Stub(NestedBuildFactory)
         def gradleLauncher = Stub(GradleLauncher)
         def gradle = Stub(GradleInternal)
+        def settings = Stub(SettingsInternal)
         def services = Stub(ServiceRegistry)
 
         nestedBuildFactory.nestedInstance(_, _) >> gradleLauncher
         gradleLauncher.gradle >> gradle
         gradle.services >> services
+        gradle.settings >> settings
+        settings.rootProject >> Stub(ProjectDescriptor) {
+            getName() >> "root"
+        }
+        settings.findProject(_) >> {
+            it[0] in projects ? Stub(ProjectDescriptor) : null
+        }
+
         services.get(NestedBuildFactory) >> nestedBuildFactory
 
         def build = Stub(RootBuildState)
         build.buildIdentifier >> DefaultBuildIdentifier.ROOT
         build.identityPath >> Path.ROOT
         build.nestedBuildFactory >> nestedBuildFactory
+        build.loadedSettings >> settings
         return build
     }
 }

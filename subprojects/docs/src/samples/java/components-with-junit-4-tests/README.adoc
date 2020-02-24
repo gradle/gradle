@@ -1,0 +1,31 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to test Java projects with link:https://junit.org/junit4/[JUnit4] in Gradle.
+
+For applications:
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+For libraries:
+
+====
+include::sample[dir="groovy",files="list/build.gradle[]"]
+include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
+====
+
+Running the tests:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew test
+
+BUILD SUCCESSFUL
+5 actionable tasks: 5 executed
+----
+
+For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:java_application[`gradle init`].

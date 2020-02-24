@@ -33,8 +33,8 @@ This rule implementation can be neatly encapsulated in a corporate plugin, and s
 
 .Using a custom versioning scheme
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=custom-versioning-scheme]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=custom-versioning-scheme]"]
 ====
 
 [[sec:blacklisting_version]]
@@ -51,8 +51,8 @@ This means that the 'newest' conflict resolution strategy would still select ver
 
 .Example: Blacklisting a version with a replacement
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/resolutionStrategy/groovy",files="build.gradle[tags=blacklisting_version]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/resolutionStrategy/kotlin",files="build.gradle.kts[tags=blacklisting_version]"]
 ====
 
 [NOTE]
@@ -93,8 +93,8 @@ This enables organisations to include the information about module replacement i
 
 .Declaring a module replacement
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/replacementRule/groovy",files="build.gradle[tags=module_replacement_declaration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/replacementRule/kotlin",files="build.gradle.kts[tags=module_replacement_declaration]"]
 ====
 
 For more examples and detailed API, refer to the DSL reference for link:{javadocPath}/org/gradle/api/artifacts/dsl/ComponentMetadataHandler.html[ComponentMetadataHandler].
@@ -142,8 +142,8 @@ The module to be replaced can be declared with or without a version specified.
 
 .Substituting a module with a project
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=module_to_project_substitution]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=module_to_project_substitution]"]
 ====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
@@ -159,8 +159,8 @@ The module to be used as a replacement must be declared with a version specified
 
 .Substituting a project with a module
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/substitutionRule/groovy",files="build.gradle[tags=project_to_module_substitution]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/substitutionRule/kotlin",files="build.gradle.kts[tags=project_to_module_substitution]"]
 ====
 
 When a project dependency has been replaced with a module dependency, that project is still included in the overall multi-project build.
@@ -176,8 +176,8 @@ The following example uses a dependency substitution rule to replace any module 
 
 .Conditionally substituting a dependency
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/groovy",files="build.gradle[tags=project_substitution]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/groovy",files="build.gradle[tags=project_substitution]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule/kotlin",files="build.gradle.kts[tags=project_substitution]"]
 ====
 
 Note that a project that is substituted must be included in the multi-project build (via `settings.gradle`).
@@ -193,8 +193,8 @@ As a result only the main artifact will be resolved for the declared dependency.
 
 .Disabling transitive dependency resolution for a declared dependency
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/groovy",files="build.gradle[tags=transitive-per-dependency]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/disableForDependency/kotlin",files="build.gradle.kts[tags=transitive-per-dependency]"]
 ====
 
 [NOTE]
@@ -208,8 +208,8 @@ For more information, see link:{javadocPath}/org/gradle/api/artifacts/Configurat
 
 .Disabling transitive dependency resolution on the configuration-level
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/groovy",files="build.gradle[tags=transitive-per-configuration]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/disableForConfiguration/kotlin",files="build.gradle.kts[tags=transitive-per-configuration]"]
 ====
 
 == Changing configuration dependencies prior to resolution
@@ -219,8 +219,8 @@ The `withDependencies` method permits dependencies to be added, removed or modif
 
 .Modifying dependencies on a configuration
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/withDependencies/groovy",files="build.gradle[tags=configuration-with-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/withDependencies/kotlin",files="build.gradle.kts[tags=configuration-with-dependencies]"]
 ====
 
 [[sec:configuration_defaults]]
@@ -232,8 +232,8 @@ By specifying default dependencies, the plugin can use a default version of the 
 
 .Specifying default dependencies on a configuration
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/defaultDependency/groovy",files="build.gradle[tags=configuration-default-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/defaultDependency/kotlin",files="build.gradle.kts[tags=configuration-default-dependencies]"]
 ====
 
 == Excluding a dependency from a configuration completely
@@ -243,8 +243,8 @@ This will automatically exclude the transitive dependency for all dependencies d
 
 .Excluding transitive dependency for a particular configuration
 ====
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/groovy",files="build.gradle[tags=exclude-transitive-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/managingTransitiveDependencies/excludeForConfiguration/kotlin",files="build.gradle.kts[tags=exclude-transitive-dependencies]"]
 ====
 
 == Matching dependencies to repositories
@@ -269,6 +269,6 @@ It is not available for Maven repositories, or custom Ivy `DependencyResolver` i
 
 .Enabling dynamic resolve mode
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/ivyDynamicMode/groovy",files="build.gradle[tags=ivy-repo-dynamic-mode]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/ivyDynamicMode/kotlin",files="build.gradle.kts[tags=ivy-repo-dynamic-mode]"]
 ====

@@ -16,11 +16,12 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.execution.taskgraph.NotifyTaskGraphWhenReadyBuildOperationType
 import org.gradle.initialization.ConfigureBuildBuildOperationType
 import org.gradle.initialization.LoadBuildBuildOperationType
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
-import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationType
 import org.gradle.internal.operations.trace.BuildOperationRecord
 import org.gradle.internal.taskgraph.CalculateTaskGraphBuildOperationType
 import org.gradle.launcher.exec.RunBuildBuildOperationType
@@ -42,6 +43,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         includedBuilds << buildB
     }
 
+    @ToBeFixedForInstantExecution
     def "generates build operations for tasks in included builds"() {
         given:
         dependency 'org.test:buildB:1.0'
@@ -64,9 +66,10 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "generates build lifecycle operations for included builds with #display"() {
         given:
-        dependency "org.test:${buildName}:1.0"
+        dependency "org.test:${dependencyName}:1.0"
 
         buildB.settingsFile << settings << "\n"
 
@@ -84,7 +87,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildB)"
+        loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":${buildName}"
         loadOps[1].parentId == loadOps[0].id
 
@@ -123,11 +126,12 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         graphNotifyOps[1].parentId == runTasksOps[1].id
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildB"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildB"  | "buildB"       | "default root project name"
+        "rootProject.name='someLib'" | "buildB"  | "someLib"      | "configured root project name"
     }
 
+    @ToBeFixedForInstantExecution
     def "generates build lifecycle operations for included build used as buildscript and production dependency"() {
         given:
         buildA.buildFile.text = """
@@ -153,7 +157,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
         loadOps[0].displayName == "Load build"
         loadOps[0].details.buildPath == ":"
         loadOps[0].parentId == root.id
-        loadOps[1].displayName == "Load build (buildB)"
+        loadOps[1].displayName == "Load build (:buildB)"
         loadOps[1].details.buildPath == ":buildB"
         loadOps[1].parentId == loadOps[0].id
 
@@ -202,7 +206,7 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
     def assertChildrenNotIn(BuildOperationRecord origin, BuildOperationRecord op, List<BuildOperationRecord> allOps) {
         for (BuildOperationRecord child : op.children) {
-            assert !allOps.contains(child) : "Task operation $origin has child $child which is also a task operation"
+            assert !allOps.contains(child): "Task operation $origin has child $child which is also a task operation"
             assertChildrenNotIn(origin, child, allOps)
         }
     }

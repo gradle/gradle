@@ -17,6 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Matchers
 import spock.lang.Issue
 
@@ -75,6 +76,7 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
     // We need to make sure that the build operation ids of nested builds started by a GradleBuild task do not overlap.
     // Since we currently have no specific scope for "one build and the builds it started via GradleBuild tasks", we use the global scope.
     @Issue("https://github.com/gradle/gradle/issues/2622")
+    @ToBeFixedForInstantExecution
     def "build operations have unique ids within the global scope"() {
         when:
         settingsFile << ""
@@ -94,6 +96,7 @@ class BuildOperationExecutorIntegrationTest extends AbstractIntegrationSpec {
             task build2(type: GradleBuild) {
                 tasks = ['checkOpId']
                 startParameter.projectProperties = [resultFile: 'build2result.txt']
+                buildName = 'changed'
             }
         """
         succeeds "build1", "build2"

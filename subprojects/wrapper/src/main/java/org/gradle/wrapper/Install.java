@@ -101,14 +101,19 @@ public class Install {
         throws Exception {
         MessageDigest md = MessageDigest.getInstance("SHA-256");
         InputStream fis = new FileInputStream(file);
-        int n = 0;
-        byte[] buffer = new byte[4096];
-        while (n != -1) {
-            n = fis.read(buffer);
-            if (n > 0) {
-                md.update(buffer, 0, n);
+        try {
+            int n = 0;
+            byte[] buffer = new byte[4096];
+            while (n != -1) {
+                n = fis.read(buffer);
+                if (n > 0) {
+                    md.update(buffer, 0, n);
+                }
             }
+        } finally {
+            fis.close();
         }
+
         byte byteData[] = md.digest();
 
         StringBuffer hexString = new StringBuffer();
@@ -157,8 +162,7 @@ public class Install {
                         + "  Actual checksum: '%s'%n",
                     sourceUrl, localZipFile.getAbsolutePath(), expectedSum, actualSum
                 );
-                System.err.println(message);
-                System.exit(1);
+                throw new RuntimeException(message);
             }
         }
     }

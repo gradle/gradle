@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultLenientConfiguration;
@@ -31,10 +32,13 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.resources.ResourceLock;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.io.File;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -62,6 +66,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         this.buildOperationExecutor = buildOperationExecutor;
         this.transformListener = transformListener;
     }
+
+    public abstract ResolvableArtifact getInputArtifact();
 
     @Nullable
     @Override
@@ -109,7 +115,6 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         return Collections.emptySet();
     }
 
-
     @Override
     public void prepareForExecution() {
     }
@@ -119,6 +124,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
     public Project getProjectToLock() {
         // Transforms do not require project state
         return null;
+    }
+
+    @Override
+    public List<ResourceLock> getResourcesToLock() {
+        return Collections.emptyList();
     }
 
     @Override
@@ -160,7 +170,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.artifact = artifact;
         }
 
-        public ResolvableArtifact getArtifact() {
+        @Override
+        public ResolvableArtifact getInputArtifact() {
             return artifact;
         }
 
@@ -205,6 +216,11 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
             this.previousTransformationNode = previousTransformationNode;
         }
 
+        @Override
+        public ResolvableArtifact getInputArtifact() {
+            return previousTransformationNode.getInputArtifact();
+        }
+
         public TransformationNode getPreviousTransformationNode() {
             return previousTransformationNode;
         }
@@ -221,8 +237,8 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
                 @Override
                 protected String describeSubject() {
                     return previousTransformationNode.getTransformedSubject()
-                        .map(subject -> subject.getDisplayName())
-                        .getOrMapFailure(failure -> failure.getMessage());
+                        .map(Describable::getDisplayName)
+                        .getOrMapFailure(Throwable::getMessage);
                 }
             });
         }
@@ -238,13 +254,16 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
 
     private abstract class ArtifactTransformationStepBuildOperation implements CallableBuildOperation<Try<TransformationSubject>> {
 
+        @UsedByScanPlugin("The string is used for filtering out artifact transform logs in Gradle Enterprise")
+        private static final String TRANSFORMING_PROGRESS_PREFIX = "Transforming ";
+
         @Override
         public final BuildOperationDescriptor.Builder description() {
             String transformerName = transformationStep.getDisplayName();
             String subjectName = describeSubject();
             String basicName = subjectName + " with " + transformerName;
             return BuildOperationDescriptor.displayName("Transform " + basicName)
-                .progressDisplayName("Transforming " + basicName)
+                .progressDisplayName(TRANSFORMING_PROGRESS_PREFIX + basicName)
                 .operationType(BuildOperationCategory.TRANSFORM)
                 .details(new ExecuteScheduledTransformationStepBuildOperationDetails(TransformationNode.this, transformerName, subjectName));
         }
@@ -255,7 +274,7 @@ public abstract class TransformationNode extends Node implements SelfExecutingNo
         public Try<TransformationSubject> call(BuildOperationContext context) {
             Try<TransformationSubject> transformedSubject = transform();
             context.setResult(ExecuteScheduledTransformationStepBuildOperationType.RESULT);
-            transformedSubject.getFailure().ifPresent(failure -> context.failed(failure));
+            transformedSubject.getFailure().ifPresent(context::failed);
             return transformedSubject;
         }
 

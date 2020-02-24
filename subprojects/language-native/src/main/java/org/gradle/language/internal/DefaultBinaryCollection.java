@@ -20,8 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.component.SoftwareComponent;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
-import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.language.BinaryCollection;
@@ -43,23 +42,21 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
     }
 
     private final Class<T> elementType;
-    private final ProviderFactory providerFactory;
-    private final Set<T> elements = new LinkedHashSet<T>();
-    private List<SingleElementProvider<?>> pending = new LinkedList<SingleElementProvider<?>>();
+    private final Set<T> elements = new LinkedHashSet<>();
+    private List<SingleElementProvider<?>> pending = new LinkedList<>();
     private State state = State.Collecting;
     private ImmutableActionSet<T> knownActions = ImmutableActionSet.empty();
     private ImmutableActionSet<T> configureActions = ImmutableActionSet.empty();
     private ImmutableActionSet<T> finalizeActions = ImmutableActionSet.empty();
 
     @Inject
-    public DefaultBinaryCollection(Class<T> elementType, ProviderFactory providerFactory) {
+    public DefaultBinaryCollection(Class<T> elementType) {
         this.elementType = elementType;
-        this.providerFactory = providerFactory;
     }
 
     @Override
     public <S> BinaryProvider<S> get(final Class<S> type, final Spec<? super S> spec) {
-        SingleElementProvider<S> provider = new SingleElementProvider<S>(type, spec);
+        SingleElementProvider<S> provider = new SingleElementProvider<>(type, spec);
         if (state == State.Collecting) {
             pending.add(provider);
         } else {
@@ -70,12 +67,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public BinaryProvider<T> getByName(final String name) {
-        return get(elementType, new Spec<T>() {
-            @Override
-            public boolean isSatisfiedBy(T element) {
-                return element.getName().equals(name);
-            }
-        });
+        return get(elementType, element -> element.getName().equals(name));
     }
 
     @Override
@@ -93,7 +85,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> void whenElementKnown(final Class<S> type, final Action<? super S> action) {
-        whenElementKnown(new TypeFilteringAction<T, S>(type, action));
+        whenElementKnown(new TypeFilteringAction<>(type, action));
     }
 
     @Override
@@ -109,7 +101,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> void whenElementFinalized(Class<S> type, Action<? super S> action) {
-        whenElementFinalized(new TypeFilteringAction<T, S>(type, action));
+        whenElementFinalized(new TypeFilteringAction<>(type, action));
     }
 
     @Override
@@ -122,7 +114,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
     @Override
     public <S> void configureEach(Class<S> type, Action<? super S> action) {
-        configureEach(new TypeFilteringAction<T, S>(type, action));
+        configureEach(new TypeFilteringAction<>(type, action));
     }
 
     public void add(T element) {
@@ -170,7 +162,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         return ImmutableSet.copyOf(elements);
     }
 
-    private class SingleElementProvider<S> extends AbstractReadOnlyProvider<S> implements BinaryProvider<S> {
+    private class SingleElementProvider<S> extends AbstractMinimalProvider<S> implements BinaryProvider<S> {
         private final Class<S> type;
         private Spec<? super S> spec;
         private S match;
@@ -203,40 +195,33 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
 
         // Mix in some Groovy DSL support. Should decorate instead
         public void configure(Closure<?> closure) {
-            configure(ConfigureUtil.<S>configureUsing(closure));
+            configure(ConfigureUtil.configureUsing(closure));
         }
 
         @Override
         public void configure(final Action<? super S> action) {
-            configureEach(new Action<T>() {
-                @Override
-                public void execute(T t) {
-                    if (match == t) {
-                        action.execute(match);
-                    }
+            configureEach(t -> {
+                if (match == t) {
+                    action.execute(match);
                 }
             });
         }
 
         @Override
         public void whenFinalized(final Action<? super S> action) {
-            whenElementFinalized(new Action<T>() {
-                @Override
-                public void execute(T t) {
-                    if (match == t) {
-                        action.execute(match);
-                    }
+            whenElementFinalized(t -> {
+                if (match == t) {
+                    action.execute(match);
                 }
             });
         }
 
-        @Nullable
         @Override
-        public S getOrNull() {
+        protected Value<S> calculateOwnValue() {
             if (ambiguous) {
                 throw new IllegalStateException("Found multiple elements");
             }
-            return match;
+            return Value.ofNullable(match);
         }
     }
 

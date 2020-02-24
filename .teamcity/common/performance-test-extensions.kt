@@ -17,8 +17,8 @@
 package common
 
 import configurations.buildJavaHome
-import configurations.coordinatorPerformanceTestJavaHome
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import configurations.individualPerformanceTestJavaHome
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30) {
     applyDefaultSettings(os = os, timeout = timeout)
@@ -31,19 +31,18 @@ fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30)
     }
     params {
         param("env.GRADLE_OPTS", "-Xmx1536m -XX:MaxPermSize=384m")
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome(os))
         param("env.BUILD_BRANCH", "%teamcity.build.branch%")
-        param("performance.db.url", "jdbc:h2:ssl://metrics.gradle.org:9094")
         param("performance.db.username", "tcagent")
     }
 }
 
-fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = coordinatorPerformanceTestJavaHome) = listOf(
+fun performanceTestCommandLine(task: String, baselines: String, extraParameters: String = "", testJavaHome: String = individualPerformanceTestJavaHome(Os.linux)) = listOf(
         "$task --baselines $baselines $extraParameters",
         "-x prepareSamples",
         "-Porg.gradle.performance.branchName=%teamcity.build.branch%",
         "-Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
-        "-PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot%",
+        "-PteamCityToken=%teamcity.user.bot-gradle.token%",
         "-PtestJavaHome=$testJavaHome"
 )
 

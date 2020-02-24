@@ -17,12 +17,11 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.expectDeprecationWarning()
-
         mavenRepo.module("module", "foo", '1.0').publish()
 
         buildFile << """
@@ -65,10 +64,12 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'help'
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
+            "Please use the implementation configuration instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
-        outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+        succeeds 'help'
     }
 
     def "warn if a dependency constraint is declared on a deprecated configuration"() {
@@ -82,10 +83,12 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'help'
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
+            "Please use the implementation configuration instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
-        outputContains "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+        succeeds 'help'
     }
 
     def "warn if an artifact is declared on a configuration that is fully deprecated"() {
@@ -97,10 +100,12 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'help'
+        executer.expectDocumentedDeprecationWarning("The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 7.0. " +
+            "Please use the implementation or compileElements configuration instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
-        outputContains "The compile configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 7.0. Please use the implementation or compileElements configuration instead."
+        succeeds 'help'
     }
 
     def "warn if a deprecated configuration is resolved"() {
@@ -114,10 +119,12 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds 'resolve'
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. " +
+            "Please resolve the compileClasspath configuration instead. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
 
         then:
-        outputContains "The compileOnly configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. Please resolve the compileClasspath configuration instead."
+        succeeds 'resolve'
     }
 
     def "warn if a deprecated project configuration is consumed"() {
@@ -128,7 +135,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     implementation project(path: ':a', configuration: 'compileOnly')
                 }
-                
+
                 task resolve {
                     doLast {
                         configurations.compileClasspath.files
@@ -138,12 +145,15 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds ':b:resolve'
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
+            "Please use attributes to consume the compileElements configuration instead. " +
+            "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
 
         then:
-        outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the compileElements configuration instead."
+        succeeds ':b:resolve'
     }
 
+    @ToBeFixedForInstantExecution
     def "warn if a deprecated project configuration is consumed directly"() {
         // this is testing legacy code that we can/should probably get rid of
         given:
@@ -153,7 +163,7 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
                 dependencies {
                     implementation project(path: ':a', configuration: 'compileOnly')
                 }
-                
+
                 task resolve {
                     doLast {
                         configurations.implementation.dependencies[0].resolve()
@@ -163,9 +173,11 @@ class DeprecatedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        succeeds ':b:resolve', ':b:dependencies'
+        executer.expectDocumentedDeprecationWarning("The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. " +
+            "Please use attributes to consume the compileElements configuration instead. " +
+            "See https://docs.gradle.org/current/userguide/java_library_plugin.html#sec:java_library_configurations_graph for more details.")
 
         then:
-        outputContains "The compileOnly configuration has been deprecated for consumption. This will fail with an error in Gradle 7.0. Please use attributes to consume the compileElements configuration instead."
+        succeeds ':b:resolve', ':b:dependencies'
     }
 }

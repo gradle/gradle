@@ -23,11 +23,11 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 configurations.all {
     artifacts.clear()
 }
-//tasks.remove(jar)
 
+def baseVersion = rootProject.buildVersion.baseVersion
 tasks.withType(AbstractArchiveTask).configureEach {
-    baseName "gradle"
-    version = baseVersion
+    archiveBaseName = "gradle"
+    archiveVersion = baseVersion
 
     // The CI server looks for the distributions at this location
     destinationDirectory.set(rootProject.layout.buildDirectory.dir(rootProject.distsDirName))
@@ -72,9 +72,16 @@ configurations {
     }
 
     minimalRuntime {
+        visible = false
+        canBeResolved = false
         canBeConsumed = true
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.runtime", String), "minimal")
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling, Bundling.EXTERNAL))
+            attribute(Attribute.of("org.gradle.runtime", String), "minimal")
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        }
     }
 }
 
@@ -84,7 +91,7 @@ dependencies {
     minimalRuntime(project(":platformJvm"))
 
     testImplementation(testFixtures(project(":core")))
-    
+
     integTestImplementation(project(":baseServices"))
     integTestImplementation(project(":logging"))
     integTestImplementation(project(":coreApi"))
@@ -127,11 +134,15 @@ ext {
         }
         into('docs') {
             from configurations.gradleFullDocs
+            exclude "samples/**"
         }
-        into('samples') {
-            from configurations.gradleSamples
-            exclude '**/*.out'
-            exclude '**/*.sample.conf*'
+    }
+
+    docsDistImage = copySpec {
+        from("$rootDir/LICENSE")
+        from('src/toplevel')
+        into('docs') {
+            from configurations.gradleFullDocs
         }
     }
 }
@@ -178,6 +189,17 @@ def srcZip = tasks.register("srcZip", Zip) {
             exclude '**/.gradle/'
         }
     }
+}
+
+def docsZip = tasks.register("docsZip", Zip) {
+    archiveClassifier.set('docs')
+    into(zipRootFolder) {
+        with docsDistImage
+    }
+}
+
+tasks.register("buildDists") {
+    dependsOn(allZip, binZip, srcZip, docsZip)
 }
 
 tasks.register("outputsZip", Zip) {

@@ -20,17 +20,18 @@ import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.cache.internal.MinimalPersistentCache;
 import org.gradle.internal.Factory;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.FileSystemSnapshotter;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.vfs.VirtualFileSystem;
 
 import java.io.File;
 
 public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapshotCache {
-    private final FileSystemSnapshotter fileSystemSnapshotter;
+    private final VirtualFileSystem virtualFileSystem;
     private final MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData> cache;
 
-    public DefaultClasspathEntrySnapshotCache(FileSystemSnapshotter fileSystemSnapshotter, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
-        this.fileSystemSnapshotter = fileSystemSnapshotter;
-        cache = new MinimalPersistentCache<HashCode, ClasspathEntrySnapshotData>(persistentCache);
+    public DefaultClasspathEntrySnapshotCache(VirtualFileSystem virtualFileSystem, PersistentIndexedCache<HashCode, ClasspathEntrySnapshotData> persistentCache) {
+        this.virtualFileSystem = virtualFileSystem;
+        this.cache = new MinimalPersistentCache<>(persistentCache);
     }
 
     @Override
@@ -41,12 +42,10 @@ public class DefaultClasspathEntrySnapshotCache implements ClasspathEntrySnapsho
 
     @Override
     public ClasspathEntrySnapshot get(File key, final Factory<ClasspathEntrySnapshot> factory) {
-        HashCode fileContentHash = fileSystemSnapshotter.snapshot(key).getHash();
-        return new ClasspathEntrySnapshot(cache.get(fileContentHash, new Factory<ClasspathEntrySnapshotData>() {
-            @Override
-            public ClasspathEntrySnapshotData create() {
-                return factory.create().getData();
-            }
-        }));
+        HashCode fileContentHash = virtualFileSystem.read(
+            key.getAbsolutePath(),
+            CompleteFileSystemLocationSnapshot::getHash
+        );
+        return new ClasspathEntrySnapshot(cache.get(fileContentHash, () -> factory.create().getData()));
     }
 }

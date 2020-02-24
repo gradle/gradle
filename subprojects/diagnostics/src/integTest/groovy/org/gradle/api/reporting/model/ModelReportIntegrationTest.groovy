@@ -17,7 +17,9 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelReportIntegrationTest extends AbstractIntegrationSpec {
 
     def "displays basic structure of an empty project"() {
@@ -214,7 +216,7 @@ model {
     }
 
     // nb: specifically doesn't use the parsing fixture, so that the output is visualised
-    //If you're changing this you will also need to change: src/samples/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
+    //If you're changing this you will also need to change: src/snippets/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out
     def "displays a report in the correct format"() {
         given:
         buildFile << """

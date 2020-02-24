@@ -250,7 +250,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/main/resources'))
         set.compileClasspath.is(project.configurations.compileClasspath)
         set.annotationProcessorPath.is(project.configurations.annotationProcessor)
-        set.java.outputDir == new File(project.buildDir, 'classes/java/main')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/main'))
         set.output.resourcesDir == new File(project.buildDir, 'resources/main')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.CLASSES_TASK_NAME ]
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/main'))
@@ -267,7 +267,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.compileClasspath.sourceCollections.contains(project.configurations.testCompileClasspath)
         set.compileClasspath.contains(new File(project.buildDir, 'classes/java/main'))
         set.annotationProcessorPath.is(project.configurations.testAnnotationProcessor)
-        set.java.outputDir == new File(project.buildDir, 'classes/java/test')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/test'))
         set.output.resourcesDir == new File(project.buildDir, 'resources/test')
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ JavaPlugin.TEST_CLASSES_TASK_NAME ]
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/test'))
@@ -289,7 +289,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
         set.compileClasspath.is(project.configurations.customCompileClasspath)
         set.annotationProcessorPath.is(project.configurations.customAnnotationProcessor)
-        set.java.outputDir == new File(project.buildDir, 'classes/java/custom')
+        set.java.destinationDirectory.set(new File(project.buildDir, 'classes/java/custom'))
         set.getOutput().getBuildDependencies().getDependencies(null)*.name == [ 'customClasses' ]
         set.output.generatedSourcesDirs.files == toLinkedSet(new File(project.buildDir, 'generated/sources/annotationProcessor/java/custom'))
         set.output.generatedSourcesDirs.buildDependencies.getDependencies(null)*.name == [ 'compileCustomJava' ]
@@ -321,8 +321,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
-        task.options.annotationProcessorGeneratedSourcesDirectory == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
-        task.destinationDir == project.sourceSets.main.java.outputDir
+        task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
+        task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
+        task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
+        task.destinationDir == project.sourceSets.main.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.main.java.files
 
         when:
@@ -349,8 +351,10 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
-        task.options.annotationProcessorGeneratedSourcesDirectory == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
-        task.destinationDir == project.sourceSets.test.java.outputDir
+        task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
+        task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
+        task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
+        task.destinationDir == project.sourceSets.test.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.test.java.files
 
         when:
@@ -437,7 +441,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task instanceof org.gradle.api.tasks.testing.Test
         task dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME)
         task.classpath == project.sourceSets.test.runtimeClasspath
-        task.testClassesDirs.contains(project.sourceSets.test.java.outputDir)
+        task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
         task.workingDir == project.projectDir
     }
 
@@ -450,7 +454,7 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task.classpath == project.sourceSets.test.runtimeClasspath
-        task.testClassesDirs.contains(project.sourceSets.test.java.outputDir)
+        task.testClassesDirs.contains(project.sourceSets.test.java.destinationDirectory.get().asFile)
         task.workingDir == project.projectDir
         task.reports.junitXml.destination == new File(project.testResultsDir, 'customTest')
         task.reports.html.destination == new File(project.testReportDir, 'customTest')
@@ -469,10 +473,77 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         appProject.pluginManager.apply(JavaPlugin)
 
         appProject.dependencies {
-            compile middleProject
+            implementation middleProject
         }
         middleProject.dependencies {
-            compile commonProject
+            implementation commonProject
+        }
+
+        and:
+        def task = middleProject.tasks['buildNeeded']
+
+        then:
+        task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':common:buildNeeded'] as Set
+
+        when:
+        task = middleProject.tasks['buildDependents']
+
+        then:
+        task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set
+    }
+
+    def buildOtherProjectsWithCyclicDependencies() {
+        given:
+        def commonProject = TestUtil.createChildProject(project, "common")
+        def middleProject = TestUtil.createChildProject(project, "middle")
+        def appProject = TestUtil.createChildProject(project, "app")
+
+        when:
+        project.pluginManager.apply(JavaPlugin)
+        commonProject.pluginManager.apply(JavaPlugin)
+        commonProject.group = "group"
+        commonProject.extensions.configure(JavaPluginExtension) {
+            it.registerFeature("other") {
+                it.usingSourceSet(commonProject.sourceSets.main)
+            }
+        }
+        middleProject.pluginManager.apply(JavaPlugin)
+        middleProject.group = "group"
+        middleProject.extensions.configure(JavaPluginExtension) {
+            it.registerFeature("other") {
+                it.usingSourceSet(middleProject.sourceSets.main)
+            }
+        }
+        appProject.pluginManager.apply(JavaPlugin)
+        appProject.group = "group"
+        appProject.extensions.configure(JavaPluginExtension) {
+            it.registerFeature("other") {
+                it.usingSourceSet(appProject.sourceSets.main)
+            }
+        }
+
+        appProject.dependencies {
+            implementation middleProject
+            implementation(appProject) {
+                capabilities {
+                    requireCapability("group:appProject-other")
+                }
+            }
+        }
+        middleProject.dependencies {
+            implementation commonProject
+            implementation(middleProject) {
+                capabilities {
+                    requireCapability("group:middleProject-other")
+                }
+            }
+        }
+        commonProject.dependencies {
+            implementation(commonProject) {
+                capabilities {
+                    requireCapability("group:commonProject-other")
+                }
+            }
         }
 
         and:

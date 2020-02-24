@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -46,6 +47,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
     }
 
+    @ToBeFixedForInstantExecution
     def "exe"() {
         given:
         // Need to PATH to be set to find the 'strip' executable
@@ -68,6 +70,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         toolChain.resetEnvironment()
     }
 
+    @ToBeFixedForInstantExecution
     def "lib"() {
         given:
         sample cppLib
@@ -92,6 +95,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         staticLibrary(cppLib.dir.file("build/libs/main/static/main")).assertExists()
     }
 
+    @ToBeFixedForInstantExecution
     def flavors() {
         given:
         sample flavors
@@ -127,6 +131,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
+    @ToBeFixedForInstantExecution
     def variants() {
         given:
         sample variants
@@ -158,6 +163,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         releaseIA64.assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution
     def "tool chains"() {
         given:
         sample toolChains
@@ -169,6 +175,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
         executable(toolChains.dir.file("build/exe/main/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
+    @ToBeFixedForInstantExecution
     def multiProject() {
         given:
         sample multiProject
@@ -186,6 +193,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     }
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
+    @ToBeFixedForInstantExecution
     def "target platforms"() {
         assumeTrue(toolchainUnderTest.meets(SUPPORTS_32))
 
@@ -221,6 +229,7 @@ model {
         executable(targetPlatforms.dir.file("build/exe/main/sparc/main")).exec().out == "Hello from ${toolChain.typeDisplayName}!\n"
     }
 
+    @ToBeFixedForInstantExecution
     def prebuilt() {
         given:
         inDirectory(prebuilt.dir.file("3rd-party-lib/util"))
@@ -244,6 +253,7 @@ Util build type: RELEASE
 """
     }
 
+    @ToBeFixedForInstantExecution
     def sourcesetvariant() {
         given:
         sample sourcesetVariant

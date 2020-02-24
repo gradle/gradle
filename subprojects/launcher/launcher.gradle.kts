@@ -17,11 +17,13 @@ dependencies {
     implementation(project(":processServices"))
     implementation(project(":files"))
     implementation(project(":fileCollections"))
+    implementation(project(":snapshots"))
     implementation(project(":persistentCache"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
     implementation(project(":bootstrap"))
     implementation(project(":jvmServices"))
+    implementation(project(":buildEvents"))
     implementation(project(":toolingApi"))
 
     implementation(library("groovy")) // for 'ReleaseInfo.getVersion()'
@@ -66,39 +68,23 @@ dependencies {
     integTestRuntimeOnly(project(":languageNative")) {
         because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
-
-    testFixturesApi(project(":baseServices")) {
-        because("Test fixtures export the Action class")
-    }
-    testFixturesImplementation(project(":internalTesting"))
-    testFixturesImplementation(project(":internalIntegTesting"))
 }
 
-val availableJavaInstallations = rootProject.availableJavaInstallations
-
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
-val javaInstallationForTest = availableJavaInstallations.javaInstallationForTest
-if (!javaInstallationForTest.javaVersion.isJava9Compatible) {
-    dependencies {
-        integTestRuntime(files(javaInstallationForTest.toolsJar))
-    }
+val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
+dependencies {
+    integTestRuntimeOnly(files(toolsJar))
 }
 
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
-val configureJar by tasks.registering {
-    doLast {
-        val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
-            project(it).tasks.jar.get().archiveFile.get().asFile.name
-        }
-        tasks.jar.get().manifest.attributes("Class-Path" to classpath)
-    }
-}
-
 tasks.jar {
-    dependsOn(configureJar)
+    val classpath = listOf(":bootstrap", ":baseServices", ":coreApi", ":core").joinToString(" ") {
+        project(it).tasks.jar.get().archiveFile.get().asFile.name
+    }
+    manifest.attributes("Class-Path" to classpath)
     manifest.attributes("Main-Class" to "org.gradle.launcher.GradleMain")
 }
 

@@ -16,12 +16,15 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
+import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.performance.AbstractCrossVersionGradleProfilerPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
+import org.gradle.profiler.BuildMutator
+import org.gradle.profiler.ScenarioContext
 import org.gradle.profiler.mutations.AbstractCleanupMutator
 import org.gradle.profiler.mutations.ClearArtifactTransformCacheMutator
 import org.junit.experimental.categories.Category
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.performance.regression.android.AndroidTestProject.K9_ANDROID
@@ -30,21 +33,32 @@ import static org.gradle.performance.regression.android.IncrementalAndroidTestPr
 
 class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProfilerPerformanceTest {
 
+    private static final String SANTA_AGP_TARGET_VERSION = "3.6"
+
     def setup() {
-        runner.args = ['-Dcom.android.build.gradle.overrideVersionCheck=true']
+        runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
+        runner.targetVersions = ["6.2-20200108160029+0000"]
+        // AGP 3.6 requires 5.6.1+
+        // The enterprise plugin requires Gradle 6.0
+        runner.minimumBaseVersion = "6.0"
     }
 
-    @Ignore("Re-enable after rebaselining")
     @Unroll
     def "#tasks on #testProject"() {
         given:
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.args = parallel ? ['-Dorg.gradle.parallel=true'] : []
+        if (parallel) {
+            runner.args.add('-Dorg.gradle.parallel=true')
+        }
         runner.warmUpRuns = warmUpRuns
         runner.runs = runs
-        runner.minimumVersion = "5.6.1" // AGP 3.6 requires 5.6.1+
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        applyEnterprisePlugin()
+
+        and:
+        if (testProject == SANTA_TRACKER_KOTLIN) {
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        }
 
         when:
         def result = runner.run()
@@ -69,14 +83,18 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
         given:
         testProject.configure(runner)
         runner.tasksToRun = tasks.split(' ')
-        runner.args = ['-Dorg.gradle.parallel=true']
+        runner.args.add('-Dorg.gradle.parallel=true')
         runner.warmUpRuns = warmUpRuns
         runner.cleanTasks = ["clean"]
         runner.runs = runs
-        runner.minimumVersion = "5.4"
-        runner.targetVersions = ["5.7-20190807220120+0000"]
         runner.addBuildMutator { invocationSettings ->
             new ClearArtifactTransformCacheMutator(invocationSettings.getGradleUserHome(), AbstractCleanupMutator.CleanupSchedule.BUILD)
+        }
+        applyEnterprisePlugin()
+
+        and:
+        if (testProject == SANTA_TRACKER_KOTLIN) {
+            (testProject as IncrementalAndroidTestProject).configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
         }
 
         when:
@@ -96,9 +114,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "abi change on #testProject"() {
         given:
         testProject.configureForAbiChange(runner)
-        runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumVersion = "5.4"
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        runner.args.add('-Dorg.gradle.parallel=true')
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -114,9 +132,9 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
     def "non-abi change on #testProject"() {
         given:
         testProject.configureForNonAbiChange(runner)
-        runner.args = ['-Dorg.gradle.parallel=true']
-        runner.minimumVersion = "5.4"
-        runner.targetVersions = ["6.0-20190823180744+0000"]
+        testProject.configureForLatestAgpVersionOfMinor(runner, SANTA_AGP_TARGET_VERSION)
+        runner.args.add('-Dorg.gradle.parallel=true')
+        applyEnterprisePlugin()
 
         when:
         def result = runner.run()
@@ -126,5 +144,16 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
         where:
         testProject << [SANTA_TRACKER_KOTLIN]
+    }
+
+    void applyEnterprisePlugin() {
+        runner.addBuildMutator { invocationSettings ->
+            new BuildMutator() {
+                @Override
+                void beforeScenario(ScenarioContext context) {
+                    GradleEnterprisePluginSettingsFixture.applyEnterprisePlugin(new File(invocationSettings.projectDir, "settings.gradle"))
+                }
+            }
+        }
     }
 }

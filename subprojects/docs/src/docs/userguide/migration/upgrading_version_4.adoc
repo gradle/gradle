@@ -15,7 +15,7 @@
 [[upgrading_version_4]]
 = Upgrading your build from Gradle 4.x to 5.0
 
-This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3, you will also need to apply the changes since 4.4, 4.5, etc.
+This chapter provides the information you need to migrate your older Gradle 4.x builds to Gradle 5.0. In most cases, you will need to apply the changes from all versions that come after the one you're upgrading from. For example, if you're upgrading from Gradle 4.3 to 5.0, you will also need to apply the changes since 4.4, 4.5, etc up to 5.0.
 
 TIP: If you are using Gradle for Android, you need to move to version 3.3 or higher of both the Android Gradle Plugin and Android Studio.
 
@@ -132,7 +132,7 @@ Java builds::
 +
 With the removal of Maven 2 support, the methods that configure unique snapshot behavior have also been removed. Maven 3 only supports unique snapshots, so we decided to remove them.
 Tasks & properties::
- * The following legacy classes and methods related to <<lazy_configuration#sec:lazy_properties,lazy properties>> have been removed — use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property()] to create `Property` instances:
+ * The following legacy classes and methods related to <<lazy_configuration#lazy_properties,lazy properties>> have been removed — use link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#property-java.lang.Class-[ObjectFactory.property()] to create `Property` instances:
  ** `PropertyState`
  ** `DirectoryVar`
  ** `RegularFileVar`
@@ -170,7 +170,7 @@ Kotlin DSL::
  * `PluginAware.apply<T>(to)` was renamed `PluginAware.applyTo<T>(target)`.
 
 +
-Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl/releases/tag/v1.0.0#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
+Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl-samples/releases/tag/v1.0.2#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
 
 Miscellaneous::
  * The `ConfigurableReport.setDestination(Object)` method has been removed — use link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination-java.io.File-[ConfigurableReport.setDestination(File)] instead.
@@ -275,7 +275,7 @@ Checkstyle configuration files in subprojects — the old by-convention location
  * You should not put annotation processors on the compile classpath or declare them with the `-processorpath` compiler argument.
 +
 They should be added to the `annotationProcessor` configuration instead. If you don't want any processing, but your compile classpath contains a processor unintentionally (e.g. as part of a library you depend on), use the `-proc:none` compiler argument to ignore it.
- * Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] in place of link:{javadocPath}/org/gradle/api/tasks/compile/CompilerArgumentProvider.html[CompilerArgumentProvider].
+ * Use link:{javadocPath}/org/gradle/process/CommandLineArgumentProvider.html[CommandLineArgumentProvider] in place of link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/tasks/compile/CompilerArgumentProvider.html[CompilerArgumentProvider].
 
 === Potential breaking changes
 
@@ -364,7 +364,7 @@ Prefer using separate properties with `@OutputFile`/`@OutputDirectory` annotatio
 
 Follow the API links to learn how to deal with these deprecations (if no extra information is provided here):
 
- * link:{javadocPath}/org/gradle/api/Nullable.html[Nullable]
+ * link:https://docs.gradle.org/4.10.3/javadoc/org/gradle/api/Nullable.html[Nullable]
 
 === Potential breaking changes
 

@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -48,9 +49,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file('dest').assertHasDescendants(
-                'dir1/file1.txt',
-                'dir2/subdir/file2.txt',
-                'dir2/file3.txt'
+            'dir1/file1.txt',
+            'dir2/subdir/file2.txt',
+            'dir2/file3.txt'
         )
         !file('dest/someOtherEmptyDir').exists()
         file('dest/emptyDir').exists()
@@ -244,7 +245,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         defaultSourceFileTree()
         file('dest').create {
             some {
-                '.git' { }
+                '.git' {}
             }
             out {
                 '.git' {
@@ -279,8 +280,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         given:
         defaultSourceFileTree()
         file('dest').create {
-            preservedDir { }
-            nonPreservedDir { }
+            preservedDir {}
+            nonPreservedDir {}
         }
 
         buildScript '''
@@ -395,6 +396,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         ins.close()
     }
 
+    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input file will sync properly"() {
         given:
@@ -402,7 +404,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         def lowercaseFile = file('file.txt').createFile()
         buildFile << '''
             task syncIt(type: Sync) {
-                from project.hasProperty("capitalize") ? "FILE.TXT" : "file.txt"
+                from providers.systemProperty("capitalize").map { "FILE.TXT" }.orElse("file.txt")
                 into buildDir
             }
         '''
@@ -415,7 +417,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         assert uppercaseFile.canonicalFile.name == 'FILE.TXT'
 
         when:
-        succeeds('syncIt', '-Pcapitalize')
+        succeeds('syncIt', '-Dcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
         file('build/FILE.TXT').with {
@@ -425,6 +427,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input folder will sync properly"() {
         given:
@@ -438,7 +441,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
         buildFile << '''
             task syncIt(type: Sync) {
-                from project.hasProperty("capitalize") ? "DIR" : "dir"
+                from providers.systemProperty("capitalize").map { "DIR" }.orElse("dir")
                 into buildDir
             }
         '''
@@ -457,7 +460,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         new File(uppercaseNestedDir, 'nestedDirFile2.txt').renameTo(new File(uppercaseNestedDir, 'NESTEDDIRFILE2.TXT'))
 
         when:
-        succeeds('syncIt', '-Pcapitalize')
+        succeeds('syncIt', '-Dcapitalize')
         then:
         executedAndNotSkipped ':syncIt'
         file('build').assertHasDescendants(
@@ -566,7 +569,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     project.sync {
                         from files('source')
-                        from fileTree('source2') { exclude '**/ignore/**' } 
+                        from fileTree('source2') { exclude '**/ignore/**' }
                         from configurations.compile
                         into 'dest'
                         include { fte -> fte.relativePath.segments.length < 3 && (fte.file.directory || fte.file.name.contains('f')) }

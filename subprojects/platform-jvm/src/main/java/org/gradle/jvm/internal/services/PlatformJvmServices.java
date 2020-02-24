@@ -36,9 +36,9 @@ import org.gradle.jvm.internal.resolve.JvmVariantSelector;
 import org.gradle.jvm.internal.resolve.VariantAxisCompatibilityFactory;
 import org.gradle.jvm.internal.resolve.VariantsMetaData;
 import org.gradle.jvm.platform.JavaPlatform;
+import org.gradle.jvm.toolchain.internal.DefaultJavaInstallationRegistry;
 import org.gradle.jvm.toolchain.internal.JavaInstallationProbe;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.process.internal.ExecActionFactory;
 
 import java.util.Collection;
 import java.util.List;
@@ -51,17 +51,19 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     }
 
     @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.add(JavaInstallationProbe.class);
+    }
+
+    @Override
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.add(DefaultJavaInstallationRegistry.class);
         registration.addProvider(new BuildScopeServices());
     }
 
-    private class BuildScopeServices {
+    private static class BuildScopeServices {
         LocalLibraryDependencyResolverFactory createResolverProviderFactory(ProjectModelResolver projectModelResolver, ModelSchemaStore schemaStore, List<VariantAxisCompatibilityFactory> factories) {
             return new LocalLibraryDependencyResolverFactory(projectModelResolver, schemaStore, factories);
-        }
-
-        JavaInstallationProbe createJavaInstallationProbe(ExecActionFactory factory) {
-            return new JavaInstallationProbe(factory);
         }
     }
 

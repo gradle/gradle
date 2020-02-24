@@ -19,7 +19,6 @@ package org.gradle.internal.execution.steps
 import com.google.common.collect.ImmutableSortedMap
 import groovy.transform.CompileStatic
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
@@ -45,7 +44,7 @@ trait FingerprinterFixture {
                     ? it as File
                     : temporaryFolder.file(it)
             }
-            def fingerprint = inputFingerprinter.fingerprint(ImmutableFileCollection.of(files))
+            def fingerprint = inputFingerprinter.fingerprint(TestFiles.fixed(files))
             builder.put(propertyName, fingerprint)
         }
         return builder.build()

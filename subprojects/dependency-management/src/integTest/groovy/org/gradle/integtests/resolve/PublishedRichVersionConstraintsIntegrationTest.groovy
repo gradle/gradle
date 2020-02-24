@@ -18,13 +18,10 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
     def "should not downgrade dependency version when an external transitive dependency has strict version"() {
         given:
@@ -57,7 +54,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:17'
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{strictly 15}' because of the following reason: what not""")
 
@@ -84,7 +81,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
                 }
                 conf 'org:bar:1.0'
             }
-                         
+
         """
 
         when:
@@ -194,7 +191,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
                     }
                 }
                 conf 'org:bar:1.0'
-            }                       
+            }
         """
 
         when:
@@ -237,7 +234,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
             dependencies {
                 conf 'org:foo:1.1'
                 conf 'org:bar:1.0'
-            }           
+            }
         """
 
         when:
@@ -252,7 +249,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:1.1'
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{require 1.0; reject 1.1}'""")
     }
@@ -273,7 +270,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
             dependencies {
                 conf 'org:foo:1.1'
                 conf 'org:bar:1.0'
-            }           
+            }
         """
 
         when:
@@ -288,7 +285,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:foo:1.1'
    Dependency path ':test:unspecified' --> 'org:bar:1.0' --> 'org:foo:{require 1.0; reject ${rejects.join(' & ')}}'""")
 
@@ -314,7 +311,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
             dependencies {
                 conf 'org:foo:1.0'
                 conf 'org:bar:1.0'
-            }                       
+            }
         """
 
         when:
@@ -361,7 +358,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
                 conf 'org:a:1.0'
                 conf 'org:c:1.0'
                 conf 'org:d:1.0'
-            }                       
+            }
         """
 
         when:
@@ -386,7 +383,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b:{strictly 1.0}' because of the following reason: Not following semantic versioning
    Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b:1.1'""")
 
@@ -420,7 +417,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
                 conf 'org:a:1.0'
                 conf 'org:c:1.0'
                 conf 'org:d:1.0'
-            }                       
+            }
         """
 
         when:
@@ -445,7 +442,7 @@ class PublishedRichVersionConstraintsIntegrationTest extends AbstractModuleDepen
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints: 
+        failure.assertHasCause("""Cannot find a version of 'org:b' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b:{strictly 1.0}' because of the following reason: Not following semantic versioning
    Dependency path ':test:unspecified' --> 'org:c:1.0' --> 'org:b:1.1'""")
 

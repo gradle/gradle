@@ -48,6 +48,7 @@ import org.gradle.cli.CommandLineConverter;
 import org.gradle.configuration.DefaultImportsReader;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.initialization.ClassLoaderRegistry;
+import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
@@ -108,13 +109,13 @@ import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
 import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.List;
 
 /**
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
- * only needs these advances services if it is running in --no-daemon mode.
+ * only needs these services if it is running in --no-daemon mode.
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
@@ -128,15 +129,11 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     public GlobalScopeServices(final boolean longLiving, ClassPath additionalModuleClassPath) {
         super();
         this.additionalModuleClassPath = additionalModuleClassPath;
-        this.environment = new GradleBuildEnvironment() {
-            @Override
-            public boolean isLongLivingProcess() {
-                return longLiving;
-            }
-        };
+        this.environment = () -> longLiving;
     }
 
     void configure(ServiceRegistration registration, ClassLoaderRegistry classLoaderRegistry) {
+        registration.add(ClassLoaderScopeListeners.class);
         final List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(classLoaderRegistry.getRuntimeClassLoader(), classLoaderRegistry.getPluginsClassLoader()).getAll(PluginServiceRegistry.class);
         for (PluginServiceRegistry pluginServiceRegistry : pluginServiceFactories) {
             registration.add(PluginServiceRegistry.class, pluginServiceRegistry);
@@ -245,7 +242,7 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
-            instantiatorFactory.injectAndDecorate(services),
+            instantiatorFactory.decorate(services),
             instantiator,
             fileResolver,
             directoryFileTreeFactory,
@@ -316,6 +313,8 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
     }
 
     ValidateStep.ValidationWarningReporter createValidationWarningReporter() {
-        return DeprecationLogger::nagUserOfDeprecatedBehaviour;
+        return behaviour -> DeprecationLogger.deprecateBehaviour(behaviour)
+            .willBeRemovedInGradle7()
+            .withUserManual("more_about_tasks", "sec:up_to_date_checks").nagUser();
     }
 }

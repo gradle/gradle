@@ -35,6 +35,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
+import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collections;
@@ -61,7 +62,7 @@ public class WtpClasspathAttributeSupport {
 
     private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
         WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
-        new IdeDependencySet(classpath.getProject().getDependencies(), configs, minusConfigs).visit(visitor);
+        new IdeDependencySet(classpath.getProject().getDependencies(), configs, minusConfigs, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
         return visitor.getFiles();
     }
 
@@ -145,6 +146,11 @@ public class WtpClasspathAttributeSupport {
 
         @Override
         public void visitFileDependency(ResolvedArtifactResult artifact, boolean testDependency) {
+            files.add(artifact.getFile());
+        }
+
+        @Override
+        public void visitGradleApiDependency(ResolvedArtifactResult artifact, File sources, boolean testDependency) {
             files.add(artifact.getFile());
         }
 

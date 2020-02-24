@@ -265,7 +265,6 @@ public class Daemon implements Stoppable {
         public void run() {
             if (lock.tryLock()) {
                 try {
-                    LOGGER.debug("DaemonExpirationPeriodicCheck running");
                     final DaemonExpirationResult result = expirationStrategy.checkExpiration();
                     if (result.getStatus() != DO_NOT_EXPIRE) {
                         listenerBroadcast.onExpirationEvent(result);

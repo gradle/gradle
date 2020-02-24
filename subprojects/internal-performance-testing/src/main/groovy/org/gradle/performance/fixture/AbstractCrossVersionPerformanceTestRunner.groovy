@@ -62,7 +62,10 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
     List<String> previousTestIds = []
 
     List<String> targetVersions = []
-    String minimumVersion
+    /**
+     * Minimum base version to be used. For example, a 6.0-nightly target version is OK if minimumBaseVersion is 6.0.
+     */
+    String minimumBaseVersion
 
     AbstractCrossVersionPerformanceTestRunner(BuildExperimentRunner experimentRunner, ResultsStore resultsStore, DataReporter<CrossVersionPerformanceResults> reporter, ReleasedVersionDistributions releases, IntegrationTestBuildContext buildContext) {
         this.resultsStore = resultsStore
@@ -105,7 +108,7 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
             teamCityBuildId: ResultsStoreHelper.determineTeamCityBuildId()
         )
 
-        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumVersion).collect { results.baseline(it) }
+        def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         def maxWorkingDirLength = (['current'] + baselineVersions*.version).collect { sanitizeVersionWorkingDir(it) }*.length().max()
 
         runVersion('current', current, perVersionWorkingDirectory('current', maxWorkingDirLength), results.current)
@@ -135,92 +138,82 @@ class AbstractCrossVersionPerformanceTestRunner extends PerformanceTestSpec {
         version.replace('+', '')
     }
 
-    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumVersion) {
-        Iterable<String> versions
-        boolean addMostRecentRelease = true
+    static String resolveVersion(String version, ReleasedVersionDistributions releases) {
+        switch (version) {
+            case 'last':
+                return releases.mostRecentRelease.version.version
+            case 'nightly':
+                return LatestNightlyBuildDeterminer.latestNightlyVersion
+            case 'defaults':
+                throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
+            default:
+                def releasedVersion = findRelease(releases, version)
+                if (releasedVersion) {
+                    return releasedVersion.version.version
+                } else if (isRcVersionOrSnapshot(version)) {
+                    // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
+                    // blindly add it to the list and trust the test author
+                    // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
+                    return version
+                } else {
+                    throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
+                }
+        }
+    }
+
+    static Iterable<String> toBaselineVersions(ReleasedVersionDistributions releases, List<String> targetVersions, String minimumBaseVersion) {
+        List<String> versions
         def overrideBaselinesProperty = System.getProperty('org.gradle.performance.baselines')
         if (overrideBaselinesProperty) {
             versions = resolveOverriddenVersions(overrideBaselinesProperty, targetVersions)
-            addMostRecentRelease = false
         } else {
             versions = targetVersions
         }
 
-        def baselineVersions = new LinkedHashSet<String>()
-
-        def mostRecentRelease = releases.mostRecentRelease.version.version
-        def currentBaseVersion = GradleVersion.current().getBaseVersion().version
-
-        for (String version : versions) {
-            if (version == currentBaseVersion) {
-                // current version is run by default, skip adding it to baseline
-                continue
-            }
-            if (version == 'last') {
-                addMostRecentRelease = false
-                baselineVersions.add(mostRecentRelease)
-                continue
-            }
-            if (version == 'nightly') {
-                addMostRecentRelease = false
-                baselineVersions.add(LatestNightlyBuildDeterminer.latestNightlyVersion)
-                continue
-            }
-            if (version == 'none') {
-                return Collections.emptyList()
-            }
-            if (version == 'defaults') {
-                throw new IllegalArgumentException("'defaults' shouldn't be used in target versions.")
-            }
-            def releasedVersion = findRelease(releases, version)
-            def versionObject = GradleVersion.version(version)
-            if (minimumVersion != null && targetVersionLowerThanMinimumRequirement(versionObject, GradleVersion.version(minimumVersion))) {
-                //this version is not supported by this scenario, as it uses features not yet available in this version of Gradle
-                continue
-            }
-            if (releasedVersion) {
-                baselineVersions.add(releasedVersion.version.version)
-            } else if (versionObject.snapshot || isRcVersion(versionObject)) {
-                // for snapshots, we don't have a cheap way to check if it really exists, so we'll just
-                // blindly add it to the list and trust the test author
-                // Only active rc versions are listed in all-released-versions.properties that ReleasedVersionDistributions uses
-                addMostRecentRelease = false
-                baselineVersions.add(version)
-            } else {
-                throw new RuntimeException("Cannot find Gradle release that matches version '$version'")
-            }
+        if (versions.contains("none")) {
+            return []
         }
 
-        if (baselineVersions.empty || addMostRecentRelease) {
+        LinkedHashSet<String> resolvedVersions = versions.collect { resolveVersion(it, releases) } as LinkedHashSet<String>
+
+        if (resolvedVersions.isEmpty() || addMostRecentRelease(overrideBaselinesProperty, versions)) {
             // Always include the most recent final release if we're not testing against a nightly or a snapshot
-            baselineVersions.add(mostRecentRelease)
+            resolvedVersions.add(releases.mostRecentRelease.version.version)
         }
 
-        baselineVersions
-    }
+        resolvedVersions.removeAll { !versionMeetsLowerBaseVersionRequirement(it, minimumBaseVersion) }
 
-    private static boolean targetVersionLowerThanMinimumRequirement(GradleVersion target, GradleVersion minimum) {
-        if (isCommitVersion(target)) {
-            return target.getBaseVersion() < minimum.getBaseVersion()
-        } else {
-            return target < minimum
+        if (resolvedVersions.isEmpty()) {
+            Assume.assumeFalse("Ignore the test if all baseline versions are filtered out in Historical Performance Test", ResultsStoreHelper.isHistoricalChannel())
         }
+
+        assert !resolvedVersions.isEmpty(): "No versions selected: ${versions}"
+
+        resolvedVersions
     }
 
-    private static boolean isRcVersion(GradleVersion versionObject) {
+    static boolean addMostRecentRelease(String overrideBaselinesProperty, List<String> versions) {
+        if (overrideBaselinesProperty) {
+            return false
+        }
+        return !versions.any { it == 'last' || it == 'nightly' || isRcVersionOrSnapshot(it) }
+    }
+
+    static boolean versionMeetsLowerBaseVersionRequirement(String targetVersion, String minimumBaseVersion) {
+        return minimumBaseVersion == null || GradleVersion.version(targetVersion).baseVersion >= GradleVersion.version(minimumBaseVersion)
+    }
+
+    private static boolean isRcVersionOrSnapshot(String version) {
+        GradleVersion versionObject = GradleVersion.version(version)
         // there is no public API for checking for RC version, this is an internal way
-        versionObject.stage.stage == 3
+        return versionObject.snapshot || versionObject.stage?.stage == 3
     }
 
-    private static boolean isCommitVersion(GradleVersion version) {
-        return version.toString().contains("-commit-")
-    }
-
-    private static Iterable<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
+    private static List<String> resolveOverriddenVersions(String overrideBaselinesProperty, List<String> targetVersions) {
         def versions = Splitter.on(COMMA_OR_SEMICOLON)
             .omitEmptyStrings()
             .splitToList(overrideBaselinesProperty)
-        versions.collectMany([] as Set) { version -> version == 'defaults' ? targetVersions : [version] }
+        versions.collectMany([] as Set) { version -> version == 'defaults' ? targetVersions : [version] } as List
     }
 
     protected static GradleDistribution findRelease(ReleasedVersionDistributions releases, String requested) {

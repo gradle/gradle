@@ -47,7 +47,7 @@ class CompositeBuildBuildSrcIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskExecuted(":buildSrc:assemble")
-        result.assertTaskExecuted(":someBuild:buildSrc:assemble")
+        result.assertTaskExecuted(":child:buildSrc:assemble")
 
         outputContains("outer thing")
         outputContains("child thing")

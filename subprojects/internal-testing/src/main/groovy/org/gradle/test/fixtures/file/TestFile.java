@@ -495,8 +495,15 @@ public class TestFile extends File {
     }
 
     public TestFile createLink(File target) {
-        NativeServices.getInstance().get(FileSystem.class)
-            .createSymbolicLink(this, target);
+        FileSystem fileSystem = NativeServices.getInstance().get(FileSystem.class);
+        if (fileSystem.isSymlink(this)) {
+            try {
+                Files.delete(toPath());
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        fileSystem.createSymbolicLink(this, target);
         clearCanonCaches();
         return this;
     }
@@ -861,7 +868,7 @@ public class TestFile extends File {
         return baseDir.toURI().relativize(toURI());
     }
 
-    public class Snapshot {
+    public static class Snapshot {
         private final long modTime;
         private final HashCode hash;
 

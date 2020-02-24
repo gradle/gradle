@@ -20,6 +20,7 @@ import com.google.common.collect.Multimap;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.ModuleDependency;
+import org.gradle.plugins.ide.idea.model.ModuleLibrary;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 
 import java.util.Collection;
@@ -92,6 +93,8 @@ class IdeaDependenciesOptimizer {
             return ((ModuleDependency) dep).getName();
         } else if (dep instanceof SingleEntryModuleLibrary) {
             return ((SingleEntryModuleLibrary) dep).getLibraryFile();
+        }  else if (dep instanceof ModuleLibrary) {
+            return ((ModuleLibrary)dep).getClasses();
         } else {
             throw new IllegalArgumentException("Unsupported type: " + dep.getClass().getName());
         }

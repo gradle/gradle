@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputRecorder;
@@ -65,6 +66,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
     private final IvyMutableModuleMetadataFactory metadataFactory;
     private final InstantiatorFactory instantiatorFactory;
+    private final ChecksumService checksumService;
 
     public DefaultFlatDirArtifactRepository(FileCollectionFactory fileCollectionFactory,
                                             RepositoryTransportFactory transportFactory,
@@ -73,7 +75,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
                                             ImmutableModuleIdentifierFactory moduleIdentifierFactory,
                                             IvyMutableModuleMetadataFactory metadataFactory,
                                             InstantiatorFactory instantiatorFactory,
-                                            ObjectFactory objectFactory) {
+                                            ObjectFactory objectFactory,
+                                            ChecksumService checksumService) {
         super(objectFactory);
         this.fileCollectionFactory = fileCollectionFactory;
         this.transportFactory = transportFactory;
@@ -82,6 +85,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
         this.moduleIdentifierFactory = moduleIdentifierFactory;
         this.metadataFactory = metadataFactory;
         this.instantiatorFactory = instantiatorFactory;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -153,7 +157,7 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
 
         RepositoryTransport transport = transportFactory.createFileTransport(getName());
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, null, null);
-        IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector);
+        IvyResolver resolver = new IvyResolver(getName(), transport, locallyAvailableResourceFinder, false, artifactFileStore, moduleIdentifierFactory, null, null, createMetadataSources(), IvyMetadataArtifactProvider.INSTANCE, injector, checksumService);
         for (File root : dirs) {
             resolver.addArtifactLocation(root.toURI(), "/[artifact]-[revision](-[classifier]).[ext]");
             resolver.addArtifactLocation(root.toURI(), "/[artifact](-[classifier]).[ext]");

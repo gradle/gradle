@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.resource.sftp.ivy
 
+
 import org.gradle.integtests.resolve.resource.sftp.AbstractSftpDependencyResolutionTest
 
 class IvySftpRepoErrorsIntegrationTest extends AbstractSftpDependencyResolutionTest {

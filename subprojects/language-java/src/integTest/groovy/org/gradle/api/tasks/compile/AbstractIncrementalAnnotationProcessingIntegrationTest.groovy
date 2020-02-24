@@ -49,7 +49,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             allprojects {
                 apply plugin: 'java'
             }
-            
+
             dependencies {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")

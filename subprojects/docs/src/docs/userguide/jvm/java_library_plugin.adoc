@@ -27,8 +27,8 @@ To use the Java Library plugin, include the following in your build script:
 
 .Using the Java Library plugin
 ====
-include::sample[dir="java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="java-library/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 
@@ -42,8 +42,8 @@ The `api` configuration should be used to declare dependencies which are exporte
 
 .Declaring API and implementation dependencies
 ====
-include::sample[dir="java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
-include::sample[dir="java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
 ====
 
 
@@ -115,8 +115,8 @@ Therefore, we can deduce that `httpclient` is an API dependency, whereas `common
 
 .Declaring API and implementation dependencies
 ====
-include::sample[dir="java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
-include::sample[dir="java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
+include::sample[dir="snippets/java-library/quickstart/groovy",files="build.gradle[tags=dependencies]"]
+include::sample[dir="snippets/java-library/quickstart/kotlin",files="build.gradle.kts[tags=dependencies]"]
 ====
 
 

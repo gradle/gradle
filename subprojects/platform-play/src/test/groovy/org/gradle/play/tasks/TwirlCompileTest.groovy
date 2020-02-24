@@ -17,7 +17,7 @@
 package org.gradle.play.tasks
 
 import org.gradle.api.Action
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResults
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.api.tasks.incremental.InputFileDetails
@@ -49,7 +49,7 @@ class TwirlCompileTest extends AbstractProjectBuilderSpec {
         given:
         def outputDir = Mock(File);
         compile.outputDirectory = outputDir
-        compile.outputs.previousOutputFiles = ImmutableFileCollection.of()
+        compile.outputs.previousOutputFiles = TestFiles.empty()
         when:
         compile.compile(withNonIncrementalInputs())
         then:

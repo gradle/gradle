@@ -25,8 +25,8 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.snapshot.DirectorySnapshot;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 
@@ -61,18 +61,18 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         final ImmutableMultimap.Builder<String, HashCode> builder = ImmutableMultimap.builder();
         accept(new FileSystemSnapshotVisitor() {
             @Override
-            public boolean preVisitDirectory(DirectorySnapshot directorySnapshot) {
+            public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
                 builder.put(directorySnapshot.getAbsolutePath(), directorySnapshot.getHash());
                 return false;
             }
 
             @Override
-            public void visitFile(FileSystemLocationSnapshot fileSnapshot) {
+            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
                 builder.put(fileSnapshot.getAbsolutePath(), fileSnapshot.getHash());
             }
 
             @Override
-            public void postVisitDirectory(DirectorySnapshot directorySnapshot) {
+            public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             }
         });
         this.rootHashes = builder.build();
@@ -117,5 +117,10 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
         for (FileSystemSnapshot root : roots) {
             root.accept(visitor);
         }
+    }
+
+    @Override
+    public String toString() {
+        return identifier + fingerprints;
     }
 }

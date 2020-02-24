@@ -307,7 +307,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         run("other")
 
         then:
-        result.assertNotOutput("Received")
+        result.assertNotOutput("Received :")
         result.assertNotOutput("task1")
         result.assertNotOutput("task2")
 
@@ -687,7 +687,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of int, or no service of type int")
+        failure.assertHasCause("Unable to determine constructor argument #2: missing parameter of type int, or no service of type int")
     }
 
     def "fails to create custom task if all constructor arguments missing"() {
@@ -701,7 +701,7 @@ class DeferredTaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         then:
         failure.assertHasCause("Could not create task ':myTask'.")
         failure.assertHasCause("Could not create task of type 'CustomTask'.")
-        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of class java.lang.String, or no service of type class java.lang.String")
+        failure.assertHasCause("Unable to determine constructor argument #1: missing parameter of type String, or no service of type String")
     }
 
     @Unroll

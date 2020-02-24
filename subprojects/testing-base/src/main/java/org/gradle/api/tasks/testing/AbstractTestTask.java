@@ -23,7 +23,6 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
@@ -71,9 +70,9 @@ import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
+import org.gradle.internal.nativeintegration.network.HostnameLookup;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.remote.internal.inet.InetAddressFactory;
 import org.gradle.listener.ClosureBackedMethodInvocationDispatch;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.ConfigureUtil;
@@ -118,7 +117,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         testListenerBroadcaster = listenerManager.createAnonymousBroadcaster(TestListener.class);
         binaryResultsDirectory = getProject().getObjects().directoryProperty();
 
-        reports = instantiator.newInstance(DefaultTestTaskReports.class, this, getCallbackActionDecorator());
+        reports = getProject().getObjects().newInstance(DefaultTestTaskReports.class, this);
         reports.getJunitXml().setEnabled(true);
         reports.getHtml().setEnabled(true);
 
@@ -136,7 +135,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     }
 
     @Inject
-    protected InetAddressFactory getInetAddressFactory() {
+    protected HostnameLookup getHostnameLookup() {
         throw new UnsupportedOperationException();
     }
 
@@ -152,16 +151,6 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected ListenerManager getListenerManager() {
-        throw new UnsupportedOperationException();
-    }
-
-    /**
-     * Required for decorating reports container callbacks for tracing user code application.
-     *
-     * @since 5.1
-     */
-    @Inject
-    protected CollectionCallbackActionDecorator  getCallbackActionDecorator() {
         throw new UnsupportedOperationException();
     }
 
@@ -532,7 +521,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 TestOutputAssociation outputAssociation = junitXml.isOutputPerTestCase()
                     ? TestOutputAssociation.WITH_TESTCASE
                     : TestOutputAssociation.WITH_SUITE;
-                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getInetAddressFactory().getHostname());
+                Binary2JUnitXmlReportGenerator binary2JUnitXmlReportGenerator = new Binary2JUnitXmlReportGenerator(junitXml.getDestination(), testResultsProvider, outputAssociation, getBuildOperationExecutor(), getHostnameLookup().getHostname());
                 binary2JUnitXmlReportGenerator.generate();
             }
 

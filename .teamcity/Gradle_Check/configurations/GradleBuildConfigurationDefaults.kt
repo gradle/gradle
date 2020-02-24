@@ -8,15 +8,16 @@ import common.checkCleanM2
 import common.compileAllDependency
 import common.gradleWrapper
 import common.verifyTestFilesCleanup
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildFeatures
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2018_2.ProjectFeatures
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
+import model.StageNames
 
 val killAllGradleProcesses = """
     free -m
@@ -80,7 +81,7 @@ fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
             name = "TAG_BUILD"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             tasks = "tagBuild"
-            gradleParams = "${buildToolParametersString(daemon)} -PteamCityUsername=%teamcity.username.restbot% -PteamCityPassword=%teamcity.password.restbot% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
+            gradleParams = "${buildToolParametersString(daemon)} -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
         }
     }
 }
@@ -101,8 +102,7 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
                 buildToolGradleParameters(daemon, os = os) +
                     this@gradleRunnerStep.buildCache.gradleParameters(os) +
                     listOf(extraParameters) +
-                    "-PteamCityUsername=%teamcity.username.restbot%" +
-                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) }
                 ).joinToString(separator = " ")
@@ -111,8 +111,46 @@ fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: Strin
 }
 
 private
+fun BuildType.attachFileLeakDetector() {
+    steps {
+        script {
+            name = "ATTACH_FILE_LEAK_DETECTOR"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """
+            "%windows.java11.openjdk.64bit%\bin\java" gradle/AttachAgentToDaemon.java
+        """.trimIndent()
+        }
+    }
+}
+
+private
+fun BuildType.dumpOpenFiles() {
+    steps {
+        // This is a workaround for https://youtrack.jetbrains.com/issue/TW-24782
+        script {
+            name = "SET_BUILD_SUCCESS_ENV"
+            executionMode = BuildStep.ExecutionMode.RUN_ON_SUCCESS
+            scriptContent = """
+                echo "##teamcity[setParameter name='env.PREV_BUILD_STATUS' value='SUCCESS']"
+            """.trimIndent()
+        }
+        script {
+            name = "DUMP_OPEN_FILES_ON_FAILURE"
+            executionMode = BuildStep.ExecutionMode.ALWAYS
+            scriptContent = """
+                "%windows.java11.openjdk.64bit%\bin\java" gradle\DumpOpenFilesOnFailure.java
+            """.trimIndent()
+        }
+    }
+}
+
+private
 fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
+    val cleanedExtraParameters = extraParameters
+        .replace("-PincludeTestClasses=true", "")
+        .replace("-PexcludeTestClasses=true", "")
+        .replace("-PonlyTestGradleVersion=[\\d.-]+".toRegex(), "")
 
     steps {
         gradleWrapper {
@@ -122,9 +160,8 @@ fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: Str
             gradleParams = (
                 buildToolGradleParameters(daemon, os = os) +
                     this@gradleRerunnerStep.buildCache.gradleParameters(os) +
-                    listOf(extraParameters) +
-                    "-PteamCityUsername=%teamcity.username.restbot%" +
-                    "-PteamCityPassword=%teamcity.password.restbot%" +
+                    listOf(cleanedExtraParameters) +
+                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
                     "-PteamCityBuildId=%teamcity.build.id%" +
                     buildScanTags.map { buildScanTag(it) } +
                     "-PonlyPreviousFailedTestClasses=true" +
@@ -157,20 +194,43 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     buildType.steps {
         extraSteps()
         checkCleanM2(os)
-        verifyTestFilesCleanup(daemon)
+        verifyTestFilesCleanup(daemon, os)
     }
 
     applyDefaultDependencies(model, buildType, notQuick)
 }
 
-fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTasks: String, notQuick: Boolean = false, os: Os = Os.linux, extraParameters: String = "", timeout: Int = 90, extraSteps: BuildSteps.() -> Unit = {}, daemon: Boolean = true) {
+fun applyTestDefaults(
+    model: CIBuildModel,
+    buildType: BaseGradleBuildType,
+    gradleTasks: String,
+    notQuick: Boolean = false,
+    os: Os = Os.linux,
+    extraParameters: String = "",
+    timeout: Int = 90,
+    extraSteps: BuildSteps.() -> Unit = {}, // the steps after runner steps
+    daemon: Boolean = true,
+    preSteps: BuildSteps.() -> Unit = {} // the steps before runner steps
+) {
     if (os == Os.macos) {
         buildType.params.param("env.REPO_MIRROR_URLS", "")
     }
 
     buildType.applyDefaultSettings(os, timeout)
 
+    buildType.steps {
+        preSteps()
+    }
+
+    if (os == Os.windows) {
+        buildType.attachFileLeakDetector()
+    }
+
     buildType.gradleRunnerStep(model, gradleTasks, os, extraParameters, daemon)
+
+    if (os == Os.windows) {
+        buildType.dumpOpenFiles()
+    }
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
     buildType.gradleRerunnerStep(model, gradleTasks, os, extraParameters, daemon)
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN", os)
@@ -178,7 +238,7 @@ fun applyTestDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradl
     buildType.steps {
         extraSteps()
         checkCleanM2(os)
-        verifyTestFilesCleanup(daemon)
+        verifyTestFilesCleanup(daemon, os)
     }
 
     applyDefaultDependencies(model, buildType, notQuick)
@@ -191,7 +251,7 @@ fun applyDefaultDependencies(model: CIBuildModel, buildType: BuildType, notQuick
     if (notQuick) {
         // wait for quick feedback phase to finish successfully
         buildType.dependencies {
-            dependency(AbsoluteId("${model.projectPrefix}Stage_QuickFeedback_Trigger")) {
+            dependency(stageTriggerId(model, StageNames.QUICK_FEEDBACK_LINUX_ONLY)) {
                 snapshot {
                     onDependencyFailure = FailureAction.CANCEL
                     onDependencyCancel = FailureAction.CANCEL

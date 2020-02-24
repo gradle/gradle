@@ -25,25 +25,30 @@ import java.util.Collections;
 import java.util.List;
 
 public class DefaultComponentOverrideMetadata implements ComponentOverrideMetadata {
+    public static final ComponentOverrideMetadata EMPTY = new DefaultComponentOverrideMetadata(false, (IvyArtifactName) null, null);
+
     private final boolean changing;
     private final List<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public static ComponentOverrideMetadata forDependency(DependencyMetadata dependencyMetadata) {
-        return new DefaultComponentOverrideMetadata(dependencyMetadata.isChanging(), dependencyMetadata.getArtifacts(), extractClientModule(dependencyMetadata));
+    public static ComponentOverrideMetadata forDependency(boolean changing, IvyArtifactName mainArtifact, ClientModule clientModule) {
+        if (!changing && mainArtifact == null && clientModule == null) {
+            return EMPTY;
+        }
+        return new DefaultComponentOverrideMetadata(changing, mainArtifact, clientModule);
     }
 
-    public DefaultComponentOverrideMetadata() {
-        this(false, Collections.<IvyArtifactName>emptyList(), null);
+    private DefaultComponentOverrideMetadata(boolean changing, IvyArtifactName artifact, ClientModule clientModule) {
+        this(changing, artifact == null ? Collections.emptyList() : ImmutableList.of(artifact), clientModule);
     }
 
     private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, ClientModule clientModule) {
         this.changing = changing;
-        this.artifacts = ImmutableList.copyOf(artifacts);
+        this.artifacts = artifacts;
         this.clientModule = clientModule;
     }
 
-    private static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
+    public static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             Dependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();
             if (source instanceof ClientModule) {

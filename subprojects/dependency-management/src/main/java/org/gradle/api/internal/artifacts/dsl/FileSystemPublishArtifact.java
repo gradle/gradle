@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.tasks.TaskDependency;
@@ -24,7 +24,7 @@ import org.gradle.api.tasks.TaskDependency;
 import java.io.File;
 import java.util.Date;
 
-public class FileSystemPublishArtifact implements PublishArtifact {
+public class FileSystemPublishArtifact implements PublishArtifactInternal {
 
     private final FileSystemLocation fileSystemLocation;
     private final String version;
@@ -75,5 +75,10 @@ public class FileSystemPublishArtifact implements PublishArtifact {
             artifactFile = new ArtifactFile(getFile(), version);
         }
         return artifactFile;
+    }
+
+    @Override
+    public boolean shouldBePublished() {
+        return true;
     }
 }

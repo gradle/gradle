@@ -7,17 +7,17 @@ import common.checkCleanM2
 import common.gradleWrapper
 import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 
-class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuildType(model, init = {
-    uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkersLinux"
+class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linux) : BaseGradleBuildType(model, init = {
+    uuid = model.projectPrefix + "IndividualPerformanceScenarioWorkers${os.name.capitalize()}"
     id = AbsoluteId(uuid)
-    name = "Individual Performance Scenario Workers - Linux"
+    name = "Individual Performance Scenario Workers - ${os.name.capitalize()}"
 
-    applyPerformanceTestSettings(timeout = 420)
+    applyPerformanceTestSettings(os = os, timeout = 420)
     artifactRules = individualPerformanceTestArtifactRules
 
     params {
@@ -47,14 +47,14 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel) : BaseGradleBuil
                     "clean %templates% fullPerformanceTests",
                     "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel%""",
-                    individualPerformanceTestJavaHome
+                    individualPerformanceTestJavaHome(os)
                 ) +
-                    buildToolGradleParameters(isContinue = false) +
+                    buildToolGradleParameters(isContinue = false, os = os) +
                     buildScanTag("IndividualPerformanceScenarioWorkers") +
-                    model.parentBuildCache.gradleParameters(Os.linux)
+                    model.parentBuildCache.gradleParameters(os)
                 ).joinToString(separator = " ")
         }
-        checkCleanM2()
+        checkCleanM2(os)
     }
 
     applyDefaultDependencies(model, this)

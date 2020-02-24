@@ -17,9 +17,16 @@
 package org.gradle.jvm.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
+
+    def setup() {
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+    }
 
     def "does not create library or binaries when not configured"() {
         when:
@@ -259,6 +266,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":myLibTwoJar"
 
         when:
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
         succeeds "assemble"
 
         then:

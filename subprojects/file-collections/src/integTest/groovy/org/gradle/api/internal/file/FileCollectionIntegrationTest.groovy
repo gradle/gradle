@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -61,17 +62,51 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
     def "finalized file collection resolves locations and ignores later changes to source paths"() {
         buildFile << """
             def files = objects.fileCollection()
-            def name = 'a'
-            files.from { name }
-            
+            Integer counter = 0
+            files.from { "a\${++counter}" }
+
             def names = ['b', 'c']
             files.from(names)
 
+            assert files.files as List == [file('a1'), file('b'), file('c')]
+
             files.finalizeValue()
-            name = 'ignore-me'
+
+            assert counter == 2
+
+            assert files.files as List == [file('a2'), file('b'), file('c')]
+
+            counter = 45
             names.clear()
-            
-            assert files.files as List == [file('a'), file('b'), file('c')]
+
+            assert files.files as List == [file('a2'), file('b'), file('c')]
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "finalize on read file collection resolves locations and ignores later changes to source paths"() {
+        buildFile << """
+            def files = objects.fileCollection()
+            Integer counter = 0
+            files.from { "a\${++counter}" }
+
+            def names = ['b', 'c']
+            files.from(names)
+
+            assert files.files as List == [file('a1'), file('b'), file('c')]
+
+            files.finalizeValueOnRead()
+
+            assert counter == 1
+
+            assert files.files as List == [file('a2'), file('b'), file('c')]
+
+            counter = 45
+            names.clear()
+
+            assert files.files as List == [file('a2'), file('b'), file('c')]
         """
 
         expect:
@@ -83,7 +118,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             def nested = objects.fileCollection()
             def name = 'a'
             nested.from { name }
-            
+
             def names = ['b', 'c']
             nested.from(names)
 
@@ -93,7 +128,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             name = 'ignore-me'
             names.clear()
             nested.from('ignore-me')
-            
+
             assert files.files as List == [file('a'), file('b'), file('c')]
         """
 
@@ -105,7 +140,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         buildFile << """
             def files = objects.fileCollection()
             def name = 'a'
-            files.from { 
+            files.from {
                 fileTree({ name }) {
                     include '**/*.txt'
                 }
@@ -113,13 +148,13 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
 
             files.finalizeValue()
             name = 'b'
-            
+
             assert files.files.empty
-            
+
             file('a').mkdirs()
             def f1 = file('a/thing.txt')
             f1.text = 'thing'
-            
+
             assert files.files as List == [f1]
         """
 
@@ -131,7 +166,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         buildFile << """
             def files = objects.fileCollection()
             files.finalizeValue()
-            
+
             task broken {
                 doLast {
                     files.from('bad')
@@ -151,16 +186,16 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             def files = objects.fileCollection()
             def name = 'other'
             files.from { name }
-            
+
             def names = ['b', 'c']
             files.from(names)
 
             files.disallowChanges()
             name = 'a'
             names.clear()
-            
+
             assert files.files as List == [file('a')]
-            
+
             files.from('broken')
         """
 
@@ -175,10 +210,10 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         buildFile << """
             def files = objects.fileCollection()
             def elements = files.elements
-            
+
             def name = 'a'
             files.from { name }
-            
+
             assert elements.get().asFile == [file('a')]
         """
 
@@ -200,7 +235,9 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("in.txt").text = "in"
 
         when:
-        executer.expectDeprecationWarning("Changing the value for a FileCollection with a final value has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("Changing the value for a FileCollection with a final value has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "See https://docs.gradle.org/current/userguide/lazy_configuration.html#unmodifiable_property for more details.")
         run("merge")
 
         then:
@@ -224,13 +261,16 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("in.txt").text = "in"
 
         when:
-        executer.expectDeprecationWarning("Changing the value for a FileCollection with a final value has been deprecated. This will fail with an error in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("Changing the value for a FileCollection with a final value has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "See https://docs.gradle.org/current/userguide/lazy_configuration.html#unmodifiable_property for more details.")
         run("show")
 
         then:
         file("out.txt").text == "in.txt"
     }
 
+    @ToBeFixedForInstantExecution
     def "task @InputFiles file collection closure is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile << """
@@ -251,6 +291,7 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         output.count("calculating value") == 2 // once for task dependency calculation, once for task execution
     }
 
+    @ToBeFixedForInstantExecution
     def "task @InputFiles file collection provider is called once only when task executes"() {
         taskTypeWithInputFileCollection()
         buildFile << """
@@ -276,11 +317,11 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         taskTypeWithInputFileListProperty()
         buildFile << """
             task produce1(type: FileProducer) {
-                output = file("out1.txt") 
+                output = file("out1.txt")
                 content = "one"
-            } 
+            }
             task produce2(type: FileProducer) {
-                output = file("out2.txt") 
+                output = file("out2.txt")
                 content = "two"
             }
             def files = project.files(produce1, produce2)

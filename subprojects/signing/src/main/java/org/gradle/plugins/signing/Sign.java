@@ -22,7 +22,6 @@ import org.gradle.api.Buildable;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.Incubating;
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -105,19 +104,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
         addSignature(new Signature(publishArtifact, this, this));
     }
 
-    private void signArtifact(final PublicationArtifact publicationArtifact) {
-        ensurePublicationArtifactCanBeSigned(publicationArtifact);
-        addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
-    }
-
-    private void ensurePublicationArtifactCanBeSigned(PublicationArtifact publicationArtifact) {
-        if (publicationArtifact.getFile().getName().equals("module.json")) {
-            if (String.valueOf(getProject().getVersion()).endsWith("-SNAPSHOT")) {
-                throw new InvalidUserCodeException("Signing Gradle Module Metadata is not supported for snapshot dependencies.");
-            }
-        }
-    }
-
     /**
      * Configures the task to sign each of the given files
      */
@@ -170,7 +156,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             });
             publicationInternal.allPublishableArtifacts(artifact -> {
                 if (isNoSignatureArtifact(artifact)) {
-                    signArtifact(artifact);
+                    addSignature(new Signature(artifact, artifact::getFile, null, null, this, this));
                 }
             });
             publicationInternal.whenPublishableArtifactRemoved(this::removeSignature);

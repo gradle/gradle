@@ -100,7 +100,7 @@ public class RootLocalComponentMetadata extends DefaultLocalComponentMetadata {
             if (strict) {
                 return "dependency was locked to version '" + lockedVersion + "'";
             }
-            return "dependency was locked to version '" + lockedVersion + "' (update mode)";
+            return "dependency was locked to version '" + lockedVersion + "' (update/lenient mode)";
         }
 
         @Override

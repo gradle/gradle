@@ -16,12 +16,16 @@
 package org.gradle.util
 
 import org.gradle.api.Task
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.FeaturePreviews
+import org.gradle.api.internal.MutationGuard
 import org.gradle.api.internal.MutationGuards
 import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.internal.file.DefaultFilePropertyFactory
+import org.gradle.api.internal.file.DefaultProjectLayout
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.DefaultObjectFactory
@@ -29,11 +33,16 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
+import org.gradle.internal.hash.ChecksumService
+import org.gradle.internal.hash.HashCode
+import org.gradle.internal.hash.Hashing
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.instantiation.InstantiatorFactory
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.state.ManagedFactoryRegistry
@@ -74,33 +83,79 @@ class TestUtil {
     }
 
     static DomainObjectCollectionFactory domainObjectCollectionFactory() {
-        return new DefaultDomainObjectCollectionFactory(instantiatorFactory(), services(), CollectionCallbackActionDecorator.NOOP, MutationGuards.identity())
+        return services().get(DomainObjectCollectionFactory)
+    }
+
+    static ProviderFactory providerFactory() {
+        return services().get(ProviderFactory)
     }
 
     static ObjectFactory objectFactory() {
-        return objFactory(TestFiles.resolver())
+        return services().get(ObjectFactory)
     }
 
     static ObjectFactory objectFactory(TestFile baseDir) {
         def fileResolver = TestFiles.resolver(baseDir)
         def fileCollectionFactory = TestFiles.fileCollectionFactory(baseDir)
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
+        return createServices(fileResolver, fileCollectionFactory).get(ObjectFactory)
     }
 
-    private static ObjectFactory objFactory(FileResolver fileResolver) {
-        def fileCollectionFactory = TestFiles.fileCollectionFactory()
-        return new DefaultObjectFactory(instantiatorFactory().injectAndDecorate(services()), objectInstantiator(), fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory())
+    private static ServiceRegistry createServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        def services = new DefaultServiceRegistry()
+        services.register {
+            it.add(ProviderFactory, new DefaultProviderFactory())
+            it.add(TestCrossBuildInMemoryCacheFactory)
+            it.add(NamedObjectInstantiator)
+            it.add(CollectionCallbackActionDecorator, CollectionCallbackActionDecorator.NOOP)
+            it.add(MutationGuard, MutationGuards.identity())
+            it.add(DefaultDomainObjectCollectionFactory)
+            it.addProvider(new Object() {
+                InstantiatorFactory createInstantiatorFactory() {
+                    instantiatorFactory()
+                }
+
+                ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                    return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory)
+                }
+
+                ChecksumService createChecksumService() {
+                    new ChecksumService() {
+                        @Override
+                        HashCode md5(File file) {
+                            Hashing.md5().hashBytes(file.bytes)
+                        }
+
+                        @Override
+                        HashCode sha1(File file) {
+                            Hashing.sha1().hashBytes(file.bytes)
+                        }
+
+                        @Override
+                        HashCode sha256(File file) {
+                            Hashing.sha256().hashBytes(file.bytes)
+                        }
+
+                        @Override
+                        HashCode sha512(File file) {
+                            Hashing.sha512().hashBytes(file.bytes)
+                        }
+
+                        @Override
+                        HashCode hash(File src, String algorithm) {
+                            def algo = algorithm.toLowerCase().replaceAll('-', '')
+                            Hashing."$algo"().hashBytes(src.bytes)
+                        }
+                    }
+                }
+            })
+            it.add(ProjectLayout, new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory))
+        }
+        return services
     }
 
     static ServiceRegistry services() {
         if (services == null) {
-            services = new DefaultServiceRegistry()
-            services.register {
-                it.add(DefaultProviderFactory)
-                it.add(InstantiatorFactory, instantiatorFactory())
-                it.add(TestCrossBuildInMemoryCacheFactory)
-                it.add(NamedObjectInstantiator)
-            }
+            services = createServices(TestFiles.resolver().newResolver(new File(".").absoluteFile), TestFiles.fileCollectionFactory())
         }
         return services
     }
@@ -179,6 +234,10 @@ class TestUtil {
 
     static Closure returns(Object value) {
         return { value }
+    }
+
+    static ChecksumService getChecksumService() {
+        services().get(ChecksumService)
     }
 }
 

@@ -24,21 +24,45 @@ import org.gradle.test.fixtures.file.TestFile
 trait TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
 
+    abstract TestFile getBuildKotlinFile()
+
     def taskTypeWithOutputFileProperty() {
         buildFile << """
             class FileProducer extends DefaultTask {
                 @OutputFile
                 final RegularFileProperty output = project.objects.fileProperty()
                 @Input
-                String content = "content" // set to empty string to delete file
-            
+                final Property<String> content = project.objects.property(String).convention("content") // set to empty string to delete file
+
                 @TaskAction
                 def go() {
                     def file = output.get().asFile
-                    if (content.empty) {
+                    def text = this.content.get()
+                    if (text.empty) {
                         file.delete()
                     } else {
-                        file.text = content
+                        file.text = text
+                    }
+                }
+            }
+        """
+    }
+
+    def kotlinTaskTypeWithOutputFileProperty() {
+        buildKotlinFile << """
+            abstract class FileProducer: DefaultTask() {
+                @get:OutputFile
+                abstract val output: RegularFileProperty
+                @get:Input
+                var content = "content" // set to empty string to delete file
+
+                @TaskAction
+                fun go() {
+                    val file = output.get().asFile
+                    if (content.isBlank()) {
+                        file.delete()
+                    } else {
+                        file.writeText(content)
                     }
                 }
             }
@@ -54,7 +78,7 @@ trait TasksWithInputsAndOutputs {
                 final ListProperty<String> names = project.objects.listProperty(String)
                 @Input
                 String content = "content" // set to empty string to delete directory
-            
+
                 @TaskAction
                 def go() {
                     def dir = output.get().asFile
@@ -105,7 +129,7 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
-    def taskTypeWithInputProperty() {
+    def taskTypeWithIntInputProperty() {
         buildFile << """
             class InputTask extends DefaultTask {
                 @Input

@@ -60,7 +60,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def n1 = factory.named(Named, "a")
         n1 instanceof Managed
         n1.publicType() == Named
-        n1.immutable()
+        n1.isImmutable()
         def state = n1.unpackState()
         state == "a"
 
@@ -103,7 +103,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def n1 = factory.named(CustomNamed, "a")
         n1 instanceof Managed
         n1.publicType() == CustomNamed
-        n1.immutable()
+        n1.isImmutable()
         def state = n1.unpackState()
         state == "a"
 
@@ -187,7 +187,7 @@ class NamedObjectInstantiatorTest extends ConcurrentSpec {
         def n1 = factory.named(AbstractNamed, "a")
         n1 instanceof Managed
         n1.publicType() == AbstractNamed
-        n1.immutable()
+        n1.isImmutable()
         def state = n1.unpackState()
         state == "a"
 

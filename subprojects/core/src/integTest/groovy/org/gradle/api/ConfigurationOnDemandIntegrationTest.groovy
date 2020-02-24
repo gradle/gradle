@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.ProjectLifecycleFixture
@@ -93,6 +94,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         !output.contains("Configuration on demand is incubating")
     }
 
+    @ToBeFixedForInstantExecution
     def "follows java project dependencies"() {
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << "allprojects { apply plugin: 'java-library' } "
@@ -206,6 +208,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":impl:one", ":impl:two", ":impl:two:abc")
     }
 
+    @ToBeFixedForInstantExecution
     def "may run implicit tasks from root"() {
         settingsFile << "include 'api', 'impl'"
 
@@ -216,6 +219,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":")
     }
 
+    @ToBeFixedForInstantExecution
     def "may run implicit tasks for subproject"() {
         settingsFile << "include 'api', 'impl'"
 
@@ -242,6 +246,7 @@ project(':api') {
         result.assertTasksExecuted(':api:foo')
     }
 
+    @ToBeFixedForInstantExecution
     def "respects evaluationDependsOn"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("api/build.gradle") << """
@@ -255,6 +260,7 @@ project(':api') {
         fixture.assertProjectsConfigured(":", ":impl", ":api")
     }
 
+    @ToBeFixedForInstantExecution
     def "respects buildProjectDependencies setting"() {
         settingsFile << "include 'api', 'impl', 'other'"
         file("impl/build.gradle") << """

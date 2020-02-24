@@ -44,7 +44,6 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
 import org.gradle.kotlin.dsl.fixtures.assertInstanceOf
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 
-import org.gradle.plugin.management.internal.DefaultPluginRequests
 import org.gradle.plugin.management.internal.PluginRequests
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -216,7 +215,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
 
             inOrder(programHost, target) {
 
-                verify(programHost).applyPluginsTo(scriptHost, DefaultPluginRequests.EMPTY)
+                verify(programHost).applyPluginsTo(scriptHost, PluginRequests.EMPTY)
                 verify(programHost).applyBasePluginsTo(target)
                 verify(programHost).evaluateSecondStageOf(
                     program,
@@ -563,7 +562,7 @@ class ResidualProgramCompilerTest : TestWithCompiler() {
             verifyStagedInOrder { program ->
                 verify(programHost).applyPluginsTo(
                     scriptHost,
-                    DefaultPluginRequests.EMPTY
+                    PluginRequests.EMPTY
                 )
 
                 verify(programHost).applyBasePluginsTo(target)

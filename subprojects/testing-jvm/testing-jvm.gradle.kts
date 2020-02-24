@@ -23,10 +23,9 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
+    implementation(project(":native"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
     implementation(project(":fileCollections"))
@@ -63,9 +62,9 @@ dependencies {
     testImplementation(testFixtures(project(":messaging")))
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":platformNative")))
-    
+
     testRuntimeOnly(project(":runtimeApiInfo"))
-    
+
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 

@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.outputorigin
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.OriginFixture
 import org.gradle.integtests.fixtures.ScopeIdsFixture
 import org.junit.Rule
@@ -37,6 +38,7 @@ class ManualUpToDateOutputOriginIntegrationTest extends AbstractIntegrationSpec 
         originBuildInvocationId.originId(taskPath)
     }
 
+    @ToBeFixedForInstantExecution
     def "considers invocation that manually declared up-to-date to be an origin"() {
         given:
         buildScript """

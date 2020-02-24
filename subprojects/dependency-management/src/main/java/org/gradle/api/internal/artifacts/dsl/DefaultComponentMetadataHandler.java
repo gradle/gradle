@@ -32,6 +32,7 @@ import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.MetadataResolutionContext;
+import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
@@ -71,6 +72,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     private final ImmutableAttributesFactory attributesFactory;
     private final IsolatableFactory isolatableFactory;
     private final ComponentMetadataRuleExecutor ruleExecutor;
+    private final PlatformSupport platformSupport;
 
     DefaultComponentMetadataHandler(Instantiator instantiator,
                                     RuleActionAdapter ruleActionAdapter,
@@ -78,7 +80,8 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
                                     Interner<String> stringInterner,
                                     ImmutableAttributesFactory attributesFactory,
                                     IsolatableFactory isolatableFactory,
-                                    ComponentMetadataRuleExecutor ruleExecutor) {
+                                    ComponentMetadataRuleExecutor ruleExecutor,
+                                    PlatformSupport platformSupport) {
         this.instantiator = instantiator;
         this.ruleActionAdapter = ruleActionAdapter;
         this.moduleIdentifierNotationParser = NotationParserBuilder
@@ -92,10 +95,11 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
         this.attributesFactory = attributesFactory;
         this.isolatableFactory = isolatableFactory;
         this.metadataRuleContainer = new ComponentMetadataRuleContainer();
+        this.platformSupport = platformSupport;
     }
 
-    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor ruleExecutor) {
-        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory, ruleExecutor);
+    public DefaultComponentMetadataHandler(Instantiator instantiator, ImmutableModuleIdentifierFactory moduleIdentifierFactory, Interner<String> stringInterner, ImmutableAttributesFactory attributesFactory, IsolatableFactory isolatableFactory, ComponentMetadataRuleExecutor ruleExecutor, PlatformSupport platformSupport) {
+        this(instantiator, createAdapter(), moduleIdentifierFactory, stringInterner, attributesFactory, isolatableFactory, ruleExecutor, platformSupport);
     }
 
     private static RuleActionAdapter createAdapter() {
@@ -199,7 +203,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
 
     @Override
     public ComponentMetadataProcessor createComponentMetadataProcessor(MetadataResolutionContext resolutionContext) {
-        return new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, attributesFactory, ruleExecutor, resolutionContext);
+        return new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, attributesFactory, ruleExecutor, platformSupport, resolutionContext);
     }
 
     @Override

@@ -17,7 +17,6 @@
 package org.gradle.initialization.definition;
 
 import org.gradle.plugin.management.internal.DefaultPluginRequest;
-import org.gradle.plugin.management.internal.DefaultPluginRequests;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 
@@ -28,9 +27,9 @@ import static org.gradle.util.CollectionUtils.collect;
 public class InjectedPluginResolver {
     public PluginRequests resolveAll(List<DefaultInjectedPluginDependency> requests) {
         if (requests.isEmpty()) {
-            return DefaultPluginRequests.EMPTY;
+            return PluginRequests.EMPTY;
         }
-        return new DefaultPluginRequests(convert(requests));
+        return PluginRequests.of(convert(requests));
     }
 
     private List<PluginRequestInternal> convert(List<DefaultInjectedPluginDependency> requests) {

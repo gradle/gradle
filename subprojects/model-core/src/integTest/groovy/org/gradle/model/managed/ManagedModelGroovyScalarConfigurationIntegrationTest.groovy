@@ -17,10 +17,12 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedModelGroovyScalarConfigurationIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String CLASSES = '''

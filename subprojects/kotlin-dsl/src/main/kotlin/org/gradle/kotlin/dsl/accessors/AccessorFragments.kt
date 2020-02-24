@@ -21,6 +21,7 @@ import kotlinx.metadata.KmVariance
 import kotlinx.metadata.jvm.JvmMethodSignature
 import kotlinx.metadata.jvm.KotlinClassMetadata
 import org.gradle.api.reflect.TypeOf
+import org.gradle.internal.deprecation.ConfigurationDeprecationType
 import org.gradle.internal.hash.HashUtil
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
 import org.gradle.kotlin.dsl.support.bytecode.ARETURN
@@ -47,7 +48,6 @@ import org.gradle.kotlin.dsl.support.bytecode.visitSignature
 import org.gradle.kotlin.dsl.support.bytecode.with
 import org.gradle.kotlin.dsl.support.bytecode.writeFunctionOf
 import org.gradle.kotlin.dsl.support.bytecode.writePropertyOf
-import org.gradle.util.SingleMessageLogger
 import org.jetbrains.org.objectweb.asm.MethodVisitor
 
 
@@ -833,7 +833,7 @@ fun accessorDescriptorFor(receiverType: InternalName, returnType: InternalName) 
 
 private
 fun ConfigurationEntry<AccessorNameSpec>.getDeclarationDeprecationMessage() = if (hasDeclarationDeprecations()) {
-    val deprecationType = SingleMessageLogger.ConfigurationDeprecationType.DEPENDENCY_DECLARATION
+    val deprecationType = ConfigurationDeprecationType.DEPENDENCY_DECLARATION
     val summary = "The ${target.original} configuration has been deprecated for ${deprecationType.displayName()}."
     val suggestion = "Please ${deprecationType.usage} the ${dependencyDeclarationAlternatives.map(::quote).joinToString(" or ")} configuration instead."
     "$summary $suggestion"

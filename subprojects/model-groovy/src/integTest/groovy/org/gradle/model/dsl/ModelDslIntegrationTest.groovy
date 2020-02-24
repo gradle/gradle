@@ -17,12 +17,14 @@
 package org.gradle.model.dsl
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
 /**
  * Tests the fundamental usages of the model dsl.
  *
  * Boundary tests for the transform and specialised cases should go in other dedicated test classes.
  */
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelDslIntegrationTest extends AbstractIntegrationSpec {
 
     def "can reference rule inputs using dollar method syntax"() {

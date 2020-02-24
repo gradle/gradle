@@ -35,7 +35,7 @@ class RejectedModuleMessageBuilder {
         if (hasRejectAll) {
             sb.append("Module '").append(module.getId()).append("' has been rejected:\n");
         } else {
-            sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints: \n");
+            sb.append("Cannot find a version of '").append(module.getId()).append("' that satisfies the version constraints:\n");
         }
 
         Set<EdgeState> allEdges = Sets.newLinkedHashSet();

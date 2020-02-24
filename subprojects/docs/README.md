@@ -73,15 +73,15 @@ You will find these references useful when authoring AsciiDoc:
 
 To write a chapter in Asciidoctor format, simply place it in `src/docs/userguide` called `<chapter>.adoc`.
 
-### Code Samples
+### Code Snippets
 
-Samples and output belong under `src/samples` and are typically included in the user manual. This is a typical example:
+Snippets and output belong under `src/snippets` and are typically included in the user manual. This is a typical example:
 
 #### Example multi-language sample file listing
-This shows Groovy and Kotlin sample projects under "sample-dir" which is defined as "$projectDir/src/samples".
+This shows Groovy and Kotlin sample projects under "sample-dir" which is defined as "$projectDir/src/snippets".
 
 ```
-subprojects/docs/src/samples/
+subprojects/docs/src/snippets/
 └── userguide/initScripts/customLogger/
     ├── customLogger.out
     ├── customLogger.sample.conf
@@ -102,9 +102,9 @@ Note here that there are 2 sample projects under `userguide/initScripts/customLo
 ```asciidoc
 .Customizing what Gradle logs
 ====
-include::sample[dir="userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
+include::sample[dir="snippets/userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
 
-include::sample[dir="userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
 ====
 
 [.multi-language-text.lang-groovy]
@@ -122,10 +122,14 @@ include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
 Let's break down this example to explain:
 
 * Enclosing `====` around the sample includes groups these samples and collapses them 
-* `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/samples/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
+* `include::sample`: invokes the `SampleIncludeProcessor` asciidoctor extension, with a `dir` relative to `src/snippets/`, and a list of `files` separated by `;` (only 1 in this example), each with optional `tags=...` (like Asciidoctor's tags mechanism). We write this once for each DSL dialect. This notes to our front-end code to group these 2 samples and show them with selector tabs.
 * `[.multi-language-text.lang-groovy]`: Most times the gradle command is identical between Groovy and Kotlin samples, but in this case we need to use `[.multi-language-text.lang-*]` that our CSS will collapse and switch for the DSL of choice. This is case-sensitive. You can use this construct for any 2 sibling blocks!
 
 It is possible to embed sample sources, commands, and expected output directly in the Asciidoc (or a mixture of embedded and `include`d), but we don't use this for the user manual yet. See the [Exemplar documentation](https://github.com/gradle/exemplar/#configuring-embedded-samples) if you're interested in this.
+
+### Code Samples
+
+Samples and output belong under `src/samples` and are published beside the user manual. See the `org.gradle.samples` plugin.
 
 ## Groovy DSL Reference
 

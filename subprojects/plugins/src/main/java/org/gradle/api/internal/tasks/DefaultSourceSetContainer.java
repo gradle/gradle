@@ -37,8 +37,8 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
     private final Instantiator instantiator;
 
     @Inject
-    public DefaultSourceSetContainer(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator classGenerator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        super(SourceSet.class, classGenerator, new Namer<SourceSet>() {
+    public DefaultSourceSetContainer(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
+        super(SourceSet.class, instantiator, new Namer<SourceSet>() {
             @Override
             public String determineName(SourceSet ss) {
                 return ss.getName();
@@ -46,7 +46,7 @@ public class DefaultSourceSetContainer extends AbstractValidatingNamedDomainObje
         }, collectionCallbackActionDecorator);
         this.fileResolver = fileResolver;
         this.fileCollectionFactory = fileCollectionFactory;
-        this.instantiator = classGenerator;
+        this.instantiator = instantiator;
         this.objectFactory = objectFactory;
     }
 

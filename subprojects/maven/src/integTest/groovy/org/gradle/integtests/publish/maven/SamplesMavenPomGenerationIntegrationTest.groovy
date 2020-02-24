@@ -20,6 +20,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Resources
@@ -44,6 +45,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can deploy to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -68,6 +70,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can install to local repository with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -102,6 +105,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "write new pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)
@@ -117,6 +121,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "write deployer pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

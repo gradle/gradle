@@ -41,6 +41,10 @@ public class DefaultProjectDependencyConstraint implements DependencyConstraintI
         this.projectDependency = projectDependency;
     }
 
+    public ProjectDependency getProjectDependency() {
+        return projectDependency;
+    }
+
     @Override
     public void version(Action<? super MutableVersionConstraint> configureAction) {
         throw new UnsupportedOperationException("Cannot change version constraint on a project dependency");

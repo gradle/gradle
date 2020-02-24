@@ -17,10 +17,8 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
-import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -50,7 +48,7 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 conf("org:databind:2.7.9") {
                   force = true
                 }
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
         """
 
@@ -101,9 +99,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             dependencies {
                 conf("org:core:2.9.4")
                 conf("org:databind:2.7.9")
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
-            
+
             configurations {
                 conf.resolutionStrategy.force("org:databind:2.7.9")
             }
@@ -155,9 +153,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             dependencies {
                 conf("org:core:2.9.4")
                 conf("org:databind:2.7.9")
-                conf("org:kotlin:2.9.4.1")        
+                conf("org:kotlin:2.9.4.1")
             }
-            
+
             configurations {
                 conf.resolutionStrategy.dependencySubstitution {
                     substitute module("org:databind") with module("org:databind:2.7.9")
@@ -326,9 +324,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.9.4")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.7.9") {
@@ -368,9 +366,9 @@ class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
             }
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.9.4")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.9.4")
@@ -411,7 +409,7 @@ include 'other'
                     force = true
                 }
             }
-            
+
             project(':other') {
                 configurations {
                     conf
@@ -518,9 +516,9 @@ include 'other'
         buildFile << """
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.7.9")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.7.9") {
@@ -557,9 +555,9 @@ include 'other'
             }
             dependencies {
                 conf("org:core:2.9.4")
-                
+
                 conf enforcedPlatform("org:platform:2.7.9")
-                
+
                 conf("org:kotlin:2.9.4.1")
 
                 conf("org:databind:2.9.4")
@@ -574,9 +572,7 @@ include 'other'
         succeeds ':checkDeps'
     }
 
-    @RequiredFeatures([
-            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'forced platform turning selector state to force after being selected and deselected'() {
         repository {
             ['1.0', '2.0'].each {
@@ -755,10 +751,62 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
+    @Unroll("can force a virtual platform version by forcing the platform itself via a constraint using a strict version")
+    def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
+        repository {
+            ['2.7.9', '2.9.4', '2.9.4.1'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+                path "kotlin:$it -> core:$it"
+                path "kotlin:$it -> annotations:$it"
+            }
+        }
 
-    @RequiredFeatures([
-            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+        given:
+        buildFile << """
+            dependencies {
+                $dependencies
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.9.4", "org:core:2.7.9") {
+                    forced()
+                }
+                module("org:databind:2.7.9") {
+                    module('org:annotations:2.7.9')
+                    module('org:core:2.7.9')
+                }
+                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
+                    forced()
+                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9')
+                }
+            }
+            virtualConfiguration('org:platform:2.7.9')
+        }
+
+        where: "order of dependencies doesn't matter"
+        dependencies << [
+            'conf("org:core:2.9.4")',
+            'conf("org:databind:2.7.9")',
+            'conf("org:kotlin:2.9.4.1")',
+            'constraints { conf ("org:platform") { version { strictly("2.7.9") } } }'
+        ].permutations()*.join("\n")
+    }
+
+
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Unroll("can constrain a virtual platforms components by adding the platform itself via a constraint")
     def "can constrain a virtual platforms components by adding the platform itself via a constraint"() {
         repository {
@@ -800,14 +848,12 @@ include 'other'
                 'conf("org:core:2.7.9")',
                 'conf("org:databind:2.7.9")',
                 'conf("org:kotlin:2.9.4")',
-                'constraints { conf platform("org:platform:2.9.4.1") }'
+                'constraints { conf "org:platform:2.9.4.1" }'
         ].permutations()*.join("\n")
     }
 
     @Unroll("can force a published platform version by forcing the platform itself via a dependency")
-    @RequiredFeatures([
-            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can force a published platform version by forcing the platform itself via a dependency"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
@@ -846,21 +892,28 @@ include 'other'
                     forced()
                 }
                 module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
-                    module('org:core:2.7.9')
+                    module('org:annotations:2.7.9') {
+                        module("org:platform:2.7.9")
+                    }
+                    module('org:core:2.7.9') {
+                        module("org:platform:2.7.9")
+                    }
+                    module("org:platform:2.7.9")
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
+                    module("org:platform:2.7.9")
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedPlatform' : 'enforced-platform-runtime'
+                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
                 module("org:platform:2.7.9:$expectedVariant") {
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')
                     constraint('org:kotlin:2.7.9')
                     noArtifacts()
+                    module("org:platform:2.7.9")
                 }
             }
         }
@@ -874,11 +927,10 @@ include 'other'
         ].permutations()*.join("\n")
     }
 
-    @RequiredFeatures([
-            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
-    @Unroll("can force a published platform version by forcing the platform itself via a constraint")
-    def "can force a published platform version by forcing the platform itself via a constraint"() {
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def "cannot force a published platform version by forcing the platform itself via a constraint"() {
+        // This fails. Users can use enforcedPlatform() dependencies instead - see test above.
+        // The ability to define enforcedPlatform() constraints only exists to allow the enforcing of virtual platforms.
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each { v ->
                 path "databind:$v -> core:$v"
@@ -898,48 +950,25 @@ include 'other'
         given:
         buildFile << """
             dependencies {
-                $dependencies
+                conf("org:core:2.9.4")
+                conf("org:databind:2.7.9")
+                conf("org:kotlin:2.9.4.1")
+                constraints { conf enforcedPlatform("org:platform:2.7.9") }
             }
         """
 
         and:
-        "a rule which infers module set from group and version"()
+        "a rule which infers module set from group and version"(false)
 
         when:
         allowAllRepositoryInteractions()
-        run ':checkDeps'
+        fails ':checkDeps'
 
         then:
-        resolve.expectGraph {
-            root(":", ":test:") {
-                edge("org:core:2.9.4", "org:core:2.7.9") {
-                    forced()
-                }
-                module("org:databind:2.7.9") {
-                    module('org:annotations:2.7.9')
-                    module('org:core:2.7.9')
-                }
-                edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
-                    forced()
-                    module('org:core:2.7.9')
-                    module('org:annotations:2.7.9')
-                }
-            }
-            virtualConfiguration('org:platform:2.7.9')
-        }
-
-        where: "order of dependencies doesn't matter"
-        dependencies << [
-                'conf("org:core:2.9.4")',
-                'conf("org:databind:2.7.9")',
-                'conf("org:kotlin:2.9.4.1")',
-                'constraints { conf enforcedPlatform("org:platform:2.7.9") }',
-        ].permutations()*.join("\n")
+        failureCauseContains("Inconsistency between attributes of a constraint and a dependency, on attribute 'org.gradle.category' : dependency requires 'platform' while constraint required 'enforced-platform'")
     }
 
-    @RequiredFeatures([
-            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to higher patch version should bring the rest of aligned group up (notation=#forceNotation)")
     def "force to higher patch version should bring the rest of aligned group up"() {
@@ -995,9 +1024,7 @@ include 'other'
         ]
     }
 
-    @RequiredFeatures([
-            @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     @Unroll("force to lower patch version should bring the rest of aligned group up (notation=#forceNotation)")
     def "force to lower patch version should bring the rest of aligned group up"() {
@@ -1070,21 +1097,9 @@ include 'other'
         repo.group(platformGroup) {
             module(platformName) {
                 version(platformVersion) {
-                    variant("platform") {
-                        attribute('org.gradle.category', 'platform')
-                        members.each { member ->
-                            constraint(member)
-                        }
-                        noArtifacts = true
-                    }
-                    // this is used only in BOMs
+                    asPlatform()
                     members.each { member ->
                         constraint(member)
-                    }
-
-                    withModule(MavenHttpModule) {
-                        // make it a BOM
-                        hasPackaging('pom')
                     }
                 }
             }

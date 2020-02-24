@@ -15,6 +15,7 @@
  */
 package org.gradle.nativeplatform
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
 import org.gradle.nativeplatform.fixtures.app.CppHelloWorldApp
 import org.gradle.util.Requires
@@ -27,6 +28,7 @@ class LibraryBinariesIntegrationTest extends AbstractInstalledToolChainIntegrati
         settingsFile << "rootProject.name = 'test'"
     }
 
+    @ToBeFixedForInstantExecution
     def "executable can use a mix of static and shared libraries"() {
         given:
         buildFile << """
@@ -103,6 +105,7 @@ model {
             .exec().out == "Hello staticHello shared"
     }
 
+    @ToBeFixedForInstantExecution
     def "executable can use a combination of libraries from the same and other projects"() {
         given:
         settingsFile << """
@@ -200,6 +203,7 @@ project('exe') {
             .exec().out == "Hello main\nHello lib"
     }
 
+    @ToBeFixedForInstantExecution
     def "source set library dependencies are not shared with other source sets"() {
         given:
         buildFile << """
@@ -276,6 +280,7 @@ model {
     }
 
     @Issue("GRADLE-2925")
+    @ToBeFixedForInstantExecution
     def "headers for source set added to library binary are available to consuming binary"() {
         def app = new CppHelloWorldApp()
         given:

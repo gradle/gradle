@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -42,7 +41,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                    version { strictly '1.0' }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -87,7 +86,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -137,7 +136,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 constraints {
                     conf('org:c') { version { strictly '1.0' } }
                 }
-            }    
+            }
         """
 
         when:
@@ -195,7 +194,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 constraints {
                     conf('org:c') { version { strictly '1.0' } }
                 }
-            }    
+            }
         """
 
         when:
@@ -231,9 +230,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-    )
+    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
     def "conflicting version constraints fail resolution"() {
         given:
         repository {
@@ -252,7 +249,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:a:1.0')
                 conf('org:c:2.0')
-            }    
+            }
         """
 
         when:
@@ -270,7 +267,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:c' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:c' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:c:2.0'
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:c:{strictly 1.0}'
    Dependency path ':test:unspecified' --> 'org:a:1.0' --> 'org:b:1.0' --> 'org:c:2.0'"""
@@ -305,7 +302,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:a:1.0')
                 conf('org:x:1.0')
-            }    
+            }
         """
 
         when:
@@ -379,7 +376,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -424,7 +421,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
                 conf('org:bar:1.0')
-            }           
+            }
         """
 
         when:
@@ -476,7 +473,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                 }
                 conf('org:bar:1.0')
                 conf(project(':foo'))
-            }           
+            }
         """
 
         when:
@@ -503,9 +500,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "original version constraint is not ignored if there is another parent"() {
         given:
         repository {
@@ -527,7 +522,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:x1:1.0')
                 conf('org:x2:1.0')
-            }           
+            }
         """
 
         when:
@@ -548,14 +543,12 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+        failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:x1:1.0' --> 'org:bar:1.0' --> 'org:foo:2.0'
    Constraint path ':test:unspecified' --> 'org:x1:1.0' --> 'org:foo:{strictly 1.0}'"""
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can reintroduce a strict version on the root level"() { // similar to test above, but reintroduces strict version in build script
         given:
         repository {
@@ -577,10 +570,10 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
             dependencies {
                 conf('org:x1:1.0')
                 conf('org:x2:1.0')
-                constraints { 
+                constraints {
                     conf('org:foo') { version { strictly '1.0' } }
                 }
-            }           
+            }
         """
 
         when:
@@ -617,6 +610,39 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     module('org:bar:1.0')
                 }
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0').byConstraint()
+            }
+        }
+    }
+
+    def "does not ignore a second dependency declaration which only differs in strictly detail"() {
+        given:
+        repository {
+            'org:foo:1.0'()
+        }
+
+        buildFile << """
+            dependencies {
+                conf('org:foo:1.0')
+                conf('org:foo') {
+                   version { strictly '1.0' }
+                }
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+            }
+        }
+        run ':checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:foo:1.0", "org:foo:1.0")
+                edge("org:foo:{strictly 1.0}", "org:foo:1.0")
             }
         }
     }

@@ -18,6 +18,8 @@ package org.gradle.internal.logging.text
 
 import spock.lang.Specification
 
+import java.util.function.Consumer
+
 import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class TreeFormatterTest extends Specification {
@@ -290,7 +292,7 @@ Some thing.''')
         formatter.appendType(String.class)
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing class java.lang.String")
+        formatter.toString() == toPlatformLineSeparators("thing String")
     }
 
     def "can append interface name"() {
@@ -299,7 +301,34 @@ Some thing.''')
         formatter.appendType(List.class)
 
         then:
-        formatter.toString() == toPlatformLineSeparators("thing interface java.util.List")
+        formatter.toString() == toPlatformLineSeparators("thing List")
+    }
+
+    def "can append inner class name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendType(Thing.Nested.Inner.class)
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing TreeFormatterTest.Thing.Nested.Inner")
+    }
+
+    def "can append parameterized type name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendType(Thing.genericInterfaces[0])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing List<TreeFormatterTest.Thing.Nested>")
+    }
+
+    def "can append wildcard type name"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendType(Thing.genericInterfaces[1])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing Map<TreeFormatterTest.Thing.Nested, ? extends java.util.function.Consumer<? super T>>")
     }
 
     def "can append method name"() {
@@ -338,6 +367,15 @@ Some thing.''')
         formatter.toString() == toPlatformLineSeparators("thing 'value'")
     }
 
+    def "can append array value"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValue([12, "value", null] as Object[])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing [12, 'value', null]")
+    }
+
     def "can append null value"() {
         when:
         formatter.node("thing ")
@@ -354,6 +392,15 @@ Some thing.''')
 
         then:
         formatter.toString() == toPlatformLineSeparators("thing ['a', 12, null]")
+    }
+
+    def "can append typed array of values"() {
+        when:
+        formatter.node("thing ")
+        formatter.appendValues([1, 2, 3] as Number[])
+
+        then:
+        formatter.toString() == toPlatformLineSeparators("thing [1, 2, 3]")
     }
 
     def "can append empty array of values"() {
@@ -373,7 +420,7 @@ Some thing.''')
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot append text to node.'
+        e.message == 'Cannot append text as there is no current node.'
     }
 
     def "cannot append after children finished"() {
@@ -386,6 +433,12 @@ Some thing.''')
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot append text to node.'
+        e.message == 'Cannot append text as there is no current node.'
+    }
+
+    interface Thing<T> extends List<Nested>, Map<Nested, ? extends Consumer<? super T>> {
+        interface Nested {
+            class Inner {}
+        }
     }
 }

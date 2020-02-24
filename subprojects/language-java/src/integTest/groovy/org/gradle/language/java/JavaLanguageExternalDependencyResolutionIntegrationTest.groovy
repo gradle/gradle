@@ -17,6 +17,7 @@
 package org.gradle.language.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
@@ -24,7 +25,7 @@ import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIntegrationSpec {
 
     def theModel(String model) {
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         buildFile << """
             repositories {
                 maven { url '${mavenRepo.uri}' }
@@ -119,6 +120,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         file('libs/compileDep-1.0.jar').assertIsCopyOf(compileDep.artifactFile)
     }
 
+    @ToBeFixedForInstantExecution
     def "resolved classpath does not include transitive compile-scoped maven dependencies of local components"() {
         given:
         mavenRepo.module("org.gradle", "compileDep").publish()
@@ -171,6 +173,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         file('otherLibs').assertHasDescendants('compileDep-1.0.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "resolved classpath includes transitive api-scoped dependencies of maven library dependency"() {
         given:
         mavenRepo.module("org.gradle", "compileDep").publish()
@@ -226,6 +229,7 @@ class JavaLanguageExternalDependencyResolutionIntegrationTest extends AbstractIn
         file('mainLibs').assertHasDescendants('other.jar', 'apiDep-1.0.jar', 'transitiveApiDep-1.0.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reasonable error message when external dependency cannot be found"() {
         given:
         theModel """

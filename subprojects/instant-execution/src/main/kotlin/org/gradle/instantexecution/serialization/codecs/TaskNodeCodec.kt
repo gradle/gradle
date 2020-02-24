@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.TaskInputsInternal
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -30,6 +31,7 @@ import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
 import org.gradle.api.internal.tasks.properties.PropertyValue
 import org.gradle.api.internal.tasks.properties.PropertyVisitor
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.FileNormalizer
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -48,6 +50,7 @@ import org.gradle.instantexecution.serialization.beans.readPropertyValue
 import org.gradle.instantexecution.serialization.beans.writeNextProperty
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readEnum
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.instantexecution.serialization.writeCollection
@@ -80,17 +83,19 @@ class TaskNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeTask(task: Task) {
-        val taskType = GeneratedSubclasses.unpack(task.javaClass)
+    suspend fun WriteContext.writeTask(task: TaskInternal) {
+        val taskType = GeneratedSubclasses.unpackType(task)
         writeClass(taskType)
         writeString(task.project.path)
         writeString(task.name)
 
         withTaskOf(taskType, task, userTypesCodec) {
+            writeUpToDateSpec(task)
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
             }
+            writeRegisteredServicesOf(task)
         }
     }
 
@@ -103,13 +108,45 @@ class TaskNodeCodec(
         val task = createTask(projectPath, taskName, taskType)
 
         withTaskOf(taskType, task, userTypesCodec) {
+            readUpToDateSpec(task)
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)
             }
+            readRegisteredServicesOf(task)
         }
 
         return task
+    }
+
+    private
+    suspend fun WriteContext.writeUpToDateSpec(task: TaskInternal) {
+        // TODO - should just write this as a bean field of the outputs object, and also do this for the registered properties above
+        if (task.outputs.upToDateSpec.isEmpty) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(task.outputs.upToDateSpec)
+        }
+    }
+
+    private
+    suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
+        if (readBoolean()) {
+            task.outputs.upToDateWhen(read() as Spec<Task>)
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeRegisteredServicesOf(task: TaskInternal) {
+        writeCollection(task.requiredServices)
+    }
+
+    private
+    suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
+        readCollection {
+            task.usesService(readNonNull())
+        }
     }
 
     /**
@@ -366,4 +403,4 @@ suspend fun ReadContext.readOutputPropertiesOf(task: Task) =
 
 private
 fun ReadContext.createTask(projectPath: String, taskName: String, taskClass: Class<out Task>) =
-    getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass)
+    getProject(projectPath).tasks.createWithoutConstructor(taskName, taskClass) as TaskInternal

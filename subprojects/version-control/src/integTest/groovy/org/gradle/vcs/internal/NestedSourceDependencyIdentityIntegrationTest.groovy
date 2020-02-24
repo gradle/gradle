@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
 import org.junit.Rule
 import spock.lang.Unroll
@@ -87,7 +88,7 @@ class NestedSourceDependencyIdentityIntegrationTest extends AbstractIntegrationS
         repoC.commit("initial version")
         repoC.createLightWeightTag("1.2")
 
-        dependency(buildName)
+        dependency(dependencyName)
         repoB.commit("initial version")
         repoB.createLightWeightTag("1.2")
 
@@ -102,12 +103,13 @@ Required by:
     project :${buildName}""")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildC"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildC"  | "buildC"       | "default root project name"
+        "rootProject.name='someLib'" | "buildC"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in task failure error message with #display"() {
         repoC.file("settings.gradle") << """
             ${settings}
@@ -120,7 +122,7 @@ Required by:
         repoC.commit("initial version")
         repoC.createLightWeightTag("1.2")
 
-        dependency(buildName)
+        dependency(dependencyName)
         repoB.commit("initial version")
         repoB.createLightWeightTag("1.2")
 
@@ -132,12 +134,13 @@ Required by:
         failure.assertHasCause("broken")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildC"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildC"  | "buildC"       | "default root project name"
+        "rootProject.name='someLib'" | "buildC"  | "someLib"      | "configured root project name"
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "includes build identifier in dependency resolution results with #display"() {
         repoC.file("settings.gradle") << """
             ${settings}
@@ -150,7 +153,7 @@ Required by:
         repoC.commit("initial version")
         repoC.createLightWeightTag("1.2")
 
-        dependency(buildName)
+        dependency(dependencyName)
         repoB.commit("initial version")
         repoB.createLightWeightTag("1.2")
 
@@ -178,7 +181,7 @@ Required by:
                 def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
                 assert selectors.size() == 3
                 assert selectors[0].displayName == 'org.test:buildB:1.2'
-                assert selectors[1].displayName == 'org.test:${buildName}:1.2'
+                assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
                 assert selectors[2].displayName == 'project :${buildName}:a'
                 // TODO = should be $buildName
                 assert selectors[2].buildName == 'buildC'
@@ -187,11 +190,11 @@ Required by:
         """
 
         expect:
-        succeeds( ":assemble")
+        succeeds(":assemble")
 
         where:
-        settings                     | buildName | display
-        ""                           | "buildC"  | "default root project name"
-        "rootProject.name='someLib'" | "someLib" | "configured root project name"
+        settings                     | buildName | dependencyName | display
+        ""                           | "buildC"  | "buildC"       | "default root project name"
+        "rootProject.name='someLib'" | "buildC"  | "someLib"      | "configured root project name"
     }
 }

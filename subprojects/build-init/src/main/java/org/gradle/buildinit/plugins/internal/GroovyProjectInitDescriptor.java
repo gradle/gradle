@@ -79,6 +79,5 @@ public abstract class GroovyProjectInitDescriptor extends JvmProjectInitDescript
 
     protected abstract TemplateOperation testTemplateOperation(TemplateFactory templateFactory);
 
-    protected void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder) {
-    }
+    protected abstract void configureBuildScript(InitSettings settings, BuildScriptBuilder buildScriptBuilder);
 }

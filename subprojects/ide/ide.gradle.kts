@@ -64,6 +64,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(testLibrary("jetty"))
+    integTestRuntimeOnly(project(":testKit"))
 }
 
 gradlebuildJava {

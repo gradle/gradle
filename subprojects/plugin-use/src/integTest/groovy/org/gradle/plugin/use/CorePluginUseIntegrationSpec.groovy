@@ -17,6 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.hamcrest.CoreMatchers.startsWith
 
@@ -140,6 +141,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         failure.assertHasLineNumber(5)
     }
 
+    @ToBeFixedForInstantExecution
     def "can reapply core plugin applied via plugins block"() {
         when:
         buildScript """
@@ -156,6 +158,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "tasks"
     }
 
+    @ToBeFixedForInstantExecution
     def "can reapply core plugin applied via qualified id in plugins block"() {
         when:
         buildScript """
@@ -172,6 +175,7 @@ class CorePluginUseIntegrationSpec extends AbstractIntegrationSpec {
         succeeds "tasks"
     }
 
+    @ToBeFixedForInstantExecution
     def "can use qualified and unqualified ids to detect core plugins"() {
         when:
         buildScript """

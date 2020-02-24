@@ -97,7 +97,7 @@ public class MemInfoOsMemoryInfo implements OsMemoryInfo {
         throw new UnsupportedOperationException("Unable to parse /proc/meminfo output to get system memory");
     }
 
-    private class Meminfo {
+    private static class Meminfo {
         private long total = -1;
         private long available = -1;
         private long free = -1;

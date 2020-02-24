@@ -1,0 +1,17 @@
+
+> Task :consumer:dependencyInsight
+mysql:mysql-connector-java:8.0.14
+   variant "runtime" [
+      org.gradle.status             = release (not requested)
+      org.gradle.usage              = java-runtime
+      org.gradle.category = library
+   ]
+
+mysql:mysql-connector-java:8.0.14
+\--- project :producer
+     \--- runtimeClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

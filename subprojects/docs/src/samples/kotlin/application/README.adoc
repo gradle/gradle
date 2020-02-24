@@ -1,0 +1,26 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how a Kotlin application can be built with Gradle.
+The application has no dependencies aside from the Kotlin standard library and the build has minimal configuration.
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+To build and run the application:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew run
+
+> Task :run
+Hello, World!
+
+BUILD SUCCESSFUL
+2 actionable tasks: 2 executed
+----
+
+For more information, see link:{userManualPath}/application_plugin.html[Application Plugin] and link:https://kotlinlang.org/docs/reference/using-gradle.html[building a Kotlin project with Gradle reference].
+
+You can also generate this project locally using link:{userManualPath}/build_init_plugin.html#sec:kotlin_application[`gradle init`].

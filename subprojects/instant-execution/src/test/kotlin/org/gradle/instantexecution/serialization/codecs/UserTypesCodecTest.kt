@@ -23,11 +23,14 @@ import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
+import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
+import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyProblem
+import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.withIsolate
 
@@ -36,8 +39,10 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.util.TestUtil
 
 import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.CoreMatchers.instanceOf
 import org.hamcrest.CoreMatchers.sameInstance
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -92,6 +97,11 @@ class UserTypesCodecTest {
         )
 
         assertThat(
+            decodedSerializable.transientShort,
+            equalTo(SerializableWriteObjectBean.EXPECTED_SHORT)
+        )
+
+        assertThat(
             decodedSerializable.transientInt,
             equalTo(SerializableWriteObjectBean.EXPECTED_INT)
         )
@@ -102,9 +112,19 @@ class UserTypesCodecTest {
         )
 
         assertThat(
+            decodedSerializable.transientFloat,
+            equalTo(SerializableWriteObjectBean.EXPECTED_FLOAT)
+        )
+
+        assertThat(
+            decodedSerializable.transientDouble,
+            equalTo(SerializableWriteObjectBean.EXPECTED_DOUBLE)
+        )
+
+        assertThat(
             "preserves identities across protocols",
             decodedSerializable.value,
-            sameInstance<Any>(decodedBean)
+            sameInstance(decodedBean)
         )
     }
 
@@ -112,6 +132,14 @@ class UserTypesCodecTest {
     fun `can handle Serializable writeReplace readResolve`() {
         assertThat(
             roundtrip(SerializableWriteReplaceBean()).value,
+            equalTo<Any>("42")
+        )
+    }
+
+    @Test
+    fun `can handle Serializable with only writeObject`() {
+        assertThat(
+            roundtrip(SerializableWriteObjectOnlyBean()).value,
             equalTo<Any>("42")
         )
     }
@@ -134,26 +162,79 @@ class UserTypesCodecTest {
     }
 
     @Test
-    fun `leaves bean trace of Serializable objects`() {
+    fun `user types codec leaves bean trace of Serializable objects`() {
 
         val bean = SerializableWriteObjectBean(mock<Project>())
 
-        val problems = serializationProblemsOf(bean)
+        val problems = serializationProblemsOf(bean, userTypesCodec())
 
+        val fieldTrace = assertInstanceOf<PropertyTrace.Property>(problems.single().trace)
         assertThat(
-            problems.single().trace.toString(),
-            equalTo(
-                "field `value` of `${bean.javaClass.name}` bean found in unknown property"
-            )
+            fieldTrace.kind,
+            equalTo(PropertyKind.Field)
+        )
+        assertThat(
+            fieldTrace.name,
+            equalTo("value")
+        )
+
+        val beanTrace = assertInstanceOf<PropertyTrace.Bean>(fieldTrace.trace)
+        assertThat(
+            beanTrace.type,
+            sameInstance(bean.javaClass)
         )
     }
 
+    @Test
+    fun `internal types codec leaves not implemented trace for unsupported types`() {
+
+        val unsupportedBean = 42 to "42"
+        val problems = serializationProblemsOf(unsupportedBean, codecs().internalTypesCodec)
+        val problem = problems.single()
+        assertInstanceOf<PropertyTrace.Gradle>(
+            problem.trace
+        )
+        assertThat(
+            problem.message.toString(),
+            equalTo("objects of type 'kotlin.Pair' are not yet supported with instant execution.")
+        )
+    }
+
+    @Test
+    fun `can handle anonymous enum subtypes`() {
+        EnumSuperType.values().forEach {
+            assertThat(
+                roundtrip(it),
+                sameInstance(it)
+            )
+        }
+    }
+
+    enum class EnumSuperType {
+
+        SubType1 {
+            override fun displayName() = "one"
+        },
+        SubType2 {
+            override fun displayName() = "two"
+        };
+
+        abstract fun displayName(): String
+    }
+
     private
-    fun serializationProblemsOf(bean: Any): List<PropertyProblem> =
+    inline fun <reified T> assertInstanceOf(any: Any): T {
+        assertThat(any, instanceOf(T::class.java))
+        return any.uncheckedCast()
+    }
+
+    private
+    fun serializationProblemsOf(bean: Any, codec: Codec<Any?>): List<PropertyProblem> =
         mutableListOf<PropertyProblem>().also { problems ->
             writeTo(
                 NullOutputStream.INSTANCE,
-                bean
+                bean,
+                codec
             ) { problems += it }
         }
 
@@ -170,14 +251,32 @@ class UserTypesCodecTest {
         }
     }
 
+    class SerializableWriteObjectOnlyBean(var value: Any? = null) : Serializable {
+
+        private
+        fun writeObject(objectOutputStream: ObjectOutputStream) {
+            value = "42"
+            objectOutputStream.defaultWriteObject()
+        }
+    }
+
     class SerializableWriteObjectBean(val value: Any) : Serializable {
 
         companion object {
 
+            const val EXPECTED_SHORT: Short = Short.MAX_VALUE
+
             const val EXPECTED_INT: Int = 42
 
             const val EXPECTED_STRING: String = "42"
+
+            const val EXPECTED_FLOAT: Float = 1.618f
+
+            const val EXPECTED_DOUBLE: Double = Math.PI
         }
+
+        @Transient
+        var transientShort: Short? = null
 
         @Transient
         var transientInt: Int? = null
@@ -185,33 +284,45 @@ class UserTypesCodecTest {
         @Transient
         var transientString: String? = null
 
+        @Transient
+        var transientFloat: Float? = null
+
+        @Transient
+        var transientDouble: Double? = null
+
         private
         fun writeObject(objectOutputStream: ObjectOutputStream) {
             objectOutputStream.run {
                 defaultWriteObject()
+                writeShort(EXPECTED_SHORT.toInt())
                 writeInt(EXPECTED_INT)
                 writeUTF(EXPECTED_STRING)
+                writeFloat(EXPECTED_FLOAT)
+                writeDouble(EXPECTED_DOUBLE)
             }
         }
 
         private
         fun readObject(objectInputStream: ObjectInputStream) {
             objectInputStream.defaultReadObject()
+            transientShort = objectInputStream.readShort()
             transientInt = objectInputStream.readInt()
             transientString = objectInputStream.readUTF()
+            transientFloat = objectInputStream.readFloat()
+            transientDouble = objectInputStream.readDouble()
         }
     }
 
     private
-    fun <T : Any> roundtrip(graph: T): T =
-        writeToByteArray(graph)
-            .let(::readFromByteArray)!!
+    fun <T : Any> roundtrip(graph: T, codec: Codec<Any?> = userTypesCodec()): T =
+        writeToByteArray(graph, codec)
+            .let { readFromByteArray(it, codec)!! }
             .uncheckedCast()
 
     private
-    fun writeToByteArray(graph: Any): ByteArray {
+    fun writeToByteArray(graph: Any, codec: Codec<Any?>): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        writeTo(outputStream, graph)
+        writeTo(outputStream, graph, codec)
         return outputStream.toByteArray()
     }
 
@@ -219,11 +330,12 @@ class UserTypesCodecTest {
     fun writeTo(
         outputStream: OutputStream,
         graph: Any,
+        codec: Codec<Any?>,
         problemHandler: (PropertyProblem) -> Unit = mock()
     ) {
         KryoBackedEncoder(outputStream).use { encoder ->
-            writeContextFor(encoder, problemHandler).run {
-                withIsolateMock {
+            writeContextFor(encoder, codec, problemHandler).run {
+                withIsolateMock(codec) {
                     runToCompletion {
                         write(graph)
                     }
@@ -233,14 +345,14 @@ class UserTypesCodecTest {
     }
 
     private
-    fun readFromByteArray(bytes: ByteArray) =
-        readFrom(ByteArrayInputStream(bytes))
+    fun readFromByteArray(bytes: ByteArray, codec: Codec<Any?>) =
+        readFrom(ByteArrayInputStream(bytes), codec)
 
     private
-    fun readFrom(inputStream: ByteArrayInputStream) =
-        readContextFor(inputStream).run {
+    fun readFrom(inputStream: ByteArrayInputStream, codec: Codec<Any?>) =
+        readContextFor(inputStream, codec).run {
             initClassLoader(javaClass.classLoader)
-            withIsolateMock {
+            withIsolateMock(codec) {
                 runToCompletion {
                     read()
                 }
@@ -248,15 +360,15 @@ class UserTypesCodecTest {
         }
 
     private
-    inline fun <R> MutableIsolateContext.withIsolateMock(block: () -> R): R =
-        withIsolate(IsolateOwner.OwnerGradle(mock()), codecs().userTypesCodec) {
+    inline fun <R> MutableIsolateContext.withIsolateMock(codec: Codec<Any?>, block: () -> R): R =
+        withIsolate(IsolateOwner.OwnerGradle(mock()), codec) {
             block()
         }
 
     private
-    fun writeContextFor(encoder: Encoder, problemHandler: (PropertyProblem) -> Unit) =
+    fun writeContextFor(encoder: Encoder, codec: Codec<Any?>, problemHandler: (PropertyProblem) -> Unit) =
         DefaultWriteContext(
-            codec = codecs().userTypesCodec,
+            codec = codec,
             encoder = encoder,
             scopeLookup = mock(),
             logger = mock(),
@@ -264,13 +376,17 @@ class UserTypesCodecTest {
         )
 
     private
-    fun readContextFor(inputStream: ByteArrayInputStream) =
+    fun readContextFor(inputStream: ByteArrayInputStream, codec: Codec<Any?>) =
         DefaultReadContext(
-            codec = codecs().userTypesCodec,
+            codec = codec,
             decoder = KryoBackedDecoder(inputStream),
+            instantiatorFactory = TestUtil.instantiatorFactory(),
             constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
             logger = mock()
         )
+
+    private
+    fun userTypesCodec() = codecs().userTypesCodec
 
     private
     fun codecs() = Codecs(
@@ -284,17 +400,19 @@ class UserTypesCodecTest {
         projectStateRegistry = mock(),
         taskNodeFactory = mock(),
         fingerprinterRegistry = mock(),
-        classLoaderHierarchyHasher = mock(),
+        projectFinder = mock(),
         buildOperationExecutor = mock(),
+        classLoaderHierarchyHasher = mock(),
         isolatableFactory = mock(),
         valueSnapshotter = mock(),
-        fileCollectionFingerprinterRegistry = mock(),
-        isolatableSerializerRegistry = mock(),
-        projectFinder = mock(),
+        buildServiceRegistry = mock(),
+        managedFactoryRegistry = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
         attributesFactory = mock(),
-        transformListener = mock()
+        transformListener = mock(),
+        valueSourceProviderFactory = mock(),
+        patternSetFactory = mock()
     )
 
     @Test
@@ -302,7 +420,7 @@ class UserTypesCodecTest {
 
         assertThat(
             Peano.fromInt(0),
-            equalTo<Peano>(Peano.Zero)
+            equalTo(Peano.Z)
         )
 
         assertThat(
@@ -315,20 +433,24 @@ class UserTypesCodecTest {
 
         companion object {
 
-            fun fromInt(n: Int): Peano = (0 until n).fold(Zero as Peano) { acc, _ -> Succ(acc) }
+            fun fromInt(n: Int): Peano = (0 until n).fold(Z as Peano) { acc, _ -> S(acc) }
         }
 
         fun toInt(): Int = sequence().count() - 1
 
-        object Zero : Peano()
+        object Z : Peano() {
+            override fun toString() = "Z"
+        }
 
-        data class Succ(val n: Peano) : Peano()
+        data class S(val n: Peano) : Peano() {
+            override fun toString() = "S($n)"
+        }
 
         private
         fun sequence() = generateSequence(this) { previous ->
             when (previous) {
-                is Zero -> null
-                is Succ -> previous.n
+                is Z -> null
+                is S -> previous.n
             }
         }
     }

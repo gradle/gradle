@@ -24,8 +24,8 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -48,6 +48,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.service.scopes.GlobalScopeServices;
+import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.launcher.cli.DefaultCommandLineActionFactory;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
 import org.gradle.process.internal.streams.SafeStreams;
@@ -99,8 +100,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected final static Set<String> PROPAGATED_SYSTEM_PROPERTIES = Sets.newHashSet();
 
+    // TODO - don't use statics to communicate between the test runner and executer
     public static void propagateSystemProperty(String name) {
         PROPAGATED_SYSTEM_PROPERTIES.add(name);
+    }
+
+    public static void doNotPropagateSystemProperty(String name) {
+        PROPAGATED_SYSTEM_PROPERTIES.remove(name);
     }
 
     private static final String DEBUG_SYSPROP = "org.gradle.integtest.debug";
@@ -115,18 +121,18 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected final IntegrationTestBuildContext buildContext;
 
-    private final Set<File> isolatedDaemonBaseDirs = new HashSet<File>();
-    private final Set<GradleHandle> running = new HashSet<GradleHandle>();
-    private final List<String> args = new ArrayList<String>();
-    private final List<String> tasks = new ArrayList<String>();
+    private final Set<File> isolatedDaemonBaseDirs = new HashSet<>();
+    private final Set<GradleHandle> running = new HashSet<>();
+    private final List<String> args = new ArrayList<>();
+    private final List<String> tasks = new ArrayList<>();
     private boolean allowExtraLogging = true;
     protected ConsoleAttachment consoleAttachment = ConsoleAttachment.NOT_ATTACHED;
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
     private boolean dependencyList;
-    private Map<String, String> environmentVars = new HashMap<String, String>();
-    private List<File> initScripts = new ArrayList<File>();
+    private Map<String, String> environmentVars = new HashMap<>();
+    private List<File> initScripts = new ArrayList<>();
     private String executable;
     private TestFile gradleUserHomeDir;
     private File userHomeDir;
@@ -141,8 +147,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private int daemonIdleTimeoutSecs = 120;
     private boolean requireDaemon;
     private File daemonBaseDir;
-    private final List<String> buildJvmOpts = new ArrayList<String>();
-    private final List<String> commandLineJvmOpts = new ArrayList<String>();
+    private final List<String> buildJvmOpts = new ArrayList<>();
+    private final List<String> commandLineJvmOpts = new ArrayList<>();
     private boolean useOnlyRequestedJvmOpts;
     private boolean requiresGradleDistribution;
     private boolean useOwnUserHomeServices;
@@ -150,13 +156,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
+    private boolean usePartialVfsInvalidation = true;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
     private boolean stackTraceChecksOn = true;
 
-    private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<GradleExecuter>();
+    private final MutableActionSet<GradleExecuter> beforeExecute = new MutableActionSet<>();
     private ImmutableActionSet<GradleExecuter> afterExecute = ImmutableActionSet.empty();
 
     private final TestDirectoryProvider testDirectoryProvider;
@@ -233,6 +240,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
+        usePartialVfsInvalidation = true;
         return this;
     }
 
@@ -253,7 +261,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public void beforeExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
-        beforeExecute.add(new ClosureBackedAction<GradleExecuter>(action));
+        beforeExecute.add(new ClosureBackedAction<>(action));
     }
 
     @Override
@@ -263,7 +271,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public void afterExecute(@DelegatesTo(GradleExecuter.class) Closure action) {
-        afterExecute(new ClosureBackedAction<GradleExecuter>(action));
+        afterExecute(new ClosureBackedAction<>(action));
     }
 
     @Override
@@ -396,6 +404,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         executer.withTestConsoleAttached(consoleAttachment);
 
+        executer.withPartialVfsInvalidation(usePartialVfsInvalidation);
+
         return executer;
     }
 
@@ -487,12 +497,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (isUseDaemon() && !gradleInvocation.buildJvmArgs.isEmpty()) {
             // Pass build JVM args through to daemon via system property on the launcher JVM
-            String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, new Transformer<String, String>() {
-                @Override
-                public String transform(String input) {
-                    return String.format("'%s'", input);
-                }
-            }));
+            String quotedArgs = join(" ", collect(gradleInvocation.buildJvmArgs, input -> String.format("'%s'", input)));
             gradleInvocation.implicitLauncherJvmArgs.add("-Dorg.gradle.jvmargs=" + quotedArgs);
         } else {
             // Have to pass build JVM args directly to launcher JVM
@@ -516,7 +521,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Returns additional JVM args that should be used to start the build JVM.
      */
     protected List<String> getImplicitBuildJvmArgs() {
-        List<String> buildJvmOpts = new ArrayList<String>();
+        List<String> buildJvmOpts = new ArrayList<>();
         buildJvmOpts.add("-ea");
 
         if (isDebug()) {
@@ -534,6 +539,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             buildJvmOpts.add("-Xmx512m");
         }
         if (JVM_VERSION_DETECTOR.getJavaVersion(Jvm.forHome(getJavaHome())).compareTo(JavaVersion.VERSION_1_8) < 0) {
+            // Although Gradle isn't supported on earlier versions, some tests do run it using Java 6 and 7 to verify it behaves well in this case
             buildJvmOpts.add("-XX:MaxPermSize=320m");
         } else {
             buildJvmOpts.add("-XX:MaxMetaspaceSize=512m");
@@ -720,6 +726,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter withReadOnlyCacheDir(File cacheDir) {
+        return withReadOnlyCacheDir(cacheDir.getAbsolutePath());
+    }
+
+    @Override
+    public GradleExecuter withReadOnlyCacheDir(String cacheDir) {
+        environmentVars.put(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, cacheDir);
+        return this;
+    }
+
+    @Override
     public GradleExecuter requireIsolatedDaemons() {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
@@ -790,36 +807,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     @Override
     public GradleExecuter withRepositoryMirrors() {
-        beforeExecute(new Action<GradleExecuter>() {
-            @Override
-            public void execute(GradleExecuter gradleExecuter) {
-                usingInitScript(RepoScriptBlockUtil.createMirrorInitScript());
-            }
-        });
+        beforeExecute(gradleExecuter -> usingInitScript(RepoScriptBlockUtil.createMirrorInitScript()));
         return this;
     }
 
     @Override
     public GradleExecuter withGlobalRepositoryMirrors() {
-        beforeExecute(new Action<GradleExecuter>() {
-            @Override
-            public void execute(GradleExecuter gradleExecuter) {
-                TestFile userHome = testDirectoryProvider.getTestDirectory().file("user-home");
-                withGradleUserHomeDir(userHome);
-                userHome.file("init.d/mirrors.gradle").write(RepoScriptBlockUtil.mirrorInitScript());
-            }
+        beforeExecute(gradleExecuter -> {
+            TestFile userHome = testDirectoryProvider.getTestDirectory().file("user-home");
+            withGradleUserHomeDir(userHome);
+            userHome.file("init.d/mirrors.gradle").write(RepoScriptBlockUtil.mirrorInitScript());
         });
         return this;
     }
 
     @Override
     public GradleExecuter withPluginRepositoryMirror() {
-        beforeExecute(new Action<GradleExecuter>() {
-            @Override
-            public void execute(GradleExecuter gradleExecuter) {
-                withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl());
-            }
-        });
+        beforeExecute(gradleExecuter -> withArgument("-D" + PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + gradlePluginRepositoryMirrorUrl()));
         return this;
     }
 
@@ -879,7 +883,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected List<String> getAllArgs() {
-        List<String> allArgs = new ArrayList<String>();
+        List<String> allArgs = new ArrayList<>();
         if (buildScript != null) {
             allArgs.add("--build-file");
             allArgs.add(buildScript.getAbsolutePath());
@@ -972,7 +976,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
      * Returns the set of system properties that should be set on every JVM used by this executer.
      */
     protected Map<String, String> getImplicitJvmSystemProperties() {
-        Map<String, String> properties = new LinkedHashMap<String, String>();
+        Map<String, String> properties = new LinkedHashMap<>();
 
         if (getUserHomeDir() != null) {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
@@ -1019,6 +1023,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
         if (interactive) {
             properties.put(TestOverrideConsoleDetector.INTERACTIVE_TOGGLE, "true");
+        }
+
+        if (usePartialVfsInvalidation) {
+            properties.put(VirtualFileSystemServices.VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, "true");
         }
 
         properties.put(DefaultCommandLineActionFactory.WELCOME_MESSAGE_ENABLED_SYSTEM_PROPERTY, Boolean.toString(renderWelcomeMessage));
@@ -1132,6 +1140,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     @Override
     public GradleExecuter withBuildCacheEnabled() {
         return withArgument("--build-cache");
+    }
+
+    @Override
+    public GradleExecuter withPartialVfsInvalidation(boolean enabled) {
+        this.usePartialVfsInvalidation = enabled;
+        return this;
     }
 
     protected Action<ExecutionResult> getResultAssertion() {
@@ -1268,6 +1282,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDeprecationWarning(warning.replace("https://docs.gradle.org/current/", "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/"));
+    }
+
+    @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
         return this;
@@ -1367,14 +1386,34 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     protected static class GradleInvocation {
-        final Map<String, String> environmentVars = new HashMap<String, String>();
-        final List<String> args = new ArrayList<String>();
+        final Map<String, String> environmentVars = new HashMap<>();
+        final List<String> args = new ArrayList<>();
         // JVM args that must be used for the build JVM
-        final List<String> buildJvmArgs = new ArrayList<String>();
+        final List<String> buildJvmArgs = new ArrayList<>();
         // JVM args that must be used to fork a JVM
-        final List<String> launcherJvmArgs = new ArrayList<String>();
+        final List<String> launcherJvmArgs = new ArrayList<>();
         // Implicit JVM args that should be used to fork a JVM
-        final List<String> implicitLauncherJvmArgs = new ArrayList<String>();
+        final List<String> implicitLauncherJvmArgs = new ArrayList<>();
+
+        protected Map<String, String> getEnvironmentVars() {
+            return environmentVars;
+        }
+
+        protected List<String> getArgs() {
+            return args;
+        }
+
+        protected List<String> getBuildJvmArgs() {
+            return buildJvmArgs;
+        }
+
+        protected List<String> getLauncherJvmArgs() {
+            return launcherJvmArgs;
+        }
+
+        protected List<String> getImplicitLauncherJvmArgs() {
+            return implicitLauncherJvmArgs;
+        }
     }
 
     @Override

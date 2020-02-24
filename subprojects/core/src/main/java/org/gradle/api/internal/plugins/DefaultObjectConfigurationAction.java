@@ -23,15 +23,16 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.plugins.ObjectConfigurationAction;
 import org.gradle.api.plugins.PluginAware;
+import org.gradle.api.resources.TextResourceFactory;
 import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.net.URI;
@@ -111,26 +112,23 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
     }
 
     private HttpRedirectVerifier createHttpRedirectVerifier(URI scriptUri) {
-        return  HttpRedirectVerifierFactory.create(
+        return HttpRedirectVerifierFactory.create(
             scriptUri,
             false,
             () -> DeprecationLogger
-                .nagUserOfDeprecated(
-                    "Applying script plugins from insecure URIs",
-                        String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(scriptUri), scriptUri),
-                        String.format("The provided URI '%s' uses an insecure protocol (HTTP).", scriptUri)
-
-                ),
+                .deprecate("Applying script plugins from insecure URIs")
+                .withAdvice(String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")' to silence the warning.", GUtil.toSecureUrl(scriptUri), scriptUri))
+                .withContext(String.format("The provided URI '%s' uses an insecure protocol (HTTP).", scriptUri))
+                .willBeRemovedInGradle7()
+                .withDslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
+                .nagUser(),
             redirect -> DeprecationLogger
-                .nagUserOfDeprecated(
-                    "Applying script plugins from an insecure redirect",
-                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.",
-                    String.format(
-                        "'%s' redirects to insecure '%s'.",
-                        scriptUri,
-                        redirect
-                    )
-                )
+                .deprecate("Applying script plugins from an insecure redirect")
+                .withAdvice("Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object) to silence the warning.")
+                .withContext(String.format("'%s' redirects to insecure '%s'.", scriptUri, redirect))
+                .willBeRemovedInGradle7()
+                .withDslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)")
+                .nagUser()
         );
     }
 

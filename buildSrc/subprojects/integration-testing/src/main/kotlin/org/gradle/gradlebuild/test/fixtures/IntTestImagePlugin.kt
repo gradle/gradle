@@ -18,6 +18,8 @@ package org.gradle.gradlebuild.test.fixtures
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.Category
+import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
@@ -53,17 +55,16 @@ open class IntTestImagePlugin : Plugin<Project> {
         val partialDistribution by configurations.creating {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isCanBeResolved = true
             isCanBeConsumed = false
         }
 
         val gradleRuntimeSource by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-            }
             isVisible = false
-            isCanBeResolved = true
+            isCanBeResolved = false
             isCanBeConsumed = false
         }
         val coreGradleRuntimeExtensions by configurations.creating {
@@ -71,6 +72,8 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isVisible = false
             isCanBeResolved = true
@@ -81,6 +84,8 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 attribute(Attribute.of("org.gradle.api", String::class.java), "core")
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isVisible = false
             isCanBeResolved = true
@@ -91,6 +96,8 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
                 attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
             }
             isVisible = false
             isCanBeResolved = true
@@ -100,16 +107,6 @@ open class IntTestImagePlugin : Plugin<Project> {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
             }
-            isVisible = false
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
-        val gradleSamples by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
-                attribute(Attribute.of("type", String::class.java), "samples")
-            }
-            extendsFrom(gradleDocumentation)
             isVisible = false
             isCanBeResolved = true
             isCanBeConsumed = false
@@ -131,12 +128,6 @@ open class IntTestImagePlugin : Plugin<Project> {
             gradleScripts(project(":launcher"))
         }
 
-        val copySamples = tasks.register("copySamples", Sync::class) {
-            group = "Verification"
-            from(gradleSamples)
-            into(file("$buildDir/integ test/samples"))
-        }
-
         if (useAllDistribution) {
             val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
 
@@ -156,9 +147,6 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
-            intTestImage.configure {
-                dependsOn(copySamples)
-            }
             afterEvaluate {
                 if (!project.configurations["default"].allArtifacts.isEmpty()) {
                     dependencies {

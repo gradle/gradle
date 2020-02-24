@@ -17,6 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
@@ -40,8 +41,8 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                     }
                     tasks.register('resolve') {
                         // Not a dependency, so that cloning happens at execution time (in parallel)
-                        doLast { 
-                            configurations.compile.each { } 
+                        doLast {
+                            configurations.compile.each { }
                         }
                     }
                 }
@@ -65,6 +66,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag('1.2')
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can populate into same dir in parallel"() {
         given:
         settingsFile << """
@@ -98,6 +100,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('resolve', '--parallel', '--max-workers=4')
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "can populate from multiple Gradle invocations in parallel"() {
         given:
         settingsFile << """

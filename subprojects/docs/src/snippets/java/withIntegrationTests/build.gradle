@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+sourceSets {
+    integrationTest {
+        java.srcDir file('src/integration-test/java')
+        resources.srcDir file('src/integration-test/resources')
+    }
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+    integrationTestImplementation 'commons-collections:commons-collections:3.2.2'
+    integrationTestImplementation sourceSets.main.output
+    integrationTestImplementation configurations.testImplementation
+    integrationTestImplementation sourceSets.test.output
+    integrationTestRuntimeOnly configurations.testRuntimeOnly
+}
+
+task integrationTest(type: Test, dependsOn: jar) {
+    group 'Verification'
+    description 'Runs the integration tests.'
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+    systemProperties['jar.path'] = jar.archiveFile.get().asFile
+}
+
+check.dependsOn integrationTest

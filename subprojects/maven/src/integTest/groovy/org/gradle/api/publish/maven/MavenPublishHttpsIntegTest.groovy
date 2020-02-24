@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -47,6 +48,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         server.stop()
     }
 
+    @ToBeFixedForInstantExecution
     def "publish with server certificate"() {
         given:
         keyStore.enableSslWithServerCert(server)
@@ -61,6 +63,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         verifyPublications()
     }
 
+    @ToBeFixedForInstantExecution
     def "publish with server and client certificate"() {
         given:
         keyStore.enableSslWithServerAndClientCerts(server)
@@ -75,6 +78,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         verifyPublications()
     }
 
+    @ToBeFixedForInstantExecution
     def "decent error message when client can't authenticate server"() {
         keyStore.enableSslWithServerCert(server)
         initBuild()
@@ -89,6 +93,7 @@ class MavenPublishHttpsIntegTest extends AbstractMavenPublishIntegTest {
         failure.assertHasCause("Could not write to resource '${module.artifact.uri}")
     }
 
+    @ToBeFixedForInstantExecution
     def "build fails when server can't authenticate client"() {
         keyStore.enableSslWithServerAndBadClientCert(server)
         initBuild()

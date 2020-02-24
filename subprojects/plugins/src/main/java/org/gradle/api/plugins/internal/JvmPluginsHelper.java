@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -56,6 +55,7 @@ import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
@@ -127,7 +127,7 @@ public class JvmPluginsHelper {
         classpath.from(new Callable<Object>() {
             @Override
             public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getOutputDir()));
+                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory()));
             }
         });
 
@@ -137,12 +137,6 @@ public class JvmPluginsHelper {
                 return classpath;
             }
         });
-        compile.setDestinationDir(target.provider(new Callable<File>() {
-            @Override
-            public File call() {
-                return sourceDirectorySet.getOutputDir();
-            }
-        }));
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
@@ -153,39 +147,33 @@ public class JvmPluginsHelper {
                 return sourceSet.getAnnotationProcessorPath();
             }
         });
-        final String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        conventionMapping.map("annotationProcessorGeneratedSourcesDirectory", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(target.getBuildDir(), annotationProcessorGeneratedSourcesChildPath);
-            }
-        });
+        String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
+        options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
 
+    /***
+     * For compatibility with https://plugins.gradle.org/plugin/io.freefair.aspectj
+     */
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
+        TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
+    }
+
+    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
         final String sourceSetChildPath = "classes/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        sourceDirectorySet.setOutputDir(target.provider(new Callable<File>() {
-            @Override
-            public File call() {
-                return new File(target.getBuildDir(), sourceSetChildPath);
-            }
-        }));
+        sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
         sourceSetOutput.addClassesDir(new Callable<File>() {
             @Override
             public File call() {
-                return sourceDirectorySet.getOutputDir();
+                return sourceDirectorySet.getDestinationDirectory().getAsFile().get();
             }
         });
         sourceSetOutput.registerCompileTask(compileTask);
-        sourceSetOutput.getGeneratedSourcesDirs().from(options.map(new Transformer<Object, CompileOptions>() {
-            @Override
-            public Object transform(CompileOptions compileOptions) {
-                return compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
-            }
-        })).builtBy(compileTask);
+        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(compileOptions -> compileOptions.getGeneratedSourceOutputDirectory()));
 
+        sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
     public static void configureClassesDirectoryVariant(SourceSet sourceSet, Project target, String targetConfigName, final String usage) {
@@ -224,12 +212,15 @@ public class JvmPluginsHelper {
         capabilities.forEach(variant.getOutgoing()::capability);
 
         if (!tasks.getNames().contains(jarTaskName)) {
-            tasks.register(jarTaskName, Jar.class, jar -> {
+            TaskProvider<Jar> jarTask = tasks.register(jarTaskName, Jar.class, jar -> {
                 jar.setDescription("Assembles a jar archive containing the " + (featureName == null ? "main " + docsType + "." : (docsType + " of the '" + featureName + "' feature.")));
                 jar.setGroup(BasePlugin.BUILD_GROUP);
                 jar.from(artifactSource);
                 jar.getArchiveClassifier().set(TextUtil.camelToKebabCase(featureName == null ? docsType : (featureName + "-" + docsType)));
             });
+            if (tasks.getNames().contains(LifecycleBasePlugin.ASSEMBLE_TASK_NAME)) {
+                tasks.named(LifecycleBasePlugin.ASSEMBLE_TASK_NAME).configure(task -> task.dependsOn(jarTask));
+            }
         }
         TaskProvider<Task> jar = tasks.named(jarTaskName);
         variant.getOutgoing().artifact(new LazyPublishArtifact(jar));
@@ -283,6 +274,11 @@ public class JvmPluginsHelper {
         @Override
         public Date getDate() {
             return null;
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return false;
         }
     }
 }

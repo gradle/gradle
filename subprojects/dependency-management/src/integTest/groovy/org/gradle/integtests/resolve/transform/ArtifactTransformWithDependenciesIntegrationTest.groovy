@@ -24,6 +24,7 @@ import groovy.transform.Canonical
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.hamcrest.CoreMatchers
 import spock.lang.IgnoreIf
@@ -52,11 +53,11 @@ class ArtifactTransformWithDependenciesIntegrationTest extends AbstractHttpDepen
     void setupBuildWithNoSteps(@DelegatesTo(Builder) Closure cl = {}) {
         setupBuildWithColorAttributes(cl)
         buildFile << """
-                   
+
 allprojects {
     repositories {
-        maven { 
-            url = '${mavenHttpRepo.uri}' 
+        maven {
+            url = '${mavenHttpRepo.uri}'
             metadataSources { gradleMetadata() }
         }
     }
@@ -291,6 +292,7 @@ project(':common') {
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "transform with changed set of dependencies are re-executed"() {
         given:
         setupBuildWithSingleStep()
@@ -329,6 +331,7 @@ project(':common') {
         assertTransformationsExecuted()
     }
 
+    @ToBeFixedForInstantExecution
     def "transform with changed project file dependencies content or path are re-executed"() {
         given:
         setupBuildWithSingleStep()
@@ -404,6 +407,7 @@ project(':common') {
         assertTransformationsExecuted()
     }
 
+    @ToBeFixedForInstantExecution
     def "can attach @PathSensitive(NONE) to dependencies property"() {
         given:
         setupBuildWithNoSteps()
@@ -499,6 +503,7 @@ abstract class NoneTransform implements TransformAction<TransformParameters.None
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can attach @#classpathAnnotation.simpleName to dependencies property"() {
         given:
         setupBuildWithNoSteps {
@@ -656,6 +661,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         assert libTransformWithNewSlf4j < app2Resolve
     }
 
+    @ToBeFixedForInstantExecution
     def "transform does not execute when dependencies cannot be found"() {
         given:
         mavenHttpRepo.module("unknown", "not-found", "4.3").allowAll().assertNotPublished()
@@ -678,6 +684,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         failure.assertThatCause(CoreMatchers.containsString("Could not find unknown:not-found:4.3"))
     }
 
+    @ToBeFixedForInstantExecution
     def "transform does not execute when dependencies cannot be downloaded"() {
         given:
         def cantBeDownloaded = withColorVariants(mavenHttpRepo.module("test", "cant-be-downloaded", "4.3")).publish()
@@ -713,6 +720,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "transform does not execute when dependencies cannot be transformed"() {
         given:
         setupBuildWithFirstStepThatDoesNotUseDependencies()
@@ -738,6 +746,7 @@ abstract class ClasspathTransform implements TransformAction<TransformParameters
         )
     }
 
+    @ToBeFixedForInstantExecution
     def "transform does not execute when dependencies cannot be built"() {
         given:
         setupBuildWithTwoSteps()

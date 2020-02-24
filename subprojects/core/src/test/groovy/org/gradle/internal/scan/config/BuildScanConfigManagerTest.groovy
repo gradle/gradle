@@ -105,7 +105,7 @@ class BuildScanConfigManagerTest extends Specification {
         new BuildScanConfigManager(startParameter, Mock(ListenerManager), new BuildScanPluginCompatibility(), { attributes })
     }
 
-    BuildScanConfig config(String versionNumber = BuildScanPluginCompatibility.MIN_SUPPORTED_VERSION) {
+    BuildScanConfig config(String versionNumber = BuildScanPluginCompatibility.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) {
         def manager = manager()
         manager.init()
         manager.collect(new BuildScanPluginMetadata() {

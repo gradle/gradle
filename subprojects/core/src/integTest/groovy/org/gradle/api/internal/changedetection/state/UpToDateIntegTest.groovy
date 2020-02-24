@@ -17,11 +17,13 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class UpToDateIntegTest extends AbstractIntegrationSpec {
 
 
+    @ToBeFixedForInstantExecution
     def "empty output directories created automatically are part of up-to-date checking"() {
         given:
         buildFile << '''
@@ -80,6 +82,7 @@ public class CreateEmptyDirectory extends DefaultTask {
         outputContains ":classes UP-TO-DATE"
     }
 
+    @ToBeFixedForInstantExecution
     def "reasons for task being not up-to-date are reported"() {
         buildFile << '''
             task customTask(type: CustomTask) {
@@ -90,15 +93,15 @@ public class CreateEmptyDirectory extends DefaultTask {
             class CustomTask extends DefaultTask {
                 @OutputFile
                 File outputFile
-                
+
                 @Input
                 String content
-            
+
                 @TaskAction
                 public void doStuff() {
                     outputFile.text = content
                 }
-            }            
+            }
         '''
 
         def customTask = ':customTask'

@@ -297,23 +297,6 @@ There are various contexts in which these types can be used:
 
 link:{javadocPath}/org/gradle/language/base/FunctionalSourceSet.html[FunctionalSourceSet]s and subtypes of link:{javadocPath}/org/gradle/language/base/LanguageSourceSet.html[LanguageSourceSet] (which have been registered via link:{javadocPath}/org/gradle/platform/base/ComponentType.html[ComponentType]) can be added to the model space via rules or via the model DSL.
 
-=== Example: Strongly modelling sources sets
-
-[source,groovy]
-.build.gradle
-----
-include::{samplesPath}/modelRules/language-support/build.gradle[tag=model-language-support]
-----
-
-.Output of `gradle help`
-----
-> gradle help
-include::{samplesPath}/modelRules/language-support/model-language-support-all.out[]
-----
-
-NOTE: The code for this example can be found at **`samples/modelRules/language-support`** in the ‘-all’ distribution of Gradle.
-
-
 [[sec:references_binding_and_scopes]]
 === References, binding and scopes
 

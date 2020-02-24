@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.plugins.ide.idea
+
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.test.fixtures.server.http.HttpArtifact
@@ -30,6 +31,19 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
         assert libraryEntry != null : "entry for jar ${jar} not found"
         libraryEntry.assertHasSource(sources)
         libraryEntry.assertHasJavadoc(javadocs)
+    }
+
+    @Override
+    void ideFileContainsGradleApi(String apiJarPrefix) {
+        def libraryEntry = findApiLibrary(apiJarPrefix)
+        assert libraryEntry.source.empty
+    }
+
+    IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
+        IdeaModuleFixture iml =  parseIml("root.iml")
+        def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
+        assert libraryEntry != null : "gradle API jar not found"
+        return libraryEntry
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

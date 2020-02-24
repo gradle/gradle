@@ -382,7 +382,7 @@ class SFTPServer extends ServerWithExpectations implements RepositoryServer {
         boolean matches(Buffer buffer, int type, int id) {
             if (!run && type == expectedType) {
                 int originalBufferPosition = buffer.rpos()
-                run = bufferMatches(buffer, id)
+                atomicRun.set(bufferMatches(buffer, id))
                 buffer.rpos(originalBufferPosition)
                 return run
             } else {

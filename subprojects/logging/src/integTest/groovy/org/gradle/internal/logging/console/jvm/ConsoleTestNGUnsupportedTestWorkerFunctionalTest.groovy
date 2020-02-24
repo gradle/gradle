@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console.jvm
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RichConsoleStyling
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -45,6 +46,7 @@ class ConsoleTestNGUnsupportedTestWorkerFunctionalTest extends AbstractIntegrati
         server.start()
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "omits parallel test execution if TestNG version does not emit class listener events"() {
         given:
         buildFile << testableJavaProject(TESTNG_DEPENDENCY, MAX_WORKERS)

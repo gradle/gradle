@@ -18,7 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.snapshot.WellKnownFileLocations;
+import org.gradle.internal.vfs.AdditiveCacheLocations;
 
 import java.io.Closeable;
 import java.io.File;
@@ -31,12 +31,12 @@ import java.io.IOException;
 public class SplitFileContentCacheFactory implements FileContentCacheFactory, Closeable {
     private final FileContentCacheFactory globalFactory;
     private final FileContentCacheFactory localFactory;
-    private final WellKnownFileLocations wellKnownFileLocations;
+    private final AdditiveCacheLocations additiveCacheLocations;
 
-    public SplitFileContentCacheFactory(FileContentCacheFactory globalFactory, FileContentCacheFactory localFactory, WellKnownFileLocations wellKnownFileLocations) {
+    public SplitFileContentCacheFactory(FileContentCacheFactory globalFactory, FileContentCacheFactory localFactory, AdditiveCacheLocations additiveCacheLocations) {
         this.globalFactory = globalFactory;
         this.localFactory = localFactory;
-        this.wellKnownFileLocations = wellKnownFileLocations;
+        this.additiveCacheLocations = additiveCacheLocations;
     }
 
     @Override
@@ -48,23 +48,23 @@ public class SplitFileContentCacheFactory implements FileContentCacheFactory, Cl
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, Calculator<? extends V> calculator, Serializer<V> serializer) {
         FileContentCache<V> globalCache = globalFactory.newCache(name, normalizedCacheSize, calculator, serializer);
         FileContentCache<V> localCache = localFactory.newCache(name, normalizedCacheSize, calculator, serializer);
-        return new SplitFileContentCache<V>(globalCache, localCache, wellKnownFileLocations);
+        return new SplitFileContentCache<>(globalCache, localCache, additiveCacheLocations);
     }
 
     private static final class SplitFileContentCache<V> implements FileContentCache<V> {
         private final FileContentCache<V> globalCache;
         private final FileContentCache<V> localCache;
-        private final WellKnownFileLocations wellKnownFileLocations;
+        private final AdditiveCacheLocations additiveCacheLocations;
 
-        private SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, WellKnownFileLocations wellKnownFileLocations) {
+        private SplitFileContentCache(FileContentCache<V> globalCache, FileContentCache<V> localCache, AdditiveCacheLocations additiveCacheLocations) {
             this.globalCache = globalCache;
             this.localCache = localCache;
-            this.wellKnownFileLocations = wellKnownFileLocations;
+            this.additiveCacheLocations = additiveCacheLocations;
         }
 
         @Override
         public V get(File file) {
-            if (wellKnownFileLocations.isImmutable(file.getPath())) {
+            if (additiveCacheLocations.isInsideAdditiveCache(file.getPath())) {
                 return globalCache.get(file);
             } else {
                 return localCache.get(file);

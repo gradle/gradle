@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
@@ -87,7 +88,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         remoteCache.empty
         failureHasCause "Failed to store cache entry for task ':customTask'"
-        errorOutput =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
+        errorOutput =~ /${RuntimeException.name}: Could not pack tree 'output'/
     }
 
     def "corrupt archive loaded from remote cache is not copied into local cache"() {
@@ -123,6 +124,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         localCache.listCacheFiles().empty
     }
 
+    @ToBeFixedForInstantExecution
     def "corrupt archive loaded from local cache is purged"() {
         when:
         file("input.txt") << "data"
@@ -162,6 +164,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
         succeeds("customTask")
     }
 
+    @ToBeFixedForInstantExecution
     def "corrupted cache artifact metadata provides useful error message"() {
         when:
         buildFile << """

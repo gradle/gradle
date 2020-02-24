@@ -19,6 +19,7 @@ import org.gradle.performance.AbstractCrossVersionGradleInternalPerformanceTest
 import org.gradle.performance.categories.SlowPerformanceRegressionTest
 import org.gradle.performance.fixture.BuildExperimentInvocationInfo
 import org.gradle.performance.fixture.BuildExperimentListenerAdapter
+import org.gradle.util.GradleVersion
 import org.junit.experimental.categories.Category
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -45,35 +46,16 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
 class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
-        ["-Djava9Home=${System.getProperty('java9Home')}",
-         "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
+        ["-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}",
          "-Dorg.gradle.ignoreBuildJavaVersionCheck=true",
          "-PbuildSrcCheck=false",
          "-I", createMirrorInitScript().absolutePath]
     }
 
     def setup() {
-        def targetVersion = "6.0-20190918220850+0000"
+        def targetVersion = "6.2-rc-1"
         runner.targetVersions = [targetVersion]
-        runner.minimumVersion = targetVersion
-    }
-
-    @Unroll
-    def "#tasks on the gradle build comparing gradle"() {
-        given:
-        runner.testProject = "gradleBuildCurrent"
-        runner.tasksToRun = tasks.split(' ')
-        runner.args = extraGradleBuildArguments()
-
-        when:
-        def result = runner.run()
-
-        then:
-        result.assertCurrentVersionHasNotRegressed()
-
-        where:
-        tasks  | _
-        'help' | _
+        runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
     }
 
     @Category(SlowPerformanceRegressionTest)
@@ -112,6 +94,5 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
         MEDIUM_MONOLITHIC_JAVA_PROJECT      | ""                   | 40
         LARGE_JAVA_MULTI_PROJECT            | ""                   | 20
         LARGE_JAVA_MULTI_PROJECT_KOTLIN_DSL | ""                   | 10
-        'gradleBuildCurrent'                | "subprojects/build/" | 10
     }
 }

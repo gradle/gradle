@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleDescriptorHashModuleSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
@@ -29,6 +30,8 @@ import org.gradle.internal.component.external.model.MutableModuleComponentResolv
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
@@ -40,6 +43,7 @@ import java.util.List;
 
 public class DefaultArtifactMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
+    private static final HashCode MISSING = Hashing.md5().hashString("");
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
     private final String artifactType;
     private final String artifactExtension;
@@ -56,6 +60,8 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
         MutableModuleComponentResolveMetadata metaDataFromDefaultArtifact = createMetaDataFromDependencyArtifact(moduleComponentIdentifier, prescribedMetaData, artifactResolver, result);
         if (metaDataFromDefaultArtifact != null) {
             LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleComponentIdentifier, repositoryName);
+            metaDataFromDefaultArtifact.getSources()
+                .add(new ModuleDescriptorHashModuleSource(MISSING, false));
             return metaDataFromDefaultArtifact;
         }
         return null;
@@ -86,7 +92,7 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
         versionLister.listVersions(module, dependencyArtifact, artifactPatterns, result);
     }
 
-    private static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
+    static IvyArtifactName getPrimaryDependencyArtifact(ModuleDependencyMetadata dependency) {
         String moduleName = dependency.getSelector().getModule();
         List<IvyArtifactName> artifacts = dependency.getArtifacts();
         if (artifacts.isEmpty()) {

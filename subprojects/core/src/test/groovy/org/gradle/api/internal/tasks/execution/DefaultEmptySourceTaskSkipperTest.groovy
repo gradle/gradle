@@ -21,7 +21,6 @@ import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.OutputChangeListener
@@ -74,7 +73,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
 
         then:
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> true
@@ -103,7 +102,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
 
         then:
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
@@ -148,7 +147,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(outputDir, outputFile))
 
         then:
         _ * cleanupRegistry.isOutputOwnedByBuild(subDir) >> true
@@ -187,7 +186,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> true
 
         then:
-        1 * outputChangeListener.beforeOutputChange()
+        1 * outputChangeListener.beforeOutputChange(rootPaths(previousFile))
 
         then: "deleting the previous file fails"
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> {
@@ -227,7 +226,11 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
 
     def fingerprint(File... files) {
         ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of(
-            "output", fingerprinter.fingerprint(ImmutableFileCollection.of(files))
+            "output", fingerprinter.fingerprint(TestFiles.fixed(files))
         )
+    }
+
+    Set<String> rootPaths(File... files) {
+        files*.absolutePath as Set
     }
 }

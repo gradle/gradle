@@ -11,9 +11,9 @@ import Gradle_Promotion.buildTypes.StartReleaseCycle
 import Gradle_Promotion.buildTypes.StartReleaseCycleTest
 import Gradle_Promotion.vcsRoots.Gradle_Promotion_GradlePromotionBranches
 import Gradle_Promotion.vcsRoots.Gradle_Promotion__master_
-import jetbrains.buildServer.configs.kotlin.v2018_2.Project
-import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.VersionedSettings
-import jetbrains.buildServer.configs.kotlin.v2018_2.projectFeatures.versionedSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.Project
+import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSettings
+import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.versionedSettings
 
 object Project : Project({
     uuid = "16c9f3e3-36a9-4596-a35c-70a3c7a2c5c8"
@@ -42,11 +42,11 @@ object Project : Project({
     buildType(releaseSnapshotFromQuickFeedback)
 
     params {
-        password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "credentialsJSON:0f1f842f-df6c-4db7-8271-f1f73c823aed")
+        password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "credentialsJSON:1d713842-74ae-48ef-8a89-c60fc1704545")
         password("env.ORG_GRADLE_PROJECT_artifactoryUserPassword", "credentialsJSON:2b7529cd-77cd-49f4-9416-9461f6ac9018")
-        param("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "AKIAJUN6ZAPAEO3BC7AQ")
-        password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "credentialsJSON:ed0db35e-2034-444c-a9b1-d966b9abe89b")
-        param("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "AKIAJFJBF5BXLBNI3E5A")
+        param("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "AKIAQBZWBNAJCJGCAMFL")
+        password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "credentialsJSON:853fec36-91c4-4815-9a04-c9073b497352")
+        param("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "AKIAX5VJCER2X7DPYFXF")
         password("env.ORG_GRADLE_PROJECT_sdkmanToken", "credentialsJSON:64e60515-68db-4bbd-aeae-ba2e058ac3cb")
         param("env.JAVA_HOME", "%linux.java11.openjdk.64bit%")
         param("env.ORG_GRADLE_PROJECT_artifactoryUserName", "bot-build-tool")

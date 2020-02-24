@@ -16,12 +16,12 @@
 
 package org.gradle.plugins.javascript.envjs
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
-
-import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluate
 
 import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGoogleRepoScript
+import static org.gradle.plugins.javascript.base.JavaScriptBasePluginTestFixtures.addGradlePublicJsRepoScript
 
 class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
     @Override
@@ -35,9 +35,12 @@ class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
         buildFile << """
             ${mavenCentralRepository()}
         """
-        executer.expectDeprecationWarning("The org.gradle.envjs plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.envjs plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
     }
 
     def "can download envjs by default"() {
@@ -58,6 +61,7 @@ class EnvJsPluginIntegrationTest extends WellBehavedPluginTest {
         js.text.contains("Envjs = function")
     }
 
+    @ToBeFixedForInstantExecution
     def "can evaluate content"() {
         given:
         file("input/index.html") << """

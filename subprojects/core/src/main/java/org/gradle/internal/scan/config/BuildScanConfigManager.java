@@ -29,19 +29,20 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.UNSUPPORTED_PLUGIN_VERSION_MESSAGE;
-import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.isNotSupported;
+import static org.gradle.internal.scan.config.BuildScanPluginCompatibility.OLD_SCAN_PLUGIN_VERSION_MESSAGE;
 
 /**
  * This is the meeting point between Gradle and the build scan plugin during initialization. This is effectively build scoped.
  */
-class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProvider, BuildScanPluginApplied {
+public class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProvider, BuildScanPluginApplied {
 
     private static final Logger LOGGER = Logging.getLogger(BuildScanConfigManager.class);
 
     private static final VersionNumber FIRST_VERSION_AWARE_OF_UNSUPPORTED = VersionNumber.parse("1.11");
 
-    private static final String HELP_LINK = "https://gradle.com/scans/help/gradle-cli";
+    public static final String NO_PLUGIN_MSG = "An internal error occurred that prevented a build scan from being created.\n" +
+        "Please report this via https://github.com/gradle/gradle/issues";
+
     private static final String SYSPROP_KEY = "scan";
     private static final List<String> ENABLED_SYS_PROP_VALUES = Arrays.asList(null, "", "yes", "true");
 
@@ -93,10 +94,7 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
             @Override
             public void projectsEvaluated(Gradle gradle) {
                 if (gradle.getParent() == null && !collected) {
-                    LOGGER.warn(
-                        "Build scan cannot be created because the build scan plugin was not applied.\n"
-                            + "For more information on how to apply the build scan plugin, please visit " + HELP_LINK + "."
-                    );
+                    LOGGER.warn(NO_PLUGIN_MSG);
                 }
             }
         });
@@ -109,8 +107,8 @@ class BuildScanConfigManager implements BuildScanConfigInit, BuildScanConfigProv
         }
 
         VersionNumber pluginVersion = VersionNumber.parse(pluginMetadata.getVersion()).getBaseVersion();
-        if (isNotSupported(pluginVersion)) {
-            throw new UnsupportedBuildScanPluginVersionException(UNSUPPORTED_PLUGIN_VERSION_MESSAGE);
+        if (pluginVersion.compareTo(BuildScanPluginCompatibility.FIRST_GRADLE_ENTERPRISE_PLUGIN_VERSION) < 0) {
+            throw new UnsupportedBuildScanPluginVersionException(OLD_SCAN_PLUGIN_VERSION_MESSAGE);
         }
 
         collected = true;

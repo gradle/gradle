@@ -18,6 +18,7 @@
 package org.gradle.integtests.publish.ivy
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
@@ -56,6 +57,7 @@ credentials {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "can publish to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -82,8 +84,12 @@ uploadArchives {
         server.authenticationScheme = authScheme
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         executer.expectDeprecationWarning()
@@ -102,6 +108,7 @@ uploadArchives {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "reports failure publishing with #credsName credentials to authenticated repository using #authScheme auth"() {
         given:
         server.start()
@@ -145,6 +152,7 @@ uploadArchives {
         AuthScheme.NTLM   | 'bad'     | BAD_CREDENTIALS
     }
 
+    @ToBeFixedForInstantExecution
     public void reportsFailedPublishToHttpRepository() {
         given:
         server.start()
@@ -186,6 +194,7 @@ uploadArchives {
         failure.assertThatCause(matchesRegexp(".*?Connect to 127.0.0.1:${repositoryPort} (\\[.*\\])? failed: Connection refused.*"))
     }
 
+    @ToBeFixedForInstantExecution
     public void usesFirstConfiguredPatternForPublication() {
         given:
         server.start()
@@ -210,8 +219,12 @@ uploadArchives {
         and:
         module.jar.expectPut()
         module.jar.sha1.expectPut()
+        module.jar.sha256.expectPut()
+        module.jar.sha512.expectPut()
         module.ivy.expectPut()
         module.ivy.sha1.expectPut()
+        module.ivy.sha256.expectPut()
+        module.ivy.sha512.expectPut()
 
         when:
         executer.expectDeprecationWarning()
@@ -224,6 +237,7 @@ uploadArchives {
 
     @Requires(FIX_TO_WORK_ON_JAVA9)
     @Issue('provide a different large jar')
+    @ToBeFixedForInstantExecution
     public void "can publish large artifact (tools.jar) to authenticated repository"() {
         given:
         server.start()
@@ -260,8 +274,12 @@ uploadTools {
         and:
         module.jar.expectPut('testuser', 'password')
         module.jar.sha1.expectPut('testuser', 'password')
+        module.jar.sha256.expectPut('testuser', 'password')
+        module.jar.sha512.expectPut('testuser', 'password')
         module.ivy.expectPut('testuser', 'password')
         module.ivy.sha1.expectPut('testuser', 'password')
+        module.ivy.sha256.expectPut('testuser', 'password')
+        module.ivy.sha512.expectPut('testuser', 'password')
 
         when:
         run 'uploadTools'

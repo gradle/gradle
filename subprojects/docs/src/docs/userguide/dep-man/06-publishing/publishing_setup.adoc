@@ -44,9 +44,14 @@ For example, a publication destined for a Maven repository includes:
 * The Maven POM file will identify the primary artifact and its dependencies.
 The primary artifact is typically the project's production JAR and secondary artifacts might consist of "-sources" and "-javadoc" JARs.
 
++
+In addition, Gradle will publish checksums for all of the above, and <<publishing_signing.adoc#,signatures>> when configured to do so.
+From Gradle 6.0 onwards, this includes `SHA256` and `SHA512` checksums.
+
 [[publishing_overview:where]]
 Where to publish::
-Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact. Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
+Gradle needs to know where to publish artifacts so that consumers can get hold of them. This is done via <<dependency_management_terminology.adoc#sub:terminology_repository,repositories>>, which store and make available all sorts of artifact.
+Gradle also needs to interact with the repository, which is why you must provide the type of the repository and its location.
 
 [[publishing_overview:how]]
 How to publish::
@@ -68,16 +73,16 @@ Let's assume we're working with a simple Java library project, so only the follo
 
 .Applying the necessary plugins
 ====
-include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=apply-plugins]"]
-include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=apply-plugins]"]
+include::sample[dir="snippets/userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=apply-plugins]"]
+include::sample[dir="snippets/userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=apply-plugins]"]
 ====
 
 Once the appropriate plugin has been applied, you can configure the publications and repositories. For this example, we want to publish the project's production JAR file — the one produced by the `jar` task — to a custom, Maven repository. We do that with the following `publishing {}` block, which is backed by link:{groovyDslPath}/org.gradle.api.publish.PublishingExtension.html[PublishingExtension]:
 
 .Configuring a Java library for publishing
 ====
-include::sample[dir="userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-publishing]"]
-include::sample[dir="userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-publishing]"]
+include::sample[dir="snippets/userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-publishing]"]
+include::sample[dir="snippets/userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-publishing]"]
 ====
 
 This defines a publication called "myLibrary" that can be published to a Maven repository by virtue of its type: link:{groovyDslPath}/org.gradle.api.publish.maven.MavenPublication.html[MavenPublication].

@@ -12,15 +12,15 @@ Component metadata rules are applied in the components (link:{groovyDslPath}/org
 The rules can be defined in two different ways:
 
 1. As an action directly when they are applied in the _components_ section
-2. As an isolated class implementing the link:{groovyDslPath}/org.gradle.api.artifacts.dsl.ComponentMetadataRule.html[ComponentMetadataRule] interface
+2. As an isolated class implementing the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataRule.html[ComponentMetadataRule] interface
 
 While defining rules inline as action can be convenient for experimentation, it is generally recommended to define rules as separate classes.
 Rules that are written as isolated classes can be annotated with `@CacheableRule` to cache the results of their application such that they do not need to be re-executed each time dependencies are resolved.
 
 .Example of a configurable component metadata rule
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=config-component-metadata-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=config-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=config-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=config-component-metadata-rule]"]
 ====
 
 As can be seen in the examples above, component metadata rules are defined by implementing link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataRule.html[ComponentMetadataRule] which has a single `execute` method receiving an instance of link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext] as parameter.
@@ -35,7 +35,7 @@ Because of this, the moment you have a constructor, it must be annotated with `@
 A commonly required service is link:{javadocPath}/org/gradle/api/model/ObjectFactory.html[ObjectFactory] to create instances of strongly typed value objects like a value for setting an link:{javadocPath}/org/gradle/api/attributes/Attribute.html[Attribute].
 A service which is helpful for advanced usage of component metadata rules with custom metadata is the link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryResourceAccessor.html[RepositoryResourceAccessor].
 
-A component metadata rule can be applied to all modules - `all(rule)` - or to a selected module - `withModule(groupAndName, rule)`.
+A component metadata rule can be applied to all modules — `all(rule)` — or to a selected module — `withModule(groupAndName, rule)`.
 Usually, a rule is specifically written to enrich metadata of one specific module and hence the `withModule` API should be preferred.
 
 [[sec:component_metadata_rules_details]]
@@ -53,11 +53,11 @@ Variants can be addressed for modification through the following methods:
 
 The following details of each variant can be adjusted:
 
-- The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant - `attributes {}` block
-- The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides - `withCapabilities { }` block
-- The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencies {}` block
-- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> - `withDependencyConstraints {}` block
-- The location of the published files that make up the actual content of the variant - `withFiles { }` block
+- The <<variant_model.adoc#sec:abm_configuration_attributes,attributes>> that identify the variant — `attributes {}` block
+- The <<component_capabilities.adoc#declaring-component-capabilities,capabilities>> the variant provides — `withCapabilities { }` block
+- The <<declaring_dependencies.adoc#,dependencies>> of the variant, including <<rich_versions.adoc#,rich versions>> — `withDependencies {}` block
+- The <<dependency_constraints.adoc#sec:adding-constraints-transitive-deps,dependency constraints>> of the variant, including <<rich_versions.adoc#,rich versions>> — `withDependencyConstraints {}` block
+- The location of the published files that make up the actual content of the variant — `withFiles { }` block
 
 There are also a few properties of the whole component that can be changed:
 
@@ -99,8 +99,8 @@ Assuming that we need to work with 1.1.3 for some reason, we can fix the metadat
 
 .Rule to remove unused dependencies of Jaxen metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=jaxen-rule-1]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-1]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=jaxen-rule-1]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-1]"]
 ====
 
 Within the `withDependencies` block you have access to the full list of dependencies and can use all methods available on the Java collection interface to inspect and modify that list.
@@ -115,8 +115,8 @@ Hence, we can add this information in a rule as well.
 
 .Rule to add optional feature to Jaxen metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=jaxen-rule-2]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-2]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=jaxen-rule-2]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-rule-2]"]
 ====
 
 Here, we first use the `addVariant(name, baseVariant)` method to create an additional variant, which we identify as _feature variant_ by defining a new capability _jaxen-dom4j_ to represent the optional dom4j integration feature of Jaxen.
@@ -127,14 +127,14 @@ In the build script, we can then add a <<feature_variants.adoc#sec::consuming_fe
 
 .Applying and utilising rules for Jaxen metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=jaxen-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=jaxen-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=jaxen-dependencies]"]
 ====
 
 == Making variants published as classified jars explicit ==
 
 While in the previous example, all variants, "main variants" and optional features, were packaged in one jar file, it is common to publish certain variants as separate files.
-In particular, when the variants are mutual exclusive - i.e. they are *not* feature variants, but different variants offering alternative choices.
+In particular, when the variants are mutual exclusive — i.e. they are *not* feature variants, but different variants offering alternative choices.
 One example *all* pom-based libraries already have are the _runtime_ and _compile_ variants, where Gradle can choose only one depending on the task at hand.
 Another of such alternatives discovered often in the Java ecosystems are jars targeting different Java versions.
 
@@ -148,8 +148,8 @@ In Gradle Module Metadata, this variant information would be present and for the
 
 .Rule to add Jdk 8 variants to Quasar metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=quasar-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=quasar-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=quasar-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=quasar-rule]"]
 ====
 
 In this case, it is pretty clear that the classifier stands for a target Java version, which is a <<variant_model.adoc#sec:variant-aware-matching,known Java ecosystem attribute>>.
@@ -158,15 +158,15 @@ This way, all other Java ecosystem attributes are already set correctly and all 
 Then we set the `TARGET_JVM_VERSION_ATTRIBUTE` to `8` for both variants, remove any existing file from the new variants with `removeAllFiles()`, and add the jdk8 jar file with `addFile()`.
 The `removeAllFiles()` is needed, because the reference to the main jar `quasar-core-0.7.5.jar` is copied from the corresponding base variant.
 
-We also enrich the existing _compile_ and _runtime_ variants with the information that they target Java 7 - `attribute(TARGET_JVM_VERSION_ATTRIBUTE, 7)`.
+We also enrich the existing _compile_ and _runtime_ variants with the information that they target Java 7 — `attribute(TARGET_JVM_VERSION_ATTRIBUTE, 7)`.
 
 Now, we can request a Java 8 versions for all of our dependencies on the compile classpath in the build script and Gradle will automatically select the best fitting variant for each library.
 In the case of Quasar this will now be the _jdk8Compile_ variant exposing the `quasar-core-0.7.9-jdk8.jar`.
 
 .Applying and utilising rule for Quasar metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=quasar-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=quasar-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=quasar-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=quasar-dependencies]"]
 ====
 
 == Making variants encoded in versions explicit  ==
@@ -186,8 +186,8 @@ We can write the following rule:
 
 .Rule to add Jdk 6 and Jdk 8 variants to Guava metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guava-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guava-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guava-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guava-rule]"]
 ====
 
 Similar to the previous example, we add runtime and compile variants for both Java versions.
@@ -199,8 +199,8 @@ The variant, and with it the correct jar file, is determined based on the reques
 
 .Applying and utilising rule for Guava metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guava-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guava-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guava-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guava-dependencies]"]
 ====
 
 == Adding variants for native jars
@@ -212,8 +212,8 @@ In Gradle Module Metadata, each variant can have arbitrary many files and we can
 
 .Rule to add native runtime variants to LWGJ metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=lwgj-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=lwgj-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-rule]"]
 ====
 
 This rule is quite similar to the Quasar library example above.
@@ -227,8 +227,8 @@ In the build script, we can now request a specific variant and Gradle will fail 
 
 .Applying and utilising rule for LWGJ metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=lwgj-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=lwgj-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
 ====
 
 .Gradle fails to select a variant because a machine architecture needs to be chosen
@@ -252,8 +252,8 @@ With the following rule, we create compile and runtime variants based on that fi
 
 .Rule to add no_aop feature variant to Guice metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guice-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guice-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guice-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guice-rule]"]
 ====
 
 The new variants also have the dependency on the standardized aop interfaces library `aopalliance:aopalliance` removed, as this is clearly not needed by these variants.
@@ -262,10 +262,9 @@ We can now select a `guice-no_aop` variant and will get the correct jar file *an
 
 .Applying and utilising rule for Guice metadata
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=lwgj-dependencies]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=lwgj-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guice-dependencies]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guice-dependencies]"]
 ====
-
 
 == Adding missing capabilities to detect conflicts
 
@@ -288,8 +287,8 @@ These are available through the link:{javadocPath}/org/gradle/api/artifacts/ivy/
 
 .Ivy component metadata rule
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
 ====
 
 == Modifying metadata on the component level for alignment
@@ -298,7 +297,7 @@ While all the examples above made modifications to variants of a component, ther
 This information can influence the <<dependency_resolution.adoc#,version selection>> process for a module during dependency resolution, which is performed _before_ one or multiple variants of a component are selected.
 
 The first API available on the component is `belongsTo()` to create virtual platforms for aligning versions of multiple modules without Gradle Module Metadata.
-It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-virtual,aligning versions of modules not published with Gradle>>.
+It is explained in detail in the section on <<dependency_version_alignment.adoc#sec:align-versions-unpublished,aligning versions of modules not published with Gradle>>.
 
 [[sec:custom_status_scheme]]
 == Modifying metadata on the component level for version selection based on status
@@ -329,8 +328,8 @@ The following example demonstrates `latest` selectors based on a custom status s
 
 .Custom status scheme
 ====
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=custom-status-scheme]"]
-include::sample[dir="userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=custom-status-scheme]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=custom-status-scheme]"]
 ====
 
 Compared to the default scheme, the rule inserts a new status `rc` and replaces `integration` with `nightly`.

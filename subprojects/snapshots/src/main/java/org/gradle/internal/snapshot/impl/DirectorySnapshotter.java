@@ -22,8 +22,8 @@ import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
-import org.gradle.internal.snapshot.FileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -60,7 +60,7 @@ public class DirectorySnapshotter {
         this.defaultExcludes = new DefaultExcludes(defaultExcludes);
     }
 
-    public FileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
+    public CompleteFileSystemLocationSnapshot snapshot(String absolutePath, @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate, final AtomicBoolean hasBeenFiltered) {
         try {
             Path rootPath = Paths.get(absolutePath);
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
@@ -194,7 +194,7 @@ public class DirectorySnapshotter {
             return FileVisitResult.CONTINUE;
         }
 
-        private FileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs) {
+        private CompleteFileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs) {
             String internedAbsoluteFilePath = intern(absoluteFilePath.toString());
             if (attrs.isRegularFile()) {
                 try {
@@ -263,14 +263,14 @@ public class DirectorySnapshotter {
             if (predicate == null) {
                 return true;
             }
-            boolean allowed = predicate.test(path, internedName, isDirectory, attrs, relativePath);
+            boolean allowed = predicate.test(path, internedName, isDirectory, relativePath);
             if (!allowed) {
                 hasBeenFiltered.set(true);
             }
             return allowed;
         }
 
-        public FileSystemLocationSnapshot getResult() {
+        public CompleteFileSystemLocationSnapshot getResult() {
             return builder.getResult();
         }
     }

@@ -37,6 +37,8 @@ Gradle ships with its own Groovy library, therefore Groovy does not need to be i
 
 Gradle uses whatever JDK it finds in your path. Alternatively, you can set the `JAVA_HOME` environment variable to point to the installation directory of the desired JDK.
 
+<<compatibility.adoc#compatibility, See the full compatibility notes for Java, Groovy, Kotlin and Android.>>
+
 == Installing with a package manager
 
 link:http://sdkman.io[SDKMAN!] is a tool for managing parallel versions of multiple Software Development Kits on most Unix-like systems (macOS, Linux, Cygwin, Solaris and FreeBSD). We deploy and maintain the versions available from SDKMAN!.
@@ -78,7 +80,7 @@ Unzip the distribution zip file in the directory of your choosing, e.g.:
 ❯ mkdir /opt/gradle
 ❯ unzip -d /opt/gradle gradle-{gradleVersion}-bin.zip
 ❯ ls /opt/gradle/gradle-{gradleVersion}
-LICENSE  NOTICE  bin  getting-started.html  init.d  lib  media
+LICENSE  NOTICE  bin  README  init.d  lib  media
 ----
 
 ==== Microsoft Windows users

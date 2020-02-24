@@ -18,8 +18,8 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.execution.InputChangesContext
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.Result
 import org.gradle.internal.execution.UnitOfWork.OutputPropertyVisitor
 import org.gradle.internal.execution.history.AfterPreviousExecutionState
@@ -36,9 +36,10 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)
+    def outputChangeListener = Mock(OutputChangeListener)
     def deleter = TestFiles.deleter()
 
-    def step = new CleanupOutputsStep<>(deleter, delegate)
+    def step = new CleanupOutputsStep<>(deleter, outputChangeListener, delegate)
 
     @Override
     protected InputChangesContext createContext() {
@@ -189,6 +190,8 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         }
         _ * context.afterPreviousExecutionState >> Optional.of(afterPreviousExecution)
         1 * afterPreviousExecution.outputFileProperties >> ImmutableSortedMap.<String, FileCollectionFingerprint>of("dir", outputs.dirFingerprint, "file", outputs.fileFingerprint)
+        1 * outputChangeListener.beforeOutputChange(outputs.dirFingerprint.rootPaths)
+        1 * outputChangeListener.beforeOutputChange(outputs.fileFingerprint.rootPaths)
     }
 
     void cleanupExclusiveOutputs(WorkOutputs outputs, boolean incrementalExecution = false) {
@@ -209,8 +212,8 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         FileCollectionFingerprint fileFingerprint
 
         void fingerprint() {
-            dirFingerprint = outputFingerprinter.fingerprint(ImmutableFileCollection.of(dir))
-            fileFingerprint = outputFingerprinter.fingerprint(ImmutableFileCollection.of(file))
+            dirFingerprint = outputFingerprinter.fingerprint(TestFiles.fixed(dir))
+            fileFingerprint = outputFingerprinter.fingerprint(TestFiles.fixed(file))
         }
 
         void createContents() {

@@ -32,7 +32,7 @@ import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.provider.Provider;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.io.File;
 
@@ -84,7 +84,7 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
         return new AbstractMappingProvider<Directory, File>(Directory.class, Providers.internal(provider)) {
             @Override
             protected Directory mapValue(File file) {
-                return new FixedDirectory(file, projectDir.fileResolver, fileCollectionFactory);
+                return new FixedDirectory(projectDir.fileResolver.resolve(file), projectDir.fileResolver, fileCollectionFactory);
             }
         };
     }
@@ -96,7 +96,10 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public ConfigurableFileCollection configurableFiles(Object... files) {
-        DeprecationLogger.nagUserOfReplacedMethod("ProjectLayout.configurableFiles()", "ObjectFactory.fileCollection()");
+        DeprecationLogger.deprecateMethod(ProjectLayout.class, "configurableFiles()").replaceWith("ObjectFactory.fileCollection()")
+            .willBeRemovedInGradle7()
+            .withUserManual("lazy_configuration", "property_files_api_reference")
+            .nagUser();
         return fileCollectionFactory.configurableFiles().from(files);
     }
 

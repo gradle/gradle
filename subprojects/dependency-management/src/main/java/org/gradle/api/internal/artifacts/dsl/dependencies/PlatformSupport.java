@@ -16,9 +16,6 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import com.google.common.base.Objects;
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Action;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
@@ -34,39 +31,39 @@ import javax.inject.Inject;
 import java.util.Set;
 
 public class PlatformSupport {
+    private final Category library;
     private final Category regularPlatform;
     private final Category enforcedPlatform;
-    private final Set<Category> platformTypes;
 
     public PlatformSupport(NamedObjectInstantiator instantiator) {
+        library = instantiator.named(Category.class, Category.LIBRARY);
         regularPlatform = instantiator.named(Category.class, Category.REGULAR_PLATFORM);
         enforcedPlatform = instantiator.named(Category.class, Category.ENFORCED_PLATFORM);
-        platformTypes = ImmutableSet.of(regularPlatform, enforcedPlatform);
     }
 
-    public boolean isTargettingPlatform(HasConfigurableAttributes<?> target) {
+    public boolean isTargetingPlatform(HasConfigurableAttributes<?> target) {
         Category category = target.getAttributes().getAttribute(Category.CATEGORY_ATTRIBUTE);
         return regularPlatform.equals(category) || enforcedPlatform.equals(category);
     }
 
-    public void configureSchema(AttributesSchema attributesSchema) {
-        AttributeMatchingStrategy<Category> componentTypeMatchingStrategy = attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE);
-        componentTypeMatchingStrategy.getDisambiguationRules().add(PlatformSupport.ComponentCategoryDisambiguationRule.class);
+    public Category getRegularPlatformCategory() {
+        return regularPlatform;
     }
 
-    public void addDisambiguationRule(AttributesSchema attributesSchema) {
-        attributesSchema.getMatchingStrategy(Category.CATEGORY_ATTRIBUTE)
-            .getDisambiguationRules()
-            .add(PlatformSupport.PreferRegularPlatform.class, c -> c.params(platformTypes, regularPlatform));
+    public void configureSchema(AttributesSchema attributesSchema) {
+        configureCategoryDisambiguationRule(attributesSchema);
+    }
+
+    private void configureCategoryDisambiguationRule(AttributesSchema attributesSchema) {
+        AttributeMatchingStrategy<Category> categorySchema = attributesSchema.attribute(Category.CATEGORY_ATTRIBUTE);
+        categorySchema.getDisambiguationRules().add(ComponentCategoryDisambiguationRule.class, actionConfiguration -> {
+            actionConfiguration.params(library);
+            actionConfiguration.params(regularPlatform);
+        });
     }
 
     public <T> void addPlatformAttribute(HasConfigurableAttributes<T> dependency, final Category category) {
-        dependency.attributes(new Action<AttributeContainer>() {
-            @Override
-            public void execute(AttributeContainer attributeContainer) {
-                attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category);
-            }
-        });
+        dependency.attributes(attributeContainer -> attributeContainer.attribute(Category.CATEGORY_ATTRIBUTE, category));
     }
 
     /**
@@ -82,35 +79,27 @@ public class PlatformSupport {
     }
 
     public static class ComponentCategoryDisambiguationRule implements AttributeDisambiguationRule<Category>, ReusableAction {
+        final Category library;
+        final Category platform;
+
+        @Inject
+        ComponentCategoryDisambiguationRule(Category library, Category regularPlatform) {
+            this.library = library;
+            this.platform = regularPlatform;
+        }
+
         @Override
         public void execute(MultipleCandidatesDetails<Category> details) {
             Category consumerValue = details.getConsumerValue();
-            Set<Category> candidateValues = details.getCandidateValues();
             if (consumerValue == null) {
-                // consumer expressed no preference, defaults to library
-                candidateValues.stream()
-                    .filter(it -> it.getName().equals(Category.LIBRARY))
-                    .findFirst()
-                    .ifPresent(it -> details.closestMatch(it));
-            }
-        }
-
-    }
-
-    public static class PreferRegularPlatform implements AttributeDisambiguationRule<Category> {
-        private final Set<Category> platformTypes;
-        private final Category regularPlatform;
-
-        @Inject
-        public PreferRegularPlatform(Set<Category> platformTypes, Category regularPlatform) {
-            this.platformTypes = platformTypes;
-            this.regularPlatform = regularPlatform;
-        }
-
-        @Override
-        public void execute(MultipleCandidatesDetails<Category> details) {
-            if (details.getCandidateValues().equals(platformTypes)) {
-                details.closestMatch(regularPlatform);
+                Set<Category> candidateValues = details.getCandidateValues();
+                if (candidateValues.contains(library)) {
+                    // default to library
+                    details.closestMatch(library);
+                } else if (candidateValues.contains(platform)) {
+                    // default to normal platform when only platforms are available and nothing has been requested
+                    details.closestMatch(platform);
+                }
             }
         }
     }

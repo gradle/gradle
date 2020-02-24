@@ -19,6 +19,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.kotlin.dsl.*
+import org.gradle.util.GradleVersion
 
 
 class CleanupPlugin : Plugin<Project> {
@@ -26,14 +27,26 @@ class CleanupPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         tasks.register("cleanUpCaches", CleanUpCaches::class) {
             dependsOn(":createBuildReceipt")
+            version.set(GradleVersion.version(project.version.toString()))
+            homeDir.set(layout.projectDirectory.dir("intTestHomeDir"))
         }
-        tasks.register("cleanUpDaemons", CleanUpDaemons::class)
+        val tracker = gradle.sharedServices.registerIfAbsent("daemonTracker", DaemonTracker::class.java) {
+            parameters.gradleHomeDir.fileValue(gradle.gradleHomeDir)
+            parameters.rootProjectDir.fileValue(rootProject.projectDir)
+        }
+        extensions.create("cleanup", CleanupExtension::class.java, tracker)
+        tasks.register("cleanUpDaemons", CleanUpDaemons::class) {
+            this.tracker.set(tracker)
+        }
 
-        val killExistingProcessesStartedByGradle = tasks.register("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class)
+        val killExistingProcessesStartedByGradle = tasks.register("killExistingProcessesStartedByGradle", KillLeakingJavaProcesses::class) {
+            this.tracker.set(tracker)
+        }
 
         if (BuildEnvironment.isCiServer) {
             tasks {
-                val cleanTask = getByName("clean") { // TODO: See https://github.com/gradle/gradle-native/issues/718
+                val cleanTask = getByName("clean") {
+                    // TODO: See https://github.com/gradle/gradle-native/issues/718
                     dependsOn(killExistingProcessesStartedByGradle)
                 }
                 subprojects {

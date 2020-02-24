@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import accessors.java
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
@@ -22,8 +23,6 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":messaging"))
     implementation(project(":native"))
@@ -40,6 +39,7 @@ dependencies {
     implementation(project(":resourcesHttp"))
     implementation(project(":snapshots"))
     implementation(project(":execution"))
+    implementation(project(":security"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -82,13 +82,16 @@ dependencies {
     integTestImplementation(testLibrary("jetty")) {
         because("tests use HttpServlet directly")
     }
-
+    integTestImplementation(testFixtures(project(":security")))
     integTestRuntimeOnly(project(":ivy"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":resourcesS3"))
     integTestRuntimeOnly(project(":resourcesSftp"))
     integTestRuntimeOnly(project(":testKit"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":pluginDevelopment"))
 
     testFixturesApi(project(":baseServices")) {
@@ -108,7 +111,16 @@ dependencies {
     testFixturesImplementation(project(":internalIntegTesting"))
     testFixturesImplementation(library("slf4j_api"))
     testFixturesImplementation(library("inject"))
-
+    testFixturesImplementation(library("guava")) {
+        because("Groovy compiler reflects on private field on TextUtil")
+    }
+    testFixturesImplementation(library("bouncycastle_pgp"))
+    testFixturesApi(testLibrary("testcontainers_spock")) {
+        because("API because of Groovy compiler bug leaking internals")
+    }
+    testFixturesImplementation(project(":jvmServices")) {
+        because("Groovy compiler bug leaks internals")
+    }
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 
@@ -123,3 +135,17 @@ testFilesCleanup {
 tasks.classpathManifest {
     additionalProjects.add(":runtimeApiInfo")
 }
+
+afterEvaluate {
+    // This is a workaround for the validate plugins task trying to inspect classes which
+    // have changed but are NOT tasks
+    tasks.withType<ValidatePlugins>().configureEach {
+        val main by project.java.sourceSets
+        classes.setFrom(main.output.classesDirs.asFileTree.filter { !it.isInternal(main) })
+    }
+}
+
+fun File.isInternal(sourceSet: SourceSet) = isInternal(sourceSet.output.classesDirs.files)
+
+fun File.isInternal(roots: Set<File>): Boolean = name == "internal" ||
+    !roots.contains(parentFile) && parentFile.isInternal(roots)

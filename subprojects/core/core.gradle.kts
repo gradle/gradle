@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":workerProcesses"))
+    implementation(project(":normalizationJava"))
 
     implementation(library("groovy"))
     implementation(library("ant"))
@@ -100,6 +101,9 @@ dependencies {
     testFixturesApi(project(":execution")) {
         because("test fixtures expose OutputChangeListener")
     }
+    testFixturesApi(project(":native")) {
+        because("test fixtures expose FileSystem")
+    }
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":native"))
     testFixturesImplementation(project(":resources"))
@@ -142,8 +146,8 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testFixtures(project(":native")))
-    integTestRuntimeOnly(project(":testingJunitPlatform"))
 
+    integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDsl"))
@@ -153,7 +157,6 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
-
 }
 
 gradlebuildJava {

@@ -19,7 +19,6 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId;
@@ -32,7 +31,7 @@ import org.gradle.internal.component.external.model.ModuleComponentArtifactMetad
 import org.gradle.internal.component.external.model.VariantMetadataRules;
 import org.gradle.internal.component.model.Exclude;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.ModuleSource;
+import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.util.CollectionUtils;
 
 import java.util.IdentityHashMap;
@@ -64,8 +63,8 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
         this.extraAttributes = metadata.getExtraAttributes();
     }
 
-    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSource source) {
-        super(metadata, source);
+    private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, ModuleSources sources) {
+        super(metadata, sources);
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
@@ -77,7 +76,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     }
 
     private DefaultIvyModuleResolveMetadata(DefaultIvyModuleResolveMetadata metadata, List<IvyDependencyDescriptor> dependencies) {
-        super(metadata, metadata.getSource());
+        super(metadata, metadata.getSources());
         this.configurationDefinitions = metadata.configurationDefinitions;
         this.branch = metadata.branch;
         this.artifactDefinitions = metadata.artifactDefinitions;
@@ -103,13 +102,13 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     }
 
     @Override
-    public DefaultIvyModuleResolveMetadata withSource(ModuleSource source) {
-        return new DefaultIvyModuleResolveMetadata(this, source);
+    public MutableIvyModuleResolveMetadata asMutable() {
+        return new DefaultMutableIvyModuleResolveMetadata(this);
     }
 
     @Override
-    public MutableIvyModuleResolveMetadata asMutable() {
-        return new DefaultMutableIvyModuleResolveMetadata(this);
+    public DefaultIvyModuleResolveMetadata withSources(ModuleSources sources) {
+        return new DefaultIvyModuleResolveMetadata(this, sources);
     }
 
     @Override
@@ -139,14 +138,11 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
 
     @Override
     public IvyModuleResolveMetadata withDynamicConstraintVersions() {
-        List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), new Transformer<IvyDependencyDescriptor, IvyDependencyDescriptor>() {
-            @Override
-            public IvyDependencyDescriptor transform(IvyDependencyDescriptor dependency) {
-                ModuleComponentSelector selector = dependency.getSelector();
-                    String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
-                    ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
-                    return dependency.withRequested(newSelector);
-            }
+        List<IvyDependencyDescriptor> transformed = CollectionUtils.collect(getDependencies(), dependency -> {
+            ModuleComponentSelector selector = dependency.getSelector();
+                String dynamicConstraintVersion = dependency.getDynamicConstraintVersion();
+                ModuleComponentSelector newSelector = DefaultModuleComponentSelector.newSelector(selector.getModuleIdentifier(), dynamicConstraintVersion);
+                return dependency.withRequested(newSelector);
         });
         return this.withDependencies(transformed);
     }

@@ -22,6 +22,7 @@ import org.gradle.api.attributes.Usage
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
+import spock.lang.Unroll
 
 class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
@@ -31,7 +32,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             apply plugin: 'java-library'
-            
+
             allprojects {
                 repositories {
                     maven { url "${mavenHttpRepo.uri}" }
@@ -131,7 +132,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
-    def "reasonable behavior when using a regular project dependency instead of a platform dependency"() {
+    def "fails when using a regular project dependency instead of a platform dependency"() {
         def module = mavenHttpRepo.module("org", "foo", "1.1").publish()
 
         given:
@@ -142,6 +143,10 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         """)
 
         buildFile << """
+            java {
+                targetCompatibility = JavaVersion.VERSION_1_8
+                sourceCompatibility = JavaVersion.VERSION_1_8
+            }
             dependencies {
                 api project(":platform")
                 api "org:foo"
@@ -150,24 +155,42 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         checkConfiguration("compileClasspath")
 
         when:
-        module.pom.expectGet()
-        module.artifact.expectGet()
-
-        run ":checkDeps"
+        fails ":checkDeps"
 
         then:
-        resolve.expectGraph {
-            root(":", "org.test:test:1.9") {
-                project(":platform", "org.test:platform:1.9") {
-                    variant("apiElements", ['org.gradle.usage': 'java-api', 'org.gradle.category': 'platform'])
-                    constraint("org:foo:1.1")
-                    noArtifacts()
-                }
-                edge('org:foo', 'org:foo:1.1') {
-                    byConstraint()
-                }
-            }
-        }
+        failure.assertHasCause('''Unable to find a matching variant of project :platform:
+  - Variant 'apiElements' capability org.test:platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.
+  - Variant 'runtimeElements' capability org.test:platform:1.9:
+      - Incompatible attribute:
+          - Required org.gradle.category 'library' and found incompatible value 'platform'.
+      - Other attributes:
+          - Required org.gradle.dependency.bundling 'external' but no value provided.
+          - Required org.gradle.jvm.version '8' but no value provided.
+          - Required org.gradle.libraryelements 'classes' but no value provided.
+          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
     }
 
     def "can enforce a local platform dependency"() {
@@ -327,14 +350,14 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         when:
         buildFile << """
             dependencies {
-                api "org:platform" // no version, will select the "platform" component
+                api platform("org:platform") // no version, will select the "platform" component
                 api project(":sub")
             }
             project(":sub") {
                 apply plugin: 'java-library'
                 dependencies {
                     constraints {
-                       api platform("org:platform:1.0")
+                       api "org:platform:1.0"
                     }
                 }
             }
@@ -407,6 +430,142 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         }
     }
 
+    @Issue("gradle/gradle#11091")
+    def "resolves to runtime platform variant of a platform with gradle metadata if no attributes are requested"() {
+        def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata().withoutDefaultVariants()
+            .withVariant('api') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            .withVariant('runtime') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }.publish()
+
+        when:
+        buildFile << """
+            configurations { conf }
+            dependencies {
+                conf "org:platform:1.0"
+            }
+        """
+        checkConfiguration("conf")
+
+        platform.pom.expectGet()
+        platform.moduleMetadata.expectGet()
+        run ":checkDeps"
+
+        then:
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                module("org:platform:1.0") {
+                    variant("runtime", [
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': 'java-runtime'])
+                    noArtifacts()
+                }
+            }
+        }
+    }
+
+    @Issue("gradle/gradle#11091")
+    @Unroll
+    def "can enforce a platform that is already on the dependency graph on the #classpath classpath"() {
+        def platform = mavenHttpRepo.module("org", "platform", "1.0").withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }.publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                api platform("org:platform:1.0")
+                api enforcedPlatform("org:platform:1.0")
+            }
+        """
+        checkConfiguration("${classpath}Classpath")
+
+        platform.pom.expectGet()
+        platform.moduleMetadata.expectGet()
+        run ":checkDeps"
+
+        then:
+        def javaUsage = "java-${usage}"
+        def regularVariant = "${usage}Elements"
+        def enforcedVariant = "enforced${usage.capitalize()}Elements"
+        resolve.expectGraph {
+            root(":", "org.test:test:1.9") {
+                module("org:platform:1.0") {
+                    variant(regularVariant, [
+                        'org.gradle.category': 'platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': javaUsage])
+                    noArtifacts()
+                }
+                module("org:platform:1.0") {
+                    variant(enforcedVariant, [
+                        'org.gradle.category': 'enforced-platform',
+                        'org.gradle.status': 'release',
+                        'org.gradle.usage': javaUsage])
+                    noArtifacts()
+                }
+            }
+        }
+
+        where:
+        classpath | usage
+        'compile' | 'api'
+        'runtime' | 'runtime'
+    }
+
+    def "Can handle a published platform dependency that is resolved to a local platform project"() {
+        given:
+        file("src/main/java/SomeClass.java") << "public class SomeClass {}"
+        platformModule('')
+        mavenHttpRepo.module("org.test", "platform", "1.9").withModuleMetadata().withoutDefaultVariants()
+            .withVariant('apiElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_API)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }
+            .withVariant('runtimeElements') {
+                useDefaultArtifacts = false
+                attribute(Usage.USAGE_ATTRIBUTE.name, Usage.JAVA_RUNTIME)
+                attribute(Category.CATEGORY_ATTRIBUTE.name, Category.REGULAR_PLATFORM)
+            }.publish()
+        def moduleA = mavenHttpRepo.module("org.test", "b", "1.9").withModuleMetadata().withVariant("runtime") {
+            dependsOn("org.test", "platform", "1.9", null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+        }.withVariant("api") {
+            dependsOn("org.test", "platform", "1.9", null, [(Category.CATEGORY_ATTRIBUTE.name): Category.REGULAR_PLATFORM])
+        }.publish()
+
+        when:
+        buildFile << """
+            dependencies {
+                implementation platform(project(":platform"))
+                implementation "org.test:b:1.9"
+            }
+        """
+
+
+        moduleA.pom.expectGet()
+        moduleA.moduleMetadata.expectGet()
+        moduleA.artifact.expectGet()
+
+        then:
+        succeeds ":compileJava"
+    }
+
     private void checkConfiguration(String configuration) {
         resolve = new ResolveTestFixture(buildFile, configuration)
         resolve.expectDefaultConfiguration("compile")
@@ -421,7 +580,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
             plugins {
                 id 'java-platform'
             }
-            
+
             dependencies {
                 $dependencies
             }

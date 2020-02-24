@@ -1,0 +1,38 @@
+plugins {
+    id 'java'
+}
+
+// tag::file-set[]
+task zipWithFileSet(type: Zip) {
+    from ('contentDir') {
+        include('**/*.txt')
+        exclude('**/*.gif')
+    }
+}
+// end::file-set[]
+
+// tag::files[]
+task zipWithFiles(type: Zip) {
+    from 'path_to_file1', 'path_to_file2'
+}
+// end::files[]
+
+// tag::zip-file-set[]
+task zipWithZipFileSet(type: Zip) {
+    from('contentDir') {
+        include '**/*.txt'
+        exclude '**/*.gif'
+        into 'myprefix'
+    }
+}
+// end::zip-file-set[]
+
+// tag::tar-file-set[]
+task tarWithFileSet(type: Tar) {
+    from('contentDir') {
+        include('**/*.txt')
+        exclude('**/*.gif')
+        uid = 'myuid'
+    }
+}
+// end::tar-file-set[]

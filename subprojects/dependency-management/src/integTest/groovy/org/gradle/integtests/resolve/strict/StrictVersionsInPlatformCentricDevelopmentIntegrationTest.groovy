@@ -17,19 +17,16 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
+import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.MODULE
 import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.PLATFORM
-import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.LEGACY_PLATFORM
-import static org.gradle.integtests.resolve.strict.StrictVersionsInPlatformCentricDevelopmentIntegrationTest.PlatformType.ENFORCED_PLATFORM
 
-@RequiredFeatures([
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     enum PlatformType {
@@ -103,9 +100,9 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
                                 it.each {
                                    def rejected = it.versionConstraint.rejectedVersions
                                    it.version {
-                                      strictly(it.requiredVersion); 
-                                      if (rejected) { reject(*rejected) } 
-                                   } 
+                                      strictly(it.requiredVersion);
+                                      if (rejected) { reject(*rejected) }
+                                   }
                                 }
                             }
                         }
@@ -315,7 +312,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
         }
         then:
         (platformType == ENFORCED_PLATFORM && !failure) || failure.assertHasCause(
-            """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+            """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
    Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
    Constraint path ':test:unspecified' --> 'org:foo:3.2'""")
@@ -375,7 +372,7 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
         then:
         if (platformType == ENFORCED_PLATFORM) {
-            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
    Constraint path ':test:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
    Constraint path ':test:unspecified' --> 'org:foo:{strictly 3.2}'"""
@@ -461,13 +458,13 @@ class StrictVersionsInPlatformCentricDevelopmentIntegrationTest extends Abstract
 
         then:
         if (platformType == ENFORCED_PLATFORM) {
-            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+            failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
    Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{require 3.1.1; reject 3.1 & 3.2}'
    Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{strictly 3.2}'"""
         } else {
             failure.assertHasCause(
-                """Cannot find a version of 'org:foo' that satisfies the version constraints: 
+                """Cannot find a version of 'org:foo' that satisfies the version constraints:
    Dependency path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:bar:2.0' --> 'org:foo:3.1'
    Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:platform:1.1' --> 'org:foo:{strictly 3.1.1; reject 3.1 & 3.2}'
    Constraint path ':test:unspecified' --> 'test:recklessLibrary:unspecified' --> 'org:foo:{strictly 3.2}'""")

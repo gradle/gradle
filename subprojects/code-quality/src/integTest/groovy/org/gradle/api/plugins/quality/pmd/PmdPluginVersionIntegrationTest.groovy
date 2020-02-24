@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
@@ -48,6 +49,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """.stripIndent()
     }
 
+    @ToBeFixedForInstantExecution
     def "analyze good code"() {
         goodCode()
 
@@ -57,6 +59,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "analyze bad code"() {
         badCode()
 
@@ -68,6 +71,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
     }
 
+    @ToBeFixedForInstantExecution
     void "can ignore failures"() {
         badCode()
         buildFile << """
@@ -83,6 +87,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("2 PMD rule violations were found. See the report at:")
     }
 
+    @ToBeFixedForInstantExecution
     void "can configure priority level threshold"() {
         badCode()
         buildFile << """
@@ -124,6 +129,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         failure.assertHasCause("Invalid rulePriority '11'.  Valid range 1 (highest) to 5 (lowest).")
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure reporting"() {
         goodCode()
         buildFile << """
@@ -141,6 +147,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("htmlReport.html").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "use custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -162,6 +169,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
+    @ToBeFixedForInstantExecution
     def "add custom rule set files"() {
         assumeTrue(fileLockingIssuesSolved())
 
@@ -184,6 +192,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         file("build/reports/pmd/main.xml").assertContents(containsClass("org.gradle.Class2"))
     }
 
+    @ToBeFixedForInstantExecution
     def "use custom rule set"() {
         customCode()
 
@@ -203,6 +212,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
     }
 
+    @ToBeFixedForInstantExecution
     def "can enable console output"() {
         buildFile << """
             pmd {
@@ -221,6 +231,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2326")
+    @ToBeFixedForInstantExecution
     def "check task should not be up-to-date after clean if it only outputs to console"() {
         given:
         badCode()

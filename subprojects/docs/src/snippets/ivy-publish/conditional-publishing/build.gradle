@@ -1,0 +1,66 @@
+plugins  {
+    id 'java'
+    id 'ivy-publish'
+}
+
+group = 'org.gradle.sample'
+version = '1.0'
+
+task sourcesJar(type: Jar) {
+    archiveClassifier = 'sources'
+    from sourceSets.main.allJava
+}
+
+// tag::publishing[]
+publishing {
+    publications {
+        binary(IvyPublication) {
+            from components.java
+        }
+        binaryAndSources(IvyPublication) {
+            from components.java
+            artifact sourcesJar
+        }
+    }
+    repositories {
+        // change URLs to point to your repos, e.g. http://my.org/repo
+        ivy {
+            name "external"
+            url "$buildDir/repos/external"
+        }
+        ivy {
+            name "internal"
+            url "$buildDir/repos/internal"
+        }
+    }
+}
+// end::publishing[]
+
+// tag::task-config[]
+tasks.withType(PublishToIvyRepository) {
+    onlyIf {
+        if (repository == publishing.repositories.external)
+            return publication == publishing.publications.binary
+        if (repository == publishing.repositories.internal)
+            return publication == publishing.publications.binaryAndSources
+        return false
+    }
+}
+// end::task-config[]
+
+// tag::shorthand-tasks[]
+task publishToExternalRepository {
+    group "publishing"
+    description "Publishes all Ivy publications to Ivy repository 'external'."
+    dependsOn tasks.withType(PublishToIvyRepository).matching {
+        it.repository == publishing.repositories.external
+    }
+}
+task publishToInternalRepository {
+    group "publishing"
+    description "Publishes all Ivy publications to Ivy repository 'internal'."
+    dependsOn tasks.withType(PublishToIvyRepository).matching {
+        it.repository == publishing.repositories.internal
+    }
+}
+// end::shorthand-tasks[]

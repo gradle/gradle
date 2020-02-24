@@ -69,8 +69,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
 
     private boolean overrideDefaultCapability = true;
     private SourceSet sourceSet;
-    private boolean publishJavadoc = false;
-    private boolean publishSources = false;
+    private boolean withJavadocJar = false;
+    private boolean withSourcesJar = false;
 
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
@@ -110,13 +110,13 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     }
 
     @Override
-    public void publishJavadoc() {
-        publishJavadoc = true;
+    public void withJavadocJar() {
+        withJavadocJar = true;
     }
 
     @Override
-    public void publishSources() {
-        publishSources = true;
+    public void withSourcesJar() {
+        withSourcesJar = true;
     }
 
     private void setupConfigurations(SourceSet sourceSet) {
@@ -161,11 +161,11 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
         configureJavaDocTask(name, sourceSet, tasks);
-        if (publishJavadoc) {
+        if (withJavadocJar) {
             configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), name, JAVADOC, capabilities, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component, configurationContainer, tasks, objectFactory);
         }
-        if (publishSources) {
-            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), name, SOURCES, capabilities, sourceSet.getSourcesJarTaskName(), sourceSet.getAllJava(), component, configurationContainer, tasks, objectFactory);
+        if (withSourcesJar) {
+            configureDocumentationVariantWithArtifact(sourceSet.getSourcesElementsConfigurationName(), name, SOURCES, capabilities, sourceSet.getSourcesJarTaskName(), sourceSet.getAllSource(), component, configurationContainer, tasks, objectFactory);
         }
         JvmPluginsHelper.configureClassesDirectoryVariant(sourceSet, javaPluginConvention.getProject(), apiElementsConfigurationName, Usage.JAVA_API);
 
@@ -255,8 +255,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     }
 
     private boolean isMainSourceSet(SourceSet sourceSet) {
-        SourceSet mainSourceSet = javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        return mainSourceSet.equals(sourceSet);
+        return sourceSet.getName().equals(SourceSet.MAIN_SOURCE_SET_NAME);
     }
 
 }

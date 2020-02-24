@@ -18,6 +18,7 @@ package org.gradle.api.internal.collections
 
 import org.gradle.api.Action
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSupplier
 import spock.lang.Specification
 
 class DefaultPendingSourceTest extends Specification {
@@ -29,9 +30,9 @@ class DefaultPendingSourceTest extends Specification {
 
     def setup() {
         pending.onRealize(realize)
-        _ * provider1.get() >> "provider1"
-        _ * provider2.get() >> "provider2"
-        _ * provider3.get() >> "provider3"
+        _ * provider1.calculateValue() >> ValueSupplier.Value.of("provider1")
+        _ * provider2.calculateValue() >> ValueSupplier.Value.of("provider2")
+        _ * provider3.calculateValue() >> ValueSupplier.Value.of("provider3")
     }
 
     def "realizes pending elements on flush"() {

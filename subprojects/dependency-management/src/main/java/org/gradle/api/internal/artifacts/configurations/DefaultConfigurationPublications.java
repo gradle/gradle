@@ -173,7 +173,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             }
             capabilities.add(descriptor);
         } else {
-            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' after " + displayName + " has been resolved");
+            throw new InvalidUserCodeException("Cannot declare capability '" + notation + "' after dependency " + displayName + " has been resolved");
         }
     }
 
@@ -197,7 +197,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
             if (canCreate) {
                 return instantiator.newInstance(DefaultVariant.class, displayName, name, parentAttributes, artifactNotationParser, fileCollectionFactory, attributesFactory, domainObjectCollectionFactory);
             } else {
-                throw new InvalidUserCodeException("Cannot create variant '" + name + "' after " + displayName + " has been resolved");
+                throw new InvalidUserCodeException("Cannot create variant '" + name + "' after dependency " + displayName + " has been resolved");
             }
         }
     }

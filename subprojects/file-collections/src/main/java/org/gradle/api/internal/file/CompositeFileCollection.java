@@ -18,17 +18,16 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.collections.BuildDependenciesOnlyFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.FileCollectionContainer;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.util.internal.PatternSets;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,6 +47,13 @@ import java.util.Set;
  * <p>The dependencies of this collection are calculated from the result of calling {@link #visitDependencies(TaskDependencyResolveContext)}.</p>
  */
 public abstract class CompositeFileCollection extends AbstractFileCollection implements FileCollectionContainer, TaskDependencyContainer {
+    public CompositeFileCollection(Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
+    }
+
+    public CompositeFileCollection() {
+    }
+
     @Override
     public Set<File> getFiles() {
         return getFiles(getSourceCollections());
@@ -111,7 +117,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
 
     @Override
     protected Collection<DirectoryFileTree> getAsFileTrees() {
-        List<DirectoryFileTree> fileTree = new ArrayList<DirectoryFileTree>();
+        List<DirectoryFileTree> fileTree = new ArrayList<>();
         for (FileCollection source : getSourceCollections()) {
             AbstractFileCollection collection = (AbstractFileCollection) source;
             fileTree.addAll(collection.getAsFileTrees());
@@ -120,30 +126,8 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public FileTree getAsFileTree() {
-        return new CompositeFileTree() {
-            @Override
-            public void visitContents(FileCollectionResolveContext context) {
-                ResolvableFileCollectionResolveContext nested = context.newContext();
-                CompositeFileCollection.this.visitContents(nested);
-                context.addAll(nested.resolveAsFileTrees());
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                CompositeFileCollection.this.visitDependencies(context);
-            }
-
-            @Override
-            public String getDisplayName() {
-                return CompositeFileCollection.this.getDisplayName();
-            }
-        };
-    }
-
-    @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        return new CompositeFileCollection() {
+        return new CompositeFileCollection(patternSetFactory) {
             @Override
             public void visitContents(FileCollectionResolveContext context) {
                 for (FileCollection collection : CompositeFileCollection.this.getSourceCollections()) {
@@ -170,7 +154,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     protected List<? extends FileCollectionInternal> getSourceCollections() {
-        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(PatternSets.getNonCachingPatternSetFactory());
+        DefaultFileCollectionResolveContext context = new DefaultFileCollectionResolveContext(patternSetFactory);
         visitContents(context);
         return context.resolveAsFileCollections();
     }

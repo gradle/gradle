@@ -38,8 +38,8 @@ import static org.gradle.util.AttributeTestUtil.attributes
 
 class GradleModuleMetadataParserTest extends Specification {
     private static final String UNKNOWN_FILE_VALUES = '''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -58,8 +58,8 @@ class GradleModuleMetadataParserTest extends Specification {
     }
 '''
     private static final String UNKNOWN_DEPENDENCY_VALUES = '''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -82,8 +82,8 @@ class GradleModuleMetadataParserTest extends Specification {
     }
 '''
     private static final String UNKNOWN_VARIANT_VALUES = '''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -97,7 +97,7 @@ class GradleModuleMetadataParserTest extends Specification {
         ]
     }
 '''
-    private static final String UNKNOWN_TOP_LEVEL = '''{ 
+    private static final String UNKNOWN_TOP_LEVEL = '''{
             "formatVersion": "1.1",
             "otherString": "string",
             "otherNumber": 123,
@@ -108,10 +108,10 @@ class GradleModuleMetadataParserTest extends Specification {
         }'''
 
     private static final Map<String, String> UNKOWN_DATASET = [
-            UNKNOWN_TOP_LEVEL: UNKNOWN_TOP_LEVEL,
-            UNKNOWN_DEPENDENCY_VALUES: UNKNOWN_DEPENDENCY_VALUES,
-            UNKNOWN_VARIANT_VALUES: UNKNOWN_VARIANT_VALUES,
-            UNKNOWN_FILE_VALUES: UNKNOWN_FILE_VALUES
+        UNKNOWN_TOP_LEVEL: UNKNOWN_TOP_LEVEL,
+        UNKNOWN_DEPENDENCY_VALUES: UNKNOWN_DEPENDENCY_VALUES,
+        UNKNOWN_VARIANT_VALUES: UNKNOWN_VARIANT_VALUES,
+        UNKNOWN_FILE_VALUES: UNKNOWN_FILE_VALUES
     ]
 
     @Rule
@@ -162,7 +162,7 @@ class GradleModuleMetadataParserTest extends Specification {
         parser.parse(resource('{ "formatVersion": "1.1" }'), metadata)
 
         then:
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -171,15 +171,15 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v" },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
 '''), metadata)
 
         then:
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -188,8 +188,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "component": { "url": "elsewhere", "group": "g", "module": "m", "version": "v", "attributes": {"foo": "bar", "org.gradle.status": "release" } },
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } }
     }
@@ -197,7 +197,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.setAttributes(attributes(foo: 'bar', 'org.gradle.status': 'release'))
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -207,8 +207,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -224,7 +224,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant
         1 * variant.addFile("a.zip", "a.zop")
         1 * variant.addDependency("g1", "m1", prefers("v1"), [], null, ImmutableAttributes.EMPTY, [], false, null)
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -235,8 +235,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -253,7 +253,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile")) >> variant1
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -264,12 +264,12 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
-                "files": [ 
+                "files": [
                     { "name": "api.zip", "url": "api.zop" },
                     { "name": "api-2.zip", "url": "api-2.zop" }
                 ],
@@ -277,7 +277,7 @@ class GradleModuleMetadataParserTest extends Specification {
             },
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
-                "files": [ 
+                "files": [
                     { "name": "api.zip", "url": "api.zop" },
                     { "name": "runtime.zip", "url": "runtime.zop" }
                 ],
@@ -294,7 +294,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addFile("api.zip", "api.zop")
         1 * variant2.addFile("runtime.zip", "runtime.zop")
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -305,18 +305,18 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
-                "dependencies": [ 
+                "dependencies": [
                     { "group": "g0", "module": "m0" },
                     { "group": "g1", "module": "m1", "version": { "requires": "v1" } },
                     { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" },
-                    { 
-                        "group": "g3", 
-                        "module": "m3", 
+                    {
+                        "group": "g3",
+                        "module": "m3",
                         "version": { "requires": "v3"},
                         "excludes": [
                             {"group": "gx", "module": "mx" },
@@ -328,7 +328,7 @@ class GradleModuleMetadataParserTest extends Specification {
             },
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
-                "dependencies": [ 
+                "dependencies": [
                     { "module": "m3", "group": "g3", "version": { "prefers": "v3" }, "requestedCapabilities":[{"group":"org", "name":"foo", "version":"1.0"}]},
                     { "module": "m4", "endorseStrictVersions": true, "version": { "strictly": "v5" }, "group": "g4"},
                     { "module": "m5", "version": { "prefers": "v5", "requires": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
@@ -351,7 +351,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addDependency("g4", "m4", strictly("v5"), [], null, ImmutableAttributes.EMPTY, [], true, null)
         1 * variant2.addDependency("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * variant2.addDependency("g6", "m6", strictly("v6"), [], "v5 is buggy", ImmutableAttributes.EMPTY, [], false, null)
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -362,17 +362,17 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
-                "dependencyConstraints": [ 
+                "dependencyConstraints": [
                     { "group": "g1", "module": "m1", "version": { "requires": "v1" } },
                     { "version": { "prefers": "v2" }, "group": "g2", "module": "m2" },
-                    { 
-                        "group": "g3", 
-                        "module": "m3", 
+                    {
+                        "group": "g3",
+                        "module": "m3",
                         "version": { "requires": "v3" }
                     }
                 ],
@@ -380,7 +380,7 @@ class GradleModuleMetadataParserTest extends Specification {
             },
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
-                "dependencyConstraints": [ 
+                "dependencyConstraints": [
                     { "module": "m3", "group": "g3", "version": { "prefers": "v3" }},
                     { "module": "m4", "version": { "prefers": "v4", "requires": "v4", "rejects": ["v5"] }, "group": "g4"},
                     { "module": "m5", "version": { "requires": "v5", "prefers": "v5", "rejects": ["v6", "v7"] }, "group": "g5"},
@@ -402,7 +402,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant2.addDependencyConstraint("g4", "m4", prefersAndRejects("v4", ["v5"]), null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependencyConstraint("g5", "m5", prefersAndRejects("v5", ["v6", "v7"]), null, ImmutableAttributes.EMPTY)
         1 * variant2.addDependencyConstraint("g6", "m6", prefers("v6"), "v5 is buggy", ImmutableAttributes.EMPTY)
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -413,12 +413,12 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
-                "dependencies": [ 
+                "dependencies": [
                     { "group": "g1", "module": "m1", "version": { "requires": "v1" }, "attributes": {"custom": "foo"} },
                     { "version": { "prefers": "v2" }, "group": "g2", "module": "m2", "attributes": {"custom": "foo", "other": "bar"} }
                 ],
@@ -426,7 +426,7 @@ class GradleModuleMetadataParserTest extends Specification {
             },
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
-                "dependencyConstraints": [ 
+                "dependencyConstraints": [
                     { "endorseStrictVersions": true, "group": "g1", "module": "m1", "version": { "prefers": "v1" }, "attributes": {"custom": "foo"} },
                     { "version": { "requires": "v2" }, "group": "g2", "module": "m2", "attributes": {"custom": "foo", "other": "bar"} }
                 ],
@@ -443,7 +443,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependencyConstraint("g1", "m1", prefers("v1"), null, attributes(custom: 'foo'))
         1 * variant2.addDependencyConstraint("g2", "m2", requires("v2"), null, attributes(custom: 'foo', other: 'bar'))
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -454,12 +454,12 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
-                "capabilities": [ 
+                "capabilities": [
                     { "group": "g1", "name": "m1", "version": "1" },
                     { "group": "g2", "name": "m2", "version": "2" }
                 ],
@@ -467,7 +467,7 @@ class GradleModuleMetadataParserTest extends Specification {
             },
             {
                 "attributes": { "usage": "runtime", "packaging": "zip" },
-                "capabilities": [ 
+                "capabilities": [
                     { "group": "g3", "name": "m3", "version": "3" },
                     { "group": "g4", "name": "m4", "version": "4" }
                 ],
@@ -484,7 +484,44 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addCapability("g3", "m3", "3")
         1 * variant2.addCapability("g4", "m4", "4")
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
+        0 * _
+    }
+
+    def "parses requested capabilities without version"() {
+        def metadata = Mock(MutableModuleComponentResolveMetadata)
+        def variant1 = Mock(MutableComponentVariant)
+        def variant2 = Mock(MutableComponentVariant)
+
+        when:
+        parser.parse(resource('''
+    {
+        "formatVersion": "1.1",
+        "variants": [
+            {
+                "attributes": { "usage": "runtime"},
+                "dependencies": [
+                    { "module": "m3", "group": "g3", "requestedCapabilities":[{"group":"org", "name":"foo"}]}
+                ],
+                "name": "runtime"
+            },
+            {
+                "attributes": { "usage": "api"},
+                "dependencies": [
+                    { "module": "m3", "group": "g3", "requestedCapabilities":[{"group":"org", "name":"foo", "version": null}]}
+                ],
+                "name": "api"
+            }
+        ]
+    }
+'''), metadata)
+
+        then:
+        1 * metadata.addVariant("runtime", attributes(usage: "runtime")) >> variant1
+        1 * variant1.addDependency("g3", "m3", emptyConstraint(), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name == 'foo' && it[0].version == null }, false, null)
+        1 * metadata.addVariant("api", attributes(usage: "api")) >> variant2
+        1 * variant2.addDependency("g3", "m3", emptyConstraint(), [], null, ImmutableAttributes.EMPTY, { it[0].group == 'org' && it[0].name == 'foo' && it[0].version == null }, false, null)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -494,8 +531,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "builtBy": { "gradle": { "version": "123", "buildId": "abc" } },
         "variants": [
             {
@@ -508,7 +545,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes(usage: "compile", debuggable: true, testable: false)) >> variant
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -519,8 +556,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api"
@@ -538,7 +575,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant1
         1 * metadata.addVariant("runtime", attributes([:])) >> variant2
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -549,8 +586,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -581,7 +618,7 @@ class GradleModuleMetadataParserTest extends Specification {
         1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY, [], false, null)
         1 * metadata.addVariant("runtime", attributes(usage: "runtime", packaging: "zip")) >> variant2
         1 * variant2.addDependency("g2", "m2", version("v2"), [], null, ImmutableAttributes.EMPTY, [], false, null)
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -591,8 +628,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource('''
-    { 
-        "formatVersion": "1.1", 
+    {
+        "formatVersion": "1.1",
         "variants": [
             {
                 "name": "api",
@@ -621,7 +658,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant1
         1 * variant1.addDependency("g1", "m1", version("v1"), [], null, ImmutableAttributes.EMPTY, [], false, new DefaultIvyArtifactName("foo", "bar", "baz", "claz"))
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * _
     }
 
@@ -643,7 +680,7 @@ class GradleModuleMetadataParserTest extends Specification {
         parser.parse(resource(UNKNOWN_TOP_LEVEL), metadata)
 
         then:
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -655,7 +692,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes([:]))
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -668,7 +705,7 @@ class GradleModuleMetadataParserTest extends Specification {
 
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -682,7 +719,7 @@ class GradleModuleMetadataParserTest extends Specification {
         then:
         1 * metadata.addVariant("api", attributes([:])) >> variant
         1 * variant.addDependency("g", "m", prefers("v"), excludes("g:*"), null, ImmutableAttributes.EMPTY, [], false, null)
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
         0 * metadata._
     }
 
@@ -692,8 +729,8 @@ class GradleModuleMetadataParserTest extends Specification {
 
         when:
         parser.parse(resource("""
-        { 
-            "formatVersion": "1.1", 
+        {
+            "formatVersion": "1.1",
             "variants": [
                 {
                     $variantDefinition
@@ -707,33 +744,32 @@ class GradleModuleMetadataParserTest extends Specification {
         e.cause.message == "missing '$attribute' at $path"
 
         where:
-        label                         | path                                                    | attribute | variantDefinition
-        'variant name'                | '/variants[0]'                                          | 'name'    | ''
+        label                          | path                                                                    | attribute | variantDefinition
+        'variant name'                 | '/variants[0]'                                                          | 'name'    | ''
 
-        'available-at url'            | '/variants[0]/available-at'                             | 'url'     | '"name": "v", "available-at": { "group": "g", "module": "c", "version": "1.0" }'
-        'available-at group'          | '/variants[0]/available-at'                             | 'group'   | '"name": "v", "available-at": { "url": "path", "module": "c", "version": "1.0" }'
-        'available-at module'         | '/variants[0]/available-at'                             | 'module'  | '"name": "v", "available-at": { "url": "path", "group": "g", "version": "1.0" }'
-        'available-at version'        | '/variants[0]/available-at'                             | 'version' | '"name": "v", "available-at": { "url": "path", "group": "g", "module": "c" }'
+        'available-at url'             | '/variants[0]/available-at'                                             | 'url'     | '"name": "v", "available-at": { "group": "g", "module": "c", "version": "1.0" }'
+        'available-at group'           | '/variants[0]/available-at'                                             | 'group'   | '"name": "v", "available-at": { "url": "path", "module": "c", "version": "1.0" }'
+        'available-at module'          | '/variants[0]/available-at'                                             | 'module'  | '"name": "v", "available-at": { "url": "path", "group": "g", "version": "1.0" }'
+        'available-at version'         | '/variants[0]/available-at'                                             | 'version' | '"name": "v", "available-at": { "url": "path", "group": "g", "module": "c" }'
 
-        'dependency group'            | '/variants[0]/dependencies[0]'                          | 'group'   | '"name": "v", "dependencies": [{ "module": "c" }]'
-        'dependency module'           | '/variants[0]/dependencies[0]'                          | 'module'  | '"name": "v", "dependencies": [{ "group": "g" }]'
+        'dependency group'             | '/variants[0]/dependencies[0]'                                          | 'group'   | '"name": "v", "dependencies": [{ "module": "c" }]'
+        'dependency module'            | '/variants[0]/dependencies[0]'                                          | 'module'  | '"name": "v", "dependencies": [{ "group": "g" }]'
 
-        'capability group'            | '/variants[0]/capabilities[0]'                          | 'group'   | '"name": "v", "capabilities": [{ "name": "c", "version": "1.0" }]'
-        'capability name'             | '/variants[0]/capabilities[0]'                          | 'name'    | '"name": "v", "capabilities": [{ "group": "g", "version": "1.0" }]'
-        'capability version'          | '/variants[0]/capabilities[0]'                          | 'version' | '"name": "v", "capabilities": [{ "group": "g", "name": "c" }]'
+        'capability group'             | '/variants[0]/capabilities[0]'                                          | 'group'   | '"name": "v", "capabilities": [{ "name": "c", "version": "1.0" }]'
+        'capability name'              | '/variants[0]/capabilities[0]'                                          | 'name'    | '"name": "v", "capabilities": [{ "group": "g", "version": "1.0" }]'
+        'capability version'           | '/variants[0]/capabilities[0]'                                          | 'version' | '"name": "v", "capabilities": [{ "group": "g", "name": "c" }]'
 
-        'req capability group'        | '/variants[0]/dependencies[0]/requestedCapabilities[0]' | 'group'   | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "name": "c", "version": "1.0" }] }]'
-        'req capability name'         | '/variants[0]/dependencies[0]/requestedCapabilities[0]' | 'name'    | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "version": "1.0" }] }]'
-        'req capability version'      | '/variants[0]/dependencies[0]/requestedCapabilities[0]' | 'version' | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "name": "c" }] }]'
+        'req capability group'         | '/variants[0]/dependencies[0]/requestedCapabilities[0]'                 | 'group'   | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "name": "c", "version": "1.0" }] }]'
+        'req capability name'          | '/variants[0]/dependencies[0]/requestedCapabilities[0]'                 | 'name'    | '"name": "v", "dependencies": [{ "group": "g", "name": "c", "requestedCapabilities": [{ "group": "g", "version": "1.0" }] }]'
 
-        'dependency constraint group' | '/variants[0]/dependencyConstraints[0]'                 | 'group'   | '"name": "v", "dependencyConstraints": [{ "module": "c" }]'
-        'dependency constraint module'| '/variants[0]/dependencyConstraints[0]'                 | 'module'  | '"name": "v", "dependencyConstraints": [{ "group": "g" }]'
+        'dependency constraint group'  | '/variants[0]/dependencyConstraints[0]'                                 | 'group'   | '"name": "v", "dependencyConstraints": [{ "module": "c" }]'
+        'dependency constraint module' | '/variants[0]/dependencyConstraints[0]'                                 | 'module'  | '"name": "v", "dependencyConstraints": [{ "group": "g" }]'
 
-        'file name'                   | '/variants[0]/files[0]'                                 | 'name'    | '"name": "v", "files": [{ "url": "g/c/c.jar" }]'
-        'file url'                    | '/variants[0]/files[0]'                                 | 'url'     | '"name": "v", "files": [{ "name": "c.jar" }]'
+        'file name'                    | '/variants[0]/files[0]'                                                 | 'name'    | '"name": "v", "files": [{ "url": "g/c/c.jar" }]'
+        'file url'                     | '/variants[0]/files[0]'                                                 | 'url'     | '"name": "v", "files": [{ "name": "c.jar" }]'
 
-        'artifact name'               | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'name' | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "type": "bar" } }}]'
-        'artifact type'               | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'type' | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "name": "foo" } }}]'
+        'artifact name'                | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'name'    | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "type": "bar" } }}]'
+        'artifact type'                | '/variants[0]/dependencies[0]/thirdPartyCompatibility/artifactSelector' | 'type'    | '"name": "v", "dependencies": [{ "group": "g", "module": "c", "thirdPartyCompatibility": { "artifactSelector": { "name": "foo" } }}]'
     }
 
     def "fails when content does not contain a json object"() {
@@ -802,7 +838,7 @@ class GradleModuleMetadataParserTest extends Specification {
         parser.parse(resource(replaceMetadataVersion(json, version)), metadata)
 
         then:
-        1 * metadata.setContentHash(_)
+        1 * metadata.getMutableVariants()
 
         where:
         [json, version] << [UNKOWN_DATASET.values(), ['0.4', '1.1', '1.5', '123.4']].combinations()

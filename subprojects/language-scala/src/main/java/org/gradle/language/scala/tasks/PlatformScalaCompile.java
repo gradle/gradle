@@ -32,6 +32,7 @@ import javax.inject.Inject;
  */
 @CacheableTask
 @Incubating
+@Deprecated
 public class PlatformScalaCompile extends AbstractScalaCompile {
 
     private ScalaPlatform platform;

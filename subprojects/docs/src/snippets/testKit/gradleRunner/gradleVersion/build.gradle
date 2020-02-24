@@ -1,0 +1,18 @@
+plugins {
+    id 'groovy'
+}
+
+dependencies {
+    testImplementation localGroovy()
+    testImplementation gradleTestKit()
+}
+
+dependencies {
+    testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {
+        exclude module: 'groovy-all'
+    }
+}
+
+repositories {
+    mavenCentral()
+}

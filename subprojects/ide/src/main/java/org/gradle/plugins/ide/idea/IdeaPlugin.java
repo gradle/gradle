@@ -24,7 +24,6 @@ import com.google.common.collect.Sets;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -507,17 +506,11 @@ public class IdeaPlugin extends IdePlugin {
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
         if (isRoot()) {
-            getLifecycleTask().configure(new Action<Task>() {
-                @Override
-                public void execute(Task task) {
-                    task.dependsOn(new TaskDependencyContainer() {
-                        @Override
-                        public void visitDependencies(TaskDependencyResolveContext context) {
-                            visitAllImlArtifactsInComposite(project, ideaModel.getProject(), context);
-                        }
-                    });
-                }
-            });
+            getLifecycleTask().configure(
+                task -> task.dependsOn(
+                    (TaskDependencyContainer) context -> visitAllImlArtifactsInComposite(project, ideaModel.getProject(), context)
+                )
+            );
         }
     }
 

@@ -17,8 +17,8 @@
 package org.gradle.workers.internal;
 
 /**
- * A service that executes work in a (potentially) long-lived process or in-process.
+ * A service that executes work locally.
  */
 public interface Worker {
-    DefaultWorkResult execute(ActionExecutionSpec spec);
+    DefaultWorkResult execute(SimpleActionExecutionSpec<?> spec);
 }

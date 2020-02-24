@@ -17,6 +17,7 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -181,6 +182,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
         then:
         outputs.recompiledClasses 'AccessedFromPrivateField', 'SomeClass', 'SomeClass$Foo'
     }
+
     def "change to class accessed from private inner class's public field only recompile that class and direct consumer"() {
         def componentUnderTest = new IncrementalLib()
         componentUnderTest.writeToProject()
@@ -374,7 +376,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
     def "change to class referenced by an annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 Class<?> value();
             }
@@ -397,7 +399,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
     def "change to class referenced by an array value in an annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 Class<?>[] value();
             }
@@ -420,7 +422,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
     def "change to enum referenced by an annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 A value();
             }
@@ -443,7 +445,7 @@ abstract class AbstractSourceIncrementalCompilationIntegrationTest extends Abstr
     def "change to value in nested annotation recompiles annotated types"() {
         source """
             import java.lang.annotation.*;
-            @Retention(RetentionPolicy.CLASS) 
+            @Retention(RetentionPolicy.CLASS)
             public @interface B {
                 A value();
             }
@@ -656,6 +658,7 @@ sourceSets {
         outputs.recompiledClasses("B", "A")
     }
 
+    @Unroll
     def "recompiles classes from extra source directory provided as #type"() {
         given:
         buildFile << "${language.compileTaskName}.source $method('extra')"
@@ -774,6 +777,7 @@ dependencies { implementation 'com.ibm.icu:icu4j:2.6.1' }
     }
 
     @Issue("GRADLE-3426")
+    @ToBeFixedForInstantExecution
     def "fully recompiles when a non-analyzable jar is changed"() {
         def a = source """
             import com.ibm.icu.util.Calendar;
@@ -906,7 +910,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         given:
         source '''class A {
     B b() { return null; }
-    
+
     void doSomething() {
         Runnable r = b();
         r.run();
@@ -969,7 +973,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         given:
         source '''class A {
     java.util.List<B> bs() { return null; }
-    
+
     void doSomething() {
         for (B b: bs()) {
            Runnable r = b;
@@ -991,7 +995,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
     def "detects changes to class referenced through type argument in parameter"() {
         given:
         source '''class A {
-    
+
     void doSomething(java.util.List<B> bs) {
         for (B b: bs) {
            Runnable r = b;
@@ -1058,7 +1062,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         given:
         file("src/main/${language.name}/org/gradle/test/MyTest.${language.name}").text = """
             package org.gradle.test;
-            
+
             class MyTest {}
         """
 
@@ -1074,7 +1078,6 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         then:
         skipped(":${language.compileTaskName}")
     }
-
 
     def "recompiles all classes in a package if the package-info file changes"() {
         given:
@@ -1096,7 +1099,7 @@ dependencies { implementation 'net.sf.ehcache:ehcache:2.10.2' }
         outputs.recompiledClasses("A", "B", "E", "package-info")
     }
 
-
+    @ToBeFixedForInstantExecution
     def "recompiles all dependents when no jar analysis is present"() {
         given:
         source """class A {
@@ -1122,6 +1125,7 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')
+    @ToBeFixedForInstantExecution
     def 'can move source sets'() {
         given:
         buildFile << "sourceSets.main.${language.name}.srcDir 'src/other/${language.name}'"

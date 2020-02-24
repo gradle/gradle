@@ -15,40 +15,36 @@
  */
 package org.gradle.integtests.resolve.maven
 
-import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import org.gradle.test.fixtures.maven.MavenModule
+import org.gradle.test.fixtures.maven.MavenRepository
 import org.gradle.test.fixtures.server.http.MavenHttpModule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class MavenSnapshotResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
-    def setup() {
-        new ResolveTestFixture(buildFile, "compile").addDefaultVariantDerivationStrategy()
-    }
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+class MavenSnapshotResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+
+    @Override
+    String getTestConfiguration() { "compile" }
 
     def "can resolve unique and non-unique snapshots"() {
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-configurations {
-    compile
-}
 dependencies {
-    compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
-    compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
+    compile "org:unique:1.0-SNAPSHOT"
+    compile "org:non-unique:1.0-SNAPSHOT"
 }
 """
-        def resolve = new ResolveTestFixture(buildFile, "compile")
-        resolve.prepare()
-
-        when:
-        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
-        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
 
         and:
+        def uniqueVersionModule = publishModule("org", "unique", "1.0-SNAPSHOT")
+        def nonUniqueVersionModule = publishModule(mavenHttpRepo, "org", "non-unique", "1.0-SNAPSHOT", false)
+
+        when:
         expectModuleServed(uniqueVersionModule)
         expectModuleServed(nonUniqueVersionModule)
 
@@ -59,24 +55,20 @@ dependencies {
         resolve.expectDefaultConfiguration("runtime")
         resolve.expectGraph {
             root(":", ":test:") {
-                snapshot("org.gradle.integtests.resolve:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
-                module("org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT")
+                snapshot("org:unique:1.0-SNAPSHOT", uniqueVersionModule.uniqueSnapshotVersion)
+                module("org:non-unique:1.0-SNAPSHOT")
             }
         }
     }
 
     def "can find and cache snapshots in multiple Maven HTTP repositories"() {
-        def repo1 = mavenHttpRepo("repo1")
         def repo2 = mavenHttpRepo("repo2")
 
         given:
         buildFile << """
 repositories {
-    maven { url "${repo1.uri}" }
     maven { url "${repo2.uri}" }
 }
-
-configurations { compile }
 
 dependencies {
     compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
@@ -91,11 +83,11 @@ task retrieve(type: Sync) {
 """
 
         and: "snapshot modules are published"
-        def repo1ProjectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT").publish()
-        def repo1ProjectB = repo1.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
-        def repo2ProjectB = repo2.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT").publish()
-        def repo1NonUnique = repo1.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots()
-        def repo2NonUnique = repo2.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def repo1ProjectA = publishModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def repo1ProjectB = createModule("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
+        def repo2ProjectB = publishModule(repo2, "org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
+        def repo1NonUnique = createModule(mavenHttpRepo, "org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT", false)
+        def repo2NonUnique = publishModule(repo2, "org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT", false)
 
         when: "Server provides projectA from repo1"
         expectModuleServed(repo1ProjectA)
@@ -132,14 +124,13 @@ task retrieve(type: Sync) {
 
         given:
         buildFile << """
+repositories.clear() // Do not use default repo
 repositories {
     maven {
         url "${repo1.uri}"
         artifactUrls "${repo2.uri}"
     }
 }
-
-configurations { compile }
 
 dependencies {
     compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT"
@@ -153,9 +144,9 @@ task retrieve(type: Sync) {
 """
 
         and: "snapshot modules are published"
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT").publish()
-        def repo1ProjectB = repo1.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT").publish()
-        def repo2ProjectB = repo2.module("org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT").publish()
+        def projectA = publishModule(repo1, "org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def repo1ProjectB = publishModule(repo1, "org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
+        def repo2ProjectB = publishModule(repo2, "org.gradle.integtests.resolve", "projectB", "1.0-SNAPSHOT")
 
         when: "Server provides projectA from repo1"
         expectModuleServed(projectA)
@@ -163,6 +154,9 @@ task retrieve(type: Sync) {
         and: "Server provides projectB with artifact in repo2"
         repo1ProjectB.metaData.expectGet()
         repo1ProjectB.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            repo1ProjectB.moduleMetadata.expectGet()
+        }
         repo1ProjectB.artifact.expectGetMissing()
         repo2ProjectB.artifact.expectGet()
 
@@ -185,18 +179,8 @@ task retrieve(type: Sync) {
     }
 
     def "can find and cache snapshots in Maven HTTP repository with artifact classifier"() {
-        def repo1 = mavenHttpRepo("repo1")
-
         given:
         buildFile << """
-repositories {
-    maven {
-        url "${repo1.uri}"
-    }
-}
-
-configurations { compile }
-
 dependencies {
     compile "org.gradle.integtests.resolve:projectA:1.0-SNAPSHOT:tests"
 }
@@ -208,13 +192,16 @@ task retrieve(type: Sync) {
 """
 
         and:
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def projectA = createModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
         def classifierArtifact = projectA.artifact(classifier: "tests")
         projectA.publish()
 
         when:
         projectA.metaData.expectGet()
         projectA.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectA.moduleMetadata.expectGet()
+        }
         classifierArtifact.expectGet()
 
         and:
@@ -233,13 +220,9 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.0-SNAPSHOT-tests.jar').assertHasNotChangedSince(snapshotA);
     }
 
+    @ToBeFixedForInstantExecution
     def "will detect changed snapshot artifacts when pom has not changed"() {
         buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-
-configurations { compile }
 configurations.compile.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 
 dependencies {
@@ -254,8 +237,8 @@ task retrieve(type: Sync) {
 """
 
         when: "snapshot modules are published"
-        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
-        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def uniqueVersionModule = publishModule("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT")
+        def nonUniqueVersionModule = publishModule(mavenHttpRepo, "org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT", false)
 
         and: "Server handles requests"
         expectModuleServed(uniqueVersionModule)
@@ -292,12 +275,7 @@ task retrieve(type: Sync) {
     def "cacheChangingModulesFor does not apply to extending configurations"() {
         given:
         buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-
 configurations {
-    compile
     testCompile.extendsFrom(compile)
 }
 configurations.compile {
@@ -316,8 +294,8 @@ task retrieve(type: Sync) {
 """
 
         when:
-        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
-        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def uniqueVersionModule = publishModule("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT")
+        def nonUniqueVersionModule = publishModule(mavenHttpRepo, "org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT", false)
 
         and:
         expectModuleServed(uniqueVersionModule)
@@ -339,15 +317,10 @@ task retrieve(type: Sync) {
         run 'retrieve'
     }
 
+    @ToBeFixedForInstantExecution
     def "uses cached snapshots from a Maven HTTP repository until the snapshot timeout is reached"() {
         given:
         buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-
-configurations { compile }
-
 if (project.hasProperty('noTimeout')) {
     configurations.all {
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
@@ -366,8 +339,8 @@ task retrieve(type: Sync) {
 """
 
         when: "snapshot modules are published"
-        def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
-        def nonUniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def uniqueVersionModule = publishModule("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT")
+        def nonUniqueVersionModule = publishModule(mavenHttpRepo, "org.gradle.integtests.resolve", "nonunique", "1.0-SNAPSHOT", false)
 
         and: "Server handles requests"
         expectModuleServed(uniqueVersionModule)
@@ -410,19 +383,16 @@ task retrieve(type: Sync) {
     }
 
     @Issue("gradle/gradle#3019")
+    @ToBeFixedForInstantExecution
     def "should honour changing module cache expiry for subsequent snapshot resolutions in the same build"() {
         given:
         buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-
 configurations {
     fresh
     stale
 }
 configurations.fresh.resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
- 
+
 dependencies {
     stale "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
     fresh "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
@@ -443,7 +413,7 @@ task resolveStaleThenFresh {
 """
 
         when: "snapshot modules are published"
-        def snapshotModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").publish()
+        def snapshotModule = publishModule("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT")
         snapshotModule.artifactFile.makeOlder()
 
         and:
@@ -473,14 +443,9 @@ task resolveStaleThenFresh {
         file('fresh/unique-1.0-SNAPSHOT.jar').assertIsCopyOf(snapshotModule.artifactFile)
     }
 
+    @ToBeFixedForInstantExecution
     def "does not download snapshot artifacts after expiry when snapshot has not changed"() {
         buildFile << """
-repositories {
-    maven { url "${mavenHttpRepo.uri}" }
-}
-
-configurations { compile }
-
 configurations.all {
     resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
 }
@@ -496,7 +461,7 @@ task retrieve(type: Sync) {
 """
 
         when: "Publish the first snapshot"
-        def module = mavenHttpRepo.module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").publish()
+        def module = publishModule("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT")
 
         and: "Server handles requests"
         expectModuleServed(module)
@@ -523,18 +488,22 @@ task retrieve(type: Sync) {
 
     def "does not download snapshot artifacts more than once per build"() {
         given:
-        def module = mavenHttpRepo.module("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT").publish()
+        def module = publishModule("org.gradle.integtests.resolve", "testproject", "1.0-SNAPSHOT")
 
         and:
-        settingsFile << "include 'a', 'b'"
+        settingsFile << """
+include 'a', 'b'
+"""
         buildFile << """
-allprojects {
+subprojects {
     repositories {
         maven { url "${mavenHttpRepo.uri}" }
     }
 
     configurations { compile }
+}
 
+allprojects {
     configurations.all {
         resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
     }
@@ -565,15 +534,10 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         file('b/build').assertHasDescendants('testproject-1.0-SNAPSHOT.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "avoid redownload unchanged artifact when no checksum available"() {
         given:
         buildFile << """
-            repositories {
-                maven { url "${mavenHttpRepo.uri}" }
-            }
-
-            configurations { compile }
-
             configurations.all {
                 resolutionStrategy.cacheChangingModulesFor 0, 'seconds'
             }
@@ -589,7 +553,7 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         """
 
         and:
-        def module = mavenHttpRepo.module("group", "projectA", "1.1-SNAPSHOT").withNonUniqueSnapshots().publish()
+        def module = publishModule(mavenHttpRepo, "group", "projectA", "1.1-SNAPSHOT", false)
         // Set the last modified to something that's not going to be anything “else”.
         // There are lots of dates floating around in a resolution and we want to make
         // sure we use this.
@@ -623,6 +587,11 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
         module.pom.expectHead()
         module.pom.sha1.expectGetMissing()
         module.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            module.moduleMetadata.expectHead()
+            module.moduleMetadata.sha1.expectGetMissing()
+            module.moduleMetadata.expectGet()
+        }
         artifact.expectHead()
         artifact.sha1.expectGetMissing()
         artifact.expectGet()
@@ -635,16 +604,14 @@ tasks.getByPath(":a:retrieve").dependsOn ":b:retrieve"
     }
 
     @Issue("GRADLE-3017")
+    @ToBeFixedForInstantExecution
     def "resolves changed metadata in snapshot dependency"() {
         given:
-        def projectB1 = mavenHttpRepo.module('group', 'projectB', '1.0').publish()
-        def projectB2 = mavenHttpRepo.module('group', 'projectB', '2.0').publish()
-        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '1.0').publish()
+        def projectB1 = publishModule('group', 'projectB', '1.0')
+        def projectB2 = publishModule('group', 'projectB', '2.0')
+        def projectA = createModule('group', 'projectA', "1.0-SNAPSHOT").dependsOn('group', 'projectB', '1.0').publish()
 
         buildFile << """
-repositories {
-    maven { url '${mavenHttpRepo.uri}' }
-}
 configurations {
     compile {
         if (project.hasProperty('bypassCache')) {
@@ -663,10 +630,16 @@ task retrieve(type: Sync) {
 """
 
         when:
-        projectA.pom.expectGet()
         projectA.metaData.expectGet()
+        projectA.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectA.moduleMetadata.expectGet()
+        }
         projectA.artifact.expectGet()
         projectB1.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectB1.moduleMetadata.expectGet()
+        }
         projectB1.artifact.expectGet()
 
         and:
@@ -690,8 +663,16 @@ task retrieve(type: Sync) {
         projectA.pom.expectHead()
         projectA.pom.sha1.expectGet()
         projectA.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectA.moduleMetadata.expectHead()
+            projectA.moduleMetadata.sha1.expectGet()
+            projectA.moduleMetadata.expectGet()
+        }
         projectA.artifact.expectHead()
         projectB2.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectB2.moduleMetadata.expectGet()
+        }
         projectB2.artifact.expectGet()
 
         and:
@@ -709,17 +690,12 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from missing snapshot"() {
         given:
-        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT")
+        def projectA = createModule('group', 'projectA', "1.0-SNAPSHOT")
 
         buildFile << """
-repositories {
-    maven { url '${mavenHttpRepo.uri}' }
-}
-configurations {
-    compile
-}
 dependencies {
     compile 'group:projectA:1.0-SNAPSHOT'
 }
@@ -731,8 +707,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        projectA.metaData.expectGetMissing()
-        projectA.pom.expectGetMissing()
+        expectModuleMissing(projectA)
 
         then:
         fails 'retrieve'
@@ -748,26 +723,19 @@ Required by:
         when:
         server.resetExpectations()
         projectA.publish()
-        projectA.metaData.expectGet()
-        projectA.pom.expectGet()
-        projectA.artifact.expectGet()
+        expectModuleServed(projectA)
 
         then:
         succeeds 'retrieve'
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
+    @ToBeFixedForInstantExecution
     def "reports missing unique snapshot artifact"() {
         given:
-        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
+        def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
 
         buildFile << """
-repositories {
-    maven { url '${mavenHttpRepo.uri}' }
-}
-configurations {
-    compile
-}
 dependencies {
     compile 'group:projectA:1.0-SNAPSHOT'
 }
@@ -781,6 +749,9 @@ task retrieve(type: Sync) {
         when:
         projectA.metaData.expectGet()
         projectA.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectA.moduleMetadata.expectGet()
+        }
         projectA.artifact.expectGetMissing()
 
         then:
@@ -803,17 +774,12 @@ Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
+    @ToBeFixedForInstantExecution
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
-        def projectA = mavenHttpRepo.module('group', 'projectA', "1.0-SNAPSHOT").publish()
+        def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
 
         buildFile << """
-repositories {
-    maven { url '${mavenHttpRepo.uri}' }
-}
-configurations {
-    compile
-}
 dependencies {
     compile 'group:projectA:1.0-SNAPSHOT'
 }
@@ -838,9 +804,7 @@ task retrieve(type: Sync) {
 
         when:
         server.resetExpectations()
-        metaData.expectGet()
-        projectA.pom.expectGet()
-        projectA.artifact.expectGet()
+        expectModuleServed(projectA)
 
         then:
         succeeds 'retrieve'
@@ -849,16 +813,8 @@ task retrieve(type: Sync) {
 
     def "can find and cache a unique snapshot in a Maven HTTP repository"() {
         given:
-        def repo1 = mavenHttpRepo("repo1")
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
-        def published = projectA.publish()
+        def published = publishModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
         buildFile << """
-repositories {
-    maven {
-        url "${repo1.uri}"
-    }
-}
-
 configurations {
     compile {
         resolutionStrategy.cacheChangingModulesFor 0, 'SECONDS'
@@ -877,6 +833,9 @@ task retrieve(type: Sync) {
 
         when:
         published.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            published.moduleMetadata.expectGet()
+        }
         published.artifact.expectGet()
 
         and:
@@ -896,16 +855,14 @@ task retrieve(type: Sync) {
     def "can find a unique snapshot in a Maven file repository"() {
         given:
         def fileRepo = maven("fileRepo")
-        def projectA = fileRepo.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
-        projectA.publish()
+        def projectA = publishModule(fileRepo, "org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
         buildFile << """
+repositories.clear() // Not using default repo
 repositories {
     maven {
         url "${fileRepo.uri}"
     }
 }
-
-configurations { compile }
 
 dependencies {
     compile "org.gradle.integtests.resolve:projectA:${projectA.publishArtifactVersion}"
@@ -930,21 +887,12 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
+    @ToBeFixedForInstantExecution
     def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
-        def repo1 = mavenHttpRepo("repo1")
-        def projectA = repo1.module("group", "projectA", "1.0-SNAPSHOT")
-        def published = projectA.publish()
-        def timestamp1 = published.publishArtifactVersion
+        def projectA = publishModule("group", "projectA", "1.0-SNAPSHOT")
+        def timestamp1 = projectA.publishArtifactVersion
         buildFile << """
-repositories {
-    maven {
-        url "${repo1.uri}"
-    }
-}
-
-configurations { compile }
-
 dependencies {
     compile "group:projectA:${timestamp1}"
     compile "group:projectA:1.0-SNAPSHOT"
@@ -957,9 +905,7 @@ task retrieve(type: Sync) {
 """
 
         when:
-        published.metaData.expectGet()
-        published.pom.expectGet()
-        published.artifact.expectGet()
+        expectModuleServed(projectA)
 
         and:
         run 'retrieve'
@@ -968,16 +914,19 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${timestamp1}.jar")
 
         when:
-        published.publishWithChangedContent()
-        def timestamp2 = published.publishArtifactVersion
+        projectA.publishWithChangedContent()
+        def timestamp2 = projectA.publishArtifactVersion
         buildFile << """
 dependencies {
     compile "group:projectA:${timestamp2}"
 }
 """
         server.resetExpectations()
-        published.pom.expectGet()
-        published.artifact.expectGet()
+        projectA.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            projectA.moduleMetadata.expectGet()
+        }
+        projectA.artifact.expectGet()
 
         and:
         run 'retrieve'
@@ -987,9 +936,9 @@ dependencies {
 
         when:
         server.resetExpectations()
-        def released = repo1.module("group", "projectA", "1.0").publish()
-        released.pom.expectGet()
-        released.artifact.expectGet()
+        def released = publishModule("group", "projectA", "1.0")
+
+        expectModuleServed(released)
         buildFile << """
 dependencies {
     compile "group:projectA:1.0"
@@ -1003,18 +952,9 @@ dependencies {
 
     def "reports failure to find a missing unique snapshot in a Maven HTTP repository"() {
         given:
-        def repo1 = mavenHttpRepo("repo1")
-        def projectA = repo1.module("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
+        def projectA = createModule("org.gradle.integtests.resolve", "projectA", "1.0-SNAPSHOT")
         def published = projectA.publish()
         buildFile << """
-repositories {
-    maven {
-        url "${repo1.uri}"
-    }
-}
-
-configurations { compile }
-
 dependencies {
     compile "org.gradle.integtests.resolve:projectA:${published.publishArtifactVersion}"
 }
@@ -1040,26 +980,26 @@ Required by:
 """)
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "can resolve unique and non-unique snapshots using Gradle Module Metadata (redirection = #redirection, metadata sources=#metadataSources)"() {
         given:
-        settingsFile << "rootProject.name = 'test'"
         buildFile << """
+repositories.clear()
 repositories {
-    maven { 
-      url "${mavenHttpRepo.uri}" 
+    maven {
+      url "${mavenHttpRepo.uri}"
       metadataSources {
           ${metadataSources.code}
       }
     }
 }
-configurations {
-    compile
-}
+
 dependencies {
     compile "org.gradle.integtests.resolve:unique:1.0-SNAPSHOT"
     compile "org.gradle.integtests.resolve:nonunique:1.0-SNAPSHOT"
-    
+
     components {
         all(CheckIsChangingRule)
     }
@@ -1073,9 +1013,8 @@ class CheckIsChangingRule implements ComponentMetadataRule {
 }
 
 """
-        def resolve = new ResolveTestFixture(buildFile, "compile")
+
         def usesGradleMetadata = metadataSources == Sources.GRADLE || redirection
-        resolve.prepare()
 
         when:
         def uniqueVersionModule = mavenHttpRepo.module("org.gradle.integtests.resolve", "unique", "1.0-SNAPSHOT").withModuleMetadata()
@@ -1112,8 +1051,36 @@ class CheckIsChangingRule implements ComponentMetadataRule {
         false       | Sources.POM
     }
 
-    private expectModuleServed(MavenHttpModule module, boolean pom=true, boolean gmm = false) {
-        module.metaData.expectGet()
+    private MavenModule createModule(MavenRepository repository = mavenHttpRepo, String org, String name, String version, boolean uniqueSnapshot = true) {
+        def module = repository.module(org, name, version)
+        if (isGradleMetadataPublished()) {
+            module.withModuleMetadata()
+        }
+        if (!uniqueSnapshot) {
+            module.withNonUniqueSnapshots()
+        }
+        return module
+    }
+
+    private MavenModule publishModule(MavenRepository repository = mavenHttpRepo, String org, String name, String version, boolean uniqueSnapshot = true) {
+        return createModule(repository, org, name, version, uniqueSnapshot).publish()
+    }
+
+    private expectModuleServed(MavenHttpModule module) {
+        if (module.version.endsWith('-SNAPSHOT')) {
+            module.metaData.expectGet()
+        }
+        module.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            module.moduleMetadata.expectGet()
+        }
+        module.artifact.expectGet()
+    }
+
+    private expectModuleServed(MavenHttpModule module, boolean pom, boolean gmm) {
+        if (module.version.endsWith('-SNAPSHOT')) {
+            module.metaData.expectGet()
+        }
         if (pom) {
             module.pom.expectGet()
         }
@@ -1131,6 +1098,11 @@ class CheckIsChangingRule implements ComponentMetadataRule {
         module.pom.expectHead()
         module.pom.sha1.expectGet()
         module.pom.expectGet()
+        if (isGradleMetadataPublished()) {
+            module.moduleMetadata.expectHead()
+            module.moduleMetadata.sha1.expectGet()
+            module.moduleMetadata.expectGet()
+        }
         module.artifact.expectHead()
         module.artifact.sha1.expectGet()
         module.artifact.expectGet()
@@ -1143,6 +1115,9 @@ class CheckIsChangingRule implements ComponentMetadataRule {
             module.metaData.expectGet()
         }
         module.pom.expectHead()
+        if (isGradleMetadataPublished()) {
+            module.moduleMetadata.expectHead()
+        }
         def artifact = module.artifact
         artifact.expectHead()
         artifact.sha1.expectGet()
@@ -1156,6 +1131,9 @@ class CheckIsChangingRule implements ComponentMetadataRule {
             module.metaData.expectGet()
         }
         module.pom.expectHead()
+        if (isGradleMetadataPublished()) {
+            module.moduleMetadata.expectHead()
+        }
         module.artifact.expectHead()
     }
 

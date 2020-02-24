@@ -17,6 +17,7 @@
 package org.gradle.caching.http.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.keystore.TestKeyStore
 
@@ -51,6 +52,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
@@ -66,6 +68,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
+    @ToBeFixedForInstantExecution
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
@@ -77,6 +80,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().run "run"
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks get cached when source code changes back to previous state"() {
         expect:
         withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
@@ -103,6 +107,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":clean"
     }
 
+    @ToBeFixedForInstantExecution
     def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
@@ -118,6 +123,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":compileJava"
     }
 
+    @ToBeFixedForInstantExecution
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """
@@ -239,6 +245,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped(":compileJava")
     }
 
+    @ToBeFixedForInstantExecution
     def "produces deprecation warning when using plain HTTP"() {
         httpBuildCacheServer.useHostname()
         settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
@@ -247,12 +254,13 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executer.expectDeprecationWarning()
         withBuildCache().run "jar"
         succeeds "clean"
-        executer.expectDeprecationWarning()
-        withBuildCache().run "jar"
+        executer.expectDocumentedDeprecationWarning("Using insecure protocols with remote build cache has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols. " +
+            "See https://docs.gradle.org/current/dsl/org.gradle.caching.http.HttpBuildCache.html#org.gradle.caching.http.HttpBuildCache:allowInsecureProtocol for more details.")
 
         then:
+        withBuildCache().run "jar"
         skipped(":compileJava")
-        outputContains("Using insecure protocols with remote build cache has been deprecated. This is scheduled to be removed in Gradle 7.0. Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols, see ")
     }
 
     def "ssl certificate is validated"() {
@@ -314,7 +322,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
     }
 
     def "unknown host causes the build cache to be disabled"() {
-        settingsFile << """        
+        settingsFile << """
             buildCache {
                 remote {
                     url = "https://invalid.invalid/"

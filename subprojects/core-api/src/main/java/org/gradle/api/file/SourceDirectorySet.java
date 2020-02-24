@@ -16,13 +16,18 @@
 package org.gradle.api.file;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.Task;
+import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.model.internal.core.UnmanagedStruct;
 
 import java.io.File;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * <p>A {@code SourceDirectorySet} represents a set of source files composed from a set of source directories, along
@@ -105,11 +110,43 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
     PatternFilterable getFilter();
 
     /**
+     * Configure the directory to assemble the compiled classes into.
+     *
+     * @return The destination directory property for this set of sources.
+     * @since 6.1
+     */
+    @Incubating
+    DirectoryProperty getDestinationDirectory();
+
+    /**
+     * Returns the directory property that is bound to the task that produces the output via {@link #compiledBy(TaskProvider, Function)}.
+     * Use this as part of a classpath or input to another task to ensure that the output is created before it is used.
+     *
+     * Note: To define the path of the output folder use {@link #getDestinationDirectory()}
+     *
+     * @return The output directory property for this set of sources.
+     * @since 6.1
+     */
+    @Incubating
+    Provider<Directory> getClassesDirectory();
+
+    /**
+     * Define the task responsible for processing the source.
+     *
+     * @param taskProvider the task responsible for compiling the sources (.e.g. compileJava)
+     * @param mapping a mapping from the task to the task's output directory (e.g. AbstractCompile::getDestinationDirectory)
+     * @since 6.1
+     */
+    @Incubating
+    <T extends Task> void compiledBy(TaskProvider<T> taskProvider, Function<T, DirectoryProperty> mapping);
+
+    /**
      * Returns the directory to put the output for these sources.
      *
      * @return The output directory for this set of sources.
      * @since 4.0
      */
+    @ReplacedBy("classesDirectory")
     File getOutputDir();
 
     /**
@@ -118,6 +155,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param provider provides output directory for this source directory set
      * @since 4.0
      */
+    @ReplacedBy("destinationDirectory")
     void setOutputDir(Provider<File> provider);
 
     /**
@@ -126,5 +164,6 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * @param outputDir output directory for this source directory set
      * @since 4.0
      */
+    @ReplacedBy("destinationDirectory")
     void setOutputDir(File outputDir);
 }

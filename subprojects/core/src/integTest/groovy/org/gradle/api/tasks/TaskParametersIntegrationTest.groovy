@@ -23,6 +23,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.SetProperty
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.internal.Actions
 import spock.lang.Issue
@@ -72,6 +73,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
+    @ToBeFixedForInstantExecution
     def "task is not up-to-date after file moved between input properties"() {
         (1..3).each {
             file("input${it}.txt").createNewFile()
@@ -134,6 +136,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3435")
+    @ToBeFixedForInstantExecution
     def "task is not up-to-date after swapping directories between output properties"() {
         file("buildSrc/src/main/groovy/TaskWithTwoOutputDirectoriesProperties.groovy") << """
             import org.gradle.api.*
@@ -244,6 +247,7 @@ class TaskParametersIntegrationTest extends AbstractIntegrationSpec {
         succeeds "b" assertTasksExecutedInOrder ":a", ":b"
     }
 
+    @ToBeFixedForInstantExecution
     def "task is out of date when property added"() {
         buildFile << """
 task someTask {
@@ -281,6 +285,7 @@ someTask.inputs.property("b", 12)
         skipped(":someTask")
     }
 
+    @ToBeFixedForInstantExecution
     def "task is out of date when property removed"() {
         buildFile << """
 task someTask {
@@ -324,6 +329,7 @@ task someTask {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "task is out of date when property type changes #oldValue -> #newValue"() {
         buildFile << """
 task someTask {
@@ -373,6 +379,7 @@ task someTask {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution
     def "task can use input property of type #type"() {
         file("buildSrc/src/main/java/SomeTask.java") << """
 import org.gradle.api.DefaultTask;
@@ -650,6 +657,7 @@ task someTask(type: SomeTask) {
         succeeds "foo"
     }
 
+    @ToBeFixedForInstantExecution
     def "input and output properties are not evaluated too often"() {
         buildFile << """ 
             @CacheableTask    

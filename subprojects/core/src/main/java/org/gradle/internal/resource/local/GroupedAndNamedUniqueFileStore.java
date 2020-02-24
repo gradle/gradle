@@ -19,7 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Namer;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.ChecksumService;
 
 import java.io.File;
 import java.util.Set;
@@ -36,13 +36,17 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
     private final Grouper<K> grouper;
     private final Namer<K> namer;
     private final FileAccessTracker checksumDirAccessTracker;
+    private final File baseDir;
+    private final ChecksumService checksumService;
 
-    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, Grouper<K> grouper, Namer<K> namer) {
-        this.delegate = new UniquePathKeyFileStore(baseDir);
+    public GroupedAndNamedUniqueFileStore(File baseDir, TemporaryFileProvider temporaryFileProvider, FileAccessTimeJournal fileAccessTimeJournal, Grouper<K> grouper, Namer<K> namer, ChecksumService checksumService) {
+        this.delegate = new UniquePathKeyFileStore(checksumService, baseDir);
         this.temporaryFileProvider = temporaryFileProvider;
         this.grouper = grouper;
         this.namer = namer;
         this.checksumDirAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, baseDir, grouper.getNumberOfGroupingDirs() + NUMBER_OF_CHECKSUM_DIRS);
+        this.baseDir = baseDir;
+        this.checksumService = checksumService;
     }
 
     @Override
@@ -63,15 +67,33 @@ public class GroupedAndNamedUniqueFileStore<K> implements FileStore<K>, FileStor
         String group = grouper.determineGroup(key);
         String name = namer.determineName(key);
 
-        return group + "/" + checksumPart + "/" + name;
+        return group + "/" + stripLeadingZeros(checksumPart) + "/" + name;
+    }
+
+    // We do this for backwards compatibility: older Gradle versions
+    // used to store files in the binary cache with a checksum which removes
+    // the leading zeros
+    private String stripLeadingZeros(String checksumPart) {
+        if (checksumPart.charAt(0) == '0') {
+            int i = 1;
+            while (checksumPart.charAt(i) == '0') {
+                i++;
+            }
+            return checksumPart.substring(i);
+        }
+        return checksumPart;
     }
 
     private String getChecksum(File contentFile) {
-        return HashUtil.createHash(contentFile, "SHA1").asHexString();
+        return checksumService.sha1(contentFile).toString();
     }
 
     private File getTempFile() {
         return temporaryFileProvider.createTemporaryFile("filestore", "bin");
+    }
+
+    public File whereIs(K key, String checksum) {
+        return new File(baseDir, toPath(key, checksum));
     }
 
     @Override

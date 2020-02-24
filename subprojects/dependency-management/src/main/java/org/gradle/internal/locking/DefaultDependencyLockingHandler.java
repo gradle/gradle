@@ -20,29 +20,23 @@ import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
+import org.gradle.api.artifacts.dsl.LockMode;
+import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
-    private static final Action<Configuration> ACTIVATE_LOCKING = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration configuration) {
-            configuration.getResolutionStrategy().activateDependencyLocking();
-        }
-    };
+    private static final Action<Configuration> ACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().activateDependencyLocking();
 
 
-    private static final Action<Configuration> DEACTIVATE_LOCKING = new Action<Configuration>() {
-        @Override
-        public void execute(Configuration configuration) {
-            configuration.getResolutionStrategy().deactivateDependencyLocking();
-        }
-    };
+    private static final Action<Configuration> DEACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().deactivateDependencyLocking();
 
 
     private final ConfigurationContainer configurationContainer;
+    private final DependencyLockingProvider dependencyLockingProvider;
 
-    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer) {
+    public DefaultDependencyLockingHandler(ConfigurationContainer configurationContainer, DependencyLockingProvider dependencyLockingProvider) {
         this.configurationContainer = configurationContainer;
+        this.dependencyLockingProvider = dependencyLockingProvider;
     }
 
     @Override
@@ -53,5 +47,15 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
     @Override
     public void unlockAllConfigurations() {
         configurationContainer.all(DEACTIVATE_LOCKING);
+    }
+
+    @Override
+    public LockMode getLockMode() {
+        return dependencyLockingProvider.getLockMode();
+    }
+
+    @Override
+    public void setLockMode(LockMode mode) {
+        dependencyLockingProvider.setLockMode(mode);
     }
 }

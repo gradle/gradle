@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.Transformers;
 import org.gradle.internal.build.BuildState;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.JvmByteCode;
@@ -77,10 +78,15 @@ import static org.gradle.util.CollectionUtils.first;
  * @since 3.4
  */
 @Incubating
+@Deprecated
 public class JavaLanguagePlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
+        DeprecationLogger.deprecatePlugin("java-lang")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "upgrading_jvm_plugins")
+            .nagUser();
         project.getPluginManager().apply(ComponentModelBasePlugin.class);
         project.getPluginManager().apply(JvmResourcesPlugin.class);
     }
@@ -168,7 +174,7 @@ public class JavaLanguagePlugin implements Plugin<Project> {
                 assembly.builtBy(compile);
 
                 compile.setDescription("Compiles " + javaSourceSet + ".");
-                compile.setDestinationDir(conventionalCompilationOutputDirFor(assembly));
+                compile.getDestinationDirectory().set(conventionalCompilationOutputDirFor(assembly));
                 compile.dependsOn(javaSourceSet);
                 compile.setSource(javaSourceSet.getSource());
 

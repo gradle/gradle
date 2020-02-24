@@ -20,6 +20,7 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -369,14 +370,14 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         given:
         buildFile << """
             project(':impl') {
-                ${jcenterRepository()}     
+                ${jcenterRepository()}
                 dependencies { implementation 'org.apache.commons:commons-lang3:3.3' }
             }
         """
         source api: ["class A {}", "class B { }"], impl: ["class ImplA extends A {}", """import org.apache.commons.lang3.StringUtils;
 
-            class ImplB extends B { 
-               public static String HELLO = StringUtils.capitalize("hello"); 
+            class ImplB extends B {
+               public static String HELLO = StringUtils.capitalize("hello");
             }"""]
         impl.snapshot { run language.compileTaskName }
 
@@ -484,12 +485,13 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
             dependencies { implementation "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
             ${language.compileTaskName}.doFirst {
-                file("classpath.txt").createNewFile(); 
+                file("classpath.txt").createNewFile();
                 file("classpath.txt").text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
             }
         """
@@ -556,8 +558,8 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
 
         file("impl/build.gradle") << """
             configurations.implementation.dependencies.clear()
-            dependencies { 
-                implementation 'junit:junit:4.12' 
+            dependencies {
+                implementation 'junit:junit:4.12'
                 implementation localGroovy()
             }
         """
@@ -603,6 +605,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("A")
     }
 
+    @ToBeFixedForInstantExecution
     def "deletion of a jar with duplicate class causes recompilation"() {
         file("api/src/main/${language.name}/org/junit/Assert.${language.name}") << "package org.junit; public class Assert {}"
         source impl: ["class A extends org.junit.Assert {}"]
@@ -614,8 +617,8 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         when:
         file("impl/build.gradle").text = """
             configurations.implementation.dependencies.clear()  //kill project dependency
-            dependencies { 
-                implementation 'junit:junit:4.11' 
+            dependencies {
+                implementation 'junit:junit:4.11'
                 implementation localGroovy()
             }  //leave only junit
         """
@@ -634,9 +637,9 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
             "class C { $visibility static class Inner { int foo() { return A.EVIL; } } }",
             "class D { $visibility class Inner { int foo() { return A.EVIL; } } }",
             "class E { void foo() { Runnable r = new Runnable() { public void run() { int x = A.EVIL; } }; } }",
-            """class F { 
-                    int foo() { return A.EVIL; } 
-                    $visibility static class Inner { } 
+            """class F {
+                    int foo() { return A.EVIL; }
+                    $visibility static class Inner { }
                 }""",
         ]
 
@@ -684,7 +687,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         source api: [
             """
                 import java.lang.annotation.*;
-                @Retention(RetentionPolicy.CLASS) 
+                @Retention(RetentionPolicy.CLASS)
                 public @interface B {
                     Class<?> value();
                 }
@@ -716,7 +719,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         source api: [
             """
                 import java.lang.annotation.*;
-                @Retention(RetentionPolicy.CLASS) 
+                @Retention(RetentionPolicy.CLASS)
                 public @interface B {
                     Class<?>[] value();
                 }

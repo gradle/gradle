@@ -58,7 +58,7 @@ public abstract class AbstractAnnotationDrivenComponentModelRuleExtractor<T exte
         return ModelType.of(ModelMap.class).isAssignableFrom(modelType);
     }
 
-    protected class RuleMethodDataCollector {
+    protected static class RuleMethodDataCollector {
         private HashMap<ModelType<?>, ModelType<?>> parameterTypes = new HashMap<ModelType<?>, ModelType<?>>();
 
         @SuppressWarnings("unchecked")

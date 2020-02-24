@@ -16,12 +16,17 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.ivy.IvyFileModule
+import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
 public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
 
     @Issue("GRADLE-2456")
+    @ToBeFixedForInstantExecution
     def "generates SHA1 file with leading zeros"() {
         given:
         def module = ivyRepo.module("org.gradle", "publish", "2")
@@ -59,5 +64,117 @@ public class IvyPublishIssuesIntegTest extends AbstractIvyPublishIntegTest {
         def shaOneFile = module.moduleDir.file("testfile-2.bin.sha1")
         shaOneFile.exists()
         shaOneFile.text == "00e14c6ef59816760e2c9b5a57157e8ac9de4012"
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/5136")
+    void "doesn't publish if main artifact is missing"() {
+        settingsFile << 'rootProject.name = "test"'
+        buildFile << """
+            apply plugin: "java-library"
+            apply plugin: "ivy-publish"
+
+            group = "org.gradle"
+            version = "1.0"
+
+            jar {
+                enabled = Boolean.valueOf(project.getProperty("jarEnabled"))
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "\${buildDir}/repo" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+        file("src/main/java/hello/Hello.java") << """package hello;
+            public class Hello {}
+        """
+
+        when:
+        succeeds "publish", "-PjarEnabled=true"
+
+        then:
+        file("build/repo/org.gradle/test/1.0/test-1.0.jar").exists()
+        file("build/repo/org.gradle/test/1.0/test-1.0.jar.sha1").exists()
+        file("build/repo/org.gradle/test/1.0/test-1.0.jar.sha256").exists()
+        file("build/repo/org.gradle/test/1.0/test-1.0.jar.sha512").exists()
+
+        when:
+        fails "publish", "-PjarEnabled=false"
+
+        then:
+        skipped(":jar")
+        failure.assertHasCause("Artifact test-1.0.jar wasn't produced by this build.")
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/5136")
+    void "doesn't publish stale files"() {
+        IvyFileModule publishedModule
+
+        settingsFile << 'rootProject.name = "test"'
+        buildFile << """
+            apply plugin: "java-library"
+            apply plugin: "ivy-publish"
+
+            group = "org.gradle"
+            version = "1.0"
+
+            java {
+                withJavadocJar()
+            }
+
+            javadocJar {
+                enabled = Boolean.valueOf(project.getProperty("javadocEnabled"))
+            }
+
+            publishing {
+                repositories {
+                    ivy { url "\${buildDir}/repo" }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+        file("src/main/java/hello/Hello.java") << """package hello;
+            public class Hello {}
+        """
+
+        when:
+        succeeds "publish", "-PjavadocEnabled=true"
+        publishedModule = new IvyFileRepository(new TestFile(file("build/repo"))).module("org.gradle", "test")
+
+        then:
+        file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar").exists()
+        file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
+        file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
+        file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
+        publishedModule.parsedModuleMetadata.variant("javadocElements") {
+            assert files*.name == ['test-1.0-javadoc.jar']
+        }
+
+        when:
+        file("build/repo").deleteDir()
+        succeeds "publish", "-PjavadocEnabled=false"
+        publishedModule = new IvyFileRepository(new TestFile(file("build/repo"))).module("org.gradle", "test")
+
+        then:
+        skipped(":javadocJar")
+        !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar").exists()
+        !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
+        !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
+        !file("build/repo/org.gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
+        publishedModule.parsedModuleMetadata.variant("javadocElements") {
+            assert files*.name == []
+        }
     }
 }

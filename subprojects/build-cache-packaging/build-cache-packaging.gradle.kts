@@ -17,30 +17,28 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
     `java-library`
+    gradlebuild.`publish-public-libraries`
     gradlebuild.classycle
 }
 
 description = "Package build cache results"
 
 dependencies {
-    implementation(project(":baseServices"))
-    implementation(project(":native"))
-    implementation(project(":coreApi"))
-    implementation(project(":buildCache"))
-    implementation(project(":files"))
-    implementation(project(":snapshots"))
+    api(project(":buildCacheBase"))
+    api(project(":snapshots"))
+    api(project(":hashing"))
+    api(project(":files"))
 
-    implementation(library("jsr305"))
-    implementation(library("slf4j_api"))
-    implementation(library("guava"))
-    implementation(library("inject"))
-    implementation(library("commons_compress"))
-    implementation(library("commons_io"))
+    implementation(project(":baseAnnotations"))
+
+    implementation(library("guava")) { version { require(libraryVersion("guava")) } }
+    implementation(library("commons_compress")) { version { require(libraryVersion("commons_compress")) } }
+    implementation(library("commons_io")) { version { require(libraryVersion("commons_io")) } }
 
     testImplementation(project(":processServices"))
     testImplementation(project(":fileCollections"))
     testImplementation(project(":resources"))
-    
+
     testImplementation(testFixtures(project(":baseServices")))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))

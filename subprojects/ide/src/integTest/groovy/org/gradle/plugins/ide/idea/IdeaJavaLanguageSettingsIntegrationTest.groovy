@@ -17,6 +17,7 @@
 package org.gradle.plugins.ide.idea
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.plugins.ide.AbstractIdeIntegrationSpec
 import org.gradle.plugins.ide.fixtures.IdeaFixtures
@@ -33,6 +34,7 @@ include ':child1', ':child2', ':child3'
 """
     }
 
+    @ToBeFixedForInstantExecution
     void "global sourceCompatibility results in project language level"() {
         given:
         buildFile << """
@@ -54,6 +56,7 @@ allprojects {
         iml('child3').languageLevel == null
     }
 
+    @ToBeFixedForInstantExecution
     void "specific module languageLevel is exposed with derived language level"() {
         given:
         buildFile << """
@@ -87,6 +90,7 @@ project(':child3') {
         iml("child3").languageLevel == null
     }
 
+    @ToBeFixedForInstantExecution
     void "use project language level not source language level and target bytecode level when explicitly set"() {
         given:
         buildFile << """
@@ -165,6 +169,7 @@ project(':child3') {
         ipr.bytecodeTargetLevel.children().size() == 0
     }
 
+    @ToBeFixedForInstantExecution
     void "uses subproject sourceCompatibility even if root project does not apply java plugin"() {
         buildFile << """
 allprojects {
@@ -186,6 +191,7 @@ subprojects {
         iml('child3').languageLevel == null
     }
 
+    @ToBeFixedForInstantExecution
     void "module languageLevel always exposed when no idea root project found"() {
         buildFile << """
 subprojects {
@@ -205,6 +211,7 @@ subprojects {
     }
 
 
+    @ToBeFixedForInstantExecution
     def "project bytecodeLevel set explicitly for same java versions"() {
         given:
         settingsFile << """
@@ -237,6 +244,7 @@ idea {
         ipr.bytecodeTargetLevel.@target == "1.6"
     }
 
+    @ToBeFixedForInstantExecution
     def "explicit project target level when module version differs from project java sdk"() {
         given:
         settingsFile << """
@@ -268,6 +276,7 @@ idea {
         ipr.bytecodeTargetLevel.@target == "1.7"
     }
 
+    @ToBeFixedForInstantExecution
     def "target bytecode version set if differs from calculated idea project bytecode version"() {
         given:
         settingsFile << """
@@ -298,6 +307,7 @@ project(':subprojectA') {
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectA" }.@target == "1.7"
     }
 
+    @ToBeFixedForInstantExecution
     def "language level set if differs from calculated idea project language level"() {
         given:
         settingsFile << """
@@ -327,6 +337,7 @@ project(':child1') {
         iml('child1').languageLevel == "JDK_1_7"
     }
 
+    @ToBeFixedForInstantExecution
     def "language level set if root has no idea plugin applied"() {
         given:
         settingsFile << """
@@ -352,6 +363,7 @@ project(':child1') {
         iml('child1').languageLevel == "JDK_1_7"
     }
 
+    @ToBeFixedForInstantExecution
     def "can have module specific bytecode version"() {
         given:
         settingsFile << """
@@ -404,6 +416,7 @@ idea {
         ipr.bytecodeTargetLevel.module.find { it.@name == "subprojectB" }.@target == "1.7"
     }
 
+    @ToBeFixedForInstantExecution
     void "language levels specified in properties files are ignored"() {
         given:
         file('gradle.properties') << """

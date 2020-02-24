@@ -23,8 +23,8 @@ In particular, a Swift library provides functionality that can be used by consum
 
 .Applying the Swift Library Plugin
 ====
-include::sample[dir="userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
-include::sample[dir="userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
 [[sec:swift_library_build_variants]]
@@ -45,8 +45,8 @@ The linkage can be configured as follows:
 
 .Configure library linkages
 ====
-include::sample[dir="userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
-include::sample[dir="userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=configure-linkages]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-linkages]"]
 ====
 
 Target machines - defaults to the build host::
@@ -58,8 +58,8 @@ The target machine can be configured as follows:
 
 .Configure library target machines
 ====
-include::sample[dir="userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
-include::sample[dir="userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
 [[sec:swift_library_tasks]]
@@ -109,7 +109,7 @@ Aggregates tasks that assemble the specific variant of this library.
 [[sec:swift_library_lifecycle_tasks]]
 === Lifecycle Tasks
 
-The Swift Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> - which the Swift Library Plugin applies automatically:
+The Swift Library Plugin attaches some of its tasks to the standard lifecycle tasks documented in the <<base_plugin.adoc#,Base Plugin chapter>> — which the Swift Library Plugin applies automatically:
 
 `assemble` - Task (lifecycle)::
 Depends on: `linkDebug` when linkage includes `shared` or `createDebug` otherwise.
@@ -198,8 +198,8 @@ The `api` configuration should be used to declare dependencies which are exporte
 
 .Adding dependencies
 ====
-include::sample[dir="userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=dependency-management]"]
-include::sample[dir="userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/groovy",files="build.gradle[tags=dependency-management]"]
+include::sample[dir="snippets/userguide/swift/swiftLibrary/kotlin",files="build.gradle.kts[tags=dependency-management]"]
 ====
 
 Dependencies appearing in the `api` configurations will be transitively exposed to consumers of the library, and as such will appear on the compile include root and link libraries of consumers.
@@ -286,7 +286,7 @@ Some of the most common configuration options are shown below.
 [horizontal]
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:outputFile[outputFile]:: `$buildDir/lib/main/__variant__/libModule.a`
 
-link:{groovyDslPath/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:source[source]:: `compile__Variant__Swift.objects`
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:source[source]:: `compile__Variant__Swift.objects`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:staticLibArgs[staticLibArgs]:: []
 

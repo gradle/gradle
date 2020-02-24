@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.http
 import org.gradle.authentication.http.BasicAuthentication
 import org.gradle.authentication.http.DigestAuthentication
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.hamcrest.CoreMatchers
@@ -543,6 +544,7 @@ task listJars {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/6014")
+    @ToBeFixedForInstantExecution
     def "repository credentials should be considered when retrieving modules from dependency cache"() {
         given:
         def module = mavenHttpRepo.module('group', 'projectA', '1.2').publish()

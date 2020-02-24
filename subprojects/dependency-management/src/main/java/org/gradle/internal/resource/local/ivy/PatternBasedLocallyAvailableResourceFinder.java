@@ -20,6 +20,7 @@ import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.api.internal.artifacts.repositories.resolver.ResourcePattern;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.resource.local.AbstractLocallyAvailableResourceFinder;
 import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.SingleIncludePatternFileTree;
@@ -31,28 +32,25 @@ import java.util.List;
 
 public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> {
 
-    public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern) {
-        super(createProducer(baseDir, pattern));
+    public PatternBasedLocallyAvailableResourceFinder(File baseDir, ResourcePattern pattern, ChecksumService checksumService) {
+        super(createProducer(baseDir, pattern), checksumService);
     }
 
     private static Transformer<Factory<List<File>>, ModuleComponentArtifactMetadata> createProducer(final File baseDir, final ResourcePattern pattern) {
         return new Transformer<Factory<List<File>>, ModuleComponentArtifactMetadata>() {
             @Override
             public Factory<List<File>> transform(final ModuleComponentArtifactMetadata artifact) {
-                return new Factory<List<File>>() {
-                    @Override
-                    public List<File> create() {
-                        final List<File> files = new LinkedList<File>();
-                        if (artifact != null) {
-                            getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
-                                @Override
-                                public void visitFile(FileVisitDetails fileDetails) {
-                                    files.add(fileDetails.getFile());
-                                }
-                            });
-                        }
-                        return files;
+                return () -> {
+                    final List<File> files = new LinkedList<File>();
+                    if (artifact != null) {
+                        getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
+                            @Override
+                            public void visitFile(FileVisitDetails fileDetails) {
+                                files.add(fileDetails.getFile());
+                            }
+                        });
                     }
+                    return files;
                 };
             }
 

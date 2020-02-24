@@ -23,7 +23,7 @@ You can find a comprehensive introduction and overview to the Java Plugin in the
 ====
 As indicated above, this plugin adds basic building blocks for working with JVM projects.
 Its feature set has been superseded by other plugins, offering more features based on your project type.
-Instead of applying it directly to your project, you should look into the `java-library` or `java-application` plugins or one of the supported alternative JVM language.
+Instead of applying it directly to your project, you should look into the `java-library` or `application` plugins or one of the supported alternative JVM language.
 ====
 
 [[sec:java_usage]]
@@ -33,8 +33,8 @@ To use the Java plugin, include the following in your build script:
 
 .Using the Java plugin
 ====
-include::sample[dir="java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
-include::sample[dir="java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/quickstart/groovy", files="build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/java/quickstart/kotlin", files="build.gradle.kts[tags=use-plugin]"]
 ====
 
 [[sec:java_tasks]]
@@ -179,8 +179,8 @@ You configure the project layout by configuring the appropriate source set. This
 
 .Custom Java source layout
 ====
-include::sample[dir="java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
-include::sample[dir="java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
+include::sample[dir="snippets/java/customizedLayout/groovy", files="build.gradle[tags=define-main]"]
+include::sample[dir="snippets/java/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
 ====
 
 [[source_sets]]
@@ -273,24 +273,24 @@ Adding a JAR containing the classes of a source set:
 
 .Assembling a JAR for a source set
 ====
-include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
-include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
 ====
 
 Generating Javadoc for a source set:
 
 .Generating the Javadoc for a source set
 ====
-include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
-include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
 ====
 
 Adding a test suite to run the tests in a source set:
 
 .Running tests in a source set
 ====
-include::sample[dir="userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
-include::sample[dir="userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
 ====
 
 [[sec:java_plugin_and_dependency_management]]
@@ -357,7 +357,7 @@ Runtime classpath for running tests. Used by task `test`.
 `archives`::
 Artifacts (e.g. jars) produced by this project. Used by task `uploadArchives`.
 
-`default` extends `runtime`::
+`default` extends `runtimeClasspath`::
 The default configuration used by a project dependency on this project. Contains the artifacts and dependencies required by this project at runtime.
 
 The following diagrams show the dependency configurations for the _main_ and _test_ source sets respectively. You can use this legend to interpret the colors:
@@ -410,8 +410,8 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 .Using the `java` extension
 ====
-include::sample[dir="userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
-include::sample[dir="userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
 ====
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
@@ -420,11 +420,11 @@ Java version compatibility to use when compiling Java source. Default value: ver
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
 Java version to generate classes for. Default value: `__sourceCompatibility__`.
 
-`publishJavadoc()`::
-Automatically package Javadoc during publishing and publish a variant `javadocElements` with an artifact `-javadoc.jar`.
+`withJavadocJar()`::
+Automatically packages Javadoc and creates a variant `javadocElements` with an artifact `-javadoc.jar`, which will be part of the publication.
 
-`publishSources()`::
-Automatically package source code during publishing and publish a variant `sourceElements` with an artifact `-sources.jar`.
+`withSourcesJar()`::
+Automatically packages source code and creates a variant `sourceElements` with an artifact `-sources.jar`, which will be part of the publication.
 
 == Convention properties
 
@@ -507,7 +507,7 @@ This gives you the following benefits
 * Incremental builds are much faster.
 * The smallest possible number of class files are changed.
   Classes that don't need to be recompiled remain unchanged in the output directory.
-  An example scenario when this is really useful is using JRebel - the fewer output classes are changed the quicker the JVM can use refreshed classes.
+  An example scenario when this is really useful is using JRebel — the fewer output classes are changed the quicker the JVM can use refreshed classes.
 
 To help you understand how incremental compilation works, the following provides a high-level overview:
 
@@ -655,8 +655,8 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://github.com/google/auto/issues/673[Details in issue]
 
 | link:https://github.com/JakeWharton/butterknife[Butterknife]
-| Unsupported.
-| link:https://github.com/stephanenicolas/butterknife[Community fork supports incremental annotation processing]
+| link:https://github.com/JakeWharton/butterknife/commit/2acac62c7354fee46a5201d50a4712732f6dd1ed[10.2.0]
+| N/A
 
 | link:https://github.com/rzwitserloot/lombok[Lombok]
 | link:https://github.com/rzwitserloot/lombok/releases/tag/v1.16.22[1.16.22]
@@ -668,7 +668,7 @@ Many popular annotation processors support incremental annotation processing (se
 
 | Dagger
 | link:https://github.com/google/dagger/issues/1120[2.18]
-| Hidden behind a feature toggle
+| 2.18 Feature toggle support, 2.24 Enabled by default
 
 | kapt
 | link:https://youtrack.jetbrains.com/issue/KT-23880[1.3.30]
@@ -722,8 +722,8 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://bugs.eclipse.org/bugs/show_bug.cgi?id=535985[Open issue]
 | N/A
 
-| PermissionsDispatcher
-| link:https://github.com/permissions-dispatcher/PermissionsDispatcher/issues/473[PR merged, waiting for release]
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher[PermissionsDispatcher]
+| link:https://github.com/permissions-dispatcher/PermissionsDispatcher/releases/tag/4.2.0[4.2.0]
 | N/A
 
 | Immutables
@@ -731,11 +731,11 @@ Many popular annotation processors support incremental annotation processing (se
 | N/A
 
 | link:https://developer.android.com/topic/libraries/architecture/room[Room]
-| link:https://issuetracker.google.com/issues/112110217[Open Issue]
-| N/A
+| link:https://developer.android.com/jetpack/androidx/releases/room#version_220_3[2.2.0]
+| Hidden behind a feature toggle
 
 | link:https://developer.android.com/jetpack/androidx/releases/lifecycle[Lifecycle]
-| link:https://issuetracker.google.com/issues/129115778[Open Issue]
+| link:https://issuetracker.google.com/issues/129115778[2.2.0-alpha02]
 | N/A
 
 | Android Annotations
@@ -750,16 +750,20 @@ Many popular annotation processors support incremental annotation processing (se
 | link:https://github.com/yanzhenjie/AndServer/issues/152[Open issue]
 | N/A
 
-| Litho
-| link:https://github.com/facebook/litho/issues/482[Open issue]
+| link:https://github.com/facebook/litho[Litho]
+| link:https://github.com/facebook/litho/blob/master/CHANGELOG.md#version-0250[0.25.0]
 | N/A
 
-| Moxy
-| link:https://github.com/Arello-Mobile/Moxy/issues/240[Open issue]
+| link:https://github.com/moxy-community/Moxy/[Moxy]
+| https://github.com/moxy-community/Moxy/releases/tag/2.0.0[2.0]
 | N/A
 
 | Epoxy
-| link:https://github.com/airbnb/epoxy/issues/423[Open issue]
+| link:https://github.com/airbnb/epoxy/pull/902[Open PR]
+| N/A
+
+| link:https://docs.jboss.org/hibernate/orm/5.4/topical/html_single/metamodelgen/MetamodelGenerator.html[JPA Static Metamodel Generator]
+| link:https://github.com/hibernate/hibernate-orm/releases/tag/5.4.11[5.4.11]
 | N/A
 
 |===
@@ -784,8 +788,8 @@ Gradle ignores annotation processors on the compile classpath.
 
 .Declaring annotation processors
 ====
-include::sample[dir="java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
-include::sample[dir="java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
+include::sample[dir="snippets/java/apt/groovy", files="build.gradle[tags=annotation-processing]"]
+include::sample[dir="snippets/java/apt/kotlin", files="build.gradle.kts[tags=annotation-processing]"]
 ====
 
 == Variant aware selection

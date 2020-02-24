@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import javax.annotation.Nullable;
@@ -35,19 +37,19 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
         return type;
     }
 
-    public ProviderInternal<? extends IN> getProvider() {
-        return provider;
-    }
-
     @Override
     public boolean isValueProducedByTask() {
-        // Need the content in order to transform the value
-        return provider.isContentProducedByTask();
+        return provider.isValueProducedByTask();
     }
 
     @Override
-    public boolean isContentProducedByTask() {
-        return provider.isContentProducedByTask();
+    public void visitProducerTasks(Action<? super Task> visitor) {
+        provider.visitProducerTasks(visitor);
+    }
+
+    @Override
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return provider.maybeVisitBuildDependencies(context);
     }
 
     @Override
@@ -56,25 +58,15 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
     }
 
     @Override
-    public OUT get() {
-        return mapValue(provider.get());
-    }
-
-    @Override
-    public OUT getOrNull() {
-        IN value = provider.getOrNull();
-        if (value != null) {
-            return mapValue(value);
+    protected Value<OUT> calculateOwnValue() {
+        Value<? extends IN> value = provider.calculateValue();
+        if (value.isMissing()) {
+            return value.asType();
         }
-        return null;
+        return Value.of(mapValue(value.get()));
     }
 
     protected abstract OUT mapValue(IN v);
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return provider.maybeVisitBuildDependencies(context);
-    }
 
     @Override
     public String toString() {

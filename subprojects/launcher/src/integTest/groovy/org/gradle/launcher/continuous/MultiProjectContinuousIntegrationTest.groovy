@@ -16,9 +16,10 @@
 
 package org.gradle.launcher.continuous
 
+import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
 import spock.lang.Ignore
 
-class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousIntegrationTest {
+class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
 
     def upstreamSource, downstreamSource
 
@@ -27,13 +28,13 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
         settingsFile << "include 'upstream', 'downstream'"
         buildFile << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
             }
 
             project(':downstream') {
                 dependencies {
-                    compile project(":upstream")
+                    implementation project(":upstream")
                 }
             }
         """
@@ -138,7 +139,7 @@ class MultiProjectContinuousIntegrationTest extends Java7RequiringContinuousInte
         def extraProjectNames = (0..100).collect { "project$it" }
         extraProjectNames.each {
             settingsFile << "\n include '$it' \n"
-            buildFile << "\n project(':$it') { dependencies { compile project(':upstream') } } \n"
+            buildFile << "\n project(':$it') { dependencies { implementation project(':upstream') } } \n"
             file("${it}/src/main/java/Thing${it}.java").createFile() << """
                 class Thing${it} extends Upstream {}
             """

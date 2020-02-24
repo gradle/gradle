@@ -16,13 +16,12 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
-import org.gradle.internal.component.model.ModuleSource;
-import org.gradle.internal.hash.HashValue;
+import org.gradle.internal.component.model.ModuleSources;
+import org.gradle.internal.component.model.MutableModuleSources;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -49,12 +48,6 @@ public interface MutableModuleComponentResolveMetadata {
      */
     void setId(ModuleComponentIdentifier componentId);
 
-    /**
-     * Returns the hash of the resource(s) from which this metadata was created.
-     */
-    HashValue getContentHash();
-    void setContentHash(HashValue hash);
-
     boolean isMissing();
     void setMissing(boolean missing);
 
@@ -67,12 +60,12 @@ public interface MutableModuleComponentResolveMetadata {
     List<String> getStatusScheme();
     void setStatusScheme(List<String> statusScheme);
 
-    ModuleSource getSource();
-    void setSource(ModuleSource source);
+    MutableModuleSources getSources();
 
-    /**
-     * Adds a variant to this module.
-     */
+    void setSources(ModuleSources moduleSources);
+
+    MutableComponentVariant addVariant(MutableComponentVariant variant);
+
     MutableComponentVariant addVariant(String variantName, ImmutableAttributes attributes);
 
     AttributeContainer getAttributes();
@@ -92,13 +85,13 @@ public interface MutableModuleComponentResolveMetadata {
     VariantMetadataRules getVariantMetadataRules();
 
     /**
-     * Declares that this component belongs to a platform.
-     * @param platform the identifier of the platform
+     * Declares that this component belongs to a virtual platform.
+     * @param platform the identifier of the virtual platform
      */
-    void belongsTo(ComponentIdentifier platform);
+    void belongsTo(VirtualComponentIdentifier platform);
 
     @Nullable
-    Set<? extends ComponentIdentifier> getPlatformOwners();
+    Set<? extends VirtualComponentIdentifier> getPlatformOwners();
 
     List<? extends MutableComponentVariant> getMutableVariants();
 }

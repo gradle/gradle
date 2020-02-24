@@ -37,11 +37,11 @@ import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.plugin.management.PluginManagementSpec;
-import org.gradle.util.SingleMessageLogger;
 import org.gradle.vcs.SourceControl;
 
 import javax.inject.Inject;
@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class DefaultSettings extends AbstractPluginAware implements SettingsInternal {
-    public static final String DEFAULT_BUILD_SRC_DIR = "buildSrc";
     private ScriptSource settingsScript;
 
     private StartParameter startParameter;
@@ -262,6 +261,11 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         return classLoaderScope;
     }
 
+    @Override
+    public File getBuildSrcDir() {
+        return new File(getSettingsDir(), BUILD_SRC);
+    }
+
     protected ServiceRegistry getServices() {
         return services;
     }
@@ -337,7 +341,12 @@ public abstract class DefaultSettings extends AbstractPluginAware implements Set
         if (feature.isActive()) {
             services.get(FeaturePreviews.class).enableFeature(feature);
         } else {
-            SingleMessageLogger.nagUserOfDeprecated("enableFeaturePreview('" + feature.name() + "')", "The feature flag is no longer relevant, please remove it from your settings file.");
+            DeprecationLogger
+                .deprecate("enableFeaturePreview('" + feature.name() + "')")
+                .withAdvice("The feature flag is no longer relevant, please remove it from your settings file.")
+                .willBeRemovedInGradle7()
+                .withUserManual("feature_lifecycle", "feature_preview")
+                .nagUser();
         }
     }
 }

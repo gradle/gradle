@@ -16,6 +16,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
@@ -32,10 +33,22 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
+        /*
+
+        https://github.com/gradle/build-tool-flaky-tests/issues/49
+
+        The plugin is published to a repository inside the test folder, which is accessed via a localhost address (using MavenHttpPluginRepository).
+        When we resolve, we cache the results in the shared home folder. Now if another test runs, and the repository ends up looking the same (same localhost address).
+        The wrong cached artifact is used.
+        That's why these kind of resolution tests need requireOwnGradleUserHomeDir().
+
+         */
+        executer.requireOwnGradleUserHomeDir()
         publishPlugin("1.0")
         publishPlugin("2.0")
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify plugin version"() {
         when:
         buildScript "plugins { id '$PLUGIN_ID' version '1.0' }"
@@ -44,6 +57,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('1.0')
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify plugin version using gradle properties"() {
         when:
         file("gradle.properties") << "myPluginVersion=2.0"
@@ -57,6 +71,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify plugin version using command-line project property"() {
         when:
         buildScript """
@@ -71,6 +86,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify plugin version using buildSrc"() {
         when:
         file("buildSrc/src/main/java/MyVersions.java") << """
@@ -89,6 +105,7 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
+    @ToBeFixedForInstantExecution
     def "can specify plugin version using buildSrc constant"() {
         when:
         file("buildSrc/src/main/java/MyVersions.java") << """
@@ -106,18 +123,19 @@ class VersionedPluginUseIntegrationTest extends AbstractIntegrationSpec {
         verifyPluginApplied('2.0')
     }
 
+    @ToBeFixedForInstantExecution
     def "can use different plugin versions in sibling projects"() {
         when:
         settingsFile << "include 'p1', 'p2'"
 
         file("p1/build.gradle") << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID' version '1.0'
             }
             ${verifyPluginTask('1.0')}
 """
         file("p2/build.gradle") << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID' version '2.0'
             }
             ${verifyPluginTask('2.0')}

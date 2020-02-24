@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console.taskgrouping
 
+
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 
@@ -53,7 +54,7 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
         """
         buildFile << """
             task allTasks
-            
+
             12.times { i ->
                 project(":project\${i}") {
                     task "slowTask\${i}" {
@@ -61,7 +62,7 @@ abstract class AbstractConsoleVerboseRenderingFunctionalTest extends AbstractCon
                             sleep 2000 + (1000*(i%2))
                         }
                     }
-                    
+
                     rootProject.allTasks.dependsOn ":project\${i}:slowTask\${i}"
                 }
             }

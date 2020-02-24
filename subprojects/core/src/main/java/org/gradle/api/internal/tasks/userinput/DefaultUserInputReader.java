@@ -26,10 +26,10 @@ public class DefaultUserInputReader implements UserInputReader {
 
     private static final char UNIX_NEW_LINE = '\n';
     private static final char WINDOWS_NEW_LINE = '\r';
+    private final Reader br = new InputStreamReader(System.in);
 
     @Override
     public String readInput() {
-        Reader br = new InputStreamReader(System.in);
         StringBuilder out = new StringBuilder();
 
         while (true) {
@@ -43,6 +43,9 @@ public class DefaultUserInputReader implements UserInputReader {
                 if (!isLineSeparator((char)c)) {
                     out.append((char)c);
                 } else {
+                    if (c == WINDOWS_NEW_LINE && '\n' != (char)br.read()) {
+                        throw new RuntimeException("Unexpected");
+                    }
                     break;
                 }
             } catch (IOException e) {

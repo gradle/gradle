@@ -17,7 +17,6 @@
 
 package org.gradle.internal.component.external.model
 
-
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.AttributeContainer
@@ -33,7 +32,6 @@ import org.gradle.internal.component.external.descriptor.Configuration
 import org.gradle.internal.component.external.descriptor.MavenScope
 import org.gradle.internal.component.external.model.maven.MavenDependencyDescriptor
 import org.gradle.internal.component.external.model.maven.MavenDependencyType
-import org.gradle.internal.component.model.ModuleSource
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
@@ -104,28 +102,9 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         defaultArtifacts.size() == runtimeArtifacts.size()
     }
 
-    def "copy with different source"() {
-        given:
-        def source = Stub(ModuleSource)
-        def mutable = mavenMetadataFactory.create(id)
-        mutable.packaging = "other"
-        mutable.relocated = true
-        mutable.snapshotTimestamp = "123"
-        def metadata = mutable.asImmutable()
-
-        when:
-        def copy = metadata.withSource(source)
-
-        then:
-        copy.source == source
-        copy.packaging == "other"
-        copy.relocated
-        copy.snapshotTimestamp == "123"
-    }
-
     def "recognises pom packaging"() {
         when:
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
         metadata.packaging = packaging
 
         then:
@@ -146,7 +125,7 @@ class DefaultMavenModuleResolveMetadataTest extends AbstractLazyModuleComponentR
         given:
         def stringUsageAttribute = Attribute.of(Usage.USAGE_ATTRIBUTE.getName(), String.class)
         def componentTypeAttribute = Attribute.of(Category.CATEGORY_ATTRIBUTE.getName(), String.class)
-        def metadata = mavenMetadataFactory.create(id)
+        def metadata = mavenMetadataFactory.create(id, [])
         metadata.packaging = packaging
         metadata.variantMetadataRules.variantDerivationStrategy = new JavaEcosystemVariantDerivationStrategy()
 

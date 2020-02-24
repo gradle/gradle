@@ -18,6 +18,7 @@ package org.gradle.integtests.language
 
 import org.apache.commons.lang.StringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
 
 import java.util.regex.Pattern
@@ -40,8 +41,15 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
             id 'jvm-component'
             id '${languageName}-lang'
         }"""
+        executer.expectDocumentedDeprecationWarning("The ${languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
+    @ToBeFixedForInstantExecution
     def "creates default source sets"() {
         when:
         buildFile << """
@@ -80,6 +88,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         !file("build").exists()
     }
 
+    @ToBeFixedForInstantExecution
     def "can configure additional language source sets for library"() {
         when:
         buildFile << """

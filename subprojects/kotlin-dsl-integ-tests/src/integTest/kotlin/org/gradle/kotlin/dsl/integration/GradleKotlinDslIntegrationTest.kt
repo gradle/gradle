@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.integration
 import okhttp3.HttpUrl
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterRepository
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.fixtures.DeepThought
@@ -33,7 +34,6 @@ import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
-import org.junit.Ignore
 import org.junit.Test
 
 
@@ -178,6 +178,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can compile against a different (but compatible) version of the Kotlin compiler`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -221,6 +222,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `can apply base plugin via plugins block`() {
 
         withBuildScript("""
@@ -415,6 +417,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `script plugin can be applied to either Project or Settings`() {
 
         withFile("common.gradle.kts", """
@@ -472,23 +475,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
             allOf(
                 containsString("Error logging from Settings"),
                 containsString("Error logging from Project")))
-    }
-
-    @Ignore("Scan plugin auto application temporally ignored - see https://github.com/gradle/gradle/pull/10783")
-    @Test
-    fun `automatically applies build scan plugin when --scan is provided on command-line and a script is applied in the buildscript block`() {
-
-        withBuildScript("""
-            buildscript {
-                rootProject.apply(from = rootProject.file("gradle/dependencies.gradle.kts"))
-            }
-            buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-            }
-        """)
-        withFile("gradle/dependencies.gradle.kts")
-        canPublishBuildScan()
     }
 
     @Test

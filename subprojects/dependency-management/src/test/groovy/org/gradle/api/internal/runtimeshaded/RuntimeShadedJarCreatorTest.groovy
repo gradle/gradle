@@ -40,6 +40,8 @@ import spock.lang.Specification
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
 
+import spock.lang.Issue
+
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
 class RuntimeShadedJarCreatorTest extends Specification {
@@ -375,6 +377,34 @@ org.gradle.api.internal.tasks.CompileServices"""
             generatedFiles.each { resourceName ->
                 assert jar.getEntry(resourceName)
             }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11027")
+    def "relocates multiple third-party impl dependency service providers in the same provider-configuration file"() {
+        given:
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def serviceType = 'java.util.spi.ToolProvider'
+        def jarFile = inputFilesDir.file('lib1.jar')
+        def multiLineProviders = 'org.junit.JarToolProvider\norg.jetbrains.ide.JavadocToolProvider\nbsh.Main'
+        createJarFileWithProviderConfigurationFile(jarFile, serviceType, multiLineProviders)
+
+        when:
+        relocatedJarCreator.create(outputJar, [jarFile])
+
+        then:
+        TestFile[] contents = tmpDir.testDirectory.listFiles().findAll { it.isFile() }
+        contents.length == 1
+        def relocatedJar = contents[0]
+        relocatedJar == outputJar
+
+        handleAsJarFile(relocatedJar) { JarFile jar ->
+            JarEntry providerConfigJarEntry = jar.getJarEntry("META-INF/services/$serviceType")
+            IoActions.withResource(jar.getInputStream(providerConfigJarEntry), new Action<InputStream>() {
+                void execute(InputStream inputStream) {
+                    assert inputStream.text == "org.gradle.internal.impldep.org.junit.JarToolProvider\norg.gradle.internal.impldep.org.jetbrains.ide.JavadocToolProvider\norg.gradle.internal.impldep.bsh.Main"
+                }
+            })
         }
     }
 

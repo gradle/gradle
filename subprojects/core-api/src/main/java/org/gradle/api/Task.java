@@ -24,6 +24,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.BuildService;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -94,9 +95,6 @@ import java.util.Set;
  *
  * <li>A {@link Task}.</li>
  *
- * <li>A closure. The closure may take a {@code Task} as parameter. It may return any of the types listed here. Its
- * return value is recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
- *
  * <li>A {@link TaskDependency} object.</li>
  *
  * <li>A {@link org.gradle.api.tasks.TaskReference} object.</li>
@@ -113,7 +111,8 @@ import java.util.Set;
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
- * <li>A Groovy {@code Closure} or Kotlin function. The closure or function may return any of the types listed here. Its return value is
+ * <li>A Groovy {@code Closure} or Kotlin function. The closure may take a {@code Task} as parameter. 
+ * The closure or function may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>
  *
  * <li>Anything else is treated as an error.</li>
@@ -750,4 +749,13 @@ public interface Task extends Comparable<Task>, ExtensionAware {
     @Optional
     @Incubating
     Property<Duration> getTimeout();
+
+    /**
+     * Registers a {@link BuildService} that is used by this task.
+     *
+     * @param service The service provider.
+     * @since 6.1
+     */
+    @Incubating
+    void usesService(Provider<? extends BuildService<?>> service);
 }

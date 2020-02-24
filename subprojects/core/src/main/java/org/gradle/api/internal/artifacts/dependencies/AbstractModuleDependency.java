@@ -36,7 +36,7 @@ import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.Nullable;
 import java.util.Collections;
-import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -49,7 +49,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
     private ImmutableAttributesFactory attributesFactory;
     private NotationParser<Object, Capability> capabilityNotationParser;
     private DefaultExcludeRuleContainer excludeRuleContainer = new DefaultExcludeRuleContainer();
-    private Set<DependencyArtifact> artifacts = new HashSet<DependencyArtifact>();
+    private Set<DependencyArtifact> artifacts = new LinkedHashSet<>();
     private ImmutableActionSet<ModuleDependency> onMutate = ImmutableActionSet.empty();
     private AttributeContainerInternal attributes;
     private ModuleDependencyCapabilitiesInternal moduleDependencyCapabilities;
@@ -142,7 +142,7 @@ public abstract class AbstractModuleDependency extends AbstractDependency implem
 
     protected void copyTo(AbstractModuleDependency target) {
         super.copyTo(target);
-        target.setArtifacts(new HashSet<DependencyArtifact>(getArtifacts()));
+        target.setArtifacts(new LinkedHashSet<>(getArtifacts()));
         target.setExcludeRuleContainer(new DefaultExcludeRuleContainer(getExcludeRules()));
         target.setTransitive(isTransitive());
         if (attributes != null) {

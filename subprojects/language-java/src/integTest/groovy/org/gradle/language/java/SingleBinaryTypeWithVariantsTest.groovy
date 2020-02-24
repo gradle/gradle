@@ -17,19 +17,22 @@
 package org.gradle.language.java
 
 import org.gradle.api.JavaVersion
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Assume
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
+import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
 
 class SingleBinaryTypeWithVariantsTest extends VariantAwareDependencyResolutionSpec {
 
     @Unroll("matching {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with {jdk #jdk2, flavors #flavors2, buildTypes #buildTypes2} #outcome")
+    @ToBeFixedForInstantExecution
     def "check resolution of a custom component onto a component of the same type (same class, same variant dimensions)"() {
         assertAllTargetVersionsAreSupported(jdk1)
 
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, executer)
         addCustomLibraryType(buildFile)
 
         def firstFlavorsDSL = flavors1 ? 'flavors ' + flavors1.collect { "'$it'" }.join(',') : ''
@@ -92,6 +95,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachFlavorAndBuildTypeBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->
+            expectJavaLangPluginDeprecationWarnings(executer)
             checkResolution(errors, consumedErrors, taskName)
         }
 
@@ -143,11 +147,12 @@ model {
     }
 
     @Unroll("matching custom {jdk #jdk1, flavors #flavors1, builtTypes #buildTypes1} with Java {jdk #jdk2} #outcome")
+    @ToBeFixedForInstantExecution
     def "building a custom binary type and resolving against a library with standard JarBinarySpec instances"() {
         assertAllTargetVersionsAreSupported(jdk1)
 
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, null)
         addCustomLibraryType(buildFile)
 
         def firstFlavorsDSL = flavors1 ? 'flavors ' + flavors1.collect { "'$it'" }.join(',') : ''
@@ -195,6 +200,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachFlavorAndBuildTypeBinary(buildTypesToTest, flavorsToTest, jdk1) { String taskName ->
+            expectJavaLangPluginDeprecationWarnings(executer)
             checkResolution(errors, consumedErrors, taskName)
         }
 
@@ -223,11 +229,12 @@ model {
     }
 
     @Unroll("matching Java #jdk1 with custom {jdk #jdk2, flavors #flavors2, builtTypes #buildTypes2} #outcome")
+    @ToBeFixedForInstantExecution
     def "building a standard JarBinarySpec instance and resolving against a library with custom binary types. "() {
         assertAllTargetVersionsAreSupported(jdk1)
 
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, null)
         addCustomLibraryType(buildFile)
 
         def flavorsDSL = flavors2 ? 'flavors ' + flavors2.collect { "'$it'" }.join(',') : ''
@@ -275,6 +282,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachJavaBinary(jdk1) { String taskName ->
+            expectJavaLangPluginDeprecationWarnings(executer)
             checkResolution(errors, consumedErrors, taskName)
         }
 
@@ -305,11 +313,12 @@ model {
     }
 
     @Unroll("matching custom1 {jdk #jdk1, flavors #flavors) with custom2 {jdk #jdk2, builtTypes #buildTypes} #outcome")
+    @ToBeFixedForInstantExecution
     def "building a custom JarBinarySpec type and resolving against a library with a different custom JarBinarySpec type"() {
         assertAllTargetVersionsAreSupported(jdk1)
 
         given:
-        applyJavaPlugin(buildFile)
+        applyJavaPlugin(buildFile, null)
         addCustomLibraryType(buildFile)
 
         def flavorsDSL = flavors ? 'flavors ' + flavors.collect { "'$it'" }.join(',') : ''
@@ -361,6 +370,7 @@ model {
         expect:
         Set consumedErrors = []
         forEachFlavor(flavorsToTest, jdk1) { String taskName ->
+            expectJavaLangPluginDeprecationWarnings(executer)
             checkResolution(errors, consumedErrors, taskName)
         }
 

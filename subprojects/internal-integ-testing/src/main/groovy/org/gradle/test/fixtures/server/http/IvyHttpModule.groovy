@@ -95,6 +95,11 @@ class IvyHttpModule extends DelegatingIvyModule<IvyHttpModule> implements Remote
         }
 
         @Override
+        String getName() {
+            return backingArtifact.name
+        }
+
+        @Override
         protected TestFile getSha1File() {
             return backingModule.getSha1File(file)
         }
@@ -102,6 +107,16 @@ class IvyHttpModule extends DelegatingIvyModule<IvyHttpModule> implements Remote
         @Override
         protected TestFile getMd5File() {
             return backingModule.getMd5File(file)
+        }
+
+        @Override
+        protected TestFile getSha256File() {
+            backingModule.getSha256File(file)
+        }
+
+        @Override
+        protected TestFile getSha512File() {
+            backingModule.getSha512File(file)
         }
 
         @Override

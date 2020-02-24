@@ -18,16 +18,18 @@ package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 @Requires(TestPrecondition.ONLINE)
+@UnsupportedWithInstantExecution(because = "software model")
 class InternalViewsSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     Sample internalViewsSample = new Sample(temporaryFolder, "customModel/internalViews")
 
-    // NOTE If you change this, you'll also need to change subprojects/docs/src/doc/samples/customModel/languageType/softwareModelExtend-iv-model.out
+    // NOTE If you change this, you'll also need to change subprojects/docs/src/doc/snippets/customModel/languageType/softwareModelExtend-iv-model.out
     def "show mutated public view data but no internal view data in model report"() {
         given:
         sample internalViewsSample

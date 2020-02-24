@@ -82,7 +82,7 @@ public class SwiftcMetadataProvider extends AbstractMetadataProvider<SwiftcMetad
         }
     }
 
-    private class DefaultSwiftcMetadata implements SwiftcMetadata {
+    private static class DefaultSwiftcMetadata implements SwiftcMetadata {
         private final String versionString;
         private final VersionNumber version;
 

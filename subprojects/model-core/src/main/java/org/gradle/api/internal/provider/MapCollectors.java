@@ -17,60 +17,16 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.internal.DisplayName;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 public class MapCollectors {
-
-    public static class EmptyMap implements MapCollector<Object, Object> {
-
-        @Override
-        public boolean present() {
-            return true;
-        }
-
-        @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return true;
-        }
-
-        @Override
-        public void collectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return true;
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public boolean isContentProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
-        }
-    }
 
     public static class SingleEntry<K, V> implements MapCollector<K, V> {
 
@@ -83,30 +39,20 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            maybeCollectInto(collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, value, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             collector.add(key, dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            collectKeysInto(collector, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -120,8 +66,7 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -148,7 +93,6 @@ public class MapCollectors {
     }
 
     public static class EntryWithValueFromProvider<K, V> implements MapCollector<K, V> {
-
         private final K key;
         private final ProviderInternal<? extends V> providerOfValue;
 
@@ -158,42 +102,27 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return providerOfValue.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collector.add(key, providerOfValue.get(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            V value = providerOfValue.getOrNull();
-            if (value != null) {
-                collector.add(key, value, dest);
-                return true;
-            } else {
-                return false;
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<? extends V> value = providerOfValue.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
+            collector.add(key, value.get(), dest);
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             if (providerOfValue.isPresent()) {
                 collector.add(key, dest);
+                return Value.present();
             } else {
-                throw new IllegalStateException(Providers.NULL_VALUE);
-            }
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            if (providerOfValue.isPresent()) {
-                collector.add(key, dest);
-                return true;
-            } else {
-                return false;
+                return Value.missing();
             }
         }
 
@@ -208,8 +137,8 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return providerOfValue.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfValue.visitProducerTasks(visitor);
         }
 
         @Override
@@ -227,30 +156,20 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return true;
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            maybeCollectInto(collector, dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
-            return true;
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             collector.addAll(entries.keySet(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            collectKeysInto(collector, dest);
-            return true;
+            return Value.present();
         }
 
         @Override
@@ -264,8 +183,7 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return false;
+        public void visitProducerTasks(Action<? super Task> visitor) {
         }
 
         @Override
@@ -283,39 +201,28 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean present() {
+        public boolean isPresent() {
             return providerOfEntries.isPresent();
         }
 
         @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            collector.addAll(providerOfEntries.get().entrySet(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Map<? extends K, ? extends V> entries = providerOfEntries.getOrNull();
-            if (entries != null) {
-                collector.addAll(entries.entrySet(), dest);
-                return true;
-            } else {
-                return false;
+        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue();
+            if (value.isMissing()) {
+                return value.asType();
             }
+            collector.addAll(value.get().entrySet(), dest);
+            return Value.present();
         }
 
         @Override
-        public void collectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
-            collector.addAll(providerOfEntries.get().keySet(), dest);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest) {
+        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             Map<? extends K, ? extends V> entries = providerOfEntries.getOrNull();
             if (entries != null) {
                 collector.addAll(entries.keySet(), dest);
-                return true;
+                return Value.present();
             } else {
-                return false;
+                return Value.missing();
             }
         }
 
@@ -330,60 +237,13 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isContentProducedByTask() {
-            return providerOfEntries.isContentProducedByTask();
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            providerOfEntries.visitProducerTasks(visitor);
         }
 
         @Override
         public boolean isValueProducedByTask() {
             return providerOfEntries.isValueProducedByTask();
-        }
-    }
-
-    public static class NoValue implements MapCollector<Object, Object> {
-
-        @Override
-        public boolean present() {
-            return false;
-        }
-
-        @Override
-        public void collectInto(DisplayName owner, MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            throw Providers.nullValue(owner);
-        }
-
-        @Override
-        public boolean maybeCollectInto(MapEntryCollector<Object, Object> collector, Map<Object, Object> dest) {
-            return false;
-        }
-
-        @Override
-        public void collectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            throw new IllegalStateException(Providers.NULL_VALUE);
-        }
-
-        @Override
-        public boolean maybeCollectKeysInto(ValueCollector<Object> collector, Collection<Object> dest) {
-            return false;
-        }
-
-        @Override
-        public void visit(List<ProviderInternal<? extends Map<?, ?>>> sources) {
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return true;
-        }
-
-        @Override
-        public boolean isContentProducedByTask() {
-            return false;
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
         }
     }
 }

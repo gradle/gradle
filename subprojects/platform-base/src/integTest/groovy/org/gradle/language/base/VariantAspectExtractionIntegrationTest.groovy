@@ -16,7 +16,9 @@
 
 package org.gradle.language.base
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
     def "variant annotation on property with illegal type type raises error"() {
         buildFile << """

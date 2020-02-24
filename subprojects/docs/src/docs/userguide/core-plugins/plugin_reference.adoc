@@ -87,7 +87,7 @@ Provides support for creating a ZIP distribution of a Java library project that 
 == Code analysis
 
 <<checkstyle_plugin.adoc#,Checkstyle>>::
-Performs quality checks on your project’s Java source files using http://checkstyle.sourceforge.net/index.html[Checkstyle] and generates associated reports.
+Performs quality checks on your project’s Java source files using https://checkstyle.org/index.html[Checkstyle] and generates associated reports.
 
 <<pmd_plugin.adoc#,PMD>>::
 Performs quality checks on your project’s Java source files using http://pmd.github.io/[PMD] and generates associated reports.
@@ -125,3 +125,6 @@ Provides support for digitally signing generated files and artifacts.
 
 <<java_gradle_plugin.adoc#,Plugin Development>>::
 Makes it easier to develop and publish a Gradle plugin.
+
+<<project_report_plugin.adoc#,Project Report Plugin>>::
+Helps to generate reports containing useful information about your build.

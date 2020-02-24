@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.ivy
 
 import org.gradle.api.credentials.PasswordCredentials
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.RepositoryServer
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.junit.Rule
@@ -67,6 +68,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         failure.assertHasCause("Credentials must be an instance of: ${PasswordCredentials.canonicalName}")
     }
 
+    @ToBeFixedForInstantExecution
     public void "can resolve and cache dependencies with missing status and publication date"() {
         given:
         def module = server.remoteIvyRepo.module('group', 'projectA', '1.2')
@@ -110,6 +112,7 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
         succeeds 'listJars'
     }
 
+    @ToBeFixedForInstantExecution
     void "skip subsequent Ivy repositories on timeout and recovers for later resolution"() {
         given:
         executer.withArgument("-D${SOCKET_TIMEOUT_SYSTEM_PROPERTY}=1000")
@@ -177,13 +180,13 @@ class IvyHttpRepoResolveIntegrationTest extends AbstractIvyRemoteRepoResolveInte
                 }
             }
             configurations { compile }
-            dependencies { 
-                compile ':name1:1.0' 
-                compile ':name1:1.0' 
-                compile ':name2:[1.0, 2.0]' 
+            dependencies {
+                compile ':name1:1.0'
+                compile ':name1:1.0'
+                compile ':name2:[1.0, 2.0]'
                 compile ':name3:1.0-SNAPSHOT'
                 compile 'group1::1.0'
-                compile 'group2::[1.0, 2.0]' 
+                compile 'group2::[1.0, 2.0]'
                 compile 'group3::1.0-SNAPSHOT'
                 compile 'group:name'
             }

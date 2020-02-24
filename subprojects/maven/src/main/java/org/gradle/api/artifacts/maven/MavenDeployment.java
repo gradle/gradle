@@ -23,6 +23,7 @@ import java.util.Set;
  * Represents the artifacts which will be deployed to a Maven repository. You can use this interface to modify the set
  * of artifacts.
  */
+@Deprecated
 public interface MavenDeployment {
 
     /**

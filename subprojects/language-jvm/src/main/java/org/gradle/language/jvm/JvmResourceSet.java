@@ -22,4 +22,5 @@ import org.gradle.language.base.LanguageSourceSet;
  * A set of resource files.
  */
 @Incubating
+@Deprecated
 public interface JvmResourceSet extends LanguageSourceSet {}

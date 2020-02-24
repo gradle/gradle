@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'junit:junit:4.12'
+}
+
+test {
+    systemProperties['property'] = 'value'
+    onlyIf { task ->
+        compileJava.didWork
+    }
+}

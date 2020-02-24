@@ -2,9 +2,9 @@ package configurations
 
 import common.buildToolGradleParameters
 import common.customGradle
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.GradleBuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.GradleBuildStep
 import model.CIBuildModel
 import model.Stage
 
@@ -15,11 +15,15 @@ class Gradleception(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(mod
     description = "Builds Gradle with the version of Gradle which is currently under development (twice)"
 
     params {
-        param("env.JAVA_HOME", buildJavaHome)
+        param("env.JAVA_HOME", buildJavaHome())
     }
 
     features {
         publishBuildStatusToGithub(model)
+    }
+
+    failureConditions {
+        javaCrash = false
     }
 
     val buildScanTagForType = buildScanTag("Gradleception")

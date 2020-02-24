@@ -22,11 +22,11 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.artifacts.ArtifactDependencyResolver;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestTaskReports;
 import org.gradle.internal.Cast;
@@ -71,9 +71,11 @@ import java.util.List;
  * @since 2.12
  */
 @SuppressWarnings("UnusedDeclaration")
+@Deprecated
 public class JvmTestSuiteBasePlugin extends RuleSource {
     @BinaryTasks
     void createJvmTestSuiteTasks(ModelMap<Task> tasks,
+                                 final ProjectLayout projectLayout,
                                  final JvmTestSuiteBinarySpecInternal binary,
                                  final @Path("buildDir") File buildDir) {
         final JvmAssembly jvmAssembly = ((WithJvmAssembly) binary).getAssembly();
@@ -83,7 +85,7 @@ public class JvmTestSuiteBasePlugin extends RuleSource {
                 test.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
                 test.setDescription(String.format("Runs %s.", WordUtils.uncapitalize(binary.getDisplayName())));
                 test.dependsOn(jvmAssembly);
-                test.setTestClassesDirs(ImmutableFileCollection.of(binary.getClassesDir()));
+                test.setTestClassesDirs(projectLayout.files(binary.getClassesDir()));
                 test.setClasspath(binary.getRuntimeClasspath());
                 configureReports(binary, test);
             }

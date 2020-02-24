@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingMethodException;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -42,6 +43,7 @@ import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
@@ -140,7 +142,7 @@ public class AsmBackedClassGeneratorTest {
     public void mixesInGeneratedSubclassInterface() throws Exception {
         Bean bean = newInstance(Bean.class);
         assertTrue(bean instanceof GeneratedSubclass);
-        assertEquals(Bean.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(Bean.class, ((GeneratedSubclass) bean).publicType());
         assertEquals(Bean.class, GeneratedSubclasses.unpackType(bean));
         assertEquals(Bean.class, GeneratedSubclasses.unpack(bean.getClass()));
     }
@@ -149,7 +151,7 @@ public class AsmBackedClassGeneratorTest {
     public void mixesInGeneratedSubclassInterfaceToInterface() throws Exception {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
         assertTrue(bean instanceof GeneratedSubclass);
-        assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass)bean).publicType());
+        assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass) bean).publicType());
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpackType(bean));
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean.getClass()));
     }
@@ -411,7 +413,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(PrivateBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Class " + PrivateBean.class.getName() + " is private."));
+            assertThat(e.getMessage(), equalTo("Class AsmBackedClassGeneratorTest.PrivateBean is private."));
         }
     }
 
@@ -421,7 +423,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(FinalBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Class " + FinalBean.class.getName() + " is final."));
+            assertThat(e.getMessage(), equalTo("Class AsmBackedClassGeneratorTest.FinalBean is final."));
         }
     }
 
@@ -431,7 +433,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractMethodBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractMethodBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractMethodBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractMethodBean.implementMe()."));
         }
     }
@@ -442,7 +444,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractGetterBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractGetterBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractGetterBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractGetterBean.getThing()."));
         }
     }
@@ -453,7 +455,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractSetterBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetterBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetterBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetterBean.setThing()."));
         }
     }
@@ -464,7 +466,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(AbstractSetMethodBean.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for class " + AbstractSetMethodBean.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.AbstractSetMethodBean."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method AbstractSetMethodBean.thing()."));
         }
     }
@@ -476,7 +478,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(GetterBeanInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + GetterBeanInterface.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.GetterBeanInterface."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method GetterBeanInterface.getThing()."));
         }
     }
@@ -487,7 +489,7 @@ public class AsmBackedClassGeneratorTest {
             newInstance(SetterBeanInterface.class);
             fail();
         } catch (ClassGenerationException e) {
-            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for interface " + SetterBeanInterface.class.getName() + "."));
+            assertThat(e.getMessage(), equalTo("Could not generate a decorated class for type AsmBackedClassGeneratorTest.SetterBeanInterface."));
             assertThat(e.getCause().getMessage(), equalTo("Cannot have abstract method SetterBeanInterface.setThing()."));
         }
     }
@@ -569,6 +571,22 @@ public class AsmBackedClassGeneratorTest {
 
         bean.setValue(12);
         assertThat(bean.getValue(), equalTo("12"));
+    }
+
+    @Test
+    public void appliesConventionMappingToPropertyWithSetterCovariantType() throws Exception {
+        CovariantPropertyTypes bean = newInstance(CovariantPropertyTypes.class);
+
+        new DslObject(bean).getConventionMapping().map("value2", new Callable<String>() {
+            public String call() {
+                return "conventionValue";
+            }
+        });
+
+        assertThat(bean.getValue2(), equalTo("conventionValue"));
+
+        bean.setValue2(12);
+        assertThat(bean.getValue2(), equalTo(12));
     }
 
     @Test
@@ -1041,6 +1059,7 @@ public class AsmBackedClassGeneratorTest {
 
         dynamicObject.setProperty("prop", providerFactory.provider(new Callable<String>() {
             int count;
+
             @Override
             public String call() {
                 return "[" + ++count + "]";
@@ -1062,6 +1081,7 @@ public class AsmBackedClassGeneratorTest {
 
         dynamicObject.setProperty("aProp", providerFactory.provider(new Callable<String>() {
             int count;
+
             @Override
             public String call() {
                 return "[" + ++count + "]";
@@ -1086,6 +1106,7 @@ public class AsmBackedClassGeneratorTest {
 
         dynamicObject.setProperty("prop2", providerFactory.provider(new Callable<String>() {
             int count;
+
             @Override
             public String call() {
                 return "[" + ++count + "]";
@@ -1146,6 +1167,7 @@ public class AsmBackedClassGeneratorTest {
 
     public static class ParentBean {
         Object value;
+        Object value2;
 
         public Object getValue() {
             return value;
@@ -1154,12 +1176,27 @@ public class AsmBackedClassGeneratorTest {
         public void setValue(Object value) {
             this.value = value;
         }
+
+        public Object getValue2() {
+            return value2;
+        }
+
+        public ParentBean setValue2(Object value2) {
+            this.value2 = value2;
+            return this;
+        }
     }
 
     public static class CovariantPropertyTypes extends ParentBean {
         @Override
         public String getValue() {
             return String.valueOf(super.getValue());
+        }
+
+        @Override
+        public CovariantPropertyTypes setValue2(Object value2) {
+            super.setValue2(value2);
+            return this;
         }
     }
 
@@ -1847,6 +1884,23 @@ public class AsmBackedClassGeneratorTest {
         MapProperty<String, Number> getProp();
     }
 
+    public interface InterfaceProviderBean {
+        Provider<? extends Number> getProp();
+    }
+
+    public abstract static class AbstractProviderBean implements InterfaceProviderBean {
+        // Covariant return type
+        @Override
+        public abstract Provider<Long> getProp();
+    }
+
+    public interface InterfaceCovariantReadOnlyPropertyBean extends InterfaceProviderBean {
+        Property<Long> getProp();
+    }
+
+    public abstract static class AbstractCovariantReadOnlyPropertyBean extends AbstractProviderBean implements InterfaceCovariantReadOnlyPropertyBean {
+    }
+
     public static abstract class NamedBean {
         public NamedBean(String name) {
         }
@@ -1856,14 +1910,17 @@ public class AsmBackedClassGeneratorTest {
         NamedDomainObjectContainer<NamedBean> getProp();
     }
 
+    public interface InterfaceDomainSetPropertyBean {
+        DomainObjectSet<NamedBean> getProp();
+    }
+
     public interface InterfaceWithDefaultMethods {
-        default
-        String getName() {
+        default String getName() {
             return "name";
         }
 
-        default
-        void thing() {}
+        default void thing() {
+        }
     }
 
     public static abstract class BeanWithAbstractProperty {
@@ -1909,5 +1966,16 @@ public class AsmBackedClassGeneratorTest {
     }
 
     public static abstract class AbstractClassWithTypeParamProperty implements InterfacePropertyWithTypeParamBean<Param<String>> {
+    }
+
+    public static abstract class BrokenConstructor {
+        public BrokenConstructor() {
+            throw new RuntimeException("broken");
+        }
+
+        abstract Property<Number> getValue();
+
+        @Nested
+        abstract InterfaceFilePropertyBean getBean();
     }
 }

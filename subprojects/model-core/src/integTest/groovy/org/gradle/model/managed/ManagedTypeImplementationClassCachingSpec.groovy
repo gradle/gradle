@@ -17,7 +17,9 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedTypeImplementationClassCachingSpec extends AbstractIntegrationSpec {
 
     def "managed type implementation class is generated once for each type and reused"() {

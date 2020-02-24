@@ -24,6 +24,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Actions
+import org.gradle.internal.Factory
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.util.TestUtil
 import spock.lang.Specification
@@ -31,7 +32,8 @@ import spock.lang.Specification
 class CompositeFileTreeTest extends Specification {
     private final FileTreeInternal source1 = Mock()
     private final FileTreeInternal source2 = Mock()
-    private final CompositeFileTree tree = new CompositeFileTree() {
+    private final Factory<PatternSet> patternSetFactory = Mock()
+    private final CompositeFileTree tree = new CompositeFileTree(patternSetFactory) {
         @Override
         String getDisplayName() {
             return "<display-name>"
@@ -49,9 +51,10 @@ class CompositeFileTreeTest extends Specification {
     }
 
     def matchingWithClosureReturnsUnionOfFilteredSets() {
-        final Closure closure = TestUtil.TEST_CLOSURE
+        final Closure closure = { }
         final FileTreeInternal filtered1 = Mock()
         final FileTreeInternal filtered2 = Mock()
+        final PatternSet patterns = Mock()
 
         when:
         FileTree filtered = tree.matching(closure)
@@ -61,25 +64,34 @@ class CompositeFileTreeTest extends Specification {
         sourceCollections == [filtered1, filtered2]
 
         and:
-        1 * source1.matching(closure) >> filtered1
-        1 * source2.matching(closure) >> filtered2
+        1 * patternSetFactory.create() >> patterns
+        1 * source1.matching(patterns) >> filtered1
+        1 * source2.matching(patterns) >> filtered2
     }
 
     def matchingWithActionReturnsUnionOfFilteredSets() {
-        final Action<PatternFilterable> action = Actions.doNothing()
+        final Action<PatternFilterable> action = Mock()
         final FileTreeInternal filtered1 = Mock()
         final FileTreeInternal filtered2 = Mock()
+        final PatternSet patterns = Mock()
 
         when:
         FileTree filtered = tree.matching(action)
+
+        then: // action is applied each time the contents are queried
+        0 * _
+
+        when:
         def sourceCollections = (filtered as CompositeFileTree).sourceCollections
 
         then:
         sourceCollections == [filtered1, filtered2]
 
         and:
-        1 * source1.matching(action) >> filtered1
-        1 * source2.matching(action) >> filtered2
+        1 * patternSetFactory.create() >> patterns
+        1 * action.execute(patterns)
+        1 * source1.matching(patterns) >> filtered1
+        1 * source2.matching(patterns) >> filtered2
     }
 
     def matchingWithPatternSetReturnsUnionOfFilteredSets() {

@@ -16,7 +16,6 @@
 
 package org.gradle.plugin.internal;
 
-import org.gradle.StartParameter;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -31,9 +30,6 @@ import org.gradle.api.internal.initialization.RootScriptDomainObjectContext;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
-import org.gradle.initialization.layout.BuildLayout;
-import org.gradle.initialization.layout.BuildLayoutConfiguration;
-import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.event.ListenerManager;
@@ -113,23 +109,20 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
             return instantiator.newInstance(DefaultPluginResolutionStrategy.class, listenerManager);
         }
 
-        PluginDependencyResolutionServices createPluginDependencyResolutionServices(StartParameter startParameter, BuildLayoutFactory buildLayoutFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
+        PluginDependencyResolutionServices createPluginDependencyResolutionServices(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory,
                                                                                     DependencyManagementServices dependencyManagementServices, DependencyMetaDataProvider dependencyMetaDataProvider) {
             return new PluginDependencyResolutionServices(
-                makeDependencyResolutionServicesFactory(buildLayoutFactory, startParameter, fileResolver, fileCollectionFactory, dependencyManagementServices, dependencyMetaDataProvider));
+                makeDependencyResolutionServicesFactory(fileResolver, fileCollectionFactory, dependencyManagementServices, dependencyMetaDataProvider));
         }
 
-        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final BuildLayoutFactory buildLayoutFactory, final StartParameter startParameter,
-                                                                                              final FileResolver fileResolver, final FileCollectionFactory fileCollectionFactory,
+        private Factory<DependencyResolutionServices> makeDependencyResolutionServicesFactory(final FileResolver fileResolver,
+                                                                                              final FileCollectionFactory fileCollectionFactory,
                                                                                               final DependencyManagementServices dependencyManagementServices,
                                                                                               final DependencyMetaDataProvider dependencyMetaDataProvider) {
             return new Factory<DependencyResolutionServices>() {
                 @Override
                 public DependencyResolutionServices create() {
-                    BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-                    FileResolver resolverWithBaseDir = fileResolver.newResolver(buildLayout.getSettingsDir());
-                    FileCollectionFactory fileCollectionFactoryWithBaseDir = fileCollectionFactory.withResolver(resolverWithBaseDir);
-                    return dependencyManagementServices.create(resolverWithBaseDir, fileCollectionFactoryWithBaseDir, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE);
+                    return dependencyManagementServices.create(fileResolver, fileCollectionFactory, dependencyMetaDataProvider, makeUnknownProjectFinder(), RootScriptDomainObjectContext.INSTANCE);
                 }
             };
         }

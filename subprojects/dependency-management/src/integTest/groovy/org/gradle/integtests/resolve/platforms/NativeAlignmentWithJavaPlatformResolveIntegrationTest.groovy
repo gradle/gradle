@@ -19,19 +19,16 @@ package org.gradle.integtests.resolve.platforms
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 import static org.gradle.util.TextUtil.escapeString
 
-@RequiredFeatures(
-    [
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven"),
-    ]
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
+@RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value="maven")
 class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
+    @ToBeFixedForInstantExecution
     def "publishes a platform with native alignment"() {
         settingsFile << """
             rootProject.name = 'root'
@@ -43,14 +40,14 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
             plugins {
                 id 'java-platform'
             }
-            
+
             dependencies {
                 constraints {
                     api(project(":core")) { because "platform alignment" }
                     api(project(":lib")) { because "platform alignment" }
                 }
             }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -67,7 +64,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
                 api(platform(project(":platform")))
                 api(project(":lib"))
             }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {
@@ -84,7 +81,7 @@ class NativeAlignmentWithJavaPlatformResolveIntegrationTest extends AbstractModu
             dependencies {
                 api(platform(project(":platform")))
             }
-            
+
             publishing {
                 publications {
                     maven(MavenPublication) {

@@ -439,4 +439,9 @@ public class Signature extends AbstractPublishArtifact {
 
         signatureType.sign(signatory, toSign);
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return true;
+    }
 }

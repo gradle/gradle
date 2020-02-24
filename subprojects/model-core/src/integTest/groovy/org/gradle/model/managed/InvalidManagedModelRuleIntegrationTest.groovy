@@ -17,7 +17,9 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class InvalidManagedModelRuleIntegrationTest extends AbstractIntegrationSpec {
 
     def "provides a useful error message when setting an incompatible type on a managed instance in Groovy"() {

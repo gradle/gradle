@@ -41,7 +41,7 @@ abstract class PmdInvoker {
         def classpath = pmdTask.classpath?.filter(new FileExistFilter())
         def reports = pmdTask.reports
         def consoleOutput = pmdTask.consoleOutput
-        def stdOutIsAttachedToTerminal = pmdTask.stdOutIsAttachedToTerminal()
+        def stdOutIsAttachedToTerminal = consoleOutput ? pmdTask.stdOutIsAttachedToTerminal() : false
         def ignoreFailures = pmdTask.ignoreFailures
         def logger = pmdTask.logger
         def incrementalAnalysis = pmdTask.incrementalAnalysis.get()

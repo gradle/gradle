@@ -69,8 +69,8 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
 
     private DefaultAttributesSchema createSchema() {
         def schema = new DefaultAttributesSchema(new ComponentAttributeMatcher(), TestUtil.instantiatorFactory(), SnapshotTestUtil.valueSnapshotter())
-        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         DependencyManagementTestUtil.platformSupport().configureSchema(schema)
+        JavaEcosystemSupport.configureSchema(schema, TestUtil.objectFactory())
         schema
     }
 
@@ -101,7 +101,7 @@ abstract class AbstractDependencyMetadataRulesTest extends Specification {
         mavenMetadataFactory.create(componentIdentifier, dependencies)
     }
     private gradleComponentMetadata(String[] deps) {
-        def metadata = mavenMetadataFactory.create(componentIdentifier)
+        def metadata = mavenMetadataFactory.create(componentIdentifier, [])
         //gradle metadata is distinguished from maven POM metadata by explicitly defining variants
         defaultVariant = metadata.addVariant("default", attributes)
         deps.each { name ->

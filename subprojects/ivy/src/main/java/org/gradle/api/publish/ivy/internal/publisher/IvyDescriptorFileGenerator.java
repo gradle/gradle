@@ -59,7 +59,7 @@ public class IvyDescriptorFileGenerator {
             int idx = builder.indexOf("<info");
             builder.insert(idx, xmlComments(MetaDataParser.GRADLE_METADATA_MARKER_COMMENT_LINES)
                 + "  "
-                + xmlComment(MetaDataParser.GRADLE_METADATA_MARKER)
+                + xmlComment(MetaDataParser.GRADLE_6_METADATA_MARKER)
                 + "  ");
         }
     };

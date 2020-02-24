@@ -16,6 +16,8 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
+
 import java.util.List;
 
 public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsageProgressDetails {
@@ -44,6 +46,11 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
     @Override
     public String getContextualAdvice() {
         return featureUsage.getContextualAdvice();
+    }
+
+    @Override
+    public String getDocumentationUrl() {
+        return featureUsage.getDocumentationUrl();
     }
 
     @Override

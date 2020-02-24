@@ -26,6 +26,7 @@ import java.util.zip.ZipEntry
 
 trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
     abstract TestFile getBuildFile()
+
     abstract ExecutionResult getResult()
 
     /**
@@ -54,7 +55,7 @@ trait ArtifactTransformTestFixture extends TasksWithInputsAndOutputs {
 
         buildFile << """
 import ${javax.inject.Inject.name}
-// TODO: Default imports should work for of inner classes 
+// TODO: Default imports should work for of inner classes
 import ${org.gradle.api.artifacts.transform.TransformParameters.name}
 
 def color = Attribute.of('color', String)
@@ -81,6 +82,11 @@ allprojects {
         doLast {
             println "result = \${view.files.name}"
         }
+    }
+    task resolveArtifacts(type: ShowArtifactCollection) {
+        collection = configurations.implementation.incoming.artifactView {
+            attributes.attribute(color, 'green')
+        }.artifacts
     }
 }
 
@@ -113,24 +119,22 @@ class JarProducer extends DefaultTask {
 """
         taskTypeWithOutputFileProperty()
         taskTypeWithOutputDirectoryProperty()
+        taskTypeLogsArtifactCollectionDetails()
     }
 
     /**
-     * Asserts that exactly the given files where transformed by the 'simple' tranforms below/
+     * Asserts that exactly the given files where transformed by the 'simple' transforms below
      */
     void assertTransformed(String... fileNames) {
         assert result.output.findAll("processing (.+)").sort() == fileNames.collect { "processing $it" }.sort()
     }
 
-
     /**
      * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'red'
      * and another transform that converts 'red' to 'green'.
      * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
-     *
-     *
      */
-    void setupBuildWithChainedSimpleColorTransform() {
+    void setupBuildWithChainedColorTransform() {
         setupBuildWithColorAttributes()
         buildFile << """
             allprojects {
@@ -147,21 +151,77 @@ class JarProducer extends DefaultTask {
                     }
                 }
             }
-            
+
             interface TargetColor extends TransformParameters {
                 @Input
                 Property<String> getTargetColor()
             }
-            
+
             abstract class MakeColor implements TransformAction<TargetColor> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
                     def output = outputs.file(input.name + "." + parameters.targetColor.get())
                     output.text = input.text + "-" + parameters.targetColor.get()
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'
+     * and that takes the 'red' variant as an input parameter.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithColorTransformWithAnotherTransformOutputAsInput() {
+        setupBuildWithColorAttributes()
+        buildFile << """
+            allprojects {
+                configurations {
+                   transform
+                }
+                dependencies {
+                    registerTransform(MakeGreen) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'green')
+                        parameters.inputFiles.from(configurations.transform.incoming.artifactView { attributes.attribute(color, 'red') }.files)
+                    }
+                    registerTransform(MakeRed) {
+                        from.attribute(color, 'blue')
+                        to.attribute(color, 'red')
+                    }
+                }
+            }
+
+            interface GreenParams extends TransformParameters {
+                @InputFiles
+                ConfigurableFileCollection getInputFiles()
+            }
+
+            abstract class MakeGreen implements TransformAction<GreenParams> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} using \${parameters.inputFiles.files*.name}"
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + "-green"
+                }
+            }
+
+            abstract class MakeRed implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} to make red"
+                    def output = outputs.file(input.name + ".red")
+                    output.text = input.text + "-red"
                 }
             }
         """
@@ -177,10 +237,35 @@ class JarProducer extends DefaultTask {
             abstract class MakeGreen implements TransformAction<TransformParameters.None> {
                 @InputArtifact
                 abstract Provider<FileSystemLocation> getInputArtifact()
-                
+
                 void transform(TransformOutputs outputs) {
                     def input = inputArtifact.get().asFile
                     println "processing \${input.name}"
+                    assert input.file
+                    def output = outputs.file(input.name + ".green")
+                    output.text = input.text + ".green"
+                }
+            }
+        """
+    }
+
+    /**
+     * Each project produces a 'blue' variant, and has a `resolve` task that resolves the 'green' variant and a transform that converts 'blue' to 'green'.
+     * By default the 'blue' variant will contain a single file, and the transform will produce a single 'green' file from this.
+     */
+    void setupBuildWithColorTransformThatTakesUpstreamArtifacts() {
+        setupBuildWithColorTransformAction()
+        buildFile << """
+            abstract class MakeGreen implements TransformAction<TransformParameters.None> {
+                @InputArtifactDependencies
+                abstract FileCollection getInputArtifactDependencies()
+
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing \${input.name} using \${inputArtifactDependencies.files*.name}"
                     def output = outputs.file(input.name + ".green")
                     output.text = input.text + ".green"
                 }
@@ -236,6 +321,26 @@ allprojects { p ->
 """
     }
 
+    def taskTypeLogsArtifactCollectionDetails() {
+        buildFile << """
+            class ShowArtifactCollection extends DefaultTask {
+                @Internal
+                ArtifactCollection collection
+
+                @InputFiles
+                FileCollection getFiles() {
+                    return collection?.artifactFiles
+                }
+
+                @TaskAction
+                def log() {
+                    println("files = \${collection.artifactFiles.files.name}")
+                    println("artifacts = \${collection.artifacts.id.displayName}")
+                }
+            }
+        """
+    }
+
     static class Builder {
         String producerTaskClassName
         String producerConfig
@@ -251,24 +356,19 @@ allprojects { p ->
          * ${project.name}OutputDir - changes the build directory of the given project.
          * ${project.name}FileName - changes the output file name.
          * ${project.name}ProduceNothing - deletes the output file instead of writing to it.
-         * ${project.name}Content - changes the text to write to the output file.
+         * ${project.name}Content - changes the text to write to the output file, set to empty string to delete the output file.
          */
         void produceFiles() {
             producerTaskClassName = "FileProducer"
             producerConfig = """
                 output = layout.buildDir.file("\${project.name}.jar")
-                content = project.name
+                content.convention(providers.gradleProperty("\${project.name}Content").orElse(project.name))
             """.stripIndent()
             producerConfigOverrides = """
                 if (project.hasProperty("\${project.name}OutputDir")) {
                     buildDir = project.file(project.property("\${project.name}OutputDir"))
                 }
                 tasks.withType(FileProducer) {
-                    if (project.hasProperty("\${project.name}ProduceNothing")) {
-                        content = ""
-                    } else if (project.hasProperty("\${project.name}Content")) {
-                        content = project.property("\${project.name}Content")
-                    }
                     if (project.hasProperty("\${project.name}FileName")) {
                         output = layout.buildDir.file(project.property("\${project.name}FileName"))
                     }
@@ -321,7 +421,7 @@ allprojects { p ->
             producerTaskClassName = "DirProducer"
             producerConfig = """
                 output = layout.buildDir.dir("\${project.name}-dir")
-                content = project.name  
+                content = project.name
                 names = [project.name]
             """.stripIndent()
             producerConfigOverrides = """

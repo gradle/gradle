@@ -18,6 +18,7 @@ package org.gradle.caching
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestBuildCache
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 
 class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
@@ -37,13 +38,13 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             @CacheableTask
             class CustomTask extends DefaultTask {
-            
+
                 @Input
                 String val = "foo"
-                
+
                 @Input
                 List<String> paths = []
-                 
+
                 @OutputDirectory
                 File dir = project.file("build/dir")
 
@@ -56,7 +57,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             apply plugin: "base"
             tasks.create("t", CustomTask).paths << "out1" << "out2"
         """
@@ -66,6 +67,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         executer.beforeExecute { it.withBuildCacheEnabled() }
     }
 
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "remote loads are cached locally"() {
         given:
         settingsFile << """
@@ -101,7 +103,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
         cached()
     }
 
-
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "remote loads are not cached locally if local cache is #state"() {
         given:
         settingsFile << """
@@ -118,7 +120,7 @@ class BuildCacheLocalCacheIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         settingsFile << """
-            buildCache { 
+            buildCache {
                 $localCacheConfig
             }
         """

@@ -16,6 +16,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -165,6 +166,7 @@ compileScala.scalaCompileOptions.failOnError = false
 
     }
 
+    @ToBeFixedForInstantExecution
     def compileWithSpecifiedEncoding() {
         given:
         goodCodeEncodedWith("ISO8859_7")
@@ -182,6 +184,7 @@ compileScala.scalaCompileOptions.encoding = "ISO8859_7"
         file("encoded.out").getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
+    @ToBeFixedForInstantExecution
     def compilesWithSpecifiedDebugSettings() {
         given:
         goodCode()
@@ -231,8 +234,6 @@ apply plugin: "scala"
 
 repositories {
     ${mavenCentralRepositoryDefinition()}
-    // temporary measure for the next few hours, until Zinc 0.2-M2 has landed in Central
-    maven { url "https://oss.sonatype.org/content/repositories/releases" }
 }
 
 dependencies {
@@ -246,13 +247,8 @@ dependencies {
 """
 package compile.test
 
-import scala.collection.JavaConverters._
-
 class Person(val name: String, val age: Int) {
-    def hello() {
-        val x: java.util.List[Int] = List(3, 1, 2).asJava
-        java.util.Collections.reverse(x)
-    }
+    def hello(): List[Int] = List(3, 1, 2)
 }
 """
         file("src/main/scala/compile/test/Person2.scala") <<
@@ -270,7 +266,7 @@ class Person2(name: String, age: Int) extends Person(name, age) {
 import java.io.{FileOutputStream, File, OutputStreamWriter}
 
 object Main {
-    def main(args: Array[String]) {
+    def main(args: Array[String]): Unit = {
         // Some lowercase greek letters
         val content = "\u03b1\u03b2\u03b3"
         val writer = new OutputStreamWriter(new FileOutputStream(new File("encoded.out")), "utf-8")
@@ -312,6 +308,7 @@ class Person(val name: String, val age: Int) {
         return new ClassFile(scalaClassFile(path))
     }
 
+    @ToBeFixedForInstantExecution
     def compilesScalaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -331,6 +328,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
+    @ToBeFixedForInstantExecution
     def compilesJavaCodeIncrementally() {
         setup:
         def person = scalaClassFile("Person.class")
@@ -350,6 +348,7 @@ class Person(val name: String, val age: Int) {
         other.lastModified() == old(other.lastModified())
     }
 
+    @ToBeFixedForInstantExecution
     def compilesIncrementallyAcrossProjectBoundaries() {
         setup:
         def person = file("prj1/build/classes/scala/main/Person.class")
@@ -371,6 +370,7 @@ class Person(val name: String, val age: Int) {
 
     }
 
+    @ToBeFixedForInstantExecution
     def compilesAllScalaCodeWhenForced() {
         setup:
         def person = scalaClassFile("Person.class")

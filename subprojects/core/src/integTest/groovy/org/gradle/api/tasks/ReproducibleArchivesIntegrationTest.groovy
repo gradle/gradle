@@ -18,12 +18,15 @@ package org.gradle.api.tasks
 
 import org.apache.commons.io.FilenameUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 import spock.lang.Unroll
+
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
 
 @Unroll
 class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
@@ -64,6 +67,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         expectedHash = taskName == 'tar' ? 'eff4909fee3367f576fe26537ff6403a' : '62b93684c0b891fcf905b4a6eaf32976'
     }
 
+    @ToBeFixedForInstantExecution(skip = FLAKY)
     def "timestamps are ignored in #taskName"() {
         given:
         createTestFiles()
@@ -106,7 +110,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             task tar(type: Tar) {
                 reproducibleFileOrder = true
-                preserveFileTimestamps = false  
+                preserveFileTimestamps = false
                 compression = '${compression}'
                 from 'dir1', 'dir2', 'dir3'
                 destinationDirectory = buildDir
@@ -140,7 +144,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
                 }
                 from('dir1') {
                     into 'dir1'
-                }     
+                }
                 from 'dir1/file13.txt'
                 from 'dir1/file11.txt'
                 destinationDirectory = buildDir
@@ -201,7 +205,7 @@ class ReproducibleArchivesIntegrationTest extends AbstractIntegrationSpec {
 
                 from zipTree(aZip.archiveFile)
                 from tarTree(aTar.archiveFile)
-                
+
                 dependsOn aZip, aTar
 
                 fileMode = 0644

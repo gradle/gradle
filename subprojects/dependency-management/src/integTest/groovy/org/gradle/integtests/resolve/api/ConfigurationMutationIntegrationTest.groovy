@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 
 class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionTest {
@@ -206,11 +207,11 @@ configurations.compile.withDependencies {
 
         then:
         fails "mutateResolved"
-        failure.assertHasCause("Cannot change dependencies of configuration ':compile' after it has been resolved.")
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':compile' after it has been resolved.")
 
         and:
         fails "mutateParent"
-        failure.assertHasCause("Cannot change dependencies of configuration ':conf' after it has been included in dependency resolution.")
+        failure.assertHasCause("Cannot change dependencies of dependency configuration ':conf' after it has been included in dependency resolution.")
     }
 
     void resolvedGraph(@DelegatesTo(ResolveTestFixture.NodeBuilder) Closure closure) {
@@ -278,6 +279,7 @@ include 'consumer', 'producer'
         succeeds("resolve")
 
     }
+    @ToBeFixedForInstantExecution
     def "can use defaultDependencies in a composite build"() {
         buildTestFixture.withBuildInSubDir()
         mavenRepo.module("org", "explicit-dependency", "3.4").publish()

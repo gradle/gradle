@@ -28,6 +28,7 @@ import java.io.File;
  * Represents a binary artifact that is the result of building a jvm component.
  */
 @Incubating
+@Deprecated
 public interface JvmBinarySpec extends BinarySpec {
     /**
      * The target platform for this binary.

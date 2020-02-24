@@ -16,12 +16,14 @@
 
 package org.gradle.internal.logging.text;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.util.TextUtil;
 
 import javax.annotation.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 
 /**
  * Constructs a tree of diagnostic messages.
@@ -71,61 +73,105 @@ public class TreeFormatter implements DiagnosticsVisitor {
         return this;
     }
 
+    public void blankLine() {
+        node("");
+    }
+
     /**
      * Starts a new node with the given type name.
      */
-    public void node(Class<?> type) {
+    public TreeFormatter node(Class<?> type) {
         // Implementation is currently dumb, can be made smarter
-        node(StringUtils.capitalize(type.toString()));
+        if (type.isInterface()) {
+            node("Interface ");
+        } else {
+            node("Class ");
+        }
+        appendType(type);
+        return this;
     }
 
     /**
      * Appends text to the current node.
      */
-    public void append(CharSequence text) {
+    public TreeFormatter append(CharSequence text) {
         if (current.state == State.CollectValue) {
             current.value.append(text);
             if (current.valueWritten) {
                 original.append(text);
             }
         } else {
-            throw new IllegalStateException("Cannot append text to node.");
+            throw new IllegalStateException("Cannot append text as there is no current node.");
         }
+        return this;
     }
 
     /**
      * Appends a type name to the current node.
      */
-    public void appendType(Class<?> type) {
+    public TreeFormatter appendType(Type type) {
         // Implementation is currently dumb, can be made smarter
-        append(type.toString());
+        if (type instanceof Class) {
+            Class<?> classType = GeneratedSubclasses.unpack((Class<?>) type);
+            appendOuter(classType);
+            append(classType.getSimpleName());
+        } else if (type instanceof ParameterizedType) {
+            ParameterizedType parameterizedType = (ParameterizedType) type;
+            appendType(parameterizedType.getRawType());
+            append("<");
+            Type[] typeArguments = parameterizedType.getActualTypeArguments();
+            for (int i = 0; i < typeArguments.length; i++) {
+                Type typeArgument = typeArguments[i];
+                if (i > 0) {
+                    append(", ");
+                }
+                appendType(typeArgument);
+            }
+            append(">");
+        } else {
+            append(type.toString());
+        }
+        return this;
+    }
+
+    private void appendOuter(Class<?> type) {
+        Class<?> outer = type.getEnclosingClass();
+        if (outer != null) {
+            appendOuter(outer);
+            append(outer.getSimpleName());
+            append(".");
+        }
     }
 
     /**
      * Appends an annotation name to the current node.
      */
-    public void appendAnnotation(Class<? extends Annotation> type) {
+    public TreeFormatter appendAnnotation(Class<? extends Annotation> type) {
         append("@" + type.getSimpleName());
+        return this;
     }
 
     /**
      * Appends a method name to the current node.
      */
-    public void appendMethod(Method method) {
+    public TreeFormatter appendMethod(Method method) {
         // Implementation is currently dumb, can be made smarter
         append(method.getDeclaringClass().getSimpleName());
         append(".");
         append(method.getName());
         append("()");
+        return this;
     }
 
     /**
      * Appends some user provided value to the current node.
      */
-    public void appendValue(@Nullable Object value) {
+    public TreeFormatter appendValue(@Nullable Object value) {
         // Implementation is currently dumb, can be made smarter
         if (value == null) {
             append("null");
+        } else if (value.getClass().isArray()) {
+            appendValues((Object[]) value);
         } else if (value instanceof String) {
             append("'");
             append(value.toString());
@@ -133,22 +179,24 @@ public class TreeFormatter implements DiagnosticsVisitor {
         } else {
             append(value.toString());
         }
+        return this;
     }
 
     /**
      * Appends some user provided values to the current node.
      */
-    public void appendValues(Object[] values) {
+    public <T> TreeFormatter appendValues(T[] values) {
         // Implementation is currently dumb, can be made smarter
         append("[");
         for (int i = 0; i < values.length; i++) {
-            Object value = values[i];
+            T value = values[i];
             if (i > 0) {
                 append(", ");
             }
             appendValue(value);
         }
         append("]");
+        return this;
     }
 
     @Override
@@ -275,8 +323,8 @@ public class TreeFormatter implements DiagnosticsVisitor {
                 return Separator.NewLine;
             }
             if (firstChild.nextSibling == null
-                    && firstChild.firstChild == null
-                    && value.length() + firstChild.value.length() < 60) {
+                && firstChild.firstChild == null
+                && value.length() + firstChild.value.length() < 60) {
                 // A single leaf node as child and total text is not too long, collapse
                 if (trailing == ':') {
                     return Separator.Empty;
