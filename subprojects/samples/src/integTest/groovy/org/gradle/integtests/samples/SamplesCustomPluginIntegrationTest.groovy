@@ -28,7 +28,6 @@ import spock.lang.Unroll
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires(KOTLIN_SCRIPT)
-@Ignore
 class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
