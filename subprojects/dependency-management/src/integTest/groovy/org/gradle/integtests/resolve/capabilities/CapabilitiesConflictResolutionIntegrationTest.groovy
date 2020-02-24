@@ -19,14 +19,12 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
 class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDependencyResolveTest {
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "reasonable error message when a user rule throws an exception (#rule)"() {
         given:
@@ -50,7 +48,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                 conf 'org:testA:1.0'
                 conf 'org:testB:1.0'
             }
-            
+
             // fix the conflict between modules providing the same capability using resolution rules
             configurations.all {
                 resolutionStrategy {
@@ -84,9 +82,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
 
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "can express preference for capabilities declared in published modules (#rule)"() {
         given:
@@ -110,7 +106,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                 conf 'org:testA:1.0'
                 conf 'org:testB:1.0'
             }
-            
+
             // fix the conflict between modules providing the same capability using resolution rules
             configurations.all {
                 resolutionStrategy {
@@ -151,9 +147,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         ]
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can express preference for a certain variant with capabilities declared in published modules"() {
         given:
         repository {
@@ -177,7 +171,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                     }
                 }
             }
-            
+
             // fix the conflict between variants of module providing the same capability using resolution rules
             configurations.all {
                 resolutionStrategy {
@@ -207,9 +201,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "expressing a preference for a variant with capabilities declared in a published modules does not evict unrelated variants"() {
         given:
         repository {
@@ -241,7 +233,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                     }
                 }
             }
-            
+
             // fix the conflict between variants of module providing the same capability using resolution rules
             configurations.all {
                 resolutionStrategy {

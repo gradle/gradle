@@ -18,12 +18,9 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
-@RequiredFeatures(
-    [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class PublishedCapabilityRequestsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def "capability request without versions can be consumed"() {

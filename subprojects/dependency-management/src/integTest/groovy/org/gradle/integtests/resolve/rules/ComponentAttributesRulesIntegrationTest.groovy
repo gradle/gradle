@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
@@ -51,7 +50,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -97,9 +96,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         mutation << ['not added', 'added']
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
         given:
@@ -180,7 +177,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                    attributes.attribute(quality, 'qa')
                 }
             }
-            
+
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
@@ -232,9 +229,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
         given:
@@ -245,11 +240,11 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         }
         buildFile << """
             def quality = Attribute.of("quality", String)
-            
+
             configurations {
                 conf.attributes.attribute(quality, 'qa')
             }
-            
+
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
@@ -316,12 +311,12 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         }
         buildFile << """
             def quality = Attribute.of("quality", String)
-            
+
             configurations {
                 conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
                 conf.attributes.attribute(quality, 'qa')
             }
-            
+
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
@@ -410,7 +405,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                    attributes.attribute(org.gradle.api.internal.project.ProjectInternal.STATUS_ATTRIBUTE, '$status')
                 }
             }
-            
+
             class StatusRule implements ComponentMetadataRule {
                 public void execute(ComponentMetadataContext context) {
                     if (${!GradleMetadataResolveRunner.useIvy()}) {
@@ -424,7 +419,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
-            
+
             dependencies {
                 conf 'org:test:[1,)'
                 components {

@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.capabilities
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -252,9 +251,7 @@ class CapabilitiesRulesIntegrationTest extends AbstractModuleDependencyResolveTe
    Cannot select module with conflict on capability 'org:capability:1.0' also provided by [:test:unspecified(conf)]""")
     }
 
-    @RequiredFeatures(
-        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
     def "can remove a published capability"() {
         given:
         repository {

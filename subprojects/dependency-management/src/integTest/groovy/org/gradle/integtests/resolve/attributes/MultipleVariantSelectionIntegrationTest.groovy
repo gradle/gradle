@@ -18,15 +18,13 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
-@RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-)
+
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {
@@ -237,8 +235,8 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
-            
-                        
+
+
             configurations.conf.resolutionStrategy.capabilitiesResolution.all { selectHighestVersion() }
         """
 
@@ -762,10 +760,10 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
-            
+
             dependencies {
                 conf('org:test:1.0')
-                
+
                 registerTransform {
                     artifactTransform(FooToBar.class)
                     from.attribute(Attribute.of("usage", String), "api")
@@ -774,7 +772,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
                     to.attribute(Attribute.of("format", String), "bar")
                 }
             }
-            
+
             class FooToBar extends ArtifactTransform {
                 public List<File> transform(File fooFile) {
                     return java.util.Collections.singletonList(fooFile)
