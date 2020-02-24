@@ -16,20 +16,14 @@
 package org.gradle.gradlebuild.ide
 
 import accessors.base
-import accessors.eclipse
-import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.api.plugins.JavaPlugin
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.DecorateReleaseNotes
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry
-import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.SourceFolder
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.Application
@@ -83,35 +77,7 @@ limitations under the License."""
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        configureEclipseForAllProjects()
         configureIdeaForRootProject()
-    }
-
-    private
-    fun Project.configureEclipseForAllProjects() = allprojects {
-        apply(plugin = "eclipse")
-
-        plugins.withType<JavaPlugin> {
-            eclipse {
-                classpath {
-                    file.whenMerged(Action<Classpath> {
-                        // There are classes in here not designed to be compiled, but just used in our testing
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("src/integTest/resources") }
-                        // Workaround for some projects referring to themselves as dependent projects
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("$project.name") && it.kind == "src" }
-                        // Remove references to libraries in the build folder
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("$project.name/build") && it.kind == "lib" }
-                        // Remove references to other project's binaries
-                        entries.removeAll { it is AbstractClasspathEntry && it.path.contains("/subprojects") && it.kind == "lib" }
-                        // Add needed resources for running gradle as a non daemon java application
-                        entries.add(SourceFolder("build/generated-resources/main", null))
-                        if (file("build/generated-resources/test").exists()) {
-                            entries.add(SourceFolder("build/generated-resources/test", null))
-                        }
-                    })
-                }
-            }
-        }
     }
 
     private
