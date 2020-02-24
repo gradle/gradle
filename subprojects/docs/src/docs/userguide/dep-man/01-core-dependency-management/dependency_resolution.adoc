@@ -258,7 +258,7 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 |===
 | Module cache version  | File cache version    | Metadata cache version    | Gradle version(s)
 
-| `modules-2`           | `files-2.1`           | `metadata-2.90`           | Gradle 6.1
+| `modules-2`           | `files-2.1`           | `metadata-2.95`           | Gradle 6.1
 |===
 
 [[sub:shared-readonly-cache]]
