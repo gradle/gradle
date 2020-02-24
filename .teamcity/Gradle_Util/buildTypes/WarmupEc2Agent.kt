@@ -1,8 +1,9 @@
 package Gradle_Util.buildTypes
 
-import common.applyDefaultSettings
 import common.gradleWrapper
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
 import jetbrains.buildServer.configs.kotlin.v2019_2.Requirement
 import jetbrains.buildServer.configs.kotlin.v2019_2.RequirementType
 
@@ -11,7 +12,10 @@ object WarmupEc2Agent : BuildType({
     name = "Warmup EC2 Agent"
     id("Gradle_Util_WarmupEc2Agent")
 
-    applyDefaultSettings()
+    vcs {
+        root(AbsoluteId("Gradle_Branches_GradlePersonalBranches"))
+        checkoutMode = CheckoutMode.ON_AGENT
+    }
 
     steps {
         gradleWrapper {
