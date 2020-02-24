@@ -272,7 +272,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
     /**
      * Returns the current metadataSources configuration for the repository
      *
-     * @since 6.1
+     * @since 6.3
      */
     @Incubating
     MetadataSources getMetadataSources();
@@ -314,7 +314,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
         /**
          * Indicates if this repository contains Gradle metadata
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
@@ -323,7 +323,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
         /**
          * Indicates if this repository contains Ivy descriptors
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
@@ -332,7 +332,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
         /**
          * Indicates if this repository contains Artifact
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
@@ -341,7 +341,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
         /**
          * Indicates if this repository ignores Gradle Metadata Redirection
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating

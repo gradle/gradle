@@ -107,7 +107,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     /**
      * Returns the current metadataSources configuration for the repository
      *
-     * @since 6.1
+     * @since 6.3
      */
     @Incubating
     MetadataSources getMetadataSources();
@@ -149,7 +149,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
         /**
          * Indicates if this repository contains Gradle metadata
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
@@ -158,7 +158,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
         /**
          * Indicates if this repository contains POM files
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
@@ -167,7 +167,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
         /**
          * Indicates if this repository contains Artifact
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
@@ -176,7 +176,7 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
         /**
          * Indicates if this repository ignores Gradle Metadata Redirection
          *
-         * @since 6.1
+         * @since 6.3
          *
          */
         @Incubating
