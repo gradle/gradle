@@ -1,5 +1,6 @@
 package Gradle_Util
 
+import Gradle_Util.buildTypes.WarmupEc2Agent
 import jetbrains.buildServer.configs.kotlin.v2019_2.*
 import jetbrains.buildServer.configs.kotlin.v2019_2.Project
 import jetbrains.buildServer.configs.kotlin.v2019_2.projectFeatures.VersionedSettings
@@ -26,4 +27,6 @@ object Project : Project({
             storeSecureParamsOutsideOfVcs = true
         }
     }
+
+    buildType(WarmupEc2Agent)
 })
