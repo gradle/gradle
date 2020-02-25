@@ -33,5 +33,4 @@ object WarmupEc2Agent : BuildType({
     requirements {
         requirement(Requirement(RequirementType.EQUALS, "teamcity.agent.name", "ec2-agent1"))
     }
-
 })
