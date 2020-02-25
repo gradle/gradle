@@ -145,7 +145,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
         dependency "org.test:b1:1.0"
         buildB.buildFile << """
 project(':b1') {
-    dependencies { 
+    dependencies {
         implementation "org.test:buildC:1.0"
     }
 }

@@ -108,8 +108,8 @@ task printDeps {
 
         // Create module that will match only if compatibility and disambiguation rules are in place
         mavenRepo.module('test', 'dep', '1.0')
-            .variant("runtime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'embedded'])
-            .variant("conflictingRuntime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'shadowed'])
+            .variant("runtime", ["org.gradle.usage": "java-runtime", 'org.gradle.dependency.bundling': 'embedded'])
+            .variant("conflictingRuntime", ["org.gradle.usage": "java-runtime", 'org.gradle.dependency.bundling': 'shadowed'])
             .withModuleMetadata()
             .publish()
 

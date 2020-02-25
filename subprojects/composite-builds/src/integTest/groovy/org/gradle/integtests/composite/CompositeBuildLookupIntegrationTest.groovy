@@ -35,7 +35,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
             assert gradle.includedBuild("buildC").name == "buildC"
             assert gradle.includedBuild("buildC").projectDir == file('${buildC.toURI()}')
             assert gradle.includedBuilds.name == ["buildB", "buildC"]
-            
+
             task broken {
                 doLast {
                     assert gradle.includedBuilds.name == ["buildB", "buildC"]
@@ -72,7 +72,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
             assert gradle.includedBuild("buildC").name == "buildC"
             assert gradle.includedBuild("buildC").projectDir == file('${buildC.toURI()}')
             assert gradle.includedBuilds.name == ["buildB", "buildC"]
-            
+
             task broken {
                 doLast {
                     assert gradle.includedBuilds.name == ["buildB", "buildC"]
@@ -109,7 +109,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
             assert gradle.includedBuild("c1").name == "c1"
             assert gradle.includedBuild("c1").projectDir == file('${buildC.toURI()}')
             assert gradle.includedBuilds.name == ["b1", "c1"]
-            
+
             task broken {
                 doLast {
                     assert gradle.includedBuilds.name == ["b1", "c1"]
@@ -174,7 +174,7 @@ class CompositeBuildLookupIntegrationTest extends AbstractCompositeBuildIntegrat
         def buildB = singleProjectBuild("buildB") {
             buildFile << """
                 assert gradle.includedBuilds.empty
-            
+
                 task broken1 {
                     doLast {
                         assert gradle.includedBuilds.empty

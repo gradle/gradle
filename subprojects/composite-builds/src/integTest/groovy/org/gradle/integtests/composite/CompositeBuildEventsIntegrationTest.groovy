@@ -160,7 +160,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
             dependencies {
                 compileOnly 'org.test:b2:1.0'
             }
-            
+
             gradle.buildFinished {
                 sleep 500
             }
@@ -172,7 +172,7 @@ class CompositeBuildEventsIntegrationTest extends AbstractCompositeBuildIntegrat
                     sleep 500
                 }
             }
-            
+
             jar.finalizedBy wait
         """
 

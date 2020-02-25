@@ -39,7 +39,7 @@ class CompositeBuildBuildSrcIntegrationTest extends AbstractIntegrationSpec {
 
         childBuild.settingsFile << "rootProject.name = 'someBuild'"
         childBuild.file('buildSrc/src/main/java/Thing.java') << """
-            class Thing { 
+            class Thing {
                 Thing() { System.out.println("child thing"); }
             }
         """

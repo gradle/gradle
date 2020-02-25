@@ -39,7 +39,7 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
         file("includedBuild/build.gradle") << """
             group = 'com.acme.external'
             version = '2.0-SNAPSHOT'
-            
+
             configurations {
                 first {
                    attributes {
@@ -54,7 +54,7 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
                    outgoing.capability('org:cap2:1.0')
                 }
             }
-            
+
             artifacts {
                 first file("first-\${version}.jar")
                 second file("second-\${version}.jar")
@@ -63,7 +63,7 @@ class CompositeBuildDependencyCapabilitiesResolveIntegrationTest extends Abstrac
 
         buildFile << """
             apply plugin: 'java-library'
-            
+
             dependencies {
                 api("com.acme.external:external:1.0") {
                     capabilities {

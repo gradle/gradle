@@ -402,8 +402,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             }
         """
         buildA.file("b/build.gradle") << """
-            plugins { 
-                id("a-plugin") 
+            plugins {
+                id("a-plugin")
             }
         """
 
@@ -433,8 +433,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             include "b"
         """
         pluginBuild.file("b/build.gradle") << """
-            plugins { 
-                id("a-plugin") 
+            plugins {
+                id("a-plugin")
             }
         """
 
@@ -452,8 +452,8 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
             include "a"
         """
         pluginBuild.file("a/build.gradle") << """
-            plugins { 
-                id("org.test.plugin.pluginBuild") 
+            plugins {
+                id("org.test.plugin.pluginBuild")
             }
         """
         includeBuild pluginBuild

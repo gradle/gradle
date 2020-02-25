@@ -25,8 +25,8 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
     def "export fails when external dependency cannot be mapped to a git url"() {
         given:
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {
@@ -44,8 +44,8 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
     def "export fails when file dependency is present"() {
         given:
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {
@@ -63,8 +63,8 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
     def "export fails when external dependency defines both branch and version constraint"() {
         given:
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {
@@ -360,8 +360,8 @@ let package = Package(
             }
         """
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {
@@ -415,8 +415,8 @@ let package = Package(
             }
         """
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {
@@ -472,8 +472,8 @@ let package = Package(
             }
         """
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {
@@ -537,8 +537,8 @@ let package = Package(
             }
         """
         buildFile << """
-            plugins { 
-                id 'swiftpm-export' 
+            plugins {
+                id 'swiftpm-export'
                 id 'swift-library'
             }
             dependencies {

@@ -59,7 +59,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
-        
+
         include "a"
         """
 
@@ -77,15 +77,15 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         settingsFile << """
             include "a"
             includeBuild "nested"
-            
+
             rootProject.name = "root"
             rootProject.buildFileName = 'root.gradle'
-            
+
         """
 
         def nestedSettingsFile = file("nested/settings.gradle")
         nestedSettingsFile << """
-            rootProject.name = "nested"    
+            rootProject.name = "nested"
         """
         file("nested/build.gradle") << """
         group = "org.acme"

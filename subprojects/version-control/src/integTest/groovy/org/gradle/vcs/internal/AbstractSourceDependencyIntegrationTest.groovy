@@ -41,7 +41,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
             apply plugin: 'java'
             group = 'org.gradle'
             version = '2.0'
-            
+
             dependencies {
                 implementation "org.test:dep:latest.integration"
             }
@@ -94,12 +94,12 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
     def "can use source dependency in build script classpath"() {
         mappingFor(repo, "org.test:dep")
         file("build.gradle").text = """
-            buildscript { 
+            buildscript {
                 dependencies {
                     classpath "org.test:dep:latest.integration"
                 }
             }
-            def dep = new Dep() 
+            def dep = new Dep()
         """
 
         when:
