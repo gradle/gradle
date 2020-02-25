@@ -15,13 +15,16 @@
  */
 package org.gradle.util;
 
-
+@Deprecated
 public class DeprecationLogger {
-
-    // Here for backwards compatibility with performance test: DeprecationCreationPerformanceTest
-    // When rebaselining, update the test to use org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).willBecomeAnErrorInGradle7().undocumented().nagUser() directly
+    /**
+     * Don't use this method.
+     *
+     * Here for backwards compatibility with performance test: DeprecationCreationPerformanceTest
+     * When we can finally drop older versions of Gradle, update the test to use org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).willBecomeAnErrorInGradle7().undocumented().nagUser() directly
+     */
+    @Deprecated
     public static void nagUserOfDeprecated(String thing) {
         org.gradle.internal.deprecation.DeprecationLogger.deprecate(thing).willBecomeAnErrorInGradle7().undocumented().nagUser();
     }
-
 }
