@@ -43,7 +43,7 @@ class LockFileReaderWriterTest extends Specification {
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
     }
 
-    def 'writes a lock file on persist'() {
+    def 'writes a legacy lock file on persist'() {
         when:
         lockFileReaderWriter.writeLockFile('conf', ['line1', 'line2'])
 
@@ -53,7 +53,7 @@ line2
 """
     }
 
-    def 'reads a lock file'() {
+    def 'reads a legacy lock file'() {
         given:
         lockDir.file('conf.lockfile') << """#Ignored
 line1
@@ -67,7 +67,7 @@ line2"""
         result == ['line1', 'line2']
     }
 
-    def 'writes a lock file with prefix on persist'() {
+    def 'writes a legacy lock file with prefix on persist'() {
         when:
         context.isScript() >> true
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
@@ -79,7 +79,7 @@ line2
 """
     }
 
-    def 'reads a lock file with prefix'() {
+    def 'reads a legacy lock file with prefix'() {
         given:
         context.isScript() >> true
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
@@ -95,7 +95,7 @@ line2"""
         result == ['line1', 'line2']
     }
 
-    def 'fails to read a lockfile if root could not be determined'() {
+    def 'fails to read a legacy lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
@@ -110,7 +110,7 @@ line2"""
         ex.getMessage().contains('foo')
     }
 
-    def 'fails to write a lockfile if root could not be determined'() {
+    def 'fails to write a legacy lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)

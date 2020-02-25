@@ -54,7 +54,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:foo:1.0'])
 
         when:
         succeeds 'checkDeps'
@@ -99,7 +99,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:foo:1.0'])
 
         when:
         succeeds 'checkDeps'
@@ -144,7 +144,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'])
 
         when:
         succeeds 'checkDeps'
@@ -188,7 +188,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:foo:1.0'])
 
         when:
         succeeds 'checkDeps'
@@ -225,7 +225,7 @@ configurations {
     lockedConf
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
         succeeds 'checkDeps'
@@ -268,7 +268,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:foo:1.0'])
 
         when:
         run 'dependencies'
@@ -310,7 +310,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'])
 
         when:
         run 'dependencies'

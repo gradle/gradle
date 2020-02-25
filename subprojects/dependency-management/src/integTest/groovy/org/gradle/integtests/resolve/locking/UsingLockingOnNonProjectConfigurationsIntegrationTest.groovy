@@ -54,7 +54,7 @@ buildscript {
 }
 """
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
 
         when:
         succeeds 'buildEnvironment'
@@ -113,7 +113,7 @@ task resolve {
 }
 """
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
 
         when:
         succeeds 'resolve'
@@ -187,7 +187,7 @@ plugins {
 }
 """
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
 
         when:
         succeeds 'buildEnvironment'
@@ -239,7 +239,7 @@ plugins {
 
         then:
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.verifyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+        lockFile.verifyLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
     }
 
     def 'fails to resolve if lock state present but no dependencies remain'() {
@@ -257,7 +257,7 @@ buildscript {
 }
 """
         def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
 
         when:
         fails 'buildEnvironment'
@@ -310,8 +310,8 @@ dependencies {
         succeeds 'buildEnvironment', 'dependencies', '--write-locks'
 
         then:
-        lockFile.verifyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1'])
-        lockFile.verifyLockfile('classpath', ['org.foo:foo:1.1'])
+        lockFile.verifyLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1'])
+        lockFile.verifyLegacyLockfile('classpath', ['org.foo:foo:1.1'])
     }
 
     def addPlugin() {

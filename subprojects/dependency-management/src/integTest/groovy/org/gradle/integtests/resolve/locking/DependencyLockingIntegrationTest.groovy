@@ -54,7 +54,7 @@ dependencies {
         succeeds 'dependencies'
 
         then:
-        lockfileFixture.expectMissing('unlockedConf')
+        lockfileFixture.expectLegacyMissing('unlockedConf')
     }
 
     def "version selector combinations are resolved equally for locked and unlocked configurations"() {
@@ -134,7 +134,7 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
     }
 
     @ToBeFixedForInstantExecution
@@ -158,7 +158,7 @@ configurations {
         succeeds 'dependencies'
 
         then:
-        lockfileFixture.expectMissing('lockedConf')
+        lockfileFixture.expectLegacyMissing('lockedConf')
     }
 
     def 'attempting to change lock mode after a configuration has been resolved is invalid'() {

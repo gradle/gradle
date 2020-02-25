@@ -23,14 +23,14 @@ class LockfileFixture {
 
     TestFile testDirectory
 
-    def createLockfile(String configurationName, List<String> modules) {
+    def createLegacyLockfile(String configurationName, List<String> modules) {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
         def lines = [LockFileReaderWriter.LOCKFILE_HEADER]
         lines.addAll modules
         lockFile.writelns(lines.sort())
     }
 
-    void verifyLockfile(String configurationName, List<String> expectedModules) {
+    void verifyLegacyLockfile(String configurationName, List<String> expectedModules) {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
         assert lockFile.exists()
         def lockedModules = []
@@ -43,7 +43,7 @@ class LockfileFixture {
         assert lockedModules as Set == expectedModules as Set
     }
 
-    void expectMissing(String configurationName) {
+    void expectLegacyMissing(String configurationName) {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
         assert !lockFile.exists()
     }

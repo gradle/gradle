@@ -60,7 +60,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:foo:1.0'])
 
         def constraintVersion = lockMode() == LockMode.LENIENT ? "1.0" : "{strictly 1.0}"
         def extraReason = lockMode() == LockMode.LENIENT ? " (update/lenient mode)" : ""
@@ -104,7 +104,7 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.expectMissing('unlockedConf')
+        lockfileFixture.expectLegacyMissing('unlockedConf')
     }
 
     @ToBeFixedForInstantExecution
@@ -138,7 +138,7 @@ dependencies {
         succeeds'dependencies', '--write-locks', '--refresh-dependencies'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
     }
 
@@ -176,7 +176,7 @@ dependencies {
         succeeds'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:${resolved}"])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ["org:bar:${resolved}"])
 
         where:
         version     | resolved
@@ -241,8 +241,8 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockEnabledConf', ['org:bar:1.2', 'org:baz:2.0', 'org:foo:1.1', 'org:foz:2.0'])
-        lockfileFixture.expectMissing('secondLockEnabledConf')
+        lockfileFixture.verifyLegacyLockfile('lockEnabledConf', ['org:bar:1.2', 'org:baz:2.0', 'org:foo:1.1', 'org:foz:2.0'])
+        lockfileFixture.expectLegacyMissing('secondLockEnabledConf')
     }
 
     @ToBeFixedForInstantExecution
@@ -273,13 +273,13 @@ dependencies {
 """
 
 
-        lockfileFixture.createLockfile('lockedConf', ["org:foo:1.0"])
+        lockfileFixture.createLegacyLockfile('lockedConf', ["org:foo:1.0"])
 
         when:
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.1'])
     }
 
     @ToBeFixedForInstantExecution
@@ -309,7 +309,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0', 'org:bar:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf',['org:foo:1.0', 'org:bar:1.0'])
 
         when:
         succeeds 'dependencies'
@@ -349,7 +349,7 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
     @ToBeFixedForInstantExecution
@@ -382,7 +382,7 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'lockedConf', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
     }
 
     @ToBeFixedForInstantExecution
@@ -392,7 +392,7 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
         buildFile << """
 dependencyLocking {
@@ -420,7 +420,7 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
     }
 
     @ToBeFixedForInstantExecution
@@ -430,7 +430,7 @@ dependencies {
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
 
         buildFile << """
 dependencyLocking {
@@ -458,7 +458,7 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:f*'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
     }
 
     @ToBeFixedForInstantExecution
@@ -468,7 +468,7 @@ dependencies {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
 
         buildFile << """
 dependencyLocking {
@@ -496,7 +496,7 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:foo,org:baz'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.1'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.1'])
     }
 
     @ToBeFixedForInstantExecution
@@ -510,7 +510,7 @@ dependencies {
         mavenRepo.module('org', 'baz', '1.0').dependsOn(bar10).publish()
         mavenRepo.module('org', 'baz', '1.1').dependsOn(bar11).publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0', 'org:baz:1.0', 'org:buz:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf', ['org:foo:1.0', 'org:bar:1.0', 'org:baz:1.0', 'org:buz:1.0'])
 
         buildFile << """
 dependencyLocking {
@@ -539,7 +539,7 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:foo,org:baz'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1', 'org:baz:1.1', 'org:buz:1.0'])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1', 'org:baz:1.1', 'org:buz:1.0'])
     }
 
     @ToBeFixedForInstantExecution
@@ -564,7 +564,7 @@ configurations {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', [])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', [])
     }
 
     @ToBeFixedForInstantExecution
@@ -585,13 +585,13 @@ configurations {
     lockedConf
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLegacyLockfile('lockedConf', ['org:foo:1.0'])
 
         when:
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', [])
+        lockfileFixture.verifyLegacyLockfile('lockedConf', [])
     }
 
     @Unroll
