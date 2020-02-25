@@ -11,6 +11,7 @@ Include only their name, impactful features should be called out separately belo
 [Daniel Thomas](https://github.com/DanielThomas),
 [jeffalder](https://github.com/jeffalder),
 [FICHET Philippe](https://github.com/philippefichet),
+[Johnny Lim](https://github.com/izeye)
 and [Sam De Block](https://github.com/SamDeBlock).
 
 ## Upgrade Instructions
