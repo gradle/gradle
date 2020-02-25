@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.maven
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -45,6 +46,7 @@ class MavenPublishJavaRetriesIntegTest extends AbstractMavenPublishIntegTest {
         server.stop()
     }
 
+    @ToBeFixedForInstantExecution
     def "should publish with intermittent network issues"() {
         given:
         keyStore.enableSslWithServerCert(server)
