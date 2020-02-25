@@ -872,6 +872,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         kind               | expression
         'a string'         | 'fromString("content")'
         'a file'           | 'fromFile("resource.txt")'
+        'an uri'           | 'fromUri(project.uri(project.file("resource.txt")))'
+        'an insecure uri'  | 'fromInsecureUri(project.uri(project.file("resource.txt")))'
         'an archive entry' | 'fromArchiveEntry("resource.zip", "resource.txt")'
     }
 

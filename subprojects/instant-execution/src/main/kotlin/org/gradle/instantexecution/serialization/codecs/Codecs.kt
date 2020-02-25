@@ -127,6 +127,8 @@ class Codecs(
 
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem)
 
+        bind(ApiTextResourceAdapterCodec)
+
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
 
