@@ -196,6 +196,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         executed ":pluginDependencyA:jar", ":jar"
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "can develop a buildscript dependency that is used by multiple projects of main build"() {
         given:
         buildA.settingsFile << """

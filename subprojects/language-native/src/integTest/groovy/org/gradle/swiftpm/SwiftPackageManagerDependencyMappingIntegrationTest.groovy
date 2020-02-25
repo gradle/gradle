@@ -16,6 +16,7 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
 import spock.lang.Unroll
 
@@ -205,6 +206,7 @@ let package = Package(
         lib2Repo?.close()
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "produces manifest for Swift component with dependencies on libraries provided by included builds"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))

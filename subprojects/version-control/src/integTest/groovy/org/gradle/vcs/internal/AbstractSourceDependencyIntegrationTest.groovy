@@ -64,6 +64,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         commit = repo.commit('initial')
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "can define source repositories in root of composite build when child build has classpath dependencies"() {
         settingsFile << """
             includeBuild 'child'

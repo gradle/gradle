@@ -163,6 +163,7 @@ repositories {
         outputContains 'test-plugin applied'
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def 'buildscript classpath resolves java-runtime variant'() {
         def otherSettings = file('other/settings.gradle')
         def otherBuild = file('other/build.gradle')
