@@ -18,17 +18,16 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires(KOTLIN_SCRIPT)
-@Ignore
 class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
@@ -47,6 +46,7 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
+    @ToBeFixedForInstantExecution
     @Unroll
     @UsesSample("customPlugin")
     def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {
