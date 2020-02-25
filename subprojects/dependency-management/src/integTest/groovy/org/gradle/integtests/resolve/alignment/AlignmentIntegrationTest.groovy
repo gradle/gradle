@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.resolve.alignment
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 
 class AlignmentIntegrationTest extends AbstractAlignmentSpec {
@@ -341,10 +340,9 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     }
 
-    @RequiredFeatures([
-        // Platforms cannot be published with plain Ivy
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+
+    // Platforms cannot be published with plain Ivy
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can align thanks to a published platform"() {
         repository {
             path 'databind:2.7.9 -> core:2.7.9'
@@ -669,10 +667,9 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         }
     }
 
-    @RequiredFeatures([
-        // Platforms cannot be published with plain Ivy
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+
+    // Platforms cannot be published with plain Ivy
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can belong to 2 different published platforms"() {
         given:
         repository {
@@ -775,10 +772,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         }
     }
 
-    @RequiredFeatures([
-        // Platforms cannot be published with plain Ivy
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    // Platforms cannot be published with plain Ivy
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "belonging to both a virtual and a published platforms resolves with alignment"() {
         given:
         repository {
@@ -864,11 +859,9 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         }
     }
 
-    @RequiredFeatures([
-        // We only need to test one flavor
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    // We only need to test one flavor
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @ToBeFixedForInstantExecution
     def "virtual platform missing modules are cached across builds"() {
         // Disable daemon, so that the second run executes with the file cache
@@ -931,10 +924,8 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         }
     }
 
-    @RequiredFeatures([
-        // Platforms cannot be published with plain Ivy
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    // Platforms cannot be published with plain Ivy
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @ToBeFixedForInstantExecution
     def "published platform can be found in a different repository"() {
         // Disable daemon, so that the second run executes with the file cache
@@ -1088,9 +1079,7 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
 
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "virtual platform constraints shouldn't be transitive"() {
         repository {
             "org:member1:1.1" {
@@ -1167,11 +1156,9 @@ class AlignmentIntegrationTest extends AbstractAlignmentSpec {
         }
     }
 
-    @RequiredFeatures([
-        // We only need to test one flavor
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    // We only need to test one flavor
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "should manage to realign through two conflicts"() {
         repository {
             path 'start:start:1.0 -> foo:1.0'

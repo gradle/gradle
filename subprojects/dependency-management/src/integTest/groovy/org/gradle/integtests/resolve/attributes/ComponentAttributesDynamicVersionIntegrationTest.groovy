@@ -18,13 +18,10 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll("#outcome if component-level attribute is #requested")
@@ -40,7 +37,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             configurations {
                 conf.attributes.attribute(quality, '$requested')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -101,7 +98,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             configurations {
                 conf.attributes.attribute(quality, 'qa')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -166,7 +163,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
                 // configuration-level already has its own test
                 conf.attributes.attribute(quality, 'boo')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -225,7 +222,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             configurations {
                 conf.attributes.attribute(color, 'green')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(color)
@@ -279,7 +276,7 @@ Versions rejected by attribute matching:
                 conf.attributes.attribute(color, 'green')
                 conf.attributes.attribute(shape, 'circle')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(color)

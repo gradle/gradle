@@ -85,13 +85,25 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
         then:
         output.contains('system_property_available in buildSrc:                 true')
         output.contains('project_property_available in buildSrc:                true')
-        output.contains('overridden_by_includedBuild in buildSrc:               root')
+        if (executionVersion.getVersion() >= GradleVersion.version("6.2")) {
+            output.contains('project_property_available in buildSrc:                true')
+        } else {
+            output.contains('overridden_by_includedBuild in buildSrc:               root')
+        }
         output.contains('system_property_available in included buildSrc:        true')
-        output.contains('project_property_available in included buildSrc:       true')
+        if (executionVersion.getVersion() >= GradleVersion.version("6.2")) {
+            output.contains('project_property_available in included buildSrc:       true')
+        } else {
+            output.contains('project_property_available in included buildSrc:       true')
         output.contains('overridden_by_includedBuild in included buildSrc:      root')
+        }
         output.contains('system_property_available in included root:            true')
-        output.contains('project_property_available in included root:           true')
+        if (executionVersion.getVersion() >= GradleVersion.version("6.2")) {
+            output.contains('project_property_available in included root:           true')
+        } else {
+            output.contains('project_property_available in included root:           true')
         output.contains('overridden_by_includedBuild in included root:          included')
+        }
         output.contains('system_property_available in root:                     true')
         output.contains('project_property_available in root:                    true')
         output.contains('overridden_by_includedBuild in root:                   root')

@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.alignment
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.publish.RemoteRepositorySpec
 import org.gradle.test.fixtures.server.http.MavenHttpModule
@@ -279,9 +278,7 @@ include 'other'
         succeeds ':checkDeps'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     def "force to higher patch version should bring the rest of aligned group up"() {
         given:
@@ -325,9 +322,8 @@ include 'other'
 
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-    ])
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @Issue("nebula-plugins/gradle-nebula-integration#51")
     def "force to lower patch version should bring the rest of aligned group up"() {
         given:

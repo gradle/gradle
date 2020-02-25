@@ -18,15 +18,12 @@ package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpRepository
 
 class MetadataSourcesResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can resolve with only gradle metadata"() {
         buildFile << """
             repositories.all {

@@ -26,10 +26,8 @@ import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.DefaultModule;
-import org.gradle.api.internal.artifacts.DefaultProjectModuleFactory;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ProjectModuleFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.classpath.PluginModuleRegistry;
@@ -586,9 +584,5 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildInvocationDetails createBuildInvocationDetails(BuildStartedTime buildStartedTime) {
         return new DefaultBuildInvocationDetails(buildStartedTime);
-    }
-
-    protected ProjectModuleFactory createProjectModuleIdentifierFactory(DefaultProjectRegistry<ProjectInternal> projectRegistry) {
-        return new DefaultProjectModuleFactory(projectRegistry);
     }
 }
