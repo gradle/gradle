@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.strict
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -231,9 +230,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
-    )
+    @RequiredFeature(feature=GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
     def "conflicting version constraints fail resolution"() {
         given:
         repository {
@@ -503,9 +500,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         }
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "original version constraint is not ignored if there is another parent"() {
         given:
         repository {
@@ -553,9 +548,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
    Constraint path ':test:unspecified' --> 'org:x1:1.0' --> 'org:foo:{strictly 1.0}'"""
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "can reintroduce a strict version on the root level"() { // similar to test above, but reintroduces strict version in build script
         given:
         repository {

@@ -16,17 +16,8 @@
 
 package org.gradle.api.publish.ivy.internal.publication;
 
-import org.gradle.api.InvalidUserCodeException;
-import org.gradle.api.Project;
-import org.gradle.api.internal.artifacts.DefaultProjectModuleFactory;
 import org.gradle.api.internal.artifacts.Module;
-import org.gradle.api.internal.artifacts.ProjectBackedModule;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
-
-import javax.annotation.Nullable;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.stream.Collectors;
 
 public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     private Module delegate;
@@ -35,7 +26,7 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     private String revision;
 
     public DefaultIvyPublicationIdentity(Module delegate) {
-        this.delegate = safeProjectCoordinatesProvider(delegate);
+        this.delegate = delegate;
     }
 
     public DefaultIvyPublicationIdentity(String organisation, String module, String revision) {
@@ -73,66 +64,4 @@ public class DefaultIvyPublicationIdentity implements IvyPublicationIdentity {
     public void setRevision(String revision) {
         this.revision = revision;
     }
-
-    private Module safeProjectCoordinatesProvider(Module module) {
-        if (module instanceof ProjectBackedModule) {
-            return new LazyProjectModuleProvider((ProjectBackedModule) module);
-        }
-        return module;
-    }
-
-    private static final class LazyProjectModuleProvider implements Module {
-        private final ProjectBackedModule projectBackedModule;
-        private final AtomicBoolean warned = new AtomicBoolean();
-
-        private LazyProjectModuleProvider(ProjectBackedModule module) {
-            this.projectBackedModule = module;
-        }
-
-        @Nullable
-        @Override
-        public String getProjectPath() {
-            return projectBackedModule.getProjectPath();
-        }
-
-        @Override
-        public String getGroup() {
-            maybeWarnAboutDuplicates();
-            return projectBackedModule.getGroup();
-        }
-
-        @Override
-        public String getName() {
-            maybeWarnAboutDuplicates();
-            return projectBackedModule.getName();
-        }
-
-        @Override
-        public String getVersion() {
-            return projectBackedModule.getVersion();
-        }
-
-        @Override
-        public String getStatus() {
-            return projectBackedModule.getStatus();
-        }
-
-        private void maybeWarnAboutDuplicates() {
-            if (!warned.getAndSet(true)) {
-                Project project = projectBackedModule.getProject();
-                List<Project> projectsWithSameId = projectBackedModule.getProjectsWithSameCoordinates();
-                if (!projectsWithSameId.isEmpty() && DefaultProjectModuleFactory.isDuplicateDetectionEnabled()) {
-                    StringBuilder sb = new StringBuilder();
-                    sb.append("Project ")
-                        .append(project.getPath())
-                        .append(" has the same (organisation, module name) as ")
-                        .append(projectsWithSameId.stream().map(Project::getPath).collect(Collectors.joining(" and ")))
-                        .append(". You should set both the organisation and module name of the publication")
-                        .append(" or opt out by adding the " + DefaultProjectModuleFactory.DUPLICATE_DETECTION_SYSPROP + " system property to 'false'.");
-                    throw new InvalidUserCodeException(sb.toString());
-                }
-            }
-        }
-    }
-
 }

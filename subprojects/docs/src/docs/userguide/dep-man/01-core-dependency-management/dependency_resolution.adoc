@@ -258,18 +258,23 @@ If multiple incompatible Gradle versions are in play, all should be used when se
 |===
 | Module cache version  | File cache version    | Metadata cache version    | Gradle version(s)
 
-| `modules-2`           | `files-2.1`           | `metadata-2.90`           | Gradle 6.1
+| `modules-2`           | `files-2.1`           | `metadata-2.95`           | Gradle 6.1
 |===
 
 [[sub:shared-readonly-cache]]
 === Sharing the dependency cache with other Gradle instances
 
-Instead of <<sub:cache_copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only folder that will act as a dependency cache for all containers.
-This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently.
-When Gradle looks for dependencies (artifacts or metadata), it will look into the writable cache in the local Gradle home directory, but will also search the shared read-only cache if it is activated.
-If an artifact is present in the read-only cache, it will not be downloaded.
-If an artifact missing from the read-only dependency cache, it will be added to the _local_, writable cache of the Gradle instance.
-In practice it means that the writable cache will contain the _diff_ between what the build requires and what is available in the read-only cache.
+Instead of <<sub:cache_copy,copying the dependency cache into each container>>, it's possible to mount a shared, read-only directory that will act as a dependency cache for all containers.
+This cache, unlike the classical dependency cache, is accessed without locking, making it possible for multiple builds to read from the cache concurrently. It's important that the read-only cache
+is not written to when other builds may be reading from it.
+
+When using the shared read-only cache, Gradle looks for dependencies (artifacts or metadata) in both the writable cache in the local Gradle user home directory and the shared read-only cache.
+If a dependency is present in the read-only cache, it will not be downloaded.
+If a dependency is missing from the read-only cache, it will be downloaded and added to the writable cache.
+In practice, this means that the writable cache will only contain dependencies that are unavailable in the read-only cache.
+
+The read-only cache should be sourced from a Gradle dependency cache that already contains some of the required dependencies.
+The cache can be incomplete; however, an empty shared cache will only add overhead.
 
 NOTE: The shared read-only dependency cache is an incubating feature.
 

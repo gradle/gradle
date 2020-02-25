@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
@@ -237,9 +236,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         failure.assertHasCause "$baseType 'this-does-not-exist' not defined in module org.test:moduleA:1.0"
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def "can add variants containing metadata as artifacts using lenient rules"() {
         given:
         repository {
@@ -341,9 +338,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         }
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "capabilities of base are preserved"() {
         given:
         repository {
@@ -434,10 +429,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         failure.assertHasCause("Cannot add file moduleA-1.0-extraFeature.jar (url: ../somewhere/some.jar) because it is already defined (url: moduleA-1.0-extraFeature.jar)")
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     @Unroll
     def "can add variants for ivy - #usageAttribute"() {
         // through this, we opt-into variant aware dependency management for a pure ivy module
@@ -514,10 +507,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         'java-runtime' | 'runtimeElements'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     @Unroll
     def "do #not opt-out of maven artifact discovery when #not adding files to a variant (#extension artifact)"() {
         given:

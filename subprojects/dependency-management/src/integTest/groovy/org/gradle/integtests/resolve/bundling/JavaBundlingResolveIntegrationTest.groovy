@@ -16,20 +16,16 @@
 
 package org.gradle.integtests.resolve.bundling
 
-
+import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
-import org.gradle.api.attributes.Bundling
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Ignore
 import spock.lang.Unroll
 
-@RequiredFeatures(
-        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")]
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def setup() {

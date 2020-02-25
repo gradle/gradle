@@ -62,22 +62,6 @@ NOTE: Due to the project size, the initial import can take a while and IntelliJ 
 
 IntelliJ automatically hides stacktrace elements from the `org.gradle` package, which makes running/debugging tests more difficult.  You can disable this behavior by changing IntelliJ Preferences under Editor -> General -> Console. In the "Fold lines that contain" section, remove the `org.gradle` entry.
 
-### Eclipse
-
-You can generate the Eclipse projects by running
-
-    ./gradlew eclipse
-
-Then you can import the generated projects into Eclipse
-
-1. Install Eclipse 4.5 (Mars) at least
-2. Install the Groovy Eclipse plugin from http://dist.springsource.org/snapshot/GRECLIPSE/e4.5/
-3. Make sure you have a Java 8 compatible JDK configured in your workspace
-4. In `Window->Preferences->Groovy->Compiler`, check `Enable Script folder support` and add `**/*.gradle`
-5. Import all projects using the "Import Existing Projects into Workspace" wizard
-
-
-
 ### Code Change Guidelines
 
 All code contributions should contain the following:

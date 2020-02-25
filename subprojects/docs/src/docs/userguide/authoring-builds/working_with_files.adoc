@@ -497,7 +497,7 @@ You can see a practical example of extracting an archive file <<#sec:unpacking_a
 Many objects in Gradle have properties which accept a set of input files.
 For example, the link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile] task has a `source` property that defines the source files to compile.
 You can set the value of this property using any of the types supported by the <<#sec:file_collections,files()>> method, as mentioned in the api docs.
-This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure or `Provider.
+This means you can, for example, set the property to a `File`, `String`, collection, `FileCollection` or even a closure or `Provider`.
 
 *This is a feature of specific tasks*!
 That means implicit conversion will not happen for just any task that has a `FileCollection` or `FileTree` property.
