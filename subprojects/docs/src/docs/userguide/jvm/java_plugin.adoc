@@ -139,7 +139,7 @@ _Depends on_: `build`, and `buildNeeded` tasks in all projects that are dependen
 Performs a full build of the project and all projects it depends on.
 
 `buildDependents`::
-_Depends on_: `build`, and `buildDependents` tasks in all projects that have this project as a dependency in theeir `testRuntimeClasspath` configurations
+_Depends on_: `build`, and `buildDependents` tasks in all projects that have this project as a dependency in their `testRuntimeClasspath` configurations
 +
 Performs a full build of the project and all projects which depend upon it.
 
@@ -236,7 +236,7 @@ The Java source files of this source set. Contains only `.java` files found in t
 `java.srcDirs` — `Set&lt;File&gt;`::
 _Default value_: `src/$name/java`, e.g. _src/main/java_
 +
-The source directories containing the Java source files of this source set.  You can set this to any value that is described in sec:specifying_multiple_files<<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
+The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
 `java.outputDir` — `File`::
 _Default value_: `$buildDir/classes/java/$name`, e.g. _build/classes/java/main_
@@ -387,14 +387,14 @@ Compile time dependencies for the given source set. Used by `__sourceSet__Compil
 `__sourceSet__CompileOnly`::
 Compile time only dependencies for the given source set, not used at runtime.
 
-`__sourceSet__CompileClasspath` extends `compile__SourceSet__Java`::
-Compile classpath, used when compiling source. Used by `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`.
+`__sourceSet__CompileClasspath` extends `__sourceSet__Compile, __sourceSet__CompileOnly, __sourceSet__Implementation`::
+Compile classpath, used when compiling source. Used by `compile__SourceSet__Java`.
 
 `__sourceSet__AnnotationProcessor`::
 Annotation processors used during compilation of this source set.
 
 [.line-through]#`__sourceSet__Runtime`#(Deprecated)::
-Runtime dependencies for the given source set. Used by `__sourceSet__Compile`. Superseded by `__sourceSet__RuntimeOnly`.
+Runtime dependencies for the given source set. Superseded by `__sourceSet__RuntimeOnly`.
 
 `__sourceSet__RuntimeOnly`::
 Runtime only dependencies for the given source set.
@@ -415,7 +415,7 @@ include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.k
 ====
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion].
+Java version compatibility to use when compiling Java source. Default value: version of the current JVM in use.
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
 Java version to generate classes for. Default value: `__sourceCompatibility__`.
@@ -610,8 +610,8 @@ When a source file is deleted, the files generated from it are deleted.
 
 === "Aggregating" annotation processors
 
-These can aggregate several source files into one ore more output files or validation messages.
-For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`
+These can aggregate several source files into one or more output files or validation messages.
+For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistry` with one method for each type annotated with `@Service`.
 
 === Example: An aggregating annotation processor
 
