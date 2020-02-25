@@ -173,6 +173,13 @@ See <<#sec:plugin_version_management,plugin version management>> if you want to 
 
 The `plugins {}` block must also be a top level statement in the buildscript. It cannot be nested inside another construct (e.g. an if-statement or for-loop).
 
+[[sec:build_scripts_only]]
+===== Can only be used in build scripts and settings file
+
+The `plugins {}` block can currently only be used in a project's build script and the settings.gradle file. It cannot be used in script plugins or init scripts.
+
+_Future versions of Gradle will remove this restriction._
+
 If the restrictions of the `plugins {}` block are prohibitive, the recommended approach is to apply plugins using the <<#sec:applying_plugins_buildscript,buildscript {} block>>.
 
 [[sec:subprojects_plugins_dsl]]
