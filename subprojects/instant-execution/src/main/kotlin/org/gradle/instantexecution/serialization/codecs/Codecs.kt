@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -157,6 +158,7 @@ class Codecs(
         bind(ownerServiceCodec<BuildOperationListenerManager>())
         bind(ownerServiceCodec<BuildRequestMetaData>())
         bind(ownerServiceCodec<ListenerManager>())
+        bind(ownerServiceCodec<TemporaryFileProvider>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
