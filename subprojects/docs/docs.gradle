@@ -94,7 +94,9 @@ asciidoctorj {
 gradleDocumentation {
     javadocs {
         javaApi = project.uri("https://docs.oracle.com/javase/8/docs/api")
-        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi")
+        // TODO: uncomment once Groovy 2.5.10 is released
+        //groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-${groovyVersion}/html/gapi")
+        groovyApi = project.uri("https://docs.groovy-lang.org/docs/groovy-2.5.8/html/gapi")
     }
 }
 
