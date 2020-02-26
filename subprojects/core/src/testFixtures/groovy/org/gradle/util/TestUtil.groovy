@@ -118,6 +118,11 @@ class TestUtil {
                     return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory)
                 }
 
+                ProjectLayout createProjectLayout() {
+                    def filePropertyFactory = new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory)
+                    return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                }
+
                 ChecksumService createChecksumService() {
                     new ChecksumService() {
                         @Override
@@ -148,7 +153,6 @@ class TestUtil {
                     }
                 }
             })
-            it.add(ProjectLayout, new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory))
         }
         return services
     }

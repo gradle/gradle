@@ -413,7 +413,8 @@ class UserTypesCodecTest {
         transformListener = mock(),
         valueSourceProviderFactory = mock(),
         patternSetFactory = mock(),
-        fileSystem = mock()
+        fileSystem = mock(),
+        fileFactory = mock()
     )
 
     @Test

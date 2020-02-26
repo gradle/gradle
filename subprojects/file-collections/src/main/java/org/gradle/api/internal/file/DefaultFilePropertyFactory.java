@@ -70,7 +70,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         return new FixedFile(file);
     }
 
-    static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
+    private static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
         final FileResolver fileResolver;
         private final FileCollectionFactory fileCollectionFactory;
 
@@ -314,13 +314,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
             this.fileCollectionFactory = fileCollectionFactory;
         }
 
-        DefaultDirectoryVar(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Object value) {
-            super(Directory.class);
-            this.resolver = resolver;
-            this.fileCollectionFactory = fileCollectionFactory;
-            resolveAndSet(value);
-        }
-
         @Override
         public Class<?> publicType() {
             return DirectoryProperty.class;
@@ -334,12 +327,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public FileTree getAsFileTree() {
             return fileCollectionFactory.resolving(this).getAsFileTree();
-        }
-
-        void resolveAndSet(Object value) {
-            File resolved = resolver.resolve(value);
-            FileResolver dirResolver = resolver.newResolver(resolved);
-            set(new FixedDirectory(resolved, dirResolver, fileCollectionFactory.withResolver(dirResolver)));
         }
 
         @Override
