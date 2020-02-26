@@ -32,7 +32,6 @@ plugins {
     gradlebuild.`ci-reporting`
     gradlebuild.security
     gradlebuild.install
-    id("org.gradle.ci.tag-single-build") version ("0.74")
 }
 
 buildscript {

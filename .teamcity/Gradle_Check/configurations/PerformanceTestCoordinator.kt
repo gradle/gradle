@@ -49,7 +49,6 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
     steps {
         runner("GRADLE_RUNNER", "clean distributed${type.taskId}s")
         checkCleanM2()
-        tagBuild(model, true)
     }
 
     applyDefaultDependencies(model, this, true)

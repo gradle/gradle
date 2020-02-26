@@ -75,22 +75,6 @@ fun ProjectFeatures.buildReportTab(title: String, startPage: String) {
 }
 
 private
-fun BuildSteps.tagBuild(tagBuild: Boolean = true, daemon: Boolean = true) {
-    if (tagBuild) {
-        gradleWrapper {
-            name = "TAG_BUILD"
-            executionMode = BuildStep.ExecutionMode.ALWAYS
-            tasks = "tagBuild"
-            gradleParams = "${buildToolParametersString(daemon)} -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
-        }
-    }
-}
-
-fun BuildSteps.tagBuild(model: CIBuildModel, daemon: Boolean = true) {
-    tagBuild(tagBuild = model.tagBuilds, daemon = daemon)
-}
-
-private
 fun BaseGradleBuildType.gradleRunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
     val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
 
@@ -140,34 +124,6 @@ fun BuildType.dumpOpenFiles() {
             scriptContent = """
                 "%windows.java11.openjdk.64bit%\bin\java" gradle\DumpOpenFilesOnFailure.java
             """.trimIndent()
-        }
-    }
-}
-
-private
-fun BaseGradleBuildType.gradleRerunnerStep(model: CIBuildModel, gradleTasks: String, os: Os = Os.linux, extraParameters: String = "", daemon: Boolean = true) {
-    val buildScanTags = model.buildScanTags + listOfNotNull(stage?.id)
-    val cleanedExtraParameters = extraParameters
-        .replace("-PincludeTestClasses=true", "")
-        .replace("-PexcludeTestClasses=true", "")
-        .replace("-PonlyTestGradleVersion=[\\d.-]+".toRegex(), "")
-
-    steps {
-        gradleWrapper {
-            name = "GRADLE_RERUNNER"
-            tasks = "$gradleTasks tagBuild"
-            executionMode = BuildStep.ExecutionMode.RUN_ON_FAILURE
-            gradleParams = (
-                buildToolGradleParameters(daemon, os = os) +
-                    this@gradleRerunnerStep.buildCache.gradleParameters(os) +
-                    listOf(cleanedExtraParameters) +
-                    "-PteamCityToken=%teamcity.user.bot-gradle.token%" +
-                    "-PteamCityBuildId=%teamcity.build.id%" +
-                    buildScanTags.map { buildScanTag(it) } +
-                    "-PonlyPreviousFailedTestClasses=true" +
-                    "-Dscan.tag.RERUN_TESTS" +
-                    "-PgithubToken=%github.ci.oauth.token%"
-                ).joinToString(separator = " ")
         }
     }
 }
@@ -232,8 +188,6 @@ fun applyTestDefaults(
         buildType.dumpOpenFiles()
     }
     buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE", os)
-    buildType.gradleRerunnerStep(model, gradleTasks, os, extraParameters, daemon)
-    buildType.killProcessStepIfNecessary("KILL_PROCESSES_STARTED_BY_GRADLE_RERUN", os)
 
     buildType.steps {
         extraSteps()
