@@ -27,6 +27,28 @@ import javax.script.ScriptEngineManager
 
 class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
+    def "reports project access during execution"() {
+        given:
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @TaskAction
+                def action() {
+                    println(project.name)
+                }
+            }
+
+            tasks.register("myTask", MyTask)
+        """
+
+        when:
+        executer.expectDeprecationWarning(
+            "Using method Task.getProject() during work execution when Instant Execution is enabled has been deprecated. This will fail with an error in Gradle 7.0."
+        )
+
+        then:
+        instantRun "myTask"
+    }
+
     def "summarizes unsupported properties"() {
         given:
         buildFile << """
