@@ -99,10 +99,6 @@ allprojects {
             name = "kotlin-eap"
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
-        maven {
-            name = "local-groovy-all-snapshot"
-            url = uri("${rootProject.rootDir}/groovy-all-snapshot-repo")
-        }
     }
 }
 
