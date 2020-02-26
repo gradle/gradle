@@ -21,7 +21,9 @@ import net.rubygrapefruit.platform.file.FileWatcherCallback;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -35,8 +37,16 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
     private final AtomicInteger numberOfReceivedEvents = new AtomicInteger();
     private final AtomicBoolean unknownEventEncountered = new AtomicBoolean();
 
-    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        this.watcher = watcherCreator.createWatcher((type, path) -> handleEvent(type, path, handler));
+    public AbstractEventDrivenFileWatcherRegistry(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
+        this.watcher = createWatcher(roots, watcherCreator, handler);
+    }
+
+    private FileWatcher createWatcher(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
+        FileWatcher watcher = watcherCreator.createWatcher((type, path) -> handleEvent(type, path, handler));
+        roots.stream()
+            .map(Path::toFile)
+            .forEach(watcher::startWatching);
+        return watcher;
     }
 
     private void handleEvent(FileWatcherCallback.Type type, String path, ChangeHandler handler) {

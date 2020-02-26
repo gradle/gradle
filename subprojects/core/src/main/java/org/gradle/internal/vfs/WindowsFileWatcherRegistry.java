@@ -29,19 +29,15 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistry.class);
 
     public WindowsFileWatcherRegistry(Set<Path> watchRoots, ChangeHandler handler) {
         super(
-            callback -> Native.get(WindowsFileEventFunctions.class).startWatching(
-                watchRoots.stream()
-                    .map(Path::toString)
-                    .collect(Collectors.toList()),
-                callback
-            ),
+            watchRoots,
+            callback -> Native.get(WindowsFileEventFunctions.class)
+                .startWatcher(callback),
             handler
         );
     }
