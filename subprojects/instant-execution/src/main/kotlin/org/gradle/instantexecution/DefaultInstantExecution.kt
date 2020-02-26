@@ -87,7 +87,7 @@ class DefaultInstantExecution internal constructor(
         !isInstantExecutionEnabled -> {
             false
         }
-        systemPropertyFlag(SystemProperties.recreateCache) -> {
+        startParameter.recreateCache -> {
             log("Recreating instant execution cache")
             false
         }
@@ -259,8 +259,8 @@ class DefaultInstantExecution internal constructor(
     fun instantExecutionReport() = InstantExecutionReport(
         reportOutputDir,
         logger,
-        maxProblems(),
-        failOnProblems()
+        startParameter.maxProblems,
+        startParameter.failOnProblems
     )
 
     private
@@ -480,34 +480,15 @@ class DefaultInstantExecution internal constructor(
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.isEnabled)
-            && !host.currentBuild.buildSrc
+        startParameter.isEnabled && !host.currentBuild.buildSrc
     }
 
     private
     val instantExecutionLogLevel: LogLevel
-        get() = when (systemPropertyFlag(SystemProperties.isQuiet)) {
+        get() = when (startParameter.isQuiet) {
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
         }
-
-    private
-    fun maxProblems(): Int =
-        systemProperty(SystemProperties.maxProblems)
-            ?.let(Integer::valueOf)
-            ?: 512
-
-    private
-    fun failOnProblems() =
-        systemPropertyFlag(SystemProperties.failOnProblems)
-
-    private
-    fun systemPropertyFlag(propertyName: String): Boolean =
-        systemProperty(propertyName)?.toBoolean() ?: false
-
-    private
-    fun systemProperty(propertyName: String) =
-        System.getProperty(propertyName)
 
     private
     fun instantExecutionFingerprintChecker() =

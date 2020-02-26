@@ -18,6 +18,7 @@ package org.gradle.instantexecution.initialization
 
 import org.gradle.StartParameter
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.instantexecution.SystemProperties
 import org.gradle.instantexecution.extensions.unsafeLazy
 import java.io.File
 
@@ -26,6 +27,23 @@ class InstantExecutionStartParameter(
     private val buildLayout: BuildLayout,
     private val startParameter: StartParameter
 ) {
+
+    val isEnabled: Boolean
+        get() = systemPropertyFlag(SystemProperties.isEnabled)
+
+    val isQuiet: Boolean
+        get() = systemPropertyFlag(SystemProperties.isQuiet)
+
+    val maxProblems: Int
+        get() = systemProperty(SystemProperties.maxProblems)
+            ?.let(Integer::valueOf)
+            ?: 512
+
+    val failOnProblems: Boolean
+        get() = systemPropertyFlag(SystemProperties.failOnProblems)
+
+    val recreateCache: Boolean
+        get() = systemPropertyFlag(SystemProperties.recreateCache)
 
     val rootDirectory: File
         get() = buildLayout.rootDirectory
@@ -42,4 +60,12 @@ class InstantExecutionStartParameter(
 
     val excludedTaskNames: Set<String>
         get() = startParameter.excludedTaskNames
+
+    private
+    fun systemPropertyFlag(propertyName: String): Boolean =
+        systemProperty(propertyName)?.toBoolean() ?: false
+
+    private
+    fun systemProperty(propertyName: String) =
+        System.getProperty(propertyName)
 }

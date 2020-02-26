@@ -18,18 +18,22 @@ package org.gradle.instantexecution.initialization
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.instantexecution.SystemProperties
 import org.gradle.internal.deprecation.DeprecationLogger
 
 
-class InstantExecutionProjectAccessListener : ProjectAccessListener {
+class InstantExecutionProjectAccessListener internal constructor(
+
+    private
+    val startParameter: InstantExecutionStartParameter
+
+) : ProjectAccessListener {
 
     override fun beforeRequestingTaskByPath(targetProject: ProjectInternal) = Unit
 
     override fun beforeResolvingProjectDependency(dependencyProject: ProjectInternal) = Unit
 
     override fun duringWorkExecution(project: ProjectInternal) {
-        if (System.getProperty(SystemProperties.isEnabled, "false") == "true") {
+        if (startParameter.isEnabled) {
             DeprecationLogger
                 .deprecateInvocation("Task.getProject() during work execution when Instant Execution is enabled")
                 .willBecomeAnErrorInGradle7()
