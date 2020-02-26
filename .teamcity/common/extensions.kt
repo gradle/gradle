@@ -83,6 +83,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
 
     failureConditions {
         executionTimeoutMin = timeout
+        testFailure = false
     }
 
     if (os == Os.linux || os == Os.macos) {
