@@ -18,6 +18,8 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
@@ -114,14 +116,14 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory) {
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),
             new ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory, patternSetFactory),
-            new RegularFileManagedFactory(),
-            new RegularFilePropertyManagedFactory(fileResolver),
-            new DirectoryManagedFactory(fileResolver, fileCollectionFactory),
-            new DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory),
+            new RegularFileManagedFactory(fileFactory),
+            new RegularFilePropertyManagedFactory(filePropertyFactory),
+            new DirectoryManagedFactory(fileFactory),
+            new DirectoryPropertyManagedFactory(filePropertyFactory),
             new SetPropertyManagedFactory(),
             new ListPropertyManagedFactory(),
             new MapPropertyManagedFactory(),

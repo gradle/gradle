@@ -63,7 +63,7 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
 
     @Override
     ManagedFactory managedFactory() {
-        new ManagedFactories.DirectoryPropertyManagedFactory(resolver, fileCollectionFactory)
+        new ManagedFactories.DirectoryPropertyManagedFactory(factory)
     }
 
     def "can view directory as a file tree"() {
