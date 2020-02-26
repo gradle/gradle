@@ -22,7 +22,9 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 
+@Ignore("https://github.com/gradle/gradle-private/issues/2974")
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
