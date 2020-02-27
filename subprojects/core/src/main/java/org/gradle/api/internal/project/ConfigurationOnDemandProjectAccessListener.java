@@ -31,7 +31,7 @@ public class ConfigurationOnDemandProjectAccessListener implements ProjectAccess
     }
 
     @Override
-    public void duringWorkExecution(ProjectInternal project) {
+    public void duringWorkExecution(ProjectInternal project, Class<?> workType, String workIdentity) {
         // NOOP
     }
 

@@ -25,5 +25,5 @@ public interface ProjectAccessListener {
 
     void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
 
-    void duringWorkExecution(ProjectInternal project);
+    void duringWorkExecution(ProjectInternal project, Class<?> workType, String workIdentity);
 }

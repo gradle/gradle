@@ -54,8 +54,8 @@ public class DefaultProjectAccessNotifier implements ProjectAccessNotifier {
         }
 
         @Override
-        public void duringWorkExecution(ProjectInternal project) {
-            listeners.forEach(listener -> listener.duringWorkExecution(project));
+        public void duringWorkExecution(ProjectInternal project, Class<?> workType, String workIdentity) {
+            listeners.forEach(listener -> listener.duringWorkExecution(project, workType, workIdentity));
         }
     }
 }

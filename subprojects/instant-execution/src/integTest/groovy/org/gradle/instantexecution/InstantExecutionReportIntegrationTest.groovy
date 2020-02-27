@@ -45,7 +45,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         then:
         outputContains """
             1 instant execution problem was found, 1 of which seems unique:
-              - unknown property: invocation of Task.getProject() during work execution is unsupported.
+              - task `:myTask` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
         """.stripIndent()
     }
 
