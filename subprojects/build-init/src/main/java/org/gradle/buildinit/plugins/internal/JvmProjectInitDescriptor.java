@@ -25,5 +25,7 @@ public abstract class JvmProjectInitDescriptor extends LanguageLibraryProjectIni
     @Override
     public void generate(InitSettings settings, BuildScriptBuilder buildScriptBuilder, TemplateFactory templateFactory) {
         buildScriptBuilder.repositories().jcenter("Use jcenter for resolving dependencies.\nYou can declare any Maven/Ivy/file repository here.");
+        // TODO: remove when migrating to Groovy 2.5.10 GA
+        buildScriptBuilder.repositories().maven("Temporary Groovy snapshots repository for Groovy 2.5.10 JDK14 support evaluation", "https://oss.jfrog.org/artifactory/oss-snapshot-local");
     }
 }
