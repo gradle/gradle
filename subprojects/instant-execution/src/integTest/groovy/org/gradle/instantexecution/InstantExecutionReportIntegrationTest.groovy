@@ -44,10 +44,16 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "a", "b"
 
         then:
+        def reportDir = stateDirForTasks("a", "b")
+        def reportFile = reportDir.file("instant-execution-report.html")
+        reportFile.isFile()
+        def jsFile = reportDir.file("instant-execution-report-data.js")
+        jsFile.isFile()
         outputContains """
             2 instant execution problems were found, 2 of which seem unique:
               - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
               - task `:b` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+            See the complete report at ${clickableUrlFor(reportFile)}
         """.stripIndent()
         output.count("task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.") == 1
     }
