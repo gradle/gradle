@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.constraints
 
 import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 
@@ -418,6 +419,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     void "dependency constraints defined for a build are applied when resolving a configuration that uses that build as an included build"() {
         given:
         resolve.expectDefaultConfiguration('default')
