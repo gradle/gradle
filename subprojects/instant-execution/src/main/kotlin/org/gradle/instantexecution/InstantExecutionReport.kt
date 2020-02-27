@@ -18,7 +18,8 @@ package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
 
-import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyProblem
@@ -38,17 +39,26 @@ import java.net.URL
 class InstantExecutionReport(
 
     private
-    val outputDirectory: File,
+    val startParameter: InstantExecutionStartParameter
 
-    private
-    val logger: Logger,
-
-    private
-    val maxProblems: Int,
-
-    private
-    val failOnProblems: Boolean
 ) {
+
+    companion object {
+
+        private
+        val logger = Logging.getLogger(InstantExecutionReport::class.java)
+    }
+
+    private
+    val maxProblems = startParameter.maxProblems
+
+    private
+    val failOnProblems = startParameter.failOnProblems
+
+    private
+    val outputDirectory: File
+        get() = startParameter.rootDirectory
+            .resolve("build/reports/instant-execution/${startParameter.instantExecutionCacheKey}")
 
     private
     val problems = mutableListOf<PropertyProblem>()
@@ -128,7 +138,12 @@ class InstantExecutionReport(
 
     private
     fun writeReportFiles() {
-        outputDirectory.mkdirs()
+        require(outputDirectory.deleteRecursively()) {
+            "Could not clean instant execution report directory '$outputDirectory'"
+        }
+        require(outputDirectory.mkdirs()) {
+            "Could not create instant execution report directory '$outputDirectory'"
+        }
         copyReportResources()
         writeJsReportData()
     }
