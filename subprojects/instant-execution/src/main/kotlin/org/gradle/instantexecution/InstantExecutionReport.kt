@@ -151,7 +151,7 @@ class InstantExecutionReport(
 
     private
     fun errors() =
-        problems.filterIsInstance<PropertyProblem.Error>()
+        problems.toList().filterIsInstance<PropertyProblem.Error>()
 
     private
     fun logSummary() {
