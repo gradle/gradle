@@ -22,9 +22,7 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
-import spock.lang.Unroll
 
-@Unroll
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
@@ -101,7 +99,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         when:
         numberOfChangeBatches.times { iteration ->
             changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
-            waitForChangesToBePickedUp()
+            waitBetweenChangesToAvoidOverflow()
         }
         then:
         succeeds("assemble")
@@ -110,6 +108,11 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         assertWatchingSucceeded()
         receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
         retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch == retainedFilesSinceLastBuild
+    }
+
+    private void waitBetweenChangesToAvoidOverflow() {
+        waitForChangesToBePickedUp()
+        waitForChangesToBePickedUp()
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
