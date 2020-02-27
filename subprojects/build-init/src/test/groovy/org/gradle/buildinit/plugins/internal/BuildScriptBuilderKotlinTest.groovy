@@ -114,11 +114,11 @@ repositories {
 
     // Use another repo as well
     maven {
-        url = "https://somewhere"
+        url = uri("https://somewhere")
     }
 
     maven {
-        url = "https://somewhere/2"
+        url = uri("https://somewhere/2")
     }
 
     // Use JCenter
@@ -276,11 +276,11 @@ allprojects {
 
         // Use another repo as well
         maven {
-            url = "https://somewhere"
+            url = uri("https://somewhere")
         }
 
         maven {
-            url = "https://somewhere/2"
+            url = uri("https://somewhere/2")
         }
 
         // Use JCenter
