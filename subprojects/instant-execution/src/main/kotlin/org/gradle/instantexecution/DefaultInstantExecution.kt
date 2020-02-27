@@ -145,7 +145,8 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withStoreOperation {
 
-            val instantExecutionException = report.withExceptionHandling {
+            // Discard the state file on serialization errors
+            report.withExceptionHandling(::discardInstantExecutionState) {
 
                 instantExecutionStateFile.createParentDirectories()
 
@@ -157,12 +158,6 @@ class DefaultInstantExecution internal constructor(
                 withWriteContextFor(instantExecutionFingerprintFile, report) {
                     encodeFingerprint()
                 }
-            }
-
-            // Discard the state file on errors
-            if (instantExecutionException != null) {
-                discardInstantExecutionState()
-                throw instantExecutionException
             }
         }
     }

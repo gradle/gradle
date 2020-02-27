@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.initialization
 
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
@@ -44,12 +43,11 @@ class InstantExecutionProjectAccessListener internal constructor(
         if (startParameter.isEnabled) {
             val message = "invocation of Task.getProject() during work execution is unsupported."
             report.withExceptionHandling {
-                report.add(PropertyProblem.Error(
+                report.add(PropertyProblem.Warning(
                     PropertyTrace.Task(GeneratedSubclasses.unpack(workType), workIdentity),
                     StructuredMessage.build {
                         text(message)
-                    },
-                    InvalidUserCodeException(message.capitalize())
+                    }
                 ))
             }
         }

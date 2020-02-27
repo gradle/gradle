@@ -70,6 +70,14 @@ class InstantExecutionReport(
         }
     }
 
+    fun withExceptionHandling(onError: () -> Unit = {}, block: () -> Unit) {
+        withExceptionHandling(block)?.let { error ->
+            onError()
+            throw error
+        }
+    }
+
+    private
     fun withExceptionHandling(block: () -> Unit): Throwable? {
 
         val fatalError = runWithExceptionHandling(block)
