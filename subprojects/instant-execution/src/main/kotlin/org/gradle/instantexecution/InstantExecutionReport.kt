@@ -18,14 +18,18 @@ package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
 
-import org.gradle.api.logging.Logging
-import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.BuildAdapter
+import org.gradle.BuildResult
 
+import org.gradle.api.logging.Logging
+
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyProblem
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.unknownPropertyError
 
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.ConsoleRenderer
 
 import org.gradle.util.GFileUtils.copyURLToFile
@@ -39,7 +43,9 @@ import java.net.URL
 class InstantExecutionReport(
 
     private
-    val startParameter: InstantExecutionStartParameter
+    val startParameter: InstantExecutionStartParameter,
+
+    listenerManager: ListenerManager
 
 ) {
 
@@ -47,6 +53,17 @@ class InstantExecutionReport(
 
         private
         val logger = Logging.getLogger(InstantExecutionReport::class.java)
+    }
+
+    init {
+        listenerManager.addListener(object : BuildAdapter() {
+            override fun buildFinished(result: BuildResult) {
+                if (problems.isNotEmpty()) {
+                    logSummary()
+                    writeReportFiles()
+                }
+            }
+        })
     }
 
     private
@@ -86,9 +103,6 @@ class InstantExecutionReport(
             require(fatalError == null)
             return null
         }
-
-        logSummary()
-        writeReportFiles()
 
         return fatalError?.withSuppressed(errors())
             ?: instantExecutionExceptionForErrors()

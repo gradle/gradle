@@ -36,17 +36,20 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
                 }
             }
 
-            tasks.register("myTask", MyTask)
+            tasks.register("a", MyTask)
+            tasks.register("b", MyTask)
         """
 
         when:
-        instantRun "myTask"
+        instantRun "a", "b"
 
         then:
         outputContains """
-            1 instant execution problem was found, 1 of which seems unique:
-              - task `:myTask` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+            2 instant execution problems were found, 2 of which seem unique:
+              - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+              - task `:b` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
         """.stripIndent()
+        output.count("task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.") == 1
     }
 
     def "summarizes unsupported properties"() {
