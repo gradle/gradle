@@ -125,7 +125,7 @@ In Gradle 6.0, the `ProjectLayout` service was made available to worker actions 
 ==== Updates to default tool integration versions
 
 - Checkstyle has been updated to https://checkstyle.org/releasenotes.html#Release_8.27[Checkstyle 8.27].
-- PMD has been updated to https://pmd.github.io/pmd-6.20.0/pmd_release_notes.html#29-november-2019---6200[PMD 6.20.0].
+- PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
 
 ==== Publishing Spring Boot applications
 
