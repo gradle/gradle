@@ -36,24 +36,30 @@ open class CiReportingPlugin : Plugin<Project> {
 
     private
     fun Project.prepareReportsForCiPublishing() {
-        val failedTaskGenericHtmlReports = failedTasks(allprojects).flatMap {
+        val executedTaskGenericHtmlReports = executedTasks(allprojects).flatMap {
             it.failedTaskGenericHtmlReports()
         }
         val attachedReports = executedTasks(subprojects).flatMap {
             it.attachedReportLocations()
         }
-        val failedTaskCustomReports = failedTasks(subprojects).flatMap {
+        val executedTaskCustomReports = executedTasks(subprojects).flatMap {
             it.failedTaskCustomReports()
         }
+        val testFiles = subprojects.flatMap { it.tmpTestFiles() }
 
-        val allReports = failedTaskGenericHtmlReports + attachedReports + failedTaskCustomReports
+        val allReports = executedTaskGenericHtmlReports + attachedReports + executedTaskCustomReports + testFiles
         allReports.distinctBy { (report, _) -> report }.forEach { (report, projectName) ->
             prepareReportForCiPublishing(report, projectName)
         }
     }
 
     private
-    fun failedTasks(projects: Set<Project>) = projects.flatMap { it.gradle.taskGraph.allTasks.filter { it.state.failure != null } }
+    fun Project.tmpTestFiles() =
+        File(buildDir, "tmp/test files").takeIf {
+            it.isDirectory && it.listFiles()?.size != 0
+        }?.let {
+            listOf(it to name)
+        } ?: emptyList()
 
     private
     fun executedTasks(projects: Set<Project>) = projects.flatMap { it.gradle.taskGraph.allTasks.filter { it.state.executed } }

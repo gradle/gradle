@@ -64,7 +64,6 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
     artifactRules = """
         build/report-* => .
         buildSrc/build/report-* => .
-        subprojects/*/build/tmp/test files/** => test-files
         build/errorLogs/** => errorLogs
         build/reports/incubation/** => incubation-reports
     """.trimIndent()
