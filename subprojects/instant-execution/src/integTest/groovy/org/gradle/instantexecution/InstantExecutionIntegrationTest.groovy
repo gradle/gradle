@@ -875,6 +875,53 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "restores task fields whose value is #kind TextResource"() {
+
+        given:
+        file("resource.txt") << 'content'
+        createZip("resource.zip") {
+            file("resource.txt") << 'content'
+        }
+
+        and:
+        buildFile << """
+
+            class SomeTask extends DefaultTask {
+
+                @Input
+                TextResource textResource = project.resources.text.$expression
+
+                @TaskAction
+                def action() {
+                    println('> ' + textResource.asString())
+                }
+            }
+
+            tasks.register("someTask", SomeTask)
+        """
+
+        when:
+        instantRun 'someTask'
+
+        then:
+        outputContains("> content")
+
+        when:
+        instantRun 'someTask'
+
+        then:
+        outputContains("> content")
+
+        where:
+        kind               | expression
+        'a string'         | 'fromString("content")'
+        'a file'           | 'fromFile("resource.txt")'
+        'an uri'           | 'fromUri(project.uri(project.file("resource.txt")))'
+        'an insecure uri'  | 'fromInsecureUri(project.uri(project.file("resource.txt")))'
+        'an archive entry' | 'fromArchiveEntry("resource.zip", "resource.txt")'
+    }
+
+    @Unroll
     def "warns when task field references an object of type #baseType"() {
         buildFile << """
             class SomeBean {

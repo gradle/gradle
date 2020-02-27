@@ -7,7 +7,6 @@ import common.buildToolParametersString
 import common.checkCleanM2
 import common.compileAllDependency
 import common.gradleWrapper
-import common.verifyTestFilesCleanup
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildFeatures
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
@@ -150,7 +149,7 @@ fun applyDefaults(model: CIBuildModel, buildType: BaseGradleBuildType, gradleTas
     buildType.steps {
         extraSteps()
         checkCleanM2(os)
-        verifyTestFilesCleanup(daemon, os)
+//        verifyTestFilesCleanup(daemon, os)
     }
 
     applyDefaultDependencies(model, buildType, notQuick)
@@ -192,7 +191,7 @@ fun applyTestDefaults(
     buildType.steps {
         extraSteps()
         checkCleanM2(os)
-        verifyTestFilesCleanup(daemon, os)
+//        verifyTestFilesCleanup(daemon, os)
     }
 
     applyDefaultDependencies(model, buildType, notQuick)

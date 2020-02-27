@@ -64,8 +64,8 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
-            "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP"
+            "CHECK_CLEAN_M2"
+//            "VERIFY_TEST_FILES_CLEANUP"
         ), steps.items.map(BuildStep::name))
         assertEquals(expectedRunnerParam(), getGradleStep("GRADLE_RUNNER").gradleParams)
     }
@@ -82,8 +82,8 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
-            "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP"
+            "CHECK_CLEAN_M2"
+//            "VERIFY_TEST_FILES_CLEANUP"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
     }
@@ -104,8 +104,8 @@ class ApplyDefaultConfigurationTest {
             "SET_BUILD_SUCCESS_ENV",
             "DUMP_OPEN_FILES_ON_FAILURE",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
-            "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP"
+            "CHECK_CLEAN_M2"
+//            "VERIFY_TEST_FILES_CLEANUP"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
     }
