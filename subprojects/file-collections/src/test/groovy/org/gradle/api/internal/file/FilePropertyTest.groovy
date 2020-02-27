@@ -63,6 +63,6 @@ class FilePropertyTest extends FileSystemPropertySpec<RegularFile> {
 
     @Override
     ManagedFactory managedFactory() {
-        new ManagedFactories.RegularFilePropertyManagedFactory(resolver)
+        new ManagedFactories.RegularFilePropertyManagedFactory(factory)
     }
 }
