@@ -32,6 +32,12 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
             apply plugin: "groovy"
 
             ${mavenCentralRepository()}
+            // TODO: remove once Groovy 2.5.10 goes GA
+            repositories {
+                maven {
+                    url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local")
+                }
+            }
 
             dependencies {
                 implementation "org.codehaus.groovy:groovy:${version}"
@@ -56,7 +62,7 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
             class Person {
                 void setFullName(String fullName) {
                     // no-op
-                }                
+                }
             }
         """.stripIndent()
 
