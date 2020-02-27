@@ -18,13 +18,19 @@ package org.gradle.instantexecution.initialization
 
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.instantexecution.InstantExecutionReport
+import org.gradle.instantexecution.serialization.PropertyProblem
+import org.gradle.instantexecution.serialization.PropertyTrace
+import org.gradle.instantexecution.serialization.StructuredMessage
 
 
 class InstantExecutionProjectAccessListener internal constructor(
 
     private
-    val startParameter: InstantExecutionStartParameter
+    val startParameter: InstantExecutionStartParameter,
+
+    private
+    val report: InstantExecutionReport
 
 ) : ProjectAccessListener {
 
@@ -34,11 +40,14 @@ class InstantExecutionProjectAccessListener internal constructor(
 
     override fun duringWorkExecution(project: ProjectInternal) {
         if (startParameter.isEnabled) {
-            DeprecationLogger
-                .deprecateInvocation("Task.getProject() during work execution when Instant Execution is enabled")
-                .willBecomeAnErrorInGradle7()
-                .undocumented()
-                .nagUser()
+            report.withExceptionHandling {
+                report.add(PropertyProblem.Warning(
+                    PropertyTrace.Unknown,
+                    StructuredMessage.build {
+                        text("invocation of Task.getProject() during work execution is unsupported.")
+                    }
+                ))
+            }
         }
     }
 }

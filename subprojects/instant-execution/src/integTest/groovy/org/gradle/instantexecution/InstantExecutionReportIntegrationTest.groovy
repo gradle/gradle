@@ -40,12 +40,13 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        executer.expectDeprecationWarning(
-            "Using method Task.getProject() during work execution when Instant Execution is enabled has been deprecated. This will fail with an error in Gradle 7.0."
-        )
+        instantRun "myTask"
 
         then:
-        instantRun "myTask"
+        outputContains """
+            1 instant execution problem was found, 1 of which seems unique:
+              - unknown property: invocation of Task.getProject() during work execution is unsupported.
+        """.stripIndent()
     }
 
     def "summarizes unsupported properties"() {
