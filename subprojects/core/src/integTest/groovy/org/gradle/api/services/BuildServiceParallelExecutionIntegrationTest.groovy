@@ -36,8 +36,9 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         buildFile << """
             allprojects {
                 task ping {
+                    def projectName = project.name
                     doLast {
-                        ${blockingServer.callFromBuildUsingExpression("project.name")}
+                        ${blockingServer.callFromBuildUsingExpression("projectName")}
                     }
                 }
             }
