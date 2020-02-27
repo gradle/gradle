@@ -454,6 +454,7 @@ task resolve {
         failureHasCause("Did not resolve 'org:test:1.1' which has been forced / substituted to a different version: '1.0'")
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "ignores the lock entry that matches a composite"() {
         given:
         lockfileFixture.createLockfile('lockedConf', ['org:composite:1.1'])

@@ -40,6 +40,7 @@ import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
+import org.gradle.instantexecution.serialization.logNotImplemented
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readFile
 import org.gradle.instantexecution.serialization.readNonNull
@@ -345,6 +346,9 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradleIsolate(gradle) {
+            if (gradle.includedBuilds.isNotEmpty()) {
+                logNotImplemented("included builds")
+            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             writeCollection(eventListenerRegistry.subscriptions)
         }
