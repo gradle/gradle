@@ -67,6 +67,7 @@ import kotlin.coroutines.startCoroutine
 class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val startParameter: InstantExecutionStartParameter,
+    private val report: InstantExecutionReport,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val beanConstructors: BeanConstructors,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
@@ -144,7 +145,6 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withStoreOperation {
 
-            val report = instantExecutionReport()
             val instantExecutionException = report.withExceptionHandling {
 
                 instantExecutionStateFile.createParentDirectories()
@@ -253,9 +253,6 @@ class DefaultInstantExecution internal constructor(
 
     private
     var instantExecutionInputs: InstantExecutionCacheInputs? = null
-
-    private
-    fun instantExecutionReport() = InstantExecutionReport(startParameter)
 
     private
     fun discardInstantExecutionState() {

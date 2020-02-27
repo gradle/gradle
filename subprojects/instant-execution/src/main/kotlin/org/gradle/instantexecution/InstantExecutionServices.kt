@@ -33,6 +33,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
             add(InstantExecutionStartParameter::class.java)
+            add(InstantExecutionReport::class.java)
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
             add(InstantExecutionProjectAccessListener::class.java)
