@@ -67,12 +67,6 @@ class InstantExecutionReport(
     }
 
     private
-    val maxProblems = startParameter.maxProblems
-
-    private
-    val failOnProblems = startParameter.failOnProblems
-
-    private
     val outputDirectory: File
         get() = startParameter.rootDirectory
             .resolve("build/reports/instant-execution/${startParameter.instantExecutionCacheKey}")
@@ -82,7 +76,7 @@ class InstantExecutionReport(
 
     fun add(problem: PropertyProblem) {
         problems.add(problem)
-        if (problems.size >= maxProblems) {
+        if (problems.size >= startParameter.maxProblems) {
             throw TooManyInstantExecutionProblemsException()
         }
     }
@@ -139,7 +133,7 @@ class InstantExecutionReport(
 
     private
     fun instantExecutionExceptionForProblems(): Throwable? =
-        if (failOnProblems) InstantExecutionProblemsException()
+        if (startParameter.failOnProblems) InstantExecutionProblemsException()
         else null
 
     private
