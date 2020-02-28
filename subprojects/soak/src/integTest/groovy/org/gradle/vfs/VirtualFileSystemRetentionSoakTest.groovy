@@ -87,7 +87,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     def "file watching works with many changes between two builds"() {
         // Use 20 minutes idle timeout since the test may be running longer with an idle daemon
         executer.withDaemonIdleTimeoutSecs(1200)
-        def numberOfChangedSourcesFilesPerBatch = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangedSourcesFilesPerBatch = maxFileChangesWithoutOverflow
         def numberOfChangeBatches = 500
 
         when:
@@ -110,12 +110,16 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch == retainedFilesSinceLastBuild
     }
 
-    private static void waitBetweenChangesToAvoidOverflow() {
+    private static int getMaxFileChangesWithoutOverflow() {
         if (OperatingSystem.current().windows) {
-            Thread.sleep(300)
+            800
         } else {
-            Thread.sleep(150)
+            1000
         }
+    }
+
+    private static void waitBetweenChangesToAvoidOverflow() {
+        Thread.sleep(150)
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
