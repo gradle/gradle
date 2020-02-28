@@ -82,7 +82,7 @@ class InstantExecutionReport(
                 if (!base.exists()) base
                 else generateSequence(1) { it + 1 }
                     .map { base.resolveSibling("${base.name}-$it") }
-                    .first()
+                    .first { !it.exists() }
             }
     }
 

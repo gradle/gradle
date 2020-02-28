@@ -83,6 +83,17 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
               - task `:b` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
             See the complete report at ${clickableUrlFor(secondReportFile)}
         """.stripIndent()
+
+        when:
+        instantRun "a", "b"
+
+        then:
+        output.count("project:root") == 2
+
+        and:
+        def thirdReportDir = reportDir.parentFile.file("${reportDir.name}-2")
+        def thirdReportFile = thirdReportDir.file(reportHtmlFileName)
+        thirdReportFile.isFile()
     }
 
     def "summarizes unsupported properties"() {
