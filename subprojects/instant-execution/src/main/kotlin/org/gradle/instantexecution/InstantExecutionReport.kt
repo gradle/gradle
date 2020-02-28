@@ -185,6 +185,7 @@ class InstantExecutionReport(
             propertyDescriptionFor(it) to it.message
         }
         return StringBuilder().apply {
+            appendln()
             val totalProblemCount = problems.size
             val problemOrProblems = if (totalProblemCount == 1) "problem was" else "problems were"
             val uniqueProblemCount = uniquePropertyProblems.size
