@@ -55,6 +55,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         reportFile.isFile()
         def jsFile = reportDir.file("instant-execution-report-data.js")
         jsFile.isFile()
+        numberOfProblemsWithStacktraceIn(jsFile) == 2
         outputContains """
             2 instant execution problems were found, 2 of which seem unique:
               - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
@@ -70,7 +71,12 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         output.count("project:root") == 2
 
         and:
-        def secondReportFile = reportDir.parentFile.file("${reportDir.name}-1/$reportHtmlFileName")
+        def secondReportDir = reportDir.parentFile.file("${reportDir.name}-1")
+        def secondReportFile = secondReportDir.file(reportHtmlFileName)
+        secondReportFile.isFile()
+        def secondJsFile = reportDir.file("instant-execution-report-data.js")
+        secondJsFile.isFile()
+        numberOfProblemsWithStacktraceIn(secondJsFile) == 2
         outputContains """
             2 instant execution problems were found, 2 of which seem unique:
               - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
@@ -204,6 +210,13 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         newJavaScriptEngine().with {
             eval(jsFile.text)
             eval("instantExecutionProblems().length") as int
+        }
+    }
+
+    private static int numberOfProblemsWithStacktraceIn(File jsFile) {
+        newJavaScriptEngine().with {
+            eval(jsFile.text)
+            eval("instantExecutionProblems().filter(function(problem) { return problem['error'] != null; }).length") as int
         }
     }
 

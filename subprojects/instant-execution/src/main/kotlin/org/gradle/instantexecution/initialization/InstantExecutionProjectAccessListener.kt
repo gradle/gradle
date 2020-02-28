@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.initialization
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
@@ -47,7 +48,8 @@ class InstantExecutionProjectAccessListener internal constructor(
                     PropertyTrace.Task(GeneratedSubclasses.unpack(workType), workIdentity),
                     StructuredMessage.build {
                         text(message)
-                    }
+                    },
+                    InvalidUserCodeException(message.capitalize())
                 ))
             }
         }
