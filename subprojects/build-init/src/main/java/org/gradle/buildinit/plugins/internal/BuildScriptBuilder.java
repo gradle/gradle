@@ -954,7 +954,7 @@ public class BuildScriptBuilder {
         @Override
         public void writeCodeTo(PrettyPrinter printer) {
             ScriptBlockImpl statements = new ScriptBlockImpl();
-            statements.propertyAssignment(null, "url", url);
+            statements.propertyAssignment(null, "url", new MethodInvocationExpression(null, "uri", Collections.singletonList(new StringValue(url))));
             printer.printBlock("maven", statements);
         }
     }
