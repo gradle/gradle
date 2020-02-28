@@ -15,6 +15,7 @@ import org.gradle.gradlebuild.test.integrationtests.DistributionTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.TestFileCleanUpExtension
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.kotlin.dsl.get
+import org.gradle.kotlin.dsl.create
 import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.plugin.devel.tasks.ValidatePlugins
 import org.gradle.testing.DistributedPerformanceTest
@@ -30,17 +31,28 @@ import java.io.File
  * Team City.
  */
 open class CiReportingPlugin : Plugin<Project> {
-
     override fun apply(project: Project): Unit = project.run {
+        // Configure the testFilesCleanup policy in each subproject's build script
+        subprojects.forEach { it.extensions.create<TestFileCleanUpExtension>("testFilesCleanup", objects) }
+
         if (BuildEnvironment.isCiServer) {
             gradle.buildFinished {
                 val failedTasks = project.failedTasks()
                 val executedTasks = project.executedTasks()
                 val tmpTestFiles = project.subprojects.flatMap { it.tmpTestFiles() }
                 prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
+                project.cleanUp(tmpTestFiles.map { it.first })
                 project.verifyTestFilesCleanup(failedTasks, tmpTestFiles)
             }
         }
+    }
+
+    /**
+     * After archiving the test files, do a cleanup to get rid of TeamCity "XX published a lot of small artifacts" warning
+     */
+    private
+    fun Project.cleanUp(filesToCleanUp: List<File>) {
+        delete(filesToCleanUp)
     }
 
     private
