@@ -110,9 +110,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch == retainedFilesSinceLastBuild
     }
 
-    private void waitBetweenChangesToAvoidOverflow() {
-        waitForChangesToBePickedUp()
-        waitForChangesToBePickedUp()
+    private static void waitBetweenChangesToAvoidOverflow() {
+        Thread.sleep(150)
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
