@@ -133,11 +133,3 @@ fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_Compi
         artifactRules = "build-receipt.properties => incoming-distributions"
     }
 }
-
-fun BuildSteps.verifyTestFilesCleanup(daemon: Boolean = true, os: Os = Os.linux) {
-    gradleWrapper {
-        name = "VERIFY_TEST_FILES_CLEANUP"
-        tasks = "verifyTestFilesCleanup"
-        gradleParams = buildToolParametersString(daemon, os)
-    }
-}
