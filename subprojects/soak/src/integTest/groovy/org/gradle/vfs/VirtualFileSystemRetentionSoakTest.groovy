@@ -112,7 +112,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
     private static void waitBetweenChangesToAvoidOverflow() {
         if (OperatingSystem.current().windows) {
-            Thread.sleep(200)
+            Thread.sleep(300)
         } else {
             Thread.sleep(150)
         }
