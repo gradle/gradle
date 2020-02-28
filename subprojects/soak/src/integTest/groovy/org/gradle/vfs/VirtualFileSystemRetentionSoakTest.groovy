@@ -111,7 +111,11 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     }
 
     private static void waitBetweenChangesToAvoidOverflow() {
-        Thread.sleep(150)
+        if (OperatingSystem.current().windows) {
+            Thread.sleep(200)
+        } else {
+            Thread.sleep(150)
+        }
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
