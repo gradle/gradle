@@ -45,6 +45,6 @@ pmd {
     isConsoleOutput = true
     toolVersion = "6.21.0"
     rulePriority = 5
-    ruleSets("category/java/errorprone.xml", "category/java/bestpractices.xml")
+    ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
 }
 // end::customize-pmd[]
