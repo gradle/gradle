@@ -27,12 +27,14 @@ import javax.script.ScriptEngineManager
 class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "reports project access during execution"() {
+
         given:
+        settingsFile << "rootProject.name = 'root'"
         buildFile << """
             abstract class MyTask extends DefaultTask {
                 @TaskAction
                 def action() {
-                    println(project.name)
+                    println("project:${'$'}{project.name}")
                 }
             }
 
@@ -44,8 +46,12 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "a", "b"
 
         then:
+        output.count("project:root") == 2
+
+        and:
+        def reportHtmlFileName = "instant-execution-report.html"
         def reportDir = stateDirForTasks("a", "b")
-        def reportFile = reportDir.file("instant-execution-report.html")
+        def reportFile = reportDir.file(reportHtmlFileName)
         reportFile.isFile()
         def jsFile = reportDir.file("instant-execution-report-data.js")
         jsFile.isFile()
@@ -56,6 +62,21 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             See the complete report at ${clickableUrlFor(reportFile)}
         """.stripIndent()
         output.count("task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.") == 1
+
+        when:
+        instantRun "a", "b"
+
+        then:
+        output.count("project:root") == 2
+
+        and:
+        def secondReportFile = reportDir.parentFile.file("${reportDir.name}-1/$reportHtmlFileName")
+        outputContains """
+            2 instant execution problems were found, 2 of which seem unique:
+              - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+              - task `:b` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+            See the complete report at ${clickableUrlFor(secondReportFile)}
+        """.stripIndent()
     }
 
     def "summarizes unsupported properties"() {

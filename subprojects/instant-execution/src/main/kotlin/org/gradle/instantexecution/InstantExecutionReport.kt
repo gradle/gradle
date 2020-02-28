@@ -53,23 +53,37 @@ class InstantExecutionReport(
 
         private
         val logger = Logging.getLogger(InstantExecutionReport::class.java)
+
+        private
+        const val reportHtmlFileName = "instant-execution-report.html"
     }
 
     init {
-        listenerManager.addListener(object : BuildAdapter() {
-            override fun buildFinished(result: BuildResult) {
-                if (problems.isNotEmpty()) {
-                    logSummary()
-                    writeReportFiles()
-                }
-            }
-        })
+        listenerManager.addListener(BuildFinishedReporter())
     }
 
     private
-    val outputDirectory: File
-        get() = startParameter.rootDirectory
-            .resolve("build/reports/instant-execution/${startParameter.instantExecutionCacheKey}")
+    inner class BuildFinishedReporter : BuildAdapter() {
+
+        override fun buildFinished(result: BuildResult) {
+            if (problems.isNotEmpty()) {
+                val outputDirectory = calculateOutputDirectory()
+                logSummary(outputDirectory)
+                writeReportFiles(outputDirectory)
+            }
+        }
+
+        private
+        fun calculateOutputDirectory(): File =
+            startParameter.rootDirectory.resolve(
+                "build/reports/instant-execution/${startParameter.instantExecutionCacheKey}"
+            ).let { base ->
+                if (!base.exists()) base
+                else generateSequence(1) { it + 1 }
+                    .map { base.resolveSibling("${base.name}-$it") }
+                    .first()
+            }
+    }
 
     private
     val problems = mutableListOf<PropertyProblem>()
@@ -148,24 +162,24 @@ class InstantExecutionReport(
         problems.toList().filterIsInstance<PropertyProblem.Error>()
 
     private
-    fun logSummary() {
-        logger.warn(summary())
+    fun logSummary(outputDirectory: File) {
+        logger.warn(summary(outputDirectory))
     }
 
     private
-    fun writeReportFiles() {
+    fun writeReportFiles(outputDirectory: File) {
         require(outputDirectory.deleteRecursively()) {
             "Could not clean instant execution report directory '$outputDirectory'"
         }
         require(outputDirectory.mkdirs()) {
             "Could not create instant execution report directory '$outputDirectory'"
         }
-        copyReportResources()
-        writeJsReportData()
+        copyReportResources(outputDirectory)
+        writeJsReportData(outputDirectory)
     }
 
     private
-    fun summary(): String {
+    fun summary(outputDirectory: File): String {
         val uniquePropertyProblems = problems.groupBy {
             propertyDescriptionFor(it) to it.message
         }
@@ -181,14 +195,14 @@ class InstantExecutionReport(
                 append(": ")
                 appendln(message)
             }
-            appendln("See the complete report at ${clickableUrlFor(reportFile)}")
+            appendln("See the complete report at ${clickableUrlFor(outputDirectory.resolve(reportHtmlFileName))}")
         }.toString()
     }
 
     private
-    fun copyReportResources() {
+    fun copyReportResources(outputDirectory: File) {
         listOf(
-            reportFile.name,
+            reportHtmlFileName,
             "instant-execution-report.js",
             "instant-execution-report.css",
             "kotlin.js"
@@ -201,7 +215,7 @@ class InstantExecutionReport(
     }
 
     private
-    fun writeJsReportData() {
+    fun writeJsReportData(outputDirectory: File) {
         outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
             writer.run {
                 appendln("function instantExecutionProblems() { return [")
@@ -302,10 +316,6 @@ class InstantExecutionReport(
         is PropertyTrace.Task -> trace.type
         else -> null
     }
-
-    private
-    val reportFile
-        get() = outputDirectory.resolve("instant-execution-report.html")
 }
 
 
