@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.specs.ExplainingSpec;
@@ -28,6 +29,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.Connection;
@@ -51,8 +53,10 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
+import java.io.File;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -239,7 +243,21 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             + "\nAttempting to read last messages from the daemon log...", build);
 
         LOGGER.error(diagnostics.describe());
+        findCrashLogFile(build, diagnostics).ifPresent(crashLogFile ->
+            LOGGER.error("JVM crash log found: " + new ConsoleRenderer().asClickableFileUrl(crashLogFile))
+        );
         throw new DaemonDisappearedException();
+    }
+
+    private Optional<File> findCrashLogFile(Build build, DaemonDiagnostics diagnostics) {
+        String crashLogFileName = "hs_err_pid" + diagnostics.getPid() + ".log";
+        List<File> candidates = ImmutableList.of(
+            new File(build.getParameters().getCurrentDir(), crashLogFileName),
+            new File(diagnostics.getDaemonLog().getParent(), crashLogFileName)
+        );
+        return candidates.stream()
+            .filter(File::isFile)
+            .findFirst();
     }
 
     private IllegalStateException invalidResponse(Object response, Build command, DaemonDiagnostics diagnostics) {
