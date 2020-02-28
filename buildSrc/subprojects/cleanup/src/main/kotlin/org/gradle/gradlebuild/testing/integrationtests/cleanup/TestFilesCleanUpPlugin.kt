@@ -29,11 +29,5 @@ open class TestFilesCleanUpPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val testFilesCleanup = extensions.create<TestFileCleanUpExtension>("testFilesCleanup", objects)
         testFilesCleanup.policy.set(WhenNotEmpty.FAIL)
-
-        tasks.register("verifyTestFilesCleanup", EmptyDirectoryCheck::class) {
-            targetDirectory.set(layout.buildDirectory.dir("tmp/test files"))
-            reportFile.set(layout.buildDirectory.file("reports/remains.txt"))
-            policy.set(testFilesCleanup.policy)
-        }
     }
 }

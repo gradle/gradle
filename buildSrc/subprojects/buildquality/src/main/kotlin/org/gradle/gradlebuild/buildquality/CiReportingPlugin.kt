@@ -12,6 +12,8 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.buildquality.classycle.Classycle
 import org.gradle.gradlebuild.docs.FindBrokenInternalLinks
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.TestFileCleanUpExtension
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.kotlin.dsl.get
 import org.gradle.kotlin.dsl.withGroovyBuilder
 import org.gradle.plugin.devel.tasks.ValidatePlugins
@@ -36,17 +38,30 @@ open class CiReportingPlugin : Plugin<Project> {
                 val executedTasks = project.executedTasks()
                 val tmpTestFiles = project.subprojects.flatMap { it.tmpTestFiles() }
                 prepareReportsForCiPublishing(failedTasks, executedTasks, tmpTestFiles)
-                verifyTestFilesCleanup(failedTasks, tmpTestFiles)
+                project.verifyTestFilesCleanup(failedTasks, tmpTestFiles)
             }
         }
     }
 
     private
-    fun verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
-        if (failedTasks.none { it is Test }) {
-            if (tmpTestFiles.isNotEmpty()) {
-                throw GradleException("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.first.absolutePath }}")
-            }
+    fun Project.getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]?.extensions?.getByType(TestFileCleanUpExtension::class.java)?.policy?.get()
+
+
+    private
+    fun Project.verifyTestFilesCleanup(failedTasks: List<Task>, tmpTestFiles: List<Pair<File, String>>) {
+        if (failedTasks.any { it is Test }) {
+            return
+        }
+
+        val testFilesToFail = tmpTestFiles.filter { getCleanUpPolicy(it.second) != WhenNotEmpty.REPORT }
+        val testFilesToReport = tmpTestFiles.filter { getCleanUpPolicy(it.second) == WhenNotEmpty.REPORT }
+
+        if (testFilesToReport.isNotEmpty()) {
+            println("Found non-empty test files dir:\n${testFilesToReport.joinToString("\n") { it.first.absolutePath }}")
+        }
+
+        if (testFilesToFail.isNotEmpty()) {
+            throw GradleException("Found non-empty test files dir:\n${tmpTestFiles.joinToString("\n") { it.first.absolutePath }}")
         }
     }
 
@@ -64,7 +79,7 @@ open class CiReportingPlugin : Plugin<Project> {
 
     private
     fun Project.tmpTestFiles() =
-        File(buildDir, "tmp/test files").takeIf {
+        File(buildDir, "tmp/test files").listFiles()?.filter {
             var nonEmpty = false
             project.fileTree(it).visit {
                 if (!isDirectory) {
@@ -72,8 +87,8 @@ open class CiReportingPlugin : Plugin<Project> {
                 }
             }
             nonEmpty
-        }?.let {
-            listOf(it to name)
+        }?.map {
+            it to name
         } ?: emptyList()
 
     private
