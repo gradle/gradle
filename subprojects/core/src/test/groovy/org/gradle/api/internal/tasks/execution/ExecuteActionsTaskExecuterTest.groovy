@@ -22,6 +22,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.changedetection.TaskExecutionMode
+import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
@@ -140,6 +141,7 @@ class ExecuteActionsTaskExecuterTest extends Specification {
     def emptySourceTaskSkipper = Stub(EmptySourceTaskSkipper)
     def overlappingOutputDetector = Stub(OverlappingOutputDetector)
     def fileCollectionFactory = TestFiles.fileCollectionFactory()
+    def fileOperations = Stub(FileOperations)
     def deleter = TestFiles.deleter()
     def validationWarningReporter = Stub(ValidateStep.ValidationWarningReporter)
 
@@ -178,7 +180,8 @@ class ExecuteActionsTaskExecuterTest extends Specification {
         listenerManager,
         reservedFileSystemLocationRegistry,
         emptySourceTaskSkipper,
-        fileCollectionFactory
+        fileCollectionFactory,
+        fileOperations
     )
 
     def setup() {

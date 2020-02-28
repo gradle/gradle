@@ -413,11 +413,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
                 buildTask.setGroup(BasePlugin.BUILD_GROUP);
                 buildTask.dependsOn(BUILD_TASK_NAME);
+                boolean hasIncludedBuilds = !buildTask.getProject().getGradle().getIncludedBuilds().isEmpty();
                 buildTask.doFirst(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
-                        if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
-                            task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
+                        if (hasIncludedBuilds) {
+                            task.getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
                         }
                     }
                 });

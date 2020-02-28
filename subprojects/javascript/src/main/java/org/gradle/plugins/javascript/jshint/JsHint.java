@@ -23,6 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
@@ -53,9 +54,16 @@ public class JsHint extends SourceTask {
     private Object jsHint;
     private String encoding = "UTF-8";
     private Object jsonReport;
+    private LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
+    private File projectDir = getProject().getProjectDir();
 
     @Inject
     protected WorkerProcessFactory getWorkerProcessBuilderFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -70,7 +78,7 @@ public class JsHint extends SourceTask {
 
     @Classpath
     public FileCollection getRhinoClasspath() {
-        return getProject().files(rhinoClasspath);
+        return getObjectFactory().fileCollection().from(rhinoClasspath);
     }
 
     /**
@@ -89,7 +97,7 @@ public class JsHint extends SourceTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     public FileCollection getJsHint() {
-        return getProject().files(jsHint);
+        return getObjectFactory().fileCollection().from(jsHint);
     }
 
     /**
@@ -136,8 +144,7 @@ public class JsHint extends SourceTask {
     public void doJsHint() {
         RhinoWorkerHandleFactory handleFactory = new DefaultRhinoWorkerHandleFactory(getWorkerProcessBuilderFactory());
 
-        LogLevel logLevel = getProject().getGradle().getStartParameter().getLogLevel();
-        JsHintProtocol worker = handleFactory.create(getRhinoClasspath(), JsHintProtocol.class, JsHintWorker.class, logLevel, getProject().getProjectDir());
+        JsHintProtocol worker = handleFactory.create(getRhinoClasspath(), JsHintProtocol.class, JsHintWorker.class, logLevel, projectDir);
 
         JsHintSpec spec = new JsHintSpec();
         spec.setSource(getSource().getFiles()); // flatten because we need to serialize
@@ -162,7 +169,7 @@ public class JsHint extends SourceTask {
             if (data.containsKey("errors")) {
                 anyErrors = true;
 
-                URI projectDirUri = getProject().getProjectDir().toURI();
+                URI projectDirUri = projectDir.toURI();
                 @SuppressWarnings("unchecked") Map<String, Object> errors = (Map<String, Object>) data.get("errors");
                 if (!errors.isEmpty()) {
                     URI relativePath = projectDirUri.relativize(file.toURI());

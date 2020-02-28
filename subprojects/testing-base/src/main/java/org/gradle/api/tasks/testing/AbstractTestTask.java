@@ -22,7 +22,9 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.testing.DefaultTestTaskReports;
 import org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal;
@@ -151,6 +153,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
     @Inject
     protected ListenerManager getListenerManager() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected FileSystemOperations getFileSystemOperations() {
         throw new UnsupportedOperationException();
     }
 
@@ -434,9 +441,15 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
 
         TestExecutionSpec executionSpec = createTestExecutionSpec();
 
-        File binaryResultsDir = getBinResultsDir();
-        getProject().delete(binaryResultsDir);
-        getProject().mkdir(binaryResultsDir);
+        final File binaryResultsDir = getBinResultsDir();
+        FileSystemOperations fs = getFileSystemOperations();
+        fs.delete(new Action<DeleteSpec>() {
+            @Override
+            public void execute(DeleteSpec spec) {
+                spec.delete(binaryResultsDir);
+            }
+        });
+        binaryResultsDir.mkdirs();
 
         Map<String, TestClassResult> results = new HashMap<String, TestClassResult>();
         TestOutputStore testOutputStore = new TestOutputStore(binaryResultsDir);
