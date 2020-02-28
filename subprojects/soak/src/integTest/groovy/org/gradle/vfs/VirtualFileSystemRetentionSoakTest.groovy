@@ -19,6 +19,7 @@ package org.gradle.vfs
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
@@ -28,7 +29,6 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
-    private static final int MAX_FILE_CHANGES_WITHOUT_OVERFLOW = 1000
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
 
@@ -63,7 +63,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     }
 
     def "file watching works with multiple builds on the same daemon"() {
-        def numberOfChangesBetweenBuilds = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangesBetweenBuilds = maxFileChangesWithoutOverflow
 
         when:
         succeeds("assemble")
@@ -100,6 +100,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         numberOfChangeBatches.times { iteration ->
             changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
             waitBetweenChangesToAvoidOverflow()
+            assert !daemon.logContains(FileWatcherRegistry.Type.INVALIDATE.toString()) : "Overflow in file watcher after ${iteration} iterations"
         }
         then:
         succeeds("assemble")
