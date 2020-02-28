@@ -18,6 +18,7 @@ package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
+import org.gradle.util.TestPrecondition
 
 final class JacocoCoverage {
 
@@ -33,10 +34,16 @@ final class JacocoCoverage {
         jacocoVersion.compareTo(supportedJacocoVersion) == -1
     }.asImmutable()
 
-    final static List<String> SUPPORTS_JDK_8_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_8)
-    final static List<String> SUPPORTS_JDK_9_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_9)
+    private final static List<String> SUPPORTS_JDK_8_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_8)
+    private final static List<String> SUPPORTS_JDK_9_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_9)
+    private final static List<String> SUPPORTS_JDK14 = filter(JacocoVersion.SUPPORTS_JDK_14)
 
-    final static List<String> DEFAULT_COVERAGE = JavaVersion.current().isJava9Compatible() ? SUPPORTS_JDK_9_OR_HIGHER : SUPPORTS_JDK_8_OR_HIGHER
+    static List<String> getSupportedVersionsByJdk() {
+        if (TestPrecondition.JDK13_OR_EARLIER.isFulfilled()) {
+            return JavaVersion.current().isJava9Compatible() ? SUPPORTS_JDK_9_OR_HIGHER : SUPPORTS_JDK_8_OR_HIGHER
+        }
+        return SUPPORTS_JDK14
+    }
 
     static List<String> filter(JacocoVersion threshold) {
         ALL.findAll { new JacocoVersion(it) >= threshold }.asImmutable()
@@ -46,6 +53,7 @@ final class JacocoCoverage {
         final static CHECK_INTRODUCED = new JacocoVersion(0, 6, 3)
         final static SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
         final static SUPPORTS_JDK_9 = new JacocoVersion(0, 7, 8)
+        final static SUPPORTS_JDK_14 = new JacocoVersion(0, 8, 5)
         private final Integer major
         private final Integer minor
         private final Integer patch
