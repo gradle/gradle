@@ -38,6 +38,7 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.URL
+import java.util.concurrent.CopyOnWriteArrayList
 
 
 class InstantExecutionReport(
@@ -86,7 +87,7 @@ class InstantExecutionReport(
     }
 
     private
-    val problems = mutableListOf<PropertyProblem>()
+    val problems = CopyOnWriteArrayList<PropertyProblem>()
 
     fun add(problem: PropertyProblem) {
         problems.add(problem)
@@ -189,7 +190,7 @@ class InstantExecutionReport(
             val uniqueProblemCount = uniquePropertyProblems.size
             val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
             appendln("$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique:")
-            uniquePropertyProblems.keys.forEach { (property, message) ->
+            uniquePropertyProblems.keys.sortedBy { it.first }.forEach { (property, message) ->
                 append("  - ")
                 append(property)
                 append(": ")
