@@ -48,6 +48,15 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         // necessary for picking up some of the output/errorOutput when forked executer is used
         executer.withArgument("-i")
         executer.withRepositoryMirrors()
+
+        buildFile << """
+        // TODO: remove once Groovy 2.5.10 goes GA
+        repositories {
+            maven {
+                url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local")
+            }
+        }
+        """
     }
 
     def "compileGoodCode"() {
@@ -404,6 +413,12 @@ abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegratio
         buildScript """
             apply plugin: 'groovy'
             ${mavenCentralRepository()}
+            // TODO: remove once Groovy 2.5.10 goes GA
+            repositories {
+                maven {
+                    url = uri("https://oss.jfrog.org/artifactory/oss-snapshot-local")
+                }
+            }
         """
 
         when:

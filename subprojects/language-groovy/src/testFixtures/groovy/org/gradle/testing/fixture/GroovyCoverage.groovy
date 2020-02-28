@@ -18,9 +18,10 @@ package org.gradle.testing.fixture
 
 
 import org.gradle.util.VersionNumber
+import org.gradle.util.TestPrecondition
 
 class GroovyCoverage {
-    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.10-SNAPSHOT']
+    private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '2.5.10-SNAPSHOT']
     static final String[] ALL
 
     private static final MINIMUM_WITH_GROOVYDOC_SUPPORT = VersionNumber.parse("1.6.9")
@@ -32,6 +33,8 @@ class GroovyCoverage {
     private static final MINIMUM_WITH_PARAMETERS_METADATA_SUPPORT = VersionNumber.parse("2.5.0")
     static final String[] SUPPORTS_PARAMETERS
 
+    private static final String[] SUPPORTS_JDK14
+
     static {
         def allVersions = [*PREVIOUS]
 
@@ -40,14 +43,19 @@ class GroovyCoverage {
             allVersions += GroovySystem.version
         }
 
-        ALL = allVersions
-        SUPPORTS_GROOVYDOC = allVersions.findAll {
+        // TODO: add this to documentation
+        SUPPORTS_JDK14 = allVersions.findAll {
+            !['2.3.10', '2.5.8'].contains(it)
+        }
+        ALL = TestPrecondition.JDK13_OR_EARLIER.fulfilled ? allVersions : SUPPORTS_JDK14
+
+        SUPPORTS_GROOVYDOC = ALL.findAll {
             VersionNumber.parse(it) >= MINIMUM_WITH_GROOVYDOC_SUPPORT
         }
-        SUPPORTS_TIMESTAMP = allVersions.findAll {
+        SUPPORTS_TIMESTAMP = ALL.findAll {
             VersionNumber.parse(it) >= MINIMUM_WITH_TIMESTAMP_SUPPORT
         }
-        SUPPORTS_PARAMETERS = allVersions.findAll {
+        SUPPORTS_PARAMETERS = ALL.findAll {
             VersionNumber.parse(it) >= MINIMUM_WITH_PARAMETERS_METADATA_SUPPORT
         }
     }
