@@ -120,6 +120,8 @@ public abstract class IdePlugin implements Plugin<Project> {
         final TaskProvider<Delete> cleanWorker = project.getTasks().register(cleanName(workerName), Delete.class, new Action<Delete>() {
             @Override
             public void execute(Delete cleanWorker) {
+                cleanWorker.setDescription("Cleans '" + workerName + "' task");
+                cleanWorker.setGroup("IDE");
                 cleanWorker.delete(worker);
             }
         });

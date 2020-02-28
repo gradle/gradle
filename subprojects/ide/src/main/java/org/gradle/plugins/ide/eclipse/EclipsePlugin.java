@@ -137,6 +137,7 @@ public class EclipsePlugin extends IdePlugin {
             @Override
             public void execute(GenerateEclipseProject task) {
                 task.setDescription("Generates the Eclipse project file.");
+                task.setGroup("IDE");
                 task.setInputFile(project.file(".project"));
                 task.setOutputFile(project.file(".project"));
             }
@@ -206,6 +207,7 @@ public class EclipsePlugin extends IdePlugin {
                     @Override
                     public void execute(final GenerateEclipseClasspath task) {
                         task.setDescription("Generates the Eclipse classpath file.");
+                        task.setGroup("IDE");
                         task.setInputFile(project.file(".classpath"));
                         task.setOutputFile(project.file(".classpath"));
                     }
@@ -306,6 +308,7 @@ public class EclipsePlugin extends IdePlugin {
                     public void execute(GenerateEclipseJdt task) {
                         //task properties:
                         task.setDescription("Generates the Eclipse JDT settings file.");
+                        task.setGroup("IDE");
                         task.setOutputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
                         task.setInputFile(project.file(".settings/org.eclipse.jdt.core.prefs"));
                     }

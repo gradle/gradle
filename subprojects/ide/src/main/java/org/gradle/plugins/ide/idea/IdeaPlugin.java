@@ -150,6 +150,7 @@ public class IdeaPlugin extends IdePlugin {
                 @Override
                 public void execute(GenerateIdeaWorkspace task) {
                     task.setDescription("Generates an IDEA workspace file (IWS)");
+                    task.setGroup("IDE");
                     task.setOutputFile(new File(project.getProjectDir(), project.getName() + ".iws"));
                 }
             });
@@ -166,6 +167,7 @@ public class IdeaPlugin extends IdePlugin {
                 @Override
                 public void execute(GenerateIdeaProject projectTask) {
                     projectTask.setDescription("Generates IDEA project file (IPR)");
+                    projectTask.setGroup("IDE");
                 }
             });
             ideaModel.setProject(ideaProject);
@@ -257,6 +259,7 @@ public class IdeaPlugin extends IdePlugin {
             @Override
             public void execute(GenerateIdeaModule task) {
                 task.setDescription("Generates IDEA module files (IML)");
+                task.setGroup("IDE");
             }
         });
         ideaModel.setModule(module);
