@@ -181,9 +181,10 @@ class InstantExecutionReport(
 
     private
     fun summary(outputDirectory: File): String {
-        val uniquePropertyProblems = problems.groupBy {
-            propertyDescriptionFor(it) to it.message
-        }
+        val uniquePropertyProblems = problems
+            .sortedBy { it.trace.sequence.toList().reversed().joinToString() }
+            .groupBy { propertyDescriptionFor(it) to it.message }
+            .keys
         return StringBuilder().apply {
             appendln()
             val totalProblemCount = problems.size
@@ -191,7 +192,7 @@ class InstantExecutionReport(
             val uniqueProblemCount = uniquePropertyProblems.size
             val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
             appendln("$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique:")
-            uniquePropertyProblems.keys.sortedBy { it.first }.forEach { (property, message) ->
+            uniquePropertyProblems.forEach { (property, message) ->
                 append("  - ")
                 append(property)
                 append(": ")
