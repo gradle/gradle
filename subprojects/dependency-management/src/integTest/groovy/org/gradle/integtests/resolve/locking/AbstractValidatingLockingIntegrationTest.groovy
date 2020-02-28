@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.resolve.locking
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
@@ -139,6 +140,42 @@ dependencies {
     def 'fails when lock file does not contain entry for module in resolution result'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
+        FeaturePreviewsFixture.enableDependencyLockingImprovedFormat(settingsFile)
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        lockfileFixture.createLockfile(['org:foo:1.0=lockedConf'])
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
+        failure.assertHasCause("Resolved 'org:bar:1.0' which is not part of the dependency lock state")
+    }
+
+    def 'fails when lock file does not contain entry for module in resolution result (legacy)'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
 
         buildFile << """
 dependencyLocking {
@@ -173,6 +210,35 @@ dependencies {
     }
 
     def 'fails when resolution result is empty and lock file contains entries'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        FeaturePreviewsFixture.enableDependencyLockingImprovedFormat(settingsFile)
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+"""
+        lockfileFixture.createLockfile(['org:foo:1.0=lockedConf'])
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause('Could not resolve all dependencies for configuration \':lockedConf\'.')
+        failure.assertHasCause('Did not resolve \'org:foo:1.0\' which is part of the dependency lock state')
+    }
+
+    def 'fails when resolution result is empty and lock file contains entries (legacy)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         buildFile << """
 dependencyLocking {

@@ -67,6 +67,20 @@ line2"""
         result == ['line1', 'line2']
     }
 
+    def 'reads a unique lock file'() {
+        given:
+        lockDir.file('all_locks.singlelockfile') << """#ignored
+bar=a,c
+foo=a,b,c
+empty=d"""
+
+        when:
+        def result = lockFileReaderWriter.readSingleLockFile()
+
+        then:
+        result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
+    }
+
     def 'writes a legacy lock file with prefix on persist'() {
         when:
         context.isScript() >> true

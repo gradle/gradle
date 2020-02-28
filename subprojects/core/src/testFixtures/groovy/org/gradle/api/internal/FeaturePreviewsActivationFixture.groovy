@@ -19,11 +19,17 @@ package org.gradle.api.internal
 class FeaturePreviewsActivationFixture {
 
     static def activeFeatures() {
-        EnumSet.of(FeaturePreviews.Feature.GROOVY_COMPILATION_AVOIDANCE)
+        EnumSet<FeaturePreviews.Feature> active = EnumSet.noneOf(FeaturePreviews.Feature)
+        for (FeaturePreviews.Feature feature : FeaturePreviews.Feature.values()) {
+            if (feature.isActive()) {
+                active.add(feature)
+            }
+        }
+        active
     }
 
     static def inactiveFeatures() {
-        def features = EnumSet.allOf(FeaturePreviews.Feature.class)
+        def features = EnumSet.allOf(FeaturePreviews.Feature)
         features.removeAll(activeFeatures())
         features
     }

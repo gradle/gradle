@@ -23,4 +23,10 @@ class FeaturePreviewsFixture {
 enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 """
     }
+
+    static void enableDependencyLockingImprovedFormat(File settings) {
+        settings << """
+enableFeaturePreview('DEPENDENCY_LOCKING_IMPROVED_FORMAT')
+"""
+    }
 }

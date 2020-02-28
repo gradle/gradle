@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
@@ -42,7 +43,10 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+
+import static org.gradle.api.internal.FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT;
 
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
@@ -62,11 +66,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final boolean partialUpdate;
     private final LockEntryFilter lockEntryFilter;
     private final DomainObjectContext context;
-    private DependencySubstitutionRules dependencySubstitutionRules;
+    private final DependencySubstitutionRules dependencySubstitutionRules;
+    private final boolean uniqueLockStateEnabled;
+    private boolean uniqueLockStateLoaded;
+    private Map<String, List<String>> allLockState;
     private LockMode lockMode;
     private boolean used = false;
 
-    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules) {
+    public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews) {
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
         this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context);
@@ -78,13 +85,17 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
         lockMode = LockMode.DEFAULT;
+        uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(DEPENDENCY_LOCKING_IMPROVED_FORMAT);
     }
 
     @Override
     public DependencyLockingState loadLockState(String configurationName) {
         recordUsage();
+        if (uniqueLockStateEnabled) {
+            loadLockState();
+        }
         if (!writeLocks || partialUpdate) {
-            List<String> lockedModules = lockFileReaderWriter.readLockFile(configurationName);
+            List<String> lockedModules = getLockedModules(configurationName, uniqueLockStateEnabled);
             if (lockedModules == null && lockMode == LockMode.STRICT) {
                 throw new MissingLockStateException(context.identityPath(configurationName).toString());
             }
@@ -106,6 +117,28 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             }
         }
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
+    }
+
+    private List<String> getLockedModules(String configurationName, boolean uniqueLockStateEnabled) {
+        List<String> result = null;
+        if (uniqueLockStateEnabled) {
+            result = allLockState.get(configurationName);
+        }
+        if (result == null) {
+            result = lockFileReaderWriter.readLockFile(configurationName);
+        }
+        return result;
+    }
+
+    private synchronized void loadLockState() {
+        if (!uniqueLockStateLoaded) {
+            try {
+                allLockState = lockFileReaderWriter.readSingleLockFile();
+                uniqueLockStateLoaded = true;
+            } catch (IllegalStateException e) {
+                throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'", e);
+            }
+        }
     }
 
     private void recordUsage() {
@@ -130,7 +163,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         try {
             lockedIdentifier = converter.convertFromLockNotation(module);
         } catch (IllegalArgumentException e) {
-            throw new InvalidLockFileException(context.identityPath(configurationName).getPath(), e);
+            throw new InvalidLockFileException("configuration '" + context.identityPath(configurationName).getPath() + "'", e);
         }
         return lockedIdentifier;
     }

@@ -26,14 +26,18 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 public class LockFileReaderWriter {
 
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
+    static final String UNIQUE_LOCKFILE_NAME = "all_locks.singlelockfile";
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
     static final Charset CHARSET = Charset.forName("UTF-8");
@@ -78,19 +82,14 @@ public class LockFileReaderWriter {
     public List<String> readLockFile(String configurationName) {
         checkValidRoot(configurationName);
 
-        try {
-            Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
-            if (Files.exists(lockFile)) {
-                List<String> lines = Files.readAllLines(lockFile, CHARSET);
-                filterNonModuleLines(lines);
-                return lines;
-            } else {
-                return null;
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to load lock file", e);
+        Path lockFile = lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX);
+        if (Files.exists(lockFile)) {
+            List<String> lines = readAllLines(lockFile);
+            filterNonModuleLines(lines);
+            return lines;
+        } else {
+            return null;
         }
-
     }
 
     private String decorate(String configurationName) {
@@ -115,6 +114,73 @@ public class LockFileReaderWriter {
             if (value.startsWith("#") || value.isEmpty()) {
                 iterator.remove();
             }
+        }
+    }
+
+    public Map<String, List<String>> readSingleLockFile() {
+        if (lockFilesRoot == null) {
+            throw new IllegalStateException("Dependency locking cannot be used for project '" + context.getProjectPath() + "'." +
+                " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
+        }
+        String fileName = decorate(UNIQUE_LOCKFILE_NAME);
+        Path uniqueLockFile = lockFilesRoot.resolve(fileName);
+        if (Files.exists(uniqueLockFile)) {
+            List<String> lines = readAllLines(uniqueLockFile);
+            filterNonModuleLines(lines);
+            return processLines(lines);
+        } else {
+            return null;
+        }
+    }
+
+    private Map<String, List<String>> processLines(List<String> lines) {
+        HashMap<String, List<String>> result = new HashMap<>();
+        for (int i = 0; i < lines.size() - 1; i++) {
+            parseLine(lines.get(i), result);
+
+        }
+        parseEmptyConfigurations(lines.get(lines.size() - 1), result);
+        return result;
+    }
+
+    private void parseEmptyConfigurations(String emptyConfigurations, HashMap<String, List<String>> result) {
+        String[] split = emptyConfigurations.split("=");
+        if (!split[0].equals("empty")) {
+            throw new IllegalStateException("Lockfile does not end with an 'empty=...' entry");
+        }
+        if (split.length > 1) {
+            String[] configurations = split[1].split(",");
+            for (String configuration : configurations) {
+                if (result.putIfAbsent(configuration, new ArrayList<>()) != null) {
+                    throw new IllegalStateException("Lockfile lists configuration '" + configuration + "' as empty, but it had entries already");
+                }
+            }
+        }
+    }
+
+    private void parseLine(String line, Map<String, List<String>> result) {
+        String[] split = line.split("=");
+        String[] configurations = split[1].split(",");
+        for (String configuration : configurations) {
+            result.compute(configuration, (k, v) -> {
+                List<String> mapping;
+                if (v == null) {
+                    mapping = new ArrayList<>();
+                } else {
+                    mapping = v;
+                }
+                mapping.add(split[0]);
+                return mapping;
+            });
+        }
+    }
+
+    private List<String> readAllLines(Path uniqueLockFile) {
+        try {
+            // TODO See if I can use a stream instead
+            return Files.readAllLines(uniqueLockFile, CHARSET);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to load lock file", e);
         }
     }
 }
