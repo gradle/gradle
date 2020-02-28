@@ -240,7 +240,7 @@ class InstantExecutionReport(
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =
-        (problem as? PropertyProblem.Error)?.exception?.let {
+        problem.exception?.let {
             stackTraceStringFor(it)
         }
 
