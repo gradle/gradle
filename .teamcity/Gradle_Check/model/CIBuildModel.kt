@@ -54,8 +54,6 @@ data class CIBuildModel(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
                 SpecificBuild.SmokeTestsMinJavaVersion,
-                SpecificBuild.SmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMinJavaVersion,
                 SpecificBuild.InstantSmokeTestsMaxJavaVersion
             ),
             functionalTests = listOf(
@@ -66,14 +64,18 @@ data class CIBuildModel(
             omitsSlowProjects = true),
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
+            specificBuilds = listOf(
+                SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMinJavaVersion
+            ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
-                TestCoverage(7, TestType.parallel, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
+                TestCoverage(6, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor))
         ),
         Stage(StageNames.READY_FOR_RELEASE,
             trigger = Trigger.daily,
             functionalTests = listOf(
+                TestCoverage(7, TestType.parallel, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(8, TestType.soak, Os.linux, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(9, TestType.soak, Os.windows, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(35, TestType.soak, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
