@@ -75,6 +75,7 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
+import org.gradle.internal.vfs.LinuxFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
@@ -83,7 +84,6 @@ import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.gradle.internal.vfs.watch.impl.JdkFileWatcherRegistry;
 import org.gradle.internal.vfs.watch.impl.NoopFileWatcherRegistry;
 import org.gradle.util.IncubationLogger;
 import org.slf4j.Logger;
@@ -192,8 +192,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             } else if (operatingSystem.isWindows()) {
                 return new WindowsFileWatcherRegistry.Factory();
             } else if (operatingSystem.isLinux()) {
-                // The Linux watcher in the JDK works quite well
-                return new JdkFileWatcherRegistry.Factory();
+                return new LinuxFileWatcherRegistry.Factory();
             } else {
                 return new NoopFileWatcherRegistry.Factory();
             }
