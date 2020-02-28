@@ -18,9 +18,12 @@ package org.gradle.api.plugins.quality.codenarc
 
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.normaliseLineSeparators
 
+@Requires(TestPrecondition.JDK13_OR_EARLIER) // Current CodeNarc does not work with JDK14 because of the groovy version it uses
 class CodeNarcRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override

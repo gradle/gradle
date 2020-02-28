@@ -43,10 +43,8 @@ class GroovyCoverage {
             allVersions += GroovySystem.version
         }
 
-        // TODO: add this to documentation
-        SUPPORTS_JDK14 = allVersions.findAll {
-            !['2.3.10', '2.5.8'].contains(it)
-        }
+        // TODO: document this
+        SUPPORTS_JDK14 = allVersions - ['2.3.10', '2.5.8']
         ALL = TestPrecondition.JDK13_OR_EARLIER.fulfilled ? allVersions : SUPPORTS_JDK14
 
         SUPPORTS_GROOVYDOC = ALL.findAll {

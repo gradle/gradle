@@ -260,6 +260,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @ToBeFixedForInstantExecution
+    @Requires(TestPrecondition.JDK13_OR_EARLIER) // Current CodeNarc does not work with JDK14 because of the groovy version it uses
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -360,6 +361,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @ToBeFixedForInstantExecution
+    @Requires(TestPrecondition.JDK13_OR_EARLIER) // Current CodeNarc does not work with JDK14 because of the groovy version it uses
     void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()

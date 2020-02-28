@@ -18,14 +18,20 @@ package org.gradle.quality.integtest.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.CodeNarcPlugin
+import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 
 class CodeNarcCoverage {
     private final static List<String> ALL = ["0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", "1.2.1", CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
 
     private final static List<String> JDK11_SUPPORTED = ALL.findAll { VersionNumber.parse(it) > VersionNumber.parse("0.21") }.asImmutable()
+    // TODO: document this
+    private final static List<String> JDK14_SUPPORTED = ALL - ['0.17', '0.21', '1.0', '1.2.1', '1.5']
 
     static List<String> getSupportedVersionsByJdk() {
-        JavaVersion.current().java11Compatible ? JDK11_SUPPORTED : ALL
+        if (TestPrecondition.JDK13_OR_EARLIER.isFulfilled()) {
+            return JavaVersion.current().java11Compatible ? JDK11_SUPPORTED : ALL
+        }
+        return JDK14_SUPPORTED
     }
 }

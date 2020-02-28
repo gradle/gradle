@@ -16,17 +16,19 @@
 package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
+import static org.gradle.util.TestPrecondition.JDK13_OR_EARLIER
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Requires([KOTLIN_SCRIPT])
+// Current CodeNarc does not work with JDK14 because of the groovy version it uses
+@Requires([KOTLIN_SCRIPT, JDK13_OR_EARLIER])
 class SamplesCodeQualityIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
