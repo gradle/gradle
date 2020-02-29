@@ -104,6 +104,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11703")
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()
         def project2 = file("project2").createDir()
