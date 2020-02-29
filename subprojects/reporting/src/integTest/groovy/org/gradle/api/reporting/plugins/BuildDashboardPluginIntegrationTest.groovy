@@ -109,6 +109,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         'buildDashboard'
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'build dashboard for a project with no other reports lists just the dashboard'() {
         when:
         run('buildDashboard')
@@ -119,6 +120,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'build dashboard lists the enabled reports for the project'() {
         given:
         goodCode()
@@ -134,6 +136,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'build dashboard lists the reports which have not been generated'() {
         given:
         goodCode()
@@ -150,6 +153,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasUnavailableReport(':test', 'junitXml')
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'build dashboard is always generated after report generating tasks have executed'() {
         given:
         goodCode()
@@ -165,6 +169,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'running a report generating task also generates build dashboard'() {
         given:
         goodCode()
@@ -180,6 +185,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':test', 'junitXml')
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'build dashboard is generated even if report generating task fails'() {
         given:
         goodCode()
@@ -239,7 +245,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         !buildDashboardFile.exists()
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'buildDashboard is incremental'() {
         given:
         goodCode()
@@ -259,7 +265,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         executedAndNotSkipped(':buildDashboard')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'enabling an additional report renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -292,6 +298,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':codenarcMain', 'text')
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'generating a report that was previously not available renders buildDashboard out-of-date'() {
         given:
         goodCode()
@@ -320,6 +327,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         unavailableReports.empty
     }
 
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'reports from subprojects are aggregated'() {
         given:
         goodCode()
@@ -339,7 +347,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
     }
 
     @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'dashboard includes JaCoCo reports'() {
         given:
         goodCode()
@@ -359,7 +367,7 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':jacocoTestReport', 'html')
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'dashboard includes CodeNarc reports'() {
         given:
         goodCode()
