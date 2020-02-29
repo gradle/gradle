@@ -246,6 +246,16 @@ class IvyComponentRule implements ComponentMetadataRule {
 }
 // end::ivy-component-metadata-rule[]
 
+// tag::maven-packaging-component-metadata-rule[]
+class MavenComponentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        val descriptor = context.getDescriptor(PomModuleDescriptor)
+        if (descriptor != null && descriptor.packaging == "war") {
+            // ...
+        }
+    }
+}
+// end::maven-packaging-component-metadata-rule[]
 
 // tag::custom-status-scheme[]
 class CustomStatusRule implements ComponentMetadataRule {
