@@ -18,13 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.artifacts.maven.PomModuleDescriptor;
-import org.gradle.api.internal.artifacts.DefaultPomModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
-import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata;
 
 class DefaultComponentMetadataContext implements ComponentMetadataContext {
 
