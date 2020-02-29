@@ -230,13 +230,12 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/output2.txt").text == "data2"
     }
 
-    @ToBeFixedForInstantExecution
     def "cacheable task with multiple outputs with not matching cardinality don't get cached"() {
         buildFile << """
             task customTask {
                 outputs.cacheIf { true }
                 def fileList
-                if (project.hasProperty("changedCardinality")) {
+                if (System.getProperty("changedCardinality")) {
                     fileList = ["build/output1.txt"]
                 } else {
                     fileList = ["build/output1.txt", "build/output2.txt"]
@@ -247,7 +246,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 doLast {
                     output1.parentFile.mkdirs()
                     output1 << "data"
-                    if (!project.hasProperty("changedCardinality")) {
+                    if (!System.getProperty("changedCardinality")) {
                         output2 << "data"
                     }
                 }
@@ -261,7 +260,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().run "customTask", "-PchangedCardinality"
+        withBuildCache().run "customTask", "-DchangedCardinality=yes"
         then:
         executedAndNotSkipped ":customTask"
     }
@@ -879,7 +878,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        succeeds "customTask", "-PassertLocalState"
+        succeeds "customTask", "-DassertLocalState=yes"
         then:
         executedAndNotSkipped ":customTask"
 

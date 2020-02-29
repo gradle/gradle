@@ -61,7 +61,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
                 outputs.cacheIf { true }
                 doLast {
                     outFile << "xxx"
-                    if (project.hasProperty("fail")) {
+                    if (System.getProperty("fail")) {
                         throw new RuntimeException("Boo!")
                     }
                 }
@@ -70,7 +70,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
 
         expect:
         executer.withStackTraceChecksDisabled()
-        withBuildCache().fails "foo", "-Pfail"
+        withBuildCache().fails "foo", "-Dfail=yes"
 
         when:
         withBuildCache().run "foo"
