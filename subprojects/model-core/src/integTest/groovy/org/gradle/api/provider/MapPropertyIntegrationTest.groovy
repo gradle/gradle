@@ -270,7 +270,7 @@ task thing {
             verify {
                 prop.empty()
                 prop['key1'] = 'value1'
-                prop['key2'] = project.provider { 'value2' }
+                prop['key2'] = provider { 'value2' }
                 expected = ['key1': 'value1', 'key2': 'value2']
             }
             '''.stripIndent()
