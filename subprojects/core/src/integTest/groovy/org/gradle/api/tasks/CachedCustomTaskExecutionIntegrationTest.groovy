@@ -242,11 +242,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                     fileList = ["build/output1.txt", "build/output2.txt"]
                 }
                 outputs.files files(fileList) withPropertyName("out")
+                def output1 = project.file("build/output1.txt")
+                def output2 = project.file("build/output2.txt")
                 doLast {
-                    file("build").mkdirs()
-                    file("build/output1.txt") << "data"
+                    output1.parentFile.mkdirs()
+                    output1 << "data"
                     if (!project.hasProperty("changedCardinality")) {
-                        file("build/output2.txt") << "data"
+                        output2 << "data"
                     }
                 }
             }
@@ -273,7 +275,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFile outputFile
 
                 @TaskAction copy() {
-                    project.mkdir outputFile.parentFile
+                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                 }
             }
@@ -324,7 +326,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             inputs.file(file("input.txt"))
             outputs.file(outputFile)
             doLast {
-                project.mkdir outputFile.parentFile
+                outputFile.parentFile.mkdirs()
                 outputFile.text = file("input.txt").text
             }
         }
@@ -527,8 +529,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("input.txt") << "data"
 
         buildFile << """
+            import javax.inject.Inject
+
             @CacheableTask
-            class CustomTask extends DefaultTask {
+            abstract class CustomTask extends DefaultTask {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile = project.file("input.txt")
@@ -539,9 +543,12 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFile
                 File output = project.file("build/output.txt")
 
+                @Inject
+                abstract FileSystemOperations getFs()
+
                 @TaskAction void doSomething() {
                     output.text = inputFile.text
-                    project.delete(missing)
+                    fs.delete { delete(missing) }
                 }
             }
 
@@ -931,9 +938,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
+            import javax.inject.Inject
 
             @CacheableTask
-            class ProducerTask extends DefaultTask {
+            abstract class ProducerTask extends DefaultTask {
                 @InputFile @PathSensitive(PathSensitivity.NONE) File input
                 @Optional @OutputFile nullFile
                 @Optional @OutputDirectory nullDir
@@ -943,13 +951,16 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputDirectory File emptyDir
                 @OutputDirectory File singleFileInDir
                 @OutputDirectory File manyFilesInDir
+                @Inject abstract FileSystemOperations getFs()
                 @TaskAction action() {
-                    project.delete(missingFile)
-                    project.delete(missingDir)
+                    fs.delete {
+                        delete(missingFile)
+                        delete(missingDir)
+                    }
                     regularFile.text = "regular file"
-                    project.file("\$singleFileInDir/file.txt").text = "single file in dir"
-                    project.file("\$manyFilesInDir/file-1.txt").text = "file #1 in dir"
-                    project.file("\$manyFilesInDir/file-2.txt").text = "file #2 in dir"
+                    new File(singleFileInDir, "file.txt").text = "single file in dir"
+                    new File(manyFilesInDir, "file-1.txt").text = "file #1 in dir"
+                    new File(manyFilesInDir, "file-2.txt").text = "file #2 in dir"
                 }
             }
 

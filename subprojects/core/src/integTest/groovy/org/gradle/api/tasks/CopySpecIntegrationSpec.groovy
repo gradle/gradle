@@ -84,8 +84,9 @@ class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript """
             task ($operation) {
+                def fs = services.get(FileSystemOperations)
                 doLast {
-                    project.$operation {
+                    fs.$operation {
                         from 'src'
                         into 'dest'
                         expand(one: 1)

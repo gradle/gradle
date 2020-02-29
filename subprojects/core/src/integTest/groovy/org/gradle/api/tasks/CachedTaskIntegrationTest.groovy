@@ -56,10 +56,11 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
     def "task is cacheable after previous failure"() {
         buildFile << """
             task foo {
-                outputs.file("out.txt")
+                def outFile = project.file("out.txt")
+                outputs.file(outFile)
                 outputs.cacheIf { true }
                 doLast {
-                    project.file("out.txt") << "xxx"
+                    outFile << "xxx"
                     if (project.hasProperty("fail")) {
                         throw new RuntimeException("Boo!")
                     }
