@@ -16,8 +16,9 @@
 
 package org.gradle.jvm.test
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def setup() {
@@ -27,7 +28,6 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         writeTestResource()
     }
 
-    @ToBeFixedForInstantExecution
     def "skips execution when nothing changes"() {
         expect:
         succeeds ':myTestBinaryTest'
@@ -43,7 +43,6 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         skipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
     }
 
-    @ToBeFixedForInstantExecution
     def "re-executes test when source changes"() {
         expect:
         succeeds ':myTestBinaryTest'
@@ -62,7 +61,6 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':compileMyTestBinaryMyTestJava', ':myTestBinaryTest'
     }
 
-    @ToBeFixedForInstantExecution
     def "re-executes test when resource changes"() {
         when:
         succeeds ':myTestBinaryTest'
@@ -81,7 +79,6 @@ class JUnitIncrementalTestExecutionTest extends AbstractJUnitTestExecutionIntegr
         executedAndNotSkipped ':processMyTestBinaryMyTestResources', ':myTestBinaryTest'
     }
 
-    @ToBeFixedForInstantExecution
     def "re-executes test when local library dependency changes"() {
         given:
         utilsLibrary()
