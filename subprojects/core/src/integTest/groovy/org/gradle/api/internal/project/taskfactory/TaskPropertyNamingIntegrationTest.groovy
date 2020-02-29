@@ -80,7 +80,7 @@ class TaskPropertyNamingIntegrationTest extends AbstractIntegrationSpec {
                 doLast {
                     def outputFiles = [:]
                     def inputFiles = [:]
-                    TaskPropertyUtils.visitProperties(project.services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
+                    TaskPropertyUtils.visitProperties(services.get(PropertyWalker), it, new PropertyVisitor.Adapter() {
                         @Override
                         void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
                             inputFiles[propertyName] = project.files(value)

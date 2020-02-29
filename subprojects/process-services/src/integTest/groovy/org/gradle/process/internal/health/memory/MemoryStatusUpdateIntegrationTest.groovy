@@ -44,7 +44,7 @@ class MemoryStatusUpdateIntegrationTest extends AbstractIntegrationSpec {
                     final CountDownLatch osNotification = new CountDownLatch(1)
                     final CountDownLatch jvmNotification = new CountDownLatch(1)
 
-                    MemoryManager manager = project.services.get(MemoryManager.class)
+                    MemoryManager manager = services.get(MemoryManager.class)
                     manager.addListener(new JvmMemoryStatusListener() {
                         void onJvmMemoryStatus(JvmMemoryStatus memoryStatus) {
                             logger.lifecycle "JVM MemoryStatus notification: $memoryStatus"

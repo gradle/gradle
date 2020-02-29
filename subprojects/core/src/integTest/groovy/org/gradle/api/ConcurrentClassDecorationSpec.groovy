@@ -32,7 +32,7 @@ class ConcurrentClassDecorationSpec extends AbstractIntegrationSpec {
             file("$name/build.gradle") << """
                 task decorateClass {
                     doLast {
-                        def instantiator = project.services.get(${Instantiator.name})
+                        def instantiator = services.get(${Instantiator.name})
                         def thing = instantiator.newInstance(Thing)
                         assert thing instanceof ${ExtensionAware.name}
                     }
