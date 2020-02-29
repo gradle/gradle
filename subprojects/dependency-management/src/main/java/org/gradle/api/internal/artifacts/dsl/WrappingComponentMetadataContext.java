@@ -19,13 +19,10 @@ package org.gradle.api.internal.artifacts.dsl;
 import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ComponentMetadataDetailsAdapter;
 import org.gradle.api.internal.artifacts.repositories.resolver.DependencyConstraintMetadataImpl;
 import org.gradle.api.internal.artifacts.repositories.resolver.DirectDependencyMetadataImpl;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.reflect.Instantiator;
@@ -40,6 +37,7 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
     private final NotationParser<Object, DependencyConstraintMetadataImpl> dependencyConstraintMetadataNotationParser;
     private final NotationParser<Object, ComponentIdentifier> componentIdentifierParser;
     private final PlatformSupport platformSupport;
+    private final MetadataDescriptorFactory descriptorFactory;
 
     private MutableModuleComponentResolveMetadata mutableMetadata;
     private ComponentMetadataDetails details;
@@ -55,17 +53,12 @@ class WrappingComponentMetadataContext implements ComponentMetadataContext {
         this.dependencyConstraintMetadataNotationParser = dependencyConstraintMetadataNotationParser;
         this.componentIdentifierParser = componentIdentifierParser;
         this.platformSupport = platformSupport;
+        this.descriptorFactory = new MetadataDescriptorFactory(metadata);
     }
 
     @Override
     public <T> T getDescriptor(Class<T> descriptorClass) {
-        if (IvyModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
-            if (metadata instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-                return descriptorClass.cast(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
-            }
-        }
-        return null;
+        return descriptorFactory.createDescriptor(descriptorClass);
     }
 
     @Override

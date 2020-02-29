@@ -100,6 +100,41 @@ dependencies {
         outputDoesNotContain('See dependency')
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def 'cached rule can access PomModuleDescriptor for Maven component'() {
+        given:
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        buildFile << """
+@CacheableRule
+class PomRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        println(context)
+        assert context.getDescriptor(PomModuleDescriptor) != null
+        assert context.getDescriptor(PomModuleDescriptor).packaging == "jar"
+    }
+}
+
+dependencies {
+    components {
+        all(PomRule)
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+        succeeds 'resolve'
+    }
+
     @ToBeFixedForInstantExecution
     def 'rule cache properly differentiates inputs'() {
         repository {

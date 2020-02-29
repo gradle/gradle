@@ -479,6 +479,12 @@ resolve.doLast {
             'org.test:projectA:1.0'()
         }
 
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
         buildFile << """
 class IvyRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
@@ -492,6 +498,33 @@ dependencies {
     }
 }
 """
+
+        then:
+        succeeds 'resolve'
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def 'rule can access PomModuleDescriptor for Maven component'() {
+        given:
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        buildFile << """
+class PomRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        println(context)
+        assert context.getDescriptor(PomModuleDescriptor) != null
+        assert context.getDescriptor(PomModuleDescriptor).packaging == "jar"
+    }
+}
+
+dependencies {
+    components {
+        all(PomRule)
+    }
+}
+"""
         when:
         repositoryInteractions {
             'org.test:projectA:1.0' {
@@ -500,6 +533,7 @@ dependencies {
         }
 
         then:
+        succeeds 'resolve'
         succeeds 'resolve'
     }
 
