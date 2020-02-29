@@ -100,6 +100,7 @@ dependencies {
         outputDoesNotContain('See dependency')
     }
 
+    @ToBeFixedForInstantExecution
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'cached rule can access PomModuleDescriptor for Maven component'() {
         given:

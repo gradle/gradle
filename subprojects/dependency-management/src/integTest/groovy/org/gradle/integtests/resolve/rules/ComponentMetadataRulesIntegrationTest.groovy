@@ -503,6 +503,7 @@ dependencies {
         succeeds 'resolve'
     }
 
+    @ToBeFixedForInstantExecution
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'rule can access PomModuleDescriptor for Maven component'() {
         given:
