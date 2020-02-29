@@ -20,6 +20,8 @@ import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.bundledGradlePlugin
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+
 
 plugins {
     `kotlin-dsl-plugin-bundle`
@@ -144,6 +146,6 @@ tasks.noDaemonIntegTest {
 }
 
 // TODO:kotlin-dsl
-tasks.verifyTestFilesCleanup {
-    enabled = false
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
 }
