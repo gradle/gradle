@@ -92,7 +92,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     val gradleUserHomeDir = project.gradle.gradleUserHomeDir
 
     private
-    val projectPath = project.path
+    val projectDesc = project.toString()
 
     @get:Classpath
     lateinit var runtimeClassPathFiles: FileCollection
@@ -231,7 +231,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
     private
     fun validationErrorFor(pluginRequest: PluginRequestInternal): String? {
         if (pluginRequest.version != null) {
-            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectPath."
+            return "Invalid plugin request $pluginRequest. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin '${pluginRequest.id}' is an implementation dependency of $projectDesc."
         }
         // TODO:kotlin-dsl validate apply false
         return null
