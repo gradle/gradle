@@ -18,6 +18,7 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -303,6 +304,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         !file('dest/nonPreservedDir').isDirectory()
     }
 
+    @UnsupportedWithInstantExecution(because = "Task.getProject() during execution")
     def "sync action"() {
         given:
         defaultSourceFileTree()
