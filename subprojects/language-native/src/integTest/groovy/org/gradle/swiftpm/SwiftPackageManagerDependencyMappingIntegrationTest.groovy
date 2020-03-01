@@ -16,6 +16,7 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.vcs.fixtures.GitFileRepository
 import spock.lang.Unroll
 
@@ -89,6 +90,7 @@ class SwiftPackageManagerDependencyMappingIntegrationTest extends AbstractSwiftP
         failure.assertHasCause("Cannot map a dependency on dep:dep that defines both a branch (release) and a version constraint (1.0).")
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with dependencies on multiple repositories"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
@@ -205,6 +207,7 @@ let package = Package(
         lib2Repo?.close()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with dependencies on libraries provided by included builds"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repos/lib1"))
@@ -327,6 +330,7 @@ let package = Package(
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "maps dependency on #src to #mapped"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
@@ -440,6 +444,7 @@ let package = Package(
         '(1.0.0,2.0.0)' | _
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "maps dependency on latest.integration to master branch"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))
@@ -502,6 +507,7 @@ let package = Package(
         lib1Repo?.close()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "maps dependency on upstream branch"() {
         given:
         def lib1Repo = GitFileRepository.init(testDirectory.file("repo/lib1"))

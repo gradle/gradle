@@ -17,12 +17,14 @@
 package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
 @IntegrationTestTimeout(180)
 class ErrorInWorkerSocketIntegrationTest extends AbstractIntegrationSpec {
     private static final String MESSAGE = 'This breaks socket connection threads in worker process deliberately'
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "worker won't hang when error occurs in socket connection"() {
         given:
         requireOwnGradleUserHomeDir()

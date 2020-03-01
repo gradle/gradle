@@ -84,6 +84,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 4
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "resolved detached configurations are exposed"() {
         setup:
         buildFile << """                
