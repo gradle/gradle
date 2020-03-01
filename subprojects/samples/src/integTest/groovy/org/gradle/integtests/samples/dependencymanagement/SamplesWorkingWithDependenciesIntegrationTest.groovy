@@ -86,8 +86,7 @@ commons-codec:commons-codec:1.7""")
         succeeds('walkDependencyGraph')
 
         then:
-        outputContains("""scm
-- org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r (requested)
+        outputContains("""- org.eclipse.jgit:org.eclipse.jgit:4.9.2.201712150930-r (requested)
      - com.jcraft:jsch:0.1.54 (requested)
      - com.googlecode.javaewah:JavaEWAH:1.1.6 (requested)
      - org.apache.httpcomponents:httpclient:4.3.6 (requested)
