@@ -30,7 +30,9 @@ import java.util.concurrent.Callable
 
 abstract class PropertySpec<T> extends ProviderSpec<T> {
     @Override
-    abstract PropertyInternal<T> providerWithValue(T value)
+    PropertyInternal<T> providerWithValue(T value) {
+        return propertyWithDefaultValue().value(value)
+    }
 
     @Override
     PropertyInternal<T> providerWithNoValue() {
@@ -46,12 +48,6 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
      * Returns a property with its default value.
      */
     abstract PropertyInternal<T> propertyWithDefaultValue()
-
-    abstract T someValue()
-
-    abstract T someOtherValue()
-
-    abstract Class<T> type()
 
     @Override
     String getDisplayName() {
@@ -1423,7 +1419,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.setFromAnyValue(Stub(ProviderInternal))
+        property.setFromAnyValue(brokenSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -1452,7 +1448,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.setFromAnyValue(Stub(ProviderInternal))
+        property.setFromAnyValue(brokenSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -1482,7 +1478,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.setFromAnyValue(Stub(ProviderInternal))
+        property.setFromAnyValue(brokenSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -1511,7 +1507,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.setFromAnyValue(Stub(ProviderInternal))
+        property.setFromAnyValue(brokenSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -1746,6 +1742,51 @@ The value of this property is derived from:
 
         and:
         result2 == someValue()
+    }
+
+    def "reports that value is unsafe to read regardless of whether a value is available or not"() {
+        given:
+        def property = propertyWithNoValue()
+        property.disallowUnsafeRead()
+        _ * host.beforeRead() >> "<reason>"
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot query the value of this property because <reason>."
+
+        when:
+        property.set(supplierWithNoValue())
+        property.get()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot query the value of this property because <reason>."
+
+        when:
+        property.set(brokenSupplier())
+        property.get()
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == "Cannot query the value of this property because <reason>."
+    }
+
+    def "can read value of finalized property when host is not ready and unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+        property.finalizeValue()
+
+        when:
+        def result = property.get()
+
+        then:
+        result == someValue()
+        0 * host._
     }
 
     def "cannot set value after value read when unsafe read disallowed"() {
