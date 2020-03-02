@@ -191,9 +191,15 @@ try {
     println("get failed with: \${e.message}")
 }
 
+thing.prop.set("123")
+
 afterEvaluate {
     println("value = \${thing.prop.get()}")
-    thing.prop.set("123")
+    try {
+        thing.prop.set("ignore me")
+    } catch(IllegalStateException e) {
+        println("set failed with: \${e.message}")
+    }
 }
 
 task show {
@@ -208,7 +214,45 @@ task show {
 
         then:
         outputContains("get failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not finished yet.")
-        outputContains("value = abc")
+        outputContains("set failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
+        outputContains("value = 123")
+        outputContains("value = 123")
+    }
+
+    def "can change strict property value after afterEvaluate starts and before the value has been read"() {
+        given:
+        settingsFile << 'rootProject.name = "broken"'
+        buildFile << """
+interface ProjectModel {
+    Property<String> getProp()
+}
+
+project.extensions.create('thing', ProjectModel.class)
+thing.prop.disallowUnsafeRead()
+
+afterEvaluate {
+    thing.prop.set("123")
+    println("value = \${thing.prop.get()}")
+    try {
+        thing.prop.set("ignore me")
+    } catch(IllegalStateException e) {
+        println("set failed with: \${e.message}")
+    }
+}
+
+task show {
+    doLast {
+        println("value = \${thing.prop.get()}")
+    }
+}
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("set failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
+        outputContains("value = 123")
         outputContains("value = 123")
     }
 }

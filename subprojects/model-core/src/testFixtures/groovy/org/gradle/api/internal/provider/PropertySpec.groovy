@@ -1702,7 +1702,7 @@ The value of this property is derived from:
         e2.message == 'The value for <display-name> cannot be changed any further.'
     }
 
-    def "cannot read value when unsafe read disallowed and host is not ready"() {
+    def "cannot read value until host is ready when unsafe read disallowed"() {
         given:
         def property = propertyWithDefaultValue()
         property.set(someValue())
@@ -1737,6 +1737,46 @@ The value of this property is derived from:
 
         and:
         result == someValue()
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * host._
+
+        and:
+        result2 == someValue()
+    }
+
+    def "cannot set value after value read when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+
+        when:
+        property.convention(someOtherValue())
+        property.set(brokenSupplier())
+        setToNull(property)
+        property.set(someValue())
+
+        then:
+        noExceptionThrown()
+
+        when:
+        def result = property.get()
+
+        then:
+        1 * host.beforeRead() >> null
+
+        and:
+        result == someValue()
+
+        when:
+        property.set(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "The value for this property is final and cannot be changed any further."
     }
 
     def "reports the source of property value when value is missing and source is known"() {
