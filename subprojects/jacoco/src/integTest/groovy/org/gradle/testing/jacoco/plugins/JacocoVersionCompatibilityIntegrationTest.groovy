@@ -16,12 +16,14 @@
 package org.gradle.testing.jacoco.plugins
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 
 @TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
 class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
+    @ToBeFixedForInstantExecution
     def "can run versions"() {
         given:
         javaProjectUnderTest.writeSourceFiles()
