@@ -50,7 +50,8 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         this.displayName = displayName;
     }
 
-    @Nullable @Override
+    @Nullable
+    @Override
     protected DisplayName getDeclaredDisplayName() {
         return displayName;
     }
@@ -151,6 +152,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     @Override
     public void disallowUnsafeRead() {
         disallowUnsafeRead = true;
+        finalizeOnNextGet = true;
     }
 
     protected abstract void applyDefaultValue();
@@ -164,10 +166,7 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         if (state == State.Final) {
             return;
         }
-        if (finalizeOnNextGet) {
-            makeFinal();
-            state = State.Final;
-        } else if (disallowUnsafeRead) {
+        if (disallowUnsafeRead) {
             String reason = host.beforeRead();
             if (reason != null) {
                 TreeFormatter formatter = new TreeFormatter();
@@ -178,6 +177,10 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
                 formatter.append(".");
                 throw new IllegalStateException(formatter.toString());
             }
+        }
+        if (finalizeOnNextGet) {
+            makeFinal();
+            state = State.Final;
         }
     }
 
