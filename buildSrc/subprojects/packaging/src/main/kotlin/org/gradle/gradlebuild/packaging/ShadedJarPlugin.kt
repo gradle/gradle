@@ -233,6 +233,10 @@ open class ShadedJarPlugin : Plugin<Project> {
         tasks.named<Jar>("sourcesJar") {
             from(sourcesPath.incoming.artifactView { lenient(true) }.files)
         }
+        val sourcesElements by configurations
+        sourcesElements.attributes {
+            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.SHADOWED))
+        }
     }
 
     private
