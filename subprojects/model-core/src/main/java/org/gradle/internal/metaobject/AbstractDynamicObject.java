@@ -187,7 +187,7 @@ public abstract class AbstractDynamicObject implements DynamicObject {
     private static class CustomMissingMethodExecutionFailed extends MissingMethodExecutionFailed {
 
         public CustomMissingMethodExecutionFailed(String name, Class publicType, String message, Object... params) {
-            super(name, publicType, params, false, new CustomMessageMissingMethodException(name, publicType, message));
+            super(name, publicType, params, false, new CustomMessageMissingMethodException(name, publicType, message, params));
         }
 
         @Override
