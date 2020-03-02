@@ -22,7 +22,6 @@ import org.gradle.api.artifacts.DependencyArtifact
 import org.gradle.api.artifacts.ExcludeRule
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.attributes.ImmutableAttributes
-import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.publication.maven.internal.VersionRangeMapper
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
@@ -153,10 +152,11 @@ class MavenPomFileGeneratorTest extends Specification {
             getMailingLists() >> [new DefaultMavenPomMailingList(objectFactory) {{
                 getName().set("Users")
             }}]
-            getProperties() >> new DefaultMapProperty<String, String>(String, String) {{
+            getProperties() >> TestUtil.objectFactory().mapProperty(String, String).with {
                 put("spring-boot.version", "2.1.2.RELEASE")
                 put("hibernate.version", "5.4.1.Final")
-            }}
+                return it
+            }
         }
 
         when:

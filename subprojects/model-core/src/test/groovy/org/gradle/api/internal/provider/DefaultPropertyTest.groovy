@@ -21,7 +21,11 @@ import org.gradle.internal.state.ManagedFactory
 
 class DefaultPropertyTest extends PropertySpec<String> {
     DefaultProperty<String> property() {
-        return new DefaultProperty<String>(String)
+        return propertyWithDefaultValue(String)
+    }
+
+    DefaultProperty propertyWithDefaultValue(Class type) {
+        return new DefaultProperty(host, type)
     }
 
     @Override
@@ -112,7 +116,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when value is set using incompatible type"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
 
         when:
         property.set(12)
@@ -126,8 +130,8 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when value set using provider whose type is known to be incompatible"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
-        def other = new DefaultProperty<Number>(Number)
+        def property = propertyWithDefaultValue(Boolean)
+        def other = propertyWithDefaultValue(Number)
 
         when:
         property.set(other)
@@ -148,7 +152,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
         provider.asSupplier(_, _, _) >> supplier
         supplier.calculateValue() >>> [1, 2, 3].collect { ValueSupplier.Value.ofNullable(it) }
 
-        def property = new DefaultProperty<Number>(Number)
+        def property = propertyWithDefaultValue(Number)
 
         when:
         property.set(provider)
@@ -163,7 +167,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
         def provider = new DefaultProvider({ 12 })
 
         given:
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
         property.set(provider)
 
         when:
@@ -182,7 +186,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when convention is set using incompatible value"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
 
         when:
         property.convention(12)
@@ -196,8 +200,8 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when convention is set using provider whose value is known to be incompatible"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
-        def other = new DefaultProperty<Number>(Number)
+        def property = propertyWithDefaultValue(Boolean)
+        def other = propertyWithDefaultValue(Number)
 
         when:
         property.convention(other)
@@ -214,7 +218,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
         def provider = new DefaultProvider({ 12 })
 
         given:
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
         property.convention(provider)
 
         when:
@@ -229,7 +233,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
         def transformer = Mock(Transformer)
         def provider = supplierWithValues("abc")
 
-        def property = new DefaultProperty<String>(String)
+        def property = propertyWithDefaultValue(String)
 
         when:
         def p = property.map(transformer)

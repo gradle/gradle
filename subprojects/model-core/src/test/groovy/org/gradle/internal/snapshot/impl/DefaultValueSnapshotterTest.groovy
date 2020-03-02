@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ManagedFactories
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
@@ -590,7 +591,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated property"() {
         def originalValue = "123"
-        def original = new DefaultProperty(String)
+        def original = new DefaultProperty(PropertyHost.NO_OP, String)
         original.set(originalValue)
 
         given:
@@ -607,7 +608,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated list property"() {
         def originalValue = ["123"]
-        def original = new DefaultListProperty(String)
+        def original = new DefaultListProperty(PropertyHost.NO_OP, String)
         original.set(originalValue)
 
         given:
@@ -624,7 +625,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated set property"() {
         def originalValue = ["123"]
-        def original = new DefaultSetProperty(String)
+        def original = new DefaultSetProperty(PropertyHost.NO_OP, String)
         original.set(originalValue)
 
         given:
@@ -641,7 +642,7 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated map property"() {
         def originalMap = [a: 1, b: 2]
-        def original = new DefaultMapProperty(String, Number)
+        def original = new DefaultMapProperty(PropertyHost.NO_OP, String, Number)
         original.set(originalMap)
 
         given:

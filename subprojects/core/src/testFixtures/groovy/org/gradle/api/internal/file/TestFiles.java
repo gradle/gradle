@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
@@ -120,15 +121,15 @@ public class TestFiles {
     }
 
     public static FilePropertyFactory filePropertyFactory() {
-        return new DefaultFilePropertyFactory(resolver(), fileCollectionFactory());
+        return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(), fileCollectionFactory());
     }
 
     public static FilePropertyFactory filePropertyFactory(File baseDir) {
-        return new DefaultFilePropertyFactory(resolver(baseDir), fileCollectionFactory(baseDir));
+        return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(baseDir), fileCollectionFactory(baseDir));
     }
 
     public static FileFactory fileFactory() {
-        return new DefaultFilePropertyFactory(resolver(), fileCollectionFactory());
+        return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(), fileCollectionFactory());
     }
 
     public static FileOperations fileOperations(File basedDir) {

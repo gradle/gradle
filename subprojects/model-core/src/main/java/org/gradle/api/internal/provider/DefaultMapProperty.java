@@ -49,7 +49,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private MapSupplier<K, V> defaultValue = emptySupplier();
     private MapSupplier<K, V> value;
 
-    public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
+    public DefaultMapProperty(PropertyHost propertyHost, Class<K> keyType, Class<V> valueType) {
+        super(propertyHost);
         applyDefaultValue();
         this.keyType = keyType;
         this.valueType = valueType;

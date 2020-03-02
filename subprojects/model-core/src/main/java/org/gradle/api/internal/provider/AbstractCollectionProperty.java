@@ -44,7 +44,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     private CollectionSupplier<T, C> defaultValue = emptySupplier();
     private CollectionSupplier<T, C> value;
 
-    AbstractCollectionProperty(Class<? extends Collection> collectionType, Class<T> elementType) {
+    AbstractCollectionProperty(PropertyHost host, Class<? extends Collection> collectionType, Class<T> elementType) {
+        super(host);
         applyDefaultValue();
         this.collectionType = collectionType;
         this.elementType = elementType;

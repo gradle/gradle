@@ -105,6 +105,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
+    @Override
+    public void disallowUnsafeRead() {
+        throw new UnsupportedOperationException();
+    }
+
     public int getFactoryId() {
         return ManagedFactories.ConfigurableFileCollectionManagedFactory.FACTORY_ID;
     }

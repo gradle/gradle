@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
 
@@ -32,11 +33,17 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
+    private final PropertyHost host;
     private State state = State.ImplicitValue;
     private boolean finalizeOnNextGet;
     private boolean disallowChanges;
+    private boolean disallowUnsafeRead;
     private Task producer;
     private DisplayName displayName;
+
+    public AbstractProperty(PropertyHost host) {
+        this.host = host;
+    }
 
     @Override
     public void attachDisplayName(DisplayName displayName) {
@@ -141,6 +148,11 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         finalizeOnNextGet = true;
     }
 
+    @Override
+    public void disallowUnsafeRead() {
+        disallowUnsafeRead = true;
+    }
+
     protected abstract void applyDefaultValue();
 
     protected abstract void makeFinal();
@@ -155,6 +167,17 @@ public abstract class AbstractProperty<T> extends AbstractMinimalProvider<T> imp
         if (finalizeOnNextGet) {
             makeFinal();
             state = State.Final;
+        } else if (disallowUnsafeRead) {
+            String reason = host.beforeRead();
+            if (reason != null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node("Cannot query the value of ");
+                formatter.append(getDisplayName().getDisplayName());
+                formatter.append(" because ");
+                formatter.append(reason);
+                formatter.append(".");
+                throw new IllegalStateException(formatter.toString());
+            }
         }
     }
 
