@@ -39,13 +39,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     @Override
-    DefaultProperty<String> providerWithValue(String value) {
-        def p = property()
-        p.set(value)
-        return p
-    }
-
-    @Override
     Class<String> type() {
         return String
     }

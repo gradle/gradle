@@ -41,13 +41,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
-    DefaultMapProperty<String, String> providerWithValue(Map<String, String> value) {
-        def p = property()
-        p.set(value)
-        return p
-    }
-
-    @Override
     Class<Map<String, String>> type() {
         return Map
     }
@@ -551,7 +544,7 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.put('k2', Stub(ProviderInternal))
+        property.put('k2', brokenValueSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -571,7 +564,7 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.put('k2', Stub(ProviderInternal))
+        property.put('k2', brokenValueSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -591,7 +584,7 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.put('k2', Stub(ProviderInternal))
+        property.put('k2', brokenValueSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -611,7 +604,7 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.putAll Stub(ProviderInternal)
+        property.putAll brokenSupplier()
 
         then:
         def e2 = thrown IllegalStateException
@@ -631,7 +624,7 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.putAll Stub(ProviderInternal)
+        property.putAll brokenSupplier()
 
         then:
         def e2 = thrown IllegalStateException
@@ -650,7 +643,7 @@ The value of this property is derived from: <source>""")
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.putAll Stub(ProviderInternal)
+        property.putAll brokenSupplier()
         then:
         def e2 = thrown IllegalStateException
         e2.message == 'The value for this property cannot be changed any further.'
@@ -865,6 +858,10 @@ The value of this property is derived from: <source>""")
         and:
         result == "value"
         result2 == [k1: "value"]
+    }
+
+    private ProviderInternal<String> brokenValueSupplier() {
+        return brokenSupplier(String)
     }
 
     private void assertValueIs(Map<String, String> expected) {
