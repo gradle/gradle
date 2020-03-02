@@ -720,6 +720,50 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
+    def "Directory value can resolve paths after being restored"() {
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeTask extends DefaultTask {
+                @Internal
+                Directory value
+                @Internal
+                final Property<Directory> propValue
+
+                @Inject
+                SomeTask(ObjectFactory objects) {
+                    propValue = objects.directoryProperty()
+                }
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                    println "value.child = " + value.dir("child")
+                    println "propValue = " + propValue.get()
+                    println "propValue.child = " + propValue.get().dir("child")
+                    println "propValue.child.mapped = " + propValue.dir("child").get()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = layout.projectDir.dir("dir1")
+                propValue = layout.projectDir.dir("dir2")
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = ${file("dir1")}")
+        outputContains("value.child = ${file("dir1/child")}")
+        outputContains("propValue = ${file("dir2")}")
+        outputContains("propValue.child = ${file("dir2/child")}")
+        outputContains("propValue.child.mapped = ${file("dir2/child")}")
+    }
+
+    @Unroll
     def "restores task fields whose value is FileCollection"() {
         buildFile << """
             import ${Inject.name}
@@ -828,6 +872,53 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         kind                     | expression
         "instance capturing"     | "setInstanceCapturingLambda()"
         "non-instance capturing" | "setNonInstanceCapturingLambda()"
+    }
+
+    @Unroll
+    def "restores task fields whose value is #kind TextResource"() {
+
+        given:
+        file("resource.txt") << 'content'
+        createZip("resource.zip") {
+            file("resource.txt") << 'content'
+        }
+
+        and:
+        buildFile << """
+
+            class SomeTask extends DefaultTask {
+
+                @Input
+                TextResource textResource = project.resources.text.$expression
+
+                @TaskAction
+                def action() {
+                    println('> ' + textResource.asString())
+                }
+            }
+
+            tasks.register("someTask", SomeTask)
+        """
+
+        when:
+        instantRun 'someTask'
+
+        then:
+        outputContains("> content")
+
+        when:
+        instantRun 'someTask'
+
+        then:
+        outputContains("> content")
+
+        where:
+        kind               | expression
+        'a string'         | 'fromString("content")'
+        'a file'           | 'fromFile("resource.txt")'
+        'an uri'           | 'fromUri(project.uri(project.file("resource.txt")))'
+        'an insecure uri'  | 'fromInsecureUri(project.uri(project.file("resource.txt")))'
+        'an archive entry' | 'fromArchiveEntry("resource.zip", "resource.txt")'
     }
 
     @Unroll

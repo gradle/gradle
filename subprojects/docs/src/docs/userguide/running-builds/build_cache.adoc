@@ -325,15 +325,6 @@ include::sample[dir="snippets/buildCache/developer-ci-setup/groovy",files="setti
 include::sample[dir="snippets/buildCache/developer-ci-setup/kotlin",files="settings.gradle.kts[tags=developer-ci-setup]"]
 ====
 
-If you use a `buildSrc` directory, you should make sure that it uses the same build cache configuration as the main build.
-This can be achieved by applying the same script to `buildSrc/settings.gradle` and `settings.gradle` as shown in the following example.
-
-.Consistent setup for buildSrc and main build
-====
-include::sample[dir="snippets/buildCache/build-src/groovy",files="settings.gradle[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle[tags=configure-build-src-build-cache];buildSrc/settings.gradle[tags=configure-build-src-build-cache]"]
-include::sample[dir="snippets/buildCache/build-src/kotlin",files="settings.gradle.kts[tags=configure-build-src-build-cache];gradle/buildCacheSettings.gradle.kts[tags=configure-build-src-build-cache];buildSrc/settings.gradle.kts[tags=configure-build-src-build-cache]"]
-====
-
 It is also possible to configure the build cache from an <<init_scripts.adoc#sec:using_an_init_script,init script>>, which can be used from the command line, added to your Gradle user home or be a part of your custom Gradle distribution.
 
 .Init script to configure the build cache
@@ -343,14 +334,15 @@ include::sample[dir="snippets/buildCache/configure-by-init-script/kotlin",files=
 ====
 
 [[sec:build_cache_composite]]
-=== Build cache and composite builds
+=== Build cache, composite builds and `buildSrc`
 
 Gradle's <<composite_builds.adoc#composite_builds,composite build feature>> allows including other complete Gradle builds into another.
-Such included builds will inherit the build cache configuration from the top level build,
-regardless of whether the included builds define build cache configuration themselves or not.
+Such included builds will inherit the build cache configuration from the top level build, regardless of whether the included builds define build cache configuration themselves or not.
 
 The build cache configuration present for any included build is effectively ignored, in favour of the top level build's configuration.
 This also applies to any `buildSrc` projects of any included builds.
+
+The <<organizing_gradle_projects.adoc#sec:build_sources,`buildSrc` directory>> is treated as an <<composite_builds.adoc#composite_build_intro,included build>>, and as such it inherits the build cache configuration from the top-level build.
 
 [[sec:build_cache_setup_http_backend]]
 == How to set up an HTTP build cache backend

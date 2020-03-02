@@ -83,6 +83,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
 
     failureConditions {
         executionTimeoutMin = timeout
+        testFailure = false
     }
 
     if (os == Os.linux || os == Os.macos) {
@@ -131,13 +132,5 @@ fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_Compi
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
         cleanDestination = true
         artifactRules = "build-receipt.properties => incoming-distributions"
-    }
-}
-
-fun BuildSteps.verifyTestFilesCleanup(daemon: Boolean = true, os: Os = Os.linux) {
-    gradleWrapper {
-        name = "VERIFY_TEST_FILES_CLEANUP"
-        tasks = "verifyTestFilesCleanup"
-        gradleParams = buildToolParametersString(daemon, os)
     }
 }

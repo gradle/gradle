@@ -80,6 +80,13 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 }
 
 
+fun IsolateContext.logNotImplemented(feature: String) {
+    logPropertyWarning {
+        text("support for $feature is not yet implemented with instant execution.")
+    }
+}
+
+
 private
 fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
     val problem = PropertyProblem.Warning(trace, build(message))

@@ -177,6 +177,31 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
         failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
     }
 
+    def "client logs location of crash log on daemon crash"() {
+        buildFile << """
+            task block {
+                doLast {
+                    ${server.callFromBuild("block")}
+                    def theUnsafe = sun.misc.Unsafe.class.getDeclaredField("theUnsafe")
+                    theUnsafe.setAccessible(true)
+                    theUnsafe.get(null).getByte(0)
+                }
+            }
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled() // daemon log may contain stack traces
+        def block = server.expectAndBlock("block")
+        def build = executer.withTasks("block").start()
+        block.waitForAllPendingCalls()
+        block.releaseAll()
+        def failure = build.waitForFailure()
+
+        then:
+        failure.assertHasDescription(DaemonDisappearedException.MESSAGE)
+        failure.assertHasErrorOutput("JVM crash log found: file://")
+    }
+
     def "client logs useful information when daemon exits"() {
         given:
         file("build.gradle") << "System.exit(0)"

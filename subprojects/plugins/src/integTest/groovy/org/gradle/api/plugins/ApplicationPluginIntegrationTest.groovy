@@ -81,7 +81,6 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
     }
 
-    @ToBeFixedForInstantExecution
     def "can change template file for default start script generators"() {
         given:
         file('customUnixStartScript.txt') << '${applicationName} start up script for UN*X'

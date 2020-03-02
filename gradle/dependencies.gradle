@@ -32,7 +32,7 @@ def gradleGroovyVersion = "1.3-${groovyVersion}" as String
 
 libraries.aether_connector =    [coordinates: 'org.sonatype.aether:aether-connector-wagon', version: '1.13.1', license: "Eclipse Public License 1.0"]
 libraries.ant =                 [coordinates: 'org.apache.ant:ant', version: '1.10.7', license: "Apache 2.0"]
-libraries.asm =                 [coordinates: 'org.ow2.asm:asm', version: '7.1', license: "3-Clause BSD"]
+libraries.asm =                 [coordinates: 'org.ow2.asm:asm', version: '7.3.1', license: "3-Clause BSD"]
 libraries.asm_commons =         [coordinates: 'org.ow2.asm:asm-commons', version: libraries.asm.version, license: "3-Clause BSD"]
 libraries.asm_tree =            [coordinates: 'org.ow2.asm:asm-tree', version: libraries.asm.version, license: "3-Clause BSD"]
 libraries.asm_util =            [coordinates: 'org.ow2.asm:asm-util', version: libraries.asm.version, license: "3-Clause BSD"]
@@ -76,7 +76,7 @@ libraries.kryo =                [coordinates: 'com.esotericsoftware.kryo:kryo', 
 libraries.maven3 =              [coordinates: 'org.apache.maven:maven-core', version: '3.0.4', license: "Apache 2.0"]
 libraries.maven3_wagon_file =   [coordinates: 'org.apache.maven.wagon:wagon-file', version: '3.0.0', because: '3.1.0 of wagon-http seems to break Digest authentication', license: "Apache 2.0"]
 libraries.maven3_wagon_http =   [coordinates: 'org.apache.maven.wagon:wagon-http', version: libraries.maven3_wagon_file.version, license: "Apache 2.0"]
-libraries.nativePlatform =      [coordinates: 'net.rubygrapefruit:native-platform', version: '0.22-snapshot-20200218091246+0000', license: "Apache 2.0"]
+libraries.nativePlatform =      [coordinates: 'net.rubygrapefruit:native-platform', version: '0.22-snapshot-20200225084142+0000', license: "Apache 2.0"]
 libraries.nekohtml =            [coordinates: 'net.sourceforge.nekohtml:nekohtml', version: '1.9.22', license: "Apache 2.0"]
 libraries.objenesis =           [coordinates: 'org.objenesis:objenesis', version: '2.6', license: "Apache 2.0"]
 libraries.plexus_container =    [coordinates: 'org.codehaus.plexus:plexus-container-default', version: '1.7.1', license: "Apache 2.0"]

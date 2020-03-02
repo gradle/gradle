@@ -21,7 +21,9 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.tooling.BuildCancelledException
 import org.junit.Rule
+import spock.lang.Ignore
 
+@Ignore('https://github.com/gradle/gradle-private/issues/2976')
 class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
     @Rule

@@ -23,11 +23,13 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.id.IdGenerator;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.remote.internal.Connection;
@@ -51,8 +53,11 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 
+import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -239,7 +244,24 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
             + "\nAttempting to read last messages from the daemon log...", build);
 
         LOGGER.error(diagnostics.describe());
+        findCrashLogFile(build, diagnostics).ifPresent(crashLogFile ->
+            LOGGER.error("JVM crash log found: " + new ConsoleRenderer().asClickableFileUrl(crashLogFile))
+        );
         throw new DaemonDisappearedException();
+    }
+
+    private Optional<File> findCrashLogFile(Build build, DaemonDiagnostics diagnostics) {
+        String crashLogFileName = "hs_err_pid" + diagnostics.getPid() + ".log";
+        List<File> candidates = new ArrayList<>();
+        candidates.add(new File(build.getParameters().getCurrentDir(), crashLogFileName));
+        candidates.add(new File(diagnostics.getDaemonLog().getParent(), crashLogFileName));
+        String javaTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+        if (javaTmpDir != null && !javaTmpDir.isEmpty()) {
+            candidates.add(new File(javaTmpDir, crashLogFileName));
+        }
+        return candidates.stream()
+            .filter(File::isFile)
+            .findFirst();
     }
 
     private IllegalStateException invalidResponse(Object response, Build command, DaemonDiagnostics diagnostics) {
