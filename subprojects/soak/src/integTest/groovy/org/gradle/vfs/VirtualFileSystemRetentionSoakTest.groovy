@@ -17,6 +17,7 @@
 package org.gradle.vfs
 
 import org.gradle.integtests.fixtures.VfsRetentionFixture
+import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.vfs.watch.FileWatcherRegistry
@@ -28,6 +29,7 @@ import org.junit.experimental.categories.Category
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
+    private static final int MAX_FILE_CHANGES_WITHOUT_OVERFLOW = 1000
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
@@ -63,7 +65,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     }
 
     def "file watching works with multiple builds on the same daemon"() {
-        def numberOfChangesBetweenBuilds = maxFileChangesWithoutOverflow
+        def numberOfChangesBetweenBuilds = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
 
         when:
         succeeds("assemble")
@@ -72,22 +74,34 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         daemon.assertIdle()
 
         expect:
+        boolean overflowDetected = false
         50.times { iteration ->
+            // when:
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
             waitForChangesToBePickedUp()
             succeeds("assemble")
+
+            // then:
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            retainedFilesInCurrentBuild - numberOfChangesBetweenBuilds == retainedFilesSinceLastBuild
+            if (!overflowDetected) {
+                overflowDetected = detectOverflow(daemon)
+            }
+            int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangesBetweenBuilds
+            if (overflowDetected) {
+                assert retainedFilesSinceLastBuild in [expectedNumberOfRetainedFiles, 0]
+            } else {
+                assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+            }
             assert receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
         }
     }
 
     def "file watching works with many changes between two builds"() {
-        // Use 20 minutes idle timeout since the test may be running longer with an idle daemon
-        executer.withDaemonIdleTimeoutSecs(1200)
-        def numberOfChangedSourcesFilesPerBatch = maxFileChangesWithoutOverflow
+        // Use 40 minutes idle timeout since the test may be running longer with an idle daemon
+        executer.withDaemonIdleTimeoutSecs(2400)
+        def numberOfChangedSourcesFilesPerBatch = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
         def numberOfChangeBatches = 500
 
         when:
@@ -100,31 +114,30 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         numberOfChangeBatches.times { iteration ->
             changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
             waitBetweenChangesToAvoidOverflow()
-            assert !daemon.logContains(FileWatcherRegistry.Type.INVALIDATE.toString()) : "Overflow in file watcher after ${iteration} iterations"
         }
+        boolean overflowDetected = detectOverflow(daemon)
+        int expectedNumberOfRetainedFiles = overflowDetected
+            ? 0
+            : retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
         receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
-        retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch == retainedFilesSinceLastBuild
+        retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
     }
 
-    private static int getMaxFileChangesWithoutOverflow() {
-        if (OperatingSystem.current().windows) {
-            800
-        } else {
-            1000
+    private static boolean detectOverflow(DaemonFixture daemon) {
+        boolean overflowDetected = daemon.logContains(FileWatcherRegistry.Type.INVALIDATE.toString())
+        if (overflowDetected) {
+            println "Detected overflow in watcher, no files will be retained for the next build"
         }
+        overflowDetected
     }
 
     private static void waitBetweenChangesToAvoidOverflow() {
-        if (OperatingSystem.current().windows) {
-            Thread.sleep(200)
-        } else {
             Thread.sleep(150)
-        }
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
