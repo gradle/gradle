@@ -51,15 +51,15 @@ include::sample[dir="snippets/userguide/dependencyManagement/definingUsingConfig
 [[sec:resolvable-consumable-configs]]
 == Resolvable and consumable configurations
 
-Historically, configurations have been at the root of dependency resolution in Gradle.
-In the end, what we want to make a difference is between a _consumer_ and a _producer_. For this purpose, configurations are used for at least 3 different aspects:
+Configurations are a fundamental part of dependency resolution in Gradle.
+In the context of dependency resolution, it is useful to distinguish between a _consumer_ and a _producer_. Along these lines, configurations have at least 3 different roles:
 
 1. to declare dependencies
 2. as a _consumer_, to resolve a set of dependencies to files
 3. as a _producer_, to expose artifacts and their dependencies for consumption by other projects
    (such _consumable_ configurations usually represent the <<variant_model.adoc#,variants>> the producer offers to its consumers)
 
-For example, if I want to express that my application `app` _depends on_ library `lib`, we need _at least_ one configuration:
+For example, to express that an application `app` _depends on_ library `lib`, _at least_ one configuration is required:
 
 .Configurations are used to declare dependencies
 ====
@@ -67,12 +67,12 @@ include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/s
 include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=declare-configuration]"]
 ====
 
-Configurations can extend other configuration, in order to inherit their dependencies.
-However, the code above doesn't tell anything about the _consumer_.
-In particular, it doesn't tell what is the _use_ of the configuration.
-Let's say that `lib` is a Java library: it can expose different things, such as its API, implementation or test fixtures.
-If we want to resolve the dependencies of `app`, we need to know what kind of task we're performing (compiling against the API of `lib`, executing the application, compiling tests, ...).
-For this purpose, you'll often find companion configurations, which are meant to unambiguously declare the usage:
+Configurations can inherit dependencies from other configurations by extending from them.
+Now, notice that the code above doesn't tell us anything about the intended _consumer_ of this configuration.
+In particular, it doesn't tell us how the configuration is meant to be _used_.
+Let's say that `lib` is a Java library: it might expose different things, such as its API, implementation, or test fixtures.
+It might be necessary to change how we resolve the dependencies of `app` depending upon the task we're performing (compiling against the API of `lib`, executing the application, compiling tests, etc.).
+To address this problem, you'll often find companion configurations, which are meant to unambiguously declare the usage:
 
 .Configurations representing concrete dependency graphs
 ====
@@ -80,12 +80,12 @@ include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/s
 include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=concrete-classpath]"]
 ====
 
-At this stage, we have 3 different configurations, which already have different goals:
+At this point, we have 3 different configurations with different roles:
 
-- `someConfiguration` declares the dependencies of my application. It's just a bucket where we declare a list of dependencies.
-- `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain respectively the compile classpath, and the runtime classpath of the application.
+- `someConfiguration` declares the dependencies of my application. It's just a bucket that can hold a list of dependencies.
+- `compileClasspath` and `runtimeClasspath` are configurations _meant to be resolved_: when resolved they should contain the compile classpath, and the runtime classpath of the application respectively.
 
-This is actually represented on the `Configuration` type by the `canBeResolved` flag.
+This distinction is represented by the `canBeResolved` flag in the `Configuration` type.
 A configuration that _can be resolved_ is a configuration for which we can compute a dependency graph, because it contains all the necessary information for resolution to happen.
 That is to say we're going to compute a dependency graph, resolve the components in the graph, and eventually get artifacts.
 A configuration which has `canBeResolved` set to `false` is not meant to be resolved.
@@ -93,13 +93,13 @@ Such a configuration is there _only to declare dependencies_.
 The reason is that depending on the usage (compile classpath, runtime classpath), it _can_ resolve to different graphs.
 It is an error to try to resolve a configuration which has `canBeResolved` set to `false`.
 To some extent, this is similar to an _abstract class_ (`canBeResolved`=false) which is not supposed to be instantiated, and a concrete class extending the abstract class (`canBeResolved`=true).
-A resolvable configuration will extend at least one non resolvable configuration (and may extend more than one).
+A resolvable configuration will extend at least one non-resolvable configuration (and may extend more than one).
 
 On the other end, at the library project side (the _producer_), we also use configurations to represent what can be consumed.
 For example, the library may expose an API or a runtime, and we would attach artifacts to either one, the other, or both.
 Typically, to compile against `lib`, we need the API of `lib`, but we don't need its runtime dependencies.
-So the `lib` project will expose an `apiElements` configuration, which is aimed for consumers looking for its API.
-Such a configuration is going to be consumable, but is not meant to be resolved.
+So the `lib` project will expose an `apiElements` configuration, which is aimed at consumers looking for its API.
+Such a configuration is consumable, but is not meant to be resolved.
 This is expressed via the _canBeConsumed_ flag of a `Configuration`:
 
 .Setting up configurations
@@ -108,7 +108,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/s
 include::sample[dir="snippets/userguide/dependencyManagement/attributeMatching/snippets/kotlin",files="build.gradle.kts[tags=setup-configurations]"]
 ====
 
-In short, a configuration role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
+In short, a configuration's role is determined by the `canBeResolved` and `canBeConsumed` flag combinations:
 
 .Configuration roles
 |===
@@ -119,7 +119,7 @@ In short, a configuration role is determined by the `canBeResolved` and `canBeCo
 |Legacy, don't use|true|true
 |===
 
-For backwards compatibility, those flags have both `true` as the default value, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
+For backwards compatibility, both flags have a default value of `true`, but as a plugin author, you should always determine the right values for those flags, or you might accidentally introduce resolution errors.
 
 [[sec:choosing-configuration]]
 == Choosing the right configuration for dependencies
