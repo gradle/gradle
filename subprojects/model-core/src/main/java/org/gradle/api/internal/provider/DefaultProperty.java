@@ -27,7 +27,8 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     private ProviderInternal<? extends T> convention = Providers.notDefined();
     private ProviderInternal<? extends T> valueSupplier;
 
-    public DefaultProperty(Class<T> type) {
+    public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
+        super(propertyHost);
         applyDefaultValue();
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);

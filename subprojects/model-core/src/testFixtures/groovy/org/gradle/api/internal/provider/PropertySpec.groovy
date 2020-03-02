@@ -66,6 +66,8 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.convention(null)
     }
 
+    def host = Mock(PropertyHost)
+
     def "cannot get value when it has none"() {
         given:
         def property = propertyWithNoValue()
@@ -1698,6 +1700,43 @@ The value of this property is derived from:
         then:
         def e2 = thrown(IllegalStateException)
         e2.message == 'The value for <display-name> cannot be changed any further.'
+    }
+
+    def "cannot read value when unsafe read disallowed and host is not ready"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.set(someValue())
+        property.disallowUnsafeRead()
+
+        when:
+        property.get()
+
+        then:
+        1 * host.beforeRead() >> "<reason>"
+
+        and:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot query the value of this property because <reason>."
+
+        when:
+        property.attachDisplayName(Describables.of("<display-name>"))
+        property.get()
+
+        then:
+        1 * host.beforeRead() >> "<reason>"
+
+        and:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot query the value of <display-name> because <reason>."
+
+        when:
+        def result = property.get()
+
+        then:
+        1 * host.beforeRead() >> null
+
+        and:
+        result == someValue()
     }
 
     def "reports the source of property value when value is missing and source is known"() {

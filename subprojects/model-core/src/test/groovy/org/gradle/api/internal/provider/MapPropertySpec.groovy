@@ -25,7 +25,7 @@ import org.spockframework.util.Assert
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     DefaultMapProperty<String, String> property() {
-        new DefaultMapProperty<String, String>(String, String)
+        new DefaultMapProperty<String, String>(host, String, String)
     }
 
     @Override

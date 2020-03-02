@@ -28,6 +28,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -95,7 +96,7 @@ public class InstantiatorBackedObjectFactory implements ObjectFactory {
 
     @Override
     public <T> Property<T> property(Class<T> valueType) {
-        return new DefaultProperty<>(valueType);
+        return new DefaultProperty<>(PropertyHost.NO_OP, valueType);
     }
 
     @Override

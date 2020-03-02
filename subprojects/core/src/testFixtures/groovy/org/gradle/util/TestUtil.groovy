@@ -33,6 +33,7 @@ import org.gradle.api.internal.model.NamedObjectInstantiator
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator
 import org.gradle.api.internal.provider.DefaultProviderFactory
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
@@ -115,11 +116,12 @@ class TestUtil {
                 }
 
                 ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, NamedObjectInstantiator namedObjectInstantiator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
-                    return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, fileResolver, TestFiles.directoryFileTreeFactory(), new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory), fileCollectionFactory, domainObjectCollectionFactory)
+                    def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
+                    return new DefaultObjectFactory(instantiatorFactory.decorate(services), namedObjectInstantiator, fileResolver, TestFiles.directoryFileTreeFactory(), PropertyHost.NO_OP, filePropertyFactory, fileCollectionFactory, domainObjectCollectionFactory)
                 }
 
                 ProjectLayout createProjectLayout() {
-                    def filePropertyFactory = new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory)
+                    def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
                     return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory, filePropertyFactory, filePropertyFactory)
                 }
 

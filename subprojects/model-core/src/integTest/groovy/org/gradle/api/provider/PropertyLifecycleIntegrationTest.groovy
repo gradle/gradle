@@ -172,4 +172,43 @@ task thing {
         failure.assertHasDescription("Execution failed for task ':thing'.")
         failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
+
+    def "can write but cannot read strict project property instance before afterEvaluate starts"() {
+        given:
+        settingsFile << 'rootProject.name = "broken"'
+        buildFile << """
+interface ProjectModel {
+    Property<String> getProp()
+}
+
+project.extensions.create('thing', ProjectModel.class)
+thing.prop.disallowUnsafeRead()
+thing.prop.set("abc")
+
+try {
+    thing.prop.get()
+} catch(IllegalStateException e) {
+    println("get failed with: \${e.message}")
+}
+
+afterEvaluate {
+    println("value = \${thing.prop.get()}")
+    thing.prop.set("123")
+}
+
+task show {
+    doLast {
+        println("value = \${thing.prop.get()}")
+    }
+}
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("get failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not finished yet.")
+        outputContains("value = abc")
+        outputContains("value = 123")
+    }
 }

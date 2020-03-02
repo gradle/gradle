@@ -39,6 +39,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.internal.CachingPatternSpecFactory;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -62,6 +63,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ParallelismConfigurationManager;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.DefaultExecutionStateChangeDetector;
@@ -109,7 +111,6 @@ import org.gradle.process.internal.health.memory.DefaultOsMemoryInfo;
 import org.gradle.process.internal.health.memory.JvmMemoryInfo;
 import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
-import org.gradle.internal.deprecation.DeprecationLogger;
 
 import java.util.List;
 
@@ -240,12 +241,15 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
         return new DefaultMemoryManager(osMemoryInfo, jvmMemoryInfo, listenerManager, executorFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory,
+                                      PropertyHost propertyHost, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
+                                      DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator instantiator) {
         return new DefaultObjectFactory(
             instantiatorFactory.decorate(services),
             instantiator,
             fileResolver,
             directoryFileTreeFactory,
+            propertyHost,
             filePropertyFactory,
             fileCollectionFactory,
             domainObjectCollectionFactory);
