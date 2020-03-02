@@ -72,8 +72,8 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         def expectedResults = agpVersion.startsWith('3.6')
             ? EXPECTED_RESULTS_3_6
             : agpVersion.startsWith('4.0')
-            ? EXPECTED_RESULTS_4_0
-            : EXPECTED_RESULTS
+                ? EXPECTED_RESULTS_4_0
+                : EXPECTED_RESULTS_4_1
         verify(relocatedResult, expectedResults)
 
         when: 'clean cached build, reusing instant execution cache when enabled'
@@ -87,7 +87,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    private static final EXPECTED_RESULTS = [
+    private static final EXPECTED_RESULTS_4_1 = [
         ':cityquiz:assembleDebug': SUCCESS,
         ':cityquiz:checkDebugDuplicateClasses': FROM_CACHE,
         ':cityquiz:compileDebugAidl': NO_SOURCE,

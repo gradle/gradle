@@ -72,8 +72,8 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         def expectedResults = agpVersion.startsWith('3.6')
             ? EXPECTED_RESULTS_3_6
             : agpVersion.startsWith('4.0')
-            ? EXPECTED_RESULTS_4_0
-            : EXPECTED_RESULTS
+                ? EXPECTED_RESULTS_4_0
+                : EXPECTED_RESULTS_4_1
         verify(relocatedResult, expectedResults)
 
         when: 'clean cached build, reusing instant execution cache when enabled'
@@ -87,7 +87,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         agpVersion << TESTED_AGP_VERSIONS
     }
 
-    private static final EXPECTED_RESULTS = [
+    private static final EXPECTED_RESULTS_4_1 = [
         ':common:assembleDebug': SUCCESS,
         ':common:bundleDebugAar': SUCCESS,
         ':common:bundleLibCompileToJarDebug': FROM_CACHE,
