@@ -26,7 +26,7 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@.
 
-NOTE: Gradle 6.2 has had _one_ patch release fixing several issues. We recommend always using the latest patch release.
+NOTE: Gradle 6.2 has had _two_ patch releases, which fixed several issues from the original release. We recommend always using the latest patch release.
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
