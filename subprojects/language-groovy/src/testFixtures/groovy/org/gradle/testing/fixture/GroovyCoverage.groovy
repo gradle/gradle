@@ -16,24 +16,16 @@
 
 package org.gradle.testing.fixture
 
-
+import org.gradle.api.JavaVersion
 import org.gradle.util.VersionNumber
-import org.gradle.util.TestPrecondition
 
 class GroovyCoverage {
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '2.5.10-SNAPSHOT']
-    static final String[] ALL
+    private static final String[] ALL
 
-    private static final MINIMUM_WITH_GROOVYDOC_SUPPORT = VersionNumber.parse("1.6.9")
-    static final String[] SUPPORTS_GROOVYDOC
-
-    private static final MINIMUM_WITH_TIMESTAMP_SUPPORT = VersionNumber.parse("2.4.6")
-    static final String[] SUPPORTS_TIMESTAMP
-
-    private static final MINIMUM_WITH_PARAMETERS_METADATA_SUPPORT = VersionNumber.parse("2.5.0")
-    static final String[] SUPPORTS_PARAMETERS
-
-    private static final String[] SUPPORTS_JDK14
+    static final List<String> SUPPORTS_GROOVYDOC
+    static final List<String> SUPPORTS_TIMESTAMP
+    static final List<String> SUPPORTS_PARAMETERS
 
     static {
         def allVersions = [*PREVIOUS]
@@ -43,18 +35,23 @@ class GroovyCoverage {
             allVersions += GroovySystem.version
         }
 
-        // TODO: document this
-        SUPPORTS_JDK14 = allVersions - ['2.3.10', '2.5.8']
-        ALL = TestPrecondition.JDK13_OR_EARLIER.fulfilled ? allVersions : SUPPORTS_JDK14
+        ALL = allVersions
+        SUPPORTS_GROOVYDOC = versionsAbove(VersionNumber.parse("1.6.9"))
+        SUPPORTS_TIMESTAMP = versionsAbove(VersionNumber.parse("2.4.6"))
+        SUPPORTS_PARAMETERS = versionsAbove(VersionNumber.parse("2.5.0"))
+    }
 
-        SUPPORTS_GROOVYDOC = ALL.findAll {
-            VersionNumber.parse(it) >= MINIMUM_WITH_GROOVYDOC_SUPPORT
+    static List<String> getSupportedVersionsByJdk() {
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+            return ALL.findAll {
+                def version = VersionNumber.parse(it)
+                version <= VersionNumber.parse('2.2.2') || version >= VersionNumber.parse('2.5.10')
+            }.asImmutable()
         }
-        SUPPORTS_TIMESTAMP = ALL.findAll {
-            VersionNumber.parse(it) >= MINIMUM_WITH_TIMESTAMP_SUPPORT
-        }
-        SUPPORTS_PARAMETERS = ALL.findAll {
-            VersionNumber.parse(it) >= MINIMUM_WITH_PARAMETERS_METADATA_SUPPORT
-        }
+        return ALL
+    }
+
+    private static List<String> versionsAbove(VersionNumber threshold) {
+        getSupportedVersionsByJdk().findAll { VersionNumber.parse(it) >= threshold }.asImmutable()
     }
 }

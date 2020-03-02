@@ -33,7 +33,7 @@ import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Issue
 
-@TargetCoverage({ GroovyCoverage.ALL })
+@TargetCoverage({ GroovyCoverage.supportedVersionsByJdk })
 abstract class BasicGroovyCompilerIntegrationSpec extends MultiVersionIntegrationSpec {
     @Rule
     TestResources resources = new TestResources(temporaryFolder)
