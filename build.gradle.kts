@@ -70,13 +70,13 @@ buildTypes {
     // Used for builds to run all tests
     create("fullTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testAllVersions" to true)
+        projectProperties("testVersions" to "all")
     }
 
     // Used for builds to test the code on certain platforms
     create("platformTest") {
         tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testPartialVersions" to true)
+        projectProperties("testVersions" to "partial")
     }
 
     // Tests not using the daemon mode
@@ -135,13 +135,13 @@ buildTypes {
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
         tasks("allVersionsCrossVersionTests")
-        projectProperties("testAllVersions" to true)
+        projectProperties("testVersions" to "all")
         projectProperties("useAllDistribution" to true)
     }
 
     create("allVersionsIntegMultiVersionTest") {
         tasks("integMultiVersionTest")
-        projectProperties("testAllVersions" to true)
+        projectProperties("testVersions" to "all")
         projectProperties("useAllDistribution" to true)
     }
 
@@ -165,7 +165,7 @@ buildTypes {
 
     create("soakTest") {
         tasks("soak:soakIntegTest")
-        projectProperties("testAllVersions" to true)
+        projectProperties("testVersions" to "all")
     }
 
     // Used to run the dependency management engine in "force component realization" mode

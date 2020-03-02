@@ -28,6 +28,23 @@ import java.util.Set;
 
 import static com.google.common.collect.Iterators.getLast;
 
+/**
+ * Tests using this runner and its subtypes will run by default the first version specified.
+ * <p>
+ * The following command line flag is used to determine the versions to run:
+ * <ul>
+ *     <li>{@code -PtestVersions=(default|all|partial|1,2,3)} will run the tests according to the configured value
+ *     <ul>
+ *         <li>{@code default} will run only the first configured version</li>
+ *         <li>{@code all} will run all configured versions</li>
+ *         <li>{@code partial} will run the first and last configured versions</li>
+ *         <li>{@code 1,2,3} will run with versions {@code 1}, {@code 2} and {@code 3}</li>
+ *     </ul>
+ *     </li>
+ * </ul>
+ *
+ * @param <T>
+ */
 public abstract class AbstractContextualMultiVersionSpecRunner<T extends AbstractContextualMultiVersionSpecRunner.VersionedTool> extends AbstractMultiTestRunner {
     public static final String VERSIONS_SYSPROP_NAME = "org.gradle.integtest.versions";
 
@@ -89,7 +106,7 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
     }
 
     protected abstract boolean isAvailable(T version);
-    
+
     protected abstract Collection<Execution> createExecutionsFor(T versionedTool);
 
     public AbstractContextualMultiVersionSpecRunner(Class<?> target) {
@@ -147,7 +164,7 @@ public abstract class AbstractContextualMultiVersionSpecRunner<T extends Abstrac
                 }
             }
         }
-        
+
         for (T version : versionsUnderTest) {
             for (Execution execution : createExecutionsFor(version)) {
                 add(execution);

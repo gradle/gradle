@@ -34,6 +34,8 @@ import static org.gradle.util.CollectionUtils.sort;
 
 /**
  * A base class for those test runners which execute a test multiple times against a set of Gradle versions.
+ * <p>
+ * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
  */
 public abstract class AbstractCompatibilityTestRunner extends AbstractContextualMultiVersionSpecRunner<GradleDistributionTool> {
     protected final IntegrationTestBuildContext buildContext = IntegrationTestBuildContext.INSTANCE;
