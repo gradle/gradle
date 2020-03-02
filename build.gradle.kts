@@ -245,8 +245,6 @@ subprojects {
     if (project !in kotlinJsProjects) {
         apply(plugin = "gradlebuild.task-properties-validation")
     }
-
-    apply(plugin = "gradlebuild.test-files-cleanup")
 }
 
 val runtimeUsage = objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
