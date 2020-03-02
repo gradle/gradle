@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.api.internal.specs.ExplainingSpec;
@@ -24,6 +23,7 @@ import org.gradle.api.logging.Logging;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
 import org.gradle.initialization.BuildRequestContext;
+import org.gradle.internal.SystemProperties;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
@@ -55,6 +55,7 @@ import org.gradle.launcher.exec.BuildActionResult;
 
 import java.io.File;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -251,10 +252,13 @@ public class DaemonClient implements BuildActionExecuter<BuildActionParameters> 
 
     private Optional<File> findCrashLogFile(Build build, DaemonDiagnostics diagnostics) {
         String crashLogFileName = "hs_err_pid" + diagnostics.getPid() + ".log";
-        List<File> candidates = ImmutableList.of(
-            new File(build.getParameters().getCurrentDir(), crashLogFileName),
-            new File(diagnostics.getDaemonLog().getParent(), crashLogFileName)
-        );
+        List<File> candidates = new ArrayList<>();
+        candidates.add(new File(build.getParameters().getCurrentDir(), crashLogFileName));
+        candidates.add(new File(diagnostics.getDaemonLog().getParent(), crashLogFileName));
+        String javaTmpDir = SystemProperties.getInstance().getJavaIoTmpDir();
+        if (javaTmpDir != null && !javaTmpDir.isEmpty()) {
+            candidates.add(new File(javaTmpDir, crashLogFileName));
+        }
         return candidates.stream()
             .filter(File::isFile)
             .findFirst();
