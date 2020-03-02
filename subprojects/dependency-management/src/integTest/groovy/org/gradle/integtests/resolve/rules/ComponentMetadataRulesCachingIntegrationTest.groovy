@@ -112,7 +112,6 @@ dependencies {
 @CacheableRule
 class PomRule implements ComponentMetadataRule {
     public void execute(ComponentMetadataContext context) {
-        println(context)
         assert context.getDescriptor(PomModuleDescriptor) != null
         assert context.getDescriptor(PomModuleDescriptor).packaging == "jar"
     }
