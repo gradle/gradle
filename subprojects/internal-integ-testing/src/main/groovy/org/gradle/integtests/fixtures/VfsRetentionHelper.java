@@ -21,7 +21,7 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_R
 
 public class VfsRetentionHelper {
     public static void waitForChangesToBePickedUp() throws InterruptedException {
-        Thread.sleep(1000);
+        Thread.sleep(80);
     }
 
     public static String getEnableVfsRetentionArgument() {

@@ -70,4 +70,11 @@ class FunctionalTest(
             }
         }
     }
+
+    if (testCoverage.testType == TestType.soak) {
+        failureConditions {
+            // Some soak tests produce OOM exceptions
+            javaCrash = false
+        }
+    }
 })
