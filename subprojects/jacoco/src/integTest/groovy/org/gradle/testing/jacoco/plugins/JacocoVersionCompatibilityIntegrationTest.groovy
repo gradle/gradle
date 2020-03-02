@@ -18,11 +18,8 @@ package org.gradle.testing.jacoco.plugins
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.JDK7_OR_EARLIER)
-@TargetCoverage({ JacocoCoverage.ALL })
+@TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
 class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     def "can run versions"() {

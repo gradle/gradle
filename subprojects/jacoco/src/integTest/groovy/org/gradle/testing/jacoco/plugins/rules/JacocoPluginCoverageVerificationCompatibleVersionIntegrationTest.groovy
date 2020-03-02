@@ -17,10 +17,27 @@
 package org.gradle.testing.jacoco.plugins.rules
 
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.testing.jacoco.plugins.JacocoMultiVersionIntegrationTest
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 
-@TargetCoverage({ JacocoCoverage.COVERAGE_CHECK_SUPPORTED })
-class JacocoPluginCoverageVerificationCompatibleVersionIntegrationTest extends AbstractJacocoPluginCoverageVerificationVersionIntegrationTest {
+@TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
+class JacocoPluginCoverageVerificationCompatibleVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
+
+    protected final static String[] TEST_AND_JACOCO_COVERAGE_VERIFICATION_TASK_PATHS = [':test', ':jacocoTestCoverageVerification'] as String[]
+
+    def setup() {
+        javaProjectUnderTest.writeSourceFiles()
+
+        buildFile << """
+            jacocoTestCoverageVerification {
+                violationRules {
+                    rule {
+                        $JacocoViolationRulesLimit.Sufficient.LINE_METRIC_COVERED_RATIO
+                    }
+                }
+            }
+        """
+    }
 
     def "can verify code coverage metrics for compatible versions"() {
         when:

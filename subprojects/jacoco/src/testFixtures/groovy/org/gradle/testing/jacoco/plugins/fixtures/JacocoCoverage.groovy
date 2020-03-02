@@ -18,45 +18,34 @@ package org.gradle.testing.jacoco.plugins.fixtures
 
 import org.gradle.api.JavaVersion
 import org.gradle.testing.jacoco.plugins.JacocoPlugin
-import org.gradle.util.TestPrecondition
 
 final class JacocoCoverage {
 
-    JacocoCoverage() {}
+    private JacocoCoverage() {}
 
-    final static String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.6.0.201210061924', '0.6.2.201302030002', '0.6.3.201306030806', '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
-
-    final static List<String> COVERAGE_CHECK_SUPPORTED = filter(JacocoVersion.CHECK_INTRODUCED)
-
-    final static List<String> COVERAGE_CHECK_UNSUPPORTED = ALL.findAll {
-        def jacocoVersion = new JacocoVersion(it)
-        def supportedJacocoVersion = JacocoVersion.CHECK_INTRODUCED
-        jacocoVersion.compareTo(supportedJacocoVersion) == -1
-    }.asImmutable()
-
-    private final static List<String> SUPPORTS_JDK_8_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_8)
-    private final static List<String> SUPPORTS_JDK_9_OR_HIGHER = filter(JacocoVersion.SUPPORTS_JDK_9)
-    private final static List<String> SUPPORTS_JDK14 = filter(JacocoVersion.SUPPORTS_JDK_14)
+    private static final String[] ALL = [JacocoPlugin.DEFAULT_JACOCO_VERSION, '0.7.1.201405082137', '0.7.6.201602180812', '0.8.3'].asImmutable()
 
     static List<String> getSupportedVersionsByJdk() {
-        if (TestPrecondition.JDK13_OR_EARLIER.isFulfilled()) {
-            return JavaVersion.current().isJava9Compatible() ? SUPPORTS_JDK_9_OR_HIGHER : SUPPORTS_JDK_8_OR_HIGHER
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+            return filter(JacocoVersion.SUPPORTS_JDK_14)
+        } else if (JavaVersion.current().isJava9Compatible()) {
+            return filter(JacocoVersion.SUPPORTS_JDK_9)
         }
-        return SUPPORTS_JDK14
+        return filter(JacocoVersion.SUPPORTS_JDK_8)
     }
 
-    static List<String> filter(JacocoVersion threshold) {
+    private static List<String> filter(JacocoVersion threshold) {
         ALL.findAll { new JacocoVersion(it) >= threshold }.asImmutable()
     }
 
     private static class JacocoVersion implements Comparable<JacocoVersion> {
-        final static CHECK_INTRODUCED = new JacocoVersion(0, 6, 3)
-        final static SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
-        final static SUPPORTS_JDK_9 = new JacocoVersion(0, 7, 8)
-        final static SUPPORTS_JDK_14 = new JacocoVersion(0, 8, 5)
-        private final Integer major
-        private final Integer minor
-        private final Integer patch
+        static final SUPPORTS_JDK_8 = new JacocoVersion(0, 7, 0)
+        static final SUPPORTS_JDK_9 = new JacocoVersion(0, 7, 8)
+        static final SUPPORTS_JDK_14 = new JacocoVersion(0, 8, 5)
+
+        private final int major
+        private final int minor
+        private final int patch
 
         JacocoVersion(String version) {
             def versionParts = version.split('\\.')
@@ -65,7 +54,7 @@ final class JacocoCoverage {
             patch = versionParts[2].toInteger()
         }
 
-        JacocoVersion(Integer major, Integer minor, Integer patch) {
+        JacocoVersion(int major, int minor, int patch) {
             this.major = major
             this.minor = minor
             this.patch = patch
