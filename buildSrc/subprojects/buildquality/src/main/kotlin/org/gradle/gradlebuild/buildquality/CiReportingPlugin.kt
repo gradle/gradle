@@ -56,7 +56,7 @@ open class CiReportingPlugin : Plugin<Project> {
     }
 
     private
-    fun Project.getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]?.extensions?.getByType(TestFileCleanUpExtension::class.java)?.policy?.get()
+    fun Project.getCleanUpPolicy(childProjectName: String) = childProjects[childProjectName]?.extensions?.getByType(TestFileCleanUpExtension::class.java)?.policy?.getOrElse(WhenNotEmpty.FAIL)
 
 
     private
