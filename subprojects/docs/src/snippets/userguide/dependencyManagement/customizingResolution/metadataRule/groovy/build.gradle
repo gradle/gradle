@@ -257,6 +257,13 @@ class MavenComponentRule implements ComponentMetadataRule {
 }
 // end::maven-packaging-component-metadata-rule[]
 
+dependencies {
+    components {
+        all(MavenComponentRule)
+    }
+}
+
+
 // tag::custom-status-scheme[]
 class CustomStatusRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {

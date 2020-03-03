@@ -254,6 +254,12 @@ open class MavenComponentRule : ComponentMetadataRule {
 }
 // end::maven-packaging-component-metadata-rule[]
 
+dependencies {
+    components {
+        all<MavenComponentRule>()
+    }
+}
+
 // tag::custom-status-scheme[]
 open class CustomStatusRule : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
