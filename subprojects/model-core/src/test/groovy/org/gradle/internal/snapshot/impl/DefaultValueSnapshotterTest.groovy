@@ -26,9 +26,7 @@ import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
-import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -808,7 +806,7 @@ class DefaultValueSnapshotterTest extends Specification {
         files1.from(new File("a").absoluteFile)
 
         given:
-        _ * managedFactoryRegistry.lookup(ConfigurableFileCollectionManagedFactory.FACTORY_ID) >> new ConfigurableFileCollectionManagedFactory(TestFiles.resolver(), DefaultTaskDependencyFactory.withNoAssociatedProject(), Stub(Factory))
+        _ * managedFactoryRegistry.lookup(ConfigurableFileCollectionManagedFactory.FACTORY_ID) >> new ConfigurableFileCollectionManagedFactory(TestFiles.fileCollectionFactory())
 
         expect:
         def isolatedEmpty = snapshotter.isolate(empty)

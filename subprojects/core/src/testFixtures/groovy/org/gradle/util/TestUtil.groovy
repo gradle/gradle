@@ -122,7 +122,7 @@ class TestUtil {
 
                 ProjectLayout createProjectLayout() {
                     def filePropertyFactory = new DefaultFilePropertyFactory(PropertyHost.NO_OP, fileResolver, fileCollectionFactory)
-                    return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), fileCollectionFactory, filePropertyFactory, filePropertyFactory)
+                    return new DefaultProjectLayout(fileResolver.resolve("."), fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), PropertyHost.NO_OP, fileCollectionFactory, filePropertyFactory, filePropertyFactory)
                 }
 
                 ChecksumService createChecksumService() {

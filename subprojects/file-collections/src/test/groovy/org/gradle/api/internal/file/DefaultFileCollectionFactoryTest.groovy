@@ -24,6 +24,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.provider.Provider
@@ -44,7 +45,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     @ClassRule
     @Shared
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), Stub(TaskDependencyFactory), TestFiles.directoryFileTreeFactory(), Stub(Factory), TestFiles.fileSystem())
+    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), Stub(TaskDependencyFactory), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
