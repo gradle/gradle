@@ -25,27 +25,31 @@ class CompositeBuildPropertiesIntegrationTest extends AbstractIntegrationSpec {
 
     def "included build properties take precedence over root build properties"() {
         given:
-        createDir("included") {
-            file("gradle.properties") << """
-                theProperty=included
-            """
-            file("settings.gradle") << """
-                println("included settings script: " + theProperty)
-            """
-            file("build.gradle") << """
-                println("included build script: " + theProperty)
-            """
+        def createBuild = { String buildName, String dir ->
+            createDir(dir) {
+                file("gradle.properties") << """
+                    theProperty=$buildName
+                """
+                file("settings.gradle") << """
+                    println("$buildName settings script: " + theProperty)
+                """
+                file("build.gradle") << """
+                    println("$buildName build script: " + theProperty)
+                """
+            }
         }
-        file("gradle.properties") << """
-            theProperty=root
-        """
+
+        createBuild "root", "."
         settingsFile << """
             includeBuild 'included'
-            println("root settings script: " + theProperty)
         """
-        buildFile << """
-            println("root build script: " + theProperty)
+
+        createBuild "included", "included"
+        file("included/settings.gradle") << """
+            includeBuild '../nested'
         """
+
+        createBuild "nested", "nested"
 
         when:
         run('help')
@@ -55,5 +59,7 @@ class CompositeBuildPropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputContains("root build script: root")
         outputContains("included settings script: included")
         outputContains("included build script: included")
+        outputContains("nested settings script: nested")
+        outputContains("nested build script: nested")
     }
 }
