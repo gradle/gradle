@@ -41,10 +41,10 @@ details of 2
 ## n
 -->
 
-## Show location of Java crash log
+## Show location of Java fatal error log
 
 Sometimes the Java virtual machine executing the Gradle daemon crashes due to a bug in Java, Gradle itself, or in the user code being executed.
-When Java crashes, it writes a [fatal error log](https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/felog.html) to the current working directory.
+When Java crashes, it writes a [fatal error log](https://docs.oracle.com/en/java/javase/13/troubleshoot/fatal-error-log.html) to the current working directory.
 Since it may be hard to find out what the working directory of the daemon process is, Gradle now prints the location of the crash log to the console.
 For example, the following build crashed, and created a crash log at `/home/user/project/hs_err_pid11783.log`: 
 
