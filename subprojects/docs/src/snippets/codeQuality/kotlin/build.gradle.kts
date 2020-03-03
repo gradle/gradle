@@ -39,3 +39,12 @@ tasks.withType<Checkstyle>().configureEach {
     }
 }
 // end::customize-checkstyle-report[]
+
+// tag::customize-pmd[]
+pmd {
+    isConsoleOutput = true
+    toolVersion = "6.21.0"
+    rulePriority = 5
+    ruleSets = listOf("category/java/errorprone.xml", "category/java/bestpractices.xml")
+}
+// end::customize-pmd[]
