@@ -56,13 +56,13 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         private GradleProperties gradleProperties() {
-            return state.getGradleProperties();
+            return state.gradleProperties();
         }
     }
 
     private interface State {
 
-        GradleProperties getGradleProperties();
+        GradleProperties gradleProperties();
 
         State loadGradlePropertiesFrom(File settingsDir);
     }
@@ -70,7 +70,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     private class NotLoaded implements State {
 
         @Override
-        public GradleProperties getGradleProperties() {
+        public GradleProperties gradleProperties() {
             throw new IllegalStateException("GradleProperties has not been loaded yet.");
         }
 
@@ -94,7 +94,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
         }
 
         @Override
-        public GradleProperties getGradleProperties() {
+        public GradleProperties gradleProperties() {
             return gradleProperties;
         }
 
