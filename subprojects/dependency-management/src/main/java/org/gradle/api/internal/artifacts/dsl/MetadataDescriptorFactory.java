@@ -50,11 +50,11 @@ class MetadataDescriptorFactory {
     }
 
     private static boolean isIvyMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
-        return descriptor == IvyModuleDescriptor.class && metadata instanceof IvyModuleResolveMetadata;
+        return IvyModuleDescriptor.class.isAssignableFrom(descriptor) && metadata instanceof IvyModuleResolveMetadata;
     }
 
     private static boolean isPomMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
-        return descriptor == PomModuleDescriptor.class && metadata instanceof MavenModuleResolveMetadata;
+        return PomModuleDescriptor.class.isAssignableFrom(descriptor) && metadata instanceof MavenModuleResolveMetadata;
     }
 
 }

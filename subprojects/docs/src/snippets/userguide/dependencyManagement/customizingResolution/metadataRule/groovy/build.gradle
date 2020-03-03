@@ -238,7 +238,7 @@ dependencies {
 // tag::ivy-component-metadata-rule[]
 class IvyComponentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
-        val descriptor = context.getDescriptor(IvyModuleDescriptor)
+        def descriptor = context.getDescriptor(IvyModuleDescriptor)
         if (descriptor != null && descriptor.branch == "testing") {
             context.details.status = "rc"
         }
@@ -249,7 +249,7 @@ class IvyComponentRule implements ComponentMetadataRule {
 // tag::maven-packaging-component-metadata-rule[]
 class MavenComponentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
-        val descriptor = context.getDescriptor(PomModuleDescriptor)
+        def descriptor = context.getDescriptor(PomModuleDescriptor)
         if (descriptor != null && descriptor.packaging == "war") {
             // ...
         }
@@ -259,6 +259,7 @@ class MavenComponentRule implements ComponentMetadataRule {
 
 dependencies {
     components {
+        all(IvyComponentRule)
         all(MavenComponentRule)
     }
 }

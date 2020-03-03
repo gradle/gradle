@@ -263,15 +263,12 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         if (!shouldExecute(action, metadata)) {
             return;
         }
-        final List<Object> inputs = Lists.newArrayList();
-        Object additionalInput = gatherAdditionalInput(action, metadata);
-        if (additionalInput != null) {
-            inputs.add(additionalInput);
-        }
+
+        List<?> inputs = gatherAdditionalInputs(action, metadata);
         executeAction(action, inputs, details);
     }
 
-    private void executeAction(RuleAction<? super ComponentMetadataDetails> action, List<Object> inputs, ComponentMetadataDetails details) {
+    private void executeAction(RuleAction<? super ComponentMetadataDetails> action, List<?> inputs, ComponentMetadataDetails details) {
         try {
             synchronized (this) {
                 action.execute(details, inputs);
@@ -291,15 +288,16 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         return true;
     }
 
-    private Object gatherAdditionalInput(RuleAction<? super ComponentMetadataDetails> action, ModuleComponentResolveMetadata metadata) {
+    private List<?> gatherAdditionalInputs(RuleAction<? super ComponentMetadataDetails> action, ModuleComponentResolveMetadata metadata) {
+        final List<Object> inputs = Lists.newArrayList();
         for (Class<?> inputType : action.getInputTypes()) {
             MetadataDescriptorFactory descriptorFactory = new MetadataDescriptorFactory(metadata);
             Object descriptor = descriptorFactory.createDescriptor(inputType);
             if (descriptor != null) {
-                return descriptor;
+                inputs.add(descriptor);
             }
         }
-        return null;
+        return inputs;
     }
 
     private static class ExceptionHandler implements InstantiatingAction.ExceptionHandler<ComponentMetadataContext> {
