@@ -22,7 +22,7 @@ import org.gradle.integtests.fixtures.TargetVersions
 import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 
-@TargetVersions([PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0', '6.20.0'])
+@TargetVersions([PmdPlugin.DEFAULT_PMD_VERSION, '4.3', '5.0.5', '5.1.1', '5.3.3', '6.0.0', '6.8.0'])
 class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
     String calculateDefaultDependencyNotation() {
         if (versionNumber < VersionNumber.version(5)) {

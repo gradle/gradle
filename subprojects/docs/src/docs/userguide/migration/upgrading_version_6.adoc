@@ -38,6 +38,10 @@ Some plugins will break with this new version of Gradle, for example because the
 
 There were no breaking changes between Gradle 6.2 and 6.3.
 
+==== Updates to default tool integration versions
+
+- PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
+
 === Deprecations
 
 There were no deprecations between Gradle 6.2 and 6.3.
