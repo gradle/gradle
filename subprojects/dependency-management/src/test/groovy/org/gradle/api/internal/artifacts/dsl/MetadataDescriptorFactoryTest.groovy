@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
+import com.google.common.collect.ImmutableMap
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor
 import org.gradle.api.artifacts.maven.PomModuleDescriptor
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.external.model.ivy.DefaultIvyModuleResolveMetadata
+import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.MavenModuleResolveMetadata
-import com.google.common.collect.ImmutableMap;
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -74,9 +75,29 @@ class MetadataDescriptorFactoryTest extends Specification {
         descriptor == null
 
         where:
-        name      | descriptorType
-        "ivy"     | IvyModuleDescriptor
-        "maven"   | PomModuleDescriptor
+        name    | descriptorType
+        "ivy"   | IvyModuleDescriptor
+        "maven" | PomModuleDescriptor
+    }
+
+    @Unroll
+    def '#descriptorType and metadata #metadataType should match: #match'() {
+        given:
+        def metadata = Mock(metadataType)
+        def factory = new MetadataDescriptorFactory(metadata)
+
+        when:
+        def actualMatch = factory.isMatchingMetadata(descriptorType, metadata)
+
+        then:
+        actualMatch == match
+
+        where:
+        metadataType               | descriptorType      | match
+        IvyModuleResolveMetadata   | IvyModuleDescriptor | true
+        MavenModuleResolveMetadata | PomModuleDescriptor | true
+        MavenModuleResolveMetadata | IvyModuleDescriptor | false
+        IvyModuleResolveMetadata   | PomModuleDescriptor | false
     }
 
 

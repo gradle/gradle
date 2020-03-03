@@ -33,20 +33,28 @@ class MetadataDescriptorFactory {
     }
 
     public <T> T createDescriptor(Class<T> descriptorClass) {
-        if (IvyModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
-            if (metadata instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-                IvyModuleDescriptor descriptor = new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
-                return descriptorClass.cast(descriptor);
-            }
-        } else if (PomModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
-            if (metadata instanceof MavenModuleResolveMetadata) {
-                MavenModuleResolveMetadata mavenMetadata = (MavenModuleResolveMetadata) metadata;
-                PomModuleDescriptor descriptor = new DefaultPomModuleDescriptor(mavenMetadata);
-                return descriptorClass.cast(descriptor);
-            }
+        if (isIvyMetadata(descriptorClass, metadata)) {
+            IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
+            IvyModuleDescriptor descriptor = new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus());
+            return descriptorClass.cast(descriptor);
+        } else if (isPomMetadata(descriptorClass, metadata)) {
+            MavenModuleResolveMetadata mavenMetadata = (MavenModuleResolveMetadata) metadata;
+            PomModuleDescriptor descriptor = new DefaultPomModuleDescriptor(mavenMetadata);
+            return descriptorClass.cast(descriptor);
         }
         return null;
+    }
+
+    public static boolean isMatchingMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
+        return isPomMetadata(descriptor, metadata) || isIvyMetadata(descriptor, metadata);
+    }
+
+    private static boolean isIvyMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
+        return descriptor == IvyModuleDescriptor.class && metadata instanceof IvyModuleResolveMetadata;
+    }
+
+    private static boolean isPomMetadata(Class<?> descriptor, ModuleComponentResolveMetadata metadata) {
+        return descriptor == PomModuleDescriptor.class && metadata instanceof MavenModuleResolveMetadata;
     }
 
 }
