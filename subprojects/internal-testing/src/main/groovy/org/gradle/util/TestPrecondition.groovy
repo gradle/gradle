@@ -130,9 +130,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK12_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_12
     }),
-    JDK13_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_13
-    }),
     JDK7_POSIX({
         NOT_WINDOWS.fulfilled
     }),
