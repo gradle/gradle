@@ -41,6 +41,38 @@ details of 2
 ## n
 -->
 
+## Show location of Java crash log
+
+Sometimes, the Gradle daemon crashes due to some bugs in Java, Gradle or some third party plugin.
+When Java crashes, it writes a [fatal error log](https://docs.oracle.com/javase/8/docs/technotes/guides/troubleshoot/felog.html) to the current working directory.
+Since it may be hard to find out what the working directory of the daemon process is, Gradle now prints the location of the crash log to the console.
+For example, the following build crashed, and creates a crash log at `/home/user/project/hs_err_pid11783.log`: 
+
+```
+> ./gradlew assemble
+
+Starting a Gradle Daemon (subsequent builds will be faster)
+The message received from the daemon indicates that the daemon has disappeared.
+Build request sent: Build{id=44fa8d49-d89a-41ca-a265-56e676ed40e6, currentDir=/home/user/project}
+Attempting to read last messages from the daemon log...
+Daemon pid: 11783
+  log file: /home/user/.gradle/daemon/6.3/daemon-11783.out.log
+----- Last  20 lines from daemon log file - daemon-11783.out.log -----
+2020-03-03T16:44:13.580+0100 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
+...
+----- End of the daemon log -----
+
+JVM crash log found: file:///home/user/project/hs_err_pid11783.log
+
+FAILURE: Build failed with an exception.
+
+* What went wrong:
+Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
+
+* Try:
+Run with --info or --debug option to get more log output. Run with --scan to get full insights.
+```
+
 ## Improvements for plugin authors
 
 ### Experimental improvements for reliable build configuration 
