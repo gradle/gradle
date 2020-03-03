@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.TestPrecondition
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
