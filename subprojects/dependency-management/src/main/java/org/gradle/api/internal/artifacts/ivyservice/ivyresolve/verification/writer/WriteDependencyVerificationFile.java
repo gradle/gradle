@@ -352,6 +352,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 }
                 if (!entry.getFile().exists()) {
                     LOGGER.warn("Cannot compute checksum for " + entry.getFile() + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
+                    continue;
                 }
                 if (entry instanceof ChecksumEntry) {
                     queueChecksumVerification(queue, (ChecksumEntry) entry);
@@ -447,7 +448,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private String createHash(File file, ChecksumKind kind) {
-        return checksumService.hash(file, kind.getAlgorithm()).toString();
+        try {
+            return checksumService.hash(file, kind.getAlgorithm()).toString();
+        } catch (Exception e) {
+            LOGGER.debug("Error while snapshotting " + file, e);
+            return null;
+        }
     }
 
     private static void resolveAllConfigurationsAndForceDownload(Project p) {
