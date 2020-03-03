@@ -21,7 +21,8 @@ import org.gradle.util.VersionNumber
 
 class GroovyCoverage {
     private static final String[] PREVIOUS = ['1.5.8', '1.6.9', '1.7.11', '1.8.8', '2.0.5', '2.1.9', '2.2.2', '2.3.10', '2.4.15', '2.5.8', '2.5.10-SNAPSHOT']
-    private static final String[] ALL
+
+    static final List<String> SUPPORTED_BY_JDK
 
     static final List<String> SUPPORTS_GROOVYDOC
     static final List<String> SUPPORTS_TIMESTAMP
@@ -35,23 +36,25 @@ class GroovyCoverage {
             allVersions += GroovySystem.version
         }
 
-        ALL = allVersions
-        SUPPORTS_GROOVYDOC = versionsAbove(VersionNumber.parse("1.6.9"))
-        SUPPORTS_TIMESTAMP = versionsAbove(VersionNumber.parse("2.4.6"))
-        SUPPORTS_PARAMETERS = versionsAbove(VersionNumber.parse("2.5.0"))
-    }
-
-    static List<String> getSupportedVersionsByJdk() {
         if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
-            return ALL.findAll {
-                def version = VersionNumber.parse(it)
-                version <= VersionNumber.parse('2.2.2') || version >= VersionNumber.parse('2.5.10')
-            }.asImmutable()
+            SUPPORTED_BY_JDK = versionsBetween(allVersions, '2.2.2', '2.5.10')
+        } else {
+            SUPPORTED_BY_JDK = allVersions
         }
-        return ALL
+
+        SUPPORTS_GROOVYDOC = versionsAbove(SUPPORTED_BY_JDK, "1.6.9")
+        SUPPORTS_TIMESTAMP = versionsAbove(SUPPORTED_BY_JDK, "2.4.6")
+        SUPPORTS_PARAMETERS = versionsAbove(SUPPORTED_BY_JDK, "2.5.0")
     }
 
-    private static List<String> versionsAbove(VersionNumber threshold) {
-        getSupportedVersionsByJdk().findAll { VersionNumber.parse(it) >= threshold }.asImmutable()
+    private static List<String> versionsAbove(List<String> versionsToFilter, String threshold) {
+        versionsToFilter.findAll { VersionNumber.parse(it) >= VersionNumber.parse(threshold) }.asImmutable()
+    }
+
+    private static List<String> versionsBetween(List<String> versionsToFilter, String lowerBound, String upperBound) {
+        versionsToFilter.findAll {
+            def version = VersionNumber.parse(it)
+            version <= VersionNumber.parse(lowerBound) || version >= VersionNumber.parse(upperBound)
+        }.asImmutable()
     }
 }
