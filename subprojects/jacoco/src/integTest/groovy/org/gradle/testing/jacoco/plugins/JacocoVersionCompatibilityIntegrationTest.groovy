@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 
+
 @TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
 class JacocoVersionCompatibilityIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
