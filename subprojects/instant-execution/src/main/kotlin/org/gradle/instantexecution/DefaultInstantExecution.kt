@@ -320,6 +320,7 @@ class DefaultInstantExecution internal constructor(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
             fileLookup = service(),
+            propertyFactory = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
             instantiator = service(),

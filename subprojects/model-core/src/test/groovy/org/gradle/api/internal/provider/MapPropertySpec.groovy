@@ -19,6 +19,7 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableMap
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
+import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import org.spockframework.util.Assert
 
@@ -77,7 +78,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     @Override
     ManagedFactory managedFactory() {
-        return new ManagedFactories.MapPropertyManagedFactory()
+        return new ManagedFactories.MapPropertyManagedFactory(TestUtil.propertyFactory())
     }
 
     def property = property()

@@ -37,11 +37,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.provider.DefaultListProperty;
-import org.gradle.api.internal.provider.DefaultMapProperty;
-import org.gradle.api.internal.provider.DefaultProperty;
-import org.gradle.api.internal.provider.DefaultSetProperty;
-import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -61,19 +57,18 @@ public class DefaultObjectFactory implements ObjectFactory {
     private final NamedObjectInstantiator namedObjectInstantiator;
     private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final PropertyHost propertyHost;
+    private final PropertyFactory propertyFactory;
     private final FilePropertyFactory filePropertyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory,
-                                PropertyHost propertyHost, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
-                                DomainObjectCollectionFactory domainObjectCollectionFactory) {
+                                PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
         this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
-        this.propertyHost = propertyHost;
+        this.propertyFactory = propertyFactory;
         this.filePropertyFactory = filePropertyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.domainObjectCollectionFactory = domainObjectCollectionFactory;
@@ -166,7 +161,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             throw new InvalidUserCodeException(invalidPropertyCreationError("fileProperty()", "RegularFile"));
         }
 
-        return new DefaultProperty<>(propertyHost, valueType);
+        return propertyFactory.property(valueType);
     }
 
     private String invalidPropertyCreationError(String correctMethodName, String propertyType) {
@@ -179,7 +174,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedNonnullCast(listProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
         }
-        return new DefaultListProperty<>(propertyHost, elementType);
+        return propertyFactory.listProperty(elementType);
     }
 
     @Override
@@ -188,7 +183,7 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedNonnullCast(setProperty(JavaReflectionUtil.getWrapperTypeForPrimitiveType(elementType)));
         }
-        return new DefaultSetProperty<>(propertyHost, elementType);
+        return propertyFactory.setProperty(elementType);
     }
 
     @Override
@@ -201,6 +196,6 @@ public class DefaultObjectFactory implements ObjectFactory {
             // Kotlin passes these types for its own basic types
             return Cast.uncheckedNonnullCast(mapProperty(keyType, JavaReflectionUtil.getWrapperTypeForPrimitiveType(valueType)));
         }
-        return new DefaultMapProperty<>(propertyHost, keyType, valueType);
+        return propertyFactory.mapProperty(keyType, valueType);
     }
 }

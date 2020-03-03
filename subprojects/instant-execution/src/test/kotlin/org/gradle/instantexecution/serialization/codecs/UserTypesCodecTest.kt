@@ -393,6 +393,7 @@ class UserTypesCodecTest {
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
         fileLookup = mock(),
+        propertyFactory = mock(),
         filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),
