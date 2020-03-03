@@ -50,7 +50,6 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_12.toString() == "12"
         JavaVersion.VERSION_13.toString() == "13"
         JavaVersion.VERSION_14.toString() == "14"
-        JavaVersion.VERSION_14.toString() == "15"
         JavaVersion.VERSION_15.toString() == "15"
         JavaVersion.VERSION_16.toString() == "16"
         JavaVersion.VERSION_17.toString() == "17"
