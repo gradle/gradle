@@ -22,6 +22,8 @@ import com.thoughtworks.qdox.library.OrderedClassLibraryBuilder
 import com.thoughtworks.qdox.model.JavaMethod
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.InputFiles
@@ -35,24 +37,27 @@ import org.gradle.build.ReproduciblePropertiesWriter
 import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.gradle.kotlin.dsl.support.serviceOf
-
 import java.io.File
 import java.net.URLClassLoader
+import javax.inject.Inject
 
 
 @CacheableTask
-open class ParameterNamesIndex : DefaultTask() {
+abstract class ParameterNamesIndex : DefaultTask() {
 
-    @InputFiles
-    @PathSensitive(PathSensitivity.RELATIVE)
-    val sources = project.files()
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val sources: ConfigurableFileCollection
 
-    @CompileClasspath
-    val classpath = project.files()
+    @get:CompileClasspath
+    abstract val classpath: ConfigurableFileCollection
 
-    @OutputFile
-    val destinationFile = project.objects.fileProperty()
+    @get:OutputFile
+    abstract val destinationFile: RegularFileProperty
+
+    @get:Inject
+    internal
+    abstract val classLoaderFactory: ClassLoaderFactory
 
     @TaskAction
     fun generate(): Unit =
@@ -105,8 +110,4 @@ open class ParameterNamesIndex : DefaultTask() {
     private
     fun isolatedClassLoaderFor(classpath: Set<File>) =
         classLoaderFactory.createIsolatedClassLoader(identityPath.path, DefaultClassPath.of(classpath)) as URLClassLoader
-
-    private
-    val classLoaderFactory
-        get() = project.serviceOf<ClassLoaderFactory>()
 }
