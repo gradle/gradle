@@ -25,6 +25,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.FileCollectionDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
@@ -136,6 +139,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             withSourcesJar()
         }
         val implementation by configurations
+
         @Suppress("unused_variable")
         val transitiveSourcesElements by configurations.creating {
             isCanBeResolved = false
@@ -172,7 +176,29 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
+            archiveBaseName.set(base.archivesBaseName)
+            generatedResourcesDir.set(gradlebuildJava.generatedResourcesDir)
+            val runtimeClasspath by configurations
+            runtimeProjectDependenciesPaths.set(
+                runtimeClasspath.allDependencies
+                    .withType<ProjectDependency>()
+                    .filter { it.dependencyProject.plugins.hasPlugin("java-base") }
+                    .map { it.dependencyProject.path }
+            )
+            runtimeNonProjectDependencies.from(
+                runtimeClasspath.fileCollection {
+                    it is ExternalDependency || it is FileCollectionDependency
+                }
+            )
+        }
+        rootProject.allprojects.forEach { p ->
+            p.afterEvaluate {
+                classpathManifest {
+                    archiveBaseNamesByProjectPath.put(p.path, p.base.archivesBaseName)
+                }
+            }
+        }
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
         // Remove this IDEA import workaround once we completely migrated to the native IDEA import
         // See: https://github.com/gradle/gradle-private/issues/1675
