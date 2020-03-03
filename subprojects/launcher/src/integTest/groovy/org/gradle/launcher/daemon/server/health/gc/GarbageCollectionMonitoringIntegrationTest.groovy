@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.daemon.server.health.gc
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -258,14 +259,14 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static List<GarbageCollectorUnderTest> getGarbageCollectors() {
         if (TestPrecondition.JDK_IBM.fulfilled) {
             return [new GarbageCollectorUnderTest(JavaGarbageCollector.IBM_ALL, GarbageCollectorMonitoringStrategy.IBM_ALL)]
-        } else if (TestPrecondition.JDK13_OR_EARLIER.fulfilled) {
+        } else if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
             return [
-                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS),
                 new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
                 new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
             ]
         } else {
             return [
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS),
                 new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
                 new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
             ]
@@ -283,7 +284,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
 
         @Override
-        public String toString() {
+        String toString() {
             return configuration.name()
         }
     }
