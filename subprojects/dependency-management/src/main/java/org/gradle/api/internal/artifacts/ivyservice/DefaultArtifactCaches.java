@@ -70,12 +70,14 @@ public class DefaultArtifactCaches implements ArtifactCachesProvider {
 
     private static File validateReadOnlyCache(DocumentationRegistry documentationRegistry, File cacheDir) {
         if (!cacheDir.exists()) {
+            LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
             LOGGER.warn("The " + READONLY_CACHE_ENV_VAR + " environment variable was set to " + cacheDir + " which doesn't exist!");
             return null;
         }
         File root = CacheLayout.ROOT.getPath(cacheDir);
         if (!root.exists()) {
             String docLink = documentationRegistry.getDocumentationFor("dependency_resolution", "sub:shared-readonly-cache");
+            LOGGER.warn("The read-only dependency cache is disabled because of a configuration problem:");
             LOGGER.warn("Read-only cache is configured but the directory layout isn't expected. You must have a pre-populated " +
                 CacheLayout.ROOT.getKey() + " directory at " + root + " . Please follow the instructions at " + docLink);
             return null;
