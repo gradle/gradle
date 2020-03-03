@@ -256,6 +256,7 @@ open class MavenComponentRule : ComponentMetadataRule {
 
 dependencies {
     components {
+        all<IvyComponentRule>()
         all<MavenComponentRule>()
     }
 }
