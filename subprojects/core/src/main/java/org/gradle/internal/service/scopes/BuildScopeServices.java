@@ -135,7 +135,6 @@ import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
-import org.gradle.initialization.PropertiesLoadingSettingsProcessor;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
 import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
@@ -409,14 +408,23 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(Deleter.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator, BuildLayoutFactory buildLayoutFactory) {
+    protected SettingsLoaderFactory createSettingsLoaderFactory(
+        SettingsProcessor settingsProcessor,
+        BuildStateRegistry buildRegistry,
+        ProjectStateRegistry projectRegistry,
+        PublicBuildPath publicBuildPath,
+        Instantiator instantiator,
+        BuildLayoutFactory buildLayoutFactory,
+        GradlePropertiesController gradlePropertiesController
+    ) {
         return new DefaultSettingsLoaderFactory(
             settingsProcessor,
             buildRegistry,
             projectRegistry,
             publicBuildPath,
             instantiator,
-            buildLayoutFactory
+            buildLayoutFactory,
+            gradlePropertiesController
         );
     }
 
@@ -449,7 +457,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         ScriptHandlerFactory scriptHandlerFactory,
         Instantiator instantiator,
         ServiceRegistryFactory serviceRegistryFactory,
-        GradlePropertiesController gradlePropertiesController,
         GradleProperties gradleProperties,
         BuildOperationExecutor buildOperationExecutor,
         TextFileResourceLoader textFileResourceLoader
@@ -457,18 +464,15 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new BuildOperationSettingsProcessor(
             new RootBuildCacheControllerSettingsProcessor(
                 new SettingsEvaluatedCallbackFiringSettingsProcessor(
-                    new PropertiesLoadingSettingsProcessor(
-                        new ScriptEvaluatingSettingsProcessor(
-                            scriptPluginFactory,
-                            new SettingsFactory(
-                                instantiator,
-                                serviceRegistryFactory,
-                                scriptHandlerFactory
-                            ),
-                            gradleProperties,
-                            textFileResourceLoader
+                    new ScriptEvaluatingSettingsProcessor(
+                        scriptPluginFactory,
+                        new SettingsFactory(
+                            instantiator,
+                            serviceRegistryFactory,
+                            scriptHandlerFactory
                         ),
-                        gradlePropertiesController
+                        gradleProperties,
+                        textFileResourceLoader
                     )
                 )
             ),

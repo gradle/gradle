@@ -32,14 +32,24 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
     private final BuildLayoutFactory buildLayoutFactory;
+    private GradlePropertiesController gradlePropertiesController;
 
-    public DefaultSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator, BuildLayoutFactory buildLayoutFactory) {
+    public DefaultSettingsLoaderFactory(
+        SettingsProcessor settingsProcessor,
+        BuildStateRegistry buildRegistry,
+        ProjectStateRegistry projectRegistry,
+        PublicBuildPath publicBuildPath,
+        Instantiator instantiator,
+        BuildLayoutFactory buildLayoutFactory,
+        GradlePropertiesController gradlePropertiesController
+    ) {
         this.settingsProcessor = settingsProcessor;
         this.buildRegistry = buildRegistry;
         this.projectRegistry = projectRegistry;
         this.publicBuildPath = publicBuildPath;
         this.instantiator = instantiator;
         this.buildLayoutFactory = buildLayoutFactory;
+        this.gradlePropertiesController = gradlePropertiesController;
     }
 
     @Override
@@ -68,7 +78,12 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
 
     private SettingsLoader defaultSettingsLoader() {
         return new SettingsAttachingSettingsLoader(
-            new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory),
-            projectRegistry);
+            new DefaultSettingsLoader(
+                settingsProcessor,
+                buildLayoutFactory,
+                gradlePropertiesController
+            ),
+            projectRegistry
+        );
     }
 }
