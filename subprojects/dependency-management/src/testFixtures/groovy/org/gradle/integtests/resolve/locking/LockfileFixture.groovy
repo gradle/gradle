@@ -23,12 +23,30 @@ class LockfileFixture {
 
     TestFile testDirectory
 
-    def createLockfile(List<String> entries, String empty = 'empty=') {
+    def createLockfile(List<String> entries, String empty = '') {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
         def lines = [LockFileReaderWriter.LOCKFILE_HEADER]
         lines.addAll entries.sort()
-        lines.add empty
+        lines.add 'empty=' + empty
         lockFile.writelns(lines)
+    }
+
+    void verifyLockfile(List<String> entries, String empty = '') {
+        def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        assert lockFile.exists()
+        def lockedModules = []
+        lockFile.eachLine { String line ->
+            if (!line.startsWith('#')) {
+                lockedModules << line
+            }
+        }
+
+        List<String> expectedModules = new ArrayList<>()
+        expectedModules.addAll(entries)
+        expectedModules.sort()
+        expectedModules.add('empty=' + empty)
+
+        assert lockedModules == expectedModules
     }
 
     def createLegacyLockfile(String configurationName, List<String> modules) {

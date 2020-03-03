@@ -16,6 +16,7 @@
 
 package org.gradle.internal.locking;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileResolver;
@@ -31,6 +32,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 public class LockFileReaderWriter {
 
@@ -44,6 +46,7 @@ public class LockFileReaderWriter {
     static final String LOCKFILE_HEADER = "# This is a Gradle generated file for dependency locking.\n" +
                                                  "# Manual edits can break the build and are not advised.\n" +
                                                  "# This file is expected to be part of source control.\n";
+    static final List<String> LOCKFILE_HEADER_LIST = ImmutableList.of("# This is a Gradle generated file for dependency locking.", "# Manual edits can break the build and are not advised.", "# This file is expected to be part of source control.");
 
     private final Path lockFilesRoot;
     private final DomainObjectContext context;
@@ -61,21 +64,26 @@ public class LockFileReaderWriter {
     public void writeLockFile(String configurationName, List<String> resolvedModules) {
         checkValidRoot(configurationName);
 
+        makeLockfilesRoot();
+        List<String> content = new ArrayList<>(50);
+        content.addAll(LOCKFILE_HEADER_LIST);
+        for (String module : resolvedModules) {
+            content.add(module);
+        }
+        try {
+            Files.write(lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX), content, CHARSET);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to write lock file", e);
+        }
+    }
+
+    private void makeLockfilesRoot() {
         if (!Files.exists(lockFilesRoot)) {
             try {
                 Files.createDirectories(lockFilesRoot);
             } catch (IOException e) {
                 throw new RuntimeException("Issue creating dependency-lock directory", e);
             }
-        }
-        StringBuilder builder = new StringBuilder(LOCKFILE_HEADER);
-        for (String module : resolvedModules) {
-            builder.append(module).append("\n");
-        }
-        try {
-            Files.write(lockFilesRoot.resolve(decorate(configurationName) + FILE_SUFFIX), builder.toString().getBytes(CHARSET));
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to write lock file", e);
         }
     }
 
@@ -117,20 +125,24 @@ public class LockFileReaderWriter {
         }
     }
 
-    public Map<String, List<String>> readSingleLockFile() {
+    public Map<String, List<String>> readUniqueLockFile() {
         if (lockFilesRoot == null) {
             throw new IllegalStateException("Dependency locking cannot be used for project '" + context.getProjectPath() + "'." +
                 " See limitations in the documentation (" + DOC_REG.getDocumentationFor("dependency_locking", "locking_limitations") +").");
         }
-        String fileName = decorate(UNIQUE_LOCKFILE_NAME);
-        Path uniqueLockFile = lockFilesRoot.resolve(fileName);
+        Path uniqueLockFile = getUniqueLockfilePath();
         if (Files.exists(uniqueLockFile)) {
             List<String> lines = readAllLines(uniqueLockFile);
             filterNonModuleLines(lines);
             return processLines(lines);
         } else {
-            return null;
+            return new HashMap<>();
         }
+    }
+
+    private Path getUniqueLockfilePath() {
+        String fileName = decorate(UNIQUE_LOCKFILE_NAME);
+        return lockFilesRoot.resolve(fileName);
     }
 
     private Map<String, List<String>> processLines(List<String> lines) {
@@ -181,6 +193,51 @@ public class LockFileReaderWriter {
             return Files.readAllLines(uniqueLockFile, CHARSET);
         } catch (IOException e) {
             throw new RuntimeException("Unable to load lock file", e);
+        }
+    }
+
+    public boolean canWrite() {
+        return lockFilesRoot != null;
+    }
+
+    public void writeUniqueLockfile(Map<String, List<String>> lockState) {
+        makeLockfilesRoot();
+        Path lockfilePath = getUniqueLockfilePath();
+
+        // Revert mapping
+        Map<String, List<String>> dependencyToConfigurations = new TreeMap<>();
+        List<String> emptyConfigurations = new ArrayList<>();
+        for (Map.Entry<String, List<String>> entry : lockState.entrySet()) {
+            List<String> dependencies = entry.getValue();
+            if (dependencies.isEmpty()) {
+                emptyConfigurations.add(entry.getKey());
+            } else {
+                for (String dependency : dependencies) {
+                    dependencyToConfigurations.compute(dependency, (k, v) -> {
+                        List<String> confs = v;
+                        if (v == null) {
+                            confs = new ArrayList<>();
+                        }
+                        confs.add(entry.getKey());
+                        return confs;
+                    });
+                }
+            }
+        }
+
+        // Write file
+        try {
+            List<String> content = new ArrayList<>(50);
+            content.addAll(LOCKFILE_HEADER_LIST);
+            for (Map.Entry<String, List<String>> entry : dependencyToConfigurations.entrySet()) {
+                StringBuilder builder = new StringBuilder(entry.getKey()).append("=");
+                builder.append(String.join(",", entry.getValue()));
+                content.add(builder.toString());
+            }
+            content.add(new StringBuilder("empty=").append(String.join(",", emptyConfigurations)).toString());
+            Files.write(lockfilePath, content, CHARSET);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to write unique lockfile", e);
         }
     }
 }

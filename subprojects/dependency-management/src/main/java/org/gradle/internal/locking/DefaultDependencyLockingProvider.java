@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
@@ -133,7 +134,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private synchronized void loadLockState() {
         if (!uniqueLockStateLoaded) {
             try {
-                allLockState = lockFileReaderWriter.readSingleLockFile();
+                allLockState = lockFileReaderWriter.readUniqueLockFile();
                 uniqueLockStateLoaded = true;
             } catch (IllegalStateException e) {
                 throw new InvalidLockFileException("project '" + context.getProjectPath().getPath() + "'", e);
@@ -172,16 +173,28 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     public void persistResolvedDependencies(String configurationName, Set<ModuleComponentIdentifier> resolvedModules, Set<ModuleComponentIdentifier> changingResolvedModules) {
         if (writeLocks) {
             List<String> modulesOrdered = getModulesOrdered(resolvedModules);
-            lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
             if (!changingResolvedModules.isEmpty()) {
                 LOGGER.warn("Dependency lock state for configuration '{}' contains changing modules: {}. This means that dependencies content may still change over time. See {} for details.",
                     context.identityPath(configurationName), getModulesOrdered(changingResolvedModules), DOC_REG.getDocumentationFor("dependency_locking"));
             }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", context.identityPath(configurationName), modulesOrdered);
+            if (uniqueLockStateEnabled) {
+                allLockState.put(configurationName, modulesOrdered);
             } else {
-                LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", context.identityPath(configurationName));
+                lockFileReaderWriter.writeLockFile(configurationName, modulesOrdered);
+                if (LOGGER.isDebugEnabled()) {
+                    LOGGER.debug("Persisted dependency lock state for configuration '{}', state is: {}", context.identityPath(configurationName), modulesOrdered);
+                } else {
+                    LOGGER.lifecycle("Persisted dependency lock state for configuration '{}'", context.identityPath(configurationName));
+                }
             }
+        }
+    }
+
+    @Override
+    public void buildFinished(GradleInternal gradle) {
+        if (uniqueLockStateEnabled && uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
+            lockFileReaderWriter.writeUniqueLockfile(allLockState);
+            LOGGER.lifecycle("Persisted dependency lock state for project '{}' (buildscript: {})", context.getProjectPath(), context.isScript());
         }
     }
 

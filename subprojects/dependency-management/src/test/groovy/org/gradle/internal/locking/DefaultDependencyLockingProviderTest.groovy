@@ -22,6 +22,7 @@ import org.gradle.api.artifacts.DependencySubstitution
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.api.internal.DomainObjectContext
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules
 import org.gradle.api.internal.file.FileResolver
@@ -46,6 +47,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     StartParameter startParameter = Mock()
     DomainObjectContext context = Mock()
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
+    FeaturePreviews featurePreviews = new FeaturePreviews()
 
     @Subject
     DefaultDependencyLockingProvider provider
@@ -55,20 +57,21 @@ class DefaultDependencyLockingProviderTest extends Specification {
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
         startParameter.getLockedDependenciesToUpdate() >> []
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
     }
 
     def 'can persist resolved modules as lockfile'() {
         given:
         startParameter.isWriteDependencyLocks() >> true
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
 
         when:
         provider.persistResolvedDependencies('conf', modules, emptySet())
 
         then:
-        lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}org:bar:1.3
+        lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+org:bar:1.3
 org:foo:1.0
 """
     }
@@ -91,7 +94,7 @@ org:foo:1.0
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         lockDir.file('conf.lockfile') << """org:bar:1.3
 org:foo:1.0
 """
@@ -108,7 +111,7 @@ org:foo:1.0
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:*']
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         lockDir.file('conf.lockfile') << """org:bar:1.3
 org:foo:1.0
 """
@@ -125,7 +128,7 @@ org:foo:1.0
         startParameter = Mock()
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
-        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules)
+        provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         lockDir.file('conf.lockfile') << """org.bar:foo:1.3
 com:foo:1.0
 """

@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
@@ -109,6 +110,42 @@ dependencies {
 
     @ToBeFixedForInstantExecution
     def 'writes dependency lock file when requested'() {
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+
+        FeaturePreviewsFixture.enableDependencyLockingImprovedFormat(settingsFile)
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockMode = LockMode.${lockMode()}
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.+'
+    lockedConf 'org:bar:1.+'
+}
+"""
+
+        when:
+        succeeds'dependencies', '--write-locks', '--refresh-dependencies'
+
+        then:
+        lockfileFixture.verifyLockfile(['org:foo:1.0=lockedConf', 'org:bar:1.0=lockedConf'])
+
+    }
+
+    @ToBeFixedForInstantExecution
+    def 'writes dependency lock file when requested (legacy)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 

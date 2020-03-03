@@ -43,12 +43,25 @@ class LockFileReaderWriterTest extends Specification {
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
     }
 
+    def 'writes a unique lock file'() {
+        when:
+        lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
+
+        then:
+        lockDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+bar=a
+foo=a,b
+empty=c
+"""
+    }
+
     def 'writes a legacy lock file on persist'() {
         when:
         lockFileReaderWriter.writeLockFile('conf', ['line1', 'line2'])
 
         then:
-        lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}line1
+        lockDir.file('conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+line1
 line2
 """
     }
@@ -72,13 +85,29 @@ line2"""
         lockDir.file('all_locks.singlelockfile') << """#ignored
 bar=a,c
 foo=a,b,c
-empty=d"""
+empty=d
+"""
 
         when:
-        def result = lockFileReaderWriter.readSingleLockFile()
+        def result = lockFileReaderWriter.readUniqueLockFile()
 
         then:
         result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
+    }
+
+    def 'writes a unique lock file with prefix'() {
+        when:
+        context.isScript() >> true
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
+
+        then:
+        lockDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME").text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+bar=a
+foo=a,b
+empty=c
+"""
+
     }
 
     def 'writes a legacy lock file with prefix on persist'() {
@@ -88,7 +117,8 @@ empty=d"""
         lockFileReaderWriter.writeLockFile('conf', ['line1', 'line2'])
 
         then:
-        lockDir.file('buildscript-conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER}line1
+        lockDir.file('buildscript-conf.lockfile').text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+line1
 line2
 """
     }
@@ -107,6 +137,23 @@ line2"""
 
         then:
         result == ['line1', 'line2']
+    }
+
+    def 'reads a unique lock file with prefix'() {
+        given:
+        context.isScript() >> true
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockDir.file('buildscript-all_locks.singlelockfile') << """#ignored
+bar=a,c
+foo=a,b,c
+empty=d
+"""
+
+        when:
+        def result = lockFileReaderWriter.readUniqueLockFile()
+
+        then:
+        result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
     }
 
     def 'fails to read a legacy lockfile if root could not be determined'() {

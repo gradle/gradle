@@ -18,6 +18,7 @@ package org.gradle.internal.locking;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 
@@ -53,5 +54,10 @@ public class NoOpDependencyLockingProvider implements DependencyLockingProvider 
     @Override
     public void setLockMode(LockMode mode) {
         throw new IllegalStateException("Should not be invoked on the no-op instance");
+    }
+
+    @Override
+    public void buildFinished(GradleInternal gradle) {
+        // No-op
     }
 }
