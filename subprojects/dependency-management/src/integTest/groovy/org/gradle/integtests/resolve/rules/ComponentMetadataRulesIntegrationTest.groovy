@@ -443,6 +443,7 @@ dependencies {
             """
 def plainRuleInvoked = false
 def ivyRuleInvoked = false
+def mavenRuleInvoked = false
 
 dependencies {
     components {
@@ -452,11 +453,15 @@ dependencies {
         all { ComponentMetadataDetails details, IvyModuleDescriptor descriptor ->
             ivyRuleInvoked = true
         }
+        all { ComponentMetadataDetails details, PomModuleDescriptor descriptor ->
+            mavenRuleInvoked = true
+        }
     }
 }
 
 resolve.doLast {
     assert plainRuleInvoked
+    assert mavenRuleInvoked
     assert !ivyRuleInvoked
 }
 """

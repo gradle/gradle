@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
+import org.gradle.api.artifacts.maven.PomModuleDescriptor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
@@ -59,7 +60,6 @@ import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 public class DefaultComponentMetadataHandler implements ComponentMetadataHandler, ComponentMetadataHandlerInternal, ComponentMetadataProcessorFactory {
     private static final String ADAPTER_NAME = ComponentMetadataHandler.class.getSimpleName();
-    private static final Class<?> VALIDATOR_PARAM = IvyModuleDescriptor.class;
     private static final String INVALID_SPEC_ERROR = "Could not add a component metadata rule for module '%s'.";
 
     private final Instantiator instantiator;
@@ -103,7 +103,7 @@ public class DefaultComponentMetadataHandler implements ComponentMetadataHandler
     }
 
     private static RuleActionAdapter createAdapter() {
-        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator(VALIDATOR_PARAM);
+        RuleActionValidator ruleActionValidator = new DefaultRuleActionValidator(IvyModuleDescriptor.class, PomModuleDescriptor.class);
         return new DefaultRuleActionAdapter(ruleActionValidator, ADAPTER_NAME);
     }
 
