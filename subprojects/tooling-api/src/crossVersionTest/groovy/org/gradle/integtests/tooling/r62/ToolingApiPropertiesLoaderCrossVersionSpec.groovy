@@ -25,17 +25,17 @@ import org.gradle.integtests.tooling.r60.AbstractToolingApiPropertiesLoaderCross
 class ToolingApiPropertiesLoaderCrossVersionSpec extends AbstractToolingApiPropertiesLoaderCrossVersionSpec {
 
     @Override
+    boolean projectPropertyAvailableInBuildSrc() {
+        true
+    }
+
+    @Override
     boolean projectPropertyAvailableInIncludedRoot() {
         true
     }
 
     @Override
     boolean projectPropertyAvailableInIncludedBuildSrc() {
-        true
-    }
-
-    @Override
-    boolean projectPropertyAvailableInBuildSrc() {
         true
     }
 }
