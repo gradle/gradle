@@ -32,7 +32,7 @@ public class DefaultSettingsLoaderFactory implements SettingsLoaderFactory {
     private final PublicBuildPath publicBuildPath;
     private final Instantiator instantiator;
     private final BuildLayoutFactory buildLayoutFactory;
-    private GradlePropertiesController gradlePropertiesController;
+    private final GradlePropertiesController gradlePropertiesController;
 
     public DefaultSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
