@@ -88,8 +88,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
-        "--dependency-verification=off", // TODO:instant-execution remove once handled
-        "-Dorg.gradle.unsafe.kotlin-eap=true" // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
+        "--dependency-verification=off" // TODO:instant-execution remove once handled
     ]
 }
 
