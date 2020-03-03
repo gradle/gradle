@@ -118,6 +118,7 @@ testCompile('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
     def 'nebula dependency lock plugin'() {
         when:
         buildFile << """
