@@ -238,13 +238,31 @@ dependencies {
 // tag::ivy-component-metadata-rule[]
 class IvyComponentRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
-        val descriptor = context.getDescriptor(IvyModuleDescriptor)
+        def descriptor = context.getDescriptor(IvyModuleDescriptor)
         if (descriptor != null && descriptor.branch == "testing") {
             context.details.status = "rc"
         }
     }
 }
 // end::ivy-component-metadata-rule[]
+
+// tag::maven-packaging-component-metadata-rule[]
+class MavenComponentRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        def descriptor = context.getDescriptor(PomModuleDescriptor)
+        if (descriptor != null && descriptor.packaging == "war") {
+            // ...
+        }
+    }
+}
+// end::maven-packaging-component-metadata-rule[]
+
+dependencies {
+    components {
+        all(IvyComponentRule)
+        all(MavenComponentRule)
+    }
+}
 
 
 // tag::custom-status-scheme[]
