@@ -101,8 +101,8 @@ public class WorkerSharedProjectScopeServices {
         return instantiator.newInstance(DefaultExecOperations.class, execFactory);
     }
 
-    protected FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory, FileSystem fileSystem) {
-        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, fileSystem);
+    FileCollectionFactory createFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory, PropertyHost propertyHost, FileSystem fileSystem) {
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
     }
 
     DefaultFilePropertyFactory createProjectFilePropertyFactory(PropertyHost host, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
@@ -123,7 +123,7 @@ public class WorkerSharedProjectScopeServices {
                 domainObjectCollectionFactory);
     }
 
-    protected DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory, FilePropertyFactory filePropertyFactory, FileFactory fileFactory) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, fileCollectionFactory, filePropertyFactory, fileFactory);
+    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory, FilePropertyFactory filePropertyFactory, PropertyHost propertyHost, FileFactory fileFactory) {
+        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }
