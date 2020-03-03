@@ -36,7 +36,13 @@ Some plugins will break with this new version of Gradle, for example because the
 [[changes_6.3]]
 == Upgrading from 6.2
 
-There were no breaking changes between Gradle 6.2 and 6.3.
+=== Potential breaking changes
+
+==== IDEA Sync -- annotation processor classpath is no longer added as provided dependencies
+
+Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processing,incremental annotation processing support>>, and with that a separate <<java_plugin.adoc#tab:configurations,annotation processor classpath>>, IDEA required the annotation processors themselves on the classpath to run them when compiling in IDEA directly.
+This is no longer necessary and thus, the processors are no longer added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
+The dependencies IDEA sees at compile time are then equivalent to what Gradle sees when resolving the `compileClasspath`.
 
 ==== Updates to default tool integration versions
 
