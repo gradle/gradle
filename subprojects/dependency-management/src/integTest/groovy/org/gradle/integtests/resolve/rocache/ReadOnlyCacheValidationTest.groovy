@@ -34,6 +34,7 @@ class ReadOnlyCacheValidationTest extends AbstractReadOnlyCacheDependencyResolut
         run ":help"
 
         then:
+        outputContains("The read-only dependency cache is disabled because of a configuration problem:")
         outputContains("The GRADLE_RO_DEP_CACHE environment variable was set to")
         outputContains("nope which doesn't exist!")
     }
@@ -46,6 +47,7 @@ class ReadOnlyCacheValidationTest extends AbstractReadOnlyCacheDependencyResolut
         run ":help"
 
         then:
+        outputContains("The read-only dependency cache is disabled because of a configuration problem:")
         outputContains("Read-only cache is configured but the directory layout isn't expected. You must have a pre-populated modules-2 directory at ")
         outputContains("Please follow the instructions at ${new DocumentationRegistry().getDocumentationFor("dependency_resolution", "sub:shared-readonly-cache")}")
     }
