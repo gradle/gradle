@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures.file;
 
 import groovy.lang.Closure;
+import org.apache.commons.lang.exception.ExceptionUtils;
 import org.gradle.api.GradleException;
 import org.gradle.test.fixtures.ConcurrentTestUtil;
 import org.junit.rules.TestRule;
@@ -26,6 +27,8 @@ import org.junit.runners.model.Statement;
 import java.io.IOException;
 import java.util.Random;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 
 /**
@@ -38,6 +41,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
     private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
+    private static final String UNKNOWN_TEST_CLASS_PREFIX = "unknown-test-class";
 
     private TestFile dir;
     private String prefix;
@@ -139,7 +143,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     @Override
     public TestFile getTestDirectory() {
         if (dir == null) {
-           dir = createUniqueTestDirectory();
+            dir = createUniqueTestDirectory();
         }
         return dir;
     }
@@ -152,9 +156,29 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
                 continue;
             }
             TestFile dir = root.file(getPrefix(), randomPrefix);
+
+            logOnUnknownClass(dir);
+
             if (dir.mkdirs()) {
                 return dir;
             }
+        }
+    }
+
+    /**
+     * Log the stacktrace when someone wants to create `unknown-test-class` for future troubleshooting.
+     *
+     * https://github.com/gradle/gradle-private/issues/2988
+     */
+    private void logOnUnknownClass(TestFile testDir) {
+        if (testDir.getAbsolutePath().contains(UNKNOWN_TEST_CLASS_PREFIX)) {
+            // Remove " at " in stacktrace to avoid being detected by OutputScrapingExecutionResult.STACK_TRACE_ELEMENT, which might fail the build
+            String stacktrace = Stream.of(ExceptionUtils.getStackTrace(new Throwable())
+                .split("\\n"))
+                .map(line -> line.replaceAll("^\\s+at\\s+", "@"))
+                .collect(Collectors.joining("\n"));
+
+            System.out.println("Creating: " + testDir.getAbsolutePath() + "\n" + stacktrace);
         }
     }
 
@@ -162,20 +186,20 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         if (prefix == null) {
             // This can happen if this is used in a constructor or a @Before method. It also happens when using
             // @RunWith(SomeRunner) when the runner does not support rules.
-            prefix = "unknown-test-class";
+            prefix = UNKNOWN_TEST_CLASS_PREFIX;
         }
         return prefix;
     }
 
     public TestFile file(Object... path) {
-        return getTestDirectory().file((Object[]) path);
+        return getTestDirectory().file(path);
     }
 
     public TestFile createFile(Object... path) {
-        return file((Object[]) path).createFile();
+        return file(path).createFile();
     }
 
     public TestFile createDir(Object... path) {
-        return file((Object[]) path).createDir();
+        return file(path).createDir();
     }
 }
