@@ -791,6 +791,7 @@ abstract class MakeGreen extends ArtifactTransform {
 """
 
         when:
+        executer.expectDocumentedDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 7.0. Implement TransformAction instead. See https://docs.gradle.org/current/userguide/artifact_transforms.html for more details.")
         fails(":a:resolve")
 
         then:

@@ -2347,7 +2347,7 @@ Found the following transforms:
                     artifactTransform(OldStyleTransform)
                 }
             }
-            
+
             class OldStyleTransform extends ArtifactTransform {
                 List<File> transform(File input) {
                     return []
@@ -2356,10 +2356,9 @@ Found the following transforms:
         """
 
         when:
-        executer.expectDeprecationWarning()
-        run "help"
+        executer.expectDocumentedDeprecationWarning("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 7.0. Implement TransformAction instead. See https://docs.gradle.org/current/userguide/artifact_transforms.html for more details.")
         then:
-        outputContains("Registering artifact transforms extending ArtifactTransform has been deprecated. This is scheduled to be removed in Gradle 7.0. Implement TransformAction instead.")
+        succeeds "help"
     }
 
     def declareTransform(String transformImplementation) {
