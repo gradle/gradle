@@ -520,7 +520,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun systemProperty(propertyName: String) =
-        System.getProperty(propertyName)
+        startParameter.systemPropertyArg(propertyName) ?: System.getProperty(propertyName)
 
     private
     fun instantExecutionFingerprintChecker() =
