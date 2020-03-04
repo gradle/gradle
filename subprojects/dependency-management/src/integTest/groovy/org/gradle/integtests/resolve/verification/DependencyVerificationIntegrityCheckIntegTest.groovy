@@ -582,10 +582,6 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(
-        because = "it relies on gradle.properties property being available to buildSrc",
-        iterationMatchers = ".+\\(terse output=false\\)"
-    )
     def "can verify dependencies of buildSrc (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo", "sha1", "16e066e005a935ac60f06216115436ab97c5da02")
@@ -594,7 +590,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         uncheckedModule("org", "bar")
 
         given:
-        terseConsoleOutput(terse)
+        terseConsoleOutput(terse, "buildSrc")
         javaLibrary()
         buildFile << """
             dependencies {
@@ -635,7 +631,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         uncheckedModule("org", "bar")
 
         given:
-        terseConsoleOutput(terse)
+        terseConsoleOutput(terse, "included")
         javaLibrary()
         buildFile << """
             dependencies {
