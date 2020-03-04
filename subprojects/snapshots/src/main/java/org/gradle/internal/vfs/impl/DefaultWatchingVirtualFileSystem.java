@@ -18,6 +18,8 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.collect.EnumMultiset;
 import com.google.common.collect.Multiset;
+import org.gradle.internal.file.DefaultFileHierarchySet;
+import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
@@ -31,6 +33,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
 public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
@@ -38,6 +41,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final Predicate<String> watchFilter;
+    private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
 
     private FileWatcherRegistry watchRegistry;
 
@@ -62,7 +66,10 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     LOGGER.debug("Handling VFS change {} {}", type, path);
-                    update(Collections.singleton(path.toString()), () -> {});
+                    String absolutePath = path.toString();
+                    if (!producedByCurrentBuild.get().contains(absolutePath)) {
+                        DefaultWatchingVirtualFileSystem.super.update(Collections.singleton(absolutePath), () -> {});
+                    }
                 }
 
                 @Override
@@ -82,6 +89,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     @Override
     public void stopWatching() {
+        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         if (watchRegistry == null) {
             return;
         }
@@ -108,6 +116,18 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     }
 
     @Override
+    public void update(Iterable<String> locations, Runnable action) {
+        producedByCurrentBuild.updateAndGet(currentValue -> {
+            FileHierarchySet newValue = currentValue;
+            for (String location : locations) {
+                newValue = newValue.plus(new File(location));
+            }
+            return newValue;
+        });
+        super.update(locations, action);
+    }
+
+    @Override
     public VirtualFileSystemStatistics getStatistics() {
         EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
         getRoot().visitSnapshots((snapshot, rootOfCompleteHierarchy) -> retained.add(snapshot.getType()));
@@ -129,6 +149,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     @Override
     public void close() {
+        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         if (watchRegistry != null) {
             try {
                 watchRegistry.close();

@@ -243,11 +243,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                                 () -> {}
                             );
                         }
-                    } else {
-                        virtualFileSystem.invalidateAll();
-                    }
-                    virtualFileSystem.stopWatching();
-                    if (isRetentionEnabled(systemPropertiesArgs)) {
                         VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
                         LOGGER.warn(
                             "Virtual file system retained information about {} files, {} directories and {} missing files since last build",
@@ -255,12 +250,16 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                             statistics.getRetained(FileType.Directory),
                             statistics.getRetained(FileType.Missing)
                         );
+                    } else {
+                        virtualFileSystem.stopWatching();
+                        virtualFileSystem.invalidateAll();
                     }
                 }
 
                 @Override
                 public void beforeComplete(GradleInternal gradle) {
                     if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
+                        virtualFileSystem.stopWatching();
                         virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
                         VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
                         LOGGER.warn(
