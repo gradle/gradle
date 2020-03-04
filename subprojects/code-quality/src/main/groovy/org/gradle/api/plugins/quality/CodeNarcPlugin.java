@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins.quality;
 
-import groovy.lang.GroovySystem;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.ConventionMapping;
@@ -77,10 +76,6 @@ public class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc> {
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies -> {
             dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()));
-            if (extension.getToolVersion().equals("1.5")) {
-                String groovyVersion = "org.codehaus.groovy:groovy:" + GroovySystem.getVersion();
-                configuration.getResolutionStrategy().force(groovyVersion);
-            }
         });
     }
 
