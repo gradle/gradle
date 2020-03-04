@@ -48,6 +48,7 @@ import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
+import org.gradle.internal.Factory
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
@@ -84,6 +85,8 @@ class DefaultInstantExecution internal constructor(
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
         fun <T> getService(serviceType: Class<T>): T
+
+        fun <T> factory(serviceType: Class<T>): Factory<T>
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
@@ -340,7 +343,7 @@ class DefaultInstantExecution internal constructor(
             attributesFactory = service(),
             transformListener = service(),
             valueSourceProviderFactory = service(),
-            patternSetFactory = service(),
+            patternSetFactory = factory(),
             fileSystem = service(),
             fileFactory = service()
         )
@@ -416,6 +419,10 @@ class DefaultInstantExecution internal constructor(
     private
     inline fun <reified T> service() =
         host.service<T>()
+
+    private
+    inline fun <reified T> factory() =
+        host.factory(T::class.java)
 
     private
     fun File.createParentDirectories() {

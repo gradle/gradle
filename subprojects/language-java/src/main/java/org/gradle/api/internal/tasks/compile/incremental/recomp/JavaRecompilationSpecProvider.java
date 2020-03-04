@@ -25,7 +25,6 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
 
@@ -74,9 +73,8 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
             spec.setClasses(Collections.emptySet());
             return false;
         }
-        Factory<PatternSet> patternSetFactory = fileOperations.getFileResolver().getPatternSetFactory();
-        PatternSet classesToDelete = patternSetFactory.create();
-        PatternSet sourceToCompile = patternSetFactory.create();
+        PatternSet classesToDelete = fileOperations.patternSet();
+        PatternSet sourceToCompile = fileOperations.patternSet();
 
         prepareJavaPatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile);
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
@@ -87,7 +85,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         cleanedAnyOutput |= deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory());
         cleanedAnyOutput |= deleteStaleFilesIn(classesToDelete, spec.getCompileOptions().getHeaderOutputDirectory());
 
-        Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), patternSetFactory);
+        Map<GeneratedResource.Location, PatternSet> resourcesToDelete = prepareResourcePatterns(recompilationSpec.getResourcesToGenerate(), fileOperations);
         cleanedAnyOutput |= deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.CLASS_OUTPUT), spec.getDestinationDir());
         // If the client has not set a location for SOURCE_OUTPUT, javac outputs those files to the CLASS_OUTPUT directory, so clean that instead.
         cleanedAnyOutput |= deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.SOURCE_OUTPUT), MoreObjects.firstNonNull(spec.getCompileOptions().getAnnotationProcessorGeneratedSourcesDirectory(), spec.getDestinationDir()));
@@ -106,10 +104,10 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         return sourceTree.matching(sourceToCompile);
     }
 
-    private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, Factory<PatternSet> patternSetFactory) {
+    private static Map<GeneratedResource.Location, PatternSet> prepareResourcePatterns(Collection<GeneratedResource> staleResources, FileOperations fileOperations) {
         Map<GeneratedResource.Location, PatternSet> resourcesByLocation = new EnumMap<>(GeneratedResource.Location.class);
         for (GeneratedResource.Location location : GeneratedResource.Location.values()) {
-            resourcesByLocation.put(location, patternSetFactory.create());
+            resourcesByLocation.put(location, fileOperations.patternSet());
         }
         for (GeneratedResource resource : staleResources) {
             resourcesByLocation.get(resource.getLocation()).include(resource.getPath());

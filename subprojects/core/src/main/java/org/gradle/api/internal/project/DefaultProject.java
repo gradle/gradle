@@ -73,6 +73,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -940,6 +941,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     @Override
     public FileTree tarTree(Object tarPath) {
         return getFileOperations().tarTree(tarPath);
+    }
+
+    @Override
+    public PatternSet patternSet() {
+        return getFileOperations().patternSet();
     }
 
     @Override

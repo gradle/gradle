@@ -79,8 +79,6 @@ import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.NonWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.impl.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -92,8 +90,6 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemServices.class);
-
     /**
      * Boolean system property to enable partial invalidation.
      */

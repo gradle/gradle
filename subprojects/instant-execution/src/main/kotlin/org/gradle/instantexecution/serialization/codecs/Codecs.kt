@@ -128,7 +128,7 @@ class Codecs(
         bind(AttributeContainerCodec(attributesFactory))
         bind(TransformationNodeReferenceCodec)
 
-        bind(DefaultCopySpecCodec(fileResolver, fileCollectionFactory, instantiator))
+        bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)

@@ -16,18 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 
 public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
-    public AbstractBaseDirFileResolver(Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
-    }
-
     protected abstract File getBaseDir();
 
     @Override

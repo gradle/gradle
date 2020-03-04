@@ -69,9 +69,7 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
         boolean vfsRetentionEnabled = vfsRetention.isEnabled(startParameter);
         if (vfsRetentionEnabled) {
             IncubationLogger.incubatingFeatureUsed("Virtual file system retention");
-            FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
-                throw new UnsupportedOperationException();
-            });
+            FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir());
             if (dropVfs.isEnabled(startParameter)) {
                 virtualFileSystem.invalidateAll();
             } else {

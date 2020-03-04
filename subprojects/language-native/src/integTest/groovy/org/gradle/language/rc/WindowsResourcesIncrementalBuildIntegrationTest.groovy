@@ -15,7 +15,7 @@
  */
 package org.gradle.language.rc
 
-import org.gradle.api.internal.file.BaseDirFileResolver
+
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationSpec
@@ -34,8 +34,7 @@ class WindowsResourcesIncrementalBuildIntegrationTest extends AbstractInstalledT
     ExecutableFixture mainExe
     File mainResourceFile
     def unusedHeaderFile
-    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(new BaseDirFileResolver(temporaryFolder.testDirectory, TestFiles.getPatternSetFactory())).create()
-
+    def compilerOutputFileNamingScheme = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(temporaryFolder.testDirectory)).create()
 
     def "setup"() {
         buildFile << helloWorldApp.pluginScript

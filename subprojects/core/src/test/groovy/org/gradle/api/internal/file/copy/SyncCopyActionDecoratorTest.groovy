@@ -30,6 +30,7 @@ class SyncCopyActionDecoratorTest extends WorkspaceTest {
             TestFiles.directoryFileTreeFactory(),
             TestFiles.fileCollectionFactory(testDirectory),
             TestFiles.resolver(testDirectory),
+            TestFiles.patternSetFactory,
             TestFiles.fileSystem(),
             TestUtil.instantiatorFactory().decorateLenient(),
         )

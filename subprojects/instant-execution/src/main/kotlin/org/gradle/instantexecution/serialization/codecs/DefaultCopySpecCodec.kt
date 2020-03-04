@@ -19,7 +19,6 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.tasks.util.PatternSet
@@ -32,13 +31,14 @@ import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
 import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.internal.Factory
 import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.internal.reflect.Instantiator
 
 
 internal
 class DefaultCopySpecCodec(
-    private val fileResolver: FileResolver,
+    private val patternSetFactory: Factory<PatternSet>,
     private val fileCollectionFactory: FileCollectionFactory,
     private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
@@ -70,7 +70,7 @@ class DefaultCopySpecCodec(
             val dirMode = readNullableSmallInt()
             val fileMode = readNullableSmallInt()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
-            val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
+            val copySpec = DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, children)
             copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
             copySpec.isCaseSensitive = isCaseSensitive

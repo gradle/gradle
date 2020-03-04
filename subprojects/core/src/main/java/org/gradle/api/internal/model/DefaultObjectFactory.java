@@ -35,7 +35,6 @@ import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.model.ObjectFactory;
@@ -44,7 +43,9 @@ import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.reflect.ObjectInstantiationException;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 
@@ -55,19 +56,19 @@ import java.util.Set;
 public class DefaultObjectFactory implements ObjectFactory {
     private final Instantiator instantiator;
     private final NamedObjectInstantiator namedObjectInstantiator;
-    private final FileResolver fileResolver;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
+    private final Factory<PatternSet> patternSetFactory;
     private final PropertyFactory propertyFactory;
     private final FilePropertyFactory filePropertyFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
-    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory,
+    public DefaultObjectFactory(Instantiator instantiator, NamedObjectInstantiator namedObjectInstantiator, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
                                 PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory, DomainObjectCollectionFactory domainObjectCollectionFactory) {
         this.instantiator = instantiator;
         this.namedObjectInstantiator = namedObjectInstantiator;
-        this.fileResolver = fileResolver;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.patternSetFactory = patternSetFactory;
         this.propertyFactory = propertyFactory;
         this.filePropertyFactory = filePropertyFactory;
         this.fileCollectionFactory = fileCollectionFactory;
@@ -96,7 +97,7 @@ public class DefaultObjectFactory implements ObjectFactory {
 
     @Override
     public SourceDirectorySet sourceDirectorySet(final String name, final String displayName) {
-        return new DefaultSourceDirectorySet(name, displayName, fileResolver.getPatternSetFactory(), fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
+        return new DefaultSourceDirectorySet(name, displayName, patternSetFactory, fileCollectionFactory, directoryFileTreeFactory, DefaultObjectFactory.this);
     }
 
     @Override

@@ -69,7 +69,7 @@ public class DefaultExecActionFactory implements ExecFactory {
     @Deprecated
     public static DefaultExecActionFactory root() {
         Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
-        FileResolver resolver = new DefaultFileLookup(patternSetFactory).getFileResolver();
+        FileResolver resolver = new DefaultFileLookup().getFileResolver();
         DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
         return of(resolver, fileCollectionFactory, new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
