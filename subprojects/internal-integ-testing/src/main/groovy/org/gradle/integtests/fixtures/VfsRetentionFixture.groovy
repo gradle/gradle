@@ -28,7 +28,7 @@ trait VfsRetentionFixture {
         executer.withArgument(VfsRetentionHelper.dropVfsArgument)
     }
 
-    def withRetention() {
+    AbstractIntegrationSpec withRetention() {
         executer.withArgument(VfsRetentionHelper.enableVfsRetentionArgument)
         this
     }
@@ -40,5 +40,9 @@ trait VfsRetentionFixture {
 
     void waitForChangesToBePickedUp() {
         VfsRetentionHelper.waitForChangesToBePickedUp()
+    }
+
+    static String waitForChangesToBePickedUpInBuildScript() {
+        VfsRetentionHelper.waitForChangesToBePickedUpInBuildScript()
     }
 }

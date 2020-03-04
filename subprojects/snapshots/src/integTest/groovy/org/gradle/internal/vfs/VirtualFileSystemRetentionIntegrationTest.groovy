@@ -214,6 +214,43 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
+    def "detects input file change just before the task is executed"() {
+        def inputFile = file("input.txt")
+        buildFile << """
+            def inputFile = file("input.txt")
+            def outputFile = file("build/output.txt")
+
+            task changeInputFile {
+                def inputFileText = providers.gradleProperty("inputFileText")
+                doLast {
+                    inputFile.text = inputFileText.get()
+                    ${waitForChangesToBePickedUpInBuildScript()}
+                }
+            }
+
+            task consumer {
+                inputs.file(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = inputFile.text
+                }
+                dependsOn(changeInputFile)
+            }
+        """
+
+        when:
+        withRetention().run "consumer", "-PinputFileText=initial"
+        then:
+        inputFile.text == "initial"
+        executedAndNotSkipped(":consumer")
+
+        when:
+        withRetention().run "consumer", "-PinputFileText=changed"
+        then:
+        inputFile.text == "changed"
+        executedAndNotSkipped(":consumer")
+    }
+
     def "incubating message is shown for retention"() {
         buildFile << """
             apply plugin: "java"

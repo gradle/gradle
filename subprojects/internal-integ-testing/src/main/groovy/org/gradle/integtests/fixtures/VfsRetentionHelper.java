@@ -20,8 +20,15 @@ import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_D
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY;
 
 public class VfsRetentionHelper {
+
+    private static final int WAIT_FOR_CHANGES_PICKED_UP_MILLIS = 80;
+
     public static void waitForChangesToBePickedUp() throws InterruptedException {
-        Thread.sleep(80);
+        Thread.sleep(WAIT_FOR_CHANGES_PICKED_UP_MILLIS);
+    }
+
+    public static String waitForChangesToBePickedUpInBuildScript() {
+        return "Thread.sleep(" + WAIT_FOR_CHANGES_PICKED_UP_MILLIS + ")";
     }
 
     public static String getEnableVfsRetentionArgument() {
