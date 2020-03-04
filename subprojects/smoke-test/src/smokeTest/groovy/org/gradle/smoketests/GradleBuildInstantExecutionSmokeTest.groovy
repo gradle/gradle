@@ -27,6 +27,8 @@ import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import java.text.SimpleDateFormat
+
 
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotInstant() && GradleBuildJvmSpec.isAvailable()
@@ -74,23 +76,24 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     BuildResult run(String... tasks) {
-        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS))
-            .withEnvironment(
-                // Run the test build without the CI environment variable
-                // so `buildTimestamp` doesn't change between invocations
-                // (which would invalidate the instant execution cache).
-                // See BuildVersionPlugin in buildSrc.
-                new HashMap(System.getenv()).tap {
-                    remove("CI")
-                }
-            )
-            .build()
+        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS)).build()
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
+        "-PbuildTimestamp=" + newTimestamp(),
         "--dependency-verification=off", // TODO:instant-execution remove once handled
         "-Dorg.gradle.unsafe.kotlin-eap=true" // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
     ]
+
+    private static String newTimestamp() {
+        newTimestampDateFormat().format(new Date())
+    }
+
+    static SimpleDateFormat newTimestampDateFormat() {
+        new SimpleDateFormat('yyyyMMddHHmmssZ').tap {
+            setTimeZone(TimeZone.getTimeZone("UTC"))
+        }
+    }
 }
 
 
