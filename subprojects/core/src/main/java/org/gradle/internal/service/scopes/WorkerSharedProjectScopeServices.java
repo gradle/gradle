@@ -39,6 +39,8 @@ import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.StreamHasher;
@@ -83,6 +85,7 @@ public class WorkerSharedProjectScopeServices {
             DefaultResourceHandler.Factory resourceHandlerFactory,
             FileCollectionFactory fileCollectionFactory,
             FileSystem fileSystem,
+            Factory<PatternSet> patternSetFactory,
             Deleter deleter
     ) {
         return new DefaultFileOperations(
@@ -95,6 +98,7 @@ public class WorkerSharedProjectScopeServices {
                 resourceHandlerFactory,
                 fileCollectionFactory,
                 fileSystem,
+                patternSetFactory,
                 deleter
         );
     }
@@ -107,21 +111,22 @@ public class WorkerSharedProjectScopeServices {
         return instantiator.newInstance(DefaultExecOperations.class, execFactory);
     }
 
-    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, FileResolver fileResolver, DirectoryFileTreeFactory directoryFileTreeFactory,
+    ObjectFactory createObjectFactory(InstantiatorFactory instantiatorFactory, ServiceRegistry services, Factory<PatternSet> patternSetFactory, DirectoryFileTreeFactory directoryFileTreeFactory,
                                       PropertyFactory propertyFactory, FilePropertyFactory filePropertyFactory, FileCollectionFactory fileCollectionFactory,
                                       DomainObjectCollectionFactory domainObjectCollectionFactory, NamedObjectInstantiator namedObjectInstantiator) {
         return new DefaultObjectFactory(
                 instantiatorFactory.decorate(services),
                 namedObjectInstantiator,
-                fileResolver,
                 directoryFileTreeFactory,
+                patternSetFactory,
                 propertyFactory,
                 filePropertyFactory,
                 fileCollectionFactory,
                 domainObjectCollectionFactory);
     }
 
-    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory, FilePropertyFactory filePropertyFactory, PropertyHost propertyHost, FileFactory fileFactory) {
-        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
+    DefaultProjectLayout createProjectLayout(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory,
+                                             FilePropertyFactory filePropertyFactory, Factory<PatternSet> patternSetFactory, PropertyHost propertyHost, FileFactory fileFactory) {
+        return new DefaultProjectLayout(projectDir, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost, fileCollectionFactory, filePropertyFactory, fileFactory);
     }
 }

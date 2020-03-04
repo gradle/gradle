@@ -17,8 +17,6 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -31,20 +29,18 @@ import java.net.URI;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private final NotationParser<Object, Object> fileNotationParser;
-    private final Factory<PatternSet> patternSetFactory;
 
-    protected AbstractFileResolver(Factory<PatternSet> patternSetFactory) {
+    protected AbstractFileResolver() {
         this.fileNotationParser = FileOrUriNotationConverter.parser();
-        this.patternSetFactory = patternSetFactory;
     }
 
     public FileResolver withBaseDir(Object path) {
-        return new BaseDirFileResolver(resolve(path), patternSetFactory);
+        return new BaseDirFileResolver(resolve(path));
     }
 
     @Override
     public FileResolver newResolver(File baseDir) {
-        return new BaseDirFileResolver(baseDir, patternSetFactory);
+        return new BaseDirFileResolver(baseDir);
     }
 
     @Override
@@ -136,8 +132,4 @@ public abstract class AbstractFileResolver implements FileResolver {
         }
     }
 
-    @Override
-    public Factory<PatternSet> getPatternSetFactory() {
-        return patternSetFactory;
-    }
 }

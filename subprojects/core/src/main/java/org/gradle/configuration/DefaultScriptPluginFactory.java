@@ -21,17 +21,10 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.cache.StringInterner;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileLookup;
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.resources.ApiTextResourceAdapter;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptCompiler;
 import org.gradle.groovy.scripts.ScriptCompilerFactory;
@@ -47,95 +40,39 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
-import org.gradle.internal.file.Deleter;
-import org.gradle.internal.hash.FileHasher;
-import org.gradle.internal.hash.StreamHasher;
 import org.gradle.internal.logging.LoggingManagerInternal;
-import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.reflect.Instantiator;
-import org.gradle.internal.resource.TextFileResourceLoader;
-import org.gradle.internal.resource.TextUriResourceLoader;
 import org.gradle.internal.service.DefaultServiceRegistry;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginRequestCollector;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
-import org.gradle.process.internal.ExecFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final static StringInterner INTERNER = new StringInterner();
     private static final String CLASSPATH_COMPILE_STAGE = "CLASSPATH";
     private static final String BODY_COMPILE_STAGE = "BODY";
 
-    private final ScriptCompilerFactory scriptCompilerFactory;
-    private final Factory<LoggingManagerInternal> loggingManagerFactory;
-    private final Instantiator instantiator;
-    private final ScriptHandlerFactory scriptHandlerFactory;
-    private final PluginRequestApplicator pluginRequestApplicator;
-    private final FileLookup fileLookup;
-    private final DirectoryFileTreeFactory directoryFileTreeFactory;
-    private final DocumentationRegistry documentationRegistry;
-    private final ModelRuleSourceDetector modelRuleSourceDetector;
     private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
-    private final ProviderFactory providerFactory;
-    private final TextFileResourceLoader textFileResourceLoader;
-    private final TextUriResourceLoader.Factory textUriResourceLoaderFactory;
-    private final ApiTextResourceAdapter.Factory textResourceAdapterFactory;
-    private final ExecFactory execFactory;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final StreamHasher streamHasher;
-    private final FileHasher fileHasher;
+    private final ServiceRegistry scriptServices;
+    private final ScriptCompilerFactory scriptCompilerFactory;
+    private final Factory<LoggingManagerInternal> loggingFactoryManager;
+    private final DocumentationRegistry documentationRegistry;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
-    private final FileSystem fileSystem;
-    private final Deleter deleter;
+    private final PluginRequestApplicator pluginRequestApplicator;
     private ScriptPluginFactory scriptPluginFactory;
 
-    public DefaultScriptPluginFactory(
-        ScriptCompilerFactory scriptCompilerFactory,
-        Factory<LoggingManagerInternal> loggingManagerFactory,
-        Instantiator instantiator,
-        ScriptHandlerFactory scriptHandlerFactory,
-        PluginRequestApplicator pluginRequestApplicator,
-        FileSystem fileSystem,
-        FileLookup fileLookup,
-        DirectoryFileTreeFactory directoryFileTreeFactory,
-        DocumentationRegistry documentationRegistry,
-        ModelRuleSourceDetector modelRuleSourceDetector,
-        ProviderFactory providerFactory,
-        TextFileResourceLoader textFileResourceLoader,
-        TextUriResourceLoader.Factory textUriResourceLoaderFactory,
-        ApiTextResourceAdapter.Factory textResourceAdapterFactory,
-        StreamHasher streamHasher,
-        FileHasher fileHasher,
-        ExecFactory execFactory,
-        FileCollectionFactory fileCollectionFactory,
-        AutoAppliedPluginHandler autoAppliedPluginHandler,
-        Deleter deleter
-    ) {
+    public DefaultScriptPluginFactory(ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
+                                      DocumentationRegistry documentationRegistry, AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator) {
+        this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
-        this.loggingManagerFactory = loggingManagerFactory;
-        this.instantiator = instantiator;
-        this.scriptHandlerFactory = scriptHandlerFactory;
-        this.pluginRequestApplicator = pluginRequestApplicator;
-        this.fileSystem = fileSystem;
-        this.fileLookup = fileLookup;
-        this.directoryFileTreeFactory = directoryFileTreeFactory;
+        this.loggingFactoryManager = loggingFactoryManager;
         this.documentationRegistry = documentationRegistry;
-        this.modelRuleSourceDetector = modelRuleSourceDetector;
-        this.providerFactory = providerFactory;
-        this.textFileResourceLoader = textFileResourceLoader;
-        this.textUriResourceLoaderFactory = textUriResourceLoaderFactory;
-        this.textResourceAdapterFactory = textResourceAdapterFactory;
-        this.execFactory = execFactory;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.scriptPluginFactory = this;
-        this.streamHasher = streamHasher;
-        this.fileHasher = fileHasher;
-        this.deleter = deleter;
         this.autoAppliedPluginHandler = autoAppliedPluginHandler;
+        this.pluginRequestApplicator = pluginRequestApplicator;
+        this.scriptPluginFactory = this;
     }
 
     public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
@@ -169,30 +106,11 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
 
         @Override
         public void apply(final Object target) {
-            final DefaultServiceRegistry services = new DefaultServiceRegistry() {
-                Factory<PatternSet> createPatternSetFactory() {
-                    return fileLookup.getFileResolver().getPatternSetFactory();
-                }
-            };
+            DefaultServiceRegistry services = new DefaultServiceRegistry(scriptServices);
             services.add(ScriptPluginFactory.class, scriptPluginFactory);
-            services.add(ScriptHandlerFactory.class, scriptHandlerFactory);
             services.add(ClassLoaderScope.class, baseScope);
-            services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
-            services.add(Instantiator.class, instantiator);
+            services.add(LoggingManagerInternal.class, loggingFactoryManager.create());
             services.add(ScriptHandler.class, scriptHandler);
-            services.add(FileLookup.class, fileLookup);
-            services.add(FileSystem.class, fileSystem);
-            services.add(DirectoryFileTreeFactory.class, directoryFileTreeFactory);
-            services.add(ModelRuleSourceDetector.class, modelRuleSourceDetector);
-            services.add(ProviderFactory.class, providerFactory);
-            services.add(TextFileResourceLoader.class, textFileResourceLoader);
-            services.add(TextUriResourceLoader.Factory.class, textUriResourceLoaderFactory);
-            services.add(ApiTextResourceAdapter.Factory.class, textResourceAdapterFactory);
-            services.add(StreamHasher.class, streamHasher);
-            services.add(FileHasher.class, fileHasher);
-            services.add(ExecFactory.class, execFactory);
-            services.add(FileCollectionFactory.class, fileCollectionFactory);
-            services.add(Deleter.class, deleter);
 
             final ScriptTarget initialPassScriptTarget = initialPassTarget(target);
 

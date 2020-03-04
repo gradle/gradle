@@ -21,6 +21,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.reflect.Instantiator;
@@ -32,6 +34,7 @@ public class FileCopier {
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileCollectionFactory fileCollectionFactory;
     private final FileResolver fileResolver;
+    private final Factory<PatternSet> patternSetFactory;
     private final FileSystem fileSystem;
     private final Instantiator instantiator;
 
@@ -40,6 +43,7 @@ public class FileCopier {
         DirectoryFileTreeFactory directoryFileTreeFactory,
         FileCollectionFactory fileCollectionFactory,
         FileResolver fileResolver,
+        Factory<PatternSet> patternSetFactory,
         FileSystem fileSystem,
         Instantiator instantiator
     ) {
@@ -47,12 +51,13 @@ public class FileCopier {
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileCollectionFactory = fileCollectionFactory;
         this.fileResolver = fileResolver;
+        this.patternSetFactory = patternSetFactory;
         this.fileSystem = fileSystem;
         this.instantiator = instantiator;
     }
 
     private DestinationRootCopySpec createCopySpec(Action<? super CopySpec> action) {
-        DefaultCopySpec copySpec = new DefaultCopySpec(this.fileResolver, fileCollectionFactory, instantiator);
+        DefaultCopySpec copySpec = new DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory);
         DestinationRootCopySpec destinationRootCopySpec = new DestinationRootCopySpec(fileResolver, copySpec);
         CopySpec wrapped = instantiator.newInstance(CopySpecWrapper.class, destinationRootCopySpec);
         action.execute(wrapped);

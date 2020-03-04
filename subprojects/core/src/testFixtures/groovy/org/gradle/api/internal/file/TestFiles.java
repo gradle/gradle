@@ -58,7 +58,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
 
 public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
-    private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup(PatternSets.getNonCachingPatternSetFactory());
+    private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
     private static final DefaultExecActionFactory EXEC_FACTORY = DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory());
 
     public static FileCollectionInternal empty() {
@@ -158,6 +158,7 @@ public class TestFiles {
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
             fileSystem,
+            getPatternSetFactory(),
             deleter()
         );
     }
@@ -228,7 +229,7 @@ public class TestFiles {
     }
 
     public static Factory<PatternSet> getPatternSetFactory() {
-        return resolver().getPatternSetFactory();
+        return PatternSets.getNonCachingPatternSetFactory();
     }
 
     public static String systemSpecificAbsolutePath(String path) {
