@@ -73,4 +73,14 @@ public interface HasConfigurableValue {
      * <p>If the value of this object is already final, this method does nothing.</p>
      */
     void disallowChanges();
+
+    /**
+     * Disallows reading the value of this object when its value may not yet be available or may still change.
+     *
+     * <p>The value of this property cannot be read during project configuration, to allow all plugins an opportunity to configure the value. After a project's build script has completed,
+     * the value may be read. The property is also finalized on read.
+     *
+     * @since 6.3
+     */
+    void disallowUnsafeRead();
 }

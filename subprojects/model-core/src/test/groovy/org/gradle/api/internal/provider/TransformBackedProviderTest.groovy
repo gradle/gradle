@@ -27,6 +27,7 @@ import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgres
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -168,7 +169,7 @@ class TransformBackedProviderTest extends Specification {
         def state = Mock(TaskState)
         _ * task.toString() >> "<task>"
         _ * task.state >> state
-        def property = new DefaultProperty(String)
+        def property = TestUtil.objectFactory().property(String)
         property.attachDisplayName(Describables.of("<prop>"))
         property.attachProducer(task)
         property.set("12")
@@ -181,7 +182,7 @@ class TransformBackedProviderTest extends Specification {
         _ * task.toString() >> "<task>"
         _ * task.state >> state
         _ * state.executed >> true
-        def property = new DefaultProperty(String)
+        def property = TestUtil.objectFactory().property(String)
         property.attachDisplayName(Describables.of("<prop>"))
         property.attachProducer(task)
         property.set("12")

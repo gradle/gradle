@@ -430,7 +430,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         InvalidUserCodeException e = thrown()
         e.message == "The closure provided is not valid as a rule for 'ComponentMetadataHandler'."
         e.cause instanceof RuleActionValidationException
-        e.cause.message == "Rule may not have an input parameter of type: java.lang.String. Second parameter must be of type: org.gradle.api.artifacts.ivy.IvyModuleDescriptor."
+        e.cause.message == "Rule may not have an input parameter of type: java.lang.String. Second parameter must be of type: org.gradle.api.artifacts.ivy.IvyModuleDescriptor or org.gradle.api.artifacts.maven.PomModuleDescriptor."
     }
 
     def "supports rule with multiple inputs in arbitrary order"() {

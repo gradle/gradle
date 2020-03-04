@@ -15,13 +15,15 @@
  */
 package org.gradle.api.tasks.compile;
 
-import com.google.common.collect.Lists;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * Fork options for compilation. Only take effect if {@code fork}
@@ -34,7 +36,7 @@ public class BaseForkOptions extends AbstractOptions {
 
     private String memoryMaximumSize;
 
-    private List<String> jvmArgs = Lists.newArrayList();
+    private List<String> jvmArgs = new ArrayList<>();
 
     /**
      * Returns the initial heap size for the compiler process.
@@ -83,10 +85,15 @@ public class BaseForkOptions extends AbstractOptions {
 
     /**
      * Sets any additional JVM arguments for the compiler process.
-     * Defaults to the empty list.
+     * Defaults to the empty list. Empty or null arguments are filtered out because they cause
+     * JVM Launch to fail.
      */
     public void setJvmArgs(@Nullable List<String> jvmArgs) {
-        this.jvmArgs = jvmArgs;
+        this.jvmArgs = jvmArgs == null ? null : jvmArgs.stream()
+            .filter(Objects::nonNull)
+            .map(String::trim)
+            .filter(string -> !string.isEmpty())
+            .collect(Collectors.toList());
     }
 
     @Override

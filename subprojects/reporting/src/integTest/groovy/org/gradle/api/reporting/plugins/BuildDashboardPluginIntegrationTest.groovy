@@ -19,8 +19,6 @@ package org.gradle.api.reporting.plugins
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -338,7 +336,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':subproject:test', 'junitXml')
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     @ToBeFixedForInstantExecution
     void 'dashboard includes JaCoCo reports'() {
         given:

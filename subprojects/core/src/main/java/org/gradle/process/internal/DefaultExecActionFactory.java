@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.DefaultFileLookup;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
@@ -69,7 +70,8 @@ public class DefaultExecActionFactory implements ExecFactory {
     public static DefaultExecActionFactory root() {
         Factory<PatternSet> patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
         FileResolver resolver = new DefaultFileLookup(patternSetFactory).getFileResolver();
-        return of(resolver, new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory, FileSystems.getDefault()), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
+        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(resolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), patternSetFactory, PropertyHost.NO_OP, FileSystems.getDefault());
+        return of(resolver, fileCollectionFactory, new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
     public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
@@ -114,7 +116,8 @@ public class DefaultExecActionFactory implements ExecFactory {
     public JavaForkOptionsInternal immutableCopy(JavaForkOptionsInternal options) {
         // NOTE: We do not want/need a decorated version of JavaForkOptions or JavaDebugOptions because
         // these immutable instances are held across builds and will retain classloaders/services in the decorated object
-        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), PatternSets.getNonCachingPatternSetFactory(), FileSystems.getDefault()), new DefaultJavaDebugOptions());
+        DefaultFileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultDirectoryFileTreeFactory(), PatternSets.getNonCachingPatternSetFactory(), PropertyHost.NO_OP, FileSystems.getDefault());
+        JavaForkOptionsInternal copy = new DefaultJavaForkOptions(fileResolver, fileCollectionFactory, new DefaultJavaDebugOptions());
         options.copyTo(copy);
         return new ImmutableJavaForkOptions(copy);
     }
