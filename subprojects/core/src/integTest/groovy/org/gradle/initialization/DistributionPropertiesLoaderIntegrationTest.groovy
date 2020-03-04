@@ -29,6 +29,11 @@ class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpe
         settingsFile << '''
             includeBuild 'includedBuild'
             println("system_property_available in settings.gradle:          ${System.getProperty('system_property_available', 'false')} ")
+            try {
+                println("project_property_available in settings.gradle:         ${project_property_available} ")
+            } catch (MissingPropertyException e) {
+                println("project_property_available in settings.gradle:         false ")
+            }
         '''
         buildFile << '''
             println("system_property_available in root:                     ${System.getProperty('system_property_available', 'false')} ")
@@ -45,6 +50,11 @@ class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpe
         '''
         file('includedBuild/settings.gradle') << '''
             println("system_property_available in included settings.gradle: ${System.getProperty('system_property_available', 'false')} ")
+            try {
+                println("project_property_available in included settings.gradle:${project_property_available} ")
+            } catch (MissingPropertyException e) {
+                println("project_property_available in included settings.gradle:false ")
+            }
         '''
         file('includedBuild/buildSrc/build.gradle') << '''
             println("system_property_available in included buildSrc:        ${System.getProperty('system_property_available', 'false')} ")
@@ -61,15 +71,17 @@ class DistributionPropertiesLoaderIntegrationTest extends AbstractIntegrationSpe
         then:
         outputContains('system_property_available in buildSrc:                 true')
         outputContains('system_property_available in buildSrc:                 true')
-        outputContains('project_property_available in buildSrc:                true')
+        outputContains('project_property_available in buildSrc:                false')
         outputContains('system_property_available in included buildSrc:        true')
-        outputContains('project_property_available in included buildSrc:       true')
+        outputContains('project_property_available in included buildSrc:       false')
         outputContains('system_property_available in included root:            true')
-        outputContains('project_property_available in included root:           true')
+        outputContains('project_property_available in included root:           false')
         outputContains('system_property_available in root:                     true')
         outputContains('project_property_available in root:                    true')
         outputContains('system_property_available in settings.gradle:          true')
+        outputContains('project_property_available in settings.gradle:         true')
         outputContains('system_property_available in included settings.gradle: true')
+        outputContains('project_property_available in included settings.gradle:false')
 
         cleanup:
         executer.withArguments("--stop", "--info").run()

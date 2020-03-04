@@ -17,6 +17,8 @@
 package org.gradle.instantexecution
 
 import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
+import org.gradle.util.ToBeImplemented
+import spock.lang.Ignore
 
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -58,6 +60,8 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         }
     }
 
+    @Ignore
+    @ToBeImplemented
     def "can enable instant execution from gradle.properties"() {
 
         given:
