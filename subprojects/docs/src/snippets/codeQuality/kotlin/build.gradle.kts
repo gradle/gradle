@@ -22,7 +22,7 @@ plugins {
 // end::use-pmd-plugin[]
 
 configurations.codenarc {
-    resolutionStrategy.force("org.codehaus.groovy:groovy:2.5.10-SNAPSHOT")
+    resolutionStrategy.force("org.codehaus.groovy:groovy:2.5.10")
 }
 
 repositories {
