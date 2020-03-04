@@ -63,6 +63,26 @@ users of the plugin and so should be used carefully.
 
 For more details see (user manual link)
 
+
+## Improvements for "ComponentMetadataRule"s
+
+The API for component metadata rules has been extended to allow access to `packaging`, `classifier` and `type` information from POM metadata.
+The `packaging` information for a direct dependency [can be obtained](userguide/component_metadata_rules.html#filter_using_maven_metadata) from the `ComponentMetadataContext`.
+Additionally, `ComponentMetadataRule`s can react on the `classifier` and `type` information of the transitive dependencies:
+```
+class ClassifierExampleRule implements ComponentMetadataRule {
+    void execute(ComponentMetadataContext context) {
+        context.details.allVariants {
+            withDependencies {
+                it.each { dependency ->
+                    def classifier = dependency.artifactSelectors[0]?.classifier
+                    ...
+                }
+            }
+        }
+    }
+}
+```
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
