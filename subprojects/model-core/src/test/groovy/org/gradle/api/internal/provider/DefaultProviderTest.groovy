@@ -33,6 +33,11 @@ class DefaultProviderTest extends ProviderSpec<String> {
     }
 
     @Override
+    Class<String> type() {
+        return String
+    }
+
+    @Override
     String someValue() {
         return "s1"
     }
