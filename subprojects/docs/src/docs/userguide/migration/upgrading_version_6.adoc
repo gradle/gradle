@@ -44,6 +44,10 @@ Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processin
 This is no longer necessary and thus, the processors are no longer added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
 The dependencies IDEA sees at compile time are then equivalent to what Gradle sees when resolving the `compileClasspath`.
 
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/03/kotlin-1-3-70-released/[Kotlin 1.3.70].
+
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
