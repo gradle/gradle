@@ -38,6 +38,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":baseServices"))
 
     integTestImplementation(library("commons_lang"))
     integTestRuntimeOnly(project(":plugins"))
