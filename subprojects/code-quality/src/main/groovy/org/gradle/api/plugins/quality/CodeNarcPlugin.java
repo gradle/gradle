@@ -27,7 +27,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import java.io.File;
-import java.net.URI;
 
 /**
  * CodeNarc Plugin.
