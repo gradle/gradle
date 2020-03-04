@@ -14,6 +14,7 @@ Include only their name, impactful features should be called out separately belo
 [FICHET Philippe](https://github.com/philippefichet),
 [Johnny Lim](https://github.com/izeye),
 [Bow Archer](https://github.com/decoded4620),
+[Lukasz Sanek](https://github.com/s4nk),
 and [Sam De Block](https://github.com/SamDeBlock).
 
 ## Upgrade Instructions
