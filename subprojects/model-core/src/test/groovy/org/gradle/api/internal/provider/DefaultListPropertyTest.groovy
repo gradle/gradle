@@ -23,7 +23,7 @@ import org.gradle.internal.state.ManagedFactory
 class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     @Override
     DefaultListProperty<String> property() {
-        return new DefaultListProperty<String>(String)
+        return new DefaultListProperty<String>(host, String)
     }
 
     @Override
