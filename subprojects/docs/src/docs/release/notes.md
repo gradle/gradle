@@ -64,11 +64,11 @@ users of the plugin and so should be used carefully.
 For more details see (user manual link)
 
 
-## Improvements for "ComponentMetadataRule"s
+## Improvements for Component Metadata Rules
 
 The API for component metadata rules has been extended to allow access to `packaging`, `classifier` and `type` information from POM metadata.
 The `packaging` information for a direct dependency [can be obtained](userguide/component_metadata_rules.html#filter_using_maven_metadata) from the `ComponentMetadataContext`.
-Additionally, `ComponentMetadataRule`s can react on the `classifier` and `type` information of the transitive dependencies:
+Additionally, `ComponentMetadataRule`s can react on the `classifier` and `type` information of dependencies:
 ```
 class ClassifierExampleRule implements ComponentMetadataRule {
     void execute(ComponentMetadataContext context) {
