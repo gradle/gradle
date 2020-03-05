@@ -92,6 +92,7 @@ fun FileSystemOperations.removeTransformDir(cachesDir: File) {
 
 private
 val scriptCacheDirNames =
+    // TODO Remove gradle-kotlin-dsl* before merging this
     listOf("scripts", "scripts-remapped", "gradle-kotlin-dsl", "gradle-kotlin-dsl-accessors", "kotlin-dsl")
 
 
