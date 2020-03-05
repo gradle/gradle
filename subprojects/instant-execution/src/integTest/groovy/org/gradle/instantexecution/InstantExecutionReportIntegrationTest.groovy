@@ -58,11 +58,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         numberOfProblemsWithStacktraceIn(jsFile) == 2
         outputContains """
             2 instant execution problems were found, 2 of which seem unique:
-              - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
-              - task `:b` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+              - task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
+              - task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
             See the complete report at ${clickableUrlFor(reportFile)}
         """.stripIndent()
-        output.count("task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.") == 1
+        output.count("task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.") == 1
 
         when:
         instantRun "a", "b"
@@ -79,8 +79,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         numberOfProblemsWithStacktraceIn(secondJsFile) == 2
         outputContains """
             2 instant execution problems were found, 2 of which seem unique:
-              - task `:a` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
-              - task `:b` of type `MyTask`: invocation of Task.getProject() during work execution is unsupported.
+              - task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
+              - task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
             See the complete report at ${clickableUrlFor(secondReportFile)}
         """.stripIndent()
 

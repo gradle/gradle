@@ -182,7 +182,7 @@ class InstantExecutionReport(
     private
     fun summary(outputDirectory: File): String {
         val uniquePropertyProblems = problems
-            .sortedBy { it.trace.sequence.toList().reversed().joinToString() }
+            .sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
             .groupBy { propertyDescriptionFor(it) to it.message }
             .keys
         return StringBuilder().apply {
