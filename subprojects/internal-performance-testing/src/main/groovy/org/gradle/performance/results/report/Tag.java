@@ -35,9 +35,9 @@ public interface Tag {
 
     enum FixedTag implements Tag {
         FROM_CACHE("FROM-CACHE", "badge badge-info", "The test is not really executed - its results are fetched from build cache."),
-        FAILED("FAILED", "badge badge-danger", "Regression confidence > 99% despite retries."),
+        FAILED("FAILED", "badge badge-danger", "Regression confidence > 99.9% despite retries."),
         NEARLY_FAILED("NEARLY-FAILED", "badge badge-warning", "Regression confidence > 90%, we're going to fail soon."),
-        REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99% despite retries."),
+        REGRESSED("REGRESSED", "badge badge-danger", "Regression confidence > 99.9% despite retries."),
         IMPROVED("IMPROVED", "badge badge-success", "Improvement confidence > 90%, rebaseline it to keep this improvement! :-)"),
         UNKNOWN("UNKNOWN", "badge badge-dark", "The status is unknown, may be it's cancelled?"),
         FLAKY("FLAKY", "badge badge-danger", "The scenario's difference confidence > 95% even when running identical code."),
@@ -75,7 +75,7 @@ public interface Tag {
     }
 
     class FlakinessInfoTag implements Tag {
-        private static final String FLAKINESS_RATE_TITLE = "Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99% " +
+        private static final String FLAKINESS_RATE_TITLE = "Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99.9% " +
             " in the flakiness detection builds divided by the total number of runs of the scenario.";
         private static final String FAILURE_THRESHOLD_TITLE = "The failure threshold of flaky scenario, if a flaky scenario performance test's difference is higher than this value, " +
             " it will be recognized as a real failure.";
