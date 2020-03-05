@@ -18,23 +18,24 @@ package org.gradle.kotlin.dsl.cache
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.cache.CacheRepository
+import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.internal.VersionStrategy
 import org.gradle.internal.execution.workspace.impl.DefaultImmutableWorkspaceProvider
 import org.gradle.internal.file.FileAccessTimeJournal
-import java.io.File
+
 
 class KotlinDslWorkspaceProvider(
-    baseDirectory: File,
     cacheRepository: CacheRepository,
+    cacheScopeMapping: CacheScopeMapping,
     fileAccessTimeJournal: FileAccessTimeJournal,
     inMemoryCacheDecoratorFactory: InMemoryCacheDecoratorFactory,
     stringInterner: StringInterner
 ) : DefaultImmutableWorkspaceProvider(
     "kotlin-dsl",
-    baseDirectory,
+    cacheScopeMapping.getBaseDirectory(null, "kotlin-dsl", VersionStrategy.CachePerVersion),
     cacheRepository,
     fileAccessTimeJournal,
     inMemoryCacheDecoratorFactory,
     stringInterner
-) {
-}
+)
