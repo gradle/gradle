@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class InitScriptHandlerTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider testDirectoryProvider
+    @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
 
     def processor = Mock(InitScriptProcessor)
     def executor = new TestBuildOperationExecutor()
