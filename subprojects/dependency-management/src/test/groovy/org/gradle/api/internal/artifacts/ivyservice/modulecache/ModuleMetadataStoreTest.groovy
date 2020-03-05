@@ -30,7 +30,7 @@ import spock.lang.Subject
 
 class ModuleMetadataStoreTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def pathKeyFileStore = Mock(PathKeyFileStore)
     def repository = "repositoryId"
     def fileStoreEntry = Mock(LocallyAvailableResource)

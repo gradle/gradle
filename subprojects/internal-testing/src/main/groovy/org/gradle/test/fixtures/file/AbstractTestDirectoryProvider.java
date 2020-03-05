@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    private final TestFile root;
+    protected final TestFile root;
     private final String className;
 
     private static final Random RANDOM = new Random();
