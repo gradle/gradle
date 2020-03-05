@@ -81,7 +81,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     }
 
     @Override
-    public void prepareJavaCommand(Object workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
+    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();
@@ -135,10 +135,11 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             encoder.writeBoolean(publishProcessInfo);
             encoder.writeString(gradleUserHomeDir.getAbsolutePath());
             new MultiChoiceAddressSerializer().write(encoder, (MultiChoiceAddress) serverAddress);
+            encoder.writeSmallLong(workerId);
+            encoder.writeString(displayName);
 
-            // Serialize the worker, this is consumed by SystemApplicationClassLoaderWorker
-            ActionExecutionWorker worker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName);
-            byte[] serializedWorker = GUtil.serialize(worker);
+            // Serialize the worker action, this is consumed by SystemApplicationClassLoaderWorker
+            byte[] serializedWorker = GUtil.serialize(processBuilder.getWorker());
             encoder.writeBinary(serializedWorker);
 
             encoder.flush();

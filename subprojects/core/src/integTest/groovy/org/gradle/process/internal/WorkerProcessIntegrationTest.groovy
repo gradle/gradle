@@ -21,7 +21,6 @@ import org.gradle.api.internal.file.TmpDirTemporaryFileProvider
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.internal.Actions
-import org.gradle.internal.event.ListenerBroadcast
 import org.gradle.internal.id.LongIdGenerator
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
@@ -43,12 +42,7 @@ import static org.junit.Assert.assertTrue
 @Timeout(120)
 class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
     private final TestListenerInterface listenerMock = Mock(TestListenerInterface.class)
-    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(TestListenerInterface.class)
-    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast.source)
-
-    def setup() {
-        broadcast.add(listenerMock)
-    }
+    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(listenerMock)
 
     ChildProcess worker(Action<? super WorkerProcessContext> action) {
         return new ChildProcess(action)
@@ -162,6 +156,10 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         (0..1) * listenerMock.send("message 1", 1)
         (0..1) * listenerMock.send("message 2", 2)
         0 * listenerMock._
+
+        and:
+        stdout.stdOut == ""
+        stdout.stdErr == ""
     }
 
     def handlesWorkerActionWhichThrowsException() {
@@ -169,7 +167,8 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(new BrokenRemoteProcess()).expectStopFailure())
 
         then:
-        noExceptionThrown()
+        stdout.stdOut == ""
+        stdout.stdErr.contains("java.lang.RuntimeException: broken")
     }
 
     def handlesWorkerActionThatLeavesThreadsRunning() {
@@ -188,7 +187,8 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(Actions.doNothing()).jvmArgs("-Dorg.gradle.worker.test.stuck").expectStartFailure())
 
         then:
-        noExceptionThrown()
+        stdout.stdOut == ""
+        stdout.stdErr == ""
     }
 
     def handlesWorkerActionThatCannotBeDeserialized() {
@@ -196,7 +196,8 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(new NotDeserializable()).expectStartFailure())
 
         then:
-        noExceptionThrown()
+        stdout.stdOut == ""
+        stdout.stdErr.contains("java.io.IOException: Broken")
     }
 
     def handlesWorkerProcessWhenJvmFailsToStart() {
@@ -204,7 +205,8 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(Actions.doNothing()).jvmArgs("--broken").expectStartFailure())
 
         then:
-        noExceptionThrown()
+        stdout.stdOut == ""
+        stdout.stdErr.contains("--broken")
     }
 
     def "handles output after worker messaging services are stopped"() {
@@ -214,7 +216,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         then:
         noExceptionThrown()
         stdout.stdOut.contains("Goodbye, world!")
-        ! stdout.stdErr.contains("java.lang.IllegalStateException")
+        stdout.stdErr == ""
     }
 
     def "handles output during worker shutdown"() {
@@ -222,8 +224,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(new MessageProducingProcess()))
 
         then:
-        noExceptionThrown()
-        ! stdout.stdErr.contains("java.lang.IllegalStateException")
+        stdout.stdErr == ""
     }
 
     @Requires(TestPrecondition.NOT_WINDOWS)
@@ -232,7 +233,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         execute(worker(new RemoteProcess()).jvmArgs("-Dorg.gradle.native.dir=/dev/null").expectStartFailure())
 
         then:
-        noExceptionThrown()
+        stdout.stdOut == ""
         stdout.stdErr.contains("net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
