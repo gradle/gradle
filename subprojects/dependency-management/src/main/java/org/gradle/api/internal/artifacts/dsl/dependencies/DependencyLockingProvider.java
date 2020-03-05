@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
-import org.gradle.api.internal.GradleInternal;
 
 import java.util.Set;
 
@@ -32,5 +31,5 @@ public interface DependencyLockingProvider {
 
     void setLockMode(LockMode mode);
 
-    void buildFinished(GradleInternal gradle);
+    void buildFinished();
 }

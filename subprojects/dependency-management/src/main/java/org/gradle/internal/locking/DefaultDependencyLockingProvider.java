@@ -28,7 +28,6 @@ import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
@@ -191,7 +190,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     }
 
     @Override
-    public void buildFinished(GradleInternal gradle) {
+    public void buildFinished() {
         if (uniqueLockStateEnabled && uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
             lockFileReaderWriter.writeUniqueLockfile(allLockState);
             LOGGER.lifecycle("Persisted dependency lock state for project '{}' (buildscript: {})", context.getProjectPath(), context.isScript());

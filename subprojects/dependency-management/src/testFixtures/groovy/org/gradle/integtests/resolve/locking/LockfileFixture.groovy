@@ -25,7 +25,7 @@ class LockfileFixture {
 
     def createLockfile(List<String> entries, String empty = '') {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
-        def lines = [LockFileReaderWriter.LOCKFILE_HEADER]
+        def lines = new ArrayList(LockFileReaderWriter.LOCKFILE_HEADER_LIST)
         lines.addAll entries.sort()
         lines.add 'empty=' + empty
         lockFile.writelns(lines)
@@ -51,7 +51,7 @@ class LockfileFixture {
 
     def createLegacyLockfile(String configurationName, List<String> modules) {
         def lockFile = testDirectory.file(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER, "$configurationName$LockFileReaderWriter.FILE_SUFFIX")
-        def lines = [LockFileReaderWriter.LOCKFILE_HEADER]
+        def lines = new ArrayList(LockFileReaderWriter.LOCKFILE_HEADER_LIST)
         lines.addAll modules
         lockFile.writelns(lines.sort())
     }

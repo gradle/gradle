@@ -562,7 +562,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             listenerManager.addListener(new InternalBuildFinishedListener() {
                 @Override
                 public void buildFinished(GradleInternal gradle) {
-                    dependencyLockingProvider.buildFinished(gradle);
+                    dependencyLockingProvider.buildFinished();
                 }
             });
             return dependencyLockingProvider;
