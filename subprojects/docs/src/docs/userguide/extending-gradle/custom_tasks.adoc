@@ -93,7 +93,6 @@ include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[ta
 include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
 
 We just follow the convention for where the source for the task class should go.
 
@@ -185,7 +184,6 @@ include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="bui
 include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/tasks/incrementalTask`** in the ‘-all’ distribution of Gradle.
 
 If for some reason the task is executed non-incrementally, for example by running with `--rerun-tasks`, all files are reported as `ADDED`, irrespective of the previous state.
 In this case, Gradle automatically removes the previous outputs, so the incremental task only needs to process the given files.

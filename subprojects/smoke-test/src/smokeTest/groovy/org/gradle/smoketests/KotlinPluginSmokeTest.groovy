@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.util.GradleVersion
@@ -100,7 +101,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @Requires(KOTLIN_SCRIPT)
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*kotlin js 1\\.3\\.[2-6].*")
     def 'kotlin js #version plugin, workers=#workers'() {
         given:
         useSample("kotlin-js-sample")
@@ -130,7 +131,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @Requires(KOTLIN_SCRIPT)
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*kotlin 1\\.3\\.[2-6].*")
     def 'kotlin #kotlinVersion and groovy plugins combined'() {
         given:
         buildFile << """

@@ -38,15 +38,24 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
-==== IDEA Sync -- annotation processor classpath is no longer added as provided dependencies
+==== Fewer dependencies available in IDEA
 
-Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processing,incremental annotation processing support>>, and with that a separate <<java_plugin.adoc#tab:configurations,annotation processor classpath>>, IDEA required the annotation processors themselves on the classpath to run them when compiling in IDEA directly.
-This is no longer necessary and thus, the processors are no longer added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
-The dependencies IDEA sees at compile time are then equivalent to what Gradle sees when resolving the `compileClasspath`.
+Gradle no longer includes the annotation processor classpath as provided dependencies in IDEA.
+The dependencies IDEA sees at compile time are the same as what Gradle sees after resolving the compile classpath (configuration named `compileClasspath`).
+This prevents the leakage of annotation processor dependencies into the project's code.
+
+Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processing,incremental annotation processing support>>, IDEA required all annotation processors to be on the compilation classpath to be able to run annotation processing when compiling in IDEA.
+This is no longer necessary because Gradle has a separate <<java_plugin.adoc#tab:configurations,annotation processor classpath>>.
+The dependencies for annotation processors are not added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/03/kotlin-1-3-70-released/[Kotlin 1.3.70].
 
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.5/CHANGELOG.md#version-15----nov-2019[CodeNarc 1.5].
 
 === Deprecations
 
@@ -65,13 +74,13 @@ For example, when the library does not support the required Java version.
 The practical effect is that now all <<java_platform_plugin.adoc#sec:java_platform_consumption,platform dependencies>> have to be declared as such.
 Before, platform dependencies also worked, accidentally, when the `platform()` keyword was omitted for local platforms or platforms published with Gradle Module Metadata.
 
-==== Properties from project root `gradle.properties` are shared with `buildSrc` and included builds
+==== Properties from project root `gradle.properties` leaking into `buildSrc` and included builds
 
-Before Gradle 6.2, Gradle and project properties set in the `gradle.properties` file in your project root directory were not shared with the `buildSrc` build or included builds.
+There was a regression in Gradle 6.2 and Gradle 6.2.1 that caused Gradle properties set in the project root `gradle.properties` file to leak into the `buildSrc` build and any builds included by the root.
 
-In Gradle 6.2, Gradle and project properties set in the `gradle.properties` file are shared with the `buildSrc` build and any builds included by the root.
+This could cause your build to start failing if the `buildSrc` build or an included build suddenly found an unexpected or incompatible value for a property coming from the project root `gradle.properties` file.
 
-This might cause your build to start failing if the `buildSrc` build or an included build suddenly finds an unexpected or incompatible value for a property coming from the project root `gradle.properties` file. If it does, you can fix it by setting a compatible value to the offending property in a `gradle.properties` file in the failing project directory, as property values set there will take precedence over property values coming from the project root.
+The regression has been fixed in Gradle 6.2.2.
 
 === Deprecations
 

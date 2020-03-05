@@ -35,7 +35,6 @@ The following build script is an example of using a custom software model for bu
 ----
 include::{samplesPath}/customModel/languageType/build.gradle[tag=build-script]
 ----
-NOTE: The code for this example can be found at **`samples/customModel/languageType/`** in the ‘-all’ distribution of Gradle.
 
 The rest of this chapter is dedicated to explaining what is going on behind this build script.
 
@@ -202,7 +201,6 @@ This build script demonstrate usage of the custom model defined in the sections 
 ----
 include::{samplesPath}/customModel/languageType//build.gradle[tag=build-script]
 ----
-NOTE: The code for this example can be found at **`samples/customModel/languageType/`** in the ‘-all’ distribution of Gradle.
 
 And in the components reports for such a build script we can see our model types properly registered:
 
