@@ -138,7 +138,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id '${pluginId}' version '${version}'
             }
-            
+
             repositories {
                 ${jcenterRepository()}
             }
@@ -561,6 +561,8 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(":compileJava").outcome == UP_TO_DATE
     }
 
+    // Latest AspectJ 1.9.5 is not compatible with JDK14
+    @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     def 'freefair aspectj plugin'() {
         given:
