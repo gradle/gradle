@@ -17,7 +17,6 @@
 package org.gradle.internal.service.scopes;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.collect.ImmutableList;
 import org.apache.tools.ant.DirectoryScanner;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
@@ -31,9 +30,7 @@ import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.changedetection.state.SplitFileHasher;
 import org.gradle.api.internal.changedetection.state.SplitResourceSnapshotterCacheService;
-import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.DefaultClasspathHasher;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
@@ -46,8 +43,6 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.OutputChangeListener;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry;
@@ -79,23 +74,18 @@ import org.gradle.internal.vfs.LinuxFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
-import org.gradle.internal.vfs.WatchingVirtualFileSystem.VirtualFileSystemStatistics;
 import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.impl.NoopFileWatcherRegistry;
-import org.gradle.util.IncubationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -139,17 +129,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
         return isSystemPropertyEnabled(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs);
-    }
-
-    public static List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, Map<String, String> systemPropertiesArgs) {
-        String changeList = getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, systemPropertiesArgs);
-        if (changeList == null) {
-            return ImmutableList.of();
-        }
-        return Stream.of(changeList.split(","))
-            .filter(path -> !path.isEmpty())
-            .map(resolver::resolve)
-            .collect(Collectors.toList());
     }
 
     private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
@@ -218,61 +197,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 ),
                 path -> !additiveCacheLocations.isInsideAdditiveCache(path)
             );
-            listenerManager.addListener(new RootBuildLifecycleListener() {
-                @Override
-                public void afterStart(GradleInternal gradle) {
-                    StartParameter startParameter = gradle.getStartParameter();
-                    Map<String, String> systemPropertiesArgs = startParameter.getSystemPropertiesArgs();
-                    if (isRetentionEnabled(systemPropertiesArgs)) {
-                        IncubationLogger.incubatingFeatureUsed("Virtual file system retention");
-                        FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
-                            throw new UnsupportedOperationException();
-                        });
-                        if (isSystemPropertyEnabled(VFS_DROP_PROPERTY, systemPropertiesArgs)) {
-                            virtualFileSystem.invalidateAll();
-                        } else {
-                            List<File> changedPathsSinceLastBuild = getChangedPathsSinceLastBuild(fileResolver, systemPropertiesArgs);
-                            for (File changedPathSinceLastBuild : changedPathsSinceLastBuild) {
-                                LOGGER.warn("Marking as changed since last build: {}", changedPathSinceLastBuild);
-                            }
-                            virtualFileSystem.update(
-                                changedPathsSinceLastBuild
-                                    .stream()
-                                    .map(File::getAbsolutePath)
-                                    .collect(Collectors.toList()),
-                                () -> {}
-                            );
-                        }
-                        VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
-                        LOGGER.warn(
-                            "Virtual file system retained information about {} files, {} directories and {} missing files since last build",
-                            statistics.getRetained(FileType.RegularFile),
-                            statistics.getRetained(FileType.Directory),
-                            statistics.getRetained(FileType.Missing)
-                        );
-                    } else {
-                        virtualFileSystem.stopWatching();
-                        virtualFileSystem.invalidateAll();
-                    }
-                }
-
-                @Override
-                public void beforeComplete(GradleInternal gradle) {
-                    if (isRetentionEnabled(gradle.getStartParameter().getSystemPropertiesArgs())) {
-                        virtualFileSystem.stopWatching();
-                        virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
-                        VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
-                        LOGGER.warn(
-                            "Virtual file system retains information about {} files, {} directories and {} missing files till next build",
-                            statistics.getRetained(FileType.RegularFile),
-                            statistics.getRetained(FileType.Directory),
-                            statistics.getRetained(FileType.Missing)
-                        );
-                    } else {
-                        virtualFileSystem.invalidateAll();
-                    }
-                }
-            });
+            listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
+                virtualFileSystem,
+                startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
+                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
+                startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
+            ));
             return virtualFileSystem;
         }
 
