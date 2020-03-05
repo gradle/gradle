@@ -54,7 +54,6 @@ public class DefaultImmutableWorkspaceProvider implements ImmutableWorkspaceProv
         StringInterner stringInterner
     ) {
         this.baseDirectory = baseDirectory;
-        // TODO This assumes a version-bound cache, do we need to support cross-version caches?
         this.cache = cacheRepository
             .cache(baseDirectory)
             .withCleanup(createCleanupAction(baseDirectory, fileAccessTimeJournal))
