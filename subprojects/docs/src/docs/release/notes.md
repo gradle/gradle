@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [dark mode reports](#dark-mode), [2](), ... [n](), and more.
+This release features [support for JDK14](#java-14), [dark mode reports](#dark-mode), [3](), ... [n](), and more.
 
 Be sure to also check out all the [bug fixes](#fixed-issues) and [improvements for plugin authors](#plugin-authors).
 
@@ -28,7 +28,7 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
-<a name="java14"></a>
+<a name="java-14"></a>
 ## Support for Java 14
 Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk/14/).
 
