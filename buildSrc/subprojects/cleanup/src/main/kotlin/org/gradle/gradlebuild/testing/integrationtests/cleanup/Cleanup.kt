@@ -92,7 +92,7 @@ fun FileSystemOperations.removeTransformDir(cachesDir: File) {
 
 private
 val scriptCacheDirNames =
-    listOf("scripts", "scripts-remapped", "gradle-kotlin-dsl", "gradle-kotlin-dsl-accessors")
+    listOf("scripts", "scripts-remapped", "gradle-kotlin-dsl", "gradle-kotlin-dsl-accessors", "kotlin-dsl")
 
 
 private
