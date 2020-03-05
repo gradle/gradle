@@ -36,7 +36,6 @@ import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.WorkExecutor
 import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.changes.InputChangesInternal
-import org.gradle.internal.execution.workspace.ImmutableWorkspaceProvider
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
@@ -46,6 +45,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.codegen.fileHeader
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.codegen.kotlinDslPackagePath
@@ -103,7 +103,7 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
         val workExecutor : WorkExecutor<ExecutionRequestContext, CachingResult> = rootProject.serviceOf()
         val classLoaderHierarchyHasher : ClassLoaderHierarchyHasher = rootProject.serviceOf()
         val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-        val workspaceProvider : ImmutableWorkspaceProvider = rootProject.serviceOf()
+        val workspaceProvider : KotlinDslWorkspaceProvider = rootProject.serviceOf()
         workspaceProvider.withWorkspace(classLoaderHash.toString()) { workspace, executionHistoryStore ->
             val sourcesOutputDir = File(workspace, "sources")
             val classesOutputDir = File(workspace, "classes")
