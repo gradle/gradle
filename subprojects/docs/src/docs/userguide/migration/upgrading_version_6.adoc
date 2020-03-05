@@ -51,6 +51,7 @@ The dependencies for annotation processors are not added to an IDEA module's cla
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://blog.jetbrains.com/kotlin/2020/03/kotlin-1-3-70-released/[Kotlin 1.3.70].
+- Groovy has been updated to http://groovy-lang.org/changelogs/changelog-2.5.10.html[Groovy 2.5.10].
 
 ==== Updates to default tool integration versions
 
