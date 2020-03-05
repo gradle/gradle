@@ -80,8 +80,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
-        "-PbuildTimestamp=" + newTimestamp(),
-        "-PbuildSrcCheck=false", // TODO:instant-execution remove once fixed
+        "-PbuildTimestamp=" + newTimestamp()
     ]
 
     private static String newTimestamp() {
