@@ -19,6 +19,9 @@ package org.gradle.kotlin.dsl.tooling.models;
 
 public interface EditorPosition {
 
+    /**
+     * 1-based line number.
+     */
     int getLine();
 
     int getColumn();

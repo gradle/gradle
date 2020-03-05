@@ -21,6 +21,8 @@ import com.nhaarman.mockito_kotlin.mock
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.kotlin.dsl.tooling.models.EditorPosition
+import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.CoreMatchers.hasItems
@@ -40,9 +42,6 @@ import java.io.File
 import kotlin.reflect.KClass
 
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
-import kotlin.script.dependencies.ScriptContents
-import kotlin.script.dependencies.ScriptContents.Position
-import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
@@ -201,7 +200,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolutionFailure::class)
-            assertSingleFileReport(ReportSeverity.FATAL, EditorMessages.failure)
+            assertSingleFileReport(EditorReportSeverity.FATAL, EditorMessages.failure)
         }
     }
 
@@ -221,7 +220,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolutionFailure::class)
-            assertSingleFileReport(ReportSeverity.ERROR, EditorMessages.failureUsingPrevious)
+            assertSingleFileReport(EditorReportSeverity.ERROR, EditorMessages.failureUsingPrevious)
         }
     }
 
@@ -242,7 +241,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolutionFailure::class)
-            assertSingleFileReport(ReportSeverity.FATAL, EditorMessages.buildConfigurationFailed)
+            assertSingleFileReport(EditorReportSeverity.FATAL, EditorMessages.buildConfigurationFailed)
         }
     }
 
@@ -266,7 +265,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolutionFailure::class)
-            assertSingleFileReport(ReportSeverity.WARNING, EditorMessages.buildConfigurationFailedUsingPrevious)
+            assertSingleFileReport(EditorReportSeverity.WARNING, EditorMessages.buildConfigurationFailedUsingPrevious)
         }
     }
 
@@ -347,7 +346,7 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
         recorder.apply {
             assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 1)
+            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 2)
         }
     }
 
@@ -429,13 +428,13 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
 internal
 fun scriptContentFor(scriptFile: File?) =
-    mock<ScriptContents> {
+    mock<KotlinBuildScriptDependenciesResolver.ScriptContents> {
         on { file } doReturn scriptFile
     }
 
 
 internal
-class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Position?) -> Unit {
+class ResolverTestRecorder : ResolverEventLogger, (EditorReportSeverity, String, EditorPosition?) -> Unit {
 
     data class LogEvent(
         val event: ResolverEvent,
@@ -443,9 +442,9 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
     )
 
     data class IdeReport(
-        val severity: ReportSeverity,
+        val severity: EditorReportSeverity,
         val message: String,
-        val position: Position?
+        val position: EditorPosition?
     )
 
     private
@@ -461,7 +460,7 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         }
     }
 
-    override fun invoke(severity: ReportSeverity, message: String, position: Position?) {
+    override fun invoke(severity: EditorReportSeverity, message: String, position: EditorPosition?) {
         println("[EDITOR_$severity] '$message' ${position?.line ?: ""}")
         reports.add(IdeReport(severity, message, position))
     }
@@ -501,10 +500,10 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
     }
 
     fun assertSingleFileWarningReport(message: String) {
-        assertSingleFileReport(ReportSeverity.WARNING, message)
+        assertSingleFileReport(EditorReportSeverity.WARNING, message)
     }
 
-    fun assertSingleFileReport(severity: ReportSeverity, message: String) {
+    fun assertSingleFileReport(severity: EditorReportSeverity, message: String) {
         assertSingleEditorReport()
         reports.single().let { report ->
             assertThat(report.severity, equalTo(severity))
@@ -516,7 +515,7 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
     fun assertSingleLineWarningReport(message: String, line: Int) {
         assertSingleEditorReport()
         reports.single().let { report ->
-            assertThat(report.severity, equalTo(ReportSeverity.WARNING))
+            assertThat(report.severity, equalTo(EditorReportSeverity.WARNING))
             assertThat(report.position, notNullValue())
             assertThat(report.position!!.line, equalTo(line))
             assertThat(report.message, equalTo(message))

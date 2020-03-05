@@ -19,5 +19,6 @@ package org.gradle.kotlin.dsl.tooling.models;
 
 public enum EditorReportSeverity {
     WARNING,
-    ERROR
+    ERROR,
+    FATAL;
 }

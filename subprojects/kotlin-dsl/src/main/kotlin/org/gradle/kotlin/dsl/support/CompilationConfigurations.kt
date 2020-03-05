@@ -22,12 +22,12 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.kotlin.dsl.precompile.v1.scriptResolverEnvironmentOf
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.tooling.models.EditorPosition
+import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import java.io.File
 import java.net.URL
 import kotlin.reflect.KClass
-import kotlin.script.dependencies.ScriptContents
-import kotlin.script.dependencies.ScriptDependenciesResolver
 import kotlin.script.experimental.api.ExternalSourceCode
 import kotlin.script.experimental.api.ResultWithDiagnostics
 import kotlin.script.experimental.api.ScriptAcceptedLocation
@@ -181,11 +181,10 @@ fun refineKotlinScriptConfiguration(
 
 private
 fun scriptContentsOf(script: SourceCode) =
-    object : ScriptContents {
-        override val annotations: Iterable<Annotation>
-            get() = emptyList()
-        override val file: File?
-            get() = (script as? ExternalSourceCode)?.externalLocation?.toFileOrNull()
+    object : KotlinBuildScriptDependenciesResolver.ScriptContents {
+        override val file: File? by lazy {
+            (script as? ExternalSourceCode)?.externalLocation?.toFileOrNull()
+        }
         override val text: CharSequence?
             get() = script.text
     }
@@ -195,15 +194,15 @@ private
 fun scriptDiagnosticOf(
     script: SourceCode,
     message: String,
-    severity: ScriptDependenciesResolver.ReportSeverity,
-    position: ScriptContents.Position?
+    severity: EditorReportSeverity,
+    position: EditorPosition?
 ) = ScriptDiagnostic(
     message,
     ScriptDiagnostic.Severity.values()[severity.ordinal],
     script.name,
     position?.run {
         SourceCode.Location(
-            SourceCode.Position(line, col)
+            SourceCode.Position(if (line == 0) 0 else line - 1, column)
         )
     }
 )

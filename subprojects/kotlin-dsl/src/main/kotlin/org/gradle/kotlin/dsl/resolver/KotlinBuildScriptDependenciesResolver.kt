@@ -17,66 +17,42 @@
 package org.gradle.kotlin.dsl.resolver
 
 
+import com.google.common.annotations.VisibleForTesting
 import org.gradle.kotlin.dsl.concurrent.EventLoop
 import org.gradle.kotlin.dsl.concurrent.future
-
 import org.gradle.kotlin.dsl.tooling.models.EditorPosition
 import org.gradle.kotlin.dsl.tooling.models.EditorReport
 import org.gradle.kotlin.dsl.tooling.models.EditorReportSeverity
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
-
 import org.gradle.tooling.BuildException
-
-import com.google.common.annotations.VisibleForTesting
-
 import java.io.File
 import java.security.MessageDigest
-
+import java.util.concurrent.Future
 import kotlin.script.dependencies.KotlinScriptExternalDependencies
-import kotlin.script.dependencies.ScriptContents
-import kotlin.script.dependencies.ScriptContents.Position
-import kotlin.script.dependencies.ScriptDependenciesResolver
-import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
-import kotlin.collections.contentEquals
+
+typealias Report = (EditorReportSeverity, String, EditorPosition?) -> Unit
 
 
 private
-typealias Report = (ReportSeverity, String, Position?) -> Unit
+fun Report.warning(message: String, position: EditorPosition? = null) =
+    invoke(EditorReportSeverity.WARNING, message, position)
 
 
 private
-fun Report.warning(message: String, position: Position? = null) =
-    invoke(ReportSeverity.WARNING, message, position)
+fun Report.error(message: String, position: EditorPosition? = null) =
+    invoke(EditorReportSeverity.ERROR, message, position)
 
 
 private
-fun Report.error(message: String, position: Position? = null) =
-    invoke(ReportSeverity.ERROR, message, position)
-
-
-private
-fun Report.fatal(message: String, position: Position? = null) =
-    invoke(ReportSeverity.FATAL, message, position)
+fun Report.fatal(message: String, position: EditorPosition? = null) =
+    invoke(EditorReportSeverity.FATAL, message, position)
 
 
 private
 fun Report.editorReport(editorReport: EditorReport) = editorReport.run {
-    invoke(severity.toIdeSeverity(), message, position?.toIdePosition())
+    invoke(severity, message, position)
 }
-
-
-private
-fun EditorReportSeverity.toIdeSeverity(): ReportSeverity =
-    when (this) {
-        EditorReportSeverity.WARNING -> ReportSeverity.WARNING
-        EditorReportSeverity.ERROR -> ReportSeverity.ERROR
-    }
-
-
-private
-fun EditorPosition.toIdePosition(): Position =
-    Position(if (line == 0) 0 else line - 1, column)
 
 
 class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
@@ -84,12 +60,17 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
     private
     val logger: ResolverEventLogger
 
-) : ScriptDependenciesResolver {
+) {
+
+    interface ScriptContents {
+        val file: File?
+        val text: CharSequence?
+    }
 
     @Suppress("unused")
     constructor() : this(DefaultResolverEventLogger)
 
-    override fun resolve(
+    fun resolve(
         script: ScriptContents,
         environment: Map<String, Any?>?,
         /**
@@ -101,9 +82,9 @@ class KotlinBuildScriptDependenciesResolver @VisibleForTesting constructor(
          * Also there is a FATAL Severity - in this case the highlighting of the file will be
          * switched off (may be it is useful for some errors).
          */
-        report: (ReportSeverity, String, Position?) -> Unit,
+        report: Report,
         previousDependencies: KotlinScriptExternalDependencies?
-    ) = future {
+    ): Future<KotlinScriptExternalDependencies?> = future {
 
         val cid = newCorrelationId()
         try {
@@ -271,7 +252,7 @@ object ResolverCoordinator {
      * Decides which action the resolver should take based on the given [script] and [environment].
      */
     fun selectNextActionFor(
-        script: ScriptContents,
+        script: KotlinBuildScriptDependenciesResolver.ScriptContents,
         environment: Environment?,
         previousDependencies: KotlinScriptExternalDependencies?
     ): ResolverAction {
@@ -299,7 +280,7 @@ object ResolverCoordinator {
         (previousDependencies as? KotlinBuildScriptDependencies)?.classPathBlocksHash
 
     private
-    fun classPathBlocksHashFor(script: ScriptContents, environment: Environment): ByteArray? {
+    fun classPathBlocksHashFor(script: KotlinBuildScriptDependenciesResolver.ScriptContents, environment: Environment): ByteArray? {
 
         @Suppress("unchecked_cast")
         val getScriptSectionTokens = environment["getScriptSectionTokens"] as? ScriptSectionTokensProvider
