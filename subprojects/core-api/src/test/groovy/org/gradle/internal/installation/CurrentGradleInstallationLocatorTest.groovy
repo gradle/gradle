@@ -30,7 +30,7 @@ import spock.lang.Unroll
 // This test keeps the jars locked on Windows JDK 1.7
 class CurrentGradleInstallationLocatorTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     List<Closeable> loaders = []
 
     TestFile distDir

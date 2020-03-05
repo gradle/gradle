@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 class GccOptionsFileArgsWriterTest extends OptionsFileArgsWriterTest {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     OptionsFileArgsWriter getArgsWriter() {
         new GccOptionsFileArgsWriter(tmpDirProvider.getTestDirectory())

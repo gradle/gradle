@@ -47,7 +47,7 @@ class DirectoryBuildCacheServiceFactoryTest extends Specification {
     def config = Mock(DirectoryBuildCache)
     def buildCacheDescriber = new NoopBuildCacheDescriber()
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "can create service with default directory"() {
         def cacheDir = temporaryFolder.file("build-cache-1")

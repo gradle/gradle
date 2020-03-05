@@ -30,7 +30,7 @@ import spock.lang.Unroll
 class DefaultArtifactResolutionCacheTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     BuildCommencedTimeProvider timeProvider = Stub(BuildCommencedTimeProvider) {
         getCurrentTime() >> 1234L

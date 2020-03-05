@@ -28,7 +28,7 @@ class FileCopyActionTest extends Specification {
     private File destDir
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def setup() throws IOException {
         destDir = tmpDir.getTestDirectory().file("dest")

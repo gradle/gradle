@@ -29,7 +29,7 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.Visual
 class WindowsRegistryVersionLocatorTest extends Specification {
     public static final String SOFTWARE_KEY = "SOFTWARE\\Microsoft\\VisualStudio\\SxS\\VC7"
     public static final String SOFTWARE_WOW6432_KEY = "SOFTWARE\\Wow6432Node\\Microsoft\\VisualStudio\\SxS\\VC7"
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def windowsRegistry = Mock(WindowsRegistry)
     def locator = new WindowsRegistryVersionLocator(windowsRegistry)

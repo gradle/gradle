@@ -33,7 +33,7 @@ public class ProjectTest extends Specification {
         new DefaultResourceFilter(ResourceFilterAppliesTo.FOLDERS, ResourceFilterType.INCLUDE_ONLY, false, new DefaultResourceFilterMatcher('org.eclipse.ui.ide.orFilterMatcher', null, [new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-node_modules', [] as LinkedHashSet), new DefaultResourceFilterMatcher('org.eclipse.ui.ide.multiFilter', '1.0-name-matches-false-false-target', [] as LinkedHashSet)] as LinkedHashSet))] as LinkedHashSet
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final Project project = new Project(new XmlTransformer())
 
     def loadFromReader() {

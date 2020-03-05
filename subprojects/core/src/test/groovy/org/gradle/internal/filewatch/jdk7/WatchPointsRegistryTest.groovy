@@ -27,7 +27,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class WatchPointsRegistryTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
 
     WatchPointsRegistry registry
     TestFile rootDir

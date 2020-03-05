@@ -28,7 +28,7 @@ import static org.junit.Assert.assertEquals
 
 class DefaultBasePluginConventionTest {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     private ProjectInternal project = TestUtil.create(temporaryFolder).rootProject()
     private File testDir = project.projectDir

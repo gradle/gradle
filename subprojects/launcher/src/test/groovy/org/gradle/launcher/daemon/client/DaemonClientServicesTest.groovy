@@ -30,7 +30,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DaemonClientServicesTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
     final DaemonParameters parameters = new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory()).setBaseDir(tmp.testDirectory)
     final parentServices = ServiceRegistryBuilder.builder()
             .parent(LoggingServiceRegistry.newEmbeddableLogging())

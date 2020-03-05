@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class XcodeWorkspaceSettingsFileTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def generator = new XcodeWorkspaceSettingsFile(new PropertyListTransformer<NSDictionary>())
 

@@ -67,7 +67,7 @@ import spock.lang.Specification
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     Distribution distribution = Mock()
     ProgressLoggerFactory loggerFactory = Mock()
     InternalBuildProgressListener progressListener = Mock()

@@ -35,7 +35,7 @@ import spock.lang.Specification
 class DefaultOutputFilesRepositoryTest extends Specification {
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def outputFiles = new InMemoryIndexedCache<String, Boolean>(BaseSerializerFactory.BOOLEAN_SERIALIZER)
     def cacheAccess = Stub(PersistentCache) {

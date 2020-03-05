@@ -33,7 +33,7 @@ import java.nio.file.AccessDeniedException
 class DefaultUnauthorizedDirectoryWalkerTest extends Specification {
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def rootDir
 

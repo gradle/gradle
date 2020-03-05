@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class AppleJvmTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock(OperatingSystem)
 

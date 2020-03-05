@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat
 
 class DefaultJavaPluginConventionTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.create(tmpDir).rootProject()
     def objectFactory = project.services.get(ObjectFactory)
     private JavaPluginConvention convention

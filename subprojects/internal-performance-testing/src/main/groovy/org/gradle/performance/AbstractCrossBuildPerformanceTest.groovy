@@ -37,7 +37,7 @@ class AbstractCrossBuildPerformanceTest extends Specification {
     protected final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     @Rule
     PerformanceTestIdProvider performanceTestIdProvider = new PerformanceTestIdProvider()

@@ -30,7 +30,7 @@ import spock.lang.Specification
 class DefaultCopySpecResolutionTest extends Specification {
 
     @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     def fileResolver = TestFiles.resolver(testDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()

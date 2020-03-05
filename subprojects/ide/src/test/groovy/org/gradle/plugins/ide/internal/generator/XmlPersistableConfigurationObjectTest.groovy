@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class XmlPersistableConfigurationObjectTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     String rootElement
     final XmlPersistableConfigurationObject object = new XmlPersistableConfigurationObject(new XmlTransformer()) {
         @Override protected String getDefaultResourceName() {

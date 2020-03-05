@@ -34,7 +34,7 @@ import static org.gradle.util.WrapUtil.toMap;
 
 public class DefaultCommandLineConverterTest extends CommandLineConverterTestSupport {
     @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
 
     public DefaultCommandLineConverterTest() {
         super();

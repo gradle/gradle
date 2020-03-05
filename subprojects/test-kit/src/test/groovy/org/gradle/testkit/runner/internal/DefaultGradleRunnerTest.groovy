@@ -33,7 +33,7 @@ class DefaultGradleRunnerTest extends Specification {
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     GradleExecutor gradleExecutor = Mock(GradleExecutor)
     TestKitDirProvider testKitDirProvider = Mock(TestKitDirProvider)
     File workingDir = new File('my/tests')

@@ -27,7 +27,7 @@ class RelativeFileNameTransformerTest extends Specification {
     static rootDir = new File("root")
 
     @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     def "returns canonical path where file outside of root"() {
         expect:

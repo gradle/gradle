@@ -31,7 +31,7 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class PathNormalizationStrategyTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     private StringInterner stringInterner = new StringInterner()
 

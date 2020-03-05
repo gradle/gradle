@@ -23,7 +23,7 @@ import org.junit.Rule
 class StoreTargetTest extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def target = new StoreTarget(temporaryFolder.file("file") << "test")
 

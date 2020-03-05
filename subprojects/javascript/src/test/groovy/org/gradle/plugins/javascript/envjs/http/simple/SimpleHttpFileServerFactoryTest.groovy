@@ -25,7 +25,7 @@ import java.nio.charset.Charset
 
 class SimpleHttpFileServerFactoryTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
     TestFile root
 
     def setup() {

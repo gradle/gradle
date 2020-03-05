@@ -29,7 +29,7 @@ import org.junit.Rule
 
 class DefaultExecActionFactoryTest extends ConcurrentSpec {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory()

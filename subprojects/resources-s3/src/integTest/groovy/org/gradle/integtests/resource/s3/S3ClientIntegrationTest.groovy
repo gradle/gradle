@@ -50,7 +50,7 @@ class S3ClientIntegrationTest extends Specification {
     final String bucketName = 'org.gradle.artifacts'
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Shared
     DefaultAwsCredentials awsCredentials = new DefaultAwsCredentials()

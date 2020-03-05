@@ -61,7 +61,7 @@ abstract class AbstractWorkerProcessIntegrationSpec extends Specification {
         .build()
     final MessagingServer server = services.get(MessagingServer.class)
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     final RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()
     final CacheFactory factory = services.get(CacheFactory.class)

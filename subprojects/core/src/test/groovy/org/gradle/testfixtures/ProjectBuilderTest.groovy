@@ -35,7 +35,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 class ProjectBuilderTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     @Rule
     public final Resources resources = new Resources()
 

@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ByteInputTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     RandomAccessFile file
     ByteInput input
 

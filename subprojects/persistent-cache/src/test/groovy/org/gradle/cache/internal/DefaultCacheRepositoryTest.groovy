@@ -29,7 +29,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheRepositoryTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile homeDir = tmpDir.createDir("home")
     private final TestFile sharedCacheDir = homeDir.file("caches")
     private final Map<String, ?> properties = [a: "value", b: "value2"]

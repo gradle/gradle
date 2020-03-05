@@ -40,7 +40,7 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTy
 import static org.hamcrest.CoreMatchers.equalTo
 
 class DefaultSourceDirectorySetTest extends Specification {
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile testDir = tmpDir.testDirectory
     private FileResolver resolver = TestFiles.resolver(testDir)
     private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir)

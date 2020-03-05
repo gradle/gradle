@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class PropertiesPersistableConfigurationObjectTest extends Specification {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     String propertyValue
     final org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject object = new org.gradle.plugins.ide.internal.generator.PropertiesPersistableConfigurationObject(new PropertiesTransformer()) {
         @Override protected String getDefaultResourceName() {

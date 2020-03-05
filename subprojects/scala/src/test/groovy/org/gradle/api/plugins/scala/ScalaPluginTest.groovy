@@ -35,7 +35,7 @@ import static org.junit.Assert.assertTrue
 
 class ScalaPluginTest {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
     private final ScalaPlugin scalaPlugin = new ScalaPlugin()

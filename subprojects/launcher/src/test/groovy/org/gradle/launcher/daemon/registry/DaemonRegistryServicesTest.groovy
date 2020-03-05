@@ -34,7 +34,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idl
 class DaemonRegistryServicesTest extends Specification {
     def lockManager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), Stub(FileLockContentionHandler))
     def chmod = Stub(Chmod)
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
     def parent = new DefaultServiceRegistry() {{
         add(FileLockManager, lockManager)
         add(Chmod, chmod)

@@ -30,7 +30,7 @@ import static org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALI
 
 class AbstractCachedIndexTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     static final CACHE_NAME = "my-cache"
     def cacheLockingManager = new ArtifactCacheLockingManagerStub()

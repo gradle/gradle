@@ -24,7 +24,7 @@ import org.junit.Rule
 
 abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends PropertySpec<T> {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resolver = TestFiles.resolver(tmpDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     def factory = new DefaultFilePropertyFactory(host, resolver, fileCollectionFactory)

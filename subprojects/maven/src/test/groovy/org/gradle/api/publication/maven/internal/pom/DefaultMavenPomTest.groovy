@@ -37,7 +37,7 @@ class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_VERSION = "v\u00E9rsi\u00F8n"; // note the utf-8 chars
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     Conf2ScopeMappingContainer conf2ScopeMappingContainer = Mock()
     PomDependenciesConverter pomDependenciesConverterStub = Mock()

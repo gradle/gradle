@@ -44,7 +44,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 class IvyXmlModuleDescriptorParserTest extends Specification {
     @Rule
     public final Resources resources = new Resources()
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     DefaultImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     FileResourceRepository fileRepository = TestFiles.fileRepository()
