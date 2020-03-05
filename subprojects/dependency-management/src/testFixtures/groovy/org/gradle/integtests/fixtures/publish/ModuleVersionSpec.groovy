@@ -200,7 +200,7 @@ class ModuleVersionSpec {
         expectGetMetadata.each {
             switch (it) {
                 case InteractionExpectation.NONE:
-                    break
+                    return
                 case InteractionExpectation.MAYBE:
                     if (module instanceof MavenModule) {
                         module.pom.allowGetOrHead()
