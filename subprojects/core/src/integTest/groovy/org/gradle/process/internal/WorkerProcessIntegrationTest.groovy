@@ -122,15 +122,13 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
 
     def thisProcessCanSendEventsToWorkerProcess() {
         when:
-        execute(worker(new PingRemoteProcess()).onServer(new Action<ObjectConnectionBuilder>() {
-            public void execute(ObjectConnectionBuilder objectConnection) {
-                TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class)
-                listener.send("1", 0)
-                listener.send("1", 1)
-                listener.send("1", 2)
-                listener.send("stop", 3)
-            }
-        }))
+        execute(worker(new PingRemoteProcess()).onServer { objectConnection ->
+            TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class)
+            listener.send("1", 0)
+            listener.send("1", 1)
+            listener.send("1", 2)
+            listener.send("stop", 3)
+        })
 
         then:
         noExceptionThrown()
@@ -148,7 +146,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         0 * listenerMock._
     }
 
-    def handlesWorkerProcessWhichCrashes() {
+    def handlesWorkerProcessThatCrashes() {
         when:
         execute(worker(new CrashingRemoteProcess()).expectStopFailure())
 
@@ -162,9 +160,24 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         stdout.stdErr == ""
     }
 
-    def handlesWorkerActionWhichThrowsException() {
+    def handlesWorkerActionThatThrowsException() {
         when:
         execute(worker(new BrokenRemoteProcess()).expectStopFailure())
+
+        then:
+        stdout.stdOut == ""
+        stdout.stdErr.contains("java.lang.RuntimeException: broken")
+    }
+
+    def handlesWorkerActionThatThrowsExceptionAndWhenMessagesAreSentToWorker() {
+        when:
+        execute(worker(new BrokenRemoteProcess()).expectStopFailure().onServer { objectConnection ->
+            TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class)
+            listener.send("1", 0)
+            listener.send("1", 1)
+            listener.send("1", 2)
+            listener.send("stop", 3)
+        })
 
         then:
         stdout.stdOut == ""
@@ -181,7 +194,7 @@ class WorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec 
         0 * listenerMock._
     }
 
-    def handlesWorkerProcessWhichNeverConnects() {
+    def handlesWorkerProcessThatNeverConnects() {
         when:
         workerFactory.setConnectTimeoutSeconds(3)
         execute(worker(Actions.doNothing()).jvmArgs("-Dorg.gradle.worker.test.stuck").expectStartFailure())
