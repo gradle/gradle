@@ -27,6 +27,9 @@ class InstantExecutionStartParameter(
     private val startParameter: StartParameter
 ) {
 
+    val settingsDirectory: File
+        get() = buildLayout.settingsDir
+
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
