@@ -20,6 +20,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
 
@@ -28,7 +29,7 @@ import java.util.Collections;
 
 import static org.gradle.internal.classloader.ClassLoaderUtils.executeInClassloader;
 
-public abstract class AbstractClassLoaderWorker implements WorkerProtocol {
+public abstract class AbstractClassLoaderWorker implements RequestHandler<TransportableActionExecutionSpec<?>, DefaultWorkResult> {
     private final Worker worker;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
 

@@ -19,28 +19,16 @@ package org.gradle.process.internal.worker.request;
 import org.gradle.internal.operations.BuildOperationRef;
 
 public class Request {
-    private final String methodName;
-    private final Class<?>[] paramTypes;
-    private final Object[] args;
+    private final Object arg;
     private final BuildOperationRef buildOperation;
 
-    public Request(String methodName, Class<?>[] paramTypes, Object[] args, BuildOperationRef buildOperation) {
-        this.methodName = methodName;
-        this.paramTypes = paramTypes;
-        this.args = args;
+    public Request(Object arg, BuildOperationRef buildOperation) {
+        this.arg = arg;
         this.buildOperation = buildOperation;
     }
 
-    public String getMethodName() {
-        return methodName;
-    }
-
-    public Class<?>[] getParamTypes() {
-        return paramTypes;
-    }
-
-    public Object[] getArgs() {
-        return args;
+    public Object getArg() {
+        return arg;
     }
 
     public BuildOperationRef getBuildOperation() {

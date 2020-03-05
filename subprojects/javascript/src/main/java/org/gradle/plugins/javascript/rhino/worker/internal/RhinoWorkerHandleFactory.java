@@ -17,9 +17,10 @@
 package org.gradle.plugins.javascript.rhino.worker.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.process.internal.worker.RequestHandler;
 
 import java.io.File;
 
 public interface RhinoWorkerHandleFactory {
-    <T> T create(Iterable<File> rhinoClasspath, Class<T> protocolType, Class<? extends T> workerImplementationType, LogLevel logLevel, File workingDir);
+    <IN, OUT> RequestHandler<IN, OUT> create(Iterable<File> rhinoClasspath, Class<? extends RequestHandler<IN, OUT>> workerImplementationType, LogLevel logLevel, File workingDir);
 }
