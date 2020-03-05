@@ -82,6 +82,11 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
             configurations.codenarc {
                 resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
             }
+            repositories {
+                maven {
+                    url = uri('https://oss.jfrog.org/artifactory/oss-snapshot-local')
+                }
+            }
             """ : ""}
 """
     }
