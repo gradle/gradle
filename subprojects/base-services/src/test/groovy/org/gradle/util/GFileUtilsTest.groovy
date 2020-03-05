@@ -33,7 +33,7 @@ import static org.gradle.util.GFileUtils.touch
 
 class GFileUtilsTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "can read the file's tail"() {
         def f = temp.file("foo.txt") << """

@@ -79,7 +79,7 @@ abstract class ToolingApiSpecification extends Specification {
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
-    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
+    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
     @Rule

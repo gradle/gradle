@@ -27,7 +27,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 
 class XmlTransformerTest extends Specification {
     final XmlTransformer transformer = new XmlTransformer()
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "returns original string when no actions are provided"() {
         expect:
