@@ -28,6 +28,10 @@ See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@b
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
 
+<a name="java14"></a>
+## Support for Java 14
+Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk/14/).
+
 <a name="dark-mode"></a>
 ## Dark mode support for generated reports
 
