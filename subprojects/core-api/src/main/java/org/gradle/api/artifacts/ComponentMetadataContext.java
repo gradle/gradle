@@ -28,7 +28,6 @@ public interface ComponentMetadataContext {
 
     /**
      * Used to access a specific descriptor format.
-     * For Ivy descriptor, an {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor ivy module descriptor} is returned.
      *
      * @param descriptorClass the descriptor class
      * @param <T> the descriptor type
@@ -36,6 +35,7 @@ public interface ComponentMetadataContext {
      * @return a descriptor, or {@code null} if there was none of the requested type.
      *
      * @see org.gradle.api.artifacts.ivy.IvyModuleDescriptor
+     * @see org.gradle.api.artifacts.maven.PomModuleDescriptor
      */
     @Nullable
     <T> T getDescriptor(Class<T> descriptorClass);

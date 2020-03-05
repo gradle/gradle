@@ -42,4 +42,7 @@ class InstantExecutionStartParameter(
 
     val excludedTaskNames: Set<String>
         get() = startParameter.excludedTaskNames
+
+    fun systemPropertyArg(propertyName: String): String? =
+        startParameter.systemPropertiesArgs[propertyName]
 }

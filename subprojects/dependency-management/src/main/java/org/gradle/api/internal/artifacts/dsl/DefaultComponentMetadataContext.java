@@ -18,30 +18,24 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.artifacts.ComponentMetadataContext;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
-import org.gradle.api.artifacts.ivy.IvyModuleDescriptor;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyModuleDescriptor;
-import org.gradle.internal.component.external.model.ivy.IvyModuleResolveMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 
 class DefaultComponentMetadataContext implements ComponentMetadataContext {
 
     private final ComponentMetadataDetails details;
+    // We keep this field for access from Groovy scripts, as we currently miss some public API: https://github.com/gradle/gradle/issues/12349
     private final ModuleComponentResolveMetadata metadata;
+    private final MetadataDescriptorFactory descriptorFactory;
 
     DefaultComponentMetadataContext(ComponentMetadataDetails details, ModuleComponentResolveMetadata metadata) {
         this.details = details;
         this.metadata = metadata;
+        this.descriptorFactory = new MetadataDescriptorFactory(metadata);
     }
 
     @Override
     public <T> T getDescriptor(Class<T> descriptorClass) {
-        if (IvyModuleDescriptor.class.isAssignableFrom(descriptorClass)) {
-            if (metadata instanceof IvyModuleResolveMetadata) {
-                IvyModuleResolveMetadata ivyMetadata = (IvyModuleResolveMetadata) metadata;
-                return descriptorClass.cast(new DefaultIvyModuleDescriptor(ivyMetadata.getExtraAttributes(), ivyMetadata.getBranch(), ivyMetadata.getStatus()));
-            }
-        }
-        return null;
+        return descriptorFactory.createDescriptor(descriptorClass);
     }
 
     @Override

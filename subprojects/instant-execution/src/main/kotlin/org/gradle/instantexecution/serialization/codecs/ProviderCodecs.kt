@@ -27,6 +27,7 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -196,7 +197,7 @@ PropertyCodec(private val providerCodec: Codec<ProviderInternal<*>>) : Codec<Def
 
     override suspend fun ReadContext.decode(): DefaultProperty<*> {
         val provider = providerCodec.run { decode() }!!
-        return DefaultProperty(Any::class.java).provider(provider)
+        return DefaultProperty(PropertyHost.NO_OP, Any::class.java).provider(provider)
     }
 }
 
@@ -236,7 +237,7 @@ ListPropertyCodec(private val providerCodec: Codec<ProviderInternal<*>>) : Codec
 
     override suspend fun ReadContext.decode(): DefaultListProperty<*> {
         val providers = readList { providerCodec.run { decode() } }
-        return DefaultListProperty(Any::class.java).apply {
+        return DefaultListProperty(PropertyHost.NO_OP, Any::class.java).apply {
             providers(providers.uncheckedCast())
         }
     }
@@ -252,7 +253,7 @@ SetPropertyCodec(private val providerCodec: Codec<ProviderInternal<*>>) : Codec<
 
     override suspend fun ReadContext.decode(): DefaultSetProperty<*> {
         val providers = readList { providerCodec.run { decode() } }
-        return DefaultSetProperty(Any::class.java).apply {
+        return DefaultSetProperty(PropertyHost.NO_OP, Any::class.java).apply {
             providers(providers.uncheckedCast())
         }
     }
@@ -268,7 +269,7 @@ MapPropertyCodec(private val providerCodec: Codec<ProviderInternal<*>>) : Codec<
 
     override suspend fun ReadContext.decode(): DefaultMapProperty<*, *> {
         val providers = readList { providerCodec.run { decode() } }
-        return DefaultMapProperty(Any::class.java, Any::class.java).apply {
+        return DefaultMapProperty(PropertyHost.NO_OP, Any::class.java, Any::class.java).apply {
             providers(providers.uncheckedCast())
         }
     }
