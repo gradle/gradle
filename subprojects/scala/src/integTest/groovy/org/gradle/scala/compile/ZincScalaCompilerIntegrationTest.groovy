@@ -59,6 +59,29 @@ class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
         scalaClassFile("").assertHasDescendants()
     }
 
+    def useCompilerPluginIfDefined() {
+        given:
+        file("build.gradle") << """
+            apply plugin: 'scala'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                implementation 'org.scala-lang:scala-library:2.13.1'
+                scalaCompilerPlugins "org.typelevel:kind-projector_2.13.1:0.11.0"
+            }
+        """
+
+        file("src/main/scala/KingProjectorTest.scala") << """
+            object KingProjectorTest {
+                class A[X[_]]
+                new A[Map[Int, *]] // this expression requires kind projector
+            }"""
+
+        expect:
+        succeeds("compileScala")
+    }
+
     def "compile bad scala code do not fail the build when options.failOnError is false"() {
         given:
         badCode()
@@ -137,15 +160,15 @@ compileScala.scalaCompileOptions.failOnError = false
             dependencies {
                 implementation 'org.scala-lang:scala-library:2.11.12'
             }
-            
-            tasks.withType(ScalaCompile) { 
+
+            tasks.withType(ScalaCompile) {
                 options.forkOptions.executable = "${differentJavacExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
                 options.forkOptions.memoryMaximumSize = "256m"
                 options.forkOptions.jvmArgs = ["-Dfoo=bar"]
-                
+
                 doLast {
-                    assert services.get(WorkerDaemonClientsManager).idleClients.find { 
+                    assert services.get(WorkerDaemonClientsManager).idleClients.find {
                         new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
                         it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
                         it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
