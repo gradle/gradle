@@ -7,14 +7,6 @@ We would like to thank the following community contributors to this release of G
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
 -->
-[Kyle Cackett](https://github.com/kyle-cackett),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Daniel Thomas](https://github.com/DanielThomas),
-[jeffalder](https://github.com/jeffalder),
-[FICHET Philippe](https://github.com/philippefichet),
-[Johnny Lim](https://github.com/izeye),
-[Bow Archer](https://github.com/decoded4620),
-and [Sam De Block](https://github.com/SamDeBlock).
 
 ## Upgrade Instructions
 
@@ -40,60 +32,6 @@ details of 2
 
 ## n
 -->
-
-## Show location of Java fatal error log
-
-Sometimes the Java virtual machine executing the Gradle daemon crashes due to a bug in Java, Gradle itself, or in the user code being executed.
-When the Java VM crashes, a [fatal error log](https://docs.oracle.com/en/java/javase/11/troubleshoot/fatal-error-log.html) is created in the working directory of the daemon process.
-Since it may be hard to find out what the working directory of the daemon process is, Gradle now prints the location of the crash log to the console.
-For example, the following build crashed, and created a crash log at `/home/user/project/hs_err_pid11783.log`: 
-
-```
-> ./gradlew assemble
-
-Starting a Gradle Daemon (subsequent builds will be faster)
-The message received from the daemon indicates that the daemon has disappeared.
-Build request sent: Build{id=44fa8d49-d89a-41ca-a265-56e676ed40e6, currentDir=/home/user/project}
-Attempting to read last messages from the daemon log...
-Daemon pid: 11783
-  log file: /home/user/.gradle/daemon/6.3/daemon-11783.out.log
------ Last  20 lines from daemon log file - daemon-11783.out.log -----
-2020-03-03T16:44:13.580+0100 [DEBUG] [org.gradle.cache.internal.DefaultFileLockManager] Waiting to acquire exclusive lock on daemon addresses registry.
-...
------ End of the daemon log -----
-
-JVM crash log found: file:///home/user/project/hs_err_pid11783.log
-
-FAILURE: Build failed with an exception.
-
-* What went wrong:
-Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
-
-* Try:
-Run with --info or --debug option to get more log output. Run with --scan to get full insights.
-```
-
-## Improvements for plugin authors
-
-### Experimental improvements for reliable build configuration 
-
-TBD - this section needs some edits to clarify what this is and why it is useful; also move some of this to the user manual
-
-A common source of problems when writing Gradle builds or plugins is the brittleness that happens due to the ordering of plugin application, particular
-when the order changes.
-The so called 'lazy types'(link) help address these problems by allowing plugins and build scripts to connect calculated values together. For example, a plugin
-can connect the output of a compile task as an input of a Jar task, before the final output location or any other details for the compile task are known.
-Currently, these types can allow 'unsafe reads' to happen prior to task execution, for example where a plugin may query and se a property value then another plugin
-changes the value.
-
-This release adds a `disallowUnsafeRead()` method to `Property`(link) and `ConfigurableFileCollection`(link). This method switches the instance to 'strict reads' mode.
-In this mode, a property value cannot be queried during the configuration of the project it belongs to. The property can be configured and connected to other properties in the usual way.
-When the property value is queried it is first made read-only. This means that a property instance will only ever have a single value, while allowing all plugins to contribute to the value.
-
-This behaviour is intended to become the default in a future major version of Gradle. This method allows plugin authors to experiment with this behaviour. It does, however, impact the
-users of the plugin and so should be used carefully.
-
-For more details see (user manual link)
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
