@@ -116,7 +116,6 @@ public class HttpClientConfigurer {
         builder.setDefaultCredentialsProvider(credentialsProvider);
         builder.setMaxConnTotal(MAX_HTTP_CONNECTIONS);
         builder.setMaxConnPerRoute(MAX_HTTP_CONNECTIONS);
-        builder.evictExpiredConnections();
     }
 
     private void configureSslSocketConnectionFactory(HttpClientBuilder builder, SslContextFactory sslContextFactory, HostnameVerifier hostnameVerifier) {
