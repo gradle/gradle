@@ -48,6 +48,7 @@ import org.gradle.process.internal.health.memory.MemoryManager;
 import org.gradle.process.internal.health.memory.OsMemoryInfo;
 import org.gradle.process.internal.worker.WorkerJvmMemoryInfoSerializer;
 import org.gradle.process.internal.worker.WorkerLoggingSerializer;
+import org.gradle.process.internal.worker.WorkerProcessContext;
 
 import java.io.ByteArrayInputStream;
 import java.io.DataInputStream;
@@ -105,24 +106,18 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         WorkerLogEventListener workerLogEventListener = new WorkerLogEventListener();
         workerServices.add(WorkerLogEventListener.class, workerLogEventListener);
 
-        ObjectConnection connection = null;
-
         File workingDirectory = workerServices.get(WorkerDirectoryProvider.class).getWorkingDirectory();
         File errorLog = getLastResortErrorLogFile(workingDirectory);
         PrintUnrecoverableErrorToFileHandler unrecoverableErrorHandler = new PrintUnrecoverableErrorToFileHandler(errorLog);
 
-        try {
-            // Read serialized worker
-            byte[] serializedWorker = decoder.readBinary();
+        ObjectConnection connection = null;
 
-            // Deserialize the worker action
-            Action<WorkerContext> action;
-            try {
-                ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-                action = (Action<WorkerContext>) instr.readObject();
-            } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
+        try {
+            // Read serialized worker details
+            final long workerId = decoder.readSmallLong();
+            final String displayName = decoder.readString();
+            byte[] serializedWorker = decoder.readBinary();
+            Action<WorkerProcessContext> workerAction = deserializeWorker(serializedWorker);
 
             connection = basicWorkerServices.get(MessagingClient.class).getConnection(serverAddress);
             connection.addUnrecoverableErrorHandler(unrecoverableErrorHandler);
@@ -133,23 +128,8 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
                 configureWorkerJvmMemoryInfoEvents(workerServices, connection);
             }
 
-            final ObjectConnection serverConnection = connection;
-            action.execute(new WorkerContext() {
-                @Override
-                public ClassLoader getApplicationClassLoader() {
-                    return ClassLoader.getSystemClassLoader();
-                }
-
-                @Override
-                public ObjectConnection getServerConnection() {
-                    return serverConnection;
-                }
-
-                @Override
-                public ServiceRegistry getServiceRegistry() {
-                    return workerServices;
-                }
-            });
+            ActionExecutionWorker worker = new ActionExecutionWorker(workerAction);
+            worker.execute(new ContextImpl(workerId, displayName, connection, workerServices));
         } finally {
             try {
                 loggingManager.removeOutputEventListener(workerLogEventListener);
@@ -162,6 +142,17 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         }
 
         return null;
+    }
+
+    private Action<WorkerProcessContext> deserializeWorker(byte[] serializedWorker) {
+        Action<WorkerProcessContext> action;
+        try {
+            ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
+            action = (Action<WorkerProcessContext>) instr.readObject();
+        } catch (Exception e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        return action;
     }
 
     private File getLastResortErrorLogFile(File workingDirectory) {
@@ -248,6 +239,45 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         WorkerDirectoryProvider createWorkerDirectoryProvider(GradleUserHomeDirProvider gradleUserHomeDirProvider) {
             return new DefaultWorkerDirectoryProvider(gradleUserHomeDirProvider);
+        }
+    }
+
+    private static class ContextImpl implements WorkerProcessContext {
+        private final long workerId;
+        private final String displayName;
+        private final ObjectConnection serverConnection;
+        private final WorkerServices workerServices;
+
+        public ContextImpl(long workerId, String displayName, ObjectConnection serverConnection, WorkerServices workerServices) {
+            this.workerId = workerId;
+            this.displayName = displayName;
+            this.serverConnection = serverConnection;
+            this.workerServices = workerServices;
+        }
+
+        @Override
+        public Object getWorkerId() {
+            return workerId;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public ClassLoader getApplicationClassLoader() {
+            return ClassLoader.getSystemClassLoader();
+        }
+
+        @Override
+        public ObjectConnection getServerConnection() {
+            return serverConnection;
+        }
+
+        @Override
+        public ServiceRegistry getServiceRegistry() {
+            return workerServices;
         }
     }
 }

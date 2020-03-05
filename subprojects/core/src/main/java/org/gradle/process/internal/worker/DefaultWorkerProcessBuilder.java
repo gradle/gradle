@@ -50,7 +50,7 @@ import java.util.concurrent.TimeUnit;
 public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessBuilder.class);
     private final MessagingServer server;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<Long> idGenerator;
     private final ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory;
     private final OutputEventListener outputEventListener;
     private final JavaExecHandleBuilder javaCommand;
@@ -65,7 +65,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private List<URL> implementationClassPath;
     private boolean shouldPublishJvmMemoryInfo;
 
-    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<?> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+    DefaultWorkerProcessBuilder(JavaExecHandleFactory execHandleFactory, MessagingServer server, IdGenerator<Long> idGenerator, ApplicationClassesInSystemClassLoaderWorkerImplementationFactory workerImplementationFactory, OutputEventListener outputEventListener, MemoryManager memoryManager) {
         this.javaCommand = execHandleFactory.newJavaExec();
         this.server = server;
         this.idGenerator = idGenerator;
@@ -194,7 +194,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         Address localAddress = acceptor.getAddress();
 
         // Build configuration for GradleWorkerMain
-        Object id = idGenerator.generateId();
+        long id = idGenerator.generateId();
         String displayName = getBaseName() + " " + id;
 
         LOGGER.debug("Creating {}", displayName);
