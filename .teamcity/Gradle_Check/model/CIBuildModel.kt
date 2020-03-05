@@ -25,6 +25,7 @@ enum class StageNames(override val stageName: String, override val description: 
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
     EXPERIMENTAL_VFS_RETENTION("Experimental VFS Retention", "On demand checks to run tests with VFS retention enabled", "ExperimentalVfsRetention"),
+    EXPERIMENTAL_JDK14("Experimental JDK14", "On demand checks to run tests with JDK14", "ExperimentalJDK14"),
 }
 
 data class CIBuildModel(
@@ -110,6 +111,31 @@ data class CIBuildModel(
                 TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
+        ),
+        Stage(StageNames.EXPERIMENTAL_JDK14,
+            trigger = Trigger.never,
+            runsIndependent = true,
+            specificBuilds = listOf(
+                SpecificBuild.SmokeTestsJDK14,
+                SpecificBuild.InstantSmokeTestsJDK14
+            ),
+            functionalTests = listOf(
+                TestCoverage(36, TestType.quick, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(37, TestType.quick, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(38, TestType.platform, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(39, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(40, TestType.instant, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(41, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(42, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(43, TestType.parallel, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(44, TestType.soak, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(45, TestType.soak, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(46, TestType.soak, Os.macos, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(47, TestType.allVersionsCrossVersion, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(48, TestType.allVersionsCrossVersion, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(49, TestType.noDaemon, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
+                TestCoverage(50, TestType.noDaemon, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor)
+            )
         )
     ),
     val subprojects: GradleSubprojectProvider
@@ -193,12 +219,16 @@ data class TestCoverage(val uuid: Int, val testType: TestType, val os: Os, val t
 enum class TestType(val unitTests: Boolean = true, val functionalTests: Boolean = true, val crossVersionTests: Boolean = false, val timeout: Int = 180) {
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     quick(true, true, true, 60),
+
     // Include cross version tests, these take care of selecting a very small set of versions to cover when run as part of this stage, including the current version
     platform(true, true, true),
+
     // Cross version tests select a small set of versions to cover when run as part of this stage
     quickFeedbackCrossVersion(false, false, true),
+
     // Cross version tests select all versions to cover when run as part of this stage
     allVersionsCrossVersion(false, false, true, 240),
+
     // run integMultiVersionTest with all version to cover
     allVersionsIntegMultiVersion(false, true, false),
     parallel(false, true, false),
@@ -266,6 +296,16 @@ enum class SpecificBuild {
     InstantSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
+        }
+    },
+    SmokeTestsJDK14 {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION)
+        }
+    },
+    InstantSmokeTestsJDK14 {
+        override fun create(model: CIBuildModel, stage: Stage): BuildType {
+            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION, "instantSmokeTest")
         }
     },
     DependenciesCheck {
