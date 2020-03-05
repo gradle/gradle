@@ -590,7 +590,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         uncheckedModule("org", "bar")
 
         given:
-        terseConsoleOutput(terse)
+        terseConsoleOutput(terse, "buildSrc")
         javaLibrary()
         buildFile << """
             dependencies {
@@ -631,7 +631,7 @@ If the artifacts are trustworthy, you will need to update the gradle/verificatio
         uncheckedModule("org", "bar")
 
         given:
-        terseConsoleOutput(terse)
+        terseConsoleOutput(terse, "included")
         javaLibrary()
         buildFile << """
             dependencies {

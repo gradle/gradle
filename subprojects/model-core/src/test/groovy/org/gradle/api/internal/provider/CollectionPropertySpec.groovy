@@ -37,13 +37,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     }
 
     @Override
-    AbstractCollectionProperty<String, C> providerWithValue(C value) {
-        def p = property()
-        p.set(value)
-        return p
-    }
-
-    @Override
     C someValue() {
         return toMutable(["s1", "s2"])
     }
@@ -64,9 +57,6 @@ abstract class CollectionPropertySpec<C extends Collection<String>> extends Prop
     }
 
     abstract AbstractCollectionProperty<String, C> property()
-
-    @Override
-    abstract Class<C> type()
 
     @Override
     protected void setToNull(Object property) {

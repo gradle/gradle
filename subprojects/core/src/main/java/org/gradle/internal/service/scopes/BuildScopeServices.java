@@ -122,10 +122,12 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
+import org.gradle.initialization.DefaultGradlePropertiesController;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
 import org.gradle.initialization.DefaultSettingsPreparer;
+import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.IGradlePropertiesLoader;
 import org.gradle.initialization.InitScriptHandler;
 import org.gradle.initialization.InstantiatingBuildLoader;
@@ -273,6 +275,18 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return new DefaultIsolatedAntBuilder(classPathRegistry, classLoaderFactory, moduleRegistry);
     }
 
+    protected GradleProperties createGradleProperties(
+        GradlePropertiesController gradlePropertiesController
+    ) {
+        return gradlePropertiesController.getGradleProperties();
+    }
+
+    protected GradlePropertiesController createGradlePropertiesController(
+        IGradlePropertiesLoader propertiesLoader
+    ) {
+        return new DefaultGradlePropertiesController(propertiesLoader);
+    }
+
     protected IGradlePropertiesLoader createGradlePropertiesLoader() {
         return new DefaultGradlePropertiesLoader((StartParameterInternal) get(StartParameter.class));
     }
@@ -295,13 +309,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
         return new DefaultProviderFactory(valueSourceProviderFactory);
-    }
-
-    protected GradleProperties createGradleProperties(
-        IGradlePropertiesLoader propertiesLoader,
-        BuildLayout buildLayout
-    ) {
-        return propertiesLoader.loadGradleProperties(buildLayout.getRootDirectory());
     }
 
     protected ActorFactory createActorFactory() {
@@ -403,14 +410,23 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(Deleter.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, BuildStateRegistry buildRegistry, ProjectStateRegistry projectRegistry, PublicBuildPath publicBuildPath, Instantiator instantiator, BuildLayoutFactory buildLayoutFactory) {
+    protected SettingsLoaderFactory createSettingsLoaderFactory(
+        SettingsProcessor settingsProcessor,
+        BuildStateRegistry buildRegistry,
+        ProjectStateRegistry projectRegistry,
+        PublicBuildPath publicBuildPath,
+        Instantiator instantiator,
+        BuildLayoutFactory buildLayoutFactory,
+        GradlePropertiesController gradlePropertiesController
+    ) {
         return new DefaultSettingsLoaderFactory(
             settingsProcessor,
             buildRegistry,
             projectRegistry,
             publicBuildPath,
             instantiator,
-            buildLayoutFactory
+            buildLayoutFactory,
+            gradlePropertiesController
         );
     }
 

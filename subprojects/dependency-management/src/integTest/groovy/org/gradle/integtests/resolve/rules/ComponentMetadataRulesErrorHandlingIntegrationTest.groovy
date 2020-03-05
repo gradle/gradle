@@ -87,7 +87,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
         "String vs ->"                       | "First parameter of rule action closure must be of type 'ComponentMetadataDetails'."
         "ComponentMetadata cm, String s ->"  | "Rule may not have an input parameter of type: java.lang.String. " +
                                                "Second parameter must be of type: " +
-                                               "org.gradle.api.artifacts.ivy.IvyModuleDescriptor."
+                                               "org.gradle.api.artifacts.ivy.IvyModuleDescriptor or org.gradle.api.artifacts.maven.PomModuleDescriptor."
     }
 
     def "produces sensible error when rule throws an exception" () {
@@ -120,7 +120,7 @@ class ComponentMetadataRulesErrorHandlingIntegrationTest extends AbstractHttpDep
                     throw new Exception('From Test')
                 }
             }
-             
+
             dependencies {
                 components {
                     withModule('org.test', UnusedRule)

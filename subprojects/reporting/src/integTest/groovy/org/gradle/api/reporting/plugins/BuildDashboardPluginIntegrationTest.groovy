@@ -16,11 +16,10 @@
 
 package org.gradle.api.reporting.plugins
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 
@@ -77,6 +76,13 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
                     configFile = file('config/codenarc/rulesets.groovy')
                 }
             }
+
+            ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
+            """
+            configurations.codenarc {
+                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+            }
+            """ : ""}
 """
     }
 
@@ -346,7 +352,6 @@ class BuildDashboardPluginIntegrationTest extends WellBehavedPluginTest {
         hasReport(':subproject:test', 'junitXml')
     }
 
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
     @ToBeFixedForInstantExecution(because = ":buildDashboard")
     void 'dashboard includes JaCoCo reports'() {
         given:

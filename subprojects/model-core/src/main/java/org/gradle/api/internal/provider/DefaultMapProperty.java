@@ -26,7 +26,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
-import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
@@ -35,7 +34,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
+public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
 
@@ -45,16 +44,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     private final Class<V> valueType;
     private final ValueCollector<K> keyCollector;
     private final MapEntryCollector<K, V> entryCollector;
-    private MapSupplier<K, V> convention = noValueSupplier();
     private MapSupplier<K, V> defaultValue = emptySupplier();
-    private MapSupplier<K, V> value;
 
-    public DefaultMapProperty(Class<K> keyType, Class<V> valueType) {
-        applyDefaultValue();
+    public DefaultMapProperty(PropertyHost propertyHost, Class<K> keyType, Class<V> valueType) {
+        super(propertyHost);
         this.keyType = keyType;
         this.valueType = valueType;
         keyCollector = new ValidatingValueCollector<>(Set.class, keyType, ValueSanitizers.forType(keyType));
         entryCollector = new ValidatingMapEntryCollector<>(keyType, valueType, ValueSanitizers.forType(keyType), ValueSanitizers.forType(valueType));
+        init(defaultValue, noValueSupplier());
     }
 
     private MapSupplier<K, V> emptySupplier() {
@@ -63,11 +61,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     private MapSupplier<K, V> noValueSupplier() {
         return Cast.uncheckedCast(NO_VALUE);
-    }
-
-    @Override
-    protected ValueSupplier getSupplier() {
-        return value;
     }
 
     @Nullable
@@ -98,23 +91,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     }
 
     @Override
-    public boolean isPresent() {
-        beforeRead();
-        return value.isPresent();
-    }
-
-    @Override
-    protected Value<? extends Map<K, V>> calculateOwnValue() {
-        beforeRead();
-        return doCalculateOwnValue();
-    }
-
-    @NotNull
-    private Value<? extends Map<K, V>> doCalculateOwnValue() {
-        return value.calculateValue();
-    }
-
-    @Override
     public Provider<V> getting(final K key) {
         return new EntryProvider(key);
     }
@@ -122,9 +98,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     @SuppressWarnings("unchecked")
     public MapProperty<K, V> empty() {
-        if (beforeMutate()) {
-            set(emptySupplier());
-        }
+        setSupplier(emptySupplier());
         return this;
     }
 
@@ -145,24 +119,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @SuppressWarnings("unchecked")
     public void set(@Nullable Map<? extends K, ? extends V> entries) {
         if (entries == null) {
-            if (beforeReset()) {
-                set(convention);
-                defaultValue = noValueSupplier();
-            }
-            return;
-        }
-        if (beforeMutate()) {
-            set(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries)));
+            discardValue();
+            defaultValue = noValueSupplier();
+        } else {
+            setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(entries)));
         }
     }
 
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        if (!beforeMutate()) {
-            return;
-        }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
-        set(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
+        setSupplier(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(p)));
     }
 
     @Override
@@ -177,17 +144,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         return this;
     }
 
-    private void set(MapSupplier<K, V> supplier) {
-        value = supplier;
-    }
-
     @Override
     public void put(K key, V value) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
-        if (!beforeMutate()) {
-            return;
-        }
         addCollector(new MapCollectors.SingleEntry<>(key, value));
     }
 
@@ -195,9 +155,6 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     public void put(K key, Provider<? extends V> providerOfValue) {
         Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
         Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
-        if (!beforeMutate()) {
-            return;
-        }
         ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
         if (p.getType() != null && !valueType.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
@@ -208,23 +165,18 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
-        if (!beforeMutate()) {
-            return;
-        }
         addCollector(new MapCollectors.EntriesFromMap<>(entries));
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
-        if (!beforeMutate()) {
-            return;
-        }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider(provider);
         addCollector(new MapCollectors.EntriesFromMapProvider<>(p));
     }
 
     private void addCollector(MapCollector<K, V> collector) {
-        value = value.plus(collector);
+        assertCanMutate();
+        setSupplier(getExplicitValue(defaultValue).plus(collector));
     }
 
     @SuppressWarnings("unchecked")
@@ -252,40 +204,31 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
     @Override
     public MapProperty<K, V> convention(@Nullable Map<? extends K, ? extends V> value) {
         if (value == null) {
-            convention(noValueSupplier());
+            setConvention(noValueSupplier());
         } else {
-            convention(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value)));
+            setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMap<>(value)));
         }
         return this;
     }
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        convention(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider))));
+        setConvention(new CollectingSupplier(new MapCollectors.EntriesFromMapProvider<>(Providers.internal(valueProvider))));
         return this;
-    }
-
-    private void convention(MapSupplier<K, V> supplier) {
-        if (shouldApplyConvention()) {
-            this.value = supplier;
-        }
-        this.convention = supplier;
     }
 
     public List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> getProviders() {
         List<ProviderInternal<? extends Map<? extends K, ? extends V>>> providers = new ArrayList<>();
-        value.visit(providers);
+        getSupplier().visit(providers);
         return providers;
     }
 
     public void providers(List<? extends ProviderInternal<? extends Map<? extends K, ? extends V>>> providers) {
-        if (!beforeMutate()) {
-            return;
-        }
-        value = defaultValue;
+        MapSupplier<K, V> value = defaultValue;
         for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
             value = value.plus(new MapCollectors.EntriesFromMapProvider<>(provider));
         }
+        setSupplier(value);
     }
 
     @Override
@@ -295,27 +238,25 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
     @Override
     protected String describeContents() {
-        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), value.toString());
+        return String.format("Map(%s->%s, %s)", keyType.getSimpleName().toLowerCase(), valueType.getSimpleName(), getSupplier().toString());
     }
 
     @Override
-    protected void applyDefaultValue() {
-        value = defaultValue;
+    protected Value<? extends Map<K, V>> calculateOwnValue(MapSupplier<K, V> value) {
+        return value.calculateValue();
     }
 
     @Override
-    @SuppressWarnings("unchecked")
-    protected void makeFinal() {
-        Value<? extends Map<K, V>> value = doCalculateOwnValue();
-        if (!value.isMissing()) {
-            Map<K, V> entries = value.get();
-            set(new FixedSuppler<>(entries));
-        } else if (value.getPathToOrigin().isEmpty()) {
-            set(noValueSupplier());
+    protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value) {
+        Value<? extends Map<K, V>> result = calculateOwnValue(value);
+        if (!result.isMissing()) {
+            Map<K, V> entries = result.get();
+            return new FixedSuppler<>(entries);
+        } else if (result.getPathToOrigin().isEmpty()) {
+            return noValueSupplier();
         } else {
-            set(new NoValueSupplier<>(value));
+            return new NoValueSupplier<>(result);
         }
-        convention = noValueSupplier();
     }
 
     private class EntryProvider extends AbstractMinimalProvider<V> {
@@ -333,8 +274,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
 
         @Override
         protected Value<? extends V> calculateOwnValue() {
-            beforeRead();
-            Value<? extends Map<K, V>> result = doCalculateOwnValue();
+            Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue();
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -353,21 +293,11 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         @Override
         protected Value<? extends Set<K>> calculateOwnValue() {
             beforeRead();
-            return value.calculateKeys();
+            return getSupplier().calculateKeys();
         }
     }
 
-    private interface MapSupplier<K, V> extends ValueSupplier {
-        Value<? extends Map<K, V>> calculateValue();
-
-        Value<? extends Set<K>> calculateKeys();
-
-        MapSupplier<K, V> plus(MapCollector<K, V> collector);
-
-        void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
-    }
-
-    public static class NoValueSupplier<K, V> implements MapSupplier<K, V> {
+    private static class NoValueSupplier<K, V> implements MapSupplier<K, V> {
         private final Value<? extends Map<K, V>> value;
 
         public NoValueSupplier(Value<? extends Map<K, V>> value) {
@@ -415,7 +345,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>> implem
         }
     }
 
-    public class EmptySupplier implements MapSupplier<K, V> {
+    private class EmptySupplier implements MapSupplier<K, V> {
         @Override
         public boolean isPresent() {
             return true;

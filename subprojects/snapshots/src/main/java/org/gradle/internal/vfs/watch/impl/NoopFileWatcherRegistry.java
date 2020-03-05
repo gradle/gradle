@@ -33,7 +33,7 @@ public class NoopFileWatcherRegistry implements FileWatcherRegistry {
     private static final FileWatchingStatistics NOOP_FILE_WATCHING_STATISTICS = new FileWatchingStatistics(true, 0);
 
     @Override
-    public FileWatchingStatistics stopWatching() {
+    public FileWatchingStatistics getStatistics() {
         return NOOP_FILE_WATCHING_STATISTICS;
     }
 

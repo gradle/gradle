@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
@@ -50,6 +50,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @JvmStatic
         fun testedKotlinVersions() = listOf(
             embeddedKotlinVersion,
+            "1.3.60",
             "1.3.40",
             "1.3.30"
         )
@@ -57,7 +58,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution(iterationMatchers = [".*\\[1\\.3\\.[3-6].*"])
     fun `kotlin-dsl plugin in buildSrc and production code using kotlin-gradle-plugin `() {
 
         requireGradleDistributionOnEmbeddedExecuter()

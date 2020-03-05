@@ -39,7 +39,8 @@ class DefaultSettingsLoaderTest extends Specification {
     def startParameter = new StartParameterInternal()
     def classLoaderScope = Mock(ClassLoaderScope)
     def settingsProcessor = Mock(SettingsProcessor)
-    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory)
+    def gradlePropertiesController = Mock(GradlePropertiesController)
+    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory, gradlePropertiesController)
 
     void findAndLoadSettingsWithExistingSettings() {
         when:
@@ -62,6 +63,7 @@ class DefaultSettingsLoaderTest extends Specification {
         1 * settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter) >> settings
         1 * settings.settingsScript >> settingsScript
         1 * settingsScript.displayName >> "foo"
+        1 * gradlePropertiesController.loadGradlePropertiesFrom(buildLayout.settingsDir)
 
         then:
         settingsHandler.findAndLoadSettings(gradle).is(settings)

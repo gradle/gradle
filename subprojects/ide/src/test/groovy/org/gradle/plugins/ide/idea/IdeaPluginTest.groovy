@@ -126,10 +126,10 @@ class IdeaPluginTest extends AbstractProjectBuilderSpec {
         project.idea.project.languageLevel.level == new IdeaLanguageLevel(project.sourceCompatibility).level
 
         project.idea.module.scopes == [
-                PROVIDED: [plus: [project.configurations.compileClasspath, project.configurations.annotationProcessor], minus: []],
+                PROVIDED: [plus: [project.configurations.compileClasspath], minus: []],
                 COMPILE: [plus: [], minus: []],
                 RUNTIME: [plus: [project.configurations.runtimeClasspath], minus: []],
-                TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath, project.configurations.testAnnotationProcessor], minus: []],
+                TEST: [plus: [project.configurations.testCompileClasspath, project.configurations.testRuntimeClasspath], minus: []],
         ]
     }
 

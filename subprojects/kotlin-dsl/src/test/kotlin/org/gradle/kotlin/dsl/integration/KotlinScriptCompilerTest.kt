@@ -35,6 +35,13 @@ import org.junit.Test
 import java.io.File
 
 
+open class TheKotlinScriptTemplate(
+    @Suppress("unused_parameter") host: Host
+) {
+    interface Host
+}
+
+
 class KotlinScriptCompilerTest : TestWithTempFiles() {
 
     @Test
@@ -45,19 +52,19 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
                 outputDir,
                 "bar()",
                 scriptDefinitionFromTemplate(
-                    template = FooTemplate::class,
+                    template = TheKotlinScriptTemplate::class,
                     implicitImports = emptyList(),
-                    implicitReceiver = FooReceiver::class
+                    implicitReceiver = TheImplicitReceiver::class
                 )
             )
 
             withClassLoaderFor(outputDir) {
 
-                val host = mock<FooHost>()
-                val receiver = FooReceiver()
+                val host = mock<TheKotlinScriptTemplate.Host>()
+                val receiver = TheImplicitReceiver()
 
                 loadClass("Script")
-                    .getDeclaredConstructor(FooHost::class.java, FooReceiver::class.java)
+                    .getDeclaredConstructor(TheKotlinScriptTemplate.Host::class.java, TheImplicitReceiver::class.java)
                     .newInstance(host, receiver)
 
                 assertThat(
@@ -68,13 +75,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
         }
     }
 
-    open class FooTemplate(
-        @Suppress("unused_parameter") host: FooHost
-    )
-
-    interface FooHost
-
-    class FooReceiver {
+    class TheImplicitReceiver {
         var bars = 0
         fun bar() {
             bars += 1

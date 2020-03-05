@@ -99,5 +99,5 @@ class InstantExecutionStartParameter(
 
     private
     fun systemProperty(propertyName: String) =
-        System.getProperty(propertyName)
+        startParameter.systemPropertiesArgs[propertyName] ?: System.getProperty(propertyName)
 }

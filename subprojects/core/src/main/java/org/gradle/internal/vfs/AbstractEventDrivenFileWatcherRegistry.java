@@ -75,9 +75,7 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
     }
 
     @Override
-    public FileWatchingStatistics stopWatching() throws IOException {
-        // Make sure events stop arriving before we start dispatching
-        watcher.close();
+    public FileWatchingStatistics getStatistics() {
         return new FileWatchingStatistics(unknownEventEncountered.get(), numberOfReceivedEvents.get());
     }
 

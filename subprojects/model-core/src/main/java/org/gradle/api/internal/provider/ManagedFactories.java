@@ -64,7 +64,7 @@ public class ManagedFactories {
         }
 
         static <V> Property<V> propertyOf(Class<V> type, Provider<V> value) {
-            return new DefaultProperty<V>(type).value(value);
+            return new DefaultProperty<V>(PropertyHost.NO_OP, type).value(value);
         }
 
         @Override
@@ -84,7 +84,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            DefaultListProperty<?> property = new DefaultListProperty<>(Object.class);
+            DefaultListProperty<?> property = new DefaultListProperty<>(PropertyHost.NO_OP, Object.class);
             property.set((Iterable) state);
             return type.cast(property);
         }
@@ -106,7 +106,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            DefaultSetProperty<?> property = new DefaultSetProperty<>(Object.class);
+            DefaultSetProperty<?> property = new DefaultSetProperty<>(PropertyHost.NO_OP, Object.class);
             property.set((Iterable) state);
             return type.cast(property);
         }
@@ -128,7 +128,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            DefaultMapProperty<?, ?> property = new DefaultMapProperty<>(Object.class, Object.class);
+            DefaultMapProperty<?, ?> property = new DefaultMapProperty<>(PropertyHost.NO_OP, Object.class, Object.class);
             property.set((Map) state);
             return type.cast(property);
         }
