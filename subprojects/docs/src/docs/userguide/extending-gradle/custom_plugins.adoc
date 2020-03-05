@@ -147,7 +147,6 @@ include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[ta
 include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
 
 So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
 

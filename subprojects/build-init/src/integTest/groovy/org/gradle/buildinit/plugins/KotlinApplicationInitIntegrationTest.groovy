@@ -96,7 +96,6 @@ class KotlinApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "setupProjectLayout is skipped when kotlin sources detected with #scriptDsl build scripts"() {
         setup:
         targetDir.file("src/main/kotlin/org/acme/SampleMain.kt") << """

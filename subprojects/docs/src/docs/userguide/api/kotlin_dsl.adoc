@@ -854,6 +854,9 @@ kotlinFunctionWithJavaSam(Action {
 })
 ----
 
+`-XX:ReferencesToSyntheticJavaProperties`::
+Enables method references to synthetic Java Bean properties.
+
 [[sec:interoperability]]
 == Interoperability
 

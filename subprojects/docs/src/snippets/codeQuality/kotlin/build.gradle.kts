@@ -21,6 +21,10 @@ plugins {
 // end::use-codenarc-plugin[]
 // end::use-pmd-plugin[]
 
+codenarc {
+    toolVersion = "0.25.2"
+}
+
 repositories {
     mavenCentral()
 }
