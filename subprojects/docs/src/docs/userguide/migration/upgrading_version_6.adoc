@@ -38,11 +38,15 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
-==== IDEA Sync -- annotation processor classpath is no longer added as provided dependencies
+==== Fewer dependencies available in IDEA
 
-Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processing,incremental annotation processing support>>, and with that a separate <<java_plugin.adoc#tab:configurations,annotation processor classpath>>, IDEA required the annotation processors themselves on the classpath to run them when compiling in IDEA directly.
-This is no longer necessary and thus, the processors are no longer added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
-The dependencies IDEA sees at compile time are then equivalent to what Gradle sees when resolving the `compileClasspath`.
+Gradle no longer includes the annotation processor classpath as provided dependencies in IDEA.
+The dependencies IDEA sees at compile time are the same as what Gradle sees after resolving the compile classpath (configuration named `compileClasspath`).
+This prevents the leakage of annotation processor dependencies into the project's code.
+
+Before Gradle introduced <<java_plugin.adoc#sec:incremental_annotation_processing,incremental annotation processing support>>, IDEA required all annotation processors to be on the compilation classpath to be able to run annotation processing when compiling in IDEA.
+This is no longer necessary because Gradle has a separate <<java_plugin.adoc#tab:configurations,annotation processor classpath>>.
+The dependencies for annotation processors are not added to an IDEA module's classpath when a Gradle project with annotation processors is imported.
 
 ==== Updates to bundled Gradle dependencies
 
@@ -51,6 +55,7 @@ The dependencies IDEA sees at compile time are then equivalent to what Gradle se
 ==== Updates to default tool integration versions
 
 - PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
+- CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.5/CHANGELOG.md#version-15----nov-2019[CodeNarc 1.5].
 
 === Deprecations
 
