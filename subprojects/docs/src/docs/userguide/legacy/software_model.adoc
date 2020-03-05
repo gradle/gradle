@@ -338,7 +338,6 @@ In the example below, a `@Defaults` rule is applied to each `FileItem` in the mo
 ----
 include::{samplesPath}/modelRules/ruleSourcePluginEach/build.gradle[]
 ----
-NOTE: The code for this example can be found at **`samples/modelRules/ruleSourcePluginEach`** in the ‘-all’ distribution of Gradle.
 
 
 [[model-dsl]]
@@ -577,7 +576,6 @@ Scalar properties in managed types can be assigned `CharSequence` values (e.g. `
 ----
 include::{samplesPath}/modelRules/modelDslCoercion/build.gradle[]
 ----
-NOTE: The code for this example can be found at **`samples/modelRules/modelDslCoercion`** in the ‘-all’ distribution of Gradle.
 
 In the above example, an `Item` is created and is initialized in `setDefaults()` by providing the path to the data file. In the `item()` method the resolved `File` is parsed to extract and set the data. In the DSL block at the end, the price is adjusted based on the quantity; if there are fewer than 10 remaining the price is doubled, otherwise it is reduced by 50%. The `GString` expression is a valid value since it resolves to a `float` value in string form.
 
@@ -607,7 +605,6 @@ $.person.firstName
 ----
 include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=rule-inputs]
 ----
-NOTE: The code for this example can be found at **`samples/modelRules/modelDsl`** in the ‘-all’ distribution of Gradle.
 
 In the above snippet, the `$.person` construct is an input reference. The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <<#model-report,Model Report>>). It may appear anywhere in the rule that an expression may normally appear. It is not limited to the right hand side of variable assignments.
 
