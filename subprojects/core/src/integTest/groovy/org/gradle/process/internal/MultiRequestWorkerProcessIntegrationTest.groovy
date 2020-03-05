@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal
 
-import org.gradle.api.reflect.ObjectInstantiationException
+
 import org.gradle.process.internal.worker.WorkerControl
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -111,7 +111,7 @@ class CustomResult implements Serializable {
         worker?.stop()
     }
 
-    def "propagates failure to load worker implementation class"() {
+    def "reports failure to load worker implementation class"() {
         given:
         def cl = compileWithoutClasspath("CustomTestWorker", """
 import ${TestProtocol.name}
@@ -131,13 +131,17 @@ class CustomTestWorker implements TestProtocol {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ClassNotFoundException
+        e.cause instanceof ExecException
+        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 1"
+
+        and:
+        stdout.stdErr.contains("java.lang.ClassNotFoundException: CustomTestWorker")
 
         cleanup:
-        worker?.stop()
+        stopBroken(worker)
     }
 
-    def "propagates failure to instantiate worker implementation instance"() {
+    def "reports failure to instantiate worker implementation instance"() {
         when:
         def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, TestProtocol.class)
         builder.baseName = 'broken worker'
@@ -148,10 +152,14 @@ class CustomTestWorker implements TestProtocol {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ObjectInstantiationException
+        e.cause instanceof ExecException
+        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 1"
+
+        and:
+        stdout.stdErr.contains("org.gradle.api.reflect.ObjectInstantiationException: Could not create an instance of type org.gradle.process.internal.TestProtocol.")
 
         cleanup:
-        worker?.stop()
+        stopBroken(worker)
     }
 
     def "propagates failure to start worker process"() {

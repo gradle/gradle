@@ -22,8 +22,8 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.dispatch.StreamCompletion;
 import org.gradle.internal.event.DefaultListenerManager;
-import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.generator.DefaultInstantiatorFactory;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
@@ -44,10 +44,9 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
     private transient WorkerLogEventListener workerLogEventListener;
-    private transient Throwable failure;
     private transient Class<?> workerImplementation;
     private transient Object implementation;
-    private InstantiatorFactory instantiatorFactory;
+    private transient InstantiatorFactory instantiatorFactory;
 
     public WorkerAction(Class<?> workerImplementation) {
         this.workerImplementationName = workerImplementation.getName();
@@ -56,22 +55,23 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
-        try {
-            ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
-            if (instantiatorFactory == null) {
-                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList());
-            }
-            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
-            // Make the argument serializers available so work implementations can register their own serializers
-            RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
-            serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
-            serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
-            workerProcessContext.getServerConnection().useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
-            workerImplementation = Class.forName(workerImplementationName);
-            implementation = instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
-        } catch (Throwable e) {
-            failure = e;
+
+        ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
+        if (instantiatorFactory == null) {
+            instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList());
         }
+        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
+        // Make the argument serializers available so work implementations can register their own serializers
+        RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
+        serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
+        serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
+        workerProcessContext.getServerConnection().useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
+        try {
+            workerImplementation = Class.forName(workerImplementationName);
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+        implementation = instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
 
         ObjectConnection connection = workerProcessContext.getServerConnection();
         connection.addIncoming(RequestProtocol.class, this);
@@ -110,10 +110,6 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
     @Override
     public void run(Request request) {
-        if (failure != null) {
-            responder.infrastructureFailed(failure);
-            return;
-        }
         try {
             Method method = workerImplementation.getDeclaredMethod(request.getMethodName(), request.getParamTypes());
             CurrentBuildOperationRef.instance().set(request.getBuildOperation());
