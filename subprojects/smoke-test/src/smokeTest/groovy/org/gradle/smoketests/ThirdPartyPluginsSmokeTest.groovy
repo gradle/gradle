@@ -138,7 +138,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
             plugins {
                 id '${pluginId}' version '${version}'
             }
-            
+
             repositories {
                 ${jcenterRepository()}
             }
@@ -515,43 +515,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(":generateProto").outcome == SUCCESS
         result.task(":compileJava").outcome == SUCCESS
 
-        and:
-        expectDeprecationWarnings(
-            result,
-            "Property 'destDir' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'isTest' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "The compile configuration has been deprecated for resolution. This will fail with an error in Gradle 7.0. " +
-                "Please resolve the compileClasspath configuration instead. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations",
-            "Property 'buildType' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'builtins' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'descriptorPath' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'descriptorSetOptions' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'fileResolver' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'flavors' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'generateDescriptorSet' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'isTestVariant' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'outputSourceDirectorySet' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'plugins' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'sourceFiles' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'sourceSet' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.",
-            "Property 'variant' is not annotated with an input or output annotation. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
-                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details."
-        )
+        expectNoDeprecationWarnings(result)
 
         when:
         result = runner('compileJava').forwardOutput().build()
@@ -561,6 +525,8 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         result.task(":compileJava").outcome == UP_TO_DATE
     }
 
+    // Latest AspectJ 1.9.5 is not compatible with JDK14
+    @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
     def 'freefair aspectj plugin'() {
         given:
