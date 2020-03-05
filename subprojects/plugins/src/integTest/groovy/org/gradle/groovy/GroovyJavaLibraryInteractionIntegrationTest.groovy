@@ -201,7 +201,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         'org.gradle.usage': 'java-runtime',
                         'org.gradle.libraryelements': 'jar'])
 
-                    snapshot('org.codehaus.groovy:groovy:2.5.10-SNAPSHOT', '20200304.052350-8')
+                    snapshot('org.codehaus.groovy:groovy:2.5.10-SNAPSHOT', '20200304.155735-9')
                     //module('org.codehaus.groovy:groovy:2.5.10')
                     // first one is "main" from Java sources
                     artifact(name: 'main', noType: true)
