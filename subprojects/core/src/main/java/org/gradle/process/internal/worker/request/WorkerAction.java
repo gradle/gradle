@@ -29,12 +29,11 @@ import org.gradle.internal.remote.ObjectConnection;
 import org.gradle.internal.remote.internal.hub.StreamFailureHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.gradle.process.internal.worker.child.WorkerLogEventListener;
 
 import java.io.Serializable;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -44,8 +43,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     private transient CountDownLatch completed;
     private transient ResponseProtocol responder;
     private transient WorkerLogEventListener workerLogEventListener;
-    private transient Class<?> workerImplementation;
-    private transient Object implementation;
+    private transient RequestHandler<Object, Object> implementation;
     private transient InstantiatorFactory instantiatorFactory;
 
     public WorkerAction(Class<?> workerImplementation) {
@@ -66,12 +64,13 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
         serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
         workerProcessContext.getServerConnection().useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
+        Class<?> workerImplementation;
         try {
             workerImplementation = Class.forName(workerImplementationName);
         } catch (ClassNotFoundException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
-        implementation = instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
+        implementation = (RequestHandler) instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
 
         ObjectConnection connection = workerProcessContext.getServerConnection();
         connection.addIncoming(RequestProtocol.class, this);
@@ -111,7 +110,6 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     @Override
     public void run(Request request) {
         try {
-            Method method = workerImplementation.getDeclaredMethod(request.getMethodName(), request.getParamTypes());
             CurrentBuildOperationRef.instance().set(request.getBuildOperation());
             Object result;
             try {
@@ -122,11 +120,10 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
                 result = workerLogEventListener.withWorkerLoggingProtocol(responder, new Callable<Object>() {
                     @Override
                     public Object call() throws Exception {
-                        return method.invoke(implementation, request.getArgs());
+                        return implementation.run(request.getArg());
                     }
                 });
-            } catch (InvocationTargetException e) {
-                Throwable failure = e.getCause();
+            } catch (Throwable failure) {
                 if (failure instanceof NoClassDefFoundError) {
                     // Assume an infrastructure problem
                     responder.infrastructureFailed(failure);

@@ -33,10 +33,9 @@ public interface WorkerProcessFactory {
      *
      * <p>The worker process is not started until a method on the return value of {@link SingleRequestWorkerProcessBuilder#build()} is called.</p>
      *
-     * @param protocolType An interface that represents the requests that can be handled by the worker.
      * @param workerImplementation The implementation class to run in the worker process.
      */
-    <P> SingleRequestWorkerProcessBuilder<P> singleRequestWorker(Class<P> protocolType, Class<? extends P> workerImplementation);
+    <IN, OUT> SingleRequestWorkerProcessBuilder<IN, OUT> singleRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation);
 
     /**
      * Creates a builder for workers that will handle requests using the given worker implementation, with a worker process handling zero or more requests.
@@ -44,11 +43,7 @@ public interface WorkerProcessFactory {
      *
      * <p>The worker process is not started until {@link WorkerControl#start()} is called.</p>
      *
-     * @param workerType An interface that clients use to dispatch requests to the worker. Should also extend {@link WorkerControl}, to allow the worker to be started and stopped.
-     * @param protocolType An interface that represents the requests that can be handled by the worker.
      * @param workerImplementation The implementation class to run in the worker process.
      */
-    <P, W extends P> MultiRequestWorkerProcessBuilder<W> multiRequestWorker(Class<W> workerType,
-                                                                            Class<P> protocolType,
-                                                                            Class<? extends P> workerImplementation);
+    <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation);
 }

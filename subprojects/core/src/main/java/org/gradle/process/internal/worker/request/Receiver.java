@@ -49,7 +49,7 @@ public class Receiver extends DefaultWorkerLoggingProtocol implements ResponsePr
         return next != END;
     }
 
-    public Object getNextResult() throws Throwable {
+    public Object getNextResult() {
         awaitNextResult();
         Object next = this.next;
         if (next == END) {
@@ -58,7 +58,7 @@ public class Receiver extends DefaultWorkerLoggingProtocol implements ResponsePr
         this.next = null;
         if (next instanceof Failure) {
             Failure failure = (Failure) next;
-            throw failure.failure;
+            throw UncheckedException.throwAsUncheckedException(failure.failure);
         }
         return next == NULL ? null : next;
     }

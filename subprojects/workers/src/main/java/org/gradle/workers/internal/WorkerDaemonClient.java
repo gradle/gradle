@@ -19,12 +19,13 @@ package org.gradle.workers.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.process.internal.health.memory.JvmMemoryStatus;
+import org.gradle.process.internal.worker.MultiRequestClient;
 import org.gradle.process.internal.worker.WorkerProcess;
 
 class WorkerDaemonClient implements Stoppable {
     public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
     private final DaemonForkOptions forkOptions;
-    private final WorkerDaemonProcess workerDaemonProcess;
+    private final MultiRequestClient<TransportableActionExecutionSpec<?>, DefaultWorkResult> workerClient;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
@@ -32,9 +33,9 @@ class WorkerDaemonClient implements Stoppable {
     private boolean failed;
     private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, WorkerDaemonProcess workerDaemonProcess, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, MultiRequestClient<TransportableActionExecutionSpec<?>, DefaultWorkResult> workerClient, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptions = forkOptions;
-        this.workerDaemonProcess = workerDaemonProcess;
+        this.workerClient = workerClient;
         this.workerProcess = workerProcess;
         this.logLevel = logLevel;
         this.actionExecutionSpecFactory = actionExecutionSpecFactory;
@@ -42,7 +43,7 @@ class WorkerDaemonClient implements Stoppable {
 
     public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec) {
         uses++;
-        return workerDaemonProcess.execute(actionExecutionSpecFactory.newTransportableSpec(spec));
+        return workerClient.run(actionExecutionSpecFactory.newTransportableSpec(spec));
     }
 
     public boolean isCompatibleWith(DaemonForkOptions required) {
@@ -55,7 +56,7 @@ class WorkerDaemonClient implements Stoppable {
 
     @Override
     public void stop() {
-        workerDaemonProcess.stop();
+        workerClient.stop();
     }
 
     DaemonForkOptions getForkOptions() {

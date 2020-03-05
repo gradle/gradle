@@ -16,19 +16,18 @@
 
 package org.gradle.process.internal;
 
-public class CrashingWorker implements TestProtocol {
-    @Override
-    public Object convert(String param1, long param2) {
-        if (param1.equals("halt")) {
-            Runtime.getRuntime().halt((int) param2);
-        } else {
-            System.exit((int) param2);
-        }
-        throw new UnsupportedOperationException();
-    }
+import org.gradle.process.internal.worker.RequestHandler;
 
+public class CrashingWorker implements RequestHandler<String, Object> {
     @Override
-    public void doSomething() {
+    public Object run(String request) {
+        if (request.equals("halt-ok")) {
+            Runtime.getRuntime().halt(0);
+        } else if (request.equals("halt")) {
+            Runtime.getRuntime().halt(12);
+        } else {
+            System.exit(12);
+        }
         throw new UnsupportedOperationException();
     }
 }
