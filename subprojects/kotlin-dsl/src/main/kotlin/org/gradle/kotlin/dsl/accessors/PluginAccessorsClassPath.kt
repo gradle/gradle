@@ -100,10 +100,10 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
 
     rootProject.getOrCreateProperty("gradleKotlinDsl.pluginAccessorsClassPath") {
         val buildSrcClassLoaderScope = baseClassLoaderScopeOf(rootProject)
-        val workExecutor : WorkExecutor<ExecutionRequestContext, CachingResult> = rootProject.serviceOf()
-        val classLoaderHierarchyHasher : ClassLoaderHierarchyHasher = rootProject.serviceOf()
+        val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult> = rootProject.serviceOf()
+        val classLoaderHierarchyHasher: ClassLoaderHierarchyHasher = rootProject.serviceOf()
         val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
-        val workspaceProvider : KotlinDslWorkspaceProvider = rootProject.serviceOf()
+        val workspaceProvider: KotlinDslWorkspaceProvider = rootProject.serviceOf()
         workspaceProvider.withWorkspace(classLoaderHash.toString()) { workspace, executionHistoryStore ->
             val sourcesOutputDir = File(workspace, "sources")
             val classesOutputDir = File(workspace, "classes")
@@ -118,7 +118,7 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
                 rootProject.serviceOf(),
                 rootProject.serviceOf()
             )
-            workExecutor.execute(object:ExecutionRequestContext {
+            workExecutor.execute(object : ExecutionRequestContext {
                 override fun getWork() = work
                 override fun getRebuildReason() = Optional.of("REBUILD")
             })
@@ -132,15 +132,15 @@ fun pluginSpecBuildersClassPath(project: Project): AccessorsClassPath = project.
 
 
 class GeneratePluginAccessors(
-    private val rootProject : Project,
-    private val buildSrcClassLoaderScope : ClassLoaderScope,
-    private val classLoaderHash : HashCode,
-    private val sourcesOutputDir : File,
-    private val classesOutputDir : File,
+    private val rootProject: Project,
+    private val buildSrcClassLoaderScope: ClassLoaderScope,
+    private val classLoaderHash: HashCode,
+    private val sourcesOutputDir: File,
+    private val classesOutputDir: File,
     private val executionHistoryStore: ExecutionHistoryStore,
-    private val fileCollectionFactory : FileCollectionFactory,
-    private val fileCollectionSnapshotter : FileCollectionSnapshotter,
-    private val outputFingerprinter : OutputFileCollectionFingerprinter
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    private val outputFingerprinter: OutputFileCollectionFingerprinter
 ) : UnitOfWork {
 
     companion object {
@@ -149,7 +149,7 @@ class GeneratePluginAccessors(
         const val CLASSES_OUTPUT_PROPERTY = "classes"
     }
 
-    override fun execute(inputChanges : InputChangesInternal?, context: InputChangesContext) : UnitOfWork.WorkResult {
+    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkResult {
         kotlinScriptClassPathProviderOf(rootProject).run {
             withAsynchronousIO(rootProject) {
                 buildPluginAccessorsFor(
@@ -188,7 +188,8 @@ class GeneratePluginAccessors(
 
     override fun snapshotOutputsAfterExecution(): ImmutableSortedMap<String, FileSystemSnapshot> = snapshotOutputs()
 
-    private fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
+    private
+    fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
         val sourceSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(sourcesOutputDir))
         val classesSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classesOutputDir))
         return ImmutableSortedMap.of(

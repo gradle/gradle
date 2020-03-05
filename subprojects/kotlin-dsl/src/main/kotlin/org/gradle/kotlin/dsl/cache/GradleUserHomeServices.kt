@@ -42,5 +42,4 @@ object GradleUserHomeServices {
             stringInterner
         )
     }
-
 }
