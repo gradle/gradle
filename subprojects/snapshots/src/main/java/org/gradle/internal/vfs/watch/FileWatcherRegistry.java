@@ -40,7 +40,7 @@ public interface FileWatcherRegistry extends Closeable {
     /**
      * Get statistics about the received changes.
      */
-    FileWatchingStatistics getStatistics();
+    FileWatchingStatistics getAndResetStatistics();
 
     /**
      * Close the watcher registry. Stops watching without handling the changes.

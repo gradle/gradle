@@ -93,8 +93,12 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
     }
 
     @Override
-    public FileWatchingStatistics getStatistics() {
-        return new FileWatchingStatistics(unknownEventEncountered.get(), numberOfReceivedEvents.get(), errorWhileReceivingFileChanges.get());
+    public FileWatchingStatistics getAndResetStatistics() {
+        return new FileWatchingStatistics(
+            unknownEventEncountered.getAndSet(false),
+            numberOfReceivedEvents.getAndSet(0),
+            errorWhileReceivingFileChanges.getAndSet(null)
+        );
     }
 
     @Override

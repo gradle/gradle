@@ -64,6 +64,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     @Override
     public void afterStartingBuildWithWatchingEnabled() {
+        handleWatcherRegistryEvents("since last build");
         printStatistics("retained", "since last build");
         producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         buildRunning = true;
@@ -71,6 +72,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     @Override
     public void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir) {
+        handleWatcherRegistryEvents("for current build");
         stopWatching();
         buildRunning = false;
         producedByCurrentBuild.set(DefaultFileHierarchySet.of());
@@ -124,23 +126,26 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
 
         try {
-            long startTime = System.currentTimeMillis();
-            // Make sure events stop arriving before obtaining the statistics
             watchRegistry.close();
-            FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getStatistics();
-            if (statistics.isUnknownEventEncountered()) {
-                LOGGER.warn("Dropped VFS state due to lost state");
-            }
-            if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
-                LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
-            }
-            LOGGER.warn("Received {} file system events since last build", statistics.getNumberOfReceivedEvents());
-            LOGGER.warn("Spent {} ms processing file system events since last build", System.currentTimeMillis() - startTime);
         } catch (IOException ex) {
             LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
             invalidateAll();
         } finally {
             watchRegistry = null;
+        }
+    }
+
+    private void handleWatcherRegistryEvents(String eventsFor) {
+        if (watchRegistry != null) {
+            FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
+            LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
+            if (statistics.isUnknownEventEncountered()) {
+                LOGGER.warn("Dropped VFS state due to lost state");
+            }
+            if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
+                LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
+                invalidateAll();
+            }
         }
     }
 
