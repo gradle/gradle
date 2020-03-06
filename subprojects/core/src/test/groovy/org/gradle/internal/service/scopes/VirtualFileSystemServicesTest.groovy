@@ -23,15 +23,11 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.FileHasher
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.internal.snapshot.FileMetadata
-import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.vfs.AdditiveCacheLocations
 import org.gradle.internal.vfs.RoutingVirtualFileSystem
 import org.gradle.internal.vfs.VirtualFileSystem
-import org.gradle.internal.vfs.watch.FileWatcherRegistry
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory
+import org.gradle.internal.vfs.WatchingVirtualFileSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -44,8 +40,6 @@ class VirtualFileSystemServicesTest extends Specification {
     def startParameter = Mock(StartParameter)
     def stringInterner = Mock(StringInterner)
     def gradle = Mock(GradleInternal)
-    def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
-    def watcherRegistry = Mock(FileWatcherRegistry)
 
     def "global virtual file system is not invalidated from the build session scope listener after the build completed (retention enabled: #retentionEnabled)"() {
         def gradleUserHomeVirtualFileSystem = Mock(VirtualFileSystem)
@@ -80,36 +74,30 @@ class VirtualFileSystemServicesTest extends Specification {
     }
 
     def "global virtual file system is not invalidated after the build completed when retention is enabled"() {
-        RootBuildLifecycleListener rootBuildLifecycleListener
-        _ * startParameter.getSystemPropertiesArgs() >> systemPropertyArgs(true)
+        _ * startParameter.getSystemPropertiesArgs() >> [:]
+        _ * startParameter.getCurrentDir() >> new File("current/dir").absoluteFile
         _ * gradle.getStartParameter() >> startParameter
+        def virtualFileSystem = Mock(WatchingVirtualFileSystem)
         def rootProject = Mock(ProjectInternal)
         _ * gradle.getRootProject() >> rootProject
         _ * rootProject.getProjectDir() >> new File("some/project/dir")
-        def path = "/some/path"
-        def snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(1234), new FileMetadata(0, 0))
 
-        when:
-        def virtualFileSystem = new VirtualFileSystemServices.GradleUserHomeServices().createVirtualFileSystem(
-            additiveCacheLocations,
-            fileHasher,
-            fileSystem,
-            watcherRegistryFactory,
-            listenerManager,
-            fileSystem,
-            stringInterner
+        def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(
+            virtualFileSystem,
+            { param -> true },
+            { param -> false },
+            { param -> null }
         )
-        then:
-        1 * listenerManager.addListener(_ as RootBuildLifecycleListener) >> { RootBuildLifecycleListener listener ->
-            rootBuildLifecycleListener = listener
-        }
 
         when:
-        virtualFileSystem.updateWithKnownSnapshot(snapshot)
-        rootBuildLifecycleListener.beforeComplete(gradle)
+        buildLifecycleListener.afterStart(gradle)
         then:
-        virtualFileSystem.read(path, { it }) == snapshot
-        1 * watcherRegistryFactory.startWatching(_, _, Collections.singleton(rootProject.projectDir), _) >> watcherRegistry
+        1 * virtualFileSystem.afterStartingBuildWithWatchingEnabled()
+
+        when:
+        buildLifecycleListener.beforeComplete(gradle)
+        then:
+        1 * virtualFileSystem.beforeCompletingBuildWithWatchingEnabled(new File("some/project/dir"))
     }
 
     Map<String, String> systemPropertyArgs(boolean retentionEnabled) {
