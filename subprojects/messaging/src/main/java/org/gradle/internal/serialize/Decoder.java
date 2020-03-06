@@ -123,4 +123,18 @@ public interface Decoder {
      * Skips the given number of bytes. Can skip over any byte values that were written using one of the raw byte methods on {@link Encoder}.
      */
     void skipBytes(long count) throws EOFException, IOException;
+
+    /**
+     * Reads a byte stream written using {@link Encoder#encodeChunked(Encoder.EncodeAction)}.
+     */
+    <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception;
+
+    /**
+     * Skips over a byte stream written using {@link Encoder#encodeChunked(Encoder.EncodeAction)}, discarding its content.
+     */
+    void skipChunked() throws EOFException, IOException;
+
+    interface DecodeAction<IN, OUT> {
+        OUT read(IN in) throws Exception;
+    }
 }
