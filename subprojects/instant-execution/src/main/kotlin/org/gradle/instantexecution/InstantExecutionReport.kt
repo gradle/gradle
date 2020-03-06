@@ -92,7 +92,9 @@ class InstantExecutionReport(
     fun add(problem: PropertyProblem) {
         problems.add(problem)
         if (problems.size >= startParameter.maxProblems) {
-            throw TooManyInstantExecutionProblemsException()
+            throw TooManyInstantExecutionProblemsException().also { ex ->
+                problems.mapNotNull { it.exception }.forEach { ex.addSuppressed(it) }
+            }
         }
     }
 
