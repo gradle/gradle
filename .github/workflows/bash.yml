@@ -1,0 +1,66 @@
+name: Bash
+
+# Relevant to events - https://help.github.com/en/actions/automating-your-workflow-with-github-actions/events-that-trigger-workflows
+on:
+  pull_request:
+    types: [synchronize, opened, reopened, ready_for_review]
+    paths:
+    - '**.bash'
+    - "gradlew"
+
+jobs:
+  # Linting
+  lint:
+    runs-on: ubuntu-latest
+    container: debian:stable
+    steps:
+      - name: Installing dependencies..
+        run: |
+          # Sync repos
+          # Check for git
+          if ! apt list --installed 2>/dev/null | grep -qP "^git\/stable.*"; then
+            # Check if we can install git
+            if ! apt list | grep -qP "^git\/stable.*"; then
+              apt update
+            elif apt list | grep -qP "^git\/stable.*"; then
+              true
+            else
+              exit 255
+            fi
+            # Install git
+            apt install -y git
+          elif apt list --installed 2>/dev/null | grep -qP "^git\/stable.*"; then
+            true
+          else
+            exit 255
+          fi
+          # Check for shellcheck
+          if ! apt list --installed 2>/dev/null | grep -qP "^shellcheck\s{1}-.*"; then
+            # Check if we can install shellcheck
+            if ! apt list | grep -qP "^shellcheck\s{1}-.*"; then
+              apt update
+            elif apt list | grep -qP "^shellcheck\s{1}-.*"; then
+              true
+            else
+              exit 255
+            fi
+            # Install shellcheck
+            apt install -y shellcheck
+          elif apt list --installed 2>/dev/null | grep -qP "^shellcheck\s{1}-.*"; then
+            true
+          else
+            exit 255
+          fi
+      - name: Pulling git dir..
+        uses: actions/checkout@v2
+      - name: Processing files..
+        # Make sure that bash is used
+        shell: bash
+        run: |
+          cd "$GITHUB_WORKSPACE"
+          # Process files
+          ## NOTICE: Do not use for loop to avoid pitfall https://mywiki.wooledge.org/BashPitfalls#pf1
+          git --git-dir="$GITHUB_WORKSPACE/.git" ls-files -z -- '*.bash' gradlew | while IFS= read -rd '' file; do
+              printf 'linting bash file %s\n' "$file"
+              shellcheck --external-sources --shell=bash "$file"
+          done
