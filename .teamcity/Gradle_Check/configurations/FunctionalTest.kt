@@ -71,8 +71,9 @@ class FunctionalTest(
         }
     }
 
-    if (testCoverage.testType == TestType.soak) {
+    if (testCoverage.testType == TestType.soak || testTasks.contains("plugins:")) {
         failureConditions {
+            // JavaExecDebugIntegrationTest.debug session fails without debugger might cause JVM crash
             // Some soak tests produce OOM exceptions
             javaCrash = false
         }
