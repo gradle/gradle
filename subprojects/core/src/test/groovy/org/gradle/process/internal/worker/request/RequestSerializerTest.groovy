@@ -19,45 +19,23 @@ package org.gradle.process.internal.worker.request
 import org.gradle.internal.operations.DefaultBuildOperationRef
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.serialize.Decoder
-import org.gradle.internal.serialize.DefaultSerializerRegistry
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.Serializer
-import org.gradle.internal.serialize.SerializerRegistry
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import spock.lang.Specification
 
 class RequestSerializerTest extends Specification {
-    List<SerializerRegistry> registries = []
-    def serializer = new RequestSerializer(this.getClass().getClassLoader(), registries, false)
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
     def encoded = false
     def decoded = false
 
-    def "can serialize and deserialize request without registry"() {
+    def "can serialize and deserialize request"() {
         def request = new Request(new Foo("foo"), buildOperation())
+        def serializer = new RequestSerializer(serializer(), false)
 
         when:
-        serializer.write(encoder, request)
-        encoder.flush()
-
-        and:
-        def decodedRequest = serializer.read(decoder())
-
-        then:
-        identical(decodedRequest, request)
-
-        and:
-        !encoded
-        !decoded
-    }
-
-    def "can serialize and deserialize request with a registry"() {
-        def request = new Request(new Foo("foo"), buildOperation())
-
-        when:
-        registries.add(registry())
         serializer.write(encoder, request)
         encoder.flush()
 
@@ -74,10 +52,9 @@ class RequestSerializerTest extends Specification {
 
     def "can serialize request and skip arg on read"() {
         def request = new Request(new Foo("foo"), buildOperation())
-        def serializer = new RequestSerializer(this.getClass().getClassLoader(), registries, true)
+        def serializer = new RequestSerializer(serializer(), true)
 
         when:
-        registries.add(registry())
         serializer.write(encoder, request)
         encoder.flush()
 
@@ -108,8 +85,8 @@ class RequestSerializerTest extends Specification {
         return new DefaultBuildOperationRef(id, id)
     }
 
-    def registry() {
-        def fooSerializer = new Serializer<Foo>() {
+    def serializer() {
+        return new Serializer<Foo>() {
             @Override
             void write(Encoder encoder, Foo value) throws Exception {
                 encoded = true
@@ -122,9 +99,6 @@ class RequestSerializerTest extends Specification {
                 return new Foo(decoder.readString())
             }
         }
-        SerializerRegistry registry = new DefaultSerializerRegistry()
-        registry.register(Foo.class, fooSerializer)
-        return registry
     }
 
     static class Foo implements Serializable {

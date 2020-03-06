@@ -23,7 +23,7 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.Serializer;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
@@ -87,8 +87,8 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
     }
 
     @Override
-    public void registerArgumentSerializer(SerializerRegistry serializerRegistry) {
-        argumentSerializers.add(serializerRegistry);
+    public <T> void registerArgumentSerializer(Class<T> type, Serializer<T> serializer) {
+        argumentSerializers.register(type, serializer);
     }
 
     @Override

@@ -65,7 +65,7 @@ public class WorkerDaemonServer implements RequestHandler<TransportableActionExe
         this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
         this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
         this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
-        argumentSerializers.add(WorkerDaemonMessageSerializer.create());
+        argumentSerializers.register(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
