@@ -35,6 +35,7 @@ import org.junit.Test
 class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `applies the kotlin plugin`() {
 
         withBuildScript("""
@@ -201,6 +202,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @ToBeFixedForInstantExecution
     fun `can be used with embedded artifact-only repository`() {
 
         withDefaultSettings()
