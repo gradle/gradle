@@ -111,31 +111,6 @@ data class CIBuildModel(
                 TestCoverage(30, TestType.vfsRetention, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor),
                 TestCoverage(31, TestType.vfsRetention, Os.macos, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
                 TestCoverage(32, TestType.vfsRetention, Os.macos, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))
-        ),
-        Stage(StageNames.EXPERIMENTAL_JDK14,
-            trigger = Trigger.never,
-            runsIndependent = true,
-            specificBuilds = listOf(
-                SpecificBuild.SmokeTestsJDK14,
-                SpecificBuild.InstantSmokeTestsJDK14
-            ),
-            functionalTests = listOf(
-                TestCoverage(36, TestType.quick, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(37, TestType.quick, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(38, TestType.platform, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(39, TestType.platform, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(40, TestType.instant, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(41, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(42, TestType.quickFeedbackCrossVersion, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(43, TestType.parallel, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(44, TestType.soak, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(45, TestType.soak, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(46, TestType.soak, Os.macos, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(47, TestType.allVersionsCrossVersion, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(48, TestType.allVersionsCrossVersion, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(49, TestType.noDaemon, Os.linux, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor),
-                TestCoverage(50, TestType.noDaemon, Os.windows, JvmCategory.EXPERIMENTAL_VERSION.version, vendor = JvmCategory.EXPERIMENTAL_VERSION.vendor)
-            )
         )
     ),
     val subprojects: GradleSubprojectProvider
@@ -296,16 +271,6 @@ enum class SpecificBuild {
     InstantSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
-        }
-    },
-    SmokeTestsJDK14 {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION)
-        }
-    },
-    InstantSmokeTestsJDK14 {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return SmokeTests(model, stage, JvmCategory.EXPERIMENTAL_VERSION, "instantSmokeTest")
         }
     },
     DependenciesCheck {
