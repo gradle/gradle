@@ -89,6 +89,16 @@ public abstract class AbstractDecoder implements Decoder {
         }
     }
 
+    @Override
+    public <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void skipChunked() throws EOFException, IOException {
+        throw new UnsupportedOperationException();
+    }
+
     protected abstract int maybeReadBytes(byte[] buffer, int offset, int count) throws IOException;
 
     protected abstract long maybeSkip(long count) throws IOException;

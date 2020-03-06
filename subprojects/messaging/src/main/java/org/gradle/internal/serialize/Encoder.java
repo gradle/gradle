@@ -26,7 +26,7 @@ import java.io.OutputStream;
  */
 public interface Encoder {
     /**
-     * Returns an OutputStream that can be used to write byte content to the stream.
+     * Returns an {@link OutputStream) that can be used to write raw bytes to the stream.
      */
     OutputStream getOutputStream();
 
@@ -54,6 +54,11 @@ public interface Encoder {
      * Writes the given byte array to the stream. Encodes the bytes and length information.
      */
     void writeBinary(byte[] bytes, int offset, int count) throws IOException;
+
+    /**
+     * Appends an encoded stream to this stream. Encodes the stream as a series of chunks with length information.
+     */
+    void encodeChunked(EncodeAction<Encoder> writeAction) throws Exception;
 
     /**
      * Writes a signed 64 bit long value. The implementation may encode the value as a variable number of bytes, not necessarily as 8 bytes.
@@ -98,4 +103,8 @@ public interface Encoder {
      * Writes a nullable string value.
      */
     void writeNullableString(@Nullable CharSequence value) throws IOException;
+
+    interface EncodeAction<T> {
+        void write(T target) throws Exception;
+    }
 }

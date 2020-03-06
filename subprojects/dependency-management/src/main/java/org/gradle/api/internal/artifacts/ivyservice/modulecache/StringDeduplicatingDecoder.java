@@ -110,6 +110,16 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
     }
 
     @Override
+    public <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void skipChunked() throws EOFException, IOException {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void close() throws IOException {
         ((Closeable)delegate).close();
     }

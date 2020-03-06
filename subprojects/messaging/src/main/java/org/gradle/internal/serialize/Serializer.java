@@ -16,6 +16,7 @@
 package org.gradle.internal.serialize;
 
 import java.io.EOFException;
+import java.io.IOException;
 
 public interface Serializer<T> {
     /**

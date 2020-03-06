@@ -18,14 +18,17 @@ package org.gradle.internal.serialize.kryo;
 
 import com.esotericsoftware.kryo.io.Output;
 import org.gradle.internal.serialize.AbstractEncoder;
+import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.FlushableEncoder;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
+import java.io.IOException;
 import java.io.OutputStream;
 
 public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncoder, Closeable {
     private final Output output;
+    private KryoBackedEncoder nested;
 
     public KryoBackedEncoder(OutputStream outputStream) {
         this(outputStream, 4096);
@@ -81,6 +84,35 @@ public class KryoBackedEncoder extends AbstractEncoder implements FlushableEncod
     @Override
     public void writeNullableString(@Nullable CharSequence value) {
         output.writeString(value);
+    }
+
+    @Override
+    public void encodeChunked(EncodeAction<Encoder> writeAction) throws Exception {
+        if (nested == null) {
+            nested = new KryoBackedEncoder(new OutputStream() {
+                @Override
+                public void write(byte[] buffer, int offset, int length) {
+                    if (length == 0) {
+                        return;
+                    }
+                    writeSmallInt(length);
+                    writeBytes(buffer, offset, length);
+                }
+
+                @Override
+                public void write(byte[] buffer) throws IOException {
+                    write(buffer, 0, buffer.length);
+                }
+
+                @Override
+                public void write(int b) {
+                    throw new UnsupportedOperationException();
+                }
+            });
+        }
+        writeAction.write(nested);
+        nested.flush();
+        writeSmallInt(0);
     }
 
     /**

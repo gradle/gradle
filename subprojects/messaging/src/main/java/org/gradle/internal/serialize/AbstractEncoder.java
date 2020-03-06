@@ -48,6 +48,11 @@ public abstract class AbstractEncoder implements Encoder {
     }
 
     @Override
+    public void encodeChunked(EncodeAction<Encoder> writeAction) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void writeSmallInt(int value) throws IOException {
         writeInt(value);
     }
