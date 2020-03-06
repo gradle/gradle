@@ -22,7 +22,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.RootBuildLifecycleListener;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
@@ -121,26 +120,14 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
                     () -> {}
                 );
             }
-            WatchingVirtualFileSystem.VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
-            LOGGER.warn(
-                "Virtual file system retained information about {} files, {} directories and {} missing files since last build",
-                statistics.getRetained(FileType.RegularFile),
-                statistics.getRetained(FileType.Directory),
-                statistics.getRetained(FileType.Missing)
-            );
+            virtualFileSystem.printStatistics("retained", "since last build");
         }
 
         @Override
         public void beforeComplete(GradleInternal gradle) {
             virtualFileSystem.stopWatching();
             virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
-            WatchingVirtualFileSystem.VirtualFileSystemStatistics statistics = virtualFileSystem.getStatistics();
-            LOGGER.warn(
-                "Virtual file system retains information about {} files, {} directories and {} missing files till next build",
-                statistics.getRetained(FileType.RegularFile),
-                statistics.getRetained(FileType.Directory),
-                statistics.getRetained(FileType.Missing)
-            );
+            virtualFileSystem.printStatistics("retains", "till next build");
         }
 
         public List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, @Nullable String changeList) {

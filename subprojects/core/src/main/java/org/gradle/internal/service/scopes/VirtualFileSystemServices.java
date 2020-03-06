@@ -77,8 +77,8 @@ import org.gradle.internal.vfs.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.WatchingNotSupportedVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.gradle.internal.vfs.watch.impl.NoopFileWatcherRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -164,46 +164,50 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileHasher;
         }
 
-        FileWatcherRegistryFactory createFileWatcherRegistryFactory() {
-            OperatingSystem operatingSystem = OperatingSystem.current();
-            if (operatingSystem.isMacOsX()) {
-                return new DarwinFileWatcherRegistry.Factory();
-            } else if (operatingSystem.isWindows()) {
-                return new WindowsFileWatcherRegistry.Factory();
-            } else if (operatingSystem.isLinux()) {
-                return new LinuxFileWatcherRegistry.Factory();
-            } else {
-                return new NoopFileWatcherRegistry.Factory();
-            }
-        }
-
-        VirtualFileSystem createVirtualFileSystem(
+        WatchingVirtualFileSystem createVirtualFileSystem(
             AdditiveCacheLocations additiveCacheLocations,
             FileHasher hasher,
             FileSystem fileSystem,
-            FileWatcherRegistryFactory watcherRegistryFactory,
-            ListenerManager listenerManager,
             Stat stat,
             StringInterner stringInterner
         ) {
-            WatchingVirtualFileSystem virtualFileSystem = new DefaultWatchingVirtualFileSystem(
+            DefaultVirtualFileSystem delegate = new DefaultVirtualFileSystem(
+                hasher,
+                stringInterner,
+                stat,
+                fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                DirectoryScanner.getDefaultExcludes()
+            );
+            OperatingSystem operatingSystem = OperatingSystem.current();
+            if (!(operatingSystem.isLinux() || operatingSystem.isMacOsX() || operatingSystem.isWindows())) {
+                return new WatchingNotSupportedVirtualFileSystem(delegate);
+            }
+
+            FileWatcherRegistryFactory watcherRegistryFactory;
+            if (operatingSystem.isMacOsX()) {
+                watcherRegistryFactory = new DarwinFileWatcherRegistry.Factory();
+            } else if (operatingSystem.isWindows()) {
+                watcherRegistryFactory = new WindowsFileWatcherRegistry.Factory();
+            } else if (operatingSystem.isLinux()) {
+                watcherRegistryFactory = new LinuxFileWatcherRegistry.Factory();
+            } else {
+                throw new AssertionError();
+            }
+
+            return new DefaultWatchingVirtualFileSystem(
                 watcherRegistryFactory,
-                new DefaultVirtualFileSystem(
-                    hasher,
-                    stringInterner,
-                    stat,
-                    fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
-                    DirectoryScanner.getDefaultExcludes()
-                ),
+                delegate,
                 path -> !additiveCacheLocations.isInsideAdditiveCache(path)
             );
+        }
+
+        void configure(WatchingVirtualFileSystem virtualFileSystem, ListenerManager listenerManager) {
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
                 virtualFileSystem,
                 startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
                 startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
                 startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
             ));
-            return virtualFileSystem;
         }
 
         GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {

@@ -116,6 +116,19 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     }
 
     @Override
+    public void printStatistics(String verb, String statisticsFor) {
+        VirtualFileSystemStatistics statistics = getStatistics();
+        LOGGER.warn(
+            "Virtual file system {} information about {} files, {} directories and {} missing files {}",
+            verb,
+            statistics.getRetained(FileType.RegularFile),
+            statistics.getRetained(FileType.Directory),
+            statistics.getRetained(FileType.Missing),
+            statisticsFor
+        );
+    }
+
+    @Override
     public void update(Iterable<String> locations, Runnable action) {
         producedByCurrentBuild.updateAndGet(currentValue -> {
             FileHierarchySet newValue = currentValue;
@@ -127,21 +140,19 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         super.update(locations, action);
     }
 
-    @Override
-    public VirtualFileSystemStatistics getStatistics() {
+    private VirtualFileSystemStatistics getStatistics() {
         EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
         getRoot().visitSnapshots((snapshot, rootOfCompleteHierarchy) -> retained.add(snapshot.getType()));
-        return new DefaultVirtualFileSystemStatistics(retained);
+        return new VirtualFileSystemStatistics(retained);
     }
 
-    private static class DefaultVirtualFileSystemStatistics implements VirtualFileSystemStatistics {
+    private static class VirtualFileSystemStatistics {
         private final Multiset<FileType> retained;
 
-        public DefaultVirtualFileSystemStatistics(Multiset<FileType> retained) {
+        public VirtualFileSystemStatistics(Multiset<FileType> retained) {
             this.retained = retained;
         }
 
-        @Override
         public int getRetained(FileType fileType) {
             return retained.count(fileType);
         }
