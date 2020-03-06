@@ -225,21 +225,17 @@ project(':c') {
         testFile("settings.gradle") << "include 'a', 'b'"
         testFile("build.gradle") << """
 allprojects {
-    apply plugin: 'java'
+    apply plugin: 'java-library'
 
     java {
         withSourcesJar()
-    }
-
-    artifacts {
-        archives sourcesJar
     }
 }
 
 project(':a') {
     dependencies { implementation project(':b') }
     compileJava.doFirst {
-        assert classpath.collect { it.name } == ['b.jar']
+        assert classpath.collect { it.name } == ['main']
     }
 }
 
@@ -255,7 +251,7 @@ interface Person { }
 """
 
         def result = inTestDirectory().withTasks("a:classes").run()
-        result.assertTasksExecuted(":b:compileJava", ":b:processResources", ":b:classes", ":b:jar", ":a:compileJava", ":a:processResources", ":a:classes")
+        result.assertTasksExecuted(":b:compileJava", ":a:compileJava", ":a:processResources", ":a:classes")
     }
 
     @Test

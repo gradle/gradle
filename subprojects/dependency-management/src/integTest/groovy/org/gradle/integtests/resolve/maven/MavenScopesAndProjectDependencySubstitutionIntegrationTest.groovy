@@ -119,7 +119,6 @@ project(':child2') {
         compileOnly 'org.test.ignore-me:1.0'
         testImplementation 'org.test.ignore-me:1.0'
         testRuntimeOnly 'org.test.ignore-me:1.0'
-        "default" 'org.test.ignore-me:1.0'
     }
 }
 """
@@ -209,11 +208,10 @@ project(':child2') {
     dependencies {
         implementation 'org.test:m1:1.0'
         runtimeOnly 'org.test:m2:1.0'
-        
+
         compileOnly 'org.test:ignore-me:1.0'
         testImplementation 'org.test:ignore-me:1.0'
         testRuntimeOnly 'org.test:ignore-me:1.0'
-        "default" 'org.test:ignore-me:1.0'
     }
 }
 """
