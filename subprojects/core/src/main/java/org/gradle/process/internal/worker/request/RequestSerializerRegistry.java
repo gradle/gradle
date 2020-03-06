@@ -16,34 +16,21 @@
 
 package org.gradle.process.internal.worker.request;
 
-import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
-import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.serialize.SerializerRegistry;
 
-import java.io.EOFException;
+import java.util.Collections;
 
 public class RequestSerializerRegistry {
     public static SerializerRegistry create(ClassLoader classLoader, RequestArgumentSerializers argumentSerializers) {
         SerializerRegistry registry = new DefaultSerializerRegistry(false);
-        registry.register(Request.class, new RequestSerializer(classLoader, argumentSerializers.getArgumentSerializers()));
+        registry.register(Request.class, new RequestSerializer(classLoader, argumentSerializers.getArgumentSerializers(), false));
         return registry;
     }
 
-    public static SerializerRegistry createDiscardParameters() {
+    public static SerializerRegistry createDiscardRequestArg() {
         SerializerRegistry registry = new DefaultSerializerRegistry(false);
-        registry.register(Request.class, new Serializer<Request>() {
-            @Override
-            public Request read(Decoder decoder) throws EOFException, Exception {
-                return null;
-            }
-
-            @Override
-            public void write(Encoder encoder, Request value) throws Exception {
-                throw new UnsupportedOperationException();
-            }
-        });
+        registry.register(Request.class, new RequestSerializer(RequestSerializerRegistry.class.getClassLoader(), Collections.emptyList(), true));
         return registry;
     }
 }

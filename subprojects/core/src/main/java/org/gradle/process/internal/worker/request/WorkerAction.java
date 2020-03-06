@@ -45,6 +45,7 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     private transient WorkerLogEventListener workerLogEventListener;
     private transient RequestHandler<Object, Object> implementation;
     private transient InstantiatorFactory instantiatorFactory;
+    private transient Exception failure;
 
     public WorkerAction(Class<?> workerImplementation) {
         this.workerImplementationName = workerImplementation.getName();
@@ -54,28 +55,35 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
     public void execute(WorkerProcessContext workerProcessContext) {
         completed = new CountDownLatch(1);
 
-        ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
-        if (instantiatorFactory == null) {
-            instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList());
-        }
-        DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
-        // Make the argument serializers available so work implementations can register their own serializers
         RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
-        serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
-        serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
-        workerProcessContext.getServerConnection().useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
-        Class<?> workerImplementation;
         try {
-            workerImplementation = Class.forName(workerImplementationName);
-        } catch (ClassNotFoundException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            ServiceRegistry parentServices = workerProcessContext.getServiceRegistry();
+            if (instantiatorFactory == null) {
+                instantiatorFactory = new DefaultInstantiatorFactory(new DefaultCrossBuildInMemoryCacheFactory(new DefaultListenerManager()), Collections.emptyList());
+            }
+            DefaultServiceRegistry serviceRegistry = new DefaultServiceRegistry("worker-action-services", parentServices);
+            // Make the argument serializers available so work implementations can register their own serializers
+            serviceRegistry.add(RequestArgumentSerializers.class, argumentSerializers);
+            serviceRegistry.add(InstantiatorFactory.class, instantiatorFactory);
+            Class<?> workerImplementation = Class.forName(workerImplementationName);
+            implementation = (RequestHandler) instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
+        } catch (Exception e) {
+            failure = e;
         }
-        implementation = (RequestHandler) instantiatorFactory.inject(serviceRegistry).newInstance(workerImplementation);
 
         ObjectConnection connection = workerProcessContext.getServerConnection();
         connection.addIncoming(RequestProtocol.class, this);
         responder = connection.addOutgoing(ResponseProtocol.class);
         workerLogEventListener = workerProcessContext.getServiceRegistry().get(WorkerLogEventListener.class);
+        if (failure == null) {
+            connection.useParameterSerializers(RequestSerializerRegistry.create(this.getClass().getClassLoader(), argumentSerializers));
+        } else {
+            // Discard incoming requests, as the serializers may not have been configured
+            connection.useParameterSerializers(RequestSerializerRegistry.createDiscardRequestArg());
+            // Notify the client
+            responder.infrastructureFailed(failure);
+        }
+
         connection.connect();
 
         try {
@@ -109,6 +117,10 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
 
     @Override
     public void run(Request request) {
+        if (failure != null) {
+            // Ignore
+            return;
+        }
         try {
             CurrentBuildOperationRef.instance().set(request.getBuildOperation());
             Object result;
