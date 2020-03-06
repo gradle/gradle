@@ -56,7 +56,29 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     }
 
     @Override
-    public void startWatching(Collection<File> mustWatchDirectories) {
+    public void watchingDisabledForCurrentBuild() {
+        stopWatching();
+        invalidateAll();
+    }
+
+    @Override
+    public void afterStartingBuildWithWatchingEnabled() {
+        printStatistics("retained", "since last build");
+    }
+
+    @Override
+    public void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir) {
+        stopWatching();
+        printStatistics("retains", "till next build");
+        startWatching(Collections.singleton(rootProjectDir));
+    }
+
+    /**
+     * Start watching the known areas of the file system for changes.
+     *
+     * @param mustWatchDirectories directories that always should be watched even when not part of the VFS.
+     */
+    private void startWatching(Collection<File> mustWatchDirectories) {
         if (watchRegistry != null) {
             throw new IllegalStateException("Watch service already started");
         }
@@ -87,8 +109,11 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
     }
 
-    @Override
-    public void stopWatching() {
+    /**
+     * Stop watching the known areas of the file system, and invalidate
+     * the parts that have been changed since calling {@link #startWatching(Collection)} ()}.
+     */
+    private void stopWatching() {
         producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         if (watchRegistry == null) {
             return;
@@ -115,8 +140,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
         }
     }
 
-    @Override
-    public void printStatistics(String verb, String statisticsFor) {
+    private void printStatistics(String verb, String statisticsFor) {
         VirtualFileSystemStatistics statistics = getStatistics();
         LOGGER.warn(
             "Virtual file system {} information about {} files, {} directories and {} missing files {}",

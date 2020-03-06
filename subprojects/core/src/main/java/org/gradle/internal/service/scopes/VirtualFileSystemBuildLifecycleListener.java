@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -120,14 +119,12 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
                     () -> {}
                 );
             }
-            virtualFileSystem.printStatistics("retained", "since last build");
+            virtualFileSystem.afterStartingBuildWithWatchingEnabled();
         }
 
         @Override
         public void beforeComplete(GradleInternal gradle) {
-            virtualFileSystem.stopWatching();
-            virtualFileSystem.startWatching(Collections.singleton(gradle.getRootProject().getProjectDir()));
-            virtualFileSystem.printStatistics("retains", "till next build");
+            virtualFileSystem.beforeCompletingBuildWithWatchingEnabled(gradle.getRootProject().getProjectDir());
         }
 
         public List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, @Nullable String changeList) {
@@ -151,8 +148,7 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
 
         @Override
         public void afterStart(GradleInternal gradle) {
-            virtualFileSystem.stopWatching();
-            virtualFileSystem.invalidateAll();
+            virtualFileSystem.watchingDisabledForCurrentBuild();
         }
 
         @Override

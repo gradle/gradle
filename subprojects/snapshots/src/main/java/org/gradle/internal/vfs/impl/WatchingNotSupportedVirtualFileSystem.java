@@ -21,7 +21,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
 
 public class WatchingNotSupportedVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem {
 
@@ -32,15 +31,15 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractDelegatingVir
     }
 
     @Override
-    public void startWatching(Collection<File> mustWatchDirectories) {
+    public void watchingDisabledForCurrentBuild() {
+    }
+
+    @Override
+    public void afterStartingBuildWithWatchingEnabled() {
         LOGGER.warn("Watching for file changes is not supported on the current operating system");
     }
 
     @Override
-    public void stopWatching() {
-    }
-
-    @Override
-    public void printStatistics(String verb, String statisticsFor) {
+    public void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir) {
     }
 }
