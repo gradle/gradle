@@ -58,6 +58,7 @@ import org.gradle.kotlin.dsl.provider.plugins.precompiled.scriptPluginFilesOf
 
 import org.gradle.kotlin.dsl.support.KotlinScriptType
 import org.gradle.kotlin.dsl.support.serviceOf
+import org.gradle.kotlin.dsl.support.useToRun
 
 import org.gradle.plugin.management.internal.PluginRequestInternal
 import org.gradle.plugin.management.internal.PluginRequests
@@ -133,8 +134,8 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
 
         val projectPlugins = selectProjectPlugins()
         if (projectPlugins.isNotEmpty()) {
-            asyncIOScopeFactory.newScope().use { scope ->
-                scope.generateTypeSafeAccessorsFor(projectPlugins)
+            asyncIOScopeFactory.newScope().useToRun {
+                generateTypeSafeAccessorsFor(projectPlugins)
             }
         }
     }

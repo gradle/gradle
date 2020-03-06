@@ -68,9 +68,15 @@ class DistributionTestingPlugin : Plugin<Project> {
 
     // TODO: Replace this with something in the Gradle API to make this transition easier
     private
-    fun dirWorkaround(providers: ProviderFactory, layout: ProjectLayout, objects: ObjectFactory, directory: () -> File): Provider<Directory> = objects.directoryProperty().also {
-        it.set(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
-    }
+    fun dirWorkaround(
+        providers: ProviderFactory,
+        layout: ProjectLayout,
+        objects: ObjectFactory,
+        directory: () -> File
+    ): Provider<Directory> =
+        objects.directoryProperty().also {
+            it.set(layout.projectDirectory.dir(providers.provider { directory().absolutePath }))
+        }
 
     private
     fun DistributionTest.addSetUpAndTearDownActions(project: Project) {

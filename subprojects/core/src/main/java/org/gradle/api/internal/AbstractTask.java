@@ -213,10 +213,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public Project getProject() {
         if (state.getExecuting()) {
-            services.get(ProjectAccessNotifier.class).getListener()
-                .onProjectAccess("Task.project", this);
+            notifyProjectAccess();
         }
         return project;
+    }
+
+    private void notifyProjectAccess() {
+        services.get(ProjectAccessNotifier.class).getListener()
+            .onProjectAccess("Task.project", this);
     }
 
     @Override

@@ -45,11 +45,12 @@ class InstantExecutionProjectAccessListener internal constructor(
         if (startParameter.isEnabled) {
             val message = "invocation of '$invocationDescription' at execution time is unsupported."
             val exception = InvalidUserCodeException(message.capitalize())
-            val trace = if (invocationSource is Task) PropertyTrace.Task(
-                GeneratedSubclasses.unpackType(invocationSource),
-                invocationSource.path
-            )
-            else PropertyTrace.Unknown
+            val trace =
+                if (invocationSource is Task) PropertyTrace.Task(
+                    GeneratedSubclasses.unpackType(invocationSource),
+                    invocationSource.path
+                )
+                else PropertyTrace.Unknown
             report.add(PropertyProblem.Warning(
                 trace,
                 StructuredMessage.build { text(message) },
