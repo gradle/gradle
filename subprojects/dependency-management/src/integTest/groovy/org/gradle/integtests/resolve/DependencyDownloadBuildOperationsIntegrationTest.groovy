@@ -43,12 +43,16 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
             }
-            
+
+            configurations {
+                resolveArchives.extendsFrom(archives)
+            }
+
             dependencies {
               archives "org.utils:impl:1.3"
             }
-            
-            println configurations.archives.files
+
+            println configurations.resolveArchives.files
         """
 
         mavenHttpRepo.server.chunkedTransfer = chunked
@@ -70,7 +74,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 1
-        artifactsOps[0].details.configurationPath == ':archives'
+        artifactsOps[0].details.configurationPath == ':resolveArchives'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -88,7 +92,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
-        artifactsOps2[0].details.configurationPath == ':archives'
+        artifactsOps2[0].details.configurationPath == ':resolveArchives'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
@@ -125,7 +129,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
                         artifact()
                     }
                 }
-                maven { 
+                maven {
                     url "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
@@ -133,12 +137,16 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
                     }
                 }
             }
-            
+
+            configurations {
+                resolveArchives.extendsFrom(archives)
+            }
+
             dependencies {
               archives "org.utils:impl:1.+"
             }
-            
-            println configurations.archives.files
+
+            println configurations.resolveArchives.files
         """
 
         when:
@@ -165,7 +173,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 1
-        artifactsOps[0].details.configurationPath == ':archives'
+        artifactsOps[0].details.configurationPath == ':resolveArchives'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -195,7 +203,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
-        artifactsOps2[0].details.configurationPath == ':archives'
+        artifactsOps2[0].details.configurationPath == ':resolveArchives'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
@@ -216,7 +224,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             apply plugin: "base"
 
             repositories {
-                maven { 
+                maven {
                     url "${mavenHttpRepo.uri}"
                     metadataSources {
                         mavenPom()
@@ -224,12 +232,16 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
                     }
                 }
             }
-            
+
             dependencies {
               archives "org.utils:impl:1.+"
             }
-            
-            println configurations.archives.files
+
+            configurations {
+                resolveArchives.extendsFrom(archives)
+            }
+
+            println configurations.resolveArchives.files
         """
 
         when:
@@ -253,7 +265,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 1
-        artifactsOps[0].details.configurationPath == ':archives'
+        artifactsOps[0].details.configurationPath == ':resolveArchives'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps.size() == 1
@@ -280,7 +292,7 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 1
-        artifactsOps2[0].details.configurationPath == ':archives'
+        artifactsOps2[0].details.configurationPath == ':resolveArchives'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)
         artifactOps2.size() == 1
@@ -299,17 +311,18 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
             repositories {
                 maven { url "${mavenHttpRepo.uri}" }
             }
-            
+
             dependencies {
               archives "org.utils:impl:1.3"
             }
-            
+
             configurations {
+                primaryArchives { extendsFrom archives }
                 moreArchives { extendsFrom archives }
             }
-            
-            println configurations.archives.files
-            println configurations.archives.files
+
+            println configurations.primaryArchives.files
+            println configurations.primaryArchives.files
             println configurations.moreArchives.files
         """
 
@@ -328,8 +341,8 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps.size() == 3
-        artifactsOps[0].details.configurationPath == ':archives'
-        artifactsOps[1].details.configurationPath == ':archives'
+        artifactsOps[0].details.configurationPath == ':primaryArchives'
+        artifactsOps[1].details.configurationPath == ':primaryArchives'
         artifactsOps[2].details.configurationPath == ':moreArchives'
 
         def artifactOps = buildOperations.all(DownloadArtifactBuildOperationType)
@@ -350,8 +363,8 @@ class DependencyDownloadBuildOperationsIntegrationTest extends AbstractHttpDepen
 
         def artifactsOps2 = buildOperations.all(ResolveArtifactsBuildOperationType)
         artifactsOps2.size() == 3
-        artifactsOps2[0].details.configurationPath == ':archives'
-        artifactsOps2[1].details.configurationPath == ':archives'
+        artifactsOps2[0].details.configurationPath == ':primaryArchives'
+        artifactsOps2[1].details.configurationPath == ':primaryArchives'
         artifactsOps2[2].details.configurationPath == ':moreArchives'
 
         def artifactOps2 = buildOperations.all(DownloadArtifactBuildOperationType)

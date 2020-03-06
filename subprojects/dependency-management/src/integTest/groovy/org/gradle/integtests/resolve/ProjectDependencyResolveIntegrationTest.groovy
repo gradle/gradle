@@ -439,6 +439,9 @@ subprojects {
     configurations {
         'default'
         other
+        path {
+            extendsFrom configurations.'default'
+        }
     }
     task jar(type: Jar)
     artifacts {
@@ -455,18 +458,18 @@ project('a') {
         dependsOn configurations.default
         dependsOn configurations.other
         doFirst {
-            def jars = configurations.default.collect { it.name } as Set
+            def jars = configurations.path.collect { it.name } as Set
             assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
 
             jars = configurations.other.collect { it.name } as Set
             assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
 
             // Check type of root component
-            def defaultResult = configurations.default.incoming.resolutionResult
+            def defaultResult = configurations.path.incoming.resolutionResult
             def defaultRootId = defaultResult.root.id
             assert defaultRootId instanceof ProjectComponentIdentifier
 
-            def otherResult = configurations.default.incoming.resolutionResult
+            def otherResult = configurations.other.incoming.resolutionResult
             def otherRootId = otherResult.root.id
             assert otherRootId instanceof ProjectComponentIdentifier
         }
