@@ -28,6 +28,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
     def "reports project access during execution"() {
 
+        def instantExecution = newInstantExecutionFixture()
+
         given:
         settingsFile << "rootProject.name = 'root'"
         buildFile << """
@@ -47,6 +49,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         output.count("project:root") == 2
+        instantExecution.assertStateStored()
 
         and:
         def reportHtmlFileName = "instant-execution-report.html"
@@ -69,6 +72,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         output.count("project:root") == 2
+        instantExecution.assertStateLoaded()
 
         and:
         def secondReportDir = reportDir.parentFile.file("${reportDir.name}-1")
@@ -89,6 +93,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         output.count("project:root") == 2
+        instantExecution.assertStateLoaded()
 
         and:
         def thirdReportDir = reportDir.parentFile.file("${reportDir.name}-2")
