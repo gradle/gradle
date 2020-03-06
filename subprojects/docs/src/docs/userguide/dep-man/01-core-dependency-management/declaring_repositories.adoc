@@ -576,7 +576,6 @@ include::sample[dir="snippets/userguide/artifacts/defineRepository/groovy",files
 include::sample[dir="snippets/userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-maven-repo]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/artifacts/defineRepository`** in the ‘-all’ distribution of Gradle.
 
 The following example show how to configure a repository to use only link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication]:
 
@@ -619,7 +618,6 @@ include::sample[dir="snippets/userguide/artifacts/defineRepository/groovy",files
 include::sample[dir="snippets/userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=header-authenticated-maven-repo]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/artifacts/defineRepository`** in the ‘-all’ distribution of Gradle.
 
 [[sec:s3-repositories]]
 == AWS S3 repositories configuration

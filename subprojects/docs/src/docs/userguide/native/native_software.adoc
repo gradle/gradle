@@ -232,7 +232,6 @@ In the following sections, we will demonstrate the usage of the `assembleDepende
 include::{samplesPath}/native-binaries/cunit/build.gradle[tag=terse-example]
 ----
 
-NOTE: The code for this example can be found at **`samples/native-binaries/cunit`** in the ‘-all’ distribution of Gradle.
 
 
 [[sec:dependents_report]]
@@ -394,7 +393,6 @@ You can also add custom check tasks as follows:
 include::{samplesPath}/native-binaries/custom-check/build.gradle[tag=custom-check]
 ----
 
-NOTE: The code for this example can be found at **`samples/native-binaries/custom-check`** in the ‘-all’ distribution of Gradle.
 
 
 Now, running `check` or any of the _check tasks_ for the `hello` binaries will run the custom check task:
@@ -973,7 +971,6 @@ include::{samplesPath}/native-binaries/cunit/build.gradle[tag=complete-example]
 include::{samplesPath}/native-binaries/cunit/completeCUnitExample.out[]
 ----
 
-NOTE: The code for this example can be found at **`samples/native-binaries/cunit`** in the ‘-all’ distribution of Gradle.
 
 
 [NOTE]
@@ -1013,7 +1010,6 @@ A link:{groovyDslPath}/org.gradle.nativeplatform.test.googletest.GoogleTestTestS
 include::{samplesPath}/native-binaries/google-test/build.gradle[tag=configure-test-binary]
 ----
 
-NOTE: The code for this example can be found at **`samples/native-binaries/google-test`** in the ‘-all’ distribution of Gradle.
 
 [NOTE]
 ====
