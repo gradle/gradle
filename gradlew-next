@@ -24,6 +24,16 @@
   FIXME: Abstract
 "
 
+ewarn () {
+	printf 'WARN: %s\n' "$1"
+}
+
+# Assertion
+# SYNOPSIS: die [0~255] [message]
+die () {
+	printf 'FATAL: %s\n' "$2"
+	exit "$1"
+}
 
 ### --- ###
 
