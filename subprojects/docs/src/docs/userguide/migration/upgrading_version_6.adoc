@@ -57,7 +57,7 @@ The dependencies for annotation processors are not added to an IDEA module's cla
 - PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.5/CHANGELOG.md#version-15----nov-2019[CodeNarc 1.5].
 
-==== Degraded experience when using Gradle on 32-bit operating systems
+==== Rich console support discontinued for some 32-bit operating systems
 
 Gradle uses the https://github.com/gradle/native-platform[`native-platform`] library to call native platform APIs for things which are not easily possible from plain Java.
 Most notably, it uses `native-platform` for a better console experience.
