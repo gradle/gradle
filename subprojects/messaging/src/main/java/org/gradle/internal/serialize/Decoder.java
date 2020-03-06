@@ -135,6 +135,6 @@ public interface Decoder {
     void skipChunked() throws EOFException, IOException;
 
     interface DecodeAction<IN, OUT> {
-        OUT read(IN in) throws Exception;
+        OUT read(IN source) throws Exception;
     }
 }

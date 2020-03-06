@@ -17,7 +17,7 @@
 package org.gradle.process.internal.worker;
 
 import org.gradle.api.Action;
-import org.gradle.internal.serialize.SerializerRegistry;
+import org.gradle.internal.serialize.Serializer;
 
 /**
  * Configures and builds multi-request workers. A multi-request worker runs zero or more requests in a forked worker process.
@@ -45,7 +45,7 @@ public interface MultiRequestWorkerProcessBuilder<IN, OUT> extends WorkerProcess
     /**
      * Registers a serializer to use when handling arguments to methods of {@link T}.
      */
-    void registerArgumentSerializer(SerializerRegistry serializerRegistry);
+    <T> void registerArgumentSerializer(Class<T> type, Serializer<T> serializer);
 
     /**
      * Use a simpler classloader structure where everything is in the application classloader.

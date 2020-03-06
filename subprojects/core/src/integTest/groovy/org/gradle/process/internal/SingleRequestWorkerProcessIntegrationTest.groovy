@@ -74,26 +74,6 @@ class CustomResult implements Serializable {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Could not convert abc'
-
-        when:
-        def result = worker.run("ok")
-
-        then:
-        result == "converted"
-    }
-
-    def "can reuse worker proxy to run multiple worker processes"() {
-        when:
-        def builder = workerFactory.singleRequestWorker(TestWorker.class)
-        def worker = builder.build()
-        def result1 = worker.run(12.toLong())
-        def result2 = worker.run(null)
-        def result3 = worker.run(123.toLong())
-
-        then:
-        result1 == "[12]"
-        result2 == null
-        result3 == "[123]"
     }
 
     def "reports failure to load worker implementation class"() {

@@ -16,46 +16,37 @@
 
 package org.gradle.process.internal.worker.request;
 
-import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.DefaultBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Message;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.SerializerRegistry;
-
-import java.util.List;
 
 public class RequestSerializer implements Serializer<Request> {
-    private final List<SerializerRegistry> registries;
-    private final ClassLoader classLoader;
-    private final JavaObjectSerializer javaObjectSerializer;
+    private final Serializer<Object> argSerializer;
     private final boolean skipIncomingArg;
 
-    public RequestSerializer(ClassLoader classLoader, List<SerializerRegistry> registries, boolean skipIncomingArg) {
-        this.registries = registries;
-        this.classLoader = classLoader;
-        this.javaObjectSerializer = new JavaObjectSerializer(classLoader);
+    public RequestSerializer(Serializer<Object> argSerializer, boolean skipIncomingArg) {
+        this.argSerializer = argSerializer;
         this.skipIncomingArg = skipIncomingArg;
     }
 
     @Override
     public void write(Encoder encoder, Request request) throws Exception {
-        encoder.encodeChunked(new Encoder.EncodeAction<Encoder>() {
-            @Override
-            public void write(Encoder target) throws Exception {
-                Object object = request.getArg();
-                if (object == null) {
-                    target.writeString(NullType.class.getName());
-                } else {
-                    Class<?> type = object.getClass();
-                    target.writeString(type.getName());
-                    select(type).write(target, object);
-                }
-            }
+        encoder.encodeChunked(target -> {
+            Object object = request.getArg();
+            argSerializer.write(target, object);
         });
 
-        javaObjectSerializer.write(encoder, request.getBuildOperation());
+        encoder.writeLong(request.getBuildOperation().getId().getId());
+        OperationIdentifier parentId = request.getBuildOperation().getParentId();
+        if (parentId != null) {
+            encoder.writeBoolean(true);
+            encoder.writeLong(parentId.getId());
+        } else {
+            encoder.writeBoolean(false);
+        }
     }
 
     @Override
@@ -65,51 +56,18 @@ public class RequestSerializer implements Serializer<Request> {
             decoder.skipChunked();
             arg = null;
         } else {
-            arg = decoder.decodeChunked(new Decoder.DecodeAction<Decoder, Object>() {
-                @Override
-                public Object read(Decoder decoder) throws Exception {
-                    Class<?> type = classLoader.loadClass(decoder.readString());
-                    if (type == NullType.class) {
-                        return null;
-                    } else {
-                        return select(type).read(decoder);
-                    }
-                }
-            });
+            arg = decoder.decodeChunked(argSerializer::read);
         }
 
-        BuildOperationRef buildOperation = (BuildOperationRef) javaObjectSerializer.read(decoder);
+        OperationIdentifier id = new OperationIdentifier(decoder.readLong());
+        BuildOperationRef buildOperation;
+        if (decoder.readBoolean()) {
+            buildOperation = new DefaultBuildOperationRef(id, new OperationIdentifier(decoder.readLong()));
+        } else {
+            buildOperation = new DefaultBuildOperationRef(id, null);
+        }
 
         return new Request(arg, buildOperation);
     }
 
-    private Serializer<Object> select(Class<?> type) {
-        for (SerializerRegistry registry : registries) {
-            if (registry.canSerialize(type)) {
-                return Cast.uncheckedCast(registry.build(type));
-            }
-        }
-        return javaObjectSerializer;
-    }
-
-    private static class NullType {
-    }
-
-    private static class JavaObjectSerializer implements Serializer<Object> {
-        private final ClassLoader classLoader;
-
-        public JavaObjectSerializer(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        @Override
-        public Object read(Decoder decoder) throws Exception {
-            return Message.receive(decoder.getInputStream(), classLoader);
-        }
-
-        @Override
-        public void write(Encoder encoder, Object value) throws Exception {
-            Message.send(value, encoder.getOutputStream());
-        }
-    }
 }
