@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class VisualStudioFiltersFileTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
     def filtersFile = new VisualStudioFiltersFile(new XmlTransformer(), fileNameTransformer)

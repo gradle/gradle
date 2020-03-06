@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class JarCacheTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def original = tmpDir.createFile("original.txt")
     def cacheDir = tmpDir.createDir("cache")
     def fileHasher = Stub(FileHasher)

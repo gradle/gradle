@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultOsMemoryInfoTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "getTotalPhysicalMemory only throws when memory management methods are unavailable"() {
         expect:

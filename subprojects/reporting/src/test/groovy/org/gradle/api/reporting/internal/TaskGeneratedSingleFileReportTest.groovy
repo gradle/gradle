@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class TaskGeneratedSingleFileReportTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "can attach a convention mapping for output file location"() {
         def report = TestUtil.objectFactory(tmpDir.testDirectory).newInstance(TaskGeneratedSingleFileReport, "report", Stub(Task))

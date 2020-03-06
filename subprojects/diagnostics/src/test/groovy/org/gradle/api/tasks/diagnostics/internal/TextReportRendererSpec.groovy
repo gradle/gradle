@@ -28,7 +28,7 @@ import static org.gradle.util.Matchers.containsLine
 @CleanupTestDirectory
 public class TextReportRendererSpec extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private final TextReportRenderer renderer = new TextReportRenderer();
 
     def "writes report to a file"() {

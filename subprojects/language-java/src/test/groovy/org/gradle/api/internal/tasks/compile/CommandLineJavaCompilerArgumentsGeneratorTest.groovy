@@ -28,7 +28,7 @@ import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tempDir
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
 
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator()
 

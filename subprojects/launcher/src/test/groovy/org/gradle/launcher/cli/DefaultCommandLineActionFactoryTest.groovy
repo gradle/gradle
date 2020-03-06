@@ -45,7 +45,7 @@ class DefaultCommandLineActionFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final ExecutionListener executionListener = Mock()
     final LoggingServiceRegistry loggingServices = Mock()
     final LoggingManagerInternal loggingManager = Mock()

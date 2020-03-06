@@ -40,7 +40,7 @@ import java.nio.charset.Charset
 
 class DefaultCopySpecTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
     private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     private FileResolver fileResolver = TestFiles.resolver(testDir.testDirectory)
     private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()

@@ -104,7 +104,7 @@ class ApiClassExtractorTestSupport extends Specification {
     public JavaCompiler compiler = ToolProvider.systemJavaCompiler
 
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     protected ApiContainer toApi(Map<String, String> sources) {
         toApi('1.7', [], sources)

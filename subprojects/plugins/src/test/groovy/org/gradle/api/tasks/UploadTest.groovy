@@ -24,9 +24,9 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class UploadTest extends Specification {
-    
+
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "can create task"() {
         when:

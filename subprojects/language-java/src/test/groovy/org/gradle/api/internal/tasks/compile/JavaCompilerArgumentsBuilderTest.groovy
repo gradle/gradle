@@ -31,7 +31,7 @@ import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 
 class JavaCompilerArgumentsBuilderTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
 
     def defaultOptionsWithoutClasspath = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
     def defaultOptions = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]

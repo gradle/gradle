@@ -27,7 +27,7 @@ import spock.lang.Subject
 @CleanupTestDirectory
 class VersionSpecificCacheDirectoryScannerTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile cacheBaseDir = temporaryFolder.createDir(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)
 
     @Subject def versionSpecificCacheDirectoryService = new VersionSpecificCacheDirectoryScanner(cacheBaseDir)

@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class VisualStudioProjectRegistryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def fileResolver = Mock(FileResolver)
     def ideArtifactRegistry = Mock(IdeArtifactRegistry)
     def registry = new VisualStudioProjectRegistry(fileResolver, TestUtil.instantiatorFactory().decorateLenient(), ideArtifactRegistry, CollectionCallbackActionDecorator.NOOP, TestUtil.objectFactory(), new DefaultProviderFactory())

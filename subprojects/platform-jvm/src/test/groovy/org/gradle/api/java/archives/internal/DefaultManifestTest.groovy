@@ -33,7 +33,7 @@ class DefaultManifestTest extends Specification {
     DefaultManifest gradleManifest = new DefaultManifest(fileResolver)
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def testInitWithFileResolver() {
         expect:

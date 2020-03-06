@@ -37,7 +37,7 @@ import static org.gradle.util.GUtil.loadProperties
 
 class DefaultFileAccessTimeJournalTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def userHome = tmpDir.createDir("user-home")
     def cacheScopeMapping = new DefaultCacheScopeMapping(userHome, null, GradleVersion.current())

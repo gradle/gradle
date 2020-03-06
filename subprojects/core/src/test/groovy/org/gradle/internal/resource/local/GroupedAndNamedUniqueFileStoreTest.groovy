@@ -28,7 +28,7 @@ import spock.lang.Subject
 
 class GroupedAndNamedUniqueFileStoreTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     TestFile baseDir = tmpDir.createDir("base")
     TemporaryFileProvider temporaryFileProvider = new DefaultTemporaryFileProvider({ tmpDir.createDir("tmp") })

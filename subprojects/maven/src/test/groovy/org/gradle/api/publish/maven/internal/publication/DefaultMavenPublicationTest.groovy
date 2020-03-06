@@ -54,7 +54,7 @@ import spock.lang.Unroll
 
 class DefaultMavenPublicationTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     MutableMavenProjectIdentity module
     NotationParser<Object, MavenArtifact> notationParser = Mock(NotationParser)

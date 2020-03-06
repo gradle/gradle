@@ -21,17 +21,13 @@ import org.junit.runners.model.FrameworkMethod;
 import java.io.File;
 
 public class TestDistributionDirectoryProvider extends AbstractTestDirectoryProvider {
-    public TestDistributionDirectoryProvider() {
-        root = new TestFile(new File("build/tmp/test distros"));
-    }
-
-    public static TestDistributionDirectoryProvider newInstance() {
-        return new TestDistributionDirectoryProvider();
+    public TestDistributionDirectoryProvider(Class<?> klass) {
+        super(new TestFile(new File("build/tmp/test distros")), klass);
     }
 
     public static TestDistributionDirectoryProvider newInstance(FrameworkMethod method, Object target) {
-        TestDistributionDirectoryProvider testDirectoryProvider = new TestDistributionDirectoryProvider();
-        testDirectoryProvider.init(method.getName(), target.getClass().getSimpleName());
+        TestDistributionDirectoryProvider testDirectoryProvider = new TestDistributionDirectoryProvider(target.getClass());
+        testDirectoryProvider.init(method.getName());
         return testDirectoryProvider;
     }
 

@@ -26,7 +26,7 @@ import spock.lang.Unroll
 
 class DefaultFileHierarchySetTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "creates from a single file"() {
         def dir = tmpDir.createDir("dir")

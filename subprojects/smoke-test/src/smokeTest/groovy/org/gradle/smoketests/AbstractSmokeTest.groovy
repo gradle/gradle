@@ -55,13 +55,13 @@ abstract class AbstractSmokeTest extends Specification {
         static nebulaDependencyRecommender = "9.0.2"
 
         // https://plugins.gradle.org/plugin/nebula.plugin-plugin
-        static nebulaPluginPlugin = "14.1.3"
+        static nebulaPluginPlugin = "14.2.1"
 
         // https://plugins.gradle.org/plugin/nebula.lint
-        static nebulaLint = "16.0.2"
+        static nebulaLint = "16.2.3"
 
         // https://plugins.gradle.org/plugin/nebula.dependency-lock
-        static nebulaDependencyLock = Versions.of("4.9.5", "5.0.6", "6.0.0", "7.0.1", "7.1.2", "7.3.4", "7.6.7", "8.0.0", "8.3.0", "8.7.3")
+        static nebulaDependencyLock = Versions.of("7.0.1", "7.1.2", "7.3.4", "7.6.7", "8.0.0", "8.3.0", "8.7.3", "8.8.0")
 
         // https://plugins.gradle.org/plugin/nebula.resolution-rules
         static nebulaResolutionRules = "7.5.0"
@@ -76,7 +76,7 @@ abstract class AbstractSmokeTest extends Specification {
         static spotbugs = "3.0.0"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.docker-java-application
-        static docker = "6.1.3"
+        static docker = "6.1.4"
 
         // https://plugins.gradle.org/plugin/com.bmuschko.tomcat
         static tomcat = "2.5"
@@ -85,7 +85,7 @@ abstract class AbstractSmokeTest extends Specification {
         static springDependencyManagement = "1.0.9.RELEASE"
 
         // https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin
-        static springBoot = "2.2.4.RELEASE"
+        static springBoot = "2.2.5.RELEASE"
 
         // https://developer.android.com/studio/releases/build-tools
         static androidTools = "29.0.3"
@@ -108,7 +108,7 @@ abstract class AbstractSmokeTest extends Specification {
         static grgit = "4.0.1"
 
         // https://plugins.gradle.org/plugin/com.github.ben-manes.versions
-        static gradleVersions = "0.27.0"
+        static gradleVersions = "0.28.0"
 
         // https://plugins.gradle.org/plugin/org.gradle.playframework
         static playframework = "0.9"
@@ -117,14 +117,14 @@ abstract class AbstractSmokeTest extends Specification {
         static errorProne = "1.1.1"
 
         // https://plugins.gradle.org/plugin/com.google.protobuf
-        static protobufPlugin = "0.8.10"
+        static protobufPlugin = "0.8.11"
         static protobufTools = "3.11.1"
 
         // https://plugins.gradle.org/plugin/org.gradle.test-retry
-        static testRetryPlugin = "1.0.2"
+        static testRetryPlugin = "1.1.3"
 
         // https://plugins.gradle.org/plugin/com.jfrog.artifactory
-        static artifactoryPlugin = "4.13.0"
+        static artifactoryPlugin = "4.14.1"
         static artifactoryRepoOSSVersion = "6.16.0"
 
         // https://plugins.gradle.org/plugin/io.freefair.aspectj
@@ -294,13 +294,15 @@ abstract class AbstractSmokeTest extends Specification {
 
     private static void verifyDeprecationWarnings(BuildResult result, List<String> remainingWarnings) {
         def lines = result.output.readLines()
+        int foundDeprecations = 0
         lines.eachWithIndex { String line, int lineIndex ->
             if (remainingWarnings.remove(line)) {
+                foundDeprecations++
                 return
             }
             assert !line.contains("has been deprecated and is scheduled to be removed in Gradle"), "Found an unexpected deprecation warning on line ${lineIndex + 1}: $line"
         }
-        assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
+        assert remainingWarnings.empty, "Expected ${remainingWarnings.size()} deprecation warnings, found ${foundDeprecations} deprecation warnings:\n${remainingWarnings.collect { " - $it" }.join("\n")}"
     }
 
     void copyRemoteProject(String remoteProject, File targetDir) {

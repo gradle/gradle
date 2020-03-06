@@ -43,7 +43,7 @@ import static org.junit.Assert.assertTrue;
 public class GeneratedSingletonFileTreeTest {
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private TestFile rootDir = tmpDir.getTestDirectory();
 
     private Factory<File> fileFactory = new Factory<File>() {

@@ -169,7 +169,7 @@ End of search list.
 """
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def execActionFactory = Mock(ExecActionFactory)
 
     @Unroll

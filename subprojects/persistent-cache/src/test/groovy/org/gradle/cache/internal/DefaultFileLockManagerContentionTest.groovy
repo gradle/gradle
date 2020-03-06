@@ -37,7 +37,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 class DefaultFileLockManagerContentionTest extends ConcurrentSpec {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     FileLockContentionHandler contentionHandler = new DefaultFileLockContentionHandler(executorFactory, new InetAddressFactory())
     FileLockContentionHandler contentionHandler2 = new DefaultFileLockContentionHandler(executorFactory, new InetAddressFactory())
     FileLockManager manager = new DefaultFileLockManager(Stub(ProcessMetaDataProvider), 2000, contentionHandler, new LongIdGenerator())

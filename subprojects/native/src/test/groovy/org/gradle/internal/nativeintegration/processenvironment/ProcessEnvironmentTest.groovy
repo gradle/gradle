@@ -25,7 +25,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProcessEnvironmentTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final ProcessEnvironment env = NativeServicesTestFixture.getInstance().get(ProcessEnvironment)
 

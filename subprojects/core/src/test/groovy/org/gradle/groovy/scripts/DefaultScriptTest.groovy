@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class DefaultScriptTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def testApplyMetaData() {
         ServiceRegistry serviceRegistryMock = Mock(ServiceRegistry)

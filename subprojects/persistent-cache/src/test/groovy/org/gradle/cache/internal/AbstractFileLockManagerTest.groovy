@@ -39,7 +39,7 @@ import static org.gradle.cache.FileLockManager.LockMode.Shared
 
 abstract class AbstractFileLockManagerTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def metaDataProvider = Mock(ProcessMetaDataProvider)
     def generator = Stub(IdGenerator)
     def contentionHandler = Stub(FileLockContentionHandler)

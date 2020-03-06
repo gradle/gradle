@@ -34,7 +34,7 @@ import javax.annotation.Nullable
 @UsesNativeServices
 class IncrementalCompileProcessorTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def includesParser = Mock(SourceIncludesParser)
     def dependencyResolver = new DummyResolver()

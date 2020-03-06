@@ -24,7 +24,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class AbstractGradleExecuterTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
 
     def gradleDistribution = Mock(GradleDistribution)
 

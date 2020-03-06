@@ -32,7 +32,7 @@ import org.junit.Rule
 
 class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements FingerprinterFixture {
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def afterPreviousExecution = Mock(AfterPreviousExecutionState)
     def beforeExecutionState = Mock(BeforeExecutionState)
     def delegateResult = Mock(Result)

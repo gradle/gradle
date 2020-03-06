@@ -27,7 +27,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class WrapperPluginSpec extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(testDir.testDirectory)
 
     def "adds 'wrapper' task"() {

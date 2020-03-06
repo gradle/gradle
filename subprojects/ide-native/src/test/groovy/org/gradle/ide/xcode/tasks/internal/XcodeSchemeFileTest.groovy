@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class XcodeSchemeFileTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def generator = new XcodeSchemeFile(new XmlTransformer())
 

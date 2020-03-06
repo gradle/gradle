@@ -55,7 +55,7 @@ import static org.gradle.performance.regression.inception.GradleInceptionPerform
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     TestName testName = new TestName()

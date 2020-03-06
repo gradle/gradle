@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class DefaultModuleRegistryTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile runtimeDep
     TestFile externalRuntimeDep
     TestFile resourcesDir

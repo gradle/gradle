@@ -25,27 +25,36 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         given:
         def instant = newInstantExecutionFixture()
-        buildKotlinFile """
+        createDir('root') {
+            file('build.gradle.kts') << """
 
-            $greetTask
+                $greetTask
 
-            val greetingProp = providers.systemProperty("greeting")
-            if (greetingProp.get() == "hello") {
-                tasks.register<Greet>("greet") {
-                    greeting.set("hello, hello")
+                val greetingProp = providers.systemProperty("greeting")
+                if (greetingProp.get() == "hello") {
+                    tasks.register<Greet>("greet") {
+                        greeting.set("hello, hello")
+                    }
+                } else {
+                    tasks.register<Greet>("greet") {
+                        greeting.set(greetingProp)
+                    }
                 }
-            } else {
-                tasks.register<Greet>("greet") {
-                    greeting.set(greetingProp)
-                }
-            }
-        """
+            """
+        }
         def runGreetWith = { String greeting ->
+            inDirectory('root')
             switch (systemPropertySource) {
                 case SystemPropertySource.COMMAND_LINE:
                     return instantRun('greet', "-Dgreeting=$greeting")
                 case SystemPropertySource.GRADLE_PROPERTIES:
-                    file('gradle.properties').text = "systemProp.greeting=$greeting"
+                    file('root/gradle.properties').text = "systemProp.greeting=$greeting"
+                    return instantRun('greet')
+                case SystemPropertySource.GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR:
+                    file('master/gradle.properties').text = "systemProp.greeting=$greeting"
+                    file('master/settings.gradle').text = """
+                        rootProject.projectDir = file('../root')
+                    """
                     return instantRun('greet')
             }
             throw new IllegalArgumentException('source')
@@ -77,7 +86,8 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
     enum SystemPropertySource {
         COMMAND_LINE,
-        GRADLE_PROPERTIES
+        GRADLE_PROPERTIES,
+        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR
     }
 
     @Unroll
@@ -501,7 +511,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
                 abstract val greeting: Property<String>
 
                 @TaskAction
-                fun act() {
+                fun greet() {
                     println(greeting.get().capitalize() + "!")
                 }
             }

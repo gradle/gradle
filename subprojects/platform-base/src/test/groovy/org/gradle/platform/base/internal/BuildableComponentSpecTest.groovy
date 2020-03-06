@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class BuildableComponentSpecTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def element = new TestBuildableComponentSpec(Stub(ComponentSpecIdentifier))
     def dependedOn1 = Stub(Task)

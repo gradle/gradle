@@ -26,7 +26,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class LegacyWindowsSdkLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
     final OperatingSystem operatingSystem = Stub(OperatingSystem) {
         isWindows() >> true

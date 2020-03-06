@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultSwiftApplicationTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     def app = project.objects.newInstance(DefaultSwiftApplication, "main")
 

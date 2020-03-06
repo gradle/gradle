@@ -29,7 +29,7 @@ class JacocoTaskExtensionSpec extends Specification {
     JavaForkOptions task = Mock()
     Project project = ProjectBuilder.builder().build()
     JacocoTaskExtension extension = new JacocoTaskExtension(project, agent, task)
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def 'asJvmArg with default arguments assembles correct string'() {
         setup:

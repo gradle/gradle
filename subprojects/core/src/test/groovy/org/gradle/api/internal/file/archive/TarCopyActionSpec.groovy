@@ -38,7 +38,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 @CleanupTestDirectory
 public class TarCopyActionSpec extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     private TarCopyAction action;
 
 

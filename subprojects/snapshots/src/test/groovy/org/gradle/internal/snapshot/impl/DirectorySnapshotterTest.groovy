@@ -42,7 +42,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 @UsesNativeServices
 class DirectorySnapshotterTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = new TestFileHasher()
     def directorySnapshotter = new DirectorySnapshotter(fileHasher, new StringInterner())

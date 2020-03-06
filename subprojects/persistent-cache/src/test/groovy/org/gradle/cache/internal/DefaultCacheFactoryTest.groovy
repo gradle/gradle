@@ -30,7 +30,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheFactoryTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final Action<?> opened = Mock()
     final Action<?> closed = Mock()
     final ProcessMetaDataProvider metaDataProvider = Mock()
