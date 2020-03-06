@@ -46,7 +46,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static org.gradle.api.internal.FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT;
+import static org.gradle.api.internal.FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT;
 
 public class DefaultDependencyLockingProvider implements DependencyLockingProvider {
 
@@ -85,7 +85,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         partialUpdate = !lockedDependenciesToUpdate.isEmpty();
         lockEntryFilter = LockEntryFilterFactory.forParameter(lockedDependenciesToUpdate);
         lockMode = LockMode.DEFAULT;
-        uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(DEPENDENCY_LOCKING_IMPROVED_FORMAT);
+        uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(ONE_LOCKFILE_PER_PROJECT);
     }
 
     @Override
@@ -95,7 +95,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
             loadLockState();
         }
         if (!writeLocks || partialUpdate) {
-            List<String> lockedModules = getLockedModules(configurationName, uniqueLockStateEnabled);
+            List<String> lockedModules = findLockedModules(configurationName, uniqueLockStateEnabled);
             if (lockedModules == null && lockMode == LockMode.STRICT) {
                 throw new MissingLockStateException(context.identityPath(configurationName).toString());
             }
@@ -119,7 +119,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         return DefaultDependencyLockingState.EMPTY_LOCK_CONSTRAINT;
     }
 
-    private List<String> getLockedModules(String configurationName, boolean uniqueLockStateEnabled) {
+    private List<String> findLockedModules(String configurationName, boolean uniqueLockStateEnabled) {
         List<String> result = null;
         if (uniqueLockStateEnabled) {
             result = allLockState.get(configurationName);
@@ -193,7 +193,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     public void buildFinished() {
         if (uniqueLockStateEnabled && uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
             lockFileReaderWriter.writeUniqueLockfile(allLockState);
-            LOGGER.lifecycle("Persisted dependency lock state for project '{}' (buildscript: {})", context.getProjectPath(), context.isScript());
+            if (context.isScript()) {
+                LOGGER.lifecycle("Persisted dependency lock state for buildscript of project '{}'", context.getProjectPath());
+            } else {
+                LOGGER.lifecycle("Persisted dependency lock state for project '{}'", context.getProjectPath());
+            }
         }
     }
 

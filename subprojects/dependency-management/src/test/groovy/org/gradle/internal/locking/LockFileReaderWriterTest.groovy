@@ -82,7 +82,7 @@ line2"""
 
     def 'reads a unique lock file'() {
         given:
-        lockDir.file('all_locks.singlelockfile') << """#ignored
+        lockDir.file('project.lockfile') << """#ignored
 bar=a,c
 foo=a,b,c
 empty=d
@@ -143,7 +143,7 @@ line2"""
         given:
         context.isScript() >> true
         lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
-        lockDir.file('buildscript-all_locks.singlelockfile') << """#ignored
+        lockDir.file('buildscript-project.lockfile') << """#ignored
 bar=a,c
 foo=a,b,c
 empty=d

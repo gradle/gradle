@@ -42,7 +42,7 @@ public class LockFileReaderWriter {
     private static final Logger LOGGER = Logging.getLogger(LockFileReaderWriter.class);
     private static final DocumentationRegistry DOC_REG = new DocumentationRegistry();
 
-    static final String UNIQUE_LOCKFILE_NAME = "all_locks.singlelockfile";
+    static final String UNIQUE_LOCKFILE_NAME = "project.lockfile";
     static final String FILE_SUFFIX = ".lockfile";
     static final String DEPENDENCY_LOCKING_FOLDER = "gradle/dependency-locks";
     static final Charset CHARSET = StandardCharsets.UTF_8;
@@ -209,6 +209,27 @@ public class LockFileReaderWriter {
         // Revert mapping
         Map<String, List<String>> dependencyToConfigurations = new TreeMap<>();
         List<String> emptyConfigurations = new ArrayList<>();
+        mapLockStateFromDependencyToConfiguration(lockState, dependencyToConfigurations, emptyConfigurations);
+
+        writeUniqueLockfile(lockfilePath, dependencyToConfigurations, emptyConfigurations);
+    }
+
+    private void writeUniqueLockfile(Path lockfilePath, Map<String, List<String>> dependencyToConfigurations, List<String> emptyConfigurations) {
+        try {
+            List<String> content = new ArrayList<>(50);
+            content.addAll(LOCKFILE_HEADER_LIST);
+            for (Map.Entry<String, List<String>> entry : dependencyToConfigurations.entrySet()) {
+                String builder = entry.getKey() + "=" + String.join(",", entry.getValue());
+                content.add(builder);
+            }
+            content.add("empty=" + String.join(",", emptyConfigurations));
+            Files.write(lockfilePath, content, CHARSET);
+        } catch (IOException e) {
+            throw new RuntimeException("Unable to write unique lockfile", e);
+        }
+    }
+
+    private void mapLockStateFromDependencyToConfiguration(Map<String, List<String>> lockState, Map<String, List<String>> dependencyToConfigurations, List<String> emptyConfigurations) {
         for (Map.Entry<String, List<String>> entry : lockState.entrySet()) {
             List<String> dependencies = entry.getValue();
             if (dependencies.isEmpty()) {
@@ -225,20 +246,6 @@ public class LockFileReaderWriter {
                     });
                 }
             }
-        }
-
-        // Write file
-        try {
-            List<String> content = new ArrayList<>(50);
-            content.addAll(LOCKFILE_HEADER_LIST);
-            for (Map.Entry<String, List<String>> entry : dependencyToConfigurations.entrySet()) {
-                String builder = entry.getKey() + "=" + String.join(",", entry.getValue());
-                content.add(builder);
-            }
-            content.add("empty=" + String.join(",", emptyConfigurations));
-            Files.write(lockfilePath, content, CHARSET);
-        } catch (IOException e) {
-            throw new RuntimeException("Unable to write unique lockfile", e);
         }
     }
 }

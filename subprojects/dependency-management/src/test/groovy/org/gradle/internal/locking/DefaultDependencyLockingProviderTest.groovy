@@ -81,7 +81,7 @@ org:foo:1.0
         given:
         lockDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
         startParameter.isWriteDependencyLocks() >> true
-        featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+        featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         def modules = [module('org', 'foo', '1.0'), module('org','bar','1.3')] as Set
         provider.loadLockState('conf')
@@ -103,7 +103,7 @@ empty=
     def 'can load lockfile as strict constraints (Unique: #unique)'() {
         given:
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
             provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         }
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
@@ -126,7 +126,7 @@ empty=
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:foo']
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         }
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
@@ -149,7 +149,7 @@ empty=
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org:*']
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         }
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         writeLockFile(['org:bar:1.3', 'org:foo:1.0'], unique)
@@ -172,7 +172,7 @@ empty=
         startParameter.isWriteDependencyLocks() >> true
         startParameter.getLockedDependenciesToUpdate() >> ['org.*:foo']
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         }
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         writeLockFile(['org.bar:foo:1.3', 'com:foo:1.0'], unique)
@@ -200,7 +200,7 @@ empty=
             }
         }
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         }
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         writeLockFile(['org:bar:1.1', 'org:foo:1.1'], unique)
@@ -219,7 +219,7 @@ empty=
     def 'fails with invalid content in lock file (Unique: #unique)'() {
         given:
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         }
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         writeLockFile(["invalid"], unique)
@@ -245,7 +245,7 @@ empty=
     def 'fails with missing lockfile in strict mode (Unique: #unique)'() {
         given:
         if (unique) {
-            featurePreviews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_LOCKING_IMPROVED_FORMAT)
+            featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         }
         provider = new DefaultDependencyLockingProvider(resolver, startParameter, context, dependencySubstitutionRules, featurePreviews)
         provider.setLockMode(LockMode.STRICT)
