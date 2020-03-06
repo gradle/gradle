@@ -110,11 +110,6 @@ class DefaultInstantExecution internal constructor(
         }
         else -> {
 
-            // TODO - should load properties from settings file directory
-            gradlePropertiesController.loadGradlePropertiesFrom(
-                startParameter.rootDirectory
-            )
-
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
@@ -236,7 +231,20 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun checkFingerprint(): InvalidationReason? =
+    fun checkFingerprint(): InvalidationReason? {
+        loadGradleProperties()
+        return checkInstantExecutionFingerprintFile()
+    }
+
+    private
+    fun loadGradleProperties() {
+        gradlePropertiesController.loadGradlePropertiesFrom(
+            startParameter.settingsDirectory
+        )
+    }
+
+    private
+    fun checkInstantExecutionFingerprintFile(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
                 instantExecutionFingerprintChecker().run {
