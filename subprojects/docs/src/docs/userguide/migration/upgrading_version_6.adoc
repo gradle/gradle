@@ -59,9 +59,6 @@ The dependencies for annotation processors are not added to an IDEA module's cla
 
 ==== Rich console support discontinued for some 32-bit operating systems
 
-Gradle uses the https://github.com/gradle/native-platform[`native-platform`] library to call native platform APIs for things which are not easily possible from plain Java.
-Most notably, it uses `native-platform` for a better console experience.
-
 Gradle 6.3 does not support the rich console for 32-bit Unix systems and for old FreeBSD versions (older than FreeBSD 10).
 Gradle will continue building your projects on the affected systems, but without the rich console.
 32-bit versions of Windows are unaffected, and will keep working as before.
