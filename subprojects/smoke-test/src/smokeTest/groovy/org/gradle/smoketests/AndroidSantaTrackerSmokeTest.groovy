@@ -26,14 +26,21 @@ import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
+    @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker Java (agp=#agpVersion)"() {
+
+        // Skip versions broken for this test
+        // https://issuetracker.google.com/issues/150438232
+        assumeThat(agpVersion, not(equalTo("4.1.0-alpha01")))
 
         given:
         def checkoutDir = temporaryFolder.createDir("checkout")
@@ -59,8 +66,12 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
+    @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
+
+        // Skip versions broken for this test
+        // https://issuetracker.google.com/issues/150438232
+        assumeThat(agpVersion, not(equalTo("4.1.0-alpha01")))
 
         given:
         def checkoutDir = temporaryFolder.createDir("checkout")

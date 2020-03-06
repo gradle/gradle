@@ -35,7 +35,7 @@ import static org.junit.Assume.assumeThat
 class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
+    @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
 
         // Skip versions broken for this test
