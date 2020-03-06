@@ -37,9 +37,11 @@ public class WatchingNotSupportedVirtualFileSystem extends AbstractDelegatingVir
     @Override
     public void afterStartingBuildWithWatchingEnabled() {
         LOGGER.warn("Watching for file changes is not supported on the current operating system");
+        invalidateAll();
     }
 
     @Override
     public void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir) {
+        invalidateAll();
     }
 }

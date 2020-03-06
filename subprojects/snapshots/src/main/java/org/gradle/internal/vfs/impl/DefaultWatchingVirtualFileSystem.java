@@ -44,6 +44,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
 
     private FileWatcherRegistry watchRegistry;
+    private volatile boolean buildRunning;
 
     public DefaultWatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
@@ -64,11 +65,15 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     @Override
     public void afterStartingBuildWithWatchingEnabled() {
         printStatistics("retained", "since last build");
+        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
+        buildRunning = true;
     }
 
     @Override
     public void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir) {
         stopWatching();
+        buildRunning = false;
+        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         printStatistics("retains", "till next build");
         startWatching(Collections.singleton(rootProjectDir));
     }
@@ -89,7 +94,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     LOGGER.debug("Handling VFS change {} {}", type, path);
                     String absolutePath = path.toString();
-                    if (!producedByCurrentBuild.get().contains(absolutePath)) {
+                    if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
                         DefaultWatchingVirtualFileSystem.super.update(Collections.singleton(absolutePath), () -> {});
                     }
                 }
@@ -114,7 +119,6 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
      * the parts that have been changed since calling {@link #startWatching(Collection)} ()}.
      */
     private void stopWatching() {
-        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
         if (watchRegistry == null) {
             return;
         }
@@ -154,13 +158,15 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
-        producedByCurrentBuild.updateAndGet(currentValue -> {
-            FileHierarchySet newValue = currentValue;
-            for (String location : locations) {
-                newValue = newValue.plus(new File(location));
-            }
-            return newValue;
-        });
+        if (buildRunning) {
+            producedByCurrentBuild.updateAndGet(currentValue -> {
+                FileHierarchySet newValue = currentValue;
+                for (String location : locations) {
+                    newValue = newValue.plus(new File(location));
+                }
+                return newValue;
+            });
+        }
         super.update(locations, action);
     }
 
