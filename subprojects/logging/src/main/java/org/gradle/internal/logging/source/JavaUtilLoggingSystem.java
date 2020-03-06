@@ -101,14 +101,13 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     private void install(Level level) {
-        if (installed) {
-            return;
+        if (!installed) {
+            LogManager.getLogManager().reset();
+            SLF4JBridgeHandler.install();
+            installed = true;
         }
 
-        LogManager.getLogManager().reset();
-        SLF4JBridgeHandler.install();
         logger.setLevel(level);
-        installed = true;
     }
 
     private static class SnapshotImpl implements Snapshot {
