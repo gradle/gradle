@@ -29,14 +29,14 @@ import spock.lang.Specification
 
 class RequestSerializerTest extends Specification {
     List<SerializerRegistry> registries = []
-    def serializer = new RequestSerializer(this.getClass().getClassLoader(), registries)
+    def serializer = new RequestSerializer(this.getClass().getClassLoader(), registries, false)
     def outputStream = new ByteArrayOutputStream()
     def encoder = new KryoBackedEncoder(outputStream)
     def encoded = false
     def decoded = false
 
     def "can serialize and deserialize request without registry"() {
-        def request = new Request("foo", [Foo.class, Bar.class] as Class<?>[], [new Foo("foo"), new Bar("bar")] as Object[], buildOperation())
+        def request = new Request(new Foo("foo"), buildOperation())
 
         when:
         serializer.write(encoder, request)
@@ -54,7 +54,7 @@ class RequestSerializerTest extends Specification {
     }
 
     def "can serialize and deserialize request with a registry"() {
-        def request = new Request("foo", [Foo.class, Bar.class] as Class<?>[], [new Foo("foo"), new Bar("bar")] as Object[], buildOperation())
+        def request = new Request(new Foo("foo"), buildOperation())
 
         when:
         registries.add(registry())
@@ -72,15 +72,33 @@ class RequestSerializerTest extends Specification {
         decoded
     }
 
+    def "can serialize request and skip arg on read"() {
+        def request = new Request(new Foo("foo"), buildOperation())
+        def serializer = new RequestSerializer(this.getClass().getClassLoader(), registries, true)
+
+        when:
+        registries.add(registry())
+        serializer.write(encoder, request)
+        encoder.flush()
+
+        and:
+        def decodedRequest = serializer.read(decoder())
+
+        then:
+        decodedRequest.arg == null
+
+        and:
+        encoded
+        !decoded
+    }
+
     def decoder() {
         return new KryoBackedDecoder(new ByteArrayInputStream(outputStream.toByteArray()))
     }
 
     boolean identical(Request decodedRequest, Request request) {
-        assert decodedRequest.methodName == request.methodName
-        assert decodedRequest.paramTypes == request.paramTypes
-        assert decodedRequest.args.size() == request.args.size()
-        assert decodedRequest.args.collect { it.text } == request.args.collect { it.text }
+        assert decodedRequest.arg.class == request.arg.class
+        assert decodedRequest.arg.text == request.arg.text
         assert decodedRequest.buildOperation.id == request.buildOperation.id
         return true
     }
@@ -113,14 +131,6 @@ class RequestSerializerTest extends Specification {
         String text
 
         Foo(String text) {
-            this.text = text
-        }
-    }
-
-    static class Bar implements Serializable {
-        String text
-
-        Bar(String text) {
             this.text = text
         }
     }

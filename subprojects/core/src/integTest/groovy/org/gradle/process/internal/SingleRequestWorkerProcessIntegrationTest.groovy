@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal
 
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.process.internal.worker.RequestHandler
 import org.gradle.process.internal.worker.WorkerProcessException
 import spock.lang.Timeout
@@ -113,11 +114,11 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
-        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 1"
+        e.cause instanceof ClassNotFoundException
 
         and:
-        stdout.stdErr.contains("java.lang.ClassNotFoundException: CustomTestWorker")
+        stdout.stdOut == ""
+        stdout.stdErr == ""
     }
 
     def "reports failure to instantiate worker implementation instance"() {
@@ -130,11 +131,12 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
-        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 1"
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type ${RequestHandler.name}."
 
         and:
-        stdout.stdErr.contains("org.gradle.api.reflect.ObjectInstantiationException: Could not create an instance of type ${RequestHandler.name}.")
+        stdout.stdOut == ""
+        stdout.stdErr == ""
     }
 
     def "propagates failure to start worker process"() {

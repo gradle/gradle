@@ -17,6 +17,7 @@
 package org.gradle.process.internal
 
 import junit.framework.AssertionFailedError
+import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.process.internal.worker.RequestHandler
 import org.gradle.process.internal.worker.WorkerControl
 import org.gradle.process.internal.worker.WorkerProcessException
@@ -106,7 +107,7 @@ class CustomResult implements Serializable {
         worker?.stop()
     }
 
-    def "reports failure to load worker implementation class"() {
+    def "propagates failure to load worker implementation class"() {
         given:
         def cl = compileWithoutClasspath("CustomTestWorker", """
 import ${RequestHandler.name}
@@ -125,17 +126,17 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
-        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 1"
+        e.cause instanceof ClassNotFoundException
 
         and:
-        stdout.stdErr.contains("java.lang.ClassNotFoundException: CustomTestWorker")
+        stdout.stdOut == ""
+        stdout.stdErr == ""
 
         cleanup:
-        stopBroken(worker)
+        worker?.stop()
     }
 
-    def "reports failure to instantiate worker implementation instance"() {
+    def "propagates failure to instantiate worker implementation instance"() {
         when:
         def builder = workerFactory.multiRequestWorker(RequestHandler.class)
         builder.baseName = 'broken worker'
@@ -146,14 +147,15 @@ class CustomTestWorker implements RequestHandler<Long, Object> {
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
-        e.cause instanceof ExecException
-        e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 1"
+        e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type ${RequestHandler.name}."
 
         and:
-        stdout.stdErr.contains("org.gradle.api.reflect.ObjectInstantiationException: Could not create an instance of type ${RequestHandler.name}.")
+        stdout.stdOut == ""
+        stdout.stdErr == ""
 
         cleanup:
-        stopBroken(worker)
+        worker?.stop()
     }
 
     def "propagates failure to start worker process"() {

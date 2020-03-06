@@ -30,35 +30,52 @@ public class RequestSerializer implements Serializer<Request> {
     private final List<SerializerRegistry> registries;
     private final ClassLoader classLoader;
     private final JavaObjectSerializer javaObjectSerializer;
+    private final boolean skipIncomingArg;
 
-    public RequestSerializer(ClassLoader classLoader, List<SerializerRegistry> registries) {
+    public RequestSerializer(ClassLoader classLoader, List<SerializerRegistry> registries, boolean skipIncomingArg) {
         this.registries = registries;
         this.classLoader = classLoader;
         this.javaObjectSerializer = new JavaObjectSerializer(classLoader);
+        this.skipIncomingArg = skipIncomingArg;
     }
 
     @Override
     public void write(Encoder encoder, Request request) throws Exception {
-        Object object = request.getArg();
-        if (object == null) {
-            encoder.writeString(NullType.class.getName());
-        } else {
-            Class<?> type = object.getClass();
-            encoder.writeString(type.getName());
-            select(type).write(encoder, object);
-        }
+        encoder.encodeChunked(new Encoder.EncodeAction<Encoder>() {
+            @Override
+            public void write(Encoder target) throws Exception {
+                Object object = request.getArg();
+                if (object == null) {
+                    target.writeString(NullType.class.getName());
+                } else {
+                    Class<?> type = object.getClass();
+                    target.writeString(type.getName());
+                    select(type).write(target, object);
+                }
+            }
+        });
 
         javaObjectSerializer.write(encoder, request.getBuildOperation());
     }
 
     @Override
     public Request read(Decoder decoder) throws Exception {
-        Class<?> type = classLoader.loadClass(decoder.readString());
         Object arg;
-        if (type == NullType.class) {
+        if (skipIncomingArg) {
+            decoder.skipChunked();
             arg = null;
         } else {
-            arg = select(type).read(decoder);
+            arg = decoder.decodeChunked(new Decoder.DecodeAction<Decoder, Object>() {
+                @Override
+                public Object read(Decoder decoder) throws Exception {
+                    Class<?> type = classLoader.loadClass(decoder.readString());
+                    if (type == NullType.class) {
+                        return null;
+                    } else {
+                        return select(type).read(decoder);
+                    }
+                }
+            });
         }
 
         BuildOperationRef buildOperation = (BuildOperationRef) javaObjectSerializer.read(decoder);
