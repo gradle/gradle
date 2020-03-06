@@ -171,9 +171,6 @@ class InstantExecutionReport(
 
     private
     fun writeReportFiles(outputDirectory: File) {
-        require(outputDirectory.deleteRecursively()) {
-            "Could not clean instant execution report directory '$outputDirectory'"
-        }
         require(outputDirectory.mkdirs()) {
             "Could not create instant execution report directory '$outputDirectory'"
         }
