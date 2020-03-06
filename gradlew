@@ -1,5 +1,7 @@
 #!/usr/bin/env sh
 
+# STUB_FOR_CONTRIB
+
 #
 # Copyright 2015 the original author or authors.
 #
