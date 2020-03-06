@@ -19,6 +19,8 @@ package org.gradle.internal.vfs;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.file.FileWatcherCallback;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -26,6 +28,7 @@ import java.nio.file.Paths;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATE;
@@ -33,16 +36,31 @@ import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
 public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
+
     private final FileWatcher watcher;
     private final AtomicInteger numberOfReceivedEvents = new AtomicInteger();
     private final AtomicBoolean unknownEventEncountered = new AtomicBoolean();
+    private final AtomicReference<Throwable> errorWhileReceivingFileChanges = new AtomicReference<>();
 
     public AbstractEventDrivenFileWatcherRegistry(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
         this.watcher = createWatcher(roots, watcherCreator, handler);
     }
 
     private FileWatcher createWatcher(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        FileWatcher watcher = watcherCreator.createWatcher((type, path) -> handleEvent(type, path, handler));
+        FileWatcher watcher = watcherCreator.createWatcher(new FileWatcherCallback() {
+            @Override
+            public void pathChanged(Type type, String path) {
+                handleEvent(type, path, handler);
+            }
+
+            @Override
+            public void reportError(Throwable ex) {
+                LOGGER.error("Error while receiving file changes", ex);
+                errorWhileReceivingFileChanges.compareAndSet(null, ex);
+                handler.handleLostState();
+            }
+        });
         roots.stream()
             .map(Path::toFile)
             .forEach(watcher::startWatching);
@@ -76,7 +94,7 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
 
     @Override
     public FileWatchingStatistics getStatistics() {
-        return new FileWatchingStatistics(unknownEventEncountered.get(), numberOfReceivedEvents.get());
+        return new FileWatchingStatistics(unknownEventEncountered.get(), numberOfReceivedEvents.get(), errorWhileReceivingFileChanges.get());
     }
 
     @Override

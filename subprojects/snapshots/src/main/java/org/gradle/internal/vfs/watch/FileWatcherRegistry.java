@@ -16,9 +16,11 @@
 
 package org.gradle.internal.vfs.watch;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Optional;
 
 public interface FileWatcherRegistry extends Closeable {
 
@@ -49,10 +51,16 @@ public interface FileWatcherRegistry extends Closeable {
     class FileWatchingStatistics {
         private final boolean unknownEventEncountered;
         private final int numberOfReceivedEvents;
+        private final Throwable errorWhileReceivingFileChanges;
 
-        public FileWatchingStatistics(boolean unknownEventEncountered, int numberOfReceivedEvents) {
+        public Optional<Throwable> getErrorWhileReceivingFileChanges() {
+            return Optional.ofNullable(errorWhileReceivingFileChanges);
+        }
+
+        public FileWatchingStatistics(boolean unknownEventEncountered, int numberOfReceivedEvents, @Nullable Throwable errorWhileReceivingFileChanges) {
             this.unknownEventEncountered = unknownEventEncountered;
             this.numberOfReceivedEvents = numberOfReceivedEvents;
+            this.errorWhileReceivingFileChanges = errorWhileReceivingFileChanges;
         }
 
         public boolean isUnknownEventEncountered() {
