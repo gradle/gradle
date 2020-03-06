@@ -33,8 +33,7 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         encoder.writeString(spec.getImplementationClassName());
         encoder.writeBoolean(spec.isInternalServicesRequired());
         encoder.writeString(spec.getBaseDir().getAbsolutePath());
-        encoder.writeInt(spec.getSerializedParameters().length);
-        encoder.writeBytes(spec.getSerializedParameters());
+        encoder.writeBinary(spec.getSerializedParameters());
         if (spec.getClassLoaderStructure() instanceof HierarchicalClassLoaderStructure) {
             encoder.writeByte(HIERARCHICAL);
             hierarchicalClassLoaderStructureSerializer.write(encoder, (HierarchicalClassLoaderStructure) spec.getClassLoaderStructure());
@@ -51,9 +50,7 @@ public class TransportableActionExecutionSpecSerializer implements Serializer<Tr
         String implementationClassName = decoder.readString();
         boolean usesInternalServices = decoder.readBoolean();
         String baseDirPath = decoder.readString();
-        int parametersSize = decoder.readInt();
-        byte[] serializedParameters = new byte[parametersSize];
-        decoder.readBytes(serializedParameters);
+        byte[] serializedParameters = decoder.readBinary();
         byte classLoaderStructureTag = decoder.readByte();
         ClassLoaderStructure classLoaderStructure;
         switch (classLoaderStructureTag) {
