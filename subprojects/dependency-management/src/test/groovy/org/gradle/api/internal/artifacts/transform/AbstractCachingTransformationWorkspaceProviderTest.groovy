@@ -27,7 +27,7 @@ import java.util.concurrent.atomic.AtomicInteger
 
 class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def executionHistoryStore = Mock(ExecutionHistoryStore)
     private workspaceProvider = new AbstractCachingTransformationWorkspaceProvider(new TestTransformationWorkspaceProvider(tmpDir.file("transforms"), executionHistoryStore)) {}
@@ -80,7 +80,7 @@ class AbstractCachingTransformationWorkspaceProviderTest extends ConcurrentSpec 
         then:
         noExceptionThrown()
     }
-    
+
     def "has cached result works as expected"() {
         expect:
         !workspaceProvider.getCachedResult(new TestWorkspaceIdentity("first"))

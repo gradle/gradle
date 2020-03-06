@@ -27,7 +27,7 @@ class UnsupportedFilePermissionsTest extends Specification {
 
     def outputEventListener = new TestOutputEventListener()
     @Rule ConfigureLogging logging = new ConfigureLogging(outputEventListener)
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def permissions = new UnsupportedFilePermissions()
 
     def "warns on first attempt to stat a file"() {

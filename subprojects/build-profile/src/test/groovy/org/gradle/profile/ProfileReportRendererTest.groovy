@@ -26,7 +26,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class ProfileReportRendererTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def "renders report"() {
         def model = new BuildProfile(new StartParameter())

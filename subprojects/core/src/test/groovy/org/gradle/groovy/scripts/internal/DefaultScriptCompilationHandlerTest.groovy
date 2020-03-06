@@ -84,7 +84,7 @@ class DefaultScriptCompilationHandlerTest extends Specification {
 
     private ImportsReader importsReader
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     public SetSystemProperties systemProperties = new SetSystemProperties()
 

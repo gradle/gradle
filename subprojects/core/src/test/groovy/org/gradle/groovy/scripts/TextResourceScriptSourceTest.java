@@ -42,7 +42,7 @@ public class TextResourceScriptSourceTest {
     private File scriptFile;
     private URI scriptFileUri;
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     @Before
     public void setUp() throws URISyntaxException {

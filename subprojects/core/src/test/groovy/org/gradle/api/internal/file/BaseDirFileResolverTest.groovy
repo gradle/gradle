@@ -38,7 +38,7 @@ class BaseDirFileResolverTest {
     File testDir
 
     BaseDirFileResolver baseDirConverter
-    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider()
+    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider(getClass())
     @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {

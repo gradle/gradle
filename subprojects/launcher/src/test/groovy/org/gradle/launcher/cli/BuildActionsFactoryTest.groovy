@@ -38,7 +38,7 @@ class BuildActionsFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     ServiceRegistry loggingServices = new DefaultServiceRegistry()
     boolean useCurrentProcess
 

@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class LinkExeLinkerTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def argsTransformer = new LinkExeLinker.LinkerArgsTransformer()
 
     def "generates linker args for shared library"() {

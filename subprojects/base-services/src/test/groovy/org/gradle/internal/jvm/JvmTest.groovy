@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class JvmTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     SetSystemProperties sysProp = new SetSystemProperties()
     OperatingSystem os = Mock() {

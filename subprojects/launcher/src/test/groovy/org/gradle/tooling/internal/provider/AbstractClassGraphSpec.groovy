@@ -26,7 +26,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 abstract class AbstractClassGraphSpec extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     /**
      * Returns the classpath for the given classes.

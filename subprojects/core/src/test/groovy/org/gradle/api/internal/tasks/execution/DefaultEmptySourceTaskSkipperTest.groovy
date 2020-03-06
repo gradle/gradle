@@ -31,7 +31,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultEmptySourceTaskSkipperTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     final task = Stub(TaskInternal)
     final inputFiles = Mock(FileCollectionInternal)

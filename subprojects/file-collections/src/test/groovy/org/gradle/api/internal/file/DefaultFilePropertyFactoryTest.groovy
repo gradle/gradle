@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultFilePropertyFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile projectDir
     DefaultFilePropertyFactory factory
 

@@ -36,7 +36,7 @@ import static org.hamcrest.CoreMatchers.nullValue
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest extends Specification {
-    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
     private final TaskDependencyFactory taskDependencyFactory = Stub(TaskDependencyFactory) {
         _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)

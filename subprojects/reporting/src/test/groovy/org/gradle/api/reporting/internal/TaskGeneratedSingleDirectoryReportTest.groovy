@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class TaskGeneratedSingleDirectoryReportTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "can attach a convention mapping for output directory location"() {
         def report = TestUtil.objectFactory(tmpDir.testDirectory).newInstance(TaskGeneratedSingleDirectoryReport, "report", Stub(Task), "entryPoint")

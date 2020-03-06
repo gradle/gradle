@@ -47,7 +47,7 @@ import spock.lang.Unroll
 
 class MavenPomFileGeneratorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     def projectIdentity = new ReadableMavenProjectIdentity("group-id", "artifact-id", "1.0")
     def rangeMapper = Stub(VersionRangeMapper)
     def strategy = Stub(VersionMappingStrategyInternal) {

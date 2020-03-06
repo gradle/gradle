@@ -30,7 +30,7 @@ import static org.gradle.util.WrapUtil.toSet
 @UsesNativeServices // via DirectoryFileTree
 abstract class FileCollectionSpec extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     abstract AbstractFileCollection containing(File... files)
 

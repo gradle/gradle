@@ -33,7 +33,7 @@ import static org.gradle.launcher.daemon.server.api.DaemonStateControl.State.Idl
 
 class PersistentDaemonRegistryTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     int addressCounter = 0
     def lockManager = createDefaultFileLockManager()

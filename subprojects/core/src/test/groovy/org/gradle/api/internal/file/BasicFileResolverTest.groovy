@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class BasicFileResolverTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def baseDir = tmpDir.createDir("base-dir")
     def resolver = new BasicFileResolver(baseDir)
 

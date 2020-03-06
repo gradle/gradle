@@ -15,7 +15,7 @@ abstract class TestWithTempFiles {
 
     @JvmField
     @Rule
-    val tempFolder = TestNameTestDirectoryProvider()
+    val tempFolder = TestNameTestDirectoryProvider(javaClass)
 
     protected
     val root: File

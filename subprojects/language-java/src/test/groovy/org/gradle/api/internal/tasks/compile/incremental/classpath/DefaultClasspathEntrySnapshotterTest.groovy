@@ -34,7 +34,7 @@ import spock.lang.Subject
 @UsesNativeServices
 class DefaultClasspathEntrySnapshotterTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = Mock(FileHasher)
     def streamHasher = Mock(StreamHasher)

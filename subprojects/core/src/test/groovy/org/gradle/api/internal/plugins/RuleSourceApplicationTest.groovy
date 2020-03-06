@@ -27,7 +27,7 @@ import spock.lang.Specification
 class RuleSourceApplicationTest extends Specification {
 
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private ProjectInternal buildProject() {
         ProjectBuilder.builder().withProjectDir(temporaryFolder.testDirectory).build()

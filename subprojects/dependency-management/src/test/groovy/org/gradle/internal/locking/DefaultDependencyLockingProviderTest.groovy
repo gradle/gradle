@@ -38,7 +38,7 @@ import static org.gradle.internal.component.external.model.DefaultModuleComponen
 
 class DefaultDependencyLockingProviderTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     TestFile lockDir = tmpDir.createDir(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER)
 

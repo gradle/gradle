@@ -49,7 +49,7 @@ class DefaultFileOperationsTest extends Specification {
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
         instantiator.newInstance(

@@ -30,7 +30,7 @@ import spock.lang.Specification
 abstract class AbstractClassGeneratorSpec extends Specification {
     @ClassRule
     @Shared
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     abstract ClassGenerator getGenerator()
 

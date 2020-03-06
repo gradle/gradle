@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class ArchivePublishArtifactTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def testUtil = TestUtil.create(temporaryFolder)
 

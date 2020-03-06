@@ -27,7 +27,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultArtifactCacheLockingManagerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheRepository = new DefaultCacheRepository(null, new InMemoryCacheFactory())
     def cacheDir = temporaryFolder.createDir(CacheLayout.ROOT.key)

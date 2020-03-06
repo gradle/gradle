@@ -30,7 +30,7 @@ import spock.lang.Unroll
 @UsesNativeServices
 class PropertiesToDaemonParametersConverterTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def converter = new PropertiesToDaemonParametersConverter()
     def params = new DaemonParameters(new BuildLayoutParameters(), TestFiles.fileCollectionFactory())

@@ -41,7 +41,7 @@ import static org.gradle.internal.file.TreeType.FILE
 @CleanupTestDirectory
 abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def readOrigin = Stub(OriginReader)
     def writeOrigin = Stub(OriginWriter)
 

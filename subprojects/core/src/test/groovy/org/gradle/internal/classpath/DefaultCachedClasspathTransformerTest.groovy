@@ -32,7 +32,7 @@ import spock.lang.Specification
 import spock.lang.Subject
 
 class DefaultCachedClasspathTransformerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     def testDir = testDirectoryProvider.testDirectory
 
     def cachedDir = testDir.file("cached")

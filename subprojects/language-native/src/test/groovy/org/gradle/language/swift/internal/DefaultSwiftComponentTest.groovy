@@ -31,7 +31,7 @@ import javax.inject.Inject
 
 class DefaultSwiftComponentTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     DefaultSwiftComponent component
 

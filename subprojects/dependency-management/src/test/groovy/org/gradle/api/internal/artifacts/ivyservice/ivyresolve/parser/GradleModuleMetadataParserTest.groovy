@@ -115,7 +115,7 @@ class GradleModuleMetadataParserTest extends Specification {
     ]
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def identifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def parser = new GradleModuleMetadataParser(AttributeTestUtil.attributesFactory(), identifierFactory, TestUtil.objectInstantiator())

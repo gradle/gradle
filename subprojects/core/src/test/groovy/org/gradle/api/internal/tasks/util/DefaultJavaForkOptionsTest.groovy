@@ -39,7 +39,7 @@ import static org.junit.Assert.assertThat
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final resolver = TestFiles.pathToFileResolver(tmpDir.testDirectory)
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private DefaultJavaForkOptions options

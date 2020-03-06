@@ -36,7 +36,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class DefaultClasspathFingerprinterTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def stringInterner = Stub(StringInterner) {
         intern(_) >> { String s -> s }

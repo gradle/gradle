@@ -47,7 +47,7 @@ import spock.lang.Issue
 class RuntimeShadedJarCreatorTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def progressLoggerFactory = Stub(ProgressLoggerFactory)
     def relocatedJarCreator

@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class AbstractCacheCleanupTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def cleanableStore = Mock(CleanableStore) {
         getBaseDir() >> cacheDir

@@ -24,7 +24,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class SingleDepthFileAccessTrackerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile baseDir = tmpDir.file("base")
     FileAccessTimeJournal journal = Mock(FileAccessTimeJournal)
 

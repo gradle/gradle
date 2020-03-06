@@ -32,7 +32,7 @@ import static org.hamcrest.CoreMatchers.instanceOf
 import static org.junit.Assert.assertThat
 
 class DefaultScalaSourceSetTest {
-    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private final DefaultScalaSourceSet sourceSet = new DefaultScalaSourceSet("<set-display-name>", TestUtil.objectFactory(tmpDir.testDirectory))
 

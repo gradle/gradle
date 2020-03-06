@@ -21,7 +21,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class PathFactoryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final PathFactory factory = new PathFactory()
 
     def createsPathForAFileUnderARootDir() {

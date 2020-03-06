@@ -39,7 +39,7 @@ class AbstractGradleVsMavenPerformanceTest extends Specification {
     private static final GradleVsMavenBuildResultsStore RESULT_STORE = new GradleVsMavenBuildResultsStore()
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 

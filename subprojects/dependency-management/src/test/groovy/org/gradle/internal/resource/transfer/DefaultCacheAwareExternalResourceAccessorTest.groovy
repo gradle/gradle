@@ -42,7 +42,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
     final repository = Mock(ExternalResourceRepository)
     final progressLoggingRepo = Mock(ExternalResourceRepository)
     final index = Mock(CachedExternalResourceIndex)

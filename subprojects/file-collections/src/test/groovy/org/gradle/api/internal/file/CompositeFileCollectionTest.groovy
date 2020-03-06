@@ -30,7 +30,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class CompositeFileCollectionTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def file1 = new File("1")
     def file2 = new File("2")
     def file3 = new File("3")

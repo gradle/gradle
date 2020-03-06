@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class ExclusiveFileAccessManagerTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider temporaryDirectory = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryDirectory = new TestNameTestDirectoryProvider(getClass())
     private manager = new ExclusiveFileAccessManager(1000, 10)
 
     def 'If the directory for the lock file cannot be created then we get a good error message'() {

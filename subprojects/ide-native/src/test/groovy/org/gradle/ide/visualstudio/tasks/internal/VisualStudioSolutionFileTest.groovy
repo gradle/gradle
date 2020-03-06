@@ -30,7 +30,7 @@ import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.ge
 
 class VisualStudioSolutionFileTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def solutionFile = new VisualStudioSolutionFile()
 

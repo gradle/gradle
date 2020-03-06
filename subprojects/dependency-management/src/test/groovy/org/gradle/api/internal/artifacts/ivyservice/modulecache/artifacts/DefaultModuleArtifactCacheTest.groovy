@@ -35,7 +35,7 @@ import java.nio.file.Path
 
 class DefaultModuleArtifactCacheTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider folder = new TestNameTestDirectoryProvider(getClass())
 
     ArtifactCacheLockingManager cacheLockingManager = Mock(ArtifactCacheLockingManager)
     BuildCommencedTimeProvider timeProvider = Mock(BuildCommencedTimeProvider)

@@ -27,7 +27,7 @@ import spock.lang.Specification
 class BuildDashboardGeneratorSpec extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     File outputFile
     BuildDashboardGenerator generator = new BuildDashboardGenerator()

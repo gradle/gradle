@@ -29,7 +29,7 @@ class GradleRuntimeShadedJarDetectorTest extends Specification {
     private static final String CLASS_NAME = 'org/gradle/test/Registry'
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def jarFile = tmpDir.file('lib.jar')
 

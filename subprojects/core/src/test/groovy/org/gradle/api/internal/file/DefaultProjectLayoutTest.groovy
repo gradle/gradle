@@ -29,7 +29,7 @@ import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectLayoutTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile projectDir
     DefaultProjectLayout layout
 
