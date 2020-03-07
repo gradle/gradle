@@ -1,14 +1,10 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [dark mode reports](#dark-mode), [2](), ... [n](), and more.
+This release features [support for JDK14](#java-14), [dark mode reports](#dark-mode) and more.
 
 Be sure to also check out all the [bug fixes](#fixed-issues) and [improvements for plugin authors](#plugin-authors).
 
 We would like to thank the following community contributors to this release of Gradle:
-<!-- 
-Include only their name, impactful features should be called out separately below.
- [Some person](https://github.com/some-person)
--->
 [Kyle Cackett](https://github.com/kyle-cackett),
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [Daniel Thomas](https://github.com/DanielThomas),
@@ -27,6 +23,10 @@ Switch your build to use Gradle @version@ by updating your wrapper:
 See the [Gradle 6.x upgrade guide](userguide/upgrading_version_6.html#changes_@baseVersion@) to learn about deprecations, breaking changes and other considerations when upgrading to Gradle @version@. 
 
 For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+
+<a name="java-14"></a>
+## Support for Java 14
+Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk/14/).
 
 <a name="dark-mode"></a>
 ## Dark mode support for generated reports
@@ -75,10 +75,6 @@ Promoted features are features that were incubating in previous versions of Grad
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
 
 The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 
