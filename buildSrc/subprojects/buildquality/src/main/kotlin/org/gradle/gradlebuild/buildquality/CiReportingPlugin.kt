@@ -52,7 +52,12 @@ open class CiReportingPlugin : Plugin<Project> {
      */
     private
     fun Project.cleanUp(filesToCleanUp: List<File>) {
-        delete(filesToCleanUp)
+        try {
+            delete(filesToCleanUp)
+        } catch (e: Exception) {
+            // https://github.com/gradle/gradle-private/issues/2983#issuecomment-596083202
+            e.printStackTrace()
+        }
     }
 
     private
