@@ -18,6 +18,7 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -540,5 +541,26 @@ project.extensions.create("some", SomeExtension)
                 }
             }
         """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10248#issuecomment-592528234")
+    def "can use findProperty from a closure passed to ConfigureUtil.configure via an extension"() {
+        when:
+        buildFile << """
+        class SomeExtension {
+            def innerThing(Closure closure) {
+                org.gradle.util.ConfigureUtil.configure(closure, new InnerThing())
+            }
+            class InnerThing {}
+        }
+        extensions.create('someExtension', SomeExtension)
+        someExtension {
+            innerThing {
+                findProperty('foo')
+            }
+        }
+        """
+        then:
+        succeeds()
     }
 }

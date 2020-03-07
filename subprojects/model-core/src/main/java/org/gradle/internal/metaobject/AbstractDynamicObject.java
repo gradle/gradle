@@ -18,6 +18,7 @@ package org.gradle.internal.metaobject;
 import groovy.lang.GroovyRuntimeException;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
+import org.codehaus.groovy.runtime.metaclass.MissingMethodExecutionFailed;
 
 import javax.annotation.Nullable;
 import java.util.Arrays;
@@ -179,7 +180,20 @@ public abstract class AbstractDynamicObject implements DynamicObject {
             // Include the display name anyway
             message = String.format("Could not find method %s() for arguments %s on %s.", name, Arrays.toString(params), getDisplayName());
         }
-        return new CustomMessageMissingMethodException(name, publicType, message, params);
+        // https://github.com/apache/groovy/commit/75c068207ba24648ea2d698c520601c6fcf0a45b
+        return new CustomMissingMethodExecutionFailed(name, publicType, message, params);
+    }
+
+    private static class CustomMissingMethodExecutionFailed extends MissingMethodExecutionFailed {
+
+        public CustomMissingMethodExecutionFailed(String name, Class<?> publicType, String message, Object... params) {
+            super(name, publicType, params, false, new CustomMessageMissingMethodException(name, publicType, message, params));
+        }
+
+        @Override
+        public String getMessage() {
+            return getCause().getMessage();
+        }
     }
 
     private static class CustomMessageMissingMethodException extends MissingMethodException {
