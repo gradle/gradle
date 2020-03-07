@@ -618,6 +618,41 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "Provider<String>" | "objects.property(String)"                | "null"
     }
 
+    def "replaces provider with fixed value"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Internal
+                Provider<String> value
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = providers.provider {
+                    println("calculating value")
+                    'value'
+                }
+            }
+        """
+
+        when:
+        instantRun "ok"
+
+        then:
+        outputContains("calculating value")
+        outputContains("this.value = value")
+
+        when:
+        instantRun "ok"
+
+        then:
+        outputDoesNotContain("calculating value")
+        outputContains("this.value = value")
+    }
+
     @Unroll
     def "restores task fields whose value is broken #type"() {
         def instantExecution = newInstantExecutionFixture()
