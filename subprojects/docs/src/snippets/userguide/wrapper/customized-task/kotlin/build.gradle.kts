@@ -1,5 +1,5 @@
 // tag::customized-wrapper-task[]
-tasks.wrapper {
+tasks.named<Wrapper>("wrapper") {
     distributionType = Wrapper.DistributionType.ALL
 }
 // end::customized-wrapper-task[]
