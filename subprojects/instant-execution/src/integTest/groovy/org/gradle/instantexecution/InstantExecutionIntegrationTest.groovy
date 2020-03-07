@@ -1003,7 +1003,12 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         instantRun "broken"
 
         then:
-        outputContains("instant-execution > cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.")
+        outputContains("""
+            2 instant execution problems were found, 2 of which seem unique:
+              - field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.
+              - field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.
+            See the complete report at
+        """.stripIndent())
 
         when:
         instantRun "broken"
