@@ -16,31 +16,8 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.Project
-import org.gradle.api.Script
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.DependencyConstraintSet
-import org.gradle.api.artifacts.DependencySet
-import org.gradle.api.artifacts.LenientConfiguration
-import org.gradle.api.artifacts.ResolutionStrategy
-import org.gradle.api.artifacts.ResolvedConfiguration
-import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
-import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
-import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
-import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.artifacts.dsl.DependencyLockingHandler
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.query.ArtifactResolutionQuery
-import org.gradle.api.artifacts.repositories.ArtifactRepository
-import org.gradle.api.artifacts.type.ArtifactTypeContainer
-import org.gradle.api.attributes.AttributeMatchingStrategy
-import org.gradle.api.attributes.AttributesSchema
-import org.gradle.api.attributes.CompatibilityRuleChain
-import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
@@ -56,21 +33,15 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
-import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
@@ -94,19 +65,10 @@ import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 import org.gradle.workers.WorkerExecutor
-import java.io.FileDescriptor
-import java.io.InputStream
-import java.io.OutputStream
-import java.io.RandomAccessFile
-import java.net.ServerSocket
-import java.net.Socket
-import java.util.concurrent.Executor
-import java.util.concurrent.ThreadFactory
 
 
 class Codecs(
@@ -198,58 +160,6 @@ class Codecs(
         // we can still get them for the other codecs, for instance,
         // with deeply nested Lists, deeply nested Maps, etc.
         bind(reentrant(BeanCodec()))
-    }
-
-    private
-    fun BindingsBuilder.unsupportedTypes() {
-
-        // Live JVM state
-        bind(unsupported<ClassLoader>())
-        bind(unsupported<Thread>())
-        bind(unsupported<ThreadFactory>())
-        bind(unsupported<Executor>())
-        bind(unsupported<InputStream>())
-        bind(unsupported<OutputStream>())
-        bind(unsupported<FileDescriptor>())
-        bind(unsupported<RandomAccessFile>())
-        bind(unsupported<Socket>())
-        bind(unsupported<ServerSocket>())
-
-        // Gradle Scripts
-        bind(unsupported<Script>())
-        bind(unsupported<KotlinScript>())
-
-        // Gradle Build Model
-        bind(unsupported<Gradle>())
-        bind(unsupported<Settings>())
-        bind(unsupported<Project>())
-        bind(unsupported<TaskContainer>())
-        bind(unsupported<TaskDependency>())
-        bind(unsupported<SourceSetContainer>())
-        bind(unsupported<SourceSet>())
-
-        // Dependency Resolution Services
-        bind(unsupported<ConfigurationContainer>())
-        // bind(unsupported<Configuration>()) // TODO this breaks lots of core plugins
-        bind(unsupported<ResolutionStrategy>())
-        bind(unsupported<ResolvedConfiguration>())
-        bind(unsupported<LenientConfiguration>())
-        bind(unsupported<DependencyConstraintSet>())
-        bind(unsupported<RepositoryHandler>())
-        bind(unsupported<ArtifactRepository>())
-        bind(unsupported<DependencyHandler>())
-        bind(unsupported<DependencyConstraintHandler>())
-        bind(unsupported<ComponentMetadataHandler>())
-        bind(unsupported<ComponentModuleMetadataHandler>())
-        bind(unsupported<ArtifactTypeContainer>())
-        bind(unsupported<AttributesSchema>())
-        bind(unsupported<AttributeMatchingStrategy<*>>())
-        bind(unsupported<CompatibilityRuleChain<*>>())
-        bind(unsupported<DisambiguationRuleChain<*>>())
-        bind(unsupported<ArtifactResolutionQuery>())
-        bind(unsupported<DependencySet>())
-        bind(unsupported<Dependency>())
-        bind(unsupported<DependencyLockingHandler>())
     }
 
     val internalTypesCodec = BindingsBackedCodec {
