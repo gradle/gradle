@@ -25,7 +25,6 @@ enum class StageNames(override val stageName: String, override val description: 
     HISTORICAL_PERFORMANCE("Historical Performance", "Once a week: Run performance tests for multiple Gradle versions", "HistoricalPerformance"),
     EXPERIMENTAL("Experimental", "On demand: Run experimental tests", "Experimental"),
     EXPERIMENTAL_VFS_RETENTION("Experimental VFS Retention", "On demand checks to run tests with VFS retention enabled", "ExperimentalVfsRetention"),
-    EXPERIMENTAL_JDK14("Experimental JDK14", "On demand checks to run tests with JDK14", "ExperimentalJDK14"),
 }
 
 data class CIBuildModel(
