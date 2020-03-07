@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":persistentCache"))
+    implementation(project(":plugins"))
     implementation(project(":kotlinDsl"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
