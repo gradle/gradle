@@ -29,6 +29,7 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
     @Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
     def 'locks build script classpath configuration'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()

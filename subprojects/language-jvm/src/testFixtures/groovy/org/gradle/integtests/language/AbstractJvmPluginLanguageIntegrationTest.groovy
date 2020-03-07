@@ -156,6 +156,7 @@ abstract class AbstractJvmPluginLanguageIntegrationTest extends AbstractIntegrat
         jar.hasDescendants()
     }
 
+    @ToBeFixedForInstantExecution(because = ":components")
     def "source sets and locations are visible in the components report"() {
         when:
         buildFile << """

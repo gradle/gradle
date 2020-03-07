@@ -45,6 +45,7 @@ import static org.gradle.buildinit.plugins.internal.PackageNameBuilder.toPackage
  * Generates a Gradle project structure.
  */
 public class InitBuild extends DefaultTask {
+    private final String projectDirName = getProject().getProjectDir().getName();
     private String type;
     private String dsl;
     private String testFramework;
@@ -86,7 +87,7 @@ public class InitBuild extends DefaultTask {
      */
     @Input
     public String getProjectName() {
-        return projectName == null ? getProject().getProjectDir().getName() : projectName;
+        return projectName == null ? projectDirName : projectName;
     }
 
     /**

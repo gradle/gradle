@@ -30,7 +30,7 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
             void execute(InputChanges inputChanges) {
                 assert !(inputChanges instanceof ExtensionAware)
 
-                if (project.hasProperty('forceFail')) {
+                if (System.getProperty('forceFail')) {
                     throw new RuntimeException('failed')
                 }
 
@@ -392,6 +392,8 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
     def "provides the file type"() {
         file("buildSrc").deleteDir()
         buildFile.text = """
+            import javax.inject.Inject
+
             abstract class MyCopy extends DefaultTask {
                 @Incremental
                 @PathSensitive(PathSensitivity.RELATIVE)
@@ -401,13 +403,16 @@ class IncrementalInputsIntegrationTest extends AbstractIncrementalTasksIntegrati
                 @OutputDirectory
                 abstract DirectoryProperty getOutputDirectory()
 
+                @Inject
+                abstract FileSystemOperations getFs()
+
                 @TaskAction
                 void copy(InputChanges changes) {
                     if (!changes.incremental) {
                         println("Full rebuild - recreating output directory")
                         def outputDir = outputDirectory.get().asFile
-                        project.delete(outputDir)
-                        project.mkdir(outputDir)
+                        fs.delete { delete(outputDir) }
+                        outputDir.mkdirs()
                     }
                     changes.getFileChanges(inputDirectory).each { change ->
                         File outputFile = new File(outputDirectory.get().asFile, change.normalizedPath)

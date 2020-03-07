@@ -23,6 +23,7 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
@@ -66,7 +67,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     private final ConfigurableFileCollection analysisFiles;
 
     protected AbstractScalaCompile(BaseScalaCompileOptions scalaCompileOptions) {
-        ObjectFactory objectFactory = getServices().get(ObjectFactory.class);
+        ObjectFactory objectFactory = getObjectFactory();
         this.analysisMappingFile = objectFactory.fileProperty();
         this.analysisFiles = getProject().files();
         this.compileOptions = objectFactory.newInstance(CompileOptions.class);
@@ -118,7 +119,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpecFactory(compileOptions).create();
         spec.setSourceFiles(getSource().getFiles());
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
-        spec.setWorkingDir(getProject().getProjectDir());
+        spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setSourceCompatibility(getSourceCompatibility());
@@ -225,5 +226,15 @@ public abstract class AbstractScalaCompile extends AbstractCompile {
     @Inject
     protected Deleter getDeleter() {
         throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 }

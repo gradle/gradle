@@ -136,6 +136,7 @@ class GradleKotlinDslIntegrationTest extends AbstractIntegrationSpec {
         executer.cleanup()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'can query KotlinBuildScriptModel'() {
         given:
         // TODO Remove this once the Kotlin DSL upgrades 'pattern("layout") {' to 'patternLayout {

@@ -43,6 +43,7 @@ abstract class AbstractSmokeTest extends Specification {
 
     protected static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
     protected static final String AGP_3_ITERATION_MATCHER = ".*agp=3\\..*"
+    protected static final String AGP_4_0_ITERATION_MATCHER = ".*agp=4\\.0\\..*"
 
     static class TestedVersions {
         /**

@@ -82,6 +82,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'asciidoctor legacy plugin'() {
         given:
         buildFile << """
@@ -124,6 +125,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://github.com/asciidoctor/asciidoctor-gradle-plugin/releases')
     @Unroll
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'asciidoctor plugin #version'() {
         given:
         def version3 = VersionNumber.parse("3.0.0")
@@ -237,6 +239,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
     def 'spring boot plugin'() {
         given:
         buildFile << """
@@ -264,6 +267,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'tomcat plugin'() {
         given:
         def httpPort = portAllocator.assignPort()
@@ -528,6 +532,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     // Latest AspectJ 1.9.5 is not compatible with JDK14
     @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @Issue('https://plugins.gradle.org/plugin/io.freefair.aspectj')
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'freefair aspectj plugin'() {
         given:
         buildFile << """

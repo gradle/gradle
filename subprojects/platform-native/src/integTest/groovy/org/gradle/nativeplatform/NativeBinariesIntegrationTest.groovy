@@ -383,6 +383,7 @@ int main (int argc, char *argv[]) {
         installation.exec("foo", "bar").out == "[foo] [bar] \n"
     }
 
+    @ToBeFixedForInstantExecution(because = ":model")
     def "model report should display configured components"() {
         given:
         buildFile << """

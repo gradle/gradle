@@ -84,6 +84,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         op.result.resolvedDependenciesCount == 4
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "resolved detached configurations are exposed"() {
         setup:
         buildFile << """
@@ -173,7 +174,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
         resolveOperations[1].result.resolvedDependenciesCount == 1
     }
 
-    @ToBeFixedForInstantExecution(because = "composite builds")
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment and composite builds")
     def "resolved configurations of composite builds as build dependencies are exposed"() {
         setup:
         def m1 = mavenHttpRepo.module('org.foo', 'root-dep').publish()

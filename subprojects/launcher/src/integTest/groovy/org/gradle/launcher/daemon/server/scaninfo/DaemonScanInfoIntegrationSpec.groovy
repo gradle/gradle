@@ -177,7 +177,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         """
     task $name {
         doLast {
-            DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
+            DaemonScanInfo info = services.get(DaemonScanInfo)
             ${assertInfo(buildCount, daemonCount, singleUse)}
         }
     }
@@ -186,7 +186,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     static String captureAndAssert() {
         return """
-           DaemonScanInfo info = project.getServices().get(DaemonScanInfo)
+           DaemonScanInfo info = services.get(DaemonScanInfo)
            ${assertInfo(1, 1)}
            """
     }
@@ -215,7 +215,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
 
     static String registerExpirationListener() {
         """
-        def daemonScanInfo = project.getServices().get(DaemonScanInfo)
+        def daemonScanInfo = services.get(DaemonScanInfo)
 
         daemonScanInfo.notifyOnUnhealthy(new Action<String>() {
             @Override
@@ -241,7 +241,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
             public DaemonExpirationResult checkExpiration() {
                 DaemonContext dc = null
                 try {
-                    dc = project.getServices().get(DaemonContext)
+                    dc = services.get(DaemonContext)
                 } catch (Exception e) {
                     // ignore
                 }
@@ -249,7 +249,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
             }
         }
 
-        def daemon =  project.getServices().get(Daemon)
+        def daemon =  services.get(Daemon)
         daemon.scheduleExpirationChecks(new AllDaemonExpirationStrategy([new TestExpirationStrategy(project)]), $EXPIRATION_CHECK_FREQUENCY)
         """
     }

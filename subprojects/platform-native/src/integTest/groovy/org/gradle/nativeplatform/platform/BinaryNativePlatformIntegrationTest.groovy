@@ -409,6 +409,7 @@ model {
     }
 
     @Issue("GRADLE-3499")
+    @ToBeFixedForInstantExecution(because = ":components")
     def "can create a binary which name contains dots"() {
         when:
         buildFile << '''

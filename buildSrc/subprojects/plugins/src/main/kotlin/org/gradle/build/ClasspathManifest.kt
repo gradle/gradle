@@ -16,9 +16,7 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.ExternalDependency
-import org.gradle.api.artifacts.FileCollectionDependency
-import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
@@ -28,11 +26,12 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-import accessors.base
-import gradlebuildJava
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFile
+import org.gradle.api.provider.MapProperty
+import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.*
 
-import java.io.File
 import java.util.Properties
 import javax.inject.Inject
 
@@ -44,30 +43,41 @@ abstract class ClasspathManifest @Inject constructor(
 ) : DefaultTask() {
 
     @get:Internal
+    abstract val archiveBaseName: Property<String>
+
+    @get:Internal
+    abstract val archiveBaseNamesByProjectPath: MapProperty<String, String>
+
+    @get:Internal
+    abstract val generatedResourcesDir: DirectoryProperty
+
+    @get:Internal
     abstract val additionalProjects: ListProperty<String>
 
     @get:Internal
     abstract val optionalProjects: ListProperty<String>
 
+    @get:Internal
+    abstract val runtimeProjectDependenciesPaths: ListProperty<String>
+
+    @get:Internal
+    abstract val runtimeNonProjectDependencies: ConfigurableFileCollection
+
     @get:Input
     internal
     val runtime: Provider<String> = providers.provider {
-        runtimeClasspath
-            .fileCollection { it is ExternalDependency || it is FileCollectionDependency }
-            .joinForProperties { it.name }
+        runtimeNonProjectDependencies.joinForProperties { it.name }
     }
 
     @get:Input
     internal
     val projects: Provider<String> = providers.provider {
 
-        val inputProjectsArchivesBaseNames = runtimeClasspath.allDependencies
-            .withType<ProjectDependency>()
-            .filter { it.dependencyProject.plugins.hasPlugin("java-base") }
-            .map { it.dependencyProject.base.archivesBaseName }
+        val inputProjectsArchivesBaseNames = runtimeProjectDependenciesPaths.get()
+            .map { archiveBaseNamesByProjectPath.get().getValue(it) }
 
         val additionalProjectsArchivesBaseNames = additionalProjects.get()
-            .map { project.project(it).base.archivesBaseName }
+            .map { archiveBaseNamesByProjectPath.get().getValue(it) }
 
         (inputProjectsArchivesBaseNames + additionalProjectsArchivesBaseNames)
             .joinForProperties()
@@ -77,20 +87,18 @@ abstract class ClasspathManifest @Inject constructor(
     internal
     val optional: Provider<String> = providers.provider {
         optionalProjects.get()
-            .map { project.project(it).base.archivesBaseName }
+            .map { archiveBaseNamesByProjectPath.get().getValue(it) }
             .joinForProperties()
     }
 
     @get:OutputFile
     internal
-    val manifestFile: Provider<File> = providers.provider {
-        project.gradlebuildJava.generatedResourcesDir
-            .resolve("${project.base.archivesBaseName}-classpath.properties")
-    }
+    val manifestFile: Provider<RegularFile> =
+        generatedResourcesDir.file(providers.provider { "${archiveBaseName.get()}-classpath.properties" })
 
     @TaskAction
     fun generate() {
-        ReproduciblePropertiesWriter.store(createProperties(), manifestFile.get())
+        ReproduciblePropertiesWriter.store(createProperties(), manifestFile.get().asFile)
     }
 
     private
@@ -101,10 +109,6 @@ abstract class ClasspathManifest @Inject constructor(
             properties["optional"] = optional
         }
     }
-
-    private
-    val runtimeClasspath
-        get() = project.configurations["runtimeClasspath"]
 
     private
     fun <T : Any> Iterable<T>.joinForProperties(transform: ((T) -> CharSequence)? = null) =

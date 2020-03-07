@@ -270,7 +270,7 @@ task thing {
             verify {
                 prop.empty()
                 prop['key1'] = 'value1'
-                prop['key2'] = project.provider { 'value2' }
+                prop['key2'] = provider { 'value2' }
                 expected = ['key1': 'value1', 'key2': 'value2']
             }
             '''.stripIndent()
@@ -516,7 +516,7 @@ task thing {
 
             task replacingPutWithProvider {
                 doLast {
-                    verify.prop.put('key', project.provider { 'newValue' })
+                    verify.prop.put('key', provider { 'newValue' })
                     verify.expected = ['key': 'newValue']
                 }
             }
@@ -530,7 +530,7 @@ task thing {
 
             task replacingPutAllWithProvider {
                 doLast {
-                    verify.prop.putAll(project.provider { ['key': 'newValue', 'otherKey': 'otherValue'] })
+                    verify.prop.putAll(provider { ['key': 'newValue', 'otherKey': 'otherValue'] })
                     verify.expected = ['key': 'newValue', 'otherKey': 'otherValue']
                 }
             }

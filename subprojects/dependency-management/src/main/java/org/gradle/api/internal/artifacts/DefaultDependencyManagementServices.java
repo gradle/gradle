@@ -108,7 +108,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
-import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.initialization.ProjectAccessNotifier;
 import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
 import org.gradle.internal.build.BuildState;
@@ -480,7 +480,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
         }
 
         ConfigurationContainerInternal createConfigurationContainer(Instantiator instantiator, ConfigurationResolver configurationResolver, DomainObjectContext domainObjectContext,
-                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessListener projectAccessListener,
+                                                                    ListenerManager listenerManager, DependencyMetaDataProvider metaDataProvider, ProjectAccessNotifier projectAccessNotifier,
                                                                     ProjectFinder projectFinder, LocalComponentMetadataBuilder metaDataBuilder, FileCollectionFactory fileCollectionFactory,
                                                                     GlobalDependencyResolutionRules globalDependencyResolutionRules, VcsMappingsStore vcsMappingsStore, ComponentIdentifierFactory componentIdentifierFactory,
                                                                     BuildOperationExecutor buildOperationExecutor, ImmutableAttributesFactory attributesFactory,
@@ -497,7 +497,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 domainObjectContext,
                 listenerManager,
                 metaDataProvider,
-                projectAccessListener,
+                projectAccessNotifier.getListener(),
                 projectFinder,
                 metaDataBuilder,
                 fileCollectionFactory,

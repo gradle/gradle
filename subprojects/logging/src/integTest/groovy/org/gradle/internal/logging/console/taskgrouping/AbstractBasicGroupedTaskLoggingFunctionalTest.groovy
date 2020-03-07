@@ -39,14 +39,15 @@ abstract class AbstractBasicGroupedTaskLoggingFunctionalTest extends AbstractCon
 
         buildFile << """
             subprojects {
-                task log { 
-                    doFirst { 
-                        logger.error "Error from " + project.name
-                        logger.quiet "Output from " + project.name
-                        new java.net.URL("${server.uri}/log" + project.name).openConnection().getContentLength()
-                        logger.quiet "Done with " + project.name 
-                        logger.error "Done with " + project.name
-                    } 
+                task log {
+                    def projectName = project.name
+                    doFirst {
+                        logger.error "Error from " + projectName
+                        logger.quiet "Output from " + projectName
+                        new java.net.URL("${server.uri}/log" + projectName).openConnection().getContentLength()
+                        logger.quiet "Done with " + projectName
+                        logger.error "Done with " + projectName
+                    }
                 }
             }
         """

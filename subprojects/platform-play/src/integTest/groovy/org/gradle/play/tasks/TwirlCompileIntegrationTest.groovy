@@ -296,6 +296,7 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         executedAndNotSkipped ":compilePlayBinaryPlayTwirlTemplates"
     }
 
+    @ToBeFixedForInstantExecution(because = ":components")
     def "extra sources appear in the component report"() {
         withExtraSourceSets()
 

@@ -71,7 +71,7 @@ import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
-import org.gradle.initialization.ProjectAccessListener;
+import org.gradle.initialization.ProjectAccessNotifier;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.file.PathToFileResolver;
@@ -193,7 +193,17 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator, decorator).create();
+        return new DefaultTaskContainerFactory(
+            get(ModelRegistry.class),
+            get(Instantiator.class),
+            get(ITaskFactory.class),
+            project,
+            get(ProjectAccessNotifier.class).getListener(),
+            taskStatistics,
+            buildOperationExecutor,
+            crossProjectConfigurator,
+            decorator
+        ).create();
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator) {

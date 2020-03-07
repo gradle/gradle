@@ -181,6 +181,7 @@ model {
         testResults.checkAssertions(3, 3, 0)
     }
 
+    @ToBeFixedForInstantExecution(because = ":model")
     def "testSuite components exposed to modelReport"() {
         given:
         buildFile << """

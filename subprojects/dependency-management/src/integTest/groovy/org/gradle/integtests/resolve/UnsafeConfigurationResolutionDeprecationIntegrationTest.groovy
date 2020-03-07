@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class UnsafeConfigurationResolutionDeprecationIntegrationTest extends AbstractDependencyResolutionTest {
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "deprecation warning when configuration in another project is resolved unsafely"() {
         mavenRepo.module("test", "test-jar", "1.0").publish()
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2013 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,8 @@
 
 package org.gradle.initialization;
 
-import org.gradle.api.internal.project.ProjectInternal;
 
+public interface ProjectAccessNotifier {
 
-public interface ProjectAccessListener {
-
-    void beforeRequestingTaskByPath(ProjectInternal targetProject);
-
-    void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
-
-    void onProjectAccess(String invocationDescription, Object invocationSource);
+    ProjectAccessListener getListener();
 }

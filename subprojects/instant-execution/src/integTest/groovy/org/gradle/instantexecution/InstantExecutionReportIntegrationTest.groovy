@@ -19,13 +19,87 @@ package org.gradle.instantexecution
 import org.gradle.internal.hash.HashUtil
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import javax.script.ScriptEngine
 import javax.script.ScriptEngineManager
 
 class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
+    def "reports project access during execution"() {
+
+        def instantExecution = newInstantExecutionFixture()
+
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @TaskAction
+                def action() {
+                    println("project:${'$'}{project.name}")
+                }
+            }
+
+            tasks.register("a", MyTask)
+            tasks.register("b", MyTask)
+        """
+
+        when:
+        instantRun "a", "b"
+
+        then:
+        output.count("project:root") == 2
+        instantExecution.assertStateStored()
+
+        and:
+        def reportHtmlFileName = "instant-execution-report.html"
+        def reportDir = stateDirForTasks("a", "b")
+        def reportFile = reportDir.file(reportHtmlFileName)
+        reportFile.isFile()
+        def jsFile = reportDir.file("instant-execution-report-data.js")
+        jsFile.isFile()
+        numberOfProblemsWithStacktraceIn(jsFile) == 2
+        outputContains """
+            2 instant execution problems were found, 2 of which seem unique:
+              - task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
+              - task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
+            See the complete report at ${clickableUrlFor(reportFile)}
+        """.stripIndent()
+        output.count("task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.") == 1
+
+        when:
+        instantRun "a", "b"
+
+        then:
+        output.count("project:root") == 2
+        instantExecution.assertStateLoaded()
+
+        and:
+        def secondReportDir = reportDir.parentFile.file("${reportDir.name}-1")
+        def secondReportFile = secondReportDir.file(reportHtmlFileName)
+        secondReportFile.isFile()
+        def secondJsFile = reportDir.file("instant-execution-report-data.js")
+        secondJsFile.isFile()
+        numberOfProblemsWithStacktraceIn(secondJsFile) == 2
+        outputContains """
+            2 instant execution problems were found, 2 of which seem unique:
+              - task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
+              - task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.
+            See the complete report at ${clickableUrlFor(secondReportFile)}
+        """.stripIndent()
+
+        when:
+        instantRun "a", "b"
+
+        then:
+        output.count("project:root") == 2
+        instantExecution.assertStateLoaded()
+
+        and:
+        def thirdReportDir = reportDir.parentFile.file("${reportDir.name}-2")
+        def thirdReportFile = thirdReportDir.file(reportHtmlFileName)
+        thirdReportFile.isFile()
+    }
 
     def "summarizes unsupported properties"() {
         given:
@@ -155,13 +229,20 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         }
     }
 
+    private static int numberOfProblemsWithStacktraceIn(File jsFile) {
+        newJavaScriptEngine().with {
+            eval(jsFile.text)
+            eval("instantExecutionProblems().filter(function(problem) { return problem['error'] != null; }).length") as int
+        }
+    }
+
     private static ScriptEngine newJavaScriptEngine() {
         new ScriptEngineManager().getEngineByName("JavaScript")
     }
 
     private TestFile stateDirForTasks(String... requestedTaskNames) {
         def baseName = HashUtil.createCompactMD5(requestedTaskNames.join("/"))
-        file(".instant-execution-state/${GradleVersion.current().version}/$baseName")
+        file("build/reports/instant-execution/$baseName")
     }
 
     private static String clickableUrlFor(File file) {

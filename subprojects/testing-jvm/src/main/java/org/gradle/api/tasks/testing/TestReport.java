@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.AggregateTestResultsPr
 import org.gradle.api.internal.tasks.testing.junit.result.BinaryResultBackedTestResultsProvider;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultsProvider;
 import org.gradle.api.internal.tasks.testing.report.DefaultTestReport;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
@@ -50,6 +51,11 @@ public class TestReport extends DefaultTask {
 
     @Inject
     protected BuildOperationExecutor getBuildOperationExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -82,16 +88,17 @@ public class TestReport extends DefaultTask {
     }
 
     private void addTo(Object result, UnionFileCollection dirs) {
+        ObjectFactory objects = getObjectFactory();
         if (result instanceof Test) {
             Test test = (Test) result;
-            dirs.addToUnion(getProject().files(test.getBinResultsDir()).builtBy(test));
+            dirs.addToUnion(objects.fileCollection().from(test.getBinaryResultsDirectory()).builtBy(test));
         } else if (result instanceof Iterable<?>) {
             Iterable<?> iterable = (Iterable<?>) result;
             for (Object nested : iterable) {
                 addTo(nested, dirs);
             }
         } else {
-            dirs.addToUnion(getProject().files(result));
+            dirs.addToUnion(objects.fileCollection().from(result));
         }
     }
 
