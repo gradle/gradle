@@ -34,6 +34,7 @@ import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -89,8 +90,12 @@ class HttpBuildCacheServiceTest extends Specification {
         def config = new HttpBuildCache()
         config.url = server.uri.resolve("/cache/")
         buildCacheDescriber = new NoopBuildCacheDescriber()
-        cache = new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") }, httpClientHelperFactory)
-            .createBuildCacheService(config, buildCacheDescriber)
+        cache = createCache(config)
+    }
+
+    private BuildCacheService createCache(HttpBuildCache configuration) {
+        return new DefaultHttpBuildCacheServiceFactory(new DefaultSslContextFactory(), { it.addHeader("X-Gradle-Version", "3.0") }, httpClientHelperFactory)
+            .createBuildCacheService(configuration, buildCacheDescriber)
     }
 
     def "can cache artifact"() {
@@ -300,6 +305,42 @@ class HttpBuildCacheServiceTest extends Specification {
         then:
         destFile.bytes == content
         server.authenticationAttempts == ['Basic'] as Set
+    }
+
+    @Issue("gradle/gradle#12477")
+    def "query parameters from configuration are preserved on loading from cache"() {
+        def expectedQueryString = "q1=abc&q2=b2&q3=123"
+        def config = new HttpBuildCache()
+        config.url = server.uri.resolve("/cache/?$expectedQueryString")
+        cache = createCache(config)
+
+        server.expect("/cache/${key.hashCode}", ["GET"], new HttpServer.ActionSupport("get has appropriate query parameters") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                assert request.queryString == expectedQueryString
+                response.setStatus(200)
+            }
+        })
+
+        expect:
+        cache.load(key) { input -> }
+    }
+
+    @Issue("gradle/gradle#12477")
+    def "query parameters from configuration are preserved on storing to cache"() {
+        def expectedQueryString = "q1=abc&q2=b2&q3=123"
+        def config = new HttpBuildCache()
+        config.url = server.uri.resolve("/cache/?$expectedQueryString")
+        cache = createCache(config)
+
+        server.expect("/cache/${key.hashCode}", ["PUT"], new HttpServer.ActionSupport("put has appropriate query parameters") {
+            void handle(HttpServletRequest request, HttpServletResponse response) {
+                assert request.queryString == expectedQueryString
+                response.setStatus(200)
+            }
+        })
+
+        expect:
+        cache.store(key, writer("".bytes))
     }
 
     private HttpResourceInteraction expectError(int httpCode, String method) {

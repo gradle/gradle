@@ -24,6 +24,8 @@ import org.apache.http.client.ClientProtocolException;
 import org.apache.http.client.NonRepeatableRequestException;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPut;
+import org.apache.http.client.utils.URIBuilder;
+import org.apache.http.client.utils.URIUtils;
 import org.apache.http.entity.AbstractHttpEntity;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.caching.BuildCacheEntryReader;
@@ -42,6 +44,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -77,7 +81,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public boolean load(BuildCacheKey key, BuildCacheEntryReader reader) throws BuildCacheException {
-        final URI uri = root.resolve("./" + key.getHashCode());
+        final URI uri = cacheEntryUri(key);
         HttpGet httpGet = new HttpGet(uri);
         httpGet.addHeader(HttpHeaders.ACCEPT, BUILD_CACHE_CONTENT_TYPE + ", */*");
         requestCustomizer.customize(httpGet);
@@ -106,6 +110,21 @@ public class HttpBuildCacheService implements BuildCacheService {
         }
     }
 
+    private URI cacheEntryUri(BuildCacheKey key) {
+        final URIBuilder uriBuilder = new URIBuilder(root);
+        final List<String> segments = new ArrayList<>(uriBuilder.getPathSegments());
+        if (segments.size() > 0 && segments.get(segments.size() - 1).isEmpty()) {
+            segments.remove(segments.size() - 1);
+        }
+        segments.add(key.getHashCode());
+        uriBuilder.setPathSegments(segments);
+        try {
+            return URIUtils.normalizeSyntax(uriBuilder.build());
+        } catch (URISyntaxException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private boolean handleRedirect(URI uri, HttpClientResponse response, int statusCode, String defaultMessage, String action) {
         String locationHeader = response.getHeader(HttpHeaders.LOCATION);
         if (locationHeader == null) {
@@ -125,7 +144,7 @@ public class HttpBuildCacheService implements BuildCacheService {
 
     @Override
     public void store(BuildCacheKey key, final BuildCacheEntryWriter output) throws BuildCacheException {
-        final URI uri = root.resolve(key.getHashCode());
+        final URI uri = cacheEntryUri(key);
         HttpPut httpPut = new HttpPut(uri);
         httpPut.addHeader(HttpHeaders.CONTENT_TYPE, BUILD_CACHE_CONTENT_TYPE);
         requestCustomizer.customize(httpPut);
