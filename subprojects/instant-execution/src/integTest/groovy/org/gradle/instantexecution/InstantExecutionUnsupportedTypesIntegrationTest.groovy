@@ -154,7 +154,6 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultSourceSet.name                      | SourceSet.name                      | "project.sourceSets['main']"
         // Dependency Resolution Services
         DefaultConfigurationContainer.name         | ConfigurationContainer.name         | "project.configurations"
-        // DefaultConfiguration.name                  | Configuration.name                  | "project.configurations.maybeCreate('some')"
         DefaultResolutionStrategy.name             | ResolutionStrategy.name             | "project.configurations.maybeCreate('some').resolutionStrategy"
         ErrorHandlingResolvedConfiguration.name    | ResolvedConfiguration.name          | "project.configurations.maybeCreate('some').resolvedConfiguration"
         ErrorHandlingLenientConfiguration.name     | LenientConfiguration.name           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"

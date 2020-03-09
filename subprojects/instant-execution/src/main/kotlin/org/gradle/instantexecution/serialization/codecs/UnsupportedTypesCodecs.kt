@@ -86,7 +86,6 @@ fun BindingsBuilder.unsupportedTypes() {
 
     // Dependency Resolution Services
     bind(unsupported<ConfigurationContainer>())
-    // bind(unsupported<Configuration>()) // TODO this breaks lots of core plugins
     bind(unsupported<ResolutionStrategy>())
     bind(unsupported<ResolvedConfiguration>())
     bind(unsupported<LenientConfiguration>())
