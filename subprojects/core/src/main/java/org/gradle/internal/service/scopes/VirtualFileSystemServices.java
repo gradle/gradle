@@ -86,6 +86,7 @@ import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -178,27 +179,24 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
                 DirectoryScanner.getDefaultExcludes()
             );
-            OperatingSystem operatingSystem = OperatingSystem.current();
-            if (!(operatingSystem.isLinux() || operatingSystem.isMacOsX() || operatingSystem.isWindows())) {
-                return new WatchingNotSupportedVirtualFileSystem(delegate);
-            }
+            return determineWatcherRegistryFactory(OperatingSystem.current())
+                .<WatchingVirtualFileSystem>map(watcherRegistryFactory -> new DefaultWatchingVirtualFileSystem(
+                    watcherRegistryFactory,
+                    delegate,
+                    path -> !additiveCacheLocations.isInsideAdditiveCache(path)
+                ))
+            .orElse(new WatchingNotSupportedVirtualFileSystem(delegate));
+        }
 
-            FileWatcherRegistryFactory watcherRegistryFactory;
+        private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
             if (operatingSystem.isMacOsX()) {
-                watcherRegistryFactory = new DarwinFileWatcherRegistry.Factory();
+                return Optional.of(new DarwinFileWatcherRegistry.Factory());
             } else if (operatingSystem.isWindows()) {
-                watcherRegistryFactory = new WindowsFileWatcherRegistry.Factory();
+                return Optional.of(new WindowsFileWatcherRegistry.Factory());
             } else if (operatingSystem.isLinux()) {
-                watcherRegistryFactory = new LinuxFileWatcherRegistry.Factory();
-            } else {
-                throw new AssertionError();
+                return Optional.of(new LinuxFileWatcherRegistry.Factory());
             }
-
-            return new DefaultWatchingVirtualFileSystem(
-                watcherRegistryFactory,
-                delegate,
-                path -> !additiveCacheLocations.isInsideAdditiveCache(path)
-            );
+            return Optional.empty();
         }
 
         void configure(WatchingVirtualFileSystem virtualFileSystem, ListenerManager listenerManager) {
