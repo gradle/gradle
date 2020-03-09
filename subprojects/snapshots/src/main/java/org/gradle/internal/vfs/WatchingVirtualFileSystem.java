@@ -24,9 +24,21 @@ import java.io.File;
  */
 public interface WatchingVirtualFileSystem extends VirtualFileSystem {
 
+    /**
+     * Called when the build is started and watching is disabled for the current build.
+     *
+     * This means that watchers should be teared down and no
+     * VFS state should be retained.
+     */
     void watchingDisabledForCurrentBuild();
 
+    /**
+     * Called when the build is started and watching is enabled for the current build.
+     */
     void afterStartingBuildWithWatchingEnabled();
 
+    /**
+     * Called when the build is completed and watching is enabled for the current build.
+     */
     void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir);
 }
