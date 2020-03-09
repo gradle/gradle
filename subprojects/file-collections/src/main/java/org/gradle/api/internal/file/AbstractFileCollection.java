@@ -130,31 +130,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public Provider<Set<FileSystemLocation>> getElements() {
-        return new AbstractProviderWithValue<Set<FileSystemLocation>>() {
-            @Override
-            public Class<Set<FileSystemLocation>> getType() {
-                return Cast.uncheckedCast(Set.class);
-            }
-
-            @Override
-            public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-                // TODO - visit dependencies of this collection instead
-                context.add(AbstractFileCollection.this.getBuildDependencies());
-                return true;
-            }
-
-            @Override
-            public Set<FileSystemLocation> get() {
-                // TODO - visit the contents of this collection instead.
-                // This is just a super simple implementation for now
-                Set<File> files = getFiles();
-                ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
-                for (File file : files) {
-                    builder.add(new DefaultFileSystemLocation(file));
-                }
-                return builder.build();
-            }
-        };
+        return new ElementsProvider(this);
     }
 
     @Override
@@ -337,4 +313,39 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
     }
 
+    private static class ElementsProvider extends AbstractProviderWithValue<Set<FileSystemLocation>> {
+        private final AbstractFileCollection collection;
+
+        public ElementsProvider(AbstractFileCollection collection) {
+            this.collection = collection;
+        }
+
+        @Override
+        public Class<Set<FileSystemLocation>> getType() {
+            return Cast.uncheckedCast(Set.class);
+        }
+
+        @Override
+        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+            context.add(collection);
+            return true;
+        }
+
+        @Override
+        public boolean isValueProducedByTask() {
+            return !collection.getBuildDependencies().getDependencies(null).isEmpty();
+        }
+
+        @Override
+        public Set<FileSystemLocation> get() {
+            // TODO - visit the contents of this collection instead.
+            // This is just a super simple implementation for now
+            Set<File> files = collection.getFiles();
+            ImmutableSet.Builder<FileSystemLocation> builder = ImmutableSet.builderWithExpectedSize(files.size());
+            for (File file : files) {
+                builder.add(new DefaultFileSystemLocation(file));
+            }
+            return builder.build();
+        }
+    }
 }

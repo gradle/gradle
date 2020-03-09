@@ -111,7 +111,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
-    @Override
+    // Should be on the public API. Was not made public for the 6.3 release
     public void disallowUnsafeRead() {
         disallowUnsafeRead = true;
         finalizeValueOnRead();
