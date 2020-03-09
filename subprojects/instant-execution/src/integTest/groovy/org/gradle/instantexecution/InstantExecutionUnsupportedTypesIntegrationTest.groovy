@@ -63,12 +63,10 @@ import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.DefaultSourceSet
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.tasks.DefaultTaskContainer
-import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler.ScriptClassLoader
 import org.gradle.initialization.DefaultSettings
 import org.gradle.internal.locking.DefaultDependencyLockingHandler
@@ -148,7 +146,6 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultSettings.name                       | Settings.name                       | "project.gradle.settings"
         DefaultProject.name                        | Project.name                        | "project"
         DefaultTaskContainer.name                  | TaskContainer.name                  | "project.tasks"
-        DefaultTaskDependency.name                 | TaskDependency.name                 | "project.tasks.getByName('build').taskDependencies"
         DefaultTask.name                           | Task.name                           | "project.tasks.other"
         DefaultSourceSetContainer.name             | SourceSetContainer.name             | "project.sourceSets"
         DefaultSourceSet.name                      | SourceSet.name                      | "project.sourceSets['main']"
