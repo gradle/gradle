@@ -66,7 +66,13 @@ Gradle will continue building your projects on the affected systems, but without
 
 === Deprecations
 
-There were no deprecations between Gradle 6.2 and 6.3.
+==== Using default and archives configurations
+
+Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
+These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#,variant aware dependency management>> and the <<publishing_setup.adoc#,new publishing plugins>>.
+While the configurations will stay in Gradle for backwards compatibility for now, using them to declare dependencies or to resolve dependencies is now deprecated.
+Resolving these configurations was never an intended use case and only possible because in earlier Gradle versions _every_ configuration was resolvable.
+For dependency declaration, please use the configurations provided by the plugins you use, for example by the <<java_library_plugin.adoc#sec:java_library_configurations_graph,Java Library plugin>>.
 
 [[changes_6.2]]
 == Upgrading from 6.1
