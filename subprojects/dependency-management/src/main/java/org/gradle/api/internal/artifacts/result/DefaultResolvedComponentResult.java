@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.result;
 
-import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multimap;
 import org.gradle.api.InvalidUserCodeException;
@@ -47,7 +47,7 @@ public class DefaultResolvedComponentResult implements ResolvedComponentResultIn
     private final ComponentIdentifier componentId;
     private final List<ResolvedVariantResult> variants;
     private final String repositoryName;
-    private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = HashMultimap.create();
+    private final Multimap<ResolvedVariantResult, DependencyResult> variantDependencies = ArrayListMultimap.create();
 
     public DefaultResolvedComponentResult(ModuleVersionIdentifier moduleVersion, ComponentSelectionReason selectionReason, ComponentIdentifier componentId, List<ResolvedVariantResult> variants, String repositoryName) {
         assert moduleVersion != null;
