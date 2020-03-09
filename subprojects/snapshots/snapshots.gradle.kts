@@ -65,15 +65,10 @@ gradlebuildJava {
 }
 
 afterEvaluate {
-    // This is a workaround for the validate plugins task trying to inspect classes which
-    // have changed but are NOT tasks
+    // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
+    // For the current project, we exclude all internal packages, since there are no tasks in there.
     tasks.withType<ValidatePlugins>().configureEach {
         val main by project.java.sourceSets
-        classes.setFrom(main.output.classesDirs.asFileTree.filter { !it.isInternal(main) })
+        classes.setFrom(main.output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
     }
 }
-
-fun File.isInternal(sourceSet: SourceSet) = isInternal(sourceSet.output.classesDirs.files)
-
-fun File.isInternal(roots: Set<File>): Boolean = name == "internal" ||
-    !roots.contains(parentFile) && parentFile.isInternal(roots)
