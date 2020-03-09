@@ -16,17 +16,20 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class WatchingNotSupportedVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem {
+/**
+ * A {@link org.gradle.internal.vfs.VirtualFileSystem} which is not able to register any watches.
+ */
+public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingAwareVirtualFileSystem {
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(WatchingNotSupportedVirtualFileSystem.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(NonWatchingVirtualFileSystem.class);
 
-    public WatchingNotSupportedVirtualFileSystem(AbstractVirtualFileSystem delegate) {
+    public NonWatchingVirtualFileSystem(AbstractVirtualFileSystem delegate) {
         super(delegate);
     }
 

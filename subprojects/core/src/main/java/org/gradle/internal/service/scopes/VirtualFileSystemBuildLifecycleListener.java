@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -51,7 +51,7 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
     private final StartParameterSwitch vfsRetention;
 
     public VirtualFileSystemBuildLifecycleListener(
-        WatchingVirtualFileSystem virtualFileSystem,
+        WatchingAwareVirtualFileSystem virtualFileSystem,
         StartParameterSwitch vfsRetention,
         StartParameterSwitch dropVfs,
         StartParameterValue changedPathsSinceLastBuildParameter
@@ -82,12 +82,12 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
 
     private static class RetentionBuildLifecycleListener implements RootBuildLifecycleListener {
 
-        private final WatchingVirtualFileSystem virtualFileSystem;
+        private final WatchingAwareVirtualFileSystem virtualFileSystem;
         private final StartParameterSwitch dropVfs;
         private final StartParameterValue changedPathsSinceLastBuildParameter;
 
         public RetentionBuildLifecycleListener(
-            WatchingVirtualFileSystem virtualFileSystem,
+            WatchingAwareVirtualFileSystem virtualFileSystem,
             StartParameterSwitch dropVfs,
             StartParameterValue changedPathsSinceLastBuildParameter
         ) {
@@ -140,9 +140,9 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
 
     private static class NoRetentionBuildLifecycleListener implements RootBuildLifecycleListener {
 
-        private final WatchingVirtualFileSystem virtualFileSystem;
+        private final WatchingAwareVirtualFileSystem virtualFileSystem;
 
-        public NoRetentionBuildLifecycleListener(WatchingVirtualFileSystem virtualFileSystem) {
+        public NoRetentionBuildLifecycleListener(WatchingAwareVirtualFileSystem virtualFileSystem) {
             this.virtualFileSystem = virtualFileSystem;
         }
 

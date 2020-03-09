@@ -21,7 +21,7 @@ import com.google.common.collect.Multiset;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.slf4j.Logger;
@@ -36,8 +36,12 @@ import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
 
-public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingVirtualFileSystem, Closeable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWatchingVirtualFileSystem.class);
+/**
+ * A {@link org.gradle.internal.vfs.VirtualFileSystem} which uses watches to maintain
+ * its contents.
+ */
+public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSystem implements WatchingAwareVirtualFileSystem, Closeable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final Predicate<String> watchFilter;
@@ -46,7 +50,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
     private FileWatcherRegistry watchRegistry;
     private volatile boolean buildRunning;
 
-    public DefaultWatchingVirtualFileSystem(
+    public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem delegate,
         Predicate<String> watchFilter
@@ -97,7 +101,7 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
                     LOGGER.debug("Handling VFS change {} {}", type, path);
                     String absolutePath = path.toString();
                     if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
-                        DefaultWatchingVirtualFileSystem.super.update(Collections.singleton(absolutePath), () -> {});
+                        WatchingVirtualFileSystem.super.update(Collections.singleton(absolutePath), () -> {});
                     }
                 }
 

@@ -73,11 +73,11 @@ import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
 import org.gradle.internal.vfs.LinuxFileWatcherRegistry;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.internal.vfs.WatchingVirtualFileSystem;
+import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
-import org.gradle.internal.vfs.impl.DefaultWatchingVirtualFileSystem;
-import org.gradle.internal.vfs.impl.WatchingNotSupportedVirtualFileSystem;
+import org.gradle.internal.vfs.impl.NonWatchingVirtualFileSystem;
+import org.gradle.internal.vfs.impl.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -165,7 +165,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return fileHasher;
         }
 
-        WatchingVirtualFileSystem createVirtualFileSystem(
+        WatchingAwareVirtualFileSystem createVirtualFileSystem(
             AdditiveCacheLocations additiveCacheLocations,
             FileHasher hasher,
             FileSystem fileSystem,
@@ -180,12 +180,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 DirectoryScanner.getDefaultExcludes()
             );
             return determineWatcherRegistryFactory(OperatingSystem.current())
-                .<WatchingVirtualFileSystem>map(watcherRegistryFactory -> new DefaultWatchingVirtualFileSystem(
+                .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,
                     path -> !additiveCacheLocations.isInsideAdditiveCache(path)
                 ))
-            .orElse(new WatchingNotSupportedVirtualFileSystem(delegate));
+            .orElse(new NonWatchingVirtualFileSystem(delegate));
         }
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
@@ -199,7 +199,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             return Optional.empty();
         }
 
-        void configure(WatchingVirtualFileSystem virtualFileSystem, ListenerManager listenerManager) {
+        void configure(WatchingAwareVirtualFileSystem virtualFileSystem, ListenerManager listenerManager) {
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
                 virtualFileSystem,
                 startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),

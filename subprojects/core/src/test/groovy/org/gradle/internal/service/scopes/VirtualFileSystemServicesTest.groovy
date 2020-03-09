@@ -27,7 +27,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.vfs.AdditiveCacheLocations
 import org.gradle.internal.vfs.RoutingVirtualFileSystem
 import org.gradle.internal.vfs.VirtualFileSystem
-import org.gradle.internal.vfs.WatchingVirtualFileSystem
+import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -77,7 +77,7 @@ class VirtualFileSystemServicesTest extends Specification {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
         _ * startParameter.getCurrentDir() >> new File("current/dir").absoluteFile
         _ * gradle.getStartParameter() >> startParameter
-        def virtualFileSystem = Mock(WatchingVirtualFileSystem)
+        def virtualFileSystem = Mock(WatchingAwareVirtualFileSystem)
         def rootProject = Mock(ProjectInternal)
         _ * gradle.getRootProject() >> rootProject
         _ * rootProject.getProjectDir() >> new File("some/project/dir")

@@ -19,10 +19,10 @@ package org.gradle.internal.vfs;
 import java.io.File;
 
 /**
- * A {@link VirtualFileSystem} that is capable of watching the file system for changes
- * while it doesn't have full control over its own contents.
+ * A {@link VirtualFileSystem} that can be instructed to try to maintain its
+ * contents by watching the file system.
  */
-public interface WatchingVirtualFileSystem extends VirtualFileSystem {
+public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
 
     /**
      * Called when the build is started and watching is disabled for the current build.
