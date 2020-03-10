@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures.executer;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.integtests.fixtures.logging.GroupedOutputFixture;
 import org.gradle.internal.Pair;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
@@ -37,7 +36,7 @@ import java.util.TreeSet;
 import java.util.regex.Pattern;
 
 public class OutputScrapingExecutionResult implements ExecutionResult {
-    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =\\+\'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
+    static final Pattern STACK_TRACE_ELEMENT = Pattern.compile("\\s+(at\\s+)?([\\w.$_]+/)?[\\w.$_]+\\.[\\w$_ =+'-<>]+\\(.+?\\)(\\x1B\\[0K)?");
     private static final String TASK_PREFIX = "> Task ";
 
     //for example: ':a SKIPPED' or ':foo:bar:baz UP-TO-DATE' but not ':a'
@@ -146,7 +145,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private String normalize(LogContent output) {
-        List<String> result = new ArrayList<String>();
+        List<String> result = new ArrayList<>();
         List<String> lines = output.getLines();
         int i = 0;
         while (i < lines.size()) {
@@ -252,7 +251,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     private Set<String> findExecutedTasksInOrderStarted() {
         if (tasks == null) {
-            tasks = new LinkedHashSet<String>(grepTasks(TASK_PATTERN));
+            tasks = new LinkedHashSet<>(grepTasks(TASK_PATTERN));
         }
         return tasks;
     }
@@ -267,7 +266,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksExecuted(Object... taskPaths) {
-        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> actualTasks = findExecutedTasksInOrderStarted();
         if (!expectedTasks.equals(actualTasks)) {
             failOnDifferentSets("Build output does not contain the expected tasks.", expectedTasks, actualTasks);
@@ -306,12 +305,12 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     public Set<String> getSkippedTasks() {
-        return new TreeSet<String>(grepTasks(SKIPPED_TASK_PATTERN));
+        return new TreeSet<>(grepTasks(SKIPPED_TASK_PATTERN));
     }
 
     @Override
     public ExecutionResult assertTasksSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
+        Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
         Set<String> skippedTasks = getSkippedTasks();
         if (!expectedTasks.equals(skippedTasks)) {
             failOnDifferentSets("Build output does not contain the expected skipped tasks.", expectedTasks, skippedTasks);
@@ -321,7 +320,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTaskSkipped(String taskPath) {
-        Set<String> tasks = new TreeSet<String>(getSkippedTasks());
+        Set<String> tasks = new TreeSet<>(getSkippedTasks());
         if (!tasks.contains(taskPath)) {
             failOnMissingElement("Build output does not contain the expected skipped task.", taskPath, tasks);
         }
@@ -329,7 +328,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
     }
 
     private Collection<String> getNotSkippedTasks() {
-        Set<String> all = new TreeSet<String>(getExecutedTasks());
+        Set<String> all = new TreeSet<>(getExecutedTasks());
         Set<String> skipped = getSkippedTasks();
         all.removeAll(skipped);
         return all;
@@ -337,8 +336,8 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTasksNotSkipped(Object... taskPaths) {
-        Set<String> expectedTasks = new TreeSet<String>(flattenTaskPaths(taskPaths));
-        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        Set<String> expectedTasks = new TreeSet<>(flattenTaskPaths(taskPaths));
+        Set<String> tasks = new TreeSet<>(getNotSkippedTasks());
         if (!expectedTasks.equals(tasks)) {
             failOnDifferentSets("Build output does not contain the expected non skipped tasks.", expectedTasks, tasks);
         }
@@ -347,7 +346,7 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public ExecutionResult assertTaskNotSkipped(String taskPath) {
-        Set<String> tasks = new TreeSet<String>(getNotSkippedTasks());
+        Set<String> tasks = new TreeSet<>(getNotSkippedTasks());
         if (!tasks.contains(taskPath)) {
             failOnMissingElement("Build output does not contain the expected non skipped task.", taskPath, tasks);
         }
@@ -378,30 +377,27 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         final List<String> tasks = Lists.newArrayList();
         final List<String> taskStatusLines = Lists.newArrayList();
 
-        getMainContent().eachLine(new Action<String>() {
-            @Override
-            public void execute(String line) {
-                java.util.regex.Matcher matcher = pattern.matcher(line);
-                if (matcher.matches()) {
-                    String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
-                    String taskName = matcher.group(2);
-                    if (!includeBuildSrc && taskName.startsWith(":buildSrc:")) {
-                        return;
-                    }
-
-                    // The task status line may appear twice - once for the execution, once for the UP-TO-DATE/SKIPPED/etc
-                    // So don't add to the task list if this is an update to a previously added task.
-
-                    // Find the status line for the previous record of this task
-                    String previousTaskStatusLine = tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
-                    // Don't add if our last record has a `:taskName` status, and this one is `:taskName SOMETHING`
-                    if (previousTaskStatusLine.equals(taskName) && !taskStatusLine.equals(taskName)) {
-                        return;
-                    }
-
-                    taskStatusLines.add(taskStatusLine);
-                    tasks.add(taskName);
+        getMainContent().eachLine(line -> {
+            java.util.regex.Matcher matcher = pattern.matcher(line);
+            if (matcher.matches()) {
+                String taskStatusLine = matcher.group().replace(TASK_PREFIX, "");
+                String taskName = matcher.group(2);
+                if (!includeBuildSrc && taskName.startsWith(":buildSrc:")) {
+                    return;
                 }
+
+                // The task status line may appear twice - once for the execution, once for the UP-TO-DATE/SKIPPED/etc
+                // So don't add to the task list if this is an update to a previously added task.
+
+                // Find the status line for the previous record of this task
+                String previousTaskStatusLine = tasks.contains(taskName) ? taskStatusLines.get(tasks.lastIndexOf(taskName)) : "";
+                // Don't add if our last record has a `:taskName` status, and this one is `:taskName SOMETHING`
+                if (previousTaskStatusLine.equals(taskName) && !taskStatusLine.equals(taskName)) {
+                    return;
+                }
+
+                taskStatusLines.add(taskStatusLine);
+                tasks.add(taskName);
             }
         });
 

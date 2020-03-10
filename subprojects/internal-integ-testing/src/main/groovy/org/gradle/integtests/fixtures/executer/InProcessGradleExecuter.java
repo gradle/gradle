@@ -191,9 +191,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
-            if (properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null) {
-                return true;
-            }
+            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
         return false;
     }
