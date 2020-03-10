@@ -57,7 +57,7 @@ For example, in the following crash, the JVM fatal error log was written into `/
 
 The Java `native` keyword allows to declare methods that are implemented in native languages such as C or C++.
 The Java compiler can then generate native headers that should be implemented.
-This mechanism supports using the [Java Native Interface (JNI)](https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html) specification but is not limited to it.
+It is most commonly used with [Java Native Interface (JNI)](https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html).
 
 The Java compile task for each Java source set now has a default location to generate native headers into.
 
