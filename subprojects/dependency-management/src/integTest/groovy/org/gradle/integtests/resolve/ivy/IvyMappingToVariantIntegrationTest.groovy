@@ -22,10 +22,13 @@ import spock.lang.Unroll
 
 class IvyMappingToVariantIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        System.properties.setProperty("org.gradle.integtest.force.realize.metadata", "true")
+    }
+
     @Unroll
     def "can add variants for ivy - inherit configuration excludes"() {
         when:
-        System.properties.setProperty("org.gradle.integtest.force.realize.metadata", "true")
         buildFile << """
             String repoPattern = '[organisation]/[module]/[revision]'
             String ivyPattern = "\${repoPattern}/[module]-[revision]-ivy.[ext]"
@@ -42,7 +45,7 @@ class IvyMappingToVariantIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            class IvyVariantDerivation implements ComponentMetadataRule {
+            class IvyVariantDerivationRule implements ComponentMetadataRule {
                 @javax.inject.Inject
                 ObjectFactory getObjects() { }
 
@@ -70,7 +73,7 @@ class IvyMappingToVariantIntegrationTest extends AbstractIntegrationSpec {
 
             apply plugin: 'java'
 
-            project.dependencies.components.all(IvyVariantDerivation)
+            project.dependencies.components.all(IvyVariantDerivationRule)
 
             dependencies {
                 implementation 'foo:my-core:1.0.0'
@@ -79,10 +82,11 @@ class IvyMappingToVariantIntegrationTest extends AbstractIntegrationSpec {
         """
 
         and:
-        def result = succeeds 'dependencies'
+        def result = succeeds 'dependencyInsight', '--dependency', 'my-excluded-dependency'
 
         then:
         result.assertNotOutput('my-excluded-dependency')
+        result.assertOutputContains('No dependencies matching given input were found in configuration')
     }
 
 }
