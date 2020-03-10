@@ -508,6 +508,26 @@ The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, w
 This plugin is the exception as it does not apply the Java Plugin.
 ====
 
+[[sec:feature_preview]]
+== Enabling Java preview features
+To enable Java [preview features](https://openjdk.java.net/jeps/12) for compilation, test execution and runtime, you can use the following DSL snippet:
+```
+tasks.withType(JavaCompile) {
+    options.compilerArgs += "--enable-preview"
+}
+tasks.withType(Test) {
+    jvmArgs += "--enable-preview"
+}
+tasks.withType(JavaExec) {
+    jvmArgs += "--enable-preview"
+}
+```
+
+[WARNING]
+====
+Using a Java preview feature makes the binary code incompatible with that compiled without a feature preview. Thus, is not advisable to publish any libraries compiled with a preview feature enabled.
+====
+
 [[sec:building_jvm_lang]]
 == Building other JVM language projects
 
