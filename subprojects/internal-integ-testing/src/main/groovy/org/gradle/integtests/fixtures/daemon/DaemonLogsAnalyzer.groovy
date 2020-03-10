@@ -97,7 +97,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         return version
     }
 
-    void printCrashLogIfAny() {
+    void assertNoCrashedDaemon() {
         List<File> crashLogs = daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') && it.name.startsWith('hs_err') }
         crashLogs.each { println(it.text) }
         assert crashLogs.empty: "Found crash los: ${crashLogs}"
