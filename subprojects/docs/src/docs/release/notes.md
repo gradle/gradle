@@ -1,8 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [support for JDK14](#java-14), improved [error reporting](#improved-error-messages), [dark mode reports](#dark-mode) and more.
-
-Be sure to also check out all the [bug fixes](#fixed-issues).
+This release features [support for Java 14](#java-14), improved [error messages](#improved-error-messages), as well as several other enhancements and [bug fixes](#fixed-issues).
 
 We would like to thank the following community contributors to this release of Gradle:
 [Kyle Cackett](https://github.com/kyle-cackett),
