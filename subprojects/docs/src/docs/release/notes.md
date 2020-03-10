@@ -28,16 +28,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 ## Support for Java 14
 Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk/14/).
 
-## Query information about a Java installation
-
-Sometimes it is useful for build logic to query certain details of a Java installation or the current JVM.
-For example, you may want to compile or run tests using a particular Java version or JVM implementation, and would like to add some validation that the build is actually using this Java version.
-Or you may wish to look up tools or commands included with a particular version of Java.
-
-In this release, there is a new `JavaInstallationRegistry` API to help write such build logic. This API allows you to query details about the current JVM or a particular Java installation.
-
-Please see [JavaInstallationRegistry](javadoc/org/gradle/jvm/toolchain/JavaInstallationRegistry.html) for more details. 
-
 <a name="dark-mode"></a>
 ## Dark mode support for generated reports
 
@@ -67,7 +57,21 @@ For example, in the following crash, the JVM fatal error log was written into `/
 
 ## Default location for native headers generated from Java source
 
-The Java compile task for each Java source set now has a default location to generate native headers into. This is used by the Java compiler when the Java source contains `native` methods.  
+The Java `native` keyword allows to declare methods that are implemented in native languages such as C or C++.
+The Java compiler can then generate native headers that should be implemented.
+This mechanism supports using the [Java Native Interface (JNI)](https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html) specification but is not limited to it.
+
+The Java compile task for each Java source set now has a default location to generate native headers into.
+
+Some tools may expect header files in a different location. It can be changed now if needed:
+
+```groovy
+compileJava {
+    options {
+        headerOutputDirectory.set(layout.buildDirectory.dir("native-headers"))
+    }
+}
+```
 
 Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:headerOutputDirectory) for more details.
 
