@@ -28,16 +28,6 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 ## Support for Java 14
 Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk/14/).
 
-## Query information about a Java installation
-
-Sometimes it is useful for build logic to query certain details of a Java installation or the current JVM.
-For example, you may want to compile or run tests using a particular Java version or JVM implementation, and would like to add some validation that the build is actually using this Java version.
-Or you may wish to look up tools or commands included with a particular version of Java.
-
-In this release, there is a new `JavaInstallationRegistry` API to help write such build logic. This API allows you to query details about the current JVM or a particular Java installation.
-
-Please see [JavaInstallationRegistry](javadoc/org/gradle/jvm/toolchain/JavaInstallationRegistry.html) for more details. 
-
 <a name="dark-mode"></a>
 ## Dark mode support for generated reports
 
