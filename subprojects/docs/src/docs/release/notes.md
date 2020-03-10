@@ -76,7 +76,10 @@ Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#
 
 ## Improvements for Component Metadata Rules
 
-The API for component metadata rules has been extended to allow access to `packaging`, `classifier` and `type` information from POM metadata.
+Each module that is pulled from a repository has metadata associated with it, such as its group, name, version.
+Sometimes, this metadata is incomplete or incorrect. To manipulate such incomplete metadata from within the build
+script, Gradle offers an API to write [component metadata rules](https://docs.gradle.org/current/userguide/component_metadata_rules.html). The API for component metadata rules has been extended to allow access to `packaging`,
+`classifier` and `type` information from POM metadata.
 The `packaging` information for a direct dependency [can be obtained](userguide/component_metadata_rules.html#filter_using_maven_metadata) from the `ComponentMetadataContext`.
 Additionally, `ComponentMetadataRule`s can react on the `classifier` and `type` information of dependencies:
 ```
