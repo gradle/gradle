@@ -24,7 +24,7 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="java-14"></a>
 ## Support for Java 14
 
-Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk/14/).
+Gradle now supports running and building with [Java 14](https://openjdk.java.net/projects/jdk/14/).
 
 ## Improved error messages
 
@@ -64,14 +64,20 @@ compileJava {
 
 Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:headerOutputDirectory) for more details.
 
+## Improvements for plugin authors
 
-## Improvements for component metadata rules
+### Improvements for component metadata rules
 
-Each module that is pulled from a repository has metadata associated with it, such as its group, name, version.
-Sometimes, this metadata is incomplete or incorrect. To manipulate such incomplete metadata from within the build
-script, Gradle offers an API to write [component metadata rules](https://docs.gradle.org/current/userguide/component_metadata_rules.html). The API for component metadata rules has been extended to allow access to `packaging`,
+Every module that is pulled from a repository has metadata associated with it, such as its group, name, and version.
+
+Sometimes, this metadata can be incomplete or incorrect. To manipulate such incomplete metadata from within the build
+script, Gradle offers an API to write [component metadata rules](userguide/component_metadata_rules.html). 
+
+The API for component metadata rules has been extended to allow access to `packaging`,
 `classifier` and `type` information from POM metadata.
+
 The `packaging` information for a direct dependency [can be obtained](userguide/component_metadata_rules.html#filter_using_maven_metadata) from the `ComponentMetadataContext`.
+
 Additionally, `ComponentMetadataRule`s can react on the `classifier` and `type` information of dependencies:
 ```
 class ClassifierExampleRule implements ComponentMetadataRule {
