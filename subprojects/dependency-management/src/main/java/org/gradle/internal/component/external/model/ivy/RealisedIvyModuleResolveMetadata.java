@@ -90,31 +90,39 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         }
 
         for (AdditionalVariant additionalVariant : additionalVariants) {
-            String name = additionalVariant.getName();
-            String baseName = additionalVariant.getBase();
-            ImmutableAttributes attributes;
-            ImmutableCapabilities capabilities;
-            List<ModuleDependencyMetadata> dependencies;
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+                String name = additionalVariant.getName();
+                String baseName = additionalVariant.getBase();
+                ImmutableAttributes attributes;
+                ImmutableCapabilities capabilities;
+                List<ModuleDependencyMetadata> dependencies;
+                ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+                ImmutableList<ExcludeMetadata> excludes;
 
-            ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
-            if (baseConf == null) {
-                attributes = componentMetadata.getAttributes();
-                capabilities = ImmutableCapabilities.EMPTY;
-                dependencies = ImmutableList.of();
-                artifacts = ImmutableList.of();
-            } else {
-                attributes = baseConf.getAttributes();
-                capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
-                dependencies = Cast.uncheckedCast(baseConf.getDependencies());
-                artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
-            }
+                ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
+                if (baseConf == null) {
+                    attributes = componentMetadata.getAttributes();
+                    capabilities = ImmutableCapabilities.EMPTY;
+                    dependencies = ImmutableList.of();
+                    artifacts = ImmutableList.of();
+                    excludes = ImmutableList.of();
+                } else {
+                    attributes = baseConf.getAttributes();
+                    capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
+                    dependencies = Cast.uncheckedCast(baseConf.getDependencies());
+                    artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
 
-            if (baseName == null || baseConf != null) {
-                declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, ImmutableList.of(), true, true, ImmutableSet.of(), null, dependencies, true));
-            } else if (!additionalVariant.isLenient()) {
-                throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
-            }
+                    excludes = Cast.uncheckedCast(baseConf.getExcludes());
+                }
+
+                if (baseName == null || baseConf != null) {
+                    declaredConfigurations.put(name, applyRules(componentMetadata.getId(),
+                        name, variantMetadataRules, attributes, capabilities,
+                        artifacts, excludes, true, true,
+                        ImmutableSet.of(), null, dependencies, true));
+                } else if (!additionalVariant.isLenient()) {
+                    throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
+                }
+
         }
     }
 

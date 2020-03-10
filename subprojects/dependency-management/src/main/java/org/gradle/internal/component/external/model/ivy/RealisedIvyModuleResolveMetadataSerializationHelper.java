@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -57,6 +58,10 @@ import java.util.Map;
 import java.util.Set;
 
 public class RealisedIvyModuleResolveMetadataSerializationHelper extends AbstractRealisedModuleResolveMetadataSerializationHelper {
+
+    private static final ImmutableSet<String> API_ELEMENTS_HIERARCHY = ImmutableSet.of("compile", "apiElements");
+    private static final ImmutableSet<String> RUNTIME_ELEMENTS_HIERARCHY = ImmutableSet.of("default", "runtime", "runtimeElements");
+
     public RealisedIvyModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(attributeContainerSerializer, moduleIdentifierFactory);
     }
@@ -100,8 +105,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), new IdentityHashMap<>(), metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
 
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
-
-        int configurationsCount = decoder.readSmallInt();
+           int configurationsCount = decoder.readSmallInt();
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(configurationsCount);
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
@@ -114,7 +118,12 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
                 transitive = configuration.isTransitive();
                 visible = configuration.isVisible();
                 hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+            } else if(isApiElements(configurationName, configurationDefinitions.values())) {
+                hierarchy = API_ELEMENTS_HIERARCHY;
+            } else if(isRuntimeElements(configurationName, configurationDefinitions.values())) {
+                hierarchy = RUNTIME_ELEMENTS_HIERARCHY;
             }
+
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
@@ -147,6 +156,18 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             configurations.put(configurationName, configurationMetadata);
         }
         return configurations;
+    }
+
+    private boolean isRuntimeElements(String configurationName, ImmutableCollection<Configuration> ivyConfigurationDefinitions) {
+        return configurationName.equals("runtimeElements") && ivyConfigurationDefinitions.stream().anyMatch(
+            ivyConfiguration -> ivyConfiguration.getName().equals("default")
+        );
+    }
+
+    private boolean isApiElements(String configurationName, ImmutableCollection<Configuration> ivyConfigurationDefinitions) {
+        return configurationName.equals("apiElements") && ivyConfigurationDefinitions.stream().anyMatch(
+            ivyConfiguration -> ivyConfiguration.getName().equals("compile")
+        );
     }
 
     private IvyDependencyDescriptor readIvyDependency(Decoder decoder) throws IOException {
