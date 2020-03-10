@@ -87,11 +87,11 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
             plugins { id "java" }
 
             class SomeBean {
-                private ${baseType} badReference
+                private ${baseType.name} badReference
             }
 
             class SomeTask extends DefaultTask {
-                private final ${baseType} badReference
+                private final ${baseType.name} badReference
                 private final bean = new SomeBean()
 
                 SomeTask() {
@@ -116,8 +116,8 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         then:
         outputContains("""
             2 instant execution problems were found, 2 of which seem unique:
-              - field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.
-              - field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.
+              - field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.
+              - field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.
             See the complete report at
         """.stripIndent())
 
@@ -129,46 +129,46 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         outputContains("bean.reference = null")
 
         where:
-        concreteType                               | baseType                            | reference
+        concreteType                          | baseType                       | reference
         // Live JVM state
-        ScriptClassLoader.name                     | ClassLoader.name                    | "getClass().classLoader"
-        Thread.name                                | Thread.name                         | "Thread.currentThread()"
-        DefaultThreadFactory.name                  | ThreadFactory.name                  | "java.util.concurrent.Executors.defaultThreadFactory()"
-        FinalizableDelegatedExecutorService.name   | Executor.name                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
-        ByteArrayInputStream.name                  | InputStream.name                    | "new java.io.ByteArrayInputStream([] as byte[])"
-        ByteArrayOutputStream.name                 | OutputStream.name                   | "new java.io.ByteArrayOutputStream()"
-        FileDescriptor.name                        | FileDescriptor.name                 | "FileDescriptor.in"
-        RandomAccessFile.name                      | RandomAccessFile.name               | "new RandomAccessFile(project.file('some').tap { text = '' }, 'r').tap { close() }"
-        Socket.name                                | Socket.name                         | "new java.net.Socket()"
-        ServerSocket.name                          | ServerSocket.name                   | "new java.net.ServerSocket(0).tap { close() }"
+        ScriptClassLoader                     | ClassLoader                    | "getClass().classLoader"
+        Thread                                | Thread                         | "Thread.currentThread()"
+        DefaultThreadFactory                  | ThreadFactory                  | "java.util.concurrent.Executors.defaultThreadFactory()"
+        FinalizableDelegatedExecutorService   | Executor                       | "java.util.concurrent.Executors.newSingleThreadExecutor().tap { shutdown() }"
+        ByteArrayInputStream                  | InputStream                    | "new java.io.ByteArrayInputStream([] as byte[])"
+        ByteArrayOutputStream                 | OutputStream                   | "new java.io.ByteArrayOutputStream()"
+        FileDescriptor                        | FileDescriptor                 | "FileDescriptor.in"
+        RandomAccessFile                      | RandomAccessFile               | "new RandomAccessFile(project.file('some').tap { text = '' }, 'r').tap { close() }"
+        Socket                                | Socket                         | "new java.net.Socket()"
+        ServerSocket                          | ServerSocket                   | "new java.net.ServerSocket(0).tap { close() }"
         // Gradle Build Model
-        DefaultGradle.name                         | Gradle.name                         | "project.gradle"
-        DefaultSettings.name                       | Settings.name                       | "project.gradle.settings"
-        DefaultProject.name                        | Project.name                        | "project"
-        DefaultTaskContainer.name                  | TaskContainer.name                  | "project.tasks"
-        DefaultTask.name                           | Task.name                           | "project.tasks.other"
-        DefaultSourceSetContainer.name             | SourceSetContainer.name             | "project.sourceSets"
-        DefaultSourceSet.name                      | SourceSet.name                      | "project.sourceSets['main']"
+        DefaultGradle                         | Gradle                         | "project.gradle"
+        DefaultSettings                       | Settings                       | "project.gradle.settings"
+        DefaultProject                        | Project                        | "project"
+        DefaultTaskContainer                  | TaskContainer                  | "project.tasks"
+        DefaultTask                           | Task                           | "project.tasks.other"
+        DefaultSourceSetContainer             | SourceSetContainer             | "project.sourceSets"
+        DefaultSourceSet                      | SourceSet                      | "project.sourceSets['main']"
         // Dependency Resolution Services
-        DefaultConfigurationContainer.name         | ConfigurationContainer.name         | "project.configurations"
-        DefaultResolutionStrategy.name             | ResolutionStrategy.name             | "project.configurations.maybeCreate('some').resolutionStrategy"
-        ErrorHandlingResolvedConfiguration.name    | ResolvedConfiguration.name          | "project.configurations.maybeCreate('some').resolvedConfiguration"
-        ErrorHandlingLenientConfiguration.name     | LenientConfiguration.name           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
-        DefaultDependencyConstraintSet.name        | DependencyConstraintSet.name        | "project.configurations.maybeCreate('some').dependencyConstraints"
-        DefaultRepositoryHandler.name              | RepositoryHandler.name              | "project.repositories"
-        DefaultMavenArtifactRepository.name        | ArtifactRepository.name             | "project.repositories.mavenCentral()"
-        DefaultDependencyHandler.name              | DependencyHandler.name              | "project.dependencies"
-        DefaultDependencyConstraintHandler.name    | DependencyConstraintHandler.name    | "project.dependencies.constraints"
-        DefaultComponentMetadataHandler.name       | ComponentMetadataHandler.name       | "project.dependencies.components"
-        DefaultComponentModuleMetadataHandler.name | ComponentModuleMetadataHandler.name | "project.dependencies.modules"
-        DefaultAttributesSchema.name               | AttributesSchema.name               | "project.dependencies.attributesSchema"
-        DefaultAttributeMatchingStrategy.name      | AttributeMatchingStrategy.name      | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE)"
-        DefaultCompatibilityRuleChain.name         | CompatibilityRuleChain.name         | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules"
-        DefaultDisambiguationRuleChain.name        | DisambiguationRuleChain.name        | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules"
-        DefaultArtifactResolutionQuery.name        | ArtifactResolutionQuery.name        | "project.dependencies.createArtifactResolutionQuery()"
-        DefaultArtifactTypeContainer.name          | ArtifactTypeContainer.name          | "project.dependencies.artifactTypes"
-        DefaultDependencySet.name                  | DependencySet.name                  | "project.configurations.maybeCreate('some').dependencies"
-        DefaultExternalModuleDependency.name       | Dependency.name                     | "project.dependencies.create('junit:junit:4.12')"
-        DefaultDependencyLockingHandler.name       | DependencyLockingHandler.name       | "project.dependencyLocking"
+        DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
+        DefaultResolutionStrategy             | ResolutionStrategy             | "project.configurations.maybeCreate('some').resolutionStrategy"
+        ErrorHandlingResolvedConfiguration    | ResolvedConfiguration          | "project.configurations.maybeCreate('some').resolvedConfiguration"
+        ErrorHandlingLenientConfiguration     | LenientConfiguration           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
+        DefaultDependencyConstraintSet        | DependencyConstraintSet        | "project.configurations.maybeCreate('some').dependencyConstraints"
+        DefaultRepositoryHandler              | RepositoryHandler              | "project.repositories"
+        DefaultMavenArtifactRepository        | ArtifactRepository             | "project.repositories.mavenCentral()"
+        DefaultDependencyHandler              | DependencyHandler              | "project.dependencies"
+        DefaultDependencyConstraintHandler    | DependencyConstraintHandler    | "project.dependencies.constraints"
+        DefaultComponentMetadataHandler       | ComponentMetadataHandler       | "project.dependencies.components"
+        DefaultComponentModuleMetadataHandler | ComponentModuleMetadataHandler | "project.dependencies.modules"
+        DefaultAttributesSchema               | AttributesSchema               | "project.dependencies.attributesSchema"
+        DefaultAttributeMatchingStrategy      | AttributeMatchingStrategy      | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE)"
+        DefaultCompatibilityRuleChain         | CompatibilityRuleChain         | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).compatibilityRules"
+        DefaultDisambiguationRuleChain        | DisambiguationRuleChain        | "project.dependencies.attributesSchema.attribute(Usage.USAGE_ATTRIBUTE).disambiguationRules"
+        DefaultArtifactResolutionQuery        | ArtifactResolutionQuery        | "project.dependencies.createArtifactResolutionQuery()"
+        DefaultArtifactTypeContainer          | ArtifactTypeContainer          | "project.dependencies.artifactTypes"
+        DefaultDependencySet                  | DependencySet                  | "project.configurations.maybeCreate('some').dependencies"
+        DefaultExternalModuleDependency       | Dependency                     | "project.dependencies.create('junit:junit:4.12')"
+        DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
     }
 }
