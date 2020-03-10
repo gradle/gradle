@@ -115,6 +115,13 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
         return mainContent;
     }
 
+    /**
+     * The content after the build successful message with debug prefix and ANSI characters removed.
+     */
+    public LogContent getPostBuildContent() {
+        return postBuild;
+    }
+
     @Override
     public String getNormalizedOutput() {
         return normalize(output);
@@ -220,11 +227,20 @@ public class OutputScrapingExecutionResult implements ExecutionResult {
 
     @Override
     public String getOutputLineThatContains(String text) {
-        Optional<String> foundLine = getMainContent().getLines().stream()
+        return findLineThatContains(text, getMainContent(), "build output.");
+    }
+
+    @Override
+    public String getPostBuildOutputLineThatContains(String text) {
+        return findLineThatContains(text, getPostBuildContent(), "post build output.");
+    }
+
+    private String findLineThatContains(String text, LogContent content, String outputType) {
+        Optional<String> foundLine = content.getLines().stream()
             .filter(line -> line.contains(text))
             .findFirst();
         return foundLine.orElseGet(() -> {
-            failOnMissingOutput("Did not find expected text in build output.", "Build output", text, text);
+            failOnMissingOutput("Did not find expected text in " + outputType, "Build output", text, text);
             // never returned
             return "";
         });

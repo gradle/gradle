@@ -27,10 +27,6 @@ public class VfsRetentionHelper {
         Thread.sleep(WAIT_FOR_CHANGES_PICKED_UP_MILLIS);
     }
 
-    public static String waitForChangesToBePickedUpInBuildScript() {
-        return "Thread.sleep(" + WAIT_FOR_CHANGES_PICKED_UP_MILLIS + ")";
-    }
-
     public static String getEnableVfsRetentionArgument() {
         return systemProperty(VFS_RETENTION_ENABLED_PROPERTY, true);
     }

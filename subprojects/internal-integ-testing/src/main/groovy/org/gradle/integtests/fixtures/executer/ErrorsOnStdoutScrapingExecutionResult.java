@@ -66,6 +66,11 @@ public class ErrorsOnStdoutScrapingExecutionResult implements ExecutionResult {
     }
 
     @Override
+    public String getPostBuildOutputLineThatContains(String text) {
+        return delegate.getPostBuildOutputLineThatContains(text);
+    }
+
+    @Override
     public ExecutionResult assertHasErrorOutput(String expectedOutput) {
         assertContentContains(getOutput(), expectedOutput, "Build output");
         return this;
