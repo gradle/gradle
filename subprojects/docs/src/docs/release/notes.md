@@ -83,7 +83,8 @@ class ClassifierExampleRule implements ComponentMetadataRule {
         context.details.allVariants {
             withDependencies {
                 it.each { dependency ->
-                    def classifier = dependency.artifactSelectors[0]?.classifier
+                    def classifier = 
+                        dependency.artifactSelectors[0]?.classifier
                     ...
                 }
             }
