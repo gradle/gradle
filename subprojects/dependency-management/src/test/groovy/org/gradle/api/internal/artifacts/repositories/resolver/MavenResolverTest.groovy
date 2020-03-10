@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.resolver
 import com.google.common.collect.ImmutableList
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMavenPomMetadataSource
@@ -125,6 +126,15 @@ class MavenResolverTest extends Specification {
 
         expect:
         resolver1.id != resolver2.id
+    }
+
+    def "identifies bare SNAPSHOT version as a non-unique snapshot"() {
+        given:
+        ModuleComponentIdentifier id = Mock()
+        id.getVersion() >> "SNAPSHOT"
+
+        expect:
+        MavenResolver.isNonUniqueSnapshot(id)
     }
 
     private MavenResolver resolver(boolean useGradleMetadata = false, boolean alwaysProvidesMetadataForModules = false) {

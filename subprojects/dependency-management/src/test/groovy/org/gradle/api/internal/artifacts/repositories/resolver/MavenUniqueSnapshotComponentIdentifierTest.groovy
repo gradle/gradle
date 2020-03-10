@@ -53,6 +53,19 @@ class MavenUniqueSnapshotComponentIdentifierTest extends Specification {
         "1.0-timestamp" | _
     }
 
+    def "can request bare timestamp or bare symbolic version"() {
+        def id = new MavenUniqueSnapshotComponentIdentifier(moduleIdentifier, version, "timestamp")
+
+        expect:
+        id.timestampedVersion == "timestamp"
+        id.snapshotVersion == "SNAPSHOT"
+
+        where:
+        version     | _
+        "SNAPSHOT"  | _
+        "timestamp" | _
+    }
+
     def "has useful display name"() {
         def id = new MavenUniqueSnapshotComponentIdentifier(moduleIdentifier, version, "timestamp")
 

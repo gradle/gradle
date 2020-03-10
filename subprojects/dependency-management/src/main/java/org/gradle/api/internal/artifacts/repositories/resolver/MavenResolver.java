@@ -285,7 +285,8 @@ public class MavenResolver extends ExternalResourceResolver<MavenModuleResolveMe
     }
 
     protected static boolean isNonUniqueSnapshot(ModuleComponentIdentifier moduleComponentIdentifier) {
-        return moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
+        return "SNAPSHOT".equals(moduleComponentIdentifier.getVersion()) ||
+            moduleComponentIdentifier.getVersion().endsWith("-SNAPSHOT");
     }
 
     private MavenUniqueSnapshotComponentIdentifier composeSnapshotIdentifier(ModuleComponentIdentifier moduleComponentIdentifier, MavenUniqueSnapshotModuleSource uniqueSnapshotVersion) {
