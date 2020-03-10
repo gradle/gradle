@@ -63,7 +63,7 @@ This mechanism supports using the [Java Native Interface (JNI)](https://docs.ora
 
 The Java compile task for each Java source set now has a default location to generate native headers into.
 
-This location can also now be changed if need be: 
+Some tools may expect header files in a different location. It can be changed now if needed:
 
 ```groovy
 compileJava {
