@@ -16,12 +16,8 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.Project
-import org.gradle.api.Script
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
@@ -37,18 +33,15 @@ import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
-import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
@@ -72,7 +65,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -109,13 +101,7 @@ class Codecs(
 
     val userTypesCodec = BindingsBackedCodec {
 
-        bind(unsupported<Project>())
-        bind(unsupported<Gradle>())
-        bind(unsupported<Settings>())
-        bind(unsupported<TaskContainer>())
-        bind(unsupported<ConfigurationContainer>())
-        bind(unsupported<KotlinScript>())
-        bind(unsupported<Script>())
+        unsupportedTypes()
 
         baseTypes()
 

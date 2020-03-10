@@ -19,23 +19,11 @@ package org.gradle.instantexecution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.tasks.DefaultTaskContainer
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
-import org.gradle.invocation.DefaultGradle
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -44,6 +32,7 @@ import org.slf4j.Logger
 import spock.lang.Unroll
 
 import javax.inject.Inject
+
 
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -954,56 +943,6 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         'an uri'           | 'fromUri(project.uri(project.file("resource.txt")))'
         'an insecure uri'  | 'fromInsecureUri(project.uri(project.file("resource.txt")))'
         'an archive entry' | 'fromArchiveEntry("resource.zip", "resource.txt")'
-    }
-
-    @Unroll
-    def "warns when task field references an object of type #baseType"() {
-        buildFile << """
-            class SomeBean {
-                private ${baseType} badReference
-            }
-
-            class SomeTask extends DefaultTask {
-                private final ${baseType} badReference
-                private final bean = new SomeBean()
-
-                SomeTask() {
-                    badReference = ${reference}
-                    bean.badReference = ${reference}
-                }
-
-                @TaskAction
-                void run() {
-                    println "this.reference = " + badReference
-                    println "bean.reference = " + bean.badReference
-                }
-            }
-
-            task other
-            task broken(type: SomeTask)
-        """
-
-        when:
-        instantRun "broken"
-
-        then:
-        outputContains("instant-execution > cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.")
-
-        when:
-        instantRun "broken"
-
-        then:
-        outputContains("this.reference = null")
-        outputContains("bean.reference = null")
-
-        where:
-        concreteType                       | baseType                    | reference
-        DefaultProject.name                | Project.name                | "project"
-        DefaultGradle.name                 | Gradle.name                 | "project.gradle"
-        DefaultSettings.name               | Settings.name               | "project.gradle.settings"
-        DefaultTask.name                   | Task.name                   | "project.tasks.other"
-        DefaultTaskContainer.name          | TaskContainer.name          | "project.tasks"
-        DefaultConfigurationContainer.name | ConfigurationContainer.name | "project.configurations"
     }
 
     def "restores task abstract properties"() {
