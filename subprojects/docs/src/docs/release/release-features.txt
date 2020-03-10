@@ -1,3 +1,2 @@
  - Java 14 support
- - Improved error messages
- - Bug fixes
+ - Improved error messages for unexpected failures
