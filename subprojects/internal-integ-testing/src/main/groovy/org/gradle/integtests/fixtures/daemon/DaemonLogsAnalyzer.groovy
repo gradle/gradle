@@ -56,6 +56,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     void killAll() {
+        printCrashLogIfAny()
         allDaemons*.kill()
     }
 
@@ -68,7 +69,7 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
         if (!daemonLogsDir.exists() || !daemonLogsDir.isDirectory()) {
             return []
         }
-        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
+        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') && !it.name.startsWith('hs_err') }.collect { daemonForLogFile(it) }
     }
 
     List<DaemonFixture> getVisible() {
@@ -94,5 +95,11 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     String getVersion() {
         return version
+    }
+
+    void printCrashLogIfAny() {
+        List<File> crashLogs = daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') && it.name.startsWith('hs_err') }
+        crashLogs.each { println(it.text) }
+        assert crashLogs.empty: "Found crash los: ${crashLogs}"
     }
 }
