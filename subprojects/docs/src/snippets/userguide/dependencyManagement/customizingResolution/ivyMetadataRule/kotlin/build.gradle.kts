@@ -15,6 +15,10 @@ open class IvyVariantDerivationRule : ComponentMetadataRule {
     @Inject open fun getObjects(): ObjectFactory = throw UnsupportedOperationException()
 
     override fun execute(context: ComponentMetadataContext) {
+        if(context.getDescriptor(IvyModuleDescriptor) == null) {
+            return
+        }
+
         context.details.addVariant("runtimeElements", "default") {
             attributes {
                 attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements.JAR))
