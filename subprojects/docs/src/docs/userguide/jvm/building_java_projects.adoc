@@ -525,7 +525,7 @@ tasks.withType(JavaExec) {
 
 [WARNING]
 ====
-Using a Java preview feature makes the binary code incompatible with that compiled without a feature preview. Thus, is not advisable to publish any libraries compiled with a preview feature enabled.
+Using a Java preview feature is very likely to make your code incompatible with one compiled without a feature preview. As a consequence, we strongly recommend you not to publish libraries compiled with preview features and restrict the use of feature previews either to toy projects.
 ====
 
 [[sec:building_jvm_lang]]
