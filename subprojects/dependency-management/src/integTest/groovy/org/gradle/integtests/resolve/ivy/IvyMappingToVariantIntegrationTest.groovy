@@ -86,7 +86,6 @@ class IvyMappingToVariantIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertNotOutput('my-excluded-dependency')
-        result.assertOutputContains('No dependencies matching given input were found in configuration')
     }
 
 }

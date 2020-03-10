@@ -160,9 +160,10 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
 
     private boolean isRuntimeElements(String configurationName, ImmutableCollection<Configuration> ivyConfigurationDefinitions) {
         return configurationName.equals("runtimeElements") && ivyConfigurationDefinitions.stream().anyMatch(
-            ivyConfiguration -> ivyConfiguration.getName().equals("runtime") //maybe default?
+            ivyConfiguration -> ivyConfiguration.getName().equals("default")
         );
     }
+
     private boolean isApiElements(String configurationName, ImmutableCollection<Configuration> ivyConfigurationDefinitions) {
         return configurationName.equals("apiElements") && ivyConfigurationDefinitions.stream().anyMatch(
             ivyConfiguration -> ivyConfiguration.getName().equals("compile")
