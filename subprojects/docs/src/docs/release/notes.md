@@ -67,7 +67,21 @@ For example, in the following crash, the JVM fatal error log was written into `/
 
 ## Default location for native headers generated from Java source
 
-The Java compile task for each Java source set now has a default location to generate native headers into. This is used by the Java compiler when the Java source contains `native` methods.  
+The Java `native` keyword allows to declare methods that are implemented in native code.
+The Java compiler can then generate native headers that should be implemented.
+This mechanism supports using the [Java Native Interface (JNI)](https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html) specification but is not limited to it.
+
+The Java compile task for each Java source set now has a default location to generate native headers into.
+
+This location can also now be changed if need be: 
+
+```groovy
+compileJava {
+    options {
+        headerOutputDirectory.set(layout.buildDirectory.dir("native-headers"))
+    }
+}
+```
 
 Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:headerOutputDirectory) for more details.
 
