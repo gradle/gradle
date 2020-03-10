@@ -31,6 +31,7 @@ import org.mortbay.jetty.HttpHeaders
 import org.mortbay.jetty.Server
 import org.mortbay.jetty.handler.AbstractHandler
 import org.mortbay.jetty.nio.SelectChannelConnector
+import spock.lang.Ignore
 import spock.lang.Specification
 
 import javax.servlet.http.HttpServletRequest
@@ -49,6 +50,7 @@ class DependencyResolutionStressTest extends Specification {
         concurrent.shortTimeout = 180000
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/2984')
     def "handles concurrent access to changing artifacts"() {
         expect:
         4.times { count ->
