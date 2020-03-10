@@ -426,23 +426,25 @@ class DependencyManagementBuildScopeServices {
                                                                 TemporaryFileProvider temporaryFileProvider,
                                                                 FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                                 BuildCommencedTimeProvider buildCommencedTimeProvider,
+                                                                ArtifactCachesProvider artifactCachesProvider,
                                                                 List<ResourceConnectorFactory> resourceConnectorFactories,
                                                                 BuildOperationExecutor buildOperationExecutor,
                                                                 ProducerGuard<ExternalResourceName> producerGuard,
                                                                 FileResourceRepository fileResourceRepository,
                                                                 ChecksumService checksumService,
                                                                 StartParameterResolutionOverride startParameterResolutionOverride) {
-        return new RepositoryTransportFactory(
+        return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
             progressLoggerFactory,
             temporaryFileProvider,
             fileStoreAndIndexProvider.getExternalResourceIndex(),
             buildCommencedTimeProvider,
+            manager,
             buildOperationExecutor,
             startParameterResolutionOverride,
             producerGuard,
             fileResourceRepository,
-            checksumService);
+            checksumService));
     }
 
     RepositoryBlacklister createRepositoryBlacklister() {
