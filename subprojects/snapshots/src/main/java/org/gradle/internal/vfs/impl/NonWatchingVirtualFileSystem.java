@@ -21,6 +21,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 /**
  * A {@link org.gradle.internal.vfs.VirtualFileSystem} which is not able to register any watches.
@@ -42,7 +43,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
     }
 
     @Override
-    public void beforeComplete(boolean watchingEnabled, File rootProjectDir) {
+    public void beforeComplete(boolean watchingEnabled, Supplier<File> rootProjectDir) {
         invalidateAll();
     }
 }

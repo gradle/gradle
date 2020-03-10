@@ -503,6 +503,18 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped(":outputFileTask")
     }
 
+    def "gracefully handle the root project not being available"() {
+        settingsFile << """
+            throw new RuntimeException("Boom")
+        """
+
+        when:
+        withRetention().fails("help")
+        then:
+        failureHasCause("Boom")
+        errorOutput.contains("Couldn't create watch service, not tracking changes between builds")
+    }
+
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
     private void invalidateBuildOutputCleanupState() {
         file(".gradle/buildOutputCleanup/cache.properties").text = """

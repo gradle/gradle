@@ -36,7 +36,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(false, new File("some/location"))
+        watchingVirtualFileSystem.beforeComplete(false, { -> new File("some/location") })
         then:
         1 * delegate.invalidateAll()
         0 * _
@@ -50,7 +50,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(true, new File("some/location"))
+        watchingVirtualFileSystem.beforeComplete(true, { -> new File("some/location") })
         then:
         _ * delegate.getRoot() >> snapshotHierarchy
         1 * watcherRegistryFactory.startWatching(snapshotHierarchy, _, _, _) >> watcherRegistry
@@ -72,7 +72,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(true, new File("some/location"))
+        watchingVirtualFileSystem.beforeComplete(true, { -> new File("some/location") })
         then:
         _ * delegate.getRoot() >> snapshotHierarchy
         1 * watcherRegistryFactory.startWatching(snapshotHierarchy, _, _, _) >> watcherRegistry

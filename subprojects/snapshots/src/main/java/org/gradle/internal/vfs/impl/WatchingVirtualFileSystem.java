@@ -31,10 +31,10 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 /**
  * A {@link org.gradle.internal.vfs.VirtualFileSystem} which uses watches to maintain
@@ -74,14 +74,14 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void beforeComplete(boolean watchingEnabled, File rootProjectDir) {
+    public void beforeComplete(boolean watchingEnabled, Supplier<File> rootProjectDirSupplier) {
         if (watchingEnabled) {
             handleWatcherRegistryEvents("for current build");
             stopWatching();
             buildRunning = false;
             producedByCurrentBuild.set(DefaultFileHierarchySet.of());
             printStatistics("retains", "till next build");
-            startWatching(Collections.singleton(rootProjectDir));
+            startWatching(rootProjectDirSupplier);
         } else {
             invalidateAll();
         }
@@ -90,15 +90,16 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     /**
      * Start watching the known areas of the file system for changes.
      *
-     * @param mustWatchDirectories directories that always should be watched even when not part of the VFS.
+     * @param rootProjectDirSupplier rootDirectory - always should be watched even when not part of the VFS.
      */
-    private void startWatching(Collection<File> mustWatchDirectories) {
+    private void startWatching(Supplier<File> rootProjectDirSupplier) {
         if (watchRegistry != null) {
             throw new IllegalStateException("Watch service already started");
         }
         try {
             long startTime = System.currentTimeMillis();
-            watchRegistry = watcherRegistryFactory.startWatching(getRoot(), watchFilter, mustWatchDirectories, new FileWatcherRegistry.ChangeHandler() {
+            File rootProjectDir = rootProjectDirSupplier.get();
+            watchRegistry = watcherRegistryFactory.startWatching(getRoot(), watchFilter, Collections.singletonList(rootProjectDir), new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     LOGGER.debug("Handling VFS change {} {}", type, path);
@@ -125,7 +126,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     /**
      * Stop watching the known areas of the file system, and invalidate
-     * the parts that have been changed since calling {@link #startWatching(Collection)} ()}.
+     * the parts that have been changed since calling {@link #startWatching(Supplier)} ()}.
      */
     private void stopWatching() {
         if (watchRegistry == null) {

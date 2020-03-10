@@ -19,7 +19,6 @@ package org.gradle.internal.service.scopes
 import org.gradle.StartParameter
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.cache.StringInterner
-import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.hash.FileHasher
@@ -78,9 +77,6 @@ class VirtualFileSystemServicesTest extends Specification {
         _ * startParameter.getCurrentDir() >> new File("current/dir").absoluteFile
         _ * gradle.getStartParameter() >> startParameter
         def virtualFileSystem = Mock(WatchingAwareVirtualFileSystem)
-        def rootProject = Mock(ProjectInternal)
-        _ * gradle.getRootProject() >> rootProject
-        _ * rootProject.getProjectDir() >> new File("some/project/dir")
 
         def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(
             virtualFileSystem,
@@ -97,7 +93,7 @@ class VirtualFileSystemServicesTest extends Specification {
         when:
         buildLifecycleListener.beforeComplete(gradle)
         then:
-        1 * virtualFileSystem.beforeComplete(retentionEnabled, new File("some/project/dir"))
+        1 * virtualFileSystem.beforeComplete(retentionEnabled, _)
 
         where:
         retentionEnabled << [true, false]

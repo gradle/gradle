@@ -103,6 +103,6 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
 
     @Override
     public void beforeComplete(GradleInternal gradle) {
-        virtualFileSystem.beforeComplete(vfsRetention.isEnabled(gradle.getStartParameter()), gradle.getRootProject().getProjectDir());
+        virtualFileSystem.beforeComplete(vfsRetention.isEnabled(gradle.getStartParameter()), () -> gradle.getRootProject().getProjectDir());
     }
 }

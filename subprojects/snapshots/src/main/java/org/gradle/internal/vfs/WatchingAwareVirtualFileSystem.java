@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs;
 
 import java.io.File;
+import java.util.function.Supplier;
 
 /**
  * A {@link VirtualFileSystem} that can be instructed to try to maintain its
@@ -32,5 +33,5 @@ public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
     /**
      * Called when the build is completed.
      */
-    void beforeComplete(boolean watchingEnabled, File rootProjectDir);
+    void beforeComplete(boolean watchingEnabled, Supplier<File> rootProjectDir);
 }
