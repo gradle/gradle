@@ -510,7 +510,7 @@ This plugin is the exception as it does not apply the Java Plugin.
 
 [[sec:feature_preview]]
 == Enabling Java preview features
-To enable Java [preview features](https://openjdk.java.net/jeps/12) for compilation, test execution and runtime, you can use the following DSL snippet:
+To enable Java link:https://openjdk.java.net/jeps/12[preview features] for compilation, test execution and runtime, you can use the following DSL snippet:
 ```
 tasks.withType(JavaCompile) {
     options.compilerArgs += "--enable-preview"
