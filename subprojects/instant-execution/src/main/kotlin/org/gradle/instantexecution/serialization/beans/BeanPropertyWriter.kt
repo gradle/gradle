@@ -28,6 +28,7 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
+import org.gradle.instantexecution.serialization.logUnsupported
 import java.io.IOException
 import java.util.concurrent.Callable
 import java.util.function.Supplier
@@ -47,6 +48,7 @@ class BeanPropertyWriter(
         for (field in relevantFields) {
             val fieldName = field.name
             val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
+            reportFieldProblems(fieldName, field.type, fieldValue)
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }
@@ -65,6 +67,19 @@ class BeanPropertyWriter(
         is Function0<*> -> fieldValue.invoke()
         is Lazy<*> -> fieldValue.value
         else -> fieldValue ?: conventionalValueOf(bean, fieldName)
+    }
+}
+
+
+private
+fun WriteContext.reportFieldProblems(fieldName: String, fieldType: Class<*>, fieldValue: Any?) {
+    withPropertyTrace(PropertyKind.Field, fieldName) {
+        unsupportedFieldDeclaredTypes
+            .firstOrNull { it.java.isAssignableFrom(fieldType) }
+            ?.let { unsupported ->
+                if (fieldValue == null) logUnsupported(unsupported)
+                else logUnsupported(unsupported, fieldValue::class.java)
+            }
     }
 }
 
