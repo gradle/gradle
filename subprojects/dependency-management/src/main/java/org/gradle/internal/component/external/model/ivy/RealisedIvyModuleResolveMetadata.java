@@ -30,6 +30,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.external.descriptor.Artifact;
 import org.gradle.internal.component.external.descriptor.Configuration;
+import org.gradle.internal.component.external.descriptor.DefaultExclude;
 import org.gradle.internal.component.external.model.AbstractRealisedModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.AdditionalVariant;
 import org.gradle.internal.component.external.model.ComponentVariant;
@@ -53,6 +54,7 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * {@link AbstractRealisedModuleComponentResolveMetadata Realised version} of a {@link IvyModuleResolveMetadata}.
@@ -90,34 +92,38 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
         }
 
         for (AdditionalVariant additionalVariant : additionalVariants) {
-            String name = additionalVariant.getName();
-            String baseName = additionalVariant.getBase();
-            ImmutableAttributes attributes;
-            ImmutableCapabilities capabilities;
-            List<ModuleDependencyMetadata> dependencies;
-            ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
-            ImmutableList<ExcludeMetadata> excludes;
+                String name = additionalVariant.getName();
+                String baseName = additionalVariant.getBase();
+                ImmutableAttributes attributes;
+                ImmutableCapabilities capabilities;
+                List<ModuleDependencyMetadata> dependencies;
+                ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
+                ImmutableList<ExcludeMetadata> excludes;
 
-            ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
-            if (baseConf == null) {
-                attributes = componentMetadata.getAttributes();
-                capabilities = ImmutableCapabilities.EMPTY;
-                dependencies = ImmutableList.of();
-                artifacts = ImmutableList.of();
-                excludes =  ImmutableList.of();
-            } else {
-                attributes = baseConf.getAttributes();
-                capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
-                dependencies = Cast.uncheckedCast(baseConf.getDependencies());
-                artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
-                excludes = Cast.uncheckedCast(baseConf.getExcludes());
-            }
+                ModuleConfigurationMetadata baseConf = (ModuleConfigurationMetadata) declaredConfigurations.get(baseName);
+                if (baseConf == null) {
+                    attributes = componentMetadata.getAttributes();
+                    capabilities = ImmutableCapabilities.EMPTY;
+                    dependencies = ImmutableList.of();
+                    artifacts = ImmutableList.of();
+                    excludes = ImmutableList.of();
+                } else {
+                    attributes = baseConf.getAttributes();
+                    capabilities = (ImmutableCapabilities) baseConf.getCapabilities();
+                    dependencies = Cast.uncheckedCast(baseConf.getDependencies());
+                    artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
 
-            if (baseName == null || baseConf != null) {
-                declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, excludes, true, true, ImmutableSet.of(), null, dependencies, true));
-            } else if (!additionalVariant.isLenient()) {
-                throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
-            }
+                    excludes = Cast.uncheckedCast(ImmutableList.of(baseConf.getExcludes().stream().map((exclude) ->
+                        new DefaultExclude(exclude.getModuleId(), exclude.getArtifact(), new String[]{name}, exclude.getMatcher())
+                    ).collect(Collectors.toList())));
+                }
+
+                if (baseName == null || baseConf != null) {
+                    declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, excludes, true, true, ImmutableSet.of(), null, dependencies, true));
+                } else if (!additionalVariant.isLenient()) {
+                    throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
+                }
+
         }
     }
 

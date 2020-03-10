@@ -1,0 +1,19 @@
+<ivy-module xmlns:e="http://ant.apache.org/ivy/extra" version="2.0">
+    <info organisation="foo" module="my-excluded-dependency" revision="1.0.0" status="integration" publication="20200110224423">
+        <description>my dependency</description>
+    </info>
+    <configurations>
+        <conf name="compile" visibility="public"/>
+        <conf name="default" visibility="public" extends="runtime,master"/>
+        <conf name="runtime" visibility="public" extends="compile"/>
+        <conf visibility="public" name="javadoc"/>
+        <conf visibility="public" name="master"/>
+        <conf visibility="public" name="sources"/>
+        <conf visibility="public" extends="runtime" name="test"/>
+        <conf name="provided" visibility="public"/>
+        <conf name="optional" visibility="public"/>
+    </configurations>
+    <publications>
+        <artifact name="my-excluded-dependency" type="jar" ext="jar" conf="compile,runtime"/>
+    </publications>
+</ivy-module>
