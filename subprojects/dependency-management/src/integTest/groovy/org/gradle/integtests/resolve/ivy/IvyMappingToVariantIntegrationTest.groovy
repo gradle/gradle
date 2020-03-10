@@ -25,6 +25,7 @@ class IvyMappingToVariantIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     def "can add variants for ivy - inherit configuration excludes"() {
         when:
+        System.properties.setProperty("org.gradle.integtest.force.realize.metadata", "true")
         buildFile << """
             String repoPattern = '[organisation]/[module]/[revision]'
             String ivyPattern = "\${repoPattern}/[module]-[revision]-ivy.[ext]"

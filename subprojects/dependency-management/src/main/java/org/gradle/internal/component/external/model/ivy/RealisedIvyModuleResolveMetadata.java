@@ -113,13 +113,14 @@ public class RealisedIvyModuleResolveMetadata extends AbstractRealisedModuleComp
                     dependencies = Cast.uncheckedCast(baseConf.getDependencies());
                     artifacts = Cast.uncheckedCast(baseConf.getArtifacts());
 
-                    excludes = Cast.uncheckedCast(ImmutableList.of(baseConf.getExcludes().stream().map((exclude) ->
-                        new DefaultExclude(exclude.getModuleId(), exclude.getArtifact(), new String[]{name}, exclude.getMatcher())
-                    ).collect(Collectors.toList())));
+                    excludes = Cast.uncheckedCast(baseConf.getExcludes());
                 }
 
                 if (baseName == null || baseConf != null) {
-                    declaredConfigurations.put(name, applyRules(componentMetadata.getId(), name, variantMetadataRules, attributes, capabilities, artifacts, excludes, true, true, ImmutableSet.of(), null, dependencies, true));
+                    declaredConfigurations.put(name, applyRules(componentMetadata.getId(),
+                        name, variantMetadataRules, attributes, capabilities,
+                        artifacts, excludes, true, true,
+                        ImmutableSet.of(), null, dependencies, true));
                 } else if (!additionalVariant.isLenient()) {
                     throw new InvalidUserDataException("Configuration '" + baseName + "' not defined in module " + componentMetadata.getId().getDisplayName());
                 }
