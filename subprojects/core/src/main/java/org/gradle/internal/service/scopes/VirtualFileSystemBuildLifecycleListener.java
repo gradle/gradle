@@ -36,8 +36,6 @@ import java.util.stream.Stream;
 
 class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(VirtualFileSystemBuildLifecycleListener.class);
-    private final RetentionBuildLifecycleListener retentionBuildLifecycleListener;
-    private final NoRetentionBuildLifecycleListener noRetentionBuildLifecycleListener;
 
     public interface StartParameterSwitch {
         boolean isEnabled(StartParameter startParameter);
@@ -48,7 +46,10 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
         String getValue(StartParameter startParameter);
     }
 
+    private final WatchingAwareVirtualFileSystem virtualFileSystem;
     private final StartParameterSwitch vfsRetention;
+    private final StartParameterSwitch dropVfs;
+    private final StartParameterValue changedPathsSinceLastBuildParameter;
 
     public VirtualFileSystemBuildLifecycleListener(
         WatchingAwareVirtualFileSystem virtualFileSystem,
@@ -56,50 +57,17 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
         StartParameterSwitch dropVfs,
         StartParameterValue changedPathsSinceLastBuildParameter
     ) {
+        this.virtualFileSystem = virtualFileSystem;
         this.vfsRetention = vfsRetention;
-        this.retentionBuildLifecycleListener = new RetentionBuildLifecycleListener(virtualFileSystem, dropVfs, changedPathsSinceLastBuildParameter);
-        this.noRetentionBuildLifecycleListener = new NoRetentionBuildLifecycleListener(virtualFileSystem);
+        this.dropVfs = dropVfs;
+        this.changedPathsSinceLastBuildParameter = changedPathsSinceLastBuildParameter;
     }
 
     @Override
     public void afterStart(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
-        if (vfsRetention.isEnabled(startParameter)) {
-            retentionBuildLifecycleListener.afterStart(gradle);
-        } else {
-            noRetentionBuildLifecycleListener.afterStart(gradle);
-        }
-    }
-
-    @Override
-    public void beforeComplete(GradleInternal gradle) {
-        if (vfsRetention.isEnabled(gradle.getStartParameter())) {
-            retentionBuildLifecycleListener.beforeComplete(gradle);
-        } else {
-            noRetentionBuildLifecycleListener.beforeComplete(gradle);
-        }
-    }
-
-    private static class RetentionBuildLifecycleListener implements RootBuildLifecycleListener {
-
-        private final WatchingAwareVirtualFileSystem virtualFileSystem;
-        private final StartParameterSwitch dropVfs;
-        private final StartParameterValue changedPathsSinceLastBuildParameter;
-
-        public RetentionBuildLifecycleListener(
-            WatchingAwareVirtualFileSystem virtualFileSystem,
-            StartParameterSwitch dropVfs,
-            StartParameterValue changedPathsSinceLastBuildParameter
-        ) {
-
-            this.virtualFileSystem = virtualFileSystem;
-            this.dropVfs = dropVfs;
-            this.changedPathsSinceLastBuildParameter = changedPathsSinceLastBuildParameter;
-        }
-
-        @Override
-        public void afterStart(GradleInternal gradle) {
-            StartParameter startParameter = gradle.getStartParameter();
+        boolean vfsRetentionEnabled = vfsRetention.isEnabled(startParameter);
+        if (vfsRetentionEnabled) {
             IncubationLogger.incubatingFeatureUsed("Virtual file system retention");
             FileResolver fileResolver = new BaseDirFileResolver(startParameter.getCurrentDir(), () -> {
                 throw new UnsupportedOperationException();
@@ -119,41 +87,22 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
                     () -> {}
                 );
             }
-            virtualFileSystem.afterStartingBuildWithWatchingEnabled();
         }
-
-        @Override
-        public void beforeComplete(GradleInternal gradle) {
-            virtualFileSystem.beforeCompletingBuildWithWatchingEnabled(gradle.getRootProject().getProjectDir());
-        }
-
-        public List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, @Nullable String changeList) {
-            if (changeList == null) {
-                return ImmutableList.of();
-            }
-            return Stream.of(changeList.split(","))
-                .filter(path -> !path.isEmpty())
-                .map(resolver::resolve)
-                .collect(Collectors.toList());
-        }
+        virtualFileSystem.afterStart(vfsRetentionEnabled);
     }
 
-    private static class NoRetentionBuildLifecycleListener implements RootBuildLifecycleListener {
-
-        private final WatchingAwareVirtualFileSystem virtualFileSystem;
-
-        public NoRetentionBuildLifecycleListener(WatchingAwareVirtualFileSystem virtualFileSystem) {
-            this.virtualFileSystem = virtualFileSystem;
+    private static List<File> getChangedPathsSinceLastBuild(PathToFileResolver resolver, @Nullable String changeList) {
+        if (changeList == null) {
+            return ImmutableList.of();
         }
+        return Stream.of(changeList.split(","))
+            .filter(path -> !path.isEmpty())
+            .map(resolver::resolve)
+            .collect(Collectors.toList());
+    }
 
-        @Override
-        public void afterStart(GradleInternal gradle) {
-            virtualFileSystem.watchingDisabledForCurrentBuild();
-        }
-
-        @Override
-        public void beforeComplete(GradleInternal gradle) {
-            virtualFileSystem.invalidateAll();
-        }
+    @Override
+    public void beforeComplete(GradleInternal gradle) {
+        virtualFileSystem.beforeComplete(vfsRetention.isEnabled(gradle.getStartParameter()), gradle.getRootProject().getProjectDir());
     }
 }

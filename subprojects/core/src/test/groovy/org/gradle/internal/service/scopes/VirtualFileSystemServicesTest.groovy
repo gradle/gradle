@@ -73,7 +73,7 @@ class VirtualFileSystemServicesTest extends Specification {
         retentionEnabled << [true, false]
     }
 
-    def "global virtual file system is not invalidated after the build completed when retention is enabled"() {
+    def "global virtual file system is informed about retention being #retentionEnabledString"() {
         _ * startParameter.getSystemPropertiesArgs() >> [:]
         _ * startParameter.getCurrentDir() >> new File("current/dir").absoluteFile
         _ * gradle.getStartParameter() >> startParameter
@@ -84,7 +84,7 @@ class VirtualFileSystemServicesTest extends Specification {
 
         def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(
             virtualFileSystem,
-            { param -> true },
+            { param -> retentionEnabled },
             { param -> false },
             { param -> null }
         )
@@ -92,12 +92,16 @@ class VirtualFileSystemServicesTest extends Specification {
         when:
         buildLifecycleListener.afterStart(gradle)
         then:
-        1 * virtualFileSystem.afterStartingBuildWithWatchingEnabled()
+        1 * virtualFileSystem.afterStart(retentionEnabled)
 
         when:
         buildLifecycleListener.beforeComplete(gradle)
         then:
-        1 * virtualFileSystem.beforeCompletingBuildWithWatchingEnabled(new File("some/project/dir"))
+        1 * virtualFileSystem.beforeComplete(retentionEnabled, new File("some/project/dir"))
+
+        where:
+        retentionEnabled << [true, false]
+        retentionEnabledString = retentionEnabled ? "enabled" : "disabled"
     }
 
     Map<String, String> systemPropertyArgs(boolean retentionEnabled) {

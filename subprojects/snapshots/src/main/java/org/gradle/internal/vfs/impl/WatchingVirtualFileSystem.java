@@ -61,27 +61,30 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void watchingDisabledForCurrentBuild() {
-        stopWatching();
-        invalidateAll();
+    public void afterStart(boolean watchingEnabled) {
+        if (watchingEnabled) {
+            handleWatcherRegistryEvents("since last build");
+            printStatistics("retained", "since last build");
+            producedByCurrentBuild.set(DefaultFileHierarchySet.of());
+            buildRunning = true;
+        } else {
+            stopWatching();
+            invalidateAll();
+        }
     }
 
     @Override
-    public void afterStartingBuildWithWatchingEnabled() {
-        handleWatcherRegistryEvents("since last build");
-        printStatistics("retained", "since last build");
-        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
-        buildRunning = true;
-    }
-
-    @Override
-    public void beforeCompletingBuildWithWatchingEnabled(File rootProjectDir) {
-        handleWatcherRegistryEvents("for current build");
-        stopWatching();
-        buildRunning = false;
-        producedByCurrentBuild.set(DefaultFileHierarchySet.of());
-        printStatistics("retains", "till next build");
-        startWatching(Collections.singleton(rootProjectDir));
+    public void beforeComplete(boolean watchingEnabled, File rootProjectDir) {
+        if (watchingEnabled) {
+            handleWatcherRegistryEvents("for current build");
+            stopWatching();
+            buildRunning = false;
+            producedByCurrentBuild.set(DefaultFileHierarchySet.of());
+            printStatistics("retains", "till next build");
+            startWatching(Collections.singleton(rootProjectDir));
+        } else {
+            invalidateAll();
+        }
     }
 
     /**
