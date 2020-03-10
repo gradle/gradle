@@ -11,7 +11,7 @@ We would like to thank the following community contributors to this release of G
 [Bow Archer](https://github.com/decoded4620),
 and [Sam De Block](https://github.com/SamDeBlock).
 
-## Upgrade Instructions
+## Upgrade instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
 
@@ -65,7 +65,7 @@ compileJava {
 Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:headerOutputDirectory) for more details.
 
 
-## Improvements for Component Metadata Rules
+## Improvements for component metadata rules
 
 The API for component metadata rules has been extended to allow access to `packaging`, `classifier` and `type` information from POM metadata.
 The `packaging` information for a direct dependency [can be obtained](userguide/component_metadata_rules.html#filter_using_maven_metadata) from the `ComponentMetadataContext`.
@@ -96,7 +96,7 @@ Known issues are problems that were discovered post release that are directly re
 
 We love getting contributions from the Gradle community. For information on contributing, please see [gradle.org/contribute](https://gradle.org/contribute).
 
-## Reporting Problems
+## Reporting problems
 
 If you find a problem with this release, please file a bug on [GitHub Issues](https://github.com/gradle/gradle/issues) adhering to our issue guidelines. 
 If you're not sure you're encountering a bug, please use the [forum](https://discuss.gradle.org/c/help-discuss).
