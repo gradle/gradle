@@ -56,7 +56,6 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
     }
 
     void killAll() {
-        printCrashLogIfAny()
         allDaemons*.kill()
     }
 

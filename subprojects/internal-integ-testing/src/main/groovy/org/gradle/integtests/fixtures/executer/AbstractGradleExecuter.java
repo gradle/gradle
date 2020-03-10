@@ -847,8 +847,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     private void cleanupIsolatedDaemons() {
         for (File baseDir : isolatedDaemonBaseDirs) {
+            DaemonLogsAnalyzer analyzer = new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion());
+            analyzer.assertNoCrashedDaemon();
             try {
-                new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+                analyzer.killAll();
             } catch (Exception e) {
                 getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
             }
