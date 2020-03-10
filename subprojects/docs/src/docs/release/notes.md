@@ -2,7 +2,7 @@ The Gradle team is excited to announce Gradle @version@.
 
 This release features [support for JDK14](#java-14), improved [error reporting](#improved-error-messages), [dark mode reports](#dark-mode) and more.
 
-Be sure to also check out all the [bug fixes](#fixed-issues)
+Be sure to also check out all the [bug fixes](#fixed-issues).
 
 We would like to thank the following community contributors to this release of Gradle:
 [Kyle Cackett](https://github.com/kyle-cackett),
@@ -32,8 +32,7 @@ Gradle now supports running with [Java 14](https://openjdk.java.net/projects/jdk
 
 Sometimes it is useful for build logic to query certain details of a Java installation or the current JVM.
 For example, you may want to compile or run tests using a particular Java version or JVM implementation, and would like to add some validation that the build is actually using this Java version.
-Or you may want to run Gradle on a particular Java version while compiling and testing using a different Java version, and would like to locate the Java compiler and Java commands
-for the target Java version.
+Or you may wish to look up tools or commands included with a particular version of Java.
 
 In this release, there is a new `JavaInstallationRegistry` API to help write such build logic. This API allows you to query details about the current JVM or a particular Java installation.
 
@@ -92,11 +91,6 @@ class ClassifierExampleRule implements ComponentMetadataRule {
     }
 }
 ```
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
 
 ## Fixed issues
 
