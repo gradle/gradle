@@ -58,11 +58,11 @@ The dependencies for annotation processors are not added to an IDEA module's cla
 - PMD has been updated to https://pmd.github.io/pmd-6.21.0/pmd_release_notes.html#24-january-2020---6210[PMD 6.21.0].
 - CodeNarc has been updated to https://github.com/CodeNarc/CodeNarc/blob/v1.5/CHANGELOG.md#version-15----nov-2019[CodeNarc 1.5].
 
-==== Rich console support discontinued for some 32-bit operating systems
+==== Rich console support removed for some 32-bit operating systems
 
-Gradle 6.3 does not support the rich console for 32-bit Unix systems and for old FreeBSD versions (older than FreeBSD 10).
-Gradle will continue building your projects on the affected systems, but without the rich console.
-32-bit versions of Windows are unaffected, and will keep working as before.
+Gradle 6.3 does not support the <<command_line_interface.adoc#sec:rich_console, rich console>> for 32-bit Unix systems and for old FreeBSD versions (older than FreeBSD 10). Microsoft Windows 32-bit is unaffected.
+
+Gradle will continue building projects on 32-bit systems but will no longer show the rich console.
 
 === Deprecations
 
@@ -70,9 +70,11 @@ Gradle will continue building your projects on the affected systems, but without
 
 Almost every Gradle project has the _default_ and _archives_ configurations which are added by the _base_ plugin.
 These configurations are no longer used in modern Gradle builds that use <<variant_model.adoc#,variant aware dependency management>> and the <<publishing_setup.adoc#,new publishing plugins>>.
+
 While the configurations will stay in Gradle for backwards compatibility for now, using them to declare dependencies or to resolve dependencies is now deprecated.
+
 Resolving these configurations was never an intended use case and only possible because in earlier Gradle versions _every_ configuration was resolvable.
-For dependency declaration, please use the configurations provided by the plugins you use, for example by the <<java_library_plugin.adoc#sec:java_library_configurations_graph,Java Library plugin>>.
+For declaring dependencies, please use the configurations provided by the plugins you use, for example by the <<java_library_plugin.adoc#sec:java_library_configurations_graph,Java Library plugin>>.
 
 [[changes_6.2]]
 == Upgrading from 6.1

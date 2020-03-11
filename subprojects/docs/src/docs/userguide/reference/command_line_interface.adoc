@@ -441,6 +441,7 @@ Set to `summary` to suppress all warnings and log a summary at the end of the bu
 +
 Set to `none` to suppress all warnings, including the summary at the end of the build.
 
+[[sec:rich_console]]
 === Rich Console
 Gradle's rich console displays extra information while builds are running.
 
