@@ -50,7 +50,7 @@ The Java `native` keyword allows declaring methods that are implemented in nativ
 The Java compiler can then generate native headers that should be implemented.
 It is most commonly used with [Java Native Interface (JNI)](https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html).
 
-The Java compile task for each Java source set now has a default location to generate native headers into.
+The Java compile task for each Java source set has a default location to generate native headers into.
 
 Some tools may expect header files in a different location. It can be changed now if needed:
 
