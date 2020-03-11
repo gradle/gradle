@@ -17,7 +17,6 @@
 package org.gradle.instantexecution
 
 import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
@@ -243,9 +242,5 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
     private TestFile stateDirForTasks(String... requestedTaskNames) {
         def baseName = HashUtil.createCompactMD5(requestedTaskNames.join("/"))
         file("build/reports/instant-execution/$baseName")
-    }
-
-    private static String clickableUrlFor(File file) {
-        new ConsoleRenderer().asClickableFileUrl(file)
     }
 }

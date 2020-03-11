@@ -20,11 +20,18 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.internal.logging.ConsoleRenderer
 import org.intellij.lang.annotations.Language
 
-import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assert.assertThat
+import javax.annotation.Nullable
+import java.nio.file.Paths
+import java.util.regex.Pattern
 
+import static org.hamcrest.CoreMatchers.not
+import static org.hamcrest.CoreMatchers.notNullValue
+import static org.hamcrest.CoreMatchers.nullValue
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -68,23 +75,69 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         verifyDeprecationWarnings(executer.workingDir, count, problems as List)
     }
 
-    private void verifyDeprecationWarnings(File rootDir = testDirectory, int count, List<String> problems) {
-        def output = result?.output ?: failure?.output ?: ''
-        def expectedUniqueProblemsCount = problems.size()
-        if (count > 0) {
-            def summaryHeader = "${count} instant execution problem${count >= 2 ? 's were' : ' was'} found, ${expectedUniqueProblemsCount} of which seem${expectedUniqueProblemsCount >= 2 ? '' : 's'} unique:"
-            assertThat(output, containsNormalizedString(summaryHeader))
+    private void verifyDeprecationWarnings(
+        File rootDir = executer.workingDir,
+        int totalProblemsCount,
+        List<String> uniqueProblems
+    ) {
+        assertProblemsConsoleSummaryHeaderFor(totalProblemsCount, uniqueProblems.size())
+        assertProblemsConsoleReport(uniqueProblems)
+        assertProblemReportGeneration(totalProblemsCount, uniqueProblems)
+    }
+
+    private void assertProblemsConsoleSummaryHeaderFor(int totalProblems, int uniqueProblems) {
+        if (totalProblems > 0 || uniqueProblems > 0) {
+            def header = "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found, " +
+                "${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique:"
+            assertThat(output, containsNormalizedString(header))
         } else {
             assertThat(output, not(containsNormalizedString("instant execution problem")))
         }
+    }
+
+    private void assertProblemsConsoleReport(List<String> uniqueProblems) {
+        def uniqueProblemsCount = uniqueProblems.size()
         def found = 0
+        def output = resultOrFailureOutput()
         output.readLines().eachWithIndex { String line, int idx ->
-            if (problems.remove(line.trim())) {
+            if (uniqueProblems.remove(line.trim())) {
                 found++
                 return
             }
         }
-        assert problems.empty, "Expected ${expectedUniqueProblemsCount} unique problems, found ${found} unique problems, remaining:\n${problems.collect { " - $it" }.join("\n")}"
+        assert uniqueProblems.empty, "Expected ${uniqueProblemsCount} unique problems, found ${found} unique problems, remaining:\n${uniqueProblems.collect { " - $it" }.join("\n")}"
+    }
+
+    private void assertProblemReportGeneration(int totalProblemCount, List<String> uniqueProblems) {
+        def expectReport = totalProblemCount > 0 || uniqueProblems.size() > 0
+        def reportDir = resolveInstantExecutionReportDirectory()
+        if (expectReport) {
+            assertThat("HTML report URI not found", reportDir, notNullValue())
+            assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
+            assertTrue("HTML report HTML file not found in '$reportDir'", new File(reportDir, 'instant-execution-report.html').isFile())
+            assertTrue("HTML report JS model not found in '$reportDir'", new File(reportDir, 'instant-execution-report-data.js').isFile())
+        } else {
+            assertThat("Unexpected HTML report URI found", reportDir, nullValue())
+        }
+    }
+
+    @Nullable
+    private File resolveInstantExecutionReportDirectory() {
+        def baseDirUri = new ConsoleRenderer().asClickableFileUrl(new File(executer.workingDir, "build/reports/instant-execution"))
+        def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)instant-execution-report.html")
+        def reportDirUri = resultOrFailureOutput().readLines().findResult { line ->
+            def matcher = pattern.matcher(line)
+            matcher.matches() ? matcher.group(1) : null
+        }
+        return reportDirUri ? Paths.get(URI.create(reportDirUri)).toFile() : null
+    }
+
+    private String resultOrFailureOutput() {
+        return result?.output ?: failure?.output ?: ''
+    }
+
+    protected static String clickableUrlFor(File file) {
+        new ConsoleRenderer().asClickableFileUrl(file)
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {
