@@ -23,7 +23,6 @@ import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.processing.GeneratedResource;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
@@ -33,23 +32,27 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.EnumMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.gradle.internal.FileUtils.hasExtension;
 
 public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
-    private final Iterable<FileChange> sourceFileChanges;
+    private final Iterable<FileChange> sourceChanges;
+    private final DefaultSourceFileClassNameConverter sourceFileClassNameConverter;
 
     public JavaRecompilationSpecProvider(
         Deleter deleter,
         FileOperations fileOperations,
         FileTree sourceTree,
         boolean incremental,
-        Iterable<FileChange> sourceFileChanges
-    ) {
+        Iterable<FileChange> sourceFileChanges,
+        DefaultSourceFileClassNameConverter sourceFileClassNameConverter) {
         super(deleter, fileOperations, sourceTree);
         this.incremental = incremental;
-        this.sourceFileChanges = sourceFileChanges;
+        this.sourceChanges = sourceFileChanges;
+        this.sourceFileClassNameConverter = sourceFileClassNameConverter;
     }
 
     @Override
@@ -60,8 +63,18 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
     @Override
     public RecompilationSpec provideRecompilationSpec(CurrentCompilation current, PreviousCompilation previous) {
         RecompilationSpec spec = new RecompilationSpec();
+        if (sourceFileClassNameConverter.isEmpty()) {
+            String fullRebuildCause = previous.getAnnotationProcessorFullRebuildCause();
+            if (fullRebuildCause == null) {
+                fullRebuildCause = "unable to get source-classes mapping relationship from last compilation";
+            }
+            spec.setFullRebuildCause(fullRebuildCause, null);
+            return spec;
+        }
+
         processClasspathChanges(current, previous, spec);
         processOtherChanges(current, previous, spec);
+
         spec.getClassesToProcess().addAll(previous.getTypesToReprocess());
         return spec;
     }
@@ -76,6 +89,7 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         PatternSet classesToDelete = fileOperations.patternSet();
         PatternSet sourceToCompile = fileOperations.patternSet();
 
+        prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, sourceToCompile);
         prepareJavaPatterns(recompilationSpec.getClassesToCompile(), classesToDelete, sourceToCompile);
         spec.setSourceFiles(narrowDownSourcesToCompile(sourceTree, sourceToCompile));
         includePreviousCompilationOutputOnClasspath(spec);
@@ -93,11 +107,6 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
         cleanedAnyOutput |= deleteStaleFilesIn(resourcesToDelete.get(GeneratedResource.Location.NATIVE_HEADER_OUTPUT), spec.getCompileOptions().getHeaderOutputDirectory());
 
         return cleanedAnyOutput;
-    }
-
-    @Override
-    public WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult) {
-        return workResult;
     }
 
     private Iterable<File> narrowDownSourcesToCompile(FileTree sourceTree, PatternSet sourceToCompile) {
@@ -120,8 +129,8 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
             return;
         }
         boolean emptyAnnotationProcessorPath = current.getAnnotationProcessorPath().isEmpty();
-        SourceFileChangeProcessor javaChangeProcessor = new SourceFileChangeProcessor(previous);
-        for (FileChange fileChange : sourceFileChanges) {
+        SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
+        for (FileChange fileChange : sourceChanges) {
             if (spec.isFullRebuildNeeded()) {
                 return;
             }
@@ -129,10 +138,13 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 continue;
             }
 
-            File file = fileChange.getFile();
-            if (hasExtension(file, ".java")) {
-                String className = getClassNameForRelativePath(fileChange.getNormalizedPath());
-                javaChangeProcessor.processChange(file, Collections.singletonList(className), spec);
+            File changedFile = fileChange.getFile();
+            if (hasExtension(changedFile, ".java")) {
+                String relativeFilePath = fileChange.getNormalizedPath();
+
+                Collection<String> changedClasses = sourceFileClassNameConverter.getClassNames(relativeFilePath);
+                spec.getRelativeSourcePathsToCompile().add(relativeFilePath);
+                sourceFileChangeProcessor.processChange(changedFile, changedClasses, spec);
             } else {
                 if (emptyAnnotationProcessorPath) {
                     continue;
@@ -141,10 +153,26 @@ public class JavaRecompilationSpecProvider extends AbstractRecompilationSpecProv
                 return;
             }
         }
+
+        for (String className : spec.getClassesToCompile()) {
+            if (spec.isFullRebuildNeeded()) {
+                return;
+            }
+
+            Optional<String> relativeSourceFile = sourceFileClassNameConverter.getRelativeSourcePath(className);
+            relativeSourceFile.ifPresent(s -> spec.getRelativeSourcePathsToCompile().add(s));
+        }
     }
 
-    private static String getClassNameForRelativePath(String relativePath) {
-        return relativePath.replace('/', '.').replaceAll("\\.java$", "");
+    private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {
+        for (String relativeSourcePath : relativeSourcePathsToCompile) {
+            filesToRecompilePatterns.include(relativeSourcePath);
+
+            sourceFileClassNameConverter.getClassNames(relativeSourcePath)
+                .stream()
+                .map(staleClass -> staleClass.replaceAll("\\.", "/").concat(".class"))
+                .forEach(classesToDelete::include);
+        }
     }
 
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,12 +20,10 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
-import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
-import org.gradle.workers.internal.DefaultWorkResult;
 
 import java.io.File;
 import java.util.Collection;
@@ -36,7 +34,7 @@ import java.util.Set;
 public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecProvider {
     private final boolean incremental;
     private final Iterable<FileChange> sourceChanges;
-    private final GroovySourceFileClassNameConverter sourceFileClassNameConverter;
+    private final DefaultSourceFileClassNameConverter sourceFileClassNameConverter;
 
     public GroovyRecompilationSpecProvider(
         Deleter deleter,
@@ -44,7 +42,7 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         FileTree sources,
         boolean incremental,
         Iterable<FileChange> sourceChanges,
-        GroovySourceFileClassNameConverter sourceFileClassNameConverter
+        DefaultSourceFileClassNameConverter sourceFileClassNameConverter
     ) {
         super(deleter, fileOperations, sources);
         this.incremental = incremental;
@@ -90,14 +88,6 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         addClassesToProcess(spec, recompilationSpec);
 
         return deleteStaleFilesIn(classesToDelete, spec.getDestinationDir());
-    }
-
-    @Override
-    public WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult) {
-        if(!recompilationSpec.isFullRebuildNeeded()) {
-            return new GroovyIncrementalCompileResult((DefaultWorkResult) workResult);
-        }
-        return workResult;
     }
 
     private void prepareFilePatterns(Set<String> relativeSourcePathsToCompile, PatternSet classesToDelete, PatternSet filesToRecompilePatterns) {

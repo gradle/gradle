@@ -24,7 +24,7 @@ import spock.lang.Unroll
 
 class GroovySourceFileClassNameConverterTest extends Specification {
     @Subject
-    GroovySourceFileClassNameConverter converter
+    DefaultSourceFileClassNameConverter converter
 
     def setup() {
         Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
@@ -36,7 +36,7 @@ class GroovySourceFileClassNameConverterTest extends Specification {
         sourceClassesMapping.put('MyClass.groovy', 'org.gradle.MyClass2')
         sourceClassesMapping.put('YourClass.groovy', 'org.gradle.YourClass')
 
-        converter = new GroovySourceFileClassNameConverter(sourceClassesMapping)
+        converter = new DefaultSourceFileClassNameConverter(sourceClassesMapping)
     }
 
     @Unroll

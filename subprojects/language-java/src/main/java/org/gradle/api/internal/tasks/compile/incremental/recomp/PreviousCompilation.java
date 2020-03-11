@@ -73,4 +73,8 @@ public class PreviousCompilation {
     public List<File> getAnnotationProcessorPath() {
         return data.getAnnotationProcessorPath();
     }
+
+    public String getAnnotationProcessorFullRebuildCause() {
+        return data.getAnnotationProcessingData().getFullRebuildCause();
+    }
 }
