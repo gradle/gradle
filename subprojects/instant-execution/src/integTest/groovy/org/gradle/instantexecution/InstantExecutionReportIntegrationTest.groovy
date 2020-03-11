@@ -178,7 +178,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         expectedNumberOfProblems = Math.max(1, maxProblems)
     }
 
-    def "can request to fail on problems"() {
+    def "can request to not fail on problems"() {
         given:
         buildFile << """
             class Bean { Project p1 }
@@ -193,10 +193,9 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=true"
+        instantRun "foo", "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false"
 
         then:
-        failureDescriptionStartsWith "Problems found while caching instant execution state"
         expectInstantExecutionProblems(
             "- field 'p1' from type 'Bean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
         )
