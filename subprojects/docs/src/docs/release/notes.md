@@ -68,9 +68,7 @@ Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#
 
 ### Improvements for component metadata rules
 
-Every module that is pulled from a repository has metadata associated with it, such as its group, name, and version.
-
-Sometimes, this metadata can be incomplete or incorrect. To manipulate such incomplete metadata from within the build
+Every module that is pulled from a repository has metadata associated with it, such as its group, name, and version. Sometimes, this metadata can be incomplete or incorrect. To manipulate such incomplete metadata from within the build
 script, Gradle offers an API to write [component metadata rules](userguide/component_metadata_rules.html). 
 
 The API for component metadata rules has been extended to allow access to `packaging`,
