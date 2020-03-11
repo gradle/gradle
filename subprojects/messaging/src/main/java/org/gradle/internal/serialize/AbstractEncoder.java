@@ -58,6 +58,16 @@ public abstract class AbstractEncoder implements Encoder {
     }
 
     @Override
+    public void writeNullableInt(@Nullable Integer value) throws IOException {
+        if (value == null) {
+            writeBoolean(false);
+        } else {
+            writeBoolean(true);
+            writeInt(value);
+        }
+    }
+
+    @Override
     public void writeNullableString(@Nullable CharSequence value) throws IOException {
         if (value == null) {
             writeBoolean(false);
@@ -80,7 +90,7 @@ public abstract class AbstractEncoder implements Encoder {
 
         @Override
         public void write(int b) throws IOException {
-            writeByte((byte)b);
+            writeByte((byte) b);
         }
     }
 }

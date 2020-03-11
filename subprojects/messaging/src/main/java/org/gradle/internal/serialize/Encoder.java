@@ -72,6 +72,13 @@ public interface Encoder {
     void writeInt(int value) throws IOException;
 
     /**
+     * Writes a nullable signed 32 bit int value.
+     *
+     * @see #writeInt(int)
+     */
+    void writeNullableInt(@Nullable Integer value) throws IOException;
+
+    /**
      * Writes a signed 32 bit int value whose value is likely to be small and positive but may not be. The implementation may encode the value in a way that
      * is more efficient for small positive values.
      */

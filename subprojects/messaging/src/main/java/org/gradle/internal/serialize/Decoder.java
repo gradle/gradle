@@ -60,6 +60,14 @@ public interface Decoder {
     int readSmallInt() throws EOFException, IOException;
 
     /**
+     * Reads a nullable signed 32 bit int value.
+     *
+     * @see #readInt()
+     */
+    @Nullable
+    Integer readNullableInt() throws EOFException, IOException;
+
+    /**
      * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the boolean value can be fully read.

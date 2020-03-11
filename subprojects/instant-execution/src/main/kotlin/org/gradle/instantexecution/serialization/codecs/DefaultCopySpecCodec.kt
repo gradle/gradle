@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -45,6 +46,12 @@ class DefaultCopySpecCodec(
             write(value.destPath)
             write(value.sourceFiles)
             write(value.patterns)
+            writeBoolean(value.isCaseSensitive)
+            writeBoolean(value.includeEmptyDirs)
+            writeString(value.filteringCharset)
+            writeNullableInt(value.dirMode)
+            writeNullableInt(value.fileMode)
+            write(value.duplicatesStrategy)
             writeCollection(value.children)
         }
     }
@@ -54,8 +61,24 @@ class DefaultCopySpecCodec(
             val destPath = read() as String?
             val sourceFiles = read() as FileCollection
             val patterns = read() as PatternSet
+            val isCaseSensitive = readBoolean()
+            val includeEmptyDirs = readBoolean()
+            val filteringCharset = readString()
+            val dirMode = readNullableInt()
+            val fileMode = readNullableInt()
+            val duplicatesStrategy = read() as DuplicatesStrategy
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
+            copySpec.isCaseSensitive = isCaseSensitive
+            copySpec.includeEmptyDirs = includeEmptyDirs
+            copySpec.filteringCharset = filteringCharset
+            if (dirMode != null) {
+                copySpec.dirMode = dirMode
+            }
+            if (fileMode != null) {
+                copySpec.fileMode = fileMode
+            }
+            copySpec.duplicatesStrategy = duplicatesStrategy
             isolate.identities.putInstance(id, copySpec)
             copySpec
         }

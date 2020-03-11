@@ -154,6 +154,9 @@ class InstantExecutionFingerprintCheckerTest {
         override fun writeNullableString(value: CharSequence?): Unit =
             undefined()
 
+        override fun writeNullableInt(value: Int?): Unit =
+            undefined()
+
         override fun writeLong(value: Long): Unit =
             undefined()
 
@@ -246,6 +249,9 @@ class InstantExecutionFingerprintCheckerTest {
             undefined()
 
         override fun readInt(): Int =
+            undefined()
+
+        override fun readNullableInt(): Int? =
             undefined()
 
         override fun readNullableString(): String? =

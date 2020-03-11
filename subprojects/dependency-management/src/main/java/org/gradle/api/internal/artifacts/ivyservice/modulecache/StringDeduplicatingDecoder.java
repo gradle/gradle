@@ -58,6 +58,12 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
         return delegate.readSmallInt();
     }
 
+    @Nullable
+    @Override
+    public Integer readNullableInt() throws IOException {
+        return delegate.readNullableInt();
+    }
+
     @Override
     public boolean readBoolean() throws EOFException, IOException {
         return delegate.readBoolean();

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize;
 
+import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -52,6 +53,16 @@ public abstract class AbstractDecoder implements Decoder {
     @Override
     public long readSmallLong() throws EOFException, IOException {
         return readLong();
+    }
+
+    @Nullable
+    @Override
+    public Integer readNullableInt() throws IOException {
+        if (readBoolean()) {
+            return readInt();
+        } else {
+            return null;
+        }
     }
 
     @Override
