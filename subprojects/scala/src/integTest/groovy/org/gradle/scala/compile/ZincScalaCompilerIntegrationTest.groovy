@@ -144,10 +144,11 @@ compileScala.scalaCompileOptions.failOnError = false
         scalaClassFile("").assertHasDescendants()
     }
 
-    def "respects fork options settings and ignores executable"() {
+    def "respects fork options settings and executable"() {
         def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
         Assume.assumeNotNull(differentJvm)
-        def differentJavacExecutablePath = normaliseFileSeparators(differentJvm.javacExecutable.absolutePath)
+        def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javaExecutable.absolutePath)
+        def differentJavaExecutableCanonicalPath = normaliseFileSeparators(differentJvm.javaExecutable.canonicalPath)
 
         file("build.gradle") << """
             import org.gradle.workers.internal.WorkerDaemonClientsManager
@@ -161,15 +162,20 @@ compileScala.scalaCompileOptions.failOnError = false
                 implementation 'org.scala-lang:scala-library:2.11.12'
             }
 
+            java {
+                sourceCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
+                targetCompatibility = JavaVersion.${differentJvm.javaVersion.name()}
+            }
+            
             tasks.withType(ScalaCompile) {
-                options.forkOptions.executable = "${differentJavacExecutablePath}"
+                options.forkOptions.executable = "${differentJavaExecutablePath}"
                 options.forkOptions.memoryInitialSize = "128m"
                 options.forkOptions.memoryMaximumSize = "256m"
                 options.forkOptions.jvmArgs = ["-Dfoo=bar"]
 
                 doLast {
                     assert services.get(WorkerDaemonClientsManager).idleClients.find {
-                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == Jvm.current().javaExecutable.canonicalPath &&
+                        new File(it.forkOptions.javaForkOptions.executable).canonicalPath == "${differentJavaExecutableCanonicalPath}" &&
                         it.forkOptions.javaForkOptions.minHeapSize == "128m" &&
                         it.forkOptions.javaForkOptions.maxHeapSize == "256m" &&
                         it.forkOptions.javaForkOptions.systemProperties['foo'] == "bar"
