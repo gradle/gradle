@@ -21,10 +21,12 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.Ignore
 import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
 
+@Ignore("Ignore until https://github.com/gradle/gradle/issues/12457 is fixed")
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
