@@ -19,7 +19,7 @@ package org.gradle.instantexecution
 
 class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "warns for not implemented included builds support"() {
+    def "problem when included builds are present"() {
 
         given:
         def instantExecution = newInstantExecutionFixture()
@@ -27,6 +27,7 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         file("included/settings.gradle") << ""
 
         when:
+        withDoNotFailOnProblems()
         instantRun("help")
 
         then:
@@ -34,6 +35,7 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         output.contains("Gradle runtime: support for included builds is not yet implemented with instant execution.")
 
         when:
+        withFailOnProblems()
         instantRun("help")
 
         then:

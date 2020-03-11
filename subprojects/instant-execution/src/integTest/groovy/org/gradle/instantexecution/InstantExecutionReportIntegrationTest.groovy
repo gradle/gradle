@@ -135,7 +135,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantRun "c"
+        instantFails "c"
 
         then:
         def reportDir = stateDirForTasks("c")

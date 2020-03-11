@@ -111,6 +111,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         """
 
         when:
+        withDoNotFailOnProblems()
         instantRun "broken"
 
         then:
@@ -122,6 +123,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         """.stripIndent())
 
         when:
+        withFailOnProblems()
         instantRun "broken"
 
         then:

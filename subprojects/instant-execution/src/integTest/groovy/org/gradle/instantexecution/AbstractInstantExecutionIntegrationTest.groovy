@@ -43,6 +43,14 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         return new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))
     }
 
+    protected void withDoNotFailOnProblems() {
+        executer.withArgument("-D${SystemProperties.failOnProblems}=false")
+    }
+
+    protected void withFailOnProblems() {
+        executer.withArgument("-D${SystemProperties.failOnProblems}=true")
+    }
+
     protected void assertTestsExecuted(String testClass, String... testNames) {
         new DefaultTestExecutionResult(testDirectory)
             .testClass(testClass)

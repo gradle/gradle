@@ -31,6 +31,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         def htmlReportDir = file("build/reports/jacoco/test/html")
 
         expect:
+        withDoNotFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
         htmlReportDir.assertIsDir()
 
@@ -39,6 +40,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         htmlReportDir.assertDoesNotExist()
 
         then:
+        withFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
         htmlReportDir.assertIsDir()
     }
