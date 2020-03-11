@@ -23,11 +23,11 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class GroovySourceFileClassNameConverter {
+public class DefaultSourceFileClassNameConverter {
     private final Multimap<String, String> sourceClassesMapping;
     private final Map<String, String> classSourceMapping;
 
-    public GroovySourceFileClassNameConverter(Multimap<String, String> sourceClassesMapping) {
+    public DefaultSourceFileClassNameConverter(Multimap<String, String> sourceClassesMapping) {
         this.sourceClassesMapping = sourceClassesMapping;
         this.classSourceMapping = constructReverseMapping(sourceClassesMapping);
     }

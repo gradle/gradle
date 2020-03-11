@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.workers.internal.DefaultWorkResult;
 
 /**
  * In a typical incremental recompilation, there're three steps:
@@ -32,5 +33,10 @@ public interface RecompilationSpecProvider {
 
     boolean initializeCompilation(JavaCompileSpec spec, RecompilationSpec recompilationSpec);
 
-    WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult);
+    default WorkResult decorateResult(RecompilationSpec recompilationSpec, WorkResult workResult) {
+        if (!recompilationSpec.isFullRebuildNeeded()) {
+            return new DefaultIncrementalCompileResult((DefaultWorkResult) workResult);
+        }
+        return workResult;
+    }
 }

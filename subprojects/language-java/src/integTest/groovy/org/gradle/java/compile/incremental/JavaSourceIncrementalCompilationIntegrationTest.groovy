@@ -20,6 +20,8 @@ import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest {
@@ -187,4 +189,120 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         succeeds language.compileTaskName
         outputs.noneRecompiled()
     }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/8590")
+    def "adding a class with higher resolution priority should trigger recompilation"() {
+        file("src/main/java/foo/A.java") << """
+package foo;
+import bar.*;
+public class A {
+  Other getOther() { return null; }
+}
+"""
+        file("src/main/java/bar/Other.java") << """
+package bar;
+public class Other {}
+"""
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/java/foo/Other.java") << """
+package foo;
+public class Other {}
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledFqn("foo.Other") // should be foo.A and foo.Other
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/7363")
+    def "can recompile classes which depend on a top-level class with a different name than the file"() {
+        file("src/main/java/foo/Strings.java") << """
+            package foo;
+            public class Strings {
+
+            }
+
+            class StringUtils {
+                static void foo() {}
+            }
+
+        """
+
+        file("src/main/java/foo/Consumer.java") << """
+            package foo;
+            public class Consumer {
+                void consume() { StringUtils.foo(); }
+            }
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/java/foo/Strings.java").text = """
+            package foo;
+            public class Strings {
+
+            }
+
+            class StringUtils {
+                static void foo() {}
+                static void bar() {}
+            }
+
+        """
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledFqn("foo.StringUtils", "foo.Strings", "foo.Consumer")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/7363")
+    def "can recompile classes which depend on a top-level class with a different name than the file (scenario 2)"() {
+        file("src/main/java/foo/Strings.java") << """
+            package foo;
+            public class Strings {
+
+            }
+
+            class StringUtils {
+                static void foo() { Constants.getConstant(); }
+            }
+
+        """
+
+        file("src/main/java/foo/Constants.java") << """
+            package foo;
+            class Constants {
+                static String getConstant() { return " "; }
+            }
+
+        """
+
+        file("src/main/java/foo/Main.java") << """
+            package foo;
+            public class Main {
+                void consume() { StringUtils.foo(); }
+            }
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/java/foo/Constants.java").text = """
+            package foo;
+            class Constants {
+                static String getConstant() { return "two spaces"; }
+            }
+
+        """
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledFqn("foo.StringUtils", "foo.Strings", "foo.Constants")
+    }
+
 }

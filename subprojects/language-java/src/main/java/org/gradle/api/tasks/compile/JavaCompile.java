@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.compile;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.Multimap;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
@@ -25,15 +26,18 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
+import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
@@ -42,6 +46,7 @@ import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.LocalState;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -67,6 +72,9 @@ import java.io.File;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.mergeIncrementalMappingsIntoOldMappings;
+import static org.gradle.api.internal.tasks.compile.SourceClassesMappingFileAccessor.readSourceClassesMappingFile;
+
 /**
  * Compiles Java source files.
  *
@@ -87,6 +95,7 @@ public class JavaCompile extends AbstractCompile {
     private JavaToolChain toolChain;
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
     private final ModularitySpec modularity;
+    private File sourceClassesMappingFile;
 
     public JavaCompile() {
         Project project = getProject();
@@ -164,28 +173,45 @@ public class JavaCompile extends AbstractCompile {
     @Incubating
     @TaskAction
     protected void compile(InputChanges inputs) {
-        DefaultJavaCompileSpec spec;
-        Compiler<JavaCompileSpec> compiler;
+        DefaultJavaCompileSpec spec = createSpec();
         if (!compileOptions.isIncremental()) {
-            spec = createSpec();
-            spec.setSourceFiles(getStableSources());
-            compiler = createCompiler(spec);
+            performFullCompilation(spec);
         } else {
-            spec = createSpec();
-            FileTree sources = getStableSources().getAsFileTree();
-            compiler = getIncrementalCompilerFactory().makeIncremental(
-                createCompiler(spec),
-                getPath(),
-                sources,
-                new JavaRecompilationSpecProvider(
-                    getDeleter(),
-                    getServices().get(FileOperations.class),
-                    sources,
-                    inputs.isIncremental(),
-                    () -> inputs.getFileChanges(getStableSources()).iterator()
-                )
-            );
+            performIncrementalCompilation(inputs, spec);
         }
+    }
+
+    private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
+        File sourceClassesMappingFile = getSourceClassesMappingFile();
+        Multimap<String, String> oldMappings = readSourceClassesMappingFile(sourceClassesMappingFile);
+        sourceClassesMappingFile.delete();
+        spec.getCompileOptions().setIncrementalCompilationMappingFile(sourceClassesMappingFile);
+        Compiler<JavaCompileSpec> compiler = createCompiler(spec);
+        FileTree sources = getStableSources().getAsFileTree();
+        compiler = getIncrementalCompilerFactory().makeIncremental(
+            (CleaningJavaCompiler<JavaCompileSpec>) compiler,
+            getPath(),
+            sources,
+            new JavaRecompilationSpecProvider(
+                getDeleter(),
+                getServices().get(FileOperations.class),
+                sources,
+                inputs.isIncremental(),
+                () -> inputs.getFileChanges(getStableSources()).iterator(),
+                new DefaultSourceFileClassNameConverter(oldMappings))
+        );
+        WorkResult workResult = performCompilation(spec, compiler);
+        if (workResult instanceof IncrementalCompilationResult) {
+            // The compilation will generate the new mapping file
+            // Only merge old mappings into new mapping on incremental recompilation
+            mergeIncrementalMappingsIntoOldMappings(sourceClassesMappingFile, getStableSources(), inputs, oldMappings);
+        }
+    }
+
+    private void performFullCompilation(DefaultJavaCompileSpec spec) {
+        Compiler<JavaCompileSpec> compiler;
+        spec.setSourceFiles(getStableSources());
+        compiler = createCompiler(spec);
         performCompilation(spec, compiler);
     }
 
@@ -224,9 +250,26 @@ public class JavaCompile extends AbstractCompile {
         return new DefaultJavaPlatform(JavaVersion.toVersion(getTargetCompatibility()));
     }
 
-    private void performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
+    /**
+     * The Groovy source-classes mapping file. Internal use only.
+     *
+     * @since 6.4
+     */
+    @LocalState
+    @Incubating
+    protected File getSourceClassesMappingFile() {
+        if (sourceClassesMappingFile == null) {
+            File tmpDir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
+            sourceClassesMappingFile = new File(tmpDir, "source-classes-mapping.txt");
+        }
+        return sourceClassesMappingFile;
+    }
+
+
+    private WorkResult performCompilation(JavaCompileSpec spec, Compiler<JavaCompileSpec> compiler) {
         WorkResult result = new CompileJavaBuildOperationReportingCompiler(this, compiler, getServices().get(BuildOperationExecutor.class)).execute(spec);
         setDidWork(result.getDidWork());
+        return result;
     }
 
     private DefaultJavaCompileSpec createSpec() {
