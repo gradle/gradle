@@ -22,6 +22,9 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
 import org.intellij.lang.annotations.Language
 
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assert.assertThat
+
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -49,6 +52,39 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
 
     protected void withFailOnProblems() {
         executer.withArgument("-D${SystemProperties.failOnProblems}=true")
+    }
+
+    protected void expectNoInstantExecutionProblem() {
+        verifyDeprecationWarnings(executer.workingDir, 0, [])
+    }
+
+    protected void expectInstantExecutionProblems(
+        int count = problems.length,
+        String... problems
+    ) {
+        if (problems.length == 0) {
+            throw new IllegalArgumentException("Use expectNoInstantExecutionProblem() when no deprecation warnings are to be expected")
+        }
+        verifyDeprecationWarnings(executer.workingDir, count, problems as List)
+    }
+
+    private void verifyDeprecationWarnings(File rootDir = testDirectory, int count, List<String> problems) {
+        def output = result?.output ?: failure?.output ?: ''
+        def expectedUniqueProblemsCount = problems.size()
+        if (count > 0) {
+            def summaryHeader = "${count} instant execution problem${count >= 2 ? 's were' : ' was'} found, ${expectedUniqueProblemsCount} of which seem${expectedUniqueProblemsCount >= 2 ? '' : 's'} unique:"
+            assertThat(output, containsNormalizedString(summaryHeader))
+        } else {
+            assertThat(output, not(containsNormalizedString("instant execution problem")))
+        }
+        def found = 0
+        output.readLines().eachWithIndex { String line, int idx ->
+            if (problems.remove(line.trim())) {
+                found++
+                return
+            }
+        }
+        assert problems.empty, "Expected ${expectedUniqueProblemsCount} unique problems, found ${found} unique problems, remaining:\n${problems.collect { " - $it" }.join("\n")}"
     }
 
     protected void assertTestsExecuted(String testClass, String... testNames) {
