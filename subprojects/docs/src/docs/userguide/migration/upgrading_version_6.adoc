@@ -60,7 +60,7 @@ The dependencies for annotation processors are not added to an IDEA module's cla
 
 ==== Rich console support removed for some 32-bit operating systems
 
-Gradle 6.3 does not support the <<command_line_interface.adoc#rich_console, rich console>> for 32-bit Unix systems and for old FreeBSD versions (older than FreeBSD 10). Microsoft Windows 32-bit is unaffected.
+Gradle 6.3 does not support the <<command_line_interface.adoc#sec:rich_console, rich console>> for 32-bit Unix systems and for old FreeBSD versions (older than FreeBSD 10). Microsoft Windows 32-bit is unaffected.
 
 Gradle will continue building projects on 32-bit systems but will no longer show the rich console.
 
