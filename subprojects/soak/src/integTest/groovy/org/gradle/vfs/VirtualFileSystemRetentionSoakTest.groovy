@@ -24,7 +24,9 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 
+@Ignore("Ignore until https://github.com/gradle/gradle/issues/12457 is fixed")
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
