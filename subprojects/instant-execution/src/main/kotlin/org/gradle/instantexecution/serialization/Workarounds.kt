@@ -24,10 +24,7 @@ internal
 object Workarounds {
 
     private
-    val ignoredBeanFields = listOf(
-        // Ignore a lambda field for now
-        "mFolderFilter" to "com.android.ide.common.resources.DataSet"
-    )
+    val ignoredBeanFields: List<Pair<String, String>> = emptyList()
 
     fun isIgnoredBeanField(field: Field) =
         ignoredBeanFields.contains(field.name to field.declaringClass.name)
