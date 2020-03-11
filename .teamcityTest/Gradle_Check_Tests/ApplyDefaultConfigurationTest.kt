@@ -64,8 +64,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
-            "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP"
+            "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
         assertEquals(expectedRunnerParam(), getGradleStep("GRADLE_RUNNER").gradleParams)
     }
@@ -82,9 +81,7 @@ class ApplyDefaultConfigurationTest {
 
         assertEquals(listOf(
             "GRADLE_RUNNER",
-            "GRADLE_RERUNNER",
-            "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP"
+            "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
     }
@@ -105,10 +102,7 @@ class ApplyDefaultConfigurationTest {
             "SET_BUILD_SUCCESS_ENV",
             "DUMP_OPEN_FILES_ON_FAILURE",
             "KILL_PROCESSES_STARTED_BY_GRADLE",
-            "GRADLE_RERUNNER",
-            "KILL_PROCESSES_STARTED_BY_GRADLE_RERUN",
-            "CHECK_CLEAN_M2",
-            "VERIFY_TEST_FILES_CLEANUP"
+            "CHECK_CLEAN_M2"
         ), steps.items.map(BuildStep::name))
         verifyGradleRunnerParams(extraParameters, daemon, expectedDaemonParam)
     }
@@ -116,12 +110,9 @@ class ApplyDefaultConfigurationTest {
     private
     fun verifyGradleRunnerParams(extraParameters: String, daemon: Boolean, expectedDaemonParam: String) {
         assertEquals(BuildStep.ExecutionMode.DEFAULT, getGradleStep("GRADLE_RUNNER").executionMode)
-        assertEquals(BuildStep.ExecutionMode.RUN_ON_FAILURE, getGradleStep("GRADLE_RERUNNER").executionMode)
 
         assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters), getGradleStep("GRADLE_RUNNER").gradleParams)
-        assertEquals(expectedRunnerParam(expectedDaemonParam, extraParameters) + " -PonlyPreviousFailedTestClasses=true -Dscan.tag.RERUN_TESTS -PgithubToken=%github.ci.oauth.token%", getGradleStep("GRADLE_RERUNNER").gradleParams)
         assertEquals("clean myTask", getGradleStep("GRADLE_RUNNER").tasks)
-        assertEquals("myTask tagBuild", getGradleStep("GRADLE_RERUNNER").tasks)
     }
 
     private

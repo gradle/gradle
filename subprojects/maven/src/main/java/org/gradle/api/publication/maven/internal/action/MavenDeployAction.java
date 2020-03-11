@@ -36,17 +36,11 @@ import java.util.List;
 public class MavenDeployAction extends AbstractMavenPublishAction {
     private static final Logger LOGGER = LoggerFactory.getLogger(MavenDeployAction.class);
 
-    private final static String MAX_DEPLOY_ATTEMPTS = "org.gradle.internal.remote.repository.deploy.max.attempts";
-    private final static String INITIAL_BACKOFF_MS = "org.gradle.internal.remote.repository.deploy.initial.backoff";
     private RemoteRepository remoteRepository;
     private RemoteRepository remoteSnapshotRepository;
-    private final int maxDeployAttempts;
-    private final int initialBackOff;
 
     public MavenDeployAction(String packaging, MavenProjectIdentity projectIdentity, List<File> wagonJars) {
         super(packaging, projectIdentity, wagonJars);
-        this.maxDeployAttempts = Integer.getInteger(MAX_DEPLOY_ATTEMPTS, 3);
-        this.initialBackOff = Integer.getInteger(INITIAL_BACKOFF_MS, 1000);
     }
 
     public void setRepositories(RemoteRepository repository, RemoteRepository snapshotRepository) {
@@ -74,17 +68,7 @@ public class MavenDeployAction extends AbstractMavenPublishAction {
 
         LOGGER.info("Deploying to {}", gradleRepo.getUrl());
 
-        DefaultMavenDeployRetrier deployRetrier = new DefaultMavenDeployRetrier(
-            () -> {
-                repositorySystem.deploy(session, request);
-                return null;
-                },
-            remoteRepository,
-            maxDeployAttempts,
-            initialBackOff
-        );
-
-        deployRetrier.deployWithRetry();
+        repositorySystem.deploy(session, request);
     }
 
     private org.sonatype.aether.repository.RemoteRepository createRepository(RemoteRepository gradleRepo) {

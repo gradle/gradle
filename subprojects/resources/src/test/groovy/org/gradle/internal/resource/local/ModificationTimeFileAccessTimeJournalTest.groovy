@@ -25,7 +25,7 @@ class ModificationTimeFileAccessTimeJournalTest extends Specification {
 
     static final long FIXED_TIMESTAMP = 42_000
 
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Subject ModificationTimeFileAccessTimeJournal journal = new ModificationTimeFileAccessTimeJournal()
 
     def "updates modification time"() {

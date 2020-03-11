@@ -29,8 +29,11 @@ import org.gradle.api.internal.file.collections.DefaultConfigurableFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionAdapter;
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.internal.file.collections.FileTreeAdapter;
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.internal.file.collections.UnpackingVisitor;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
@@ -38,8 +41,10 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
+import java.io.OutputStream;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -53,12 +58,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     private final TaskDependencyFactory taskDependencyFactory;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final Factory<PatternSet> patternSetFactory;
+    private final PropertyHost propertyHost;
+    private final FileSystem fileSystem;
 
-    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory) {
+    public DefaultFileCollectionFactory(PathToFileResolver fileResolver, TaskDependencyFactory taskDependencyFactory, DirectoryFileTreeFactory directoryFileTreeFactory, Factory<PatternSet> patternSetFactory,
+                                        PropertyHost propertyHost, FileSystem fileSystem) {
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.patternSetFactory = patternSetFactory;
+        this.propertyHost = propertyHost;
+        this.fileSystem = fileSystem;
     }
 
     @Override
@@ -66,17 +76,17 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (fileResolver == this.fileResolver) {
             return this;
         }
-        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory);
+        return new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, directoryFileTreeFactory, patternSetFactory, propertyHost, fileSystem);
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles() {
-        return new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, patternSetFactory, Collections.emptyList());
+        return new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
     }
 
     @Override
     public ConfigurableFileCollection configurableFiles(String displayName) {
-        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, Collections.emptyList());
+        return new DefaultConfigurableFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
     }
 
     @Override
@@ -163,6 +173,11 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
     }
 
+    @Override
+    public FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter) {
+        return new FileTreeAdapter(new GeneratedSingletonFileTree(tmpDir, fileName, fileGenerationListener, contentWriter, fileSystem), patternSetFactory);
+    }
+
     private static final class EmptyFileCollection extends AbstractFileCollection {
         private final String displayName;
 
@@ -194,6 +209,16 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         public String getDisplayName() {
             return DEFAULT_TREE_DISPLAY_NAME;
+        }
+
+        @Override
+        public Set<File> getFiles() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public boolean isEmpty() {
+            return true;
         }
 
         @Override

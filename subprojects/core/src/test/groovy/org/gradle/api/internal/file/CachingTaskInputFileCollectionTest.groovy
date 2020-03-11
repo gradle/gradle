@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -23,8 +24,8 @@ import spock.lang.Specification
 
 class CachingTaskInputFileCollectionTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def collection = new CachingTaskInputFileCollection(TestFiles.resolver(), TestFiles.patternSetFactory, DefaultTaskDependencyFactory.withNoAssociatedProject())
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    def collection = new CachingTaskInputFileCollection(TestFiles.resolver(), TestFiles.patternSetFactory, DefaultTaskDependencyFactory.withNoAssociatedProject(), Stub(PropertyHost))
 
     def "results are live prior to task execution"() {
         def files = []

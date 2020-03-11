@@ -17,6 +17,9 @@ package org.gradle.integtests.fixtures;
 
 import java.lang.annotation.*;
 
+/**
+ * @see CrossVersionTestRunner
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited

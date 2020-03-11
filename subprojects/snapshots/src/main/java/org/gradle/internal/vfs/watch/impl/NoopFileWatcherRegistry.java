@@ -30,10 +30,10 @@ public class NoopFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(NoopFileWatcherRegistry.class);
 
     private static final FileWatcherRegistry INSTANCE = new NoopFileWatcherRegistry();
-    private static final FileWatchingStatistics NOOP_FILE_WATCHING_STATISTICS = new FileWatchingStatistics(true, 0);
+    private static final FileWatchingStatistics NOOP_FILE_WATCHING_STATISTICS = new FileWatchingStatistics(true, 0, null);
 
     @Override
-    public FileWatchingStatistics stopWatching() {
+    public FileWatchingStatistics getStatistics() {
         return NOOP_FILE_WATCHING_STATISTICS;
     }
 

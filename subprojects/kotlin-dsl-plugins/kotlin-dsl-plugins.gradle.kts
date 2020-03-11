@@ -20,6 +20,8 @@ import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.bundledGradlePlugin
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+
 
 plugins {
     `kotlin-dsl-plugin-bundle`
@@ -28,7 +30,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.3.4"
+version = "1.3.5"
 
 base.archivesBaseName = "plugins"
 
@@ -144,6 +146,6 @@ tasks.noDaemonIntegTest {
 }
 
 // TODO:kotlin-dsl
-tasks.verifyTestFilesCleanup {
-    enabled = false
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
 }

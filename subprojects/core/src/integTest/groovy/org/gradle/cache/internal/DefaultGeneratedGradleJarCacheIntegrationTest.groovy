@@ -40,7 +40,7 @@ class DefaultGeneratedGradleJarCacheIntegrationTest extends Specification {
     private final static long JAR_GENERATION_TIME_MS = 2000L
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     RedirectStdOutAndErr stdout = new RedirectStdOutAndErr()

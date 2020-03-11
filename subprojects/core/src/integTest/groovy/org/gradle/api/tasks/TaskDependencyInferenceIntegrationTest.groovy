@@ -535,6 +535,52 @@ The following types/formats are supported:
         file("out.txt").text == "1"
     }
 
+    @ToBeFixedForInstantExecution
+    def "input file collection containing filtered tree of task output implies dependency on the task"() {
+        taskTypeWithOutputDirectoryProperty()
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            def task = tasks.create("a", DirProducer) {
+                output = layout.buildDirectory.dir('dir')
+                names = ['a.txt', 'b.txt', 'c.txt']
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from task.output.map { it.asFileTree.matching { include 'a.*'; include 'c.txt' } }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "content,content"
+    }
+
+    def "input file collection containing filtered tree containing task output implies dependency on the task"() {
+        taskTypeWithOutputDirectoryProperty()
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            def task = tasks.create("a", DirProducer) {
+                output = layout.buildDirectory.dir('dir')
+                names = ['a.txt', 'b.txt', 'c.txt']
+            }
+            def tree = project.files(task.output).asFileTree
+            tasks.register("b", InputFilesTask) {
+                inFiles.from tree.matching { include 'a.*'; include 'c.txt' }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksExecuted(":a", ":b")
+        file("out.txt").text == "content,content"
+    }
+
     def "input file property with value of mapped task provider implies dependency on a specific output of the task"() {
         taskTypeWithMultipleOutputFiles()
         taskTypeWithInputFileProperty()

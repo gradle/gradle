@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
@@ -33,17 +34,18 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def fileResolver = Mock(FileResolver)
     def taskResolver = Mock(TaskResolver)
+    def host = Mock(PropertyHost)
     def patternSetFactory = TestFiles.patternSetFactory
     def taskDependencyFactory = Stub(TaskDependencyFactory) {
         _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
     }
-    def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, [])
+    def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host)
 
     @Override
     AbstractFileCollection containing(File... files) {
         def resolver = Stub(FileResolver)
         _ * resolver.resolve(_) >> { File f -> f }
-        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, files as List)
+        return new DefaultConfigurableFileCollection("<display>", resolver, taskDependencyFactory, patternSetFactory, host).from(files)
     }
 
     def resolvesSpecifiedFilesUsingFileResolver() {
@@ -52,7 +54,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         def file2 = new File("2")
 
         when:
-        def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, ["a", "b"])
+        def collection = new DefaultConfigurableFileCollection("<display>", fileResolver, taskDependencyFactory, patternSetFactory, host).from("a", "b")
         def from = collection.from
         def files = collection.files
 
@@ -87,18 +89,40 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
     def canMutateTheFromCollection() {
         collection.from("src1", "src2")
+        def from = collection.from
 
         when:
-        collection.from.clear()
+        from.clear()
 
         then:
+        from.empty
         collection.from.empty
 
         when:
-        collection.from.add('a')
+        def add1 = from.add('a')
+        def add2 = from.add('b')
+        def add3 = from.add('a')
 
         then:
-        collection.from as List == ['a']
+        add1
+        add2
+        !add3
+
+        and:
+        from as List == ['a', 'b']
+        collection.from as List == ['a', 'b']
+
+        when:
+        def remove1 = from.remove('unknown')
+        def remove2 = from.remove('a')
+
+        then:
+        !remove1
+        remove2
+
+        and:
+        from as List == ['b']
+        collection.from as List == ['b']
     }
 
     def resolvesSpecifiedPathsUsingFileResolver() {
@@ -1133,7 +1157,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         0 * fileResolver._
     }
 
-    def canFinalizeWhenAlreadyImplicitlyFinalized() {
+    def canFinalizeWhenAlreadyImplicitlyFinalizedButNotQueried() {
         given:
         def file = new File('one')
         collection.from('a')
@@ -1150,5 +1174,94 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         1 * fileResolver.resolve('a') >> file
         0 * fileResolver._
+    }
+
+    def canFinalizeWhenAlreadyImplicitlyFinalized() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+
+        when:
+        collection.implicitFinalizeValue()
+
+        then:
+        0 * fileResolver._
+
+        when:
+        collection.files
+
+        then:
+        1 * fileResolver.resolve('a') >> file
+        0 * fileResolver._
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        0 * fileResolver._
+    }
+
+    def cannotQueryFilesWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.files
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot query the value for <display> because <reason>."
+
+        and:
+        1 * host.beforeRead() >> "<reason>"
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        result == [file] as Set
+
+        and:
+        1 * host.beforeRead() >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+    }
+
+    def cannotQueryElementsWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        def elements = collection.elements
+
+        then:
+        0 * _
+
+        when:
+        elements.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot query the value for <display> because <reason>."
+
+        and:
+        1 * host.beforeRead() >> "<reason>"
+        0 * _
+
+        when:
+        def result = elements.get()
+
+        then:
+        result.asFile == [file]
+
+        and:
+        1 * host.beforeRead() >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
     }
 }

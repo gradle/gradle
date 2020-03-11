@@ -35,9 +35,10 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task show(type: SomeTask) {
-                prop = [project.layout.projectDir.file("in.txt")]
+                def layout = project.layout
+                prop = [layout.projectDir.file("in.txt")]
                 doFirst {
-                    prop.set([project.layout.projectDir.file("other.txt")])
+                    prop.set([layout.projectDir.file("other.txt")])
                 }
             }
 """
@@ -69,9 +70,10 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
             }
 
             task show(type: SomeTask) {
-                prop = [project.layout.projectDir.dir("out.dir")]
+                def layout = project.layout
+                prop = [layout.projectDir.dir("out.dir")]
                 doFirst {
-                    prop.set([project.layout.projectDir.dir("other.dir")])
+                    prop.set([layout.projectDir.dir("other.dir")])
                 }
             }
 """

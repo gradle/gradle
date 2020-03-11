@@ -34,12 +34,20 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.provider.plugins.precompiled.HashedClassPath
 
 import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
+import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
 
+import javax.inject.Inject
+
 
 @CacheableTask
-abstract class CompilePrecompiledScriptPluginPlugins : DefaultTask(), SharedAccessorsPackageAware {
+abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
+
+    private
+    val implicitImports: ImplicitImports
+
+) : DefaultTask(), SharedAccessorsPackageAware {
 
     @get:Internal
     internal
@@ -74,7 +82,7 @@ abstract class CompilePrecompiledScriptPluginPlugins : DefaultTask(), SharedAcce
                     scriptFiles,
                     scriptDefinitionFromTemplate(
                         CompiledKotlinPluginsBlock::class,
-                        implicitImportsForPrecompiledScriptPlugins()
+                        implicitImportsForPrecompiledScriptPlugins(implicitImports)
                     ),
                     classPathFiles,
                     logger,

@@ -20,18 +20,18 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.FluentIterable;
 import com.google.common.collect.Lists;
 import groovy.lang.Closure;
+import org.gradle.api.file.DirectoryTree;
+import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
-import org.gradle.api.internal.file.collections.DirectoryFileTree;
-import org.gradle.api.tasks.AntBuilderAware;
 
 import java.util.Collections;
 
 public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
 
-    private final Iterable<DirectoryFileTree> fileTrees;
+    private final Iterable<DirectoryTree> fileTrees;
 
-    public AntFileCollectionMatchingTaskBuilder(Iterable<DirectoryFileTree> fileTrees) {
+    public AntFileCollectionMatchingTaskBuilder(Iterable<DirectoryTree> fileTrees) {
         this.fileTrees = fileTrees;
     }
 
@@ -39,24 +39,24 @@ public class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
     public Object addToAntBuilder(final Object node, final String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
 
-        final Iterable<DirectoryFileTree> existing = Lists.newLinkedList(
-                FluentIterable
-                        .from(fileTrees)
-                        .filter(new Predicate<DirectoryFileTree>() {
-                            @Override
-                            public boolean apply(DirectoryFileTree input) {
-                                return input.getDir().exists();
-                            }
-                        })
+        final Iterable<DirectoryTree> existing = Lists.newLinkedList(
+            FluentIterable
+                .from(fileTrees)
+                .filter(new Predicate<DirectoryTree>() {
+                    @Override
+                    public boolean apply(DirectoryTree input) {
+                        return input.getDir().exists();
+                    }
+                })
         );
 
-        for (DirectoryFileTree fileTree : existing) {
+        for (DirectoryTree fileTree : existing) {
             dynamicObject.invokeMethod(childNodeName, Collections.singletonMap("location", fileTree.getDir()));
         }
 
         dynamicObject.invokeMethod("or", new Closure<Void>(this) {
             public Object doCall(Object ignore) {
-                for (final DirectoryFileTree fileTree : existing) {
+                for (final DirectoryTree fileTree : existing) {
                     dynamicObject.invokeMethod("and", new Closure<Void>(this) {
                         public Object doCall(Object ignore) {
                             dynamicObject.invokeMethod("gradleBaseDirSelector", Collections.singletonMap("baseDir", fileTree.getDir()));

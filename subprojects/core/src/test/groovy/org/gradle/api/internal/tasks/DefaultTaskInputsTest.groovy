@@ -45,7 +45,7 @@ import java.util.concurrent.Callable
 
 class DefaultTaskInputsTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private final fileCollectionFactory = TestFiles.fileCollectionFactory(temporaryFolder.testDirectory)
 

@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.operations.trace.BuildOperationRecord
 
 class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationSpec {
@@ -58,7 +59,7 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         customSettingsDir.mkdirs()
         def customSettingsFile = new File(customSettingsDir, "settings.gradle")
         customSettingsFile << """
-        
+
         include "a"
         """
 
@@ -71,19 +72,20 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         operation().details.buildPath == ":"
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "composite participants expose their settings details"() {
         settingsFile << """
             include "a"
             includeBuild "nested"
-            
+
             rootProject.name = "root"
             rootProject.buildFileName = 'root.gradle'
-            
+
         """
 
         def nestedSettingsFile = file("nested/settings.gradle")
         nestedSettingsFile << """
-            rootProject.name = "nested"    
+            rootProject.name = "nested"
         """
         file("nested/build.gradle") << """
         group = "org.acme"

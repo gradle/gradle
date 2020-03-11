@@ -32,7 +32,7 @@ class AbstractAndroidSantaTrackerSmokeTest extends AbstractSmokeTest {
     protected static final List<String> TESTED_AGP_VERSIONS = AGP_VERSIONS.getLatestsFromMinorPlusNightly("3.6")
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     TestFile homeDir
 
     def setup() {

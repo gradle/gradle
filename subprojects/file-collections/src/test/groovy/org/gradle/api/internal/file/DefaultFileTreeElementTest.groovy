@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultFileTreeElementTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "permissions on file can be read"() {
         def stat = Mock(Stat)

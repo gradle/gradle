@@ -45,7 +45,7 @@ class DefaultPluginManagerTest extends Specification {
     Class<? extends Plugin> imperativeClass
 
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         rulesClass = classLoader.parseClass("""

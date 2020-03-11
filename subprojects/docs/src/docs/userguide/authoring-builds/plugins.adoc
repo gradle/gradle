@@ -169,12 +169,14 @@ Where `«plugin id»`, in case `#1` is a static Kotlin extension property, named
 `«plugin version»` is also a string.
 The `apply` statement with a `boolean` can be used to disable the default behavior of applying the plugin immediately (e.g. you want to apply it only in `subprojects`).
 
+See <<#sec:plugin_version_management,plugin version management>> if you want to use a variable to define a plugin version.
+
 The `plugins {}` block must also be a top level statement in the buildscript. It cannot be nested inside another construct (e.g. an if-statement or for-loop).
 
 [[sec:build_scripts_only]]
-===== Can only be used in build scripts
+===== Can only be used in build scripts and settings file
 
-The `plugins {}` block can currently only be used in a project's build script. It cannot be used in script plugins, the settings.gradle file or init scripts.
+The `plugins {}` block can currently only be used in a project's build script and the settings.gradle file. It cannot be used in script plugins or init scripts.
 
 _Future versions of Gradle will remove this restriction._
 
@@ -261,7 +263,7 @@ This tells Gradle to first look in the Maven repository at `../maven-repo` when 
 
 A `plugins {}` block inside `pluginManagement {}` allows all plugin versions for the build to be defined in a single location. Plugins can then be applied by id to any build script via the `plugins {}` block.
 
-One benefit of setting plugin versions this way is that the `pluginManagement.plugins {}` does not have the same <<#sec:constrained_syntax,constrained syntax>> as the build script `plugins {}` block. This allows plugin versions to be take from `gradle.properties`, or loaded via another mechanism.
+One benefit of setting plugin versions this way is that the `pluginManagement.plugins {}` does not have the same <<#sec:constrained_syntax,constrained syntax>> as the build script `plugins {}` block. This allows plugin versions to be taken from `gradle.properties`, or loaded via another mechanism.
 
 .Example: Managing plugin versions via `pluginManagement`.
 ====

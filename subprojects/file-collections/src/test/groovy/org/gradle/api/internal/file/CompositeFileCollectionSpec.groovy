@@ -18,6 +18,7 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 
@@ -299,6 +300,7 @@ class CompositeFileCollectionSpec extends FileCollectionSpec {
     def "can visit structure"() {
         def child1 = Stub(FileCollectionInternal)
         def child2 = Stub(FileTreeInternal)
+        def child2Source = Stub(FileSystemMirroringFileTree)
         def source = Stub(FileCollectionInternal.Source)
 
         def tree = new TestCollection() {
@@ -315,9 +317,9 @@ class CompositeFileCollectionSpec extends FileCollectionSpec {
 
         then:
         child1.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitCollection(source, child1) }
-        child2.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitGenericFileTree(child2) }
+        child2.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitGenericFileTree(child2, child2Source) }
         1 * visitor.visitCollection(source, child1)
-        1 * visitor.visitGenericFileTree(child2)
+        1 * visitor.visitGenericFileTree(child2, child2Source)
         0 * visitor._
     }
 

@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class TasksFactoryTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final Project project = Mock()
     final def eclipseProject = new DefaultEclipseProject(null, null, null, null, [])
     final task = TestUtil.create(temporaryFolder).task(AbstractTask)

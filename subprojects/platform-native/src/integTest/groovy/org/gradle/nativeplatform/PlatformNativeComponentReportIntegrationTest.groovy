@@ -16,6 +16,7 @@
 package org.gradle.nativeplatform
 
 import org.gradle.api.reporting.components.AbstractNativeComponentReportIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class PlatformNativeComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
@@ -23,6 +24,7 @@ class PlatformNativeComponentReportIntegrationTest extends AbstractNativeCompone
     // Should display installation directory
 
     @RequiresInstalledToolChain
+    @ToBeFixedForInstantExecution(because = ":components")
     def "shows details of native C++ library"() {
         given:
         buildFile << """
@@ -79,6 +81,7 @@ Binaries
     }
 
     @RequiresInstalledToolChain
+    @ToBeFixedForInstantExecution(because = ":components")
     def "shows details of native C++ library that is not buildable"() {
         given:
         buildFile << """
@@ -164,6 +167,7 @@ Binaries
     }
 
     @RequiresInstalledToolChain
+    @ToBeFixedForInstantExecution(because = ":components")
     def "shows details of polyglot native library with multiple variants"() {
         given:
         buildFile << """

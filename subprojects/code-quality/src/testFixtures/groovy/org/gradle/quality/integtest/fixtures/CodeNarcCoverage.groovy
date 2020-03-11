@@ -21,11 +21,19 @@ import org.gradle.api.plugins.quality.CodeNarcPlugin
 import org.gradle.util.VersionNumber
 
 class CodeNarcCoverage {
-    private final static List<String> ALL = ["0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", "1.2.1", CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
+    private static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION, "0.17", "0.21", "0.23", "0.24.1", "0.25.2", "1.0", "1.2.1"].asImmutable()
 
-    private final static List<String> JDK11_SUPPORTED = ALL.findAll { VersionNumber.parse(it) > VersionNumber.parse("0.21") }.asImmutable()
+    private static final List<String> JDK11_SUPPORTED = versionsAboveInclusive(ALL, "0.23")
+    private static final List<String> JDK14_SUPPORTED = JDK11_SUPPORTED - ['1.2.1', '1.0']
 
     static List<String> getSupportedVersionsByJdk() {
-        JavaVersion.current().java11Compatible ? JDK11_SUPPORTED : ALL
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+            return JDK14_SUPPORTED
+        }
+        return JavaVersion.current().java11Compatible ? JDK11_SUPPORTED : ALL
+    }
+
+    private static List<String> versionsAboveInclusive(List<String> versionsToFilter, String threshold) {
+        versionsToFilter.findAll { VersionNumber.parse(it) >= VersionNumber.parse(threshold) }.asImmutable()
     }
 }

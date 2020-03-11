@@ -21,8 +21,9 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
@@ -108,7 +109,7 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @Internal
     protected FileTree getSources() {
-        return getProject().getLayout().files().getAsFileTree();
+        return getProjectLayout().files().getAsFileTree();
     }
 
     /**
@@ -172,7 +173,7 @@ public class JavaCompile extends AbstractCompile {
                 sources,
                 new JavaRecompilationSpecProvider(
                     getDeleter(),
-                    ((ProjectInternal) getProject()).getFileOperations(),
+                    getServices().get(FileOperations.class),
                     sources,
                     inputs.isIncremental(),
                     () -> inputs.getFileChanges(getStableSources()).iterator()
@@ -197,6 +198,11 @@ public class JavaCompile extends AbstractCompile {
         throw new UnsupportedOperationException("Decorator takes care of injection");
     }
 
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
+    }
+
     private CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
         Compiler<JavaCompileSpec> javaCompiler = CompilerUtil.castCompiler(((JavaToolChainInternal) getToolChain()).select(getPlatform()).newCompiler(spec.getClass()));
         return new CleaningJavaCompiler<>(javaCompiler, getOutputs(), getDeleter());
@@ -215,7 +221,7 @@ public class JavaCompile extends AbstractCompile {
     private DefaultJavaCompileSpec createSpec() {
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
-        spec.setWorkingDir(getProject().getProjectDir());
+        spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
         spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));

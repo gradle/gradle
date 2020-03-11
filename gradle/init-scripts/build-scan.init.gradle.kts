@@ -1,7 +1,7 @@
 /*
  * This is an init script for internal usage at Gradle Inc.
  */
-val tasksWithBuildScansOnFailure = listOf("verifyTestFilesCleanup", "killExistingProcessesStartedByGradle", "tagBuild").map { listOf(it) }
+val tasksWithBuildScansOnFailure = listOf("verifyTestFilesCleanup", "killExistingProcessesStartedByGradle").map { listOf(it) }
 
 if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")) {
     // Gradle 6

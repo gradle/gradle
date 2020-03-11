@@ -29,7 +29,7 @@ abstract class AbstractSymlinkDeleterTest extends Specification {
     static final boolean FOLLOW_SYMLINKS = true
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     DefaultDeleter deleter = new DefaultDeleter(
         { System.currentTimeMillis() },
         { NativeServicesTestFixture.getInstance().get(FileSystem).isSymlink(it) },

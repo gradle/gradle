@@ -106,6 +106,8 @@ class InstantExecutionHost internal constructor(
                 )
                 settingsPreparer.prepareSettings(this)
 
+                includedBuilds = emptyList()
+
                 setBaseProjectClassLoaderScope(coreScope)
                 projectDescriptorRegistry.rootProject!!.name = rootProjectName
             }

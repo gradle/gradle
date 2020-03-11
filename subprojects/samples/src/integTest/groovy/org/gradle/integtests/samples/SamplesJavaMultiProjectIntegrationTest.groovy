@@ -225,7 +225,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "should not use cache for project dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks(":$API_NAME:checkProjectDependency").run()

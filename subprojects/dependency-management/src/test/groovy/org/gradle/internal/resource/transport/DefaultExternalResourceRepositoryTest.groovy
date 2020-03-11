@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultExternalResourceRepositoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def resourceAccessor = Mock(ExternalResourceAccessor)
     def resourceUploader = Mock(ExternalResourceUploader)
     def resourceLister = Mock(ExternalResourceLister)

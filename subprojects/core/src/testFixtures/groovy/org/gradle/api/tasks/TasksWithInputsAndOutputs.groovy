@@ -71,21 +71,26 @@ trait TasksWithInputsAndOutputs {
 
     def taskTypeWithOutputDirectoryProperty() {
         buildFile << """
-            class DirProducer extends DefaultTask {
+            import javax.inject.Inject
+
+            abstract class DirProducer extends DefaultTask {
                 @OutputDirectory
-                final DirectoryProperty output = project.objects.directoryProperty()
+                abstract DirectoryProperty getOutput()
                 @Input
-                final ListProperty<String> names = project.objects.listProperty(String)
+                abstract ListProperty<String> getNames()
                 @Input
                 String content = "content" // set to empty string to delete directory
+
+                @Inject
+                abstract FileSystemOperations getFs()
 
                 @TaskAction
                 def go() {
                     def dir = output.get().asFile
                     if (content.empty) {
-                        project.delete(dir)
+                        fs.delete { delete(dir) }
                     } else {
-                        project.delete(dir)
+                        fs.delete { delete(dir) }
                         dir.mkdirs()
                         names.get().forEach {
                             new File(dir, it).text = content

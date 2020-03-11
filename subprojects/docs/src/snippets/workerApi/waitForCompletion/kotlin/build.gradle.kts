@@ -19,7 +19,11 @@ abstract class ReverseFile @Inject constructor(val fileSystemOperations: FileSys
 }
 
 // The WorkerExecutor will be injected by Gradle at runtime
-open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerExecutor) : SourceTask() {
+open class ReverseFiles @Inject constructor(
+    private val projectLayout: ProjectLayout,
+    private val workerExecutor: WorkerExecutor
+) : SourceTask() {
+
     @OutputDirectory
     lateinit var outputDir: File
 
@@ -39,7 +43,7 @@ open class ReverseFiles @Inject constructor(private val workerExecutor: WorkerEx
 
         // Wait for all asynchronous work submitted to this queue to complete before continuing
         workQueue.await()
-        logger.lifecycle("Created ${outputDir.listFiles().size} reversed files in ${project.relativePath(outputDir)}")
+        logger.lifecycle("Created ${outputDir.listFiles().size} reversed files in ${outputDir.toRelativeString(projectLayout.projectDirectory.asFile)}")
         // end::wait-for-completion[]
     }
 }

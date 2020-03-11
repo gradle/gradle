@@ -42,7 +42,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 @CleanupTestDirectory
 abstract class AbstractVirtualFileSystemTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())

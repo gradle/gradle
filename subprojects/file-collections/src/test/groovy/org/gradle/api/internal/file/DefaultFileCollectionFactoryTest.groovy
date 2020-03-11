@@ -17,16 +17,19 @@
 package org.gradle.api.internal.file
 
 import com.google.common.collect.ImmutableSet
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskDependency
+import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -41,8 +44,8 @@ import java.util.concurrent.Callable
 class DefaultFileCollectionFactoryTest extends Specification {
     @ClassRule
     @Shared
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
-    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), Stub(TaskDependencyFactory), Stub(DirectoryFileTreeFactory), Stub(Factory))
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
+    def factory = new DefaultFileCollectionFactory(TestFiles.pathToFileResolver(tmpDir.testDirectory), Stub(TaskDependencyFactory), TestFiles.directoryFileTreeFactory(), Stub(Factory), Stub(PropertyHost), TestFiles.fileSystem())
 
     def "lazily queries contents of collection created from MinimalFileSet"() {
         def contents = Mock(MinimalFileSet)
@@ -94,16 +97,21 @@ class DefaultFileCollectionFactoryTest extends Specification {
     def "constructs an empty collection"() {
         expect:
         def collection = factory.empty()
+        collection.isEmpty()
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
         collection.toString() == "file collection"
 
         def tree = collection.asFileTree
+        tree.isEmpty()
         tree.files.empty
         tree.visit(new BrokenVisitor())
         tree.buildDependencies.getDependencies(null).empty
         tree.visitStructure(new BrokenVisitor())
+        tree.matching {} is tree
+        tree.matching(Stub(Action)) is tree
+        tree.matching(Stub(PatternFilterable)) is tree
         tree.toString() == "file tree"
     }
 
@@ -359,7 +367,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         }
 
         @Override
-        void visitGenericFileTree(FileTreeInternal fileTree) {
+        void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             Assert.fail()
         }
 
@@ -369,7 +377,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         }
 
         @Override
-        void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+        void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             Assert.fail()
         }
     }

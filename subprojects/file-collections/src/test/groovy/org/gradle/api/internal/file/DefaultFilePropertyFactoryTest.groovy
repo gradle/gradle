@@ -17,6 +17,7 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.Task
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.test.fixtures.file.TestFile
@@ -26,13 +27,13 @@ import spock.lang.Specification
 
 class DefaultFilePropertyFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile projectDir
     DefaultFilePropertyFactory factory
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
+        factory = new DefaultFilePropertyFactory(Stub(PropertyHost), TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
     }
 
     def "can create directory instance from absolute file"() {

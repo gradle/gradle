@@ -501,21 +501,26 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "task with file tree output can be up-to-date"() {
-        buildFile << """                                     
+        buildFile << """
+            import javax.inject.Inject
+
             plugins {
                 id 'base'
             }
 
-            class TaskWithFileTreeOutput extends DefaultTask {
+            abstract class TaskWithFileTreeOutput extends DefaultTask {
                 @Input
                 String input
-                
+
                 @Internal
                 File outputDir
-                
+
+                @Inject
+                abstract ObjectFactory getObjectFactory()
+
                 @OutputFiles
                 FileCollection getOutputFileTree() {
-                    project.fileTree(outputDir).include('**/myOutput.txt')
+                    objectFactory.fileTree().setDir(outputDir).include('**/myOutput.txt')
                 }
                 
                 @TaskAction
@@ -677,6 +682,8 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
 
         String getBuildScript() {
             """
+            import javax.inject.Inject
+
             apply plugin: 'base'
 
             task ${taskName}(type: MyTask) {
@@ -686,18 +693,20 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
                 outputDir = file("$buildDir/outputDir")
                 outputFile = file("$buildDir/outputFile")
             }
-            
-            class MyTask extends DefaultTask {
+
+            abstract class MyTask extends DefaultTask {
                 @InputDirectory File inputDir
                 @Input String input
                 @InputFile File inputFile
                 @OutputDirectory File outputDir
                 @OutputFile File outputFile
-                
+
+                @Inject abstract FileSystemOperations getFileSystemOperations()
+
                 @TaskAction
                 void doExecute() {
                     outputFile.text = input
-                    project.copy {
+                    fileSystemOperations.copy {
                         into outputDir
                         from(inputDir) {
                             into 'subDir'

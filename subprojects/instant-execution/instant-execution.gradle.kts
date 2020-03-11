@@ -35,17 +35,20 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":resources"))
     implementation(project(":snapshots"))
     implementation(project(":modelCore"))
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":persistentCache"))
+    implementation(project(":plugins"))
     implementation(project(":kotlinDsl"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))
     // TODO - it might be good to allow projects to contribute state to save and restore, rather than have this project know about everything
     implementation(project(":toolingApi"))
     implementation(project(":buildEvents"))
+    implementation(project(":native"))
 
     implementation(library("groovy"))
     implementation(library("slf4j_api"))

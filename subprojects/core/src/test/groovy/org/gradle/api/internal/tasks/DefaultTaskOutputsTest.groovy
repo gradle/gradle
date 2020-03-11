@@ -46,7 +46,7 @@ import static org.gradle.internal.file.TreeType.FILE
 class DefaultTaskOutputsTest extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     private def taskStatusNagger = Stub(TaskMutator) {
         mutate(_ as String, _ as Runnable) >> { String method, Runnable action ->

@@ -83,6 +83,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1346")
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can run javaexec with executable jar"() {
 
         buildFile << """

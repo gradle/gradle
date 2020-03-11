@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.file.DefaultFileCollectionFactory
 import org.gradle.api.internal.file.DefaultSourceDirectorySet
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -37,13 +36,13 @@ import static org.hamcrest.CoreMatchers.nullValue
 import static org.junit.Assert.assertThat
 
 class DefaultSourceSetTest extends Specification {
-    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TaskResolver taskResolver = [resolveTask: {name -> [getName: {name}] as Task}] as TaskResolver
     private final TaskDependencyFactory taskDependencyFactory = Stub(TaskDependencyFactory) {
         _ * configurableDependency() >> new DefaultTaskDependency(taskResolver)
     }
     private final FileResolver fileResolver = TestFiles.resolver(tmpDir.testDirectory)
-    private final FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(fileResolver, taskDependencyFactory, TestFiles.directoryFileTreeFactory(), TestFiles.patternSetFactory)
+    private final FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory, taskDependencyFactory)
 
     private DefaultSourceSet sourceSet(String name) {
         def s = TestUtil.instantiatorFactory().decorateLenient().newInstance(DefaultSourceSet, name, TestUtil.objectFactory(tmpDir.testDirectory))

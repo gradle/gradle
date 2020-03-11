@@ -26,8 +26,15 @@ import org.gradle.kotlin.dsl.precompile.PrecompiledScriptDependenciesResolver.En
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.serviceOf
 
+import javax.inject.Inject
 
-abstract class ConfigurePrecompiledScriptDependenciesResolver : DefaultTask(), SharedAccessorsPackageAware {
+
+abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructor(
+
+    private
+    val implicitImports: ImplicitImports
+
+) : DefaultTask(), SharedAccessorsPackageAware {
 
     @get:Internal
     abstract val metadataDir: DirectoryProperty
@@ -46,7 +53,7 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver : DefaultTask(), S
 
         val resolverEnvironment = resolverEnvironmentStringFor(
             listOf(
-                kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins()
+                kotlinDslImplicitImports to implicitImportsForPrecompiledScriptPlugins(implicitImports)
             ) + precompiledScriptPluginImports
         )
 

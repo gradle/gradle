@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileType;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.plugins.antlr.internal.AntlrResult;
 import org.gradle.api.plugins.antlr.internal.AntlrSourceGenerationException;
@@ -194,6 +195,11 @@ public class AntlrTask extends SourceTask {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
+    }
+
     /**
      * Generate the parsers.
      *
@@ -229,7 +235,8 @@ public class AntlrTask extends SourceTask {
 
         AntlrWorkerManager manager = new AntlrWorkerManager();
         AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceDirectorySet);
-        AntlrResult result = manager.runWorker(getProject().getProjectDir(), getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
+        File projectDir = getProjectLayout().getProjectDirectory().getAsFile();
+        AntlrResult result = manager.runWorker(projectDir, getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluate(result);
     }
 

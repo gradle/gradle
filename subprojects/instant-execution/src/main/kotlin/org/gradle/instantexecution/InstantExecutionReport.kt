@@ -18,13 +18,18 @@ package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
 
-import org.gradle.api.logging.Logger
+import org.gradle.BuildAdapter
+import org.gradle.BuildResult
 
+import org.gradle.api.logging.Logging
+
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.PropertyProblem
 import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.unknownPropertyError
 
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.ConsoleRenderer
 
 import org.gradle.util.GFileUtils.copyURLToFile
@@ -33,33 +38,74 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.URL
+import java.util.concurrent.CopyOnWriteArrayList
 
 
 class InstantExecutionReport(
 
     private
-    val outputDirectory: File,
+    val startParameter: InstantExecutionStartParameter,
 
-    private
-    val logger: Logger,
+    listenerManager: ListenerManager
 
-    private
-    val maxProblems: Int,
-
-    private
-    val failOnProblems: Boolean
 ) {
 
+    companion object {
+
+        private
+        val logger = Logging.getLogger(InstantExecutionReport::class.java)
+
+        private
+        const val reportHtmlFileName = "instant-execution-report.html"
+    }
+
+    init {
+        listenerManager.addListener(BuildFinishedReporter())
+    }
+
     private
-    val problems = mutableListOf<PropertyProblem>()
+    inner class BuildFinishedReporter : BuildAdapter() {
+
+        override fun buildFinished(result: BuildResult) {
+            if (problems.isNotEmpty()) {
+                val outputDirectory = calculateOutputDirectory()
+                logSummary(outputDirectory)
+                writeReportFiles(outputDirectory)
+            }
+        }
+
+        private
+        fun calculateOutputDirectory(): File =
+            startParameter.rootDirectory.resolve(
+                "build/reports/instant-execution/${startParameter.instantExecutionCacheKey}"
+            ).let { base ->
+                if (!base.exists()) base
+                else generateSequence(1) { it + 1 }
+                    .map { base.resolveSibling("${base.name}-$it") }
+                    .first { !it.exists() }
+            }
+    }
+
+    private
+    val problems = CopyOnWriteArrayList<PropertyProblem>()
 
     fun add(problem: PropertyProblem) {
         problems.add(problem)
-        if (problems.size >= maxProblems) {
-            throw TooManyInstantExecutionProblemsException()
+        if (problems.size >= startParameter.maxProblems) {
+            throw TooManyInstantExecutionProblemsException().also { ex ->
+                problems.mapNotNull { it.exception }.forEach { ex.addSuppressed(it) }
+            }
         }
     }
 
+    fun withExceptionHandling(onError: () -> Unit = {}, block: () -> Unit) {
+        withExceptionHandling(block)?.let { error ->
+            onError()
+            throw error
+        }
+    }
+
+    private
     fun withExceptionHandling(block: () -> Unit): Throwable? {
 
         val fatalError = runWithExceptionHandling(block)
@@ -68,9 +114,6 @@ class InstantExecutionReport(
             require(fatalError == null)
             return null
         }
-
-        logSummary()
-        writeReportFiles()
 
         return fatalError?.withSuppressed(errors())
             ?: instantExecutionExceptionForErrors()
@@ -107,7 +150,7 @@ class InstantExecutionReport(
 
     private
     fun instantExecutionExceptionForProblems(): Throwable? =
-        if (failOnProblems) InstantExecutionProblemsException()
+        if (startParameter.failOnProblems) InstantExecutionProblemsException()
         else null
 
     private
@@ -119,45 +162,49 @@ class InstantExecutionReport(
 
     private
     fun errors() =
-        problems.filterIsInstance<PropertyProblem.Error>()
+        problems.asIterable().filterIsInstance<PropertyProblem.Error>()
 
     private
-    fun logSummary() {
-        logger.warn(summary())
+    fun logSummary(outputDirectory: File) {
+        logger.warn(summary(outputDirectory))
     }
 
     private
-    fun writeReportFiles() {
-        outputDirectory.mkdirs()
-        copyReportResources()
-        writeJsReportData()
-    }
-
-    private
-    fun summary(): String {
-        val uniquePropertyProblems = problems.groupBy {
-            propertyDescriptionFor(it) to it.message
+    fun writeReportFiles(outputDirectory: File) {
+        require(outputDirectory.mkdirs()) {
+            "Could not create instant execution report directory '$outputDirectory'"
         }
+        copyReportResources(outputDirectory)
+        writeJsReportData(outputDirectory)
+    }
+
+    private
+    fun summary(outputDirectory: File): String {
+        val uniquePropertyProblems = problems
+            .sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
+            .groupBy { propertyDescriptionFor(it) to it.message }
+            .keys
         return StringBuilder().apply {
+            appendln()
             val totalProblemCount = problems.size
             val problemOrProblems = if (totalProblemCount == 1) "problem was" else "problems were"
             val uniqueProblemCount = uniquePropertyProblems.size
             val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
             appendln("$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique:")
-            uniquePropertyProblems.keys.forEach { (property, message) ->
+            uniquePropertyProblems.forEach { (property, message) ->
                 append("  - ")
                 append(property)
                 append(": ")
                 appendln(message)
             }
-            appendln("See the complete report at ${clickableUrlFor(reportFile)}")
+            appendln("See the complete report at ${clickableUrlFor(outputDirectory.resolve(reportHtmlFileName))}")
         }.toString()
     }
 
     private
-    fun copyReportResources() {
+    fun copyReportResources(outputDirectory: File) {
         listOf(
-            reportFile.name,
+            reportHtmlFileName,
             "instant-execution-report.js",
             "instant-execution-report.css",
             "kotlin.js"
@@ -170,7 +217,7 @@ class InstantExecutionReport(
     }
 
     private
-    fun writeJsReportData() {
+    fun writeJsReportData(outputDirectory: File) {
         outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
             writer.run {
                 appendln("function instantExecutionProblems() { return [")
@@ -193,7 +240,7 @@ class InstantExecutionReport(
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =
-        (problem as? PropertyProblem.Error)?.exception?.let {
+        problem.exception?.let {
             stackTraceStringFor(it)
         }
 
@@ -271,10 +318,6 @@ class InstantExecutionReport(
         is PropertyTrace.Task -> trace.type
         else -> null
     }
-
-    private
-    val reportFile
-        get() = outputDirectory.resolve("instant-execution-report.html")
 }
 
 

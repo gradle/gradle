@@ -205,9 +205,9 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         !buildDir.exists()
     }
 
-    def "build on Java project with source file and resource and no dependencies"() {
+    def "build on Java project with source files and resources and no dependencies"() {
         given:
-        buildWithSingleSourceFileAndSingleResource()
+        buildWithSourceFilesAndResources()
 
         when:
         instantRun "build"
@@ -218,7 +218,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         def classFile = file("build/classes/java/main/Thing.class")
         classFile.isFile()
         def jarFile = file("build/libs/somelib.jar")
-        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
         when:
         instantRun "build"
@@ -228,7 +228,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksExecuted(":compileJava", ":processResources", ":classes", ":jar", ":compileTestJava", ":processTestResources", ":testClasses", ":test", ":assemble", ":check", ":build")
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
-        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+        new ZipTestFixture(jarFile).hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
 
         when:
         instantRun "clean"
@@ -246,7 +246,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksNotSkipped(":compileJava", ":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
-            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
             assertFileContent("answer.txt", "42")
         }
 
@@ -259,7 +259,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksNotSkipped() // everything should be up-to-date
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
-            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
             assertFileContent("answer.txt", "42")
         }
 
@@ -273,7 +273,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         result.assertTasksNotSkipped(":processResources", ":classes", ":jar", ":assemble", ":build")
         classFile.isFile()
         new ZipTestFixture(jarFile).with {
-            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt")
+            hasDescendants("META-INF/MANIFEST.MF", "Thing.class", "answer.txt", "META-INF/some.Service")
             assertFileContent("answer.txt", "forty-two")
         }
     }
@@ -517,9 +517,10 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         """
     }
 
-    def buildWithSingleSourceFileAndSingleResource() {
+    def buildWithSourceFilesAndResources() {
         buildWithSingleSourceFile()
 
         file("src/main/resources/answer.txt") << "42"
+        file("src/main/resources/META-INF/some.Service") << "impl"
     }
 }

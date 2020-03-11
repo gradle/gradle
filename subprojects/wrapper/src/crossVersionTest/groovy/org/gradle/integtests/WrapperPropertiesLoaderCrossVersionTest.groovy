@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
-
+package org.gradle.integtests.wrapper
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetVersions
@@ -22,11 +21,12 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.util.GradleVersion
-import org.junit.Assume
 import spock.lang.Issue
 
+import static org.junit.Assume.assumeTrue
+
 @SuppressWarnings("IntegrationTestFixtures")
-@TargetVersions("6.2+")
+@TargetVersions("6.2.2+")
 class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpec {
 
     @Issue('https://github.com/gradle/gradle/issues/11173')
@@ -34,8 +34,8 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
         given:
         GradleDistribution wrapperVersion = previous
         GradleDistribution executionVersion = current
-        Assume.assumeTrue("skipping $wrapperVersion as its wrapper cannot execute version ${executionVersion.version.version}", wrapperVersion.wrapperCanExecute(executionVersion.version))
-        Assume.assumeTrue("skipping execute version ${executionVersion.version.version} as it is <6.0", executionVersion.version >= GradleVersion.version("6.0"))
+        assumeTrue "skipping $wrapperVersion as its wrapper cannot execute version $executionVersion.version.version", wrapperVersion.wrapperCanExecute(executionVersion.version)
+        assumeTrue "skipping execute version $executionVersion.version.version as it is <6.0", executionVersion.version >= GradleVersion.version("6.0")
 
         requireOwnGradleUserHomeDir()
 
@@ -80,30 +80,18 @@ class WrapperPropertiesLoaderCrossVersionTest extends CrossVersionIntegrationSpe
 
         when:
         GradleExecuter executer = version(wrapperVersion).requireIsolatedDaemons()
-        String output =  executer.usingExecutable('gradlew').withTasks('hello').run().output
+        String output = executer.usingExecutable('gradlew').withTasks('hello').run().output
 
         then:
         output.contains('system_property_available in buildSrc:                 true')
-        output.contains('project_property_available in buildSrc:                true')
-        if (executionVersion.getVersion() >= GradleVersion.version("6.2")) {
-            output.contains('project_property_available in buildSrc:                true')
-        } else {
-            output.contains('overridden_by_includedBuild in buildSrc:               root')
-        }
+        output.contains('project_property_available in buildSrc:                false')
+        output.contains('overridden_by_includedBuild in buildSrc:               null')
         output.contains('system_property_available in included buildSrc:        true')
-        if (executionVersion.getVersion() >= GradleVersion.version("6.2")) {
-            output.contains('project_property_available in included buildSrc:       true')
-        } else {
-            output.contains('project_property_available in included buildSrc:       true')
-        output.contains('overridden_by_includedBuild in included buildSrc:      root')
-        }
+        output.contains('project_property_available in included buildSrc:       false')
+        output.contains('overridden_by_includedBuild in included buildSrc:      null')
         output.contains('system_property_available in included root:            true')
-        if (executionVersion.getVersion() >= GradleVersion.version("6.2")) {
-            output.contains('project_property_available in included root:           true')
-        } else {
-            output.contains('project_property_available in included root:           true')
+        output.contains('project_property_available in included root:           false')
         output.contains('overridden_by_includedBuild in included root:          included')
-        }
         output.contains('system_property_available in root:                     true')
         output.contains('project_property_available in root:                    true')
         output.contains('overridden_by_includedBuild in root:                   root')

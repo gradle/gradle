@@ -37,7 +37,7 @@ import java.util.concurrent.atomic.AtomicInteger
 @UsesNativeServices
 abstract class AbstractDirectoryWalkerTest<T> extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     SetSystemProperties setSystemPropertiesRule

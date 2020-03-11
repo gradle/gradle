@@ -32,7 +32,7 @@ import static org.gradle.api.tasks.testing.TestResult.ResultType.SKIPPED
 
 class JUnitTestClassProcessorTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
     def spec = new JUnitSpec([] as Set, [] as Set, [] as Set, [] as Set, [] as Set)

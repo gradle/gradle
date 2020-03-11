@@ -730,7 +730,6 @@ Required by:
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "reports missing unique snapshot artifact"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")

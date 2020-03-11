@@ -22,6 +22,7 @@ import org.gradle.api.UncheckedIOException
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Assume
+import org.junit.AssumptionViolatedException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -77,7 +78,8 @@ class MavenDownloaderTest extends Specification {
         }
 
         then:
-        def t = thrown(UncheckedIOException)
-        t.message == 'Unable to download Maven binary distribution from any of the repositories'
+        Exception t = thrown()
+        (t instanceof UncheckedIOException && t.message == 'Unable to download Maven binary distribution from any of the repositories') ||
+            t instanceof AssumptionViolatedException
     }
 }

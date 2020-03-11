@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.internal.file.collections.DirectoryTrees;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.file.collections.GeneratedFiles;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.FileUtils;
@@ -119,7 +120,7 @@ public class FileSystemSubset {
         }
 
         @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree) {
+        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             addFiles(fileTree);
         }
 
@@ -134,7 +135,7 @@ public class FileSystemSubset {
         }
 
         @Override
-        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             lock.lock();
             try {
                 files.add(file.getAbsoluteFile());

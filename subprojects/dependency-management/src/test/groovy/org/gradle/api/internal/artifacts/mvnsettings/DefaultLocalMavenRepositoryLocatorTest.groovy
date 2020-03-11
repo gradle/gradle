@@ -26,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultLocalMavenRepositoryLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     SimpleMavenFileLocations locations
     DefaultLocalMavenRepositoryLocator locator

@@ -237,7 +237,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
                 ext.testFile = project.file("\$buildDir/\$name")
                 additionalParameters = {
                     it.classpath.from(sourceSets.main.output.classesDirs)
-                    it.setProjectDir(project.projectDir)
+                    it.setProjectDir(projectDir)
                     it.setTestFile(testFile)
                 }
                 doLast { assert testFile.exists() }
@@ -279,7 +279,7 @@ class WorkerExecutorServicesIntegrationTest extends AbstractWorkerExecutorIntegr
                 ext.testFile = project.file("\$buildDir/\$name")
                 additionalParameters = {
                     it.classpath.from(sourceSets.main.output.classesDirs)
-                    it.setProjectDir(project.projectDir)
+                    it.setProjectDir(projectDir)
                     it.setTestFile(testFile)
                 }
                 doLast { assert testFile.exists() }

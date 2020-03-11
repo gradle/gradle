@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ear;
 
-import com.google.common.collect.ImmutableList;
 import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
@@ -24,8 +23,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.FileCopyDetails;
-import org.gradle.api.internal.file.collections.FileTreeAdapter;
-import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
+import org.gradle.api.file.FileTree;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -46,6 +45,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.OutputStreamWriter;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
@@ -82,30 +82,28 @@ public class Ear extends Jar {
         CopySpecInternal metaInf = (CopySpecInternal) getMainSpec().addChild().into("META-INF");
         CopySpecInternal descriptorChild = metaInf.addChild();
         OutputChangeListener outputChangeListener = getServices().get(OutputChangeListener.class);
-        descriptorChild.from((Callable<FileTreeAdapter>) () -> {
-                final DeploymentDescriptor descriptor = getDeploymentDescriptor();
+        FileCollectionFactory fileCollectionFactory = getServices().get(FileCollectionFactory.class);
+        descriptorChild.from((Callable<FileTree>) () -> {
+            final DeploymentDescriptor descriptor = getDeploymentDescriptor();
 
-                if (descriptor != null && generateDeploymentDescriptor.get()) {
-                    if (descriptor.getLibraryDirectory() == null) {
-                        descriptor.setLibraryDirectory(getLibDirName());
-                    }
+            if (descriptor != null && generateDeploymentDescriptor.get()) {
+                if (descriptor.getLibraryDirectory() == null) {
+                    descriptor.setLibraryDirectory(getLibDirName());
+                }
 
                 String descriptorFileName = descriptor.getFileName();
                 if (descriptorFileName.contains("/") || descriptorFileName.contains(File.separator)) {
                     throw new InvalidUserDataException("Deployment descriptor file name must be a simple name but was " + descriptorFileName);
-                    }
-                GeneratedSingletonFileTree descriptorSource = new GeneratedSingletonFileTree(
+                }
+                return fileCollectionFactory.generated(
                     getTemporaryDirFactory(),
                     descriptorFileName,
-                    absolutePath -> outputChangeListener.beforeOutputChange(ImmutableList.of(absolutePath)),
+                    file -> outputChangeListener.beforeOutputChange(Collections.singleton(file.getAbsolutePath())),
                     outputStream -> descriptor.writeTo(new OutputStreamWriter(outputStream))
                 );
+            }
 
-
-                    return new FileTreeAdapter(descriptorSource);
-                }
-
-                return null;
+            return null;
         });
     }
 

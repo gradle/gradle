@@ -353,12 +353,12 @@ class CIConfigIntegrationTests {
         val m = CIBuildModel(
             projectPrefix = "Gradle_BuildCacheDeactivatedForStage_",
             stages = listOf(
-                Stage(StageNames.WINDOWS_10_EVALUATION_QUICK,
+                Stage(StageNames.QUICK_FEEDBACK_LINUX_ONLY,
                     trigger = Trigger.never,
                     runsIndependent = true,
                     functionalTests = listOf(
                         TestCoverage(20, TestType.quick, Os.windows, JvmCategory.MAX_VERSION.version, vendor = JvmCategory.MAX_VERSION.vendor))),
-                Stage(StageNames.WINDOWS_10_EVALUATION_PLATFORM,
+                Stage(StageNames.QUICK_FEEDBACK,
                     trigger = Trigger.never,
                     runsIndependent = true,
                     disablesBuildCache = true,

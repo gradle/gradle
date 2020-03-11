@@ -17,21 +17,24 @@
 package org.gradle.vfs
 
 import org.gradle.integtests.fixtures.VfsRetentionFixture
+import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 
+@Ignore("Ignore until https://github.com/gradle/gradle/issues/12457 is fixed")
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
+    private static final int MAX_FILE_CHANGES_WITHOUT_OVERFLOW = 1000
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
-    private static final int TOTAL_NUMBER_OF_SOURCES = NUMBER_OF_SUBPROJECTS * NUMBER_OF_SOURCES_PER_SUBPROJECT
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
-    public static final int NUMBER_OF_REPETITIONS = 100
 
     List<TestFile> sourceFiles
 
@@ -64,6 +67,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     }
 
     def "file watching works with multiple builds on the same daemon"() {
+        def numberOfChangesBetweenBuilds = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+
         when:
         succeeds("assemble")
         def daemon = daemons.daemon
@@ -71,21 +76,35 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         daemon.assertIdle()
 
         expect:
-        NUMBER_OF_REPETITIONS.times { iteration ->
-            changeAllSourceFiles(iteration)
+        boolean overflowDetected = false
+        50.times { iteration ->
+            // when:
+            changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
             waitForChangesToBePickedUp()
             succeeds("assemble")
+
+            // then:
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            retainedFilesInCurrentBuild - TOTAL_NUMBER_OF_SOURCES == retainedFilesSinceLastBuild
-            assert receivedFileSystemEvents >= minimumExpectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, 1)
+            if (!overflowDetected) {
+                overflowDetected = detectOverflow(daemon)
+            }
+            int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangesBetweenBuilds
+            if (overflowDetected) {
+                assert retainedFilesSinceLastBuild in [expectedNumberOfRetainedFiles, 0]
+            } else {
+                assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+            }
+            assert receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
         }
     }
 
     def "file watching works with many changes between two builds"() {
-        // Use 20 minutes idle timeout since the test may be running longer with an idle daemon
-        executer.withDaemonIdleTimeoutSecs(1200)
+        // Use 40 minutes idle timeout since the test may be running longer with an idle daemon
+        executer.withDaemonIdleTimeoutSecs(2400)
+        def numberOfChangedSourcesFilesPerBatch = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangeBatches = 500
 
         when:
         succeeds("assemble")
@@ -94,17 +113,33 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         daemon.assertIdle()
 
         when:
-        NUMBER_OF_REPETITIONS.times { iteration ->
-            changeAllSourceFiles(iteration)
-            waitForChangesToBePickedUp()
+        numberOfChangeBatches.times { iteration ->
+            changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
+            waitBetweenChangesToAvoidOverflow()
         }
+        boolean overflowDetected = detectOverflow(daemon)
+        int expectedNumberOfRetainedFiles = overflowDetected
+            ? 0
+            : retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
         then:
         succeeds("assemble")
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEvents >= minimumExpectedFileSystemEvents(TOTAL_NUMBER_OF_SOURCES, NUMBER_OF_REPETITIONS)
-        retainedFilesInCurrentBuild - TOTAL_NUMBER_OF_SOURCES == retainedFilesSinceLastBuild
+        receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
+        retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+    }
+
+    private static boolean detectOverflow(DaemonFixture daemon) {
+        boolean overflowDetected = daemon.logContains(FileWatcherRegistry.Type.INVALIDATE.toString())
+        if (overflowDetected) {
+            println "Detected overflow in watcher, no files will be retained for the next build"
+        }
+        overflowDetected
+    }
+
+    private static void waitBetweenChangesToAvoidOverflow() {
+            Thread.sleep(150)
     }
 
     private static int minimumExpectedFileSystemEvents(int numberOfChangedFiles, int numberOfChangesPerFile) {
@@ -121,8 +156,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         throw new AssertionError("Test not supported on OS ${currentOs}")
     }
 
-    private void changeAllSourceFiles(int iteration) {
-        sourceFiles.each { sourceFile ->
+    private void changeSourceFiles(int iteration, int number) {
+        sourceFiles.take(number).each { sourceFile ->
             modifySourceFile(sourceFile, iteration + 1)
         }
     }

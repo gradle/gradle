@@ -70,6 +70,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
     String getTaskTypeUsingWorkerDaemon() {
         return """
             import javax.inject.Inject
+            import org.gradle.api.file.ProjectLayout
             import org.gradle.workers.WorkerExecutor
             import org.gradle.workers.internal.WorkerDaemonFactory
 
@@ -79,14 +80,15 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
                 }
             }
 
-            class DaemonTask extends DefaultTask {
+            abstract class DaemonTask extends DefaultTask {
                 @InputFile
                 File inputFile = new File("${TextUtil.normaliseFileAndLineSeparators(inputFile.absolutePath)}")
 
                 @Inject
-                WorkerExecutor getWorkerExecutor() {
-                    throw new UnsupportedOperationException()
-                }
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @Inject
+                abstract ProjectLayout getProjectLayout()
 
                 @TaskAction
                 void runInDaemon() {
@@ -96,7 +98,7 @@ class ContinuousWorkerDaemonServiceIntegrationTest extends AbstractContinuousInt
                 }
 
                 void captureWorkerDaemons() {
-                    def workerDaemonIdentityFile = project.file("$workerDaemonIdentityFileName")
+                    def workerDaemonIdentityFile = projectLayout.projectDirectory.file("$workerDaemonIdentityFileName").asFile
                     def daemonFactory = services.get(WorkerDaemonFactory)
                     workerDaemonIdentityFile << daemonFactory.clientsManager.allClients.collect { System.identityHashCode(it) }.sort().join(" ") + "\\n"
                 }

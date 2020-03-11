@@ -42,6 +42,7 @@ abstract class ReverseFile implements WorkAction<ReverseParameters> {
 }
 
 class ReverseFiles extends SourceTask {
+    private final ProjectLayout projectLayout
     private final WorkerExecutor workerExecutor
 
     @OutputDirectory
@@ -49,7 +50,8 @@ class ReverseFiles extends SourceTask {
 
     // The WorkerExecutor will be injected by Gradle at runtime
     @Inject
-    ReverseFiles(WorkerExecutor workerExecutor) {
+    ReverseFiles(ProjectLayout projectLayout, WorkerExecutor workerExecutor) {
+        this.projectLayout = projectLayout
         this.workerExecutor = workerExecutor
     }
 
@@ -69,7 +71,7 @@ class ReverseFiles extends SourceTask {
 
         // Wait for all asynchronous work submitted to this queue to complete before continuing
         workQueue.await()
-        logger.lifecycle("Created ${outputDir.listFiles().size()} reversed files in ${project.relativePath(outputDir)}")
+        logger.lifecycle("Created ${outputDir.listFiles().size()} reversed files in ${projectLayout.projectDirectory.asFile.relativePath(outputDir)}")
 
         // end::wait-for-completion[]
     }

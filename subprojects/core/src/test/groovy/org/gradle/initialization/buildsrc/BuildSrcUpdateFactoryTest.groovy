@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class BuildSrcUpdateFactoryTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def launcher = Stub(BuildController)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)

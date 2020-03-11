@@ -17,6 +17,8 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.file.FileTreeInternal
 import org.gradle.api.specs.Spec
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
@@ -26,7 +28,7 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class SingleIncludePatternFileTreeSpec extends Specification {
-    @Shared @ClassRule TestNameTestDirectoryProvider tempDir
+    @Shared @ClassRule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(SingleIncludePatternFileTreeSpec)
 
     def visitor = Mock(FileVisitor)
 
@@ -60,6 +62,26 @@ class SingleIncludePatternFileTreeSpec extends Specification {
                 file("file3")
             }
         }
+    }
+
+    def "visits structure"() {
+        def spec = Stub(Spec)
+        def owner = Stub(FileTreeInternal)
+        def visitor = Mock(FileCollectionStructureVisitor)
+
+        fileTree = new SingleIncludePatternFileTree(tempDir.testDirectory, "pattern", spec)
+
+        when:
+        fileTree.visitStructure(visitor, owner)
+
+        then:
+        1 * visitor.visitFileTree(tempDir.testDirectory, _, owner) >> { dir, patterns, fileTree ->
+            assert patterns.includes == ["pattern"] as Set
+            assert patterns.excludes.isEmpty()
+            assert patterns.includeSpecs.isEmpty()
+            assert patterns.excludeSpecs == [spec] as Set
+        }
+        0 * visitor._
     }
 
     def "include leaf file"() {

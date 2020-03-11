@@ -88,18 +88,22 @@ public class DefaultWatchingVirtualFileSystem extends AbstractDelegatingVirtualF
 
         try {
             long startTime = System.currentTimeMillis();
-            FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.stopWatching();
+            // Make sure events stop arriving before obtaining the statistics
+            watchRegistry.close();
+            FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getStatistics();
             if (statistics.isUnknownEventEncountered()) {
                 LOGGER.warn("Dropped VFS state due to lost state");
-            } else {
-                LOGGER.warn("Received {} file system events since last build", statistics.getNumberOfReceivedEvents());
             }
+            if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
+                LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
+            }
+            LOGGER.warn("Received {} file system events since last build", statistics.getNumberOfReceivedEvents());
             LOGGER.warn("Spent {} ms processing file system events since last build", System.currentTimeMillis() - startTime);
         } catch (IOException ex) {
             LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
             invalidateAll();
         } finally {
-            close();
+            watchRegistry = null;
         }
     }
 

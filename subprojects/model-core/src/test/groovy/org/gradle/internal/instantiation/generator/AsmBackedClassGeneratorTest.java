@@ -106,7 +106,7 @@ import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {

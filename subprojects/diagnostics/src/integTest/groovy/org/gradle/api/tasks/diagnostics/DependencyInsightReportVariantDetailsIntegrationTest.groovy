@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
 
@@ -69,6 +70,7 @@ project :$expectedProject
         'runtimeClasspath' | 'c'             | 'runtimeElements' | 'org.gradle.usage               = java-runtime\n      org.gradle.libraryelements     = jar'
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows published variant details"() {
         given:
         mavenRepo.with {

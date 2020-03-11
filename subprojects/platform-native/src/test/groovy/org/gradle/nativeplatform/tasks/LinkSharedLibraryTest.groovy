@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class LinkSharedLibraryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def link = TestUtil.createRootProject(tmpDir.testDirectory).tasks.create("link", LinkSharedLibrary)
 
     def "has no default import library location when platform does not produce one"() {

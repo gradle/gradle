@@ -24,7 +24,7 @@ import org.junit.Rule
 
 class BlockingHttpServerTest extends ConcurrentSpec {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def server = new BlockingHttpServer(1000)
 

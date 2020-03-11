@@ -18,6 +18,7 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class PropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -195,160 +196,6 @@ task thing(type: SomeTask) {
 The value of this property is derived from:
   - extension 'custom2' property 'source'
   - extension 'custom1' property 'source'""")
-    }
-
-    def "can finalize the value of a property using API"() {
-        given:
-        buildFile << """
-Integer counter = 0
-def provider = providers.provider { ++counter }
-
-def property = objects.property(Integer)
-property.set(provider)
-
-assert property.get() == 1
-assert property.get() == 2
-
-property.finalizeValue()
-
-assert counter == 3 // is eager
-assert property.get() == 3
-
-counter = 45
-assert property.get() == 3
-
-property.set(12)
-"""
-
-        when:
-        fails()
-
-        then:
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
-    }
-
-    def "can finalize the value of a property on next read using API"() {
-        given:
-        buildFile << """
-Integer counter = 0
-def provider = providers.provider { ++counter }
-
-def property = objects.property(Integer)
-property.set(provider)
-
-assert property.get() == 1
-assert property.get() == 2
-
-property.finalizeValueOnRead()
-
-assert counter == 2 // is lazy
-assert property.get() == 3
-
-counter = 45
-assert property.get() == 3
-
-property.set(12)
-"""
-
-        when:
-        fails()
-
-        then:
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
-    }
-
-    def "can disallow changes to a property using API without finalizing the value"() {
-        given:
-        buildFile << """
-Integer counter = 0
-def provider = providers.provider { ++counter }
-
-def property = objects.property(Integer)
-property.set(provider)
-
-assert property.get() == 1
-assert property.get() == 2
-property.disallowChanges()
-assert property.get() == 3
-assert property.get() == 4
-
-property.set(12)
-"""
-
-        when:
-        fails()
-
-        then:
-        failure.assertHasCause("The value for this property cannot be changed any further.")
-    }
-
-    def "task @Input property is implicitly finalized when task starts execution"() {
-        given:
-        buildFile << """
-class SomeTask extends DefaultTask {
-    @Input
-    final Property<String> prop = project.objects.property(String)
-
-    @OutputFile
-    final Property<RegularFile> outputFile = project.objects.fileProperty()
-
-    @TaskAction
-    void go() {
-        outputFile.get().asFile.text = prop.get()
-    }
-}
-
-task thing(type: SomeTask) {
-    prop = "value 1"
-    outputFile = layout.buildDirectory.file("out.txt")
-    doFirst {
-        prop.set("broken")
-    }
-}
-
-afterEvaluate {
-    thing.prop = "value 2"
-}
-
-task before {
-    doLast {
-        thing.prop = providers.provider { "value 3" }
-    }
-}
-thing.dependsOn before
-
-"""
-
-        when:
-        fails("thing")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
-        failure.assertHasCause("The value for task ':thing' property 'prop' is final and cannot be changed any further.")
-    }
-
-    def "task ad hoc input property is implicitly finalized when task starts execution"() {
-        given:
-        buildFile << """
-
-def prop = project.objects.property(String)
-
-task thing {
-    inputs.property("prop", prop)
-    prop.set("value 1")
-    doFirst {
-        prop.set("broken")
-        println "prop = " + prop.get()
-    }
-}
-"""
-
-        when:
-        fails("thing")
-
-        then:
-        failure.assertHasDescription("Execution failed for task ':thing'.")
-        failure.assertHasCause("The value for this property is final and cannot be changed any further.")
     }
 
     def "can use property with no value as optional ad hoc task input property"() {
@@ -694,5 +541,26 @@ project.extensions.create("some", SomeExtension)
                 }
             }
         """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10248#issuecomment-592528234")
+    def "can use findProperty from a closure passed to ConfigureUtil.configure via an extension"() {
+        when:
+        buildFile << """
+        class SomeExtension {
+            def innerThing(Closure closure) {
+                org.gradle.util.ConfigureUtil.configure(closure, new InnerThing())
+            }
+            class InnerThing {}
+        }
+        extensions.create('someExtension', SomeExtension)
+        someExtension {
+            innerThing {
+                findProperty('foo')
+            }
+        }
+        """
+        then:
+        succeeds()
     }
 }

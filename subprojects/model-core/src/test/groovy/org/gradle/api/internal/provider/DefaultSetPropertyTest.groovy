@@ -23,7 +23,7 @@ import org.gradle.internal.state.ManagedFactory
 class DefaultSetPropertyTest extends CollectionPropertySpec<Set<String>> {
     @Override
     DefaultSetProperty<String> property() {
-        return new DefaultSetProperty<String>(String)
+        return new DefaultSetProperty<String>(host, String)
     }
 
     @Override

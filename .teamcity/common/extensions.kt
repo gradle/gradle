@@ -65,8 +65,10 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
         build/report-* => .
         buildSrc/build/report-* => .
         subprojects/*/build/tmp/test files/** => test-files
+        subprojects/*/build/tmp/test files/** => test-files
         build/errorLogs/** => errorLogs
         build/reports/incubation/** => incubation-reports
+        build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 
     vcs {
@@ -83,6 +85,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
 
     failureConditions {
         executionTimeoutMin = timeout
+        testFailure = false
     }
 
     if (os == Os.linux || os == Os.macos) {
@@ -131,13 +134,5 @@ fun Dependencies.compileAllDependency(compileAllId: String = "Gradle_Check_Compi
         id = "ARTIFACT_DEPENDENCY_$compileAllId"
         cleanDestination = true
         artifactRules = "build-receipt.properties => incoming-distributions"
-    }
-}
-
-fun BuildSteps.verifyTestFilesCleanup(daemon: Boolean = true, os: Os = Os.linux) {
-    gradleWrapper {
-        name = "VERIFY_TEST_FILES_CLEANUP"
-        tasks = "verifyTestFilesCleanup"
-        gradleParams = buildToolParametersString(daemon, os)
     }
 }

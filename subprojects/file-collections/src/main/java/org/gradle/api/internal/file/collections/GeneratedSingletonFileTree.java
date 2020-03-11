@@ -18,43 +18,41 @@ package org.gradle.api.internal.file.collections;
 import com.google.common.io.Files;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileVisitDetails;
+import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.io.StreamByteBuffer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
-import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
+import java.util.Collections;
 
 /**
- * A {@link SingletonFileTree} which is composed using a mapping from relative path to file source.
+ * A generated file tree which is composed using a mapping from relative path to file source.
  */
-public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implements GeneratedFiles {
+public class GeneratedSingletonFileTree implements FileSystemMirroringFileTree, GeneratedFiles {
     private final Factory<File> tmpDirSource;
-    private final FileSystem fileSystem = FileSystems.getDefault();
+    private final FileSystem fileSystem;
 
     private final String fileName;
-    private final FileGenerationListener fileGenerationListener;
+    private final Action<File> fileGenerationListener;
     private final Action<OutputStream> contentWriter;
 
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, FileGenerationListener fileGenerationListener, Action<OutputStream> contentWriter) {
-        this(tmpDirSource, fileName, new PatternSet(), fileGenerationListener, contentWriter);
-    }
-
-    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, PatternSet patternSet, FileGenerationListener fileGenerationListener, Action<OutputStream> contentWriter) {
-        super(patternSet);
+    public GeneratedSingletonFileTree(Factory<File> tmpDirSource, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentWriter, FileSystem fileSystem) {
         this.tmpDirSource = tmpDirSource;
         this.fileName = fileName;
         this.fileGenerationListener = fileGenerationListener;
         this.contentWriter = contentWriter;
+        this.fileSystem = fileSystem;
     }
 
     private File getTmpDir() {
@@ -66,16 +64,10 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
         return "file tree";
     }
 
-    @Override
-    protected FileVisitDetails createFileVisitDetails() {
-        return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
-    }
-
     public File getFileWithoutCreating() {
         return createFileInstance(fileName);
     }
 
-    @Override
     public File getFile() {
         return new FileVisitDetailsImpl(fileName, contentWriter, fileSystem).getFile();
     }
@@ -85,19 +77,24 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
     }
 
     @Override
-    public MinimalFileTree filter(PatternFilterable patterns) {
-        return new GeneratedSingletonFileTree(tmpDirSource, fileName, filterPatternSet(patterns), fileGenerationListener, contentWriter);
+    public DirectoryFileTree getMirror() {
+        return new DirectoryFileTree(getFile(), new PatternSet(), fileSystem);
     }
 
-    /**
-     * Listener for users of `GeneratedSingletonFileTree` for listening to file changes caused
-     * by generating files.
-     */
-    public interface FileGenerationListener {
-        /**
-         * Called just before (re-) generating the file with the absolute path.
-         */
-        void beforeFileGenerated(String absolutePath);
+    @Override
+    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
+        if (visitor.prepareForVisit(this) == FileCollectionStructureVisitor.VisitType.NoContents) {
+            // Visit metadata but not contents
+            visitor.visitCollection(this, Collections.emptyList());
+        } else {
+            visitor.visitFileTree(getFile(), new PatternSet(), owner);
+        }
+    }
+
+    @Override
+    public void visit(FileVisitor visitor) {
+        FileVisitDetails fileVisitDetails = new FileVisitDetailsImpl(fileName, contentWriter, fileSystem);
+        visitor.visitFile(fileVisitDetails);
     }
 
     private class FileVisitDetailsImpl extends AbstractFileTreeElement implements FileVisitDetails {
@@ -145,7 +142,7 @@ public class GeneratedSingletonFileTree extends AbstractSingletonFileTree implem
             byte[] generatedContent = generateContent();
             if (!hasContent(generatedContent, file)) {
                 try {
-                    fileGenerationListener.beforeFileGenerated(file.getAbsolutePath());
+                    fileGenerationListener.execute(file);
                     Files.write(generatedContent, file);
                 } catch (IOException e) {
                     throw new org.gradle.api.UncheckedIOException(e);

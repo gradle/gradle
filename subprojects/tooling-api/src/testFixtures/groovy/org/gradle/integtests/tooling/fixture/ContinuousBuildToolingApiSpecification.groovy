@@ -51,7 +51,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     ExecutionResult result
     ExecutionFailure failure
 
-    int buildTimeout = 20
+    int buildTimeout = 30
 
     @Rule
     GradleBuildCancellation cancellationTokenSource
@@ -149,7 +149,9 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
     }
 
     private void waitForBuild() {
+        long t0 = System.currentTimeMillis()
         ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
+        println("Wait finishes: ${System.currentTimeMillis() - t0} ms")
         result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr)
     }
 
@@ -199,7 +201,7 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
 
     void waitBeforeModification(File file) {
         long waitMillis = 100L
-        if(OS_IS_WINDOWS && file.exists()) {
+        if (OS_IS_WINDOWS && file.exists()) {
             // ensure that file modification time changes on windows
             long fileAge = System.currentTimeMillis() - file.lastModified()
             if (fileAge > 0L && fileAge < 900L) {

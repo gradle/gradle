@@ -108,7 +108,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                 attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
             }
             isVisible = false
-            isCanBeResolved = true
+            isCanBeResolved = false
             isCanBeConsumed = false
         }
         val gradleScripts by configurations.creating {

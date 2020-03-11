@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.collections.DefaultFileCollectionResolveCont
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.ListBackedFileSet;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.tasks.util.PatternSet;
@@ -29,7 +30,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
-import java.util.Collections;
 
 /**
  * A {@link org.gradle.api.file.ConfigurableFileCollection} that can be used as a task input property. Caches the matching set of files during task execution, and discards the result after task execution.
@@ -42,8 +42,8 @@ public class CachingTaskInputFileCollection extends DefaultConfigurableFileColle
     private MinimalFileSet cachedValue;
 
     // TODO - display name
-    public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory) {
-        super(null, fileResolver, taskDependencyFactory, patternSetFactory, Collections.emptyList());
+    public CachingTaskInputFileCollection(PathToFileResolver fileResolver, Factory<PatternSet> patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost) {
+        super(null, fileResolver, taskDependencyFactory, patternSetFactory, propertyHost);
     }
 
     @Override

@@ -39,7 +39,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class GccLinkerTest extends Specification {
     public static final String LOG_LOCATION = "<log location>"
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     def operationLogger =  Mock(BuildOperationLogger)
     def executable = new File("executable")

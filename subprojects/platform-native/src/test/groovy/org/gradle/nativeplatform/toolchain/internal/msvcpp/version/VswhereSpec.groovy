@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class VswhereSpec extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     File vswhere
     def localRoot = tmpDir.createDir("root")
     def programFiles = localRoot.createDir("Program Files")

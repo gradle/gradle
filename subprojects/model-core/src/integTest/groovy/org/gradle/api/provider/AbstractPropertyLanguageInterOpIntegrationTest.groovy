@@ -64,6 +64,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     abstract void pluginDefinesTask()
 
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+    )
     def "can define property and set value from language plugin"() {
         pluginSetsValues()
 
@@ -81,6 +85,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {1=true, 2=false}")
     }
 
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+    )
     def "can define property and set calculated value using function from language plugin"() {
         pluginSetsCalculatedValuesUsingCallable()
 
@@ -98,6 +106,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {1=true, 2=false}")
     }
 
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+    )
     def "can define property and set calculated value using mapped provider from language plugin"() {
         pluginSetsCalculatedValuesUsingMappedProvider()
 
@@ -204,6 +216,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {3=true}")
     }
 
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+    )
     def "can define property in language plugin and set value from Java plugin"() {
         pluginDefinesTask()
 
@@ -265,6 +281,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("map = {1=true, 2=false}")
     }
 
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "can define property in language plugin and set value from Kotlin plugin"() {
         pluginDefinesTask()
 

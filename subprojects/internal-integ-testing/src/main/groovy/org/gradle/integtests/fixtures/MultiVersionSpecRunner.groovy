@@ -16,7 +16,9 @@
 
 package org.gradle.integtests.fixtures
 /**
- * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}
+ * Runs the target test class against the versions specified in a {@link TargetVersions} or {@link TargetCoverage}.
+ * <p>
+ * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
  */
 class MultiVersionSpecRunner extends AbstractContextualMultiVersionSpecRunner<DefaultVersionedTool> {
     def versions

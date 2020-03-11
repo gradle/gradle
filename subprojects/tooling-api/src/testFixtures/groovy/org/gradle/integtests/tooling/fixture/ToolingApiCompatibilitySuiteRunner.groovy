@@ -21,6 +21,9 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.util.GradleVersion
 
+/**
+ * See {@link org.gradle.integtests.fixtures.AbstractContextualMultiVersionSpecRunner} for information on running these tests.
+ */
 class ToolingApiCompatibilitySuiteRunner extends AbstractCompatibilityTestRunner {
     private static final GradleVersion MINIMAL_VERSION = GradleVersion.version("2.6")
 

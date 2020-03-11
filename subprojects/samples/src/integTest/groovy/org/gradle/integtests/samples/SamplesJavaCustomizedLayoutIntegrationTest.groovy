@@ -39,11 +39,11 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
 
     @Unroll
     @UsesSample('java/customizedLayout')
-    def "can build and upload jar with #dsl dsl"() {
+    def "can build jar with #dsl dsl"() {
         TestFile javaprojectDir = sample.dir.file(dsl)
 
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         def result = new DefaultTestExecutionResult(javaprojectDir)

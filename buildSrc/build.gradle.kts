@@ -176,9 +176,11 @@ fun readProperties(propertiesFile: File) = Properties().apply {
 }
 
 val checkSameDaemonArgs by tasks.registering {
+    val buildSrcPropertiesFile = project.rootDir.resolve("gradle.properties")
+    val rootPropertiesFile = project.rootDir.resolve("../gradle.properties")
     doLast {
-        val buildSrcProperties = readProperties(File(project.rootDir, "gradle.properties"))
-        val rootProperties = readProperties(File(project.rootDir, "../gradle.properties"))
+        val buildSrcProperties = readProperties(buildSrcPropertiesFile)
+        val rootProperties = readProperties(rootPropertiesFile)
         val jvmArgs = listOf(buildSrcProperties, rootProperties).map { it.getProperty("org.gradle.jvmargs") }.toSet()
         if (jvmArgs.size > 1) {
             throw GradleException("gradle.properties and buildSrc/gradle.properties have different org.gradle.jvmargs " +

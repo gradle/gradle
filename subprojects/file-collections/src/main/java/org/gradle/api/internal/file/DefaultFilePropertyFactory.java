@@ -29,6 +29,7 @@ import org.gradle.api.internal.provider.AbstractCombiningProvider;
 import org.gradle.api.internal.provider.AbstractMappingProvider;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -40,22 +41,24 @@ import javax.annotation.Nullable;
 import java.io.File;
 
 public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFactory {
+    private final PropertyHost host;
     private final FileResolver fileResolver;
     private final FileCollectionFactory fileCollectionFactory;
 
-    public DefaultFilePropertyFactory(FileResolver resolver, FileCollectionFactory fileCollectionFactory) {
+    public DefaultFilePropertyFactory(PropertyHost host, FileResolver resolver, FileCollectionFactory fileCollectionFactory) {
+        this.host = host;
         this.fileResolver = resolver;
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
     @Override
     public DirectoryProperty newDirectoryProperty() {
-        return new DefaultDirectoryVar(fileResolver, fileCollectionFactory);
+        return new DefaultDirectoryVar(host, fileResolver, fileCollectionFactory);
     }
 
     @Override
     public RegularFileProperty newFileProperty() {
-        return new DefaultRegularFileVar(fileResolver);
+        return new DefaultRegularFileVar(host, fileResolver);
     }
 
     @Override
@@ -70,7 +73,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         return new FixedFile(file);
     }
 
-    static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
+    private static class FixedDirectory extends DefaultFileSystemLocation implements Directory, Managed {
         final FileResolver fileResolver;
         private final FileCollectionFactory fileCollectionFactory;
 
@@ -175,8 +178,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
     static abstract class AbstractFileVar<T extends FileSystemLocation, THIS extends FileSystemLocationProperty<T>> extends DefaultProperty<T> implements FileSystemLocationProperty<T> {
 
-        public AbstractFileVar(Class<T> type) {
-            super(type);
+        public AbstractFileVar(PropertyHost host, Class<T> type) {
+            super(host, type);
         }
 
         protected abstract T fromFile(File file);
@@ -265,8 +268,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
     public static class DefaultRegularFileVar extends AbstractFileVar<RegularFile, RegularFileProperty> implements RegularFileProperty, Managed {
         private final PathToFileResolver fileResolver;
 
-        DefaultRegularFileVar(PathToFileResolver fileResolver) {
-            super(RegularFile.class);
+        DefaultRegularFileVar(PropertyHost host, PathToFileResolver fileResolver) {
+            super(host, RegularFile.class);
             this.fileResolver = fileResolver;
         }
 
@@ -308,17 +311,10 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         private final FileResolver resolver;
         private final FileCollectionFactory fileCollectionFactory;
 
-        DefaultDirectoryVar(FileResolver resolver, FileCollectionFactory fileCollectionFactory) {
-            super(Directory.class);
+        DefaultDirectoryVar(PropertyHost host, FileResolver resolver, FileCollectionFactory fileCollectionFactory) {
+            super(host, Directory.class);
             this.resolver = resolver;
             this.fileCollectionFactory = fileCollectionFactory;
-        }
-
-        DefaultDirectoryVar(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Object value) {
-            super(Directory.class);
-            this.resolver = resolver;
-            this.fileCollectionFactory = fileCollectionFactory;
-            resolveAndSet(value);
         }
 
         @Override
@@ -334,12 +330,6 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public FileTree getAsFileTree() {
             return fileCollectionFactory.resolving(this).getAsFileTree();
-        }
-
-        void resolveAndSet(Object value) {
-            File resolved = resolver.resolve(value);
-            FileResolver dirResolver = resolver.newResolver(resolved);
-            set(new FixedDirectory(resolved, dirResolver, fileCollectionFactory.withResolver(dirResolver)));
         }
 
         @Override

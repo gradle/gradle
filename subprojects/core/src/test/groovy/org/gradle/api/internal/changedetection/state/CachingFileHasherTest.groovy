@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class CachingFileHasherTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def target = Mock(FileHasher)
     def cache = Mock(PersistentIndexedCache)
     def cacheAccess = Mock(CrossBuildFileHashCache)

@@ -95,12 +95,15 @@ sealed class PropertyProblem {
 
     abstract val message: StructuredMessage
 
+    abstract val exception: Throwable?
+
     /**
      * A problem that does not necessarily compromise the execution of the build.
      */
     data class Warning(
         override val trace: PropertyTrace,
-        override val message: StructuredMessage
+        override val message: StructuredMessage,
+        override val exception: Throwable? = null
     ) : PropertyProblem()
 
     /**
@@ -110,7 +113,7 @@ sealed class PropertyProblem {
     data class Error(
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
-        val exception: Throwable
+        override val exception: Throwable
     ) : PropertyProblem()
 }
 

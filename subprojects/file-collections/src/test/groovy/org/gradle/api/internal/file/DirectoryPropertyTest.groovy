@@ -57,13 +57,8 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
     }
 
     @Override
-    PropertyInternal<Directory> providerWithValue(Directory value) {
-        return factory.newDirectoryProperty().value(value)
-    }
-
-    @Override
     ManagedFactory managedFactory() {
-        new ManagedFactories.DirectoryPropertyManagedFactory(resolver, fileCollectionFactory)
+        new ManagedFactories.DirectoryPropertyManagedFactory(factory)
     }
 
     def "can view directory as a file tree"() {

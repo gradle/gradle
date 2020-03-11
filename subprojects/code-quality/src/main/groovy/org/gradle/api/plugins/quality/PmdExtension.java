@@ -50,7 +50,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
@@ -61,7 +61,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_rules_java.html">official list</a> of built-in rule sets.
+     * The built-in rule sets to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_rules_java.html">official list</a> of built-in rule sets.
      *
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
@@ -115,7 +115,7 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * This is equivalent to PMD's Ant task minimumPriority property.
      *
-     * See the official documentation for the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_configuring_rules.html">list of priorities</a>.
+     * See the official documentation for the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_configuring_rules.html">list of priorities</a>.
      *
      * <pre>
      *     rulePriority = 3
@@ -136,7 +136,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
@@ -152,7 +152,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * The custom rule set to be used (if any). Replaces {@code ruleSetFiles}, except that it does not currently support multiple rule sets.
      *
-     * See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
+     * See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set.
      *
      * <pre>
      *     ruleSetConfig = resources.text.fromFile("config/pmd/myRuleSet.xml")
@@ -165,7 +165,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * If you want to only use custom rule sets, you must clear {@code ruleSets}.
      *
      * <pre>
@@ -177,7 +177,7 @@ public class PmdExtension extends CodeQualityExtension {
     }
 
     /**
-     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
+     * The custom rule set files to be used. See the <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_making_rulesets.html">official documentation</a> for how to author a rule set file.
      * This adds to the default rule sets defined by {@link #getRuleSets()}.
      *
      * <pre>
@@ -218,7 +218,7 @@ public class PmdExtension extends CodeQualityExtension {
     /**
      * Controls whether to use incremental analysis or not.
      *
-     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.20.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
+     * This is only supported for PMD 6.0.0 or better. See <a href="https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html"></a> for more details.
      *
      * @since 5.6
      */

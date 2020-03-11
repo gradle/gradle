@@ -27,7 +27,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 abstract class AbstractBuildScriptBuilderTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def fileResolver = TestFiles.resolver(tmpDir.testDirectory)
 

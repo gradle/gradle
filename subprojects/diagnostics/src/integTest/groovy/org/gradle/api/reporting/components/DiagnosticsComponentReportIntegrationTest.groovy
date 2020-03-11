@@ -16,6 +16,7 @@
 
 package org.gradle.api.reporting.components
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 
 class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
@@ -30,6 +31,7 @@ class DiagnosticsComponentReportIntegrationTest extends AbstractNativeComponentR
     }
 
     @RequiresInstalledToolChain
+    @ToBeFixedForInstantExecution(because = ":components")
     def "informs the user when project has no components defined"() {
         when:
         succeeds "components"
@@ -41,6 +43,7 @@ No components defined for this project.
     }
 
     @RequiresInstalledToolChain
+    @ToBeFixedForInstantExecution(because = ":components")
     def "shows details of multiple components"() {
         expectJavaLanguagePluginDeprecationWarnings()
 

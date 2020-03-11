@@ -27,6 +27,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
+ */
 public class NativeToolChainTestRunner extends AbstractContextualMultiVersionSpecRunner<AvailableToolChains.ToolChainCandidate> {
 
     public NativeToolChainTestRunner(Class<? extends AbstractInstalledToolChainIntegrationSpec> target) {

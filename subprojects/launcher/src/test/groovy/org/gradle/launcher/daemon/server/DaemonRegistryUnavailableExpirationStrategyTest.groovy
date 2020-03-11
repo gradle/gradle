@@ -36,7 +36,7 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.GR
 class DaemonRegistryUnavailableExpirationStrategyTest extends Specification {
     Daemon daemon = Mock(Daemon)
     @Subject DaemonRegistryUnavailableExpirationStrategy expirationStrategy = new DaemonRegistryUnavailableExpirationStrategy(daemon)
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
     File daemonDir = tempDir.createDir("test_daemon_dir")
 
     def "daemon should expire when registry file is unreachable"() {

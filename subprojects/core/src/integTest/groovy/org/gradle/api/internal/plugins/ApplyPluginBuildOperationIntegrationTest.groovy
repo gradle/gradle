@@ -18,6 +18,7 @@ package org.gradle.api.internal.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -59,7 +60,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             class MyPlugin implements Plugin {
                 void apply(t) {}
             }
-            
+
             apply plugin: MyPlugin
         """
 
@@ -83,7 +84,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             class MyPlugin implements Plugin {
                 void apply(t) {}
             }
-            
+
             apply plugin: MyPlugin
         """
 
@@ -115,7 +116,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
             }
             class Plugin2 implements Plugin {
                 void apply(project) {
-                    
+
                 }
             }
 
@@ -140,6 +141,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         p2.details.pluginClass == "Plugin2"
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "associates target to correct build"() {
         when:
         settingsFile << """
@@ -151,7 +153,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         file("a/build.gradle") << """
             class PluginA implements Plugin {
                 void apply(project) {
-                    
+
                 }
             }
             apply plugin: PluginA
@@ -159,7 +161,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         file("b/build.gradle") << """
             class PluginB implements Plugin {
                 void apply(project) {
-                    
+
                 }
             }
             apply plugin: PluginB
@@ -167,7 +169,7 @@ class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class PluginRoot implements Plugin {
                 void apply(project) {
-                    
+
                 }
             }
 

@@ -56,7 +56,7 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
     def originReader = Mock(OriginReader)
     def originWriter = Mock(OriginWriter)
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "load invokes unpacker and fingerprints trees"() {
         def outputFile = temporaryFolder.file("output.txt")

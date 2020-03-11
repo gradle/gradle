@@ -21,7 +21,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class NonReservedFileFilterTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "does not accept reserved files"() {
         given:
