@@ -170,7 +170,8 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             FileHasher hasher,
             FileSystem fileSystem,
             Stat stat,
-            StringInterner stringInterner
+            StringInterner stringInterner,
+            ListenerManager listenerManager
         ) {
             DefaultVirtualFileSystem delegate = new DefaultVirtualFileSystem(
                 hasher,
@@ -179,13 +180,20 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
                 DirectoryScanner.getDefaultExcludes()
             );
-            return determineWatcherRegistryFactory(OperatingSystem.current())
+            WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,
                     path -> !additiveCacheLocations.isInsideAdditiveCache(path)
                 ))
-            .orElse(new NonWatchingVirtualFileSystem(delegate));
+                .orElse(new NonWatchingVirtualFileSystem(delegate));
+            listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
+                watchingAwareVirtualFileSystem,
+                startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
+                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
+                startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
+            ));
+            return watchingAwareVirtualFileSystem;
         }
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
@@ -197,15 +205,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 return Optional.of(new LinuxFileWatcherRegistry.Factory());
             }
             return Optional.empty();
-        }
-
-        void configure(WatchingAwareVirtualFileSystem virtualFileSystem, ListenerManager listenerManager) {
-            listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
-                virtualFileSystem,
-                startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
-                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
-                startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
-            ));
         }
 
         GenericFileTreeSnapshotter createGenericFileTreeSnapshotter(FileHasher hasher, StringInterner stringInterner) {
