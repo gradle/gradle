@@ -17,5 +17,4 @@
 /**
  * Base plugins for language support.
  */
-@org.gradle.api.Incubating
 package org.gradle.language.base.plugins;
