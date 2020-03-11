@@ -32,7 +32,7 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
 
         then:
         instantExecution.assertStateStored()
-        output.contains("Gradle runtime: support for included builds is not yet implemented with instant execution.")
+        expectInstantExecutionProblems("- Gradle runtime: support for included builds is not yet implemented with instant execution.")
 
         when:
         withFailOnProblems()
