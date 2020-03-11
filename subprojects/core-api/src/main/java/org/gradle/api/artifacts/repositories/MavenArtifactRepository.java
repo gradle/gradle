@@ -16,6 +16,7 @@
 package org.gradle.api.artifacts.repositories;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 
 import java.net.URI;
 import java.util.Set;
@@ -104,6 +105,14 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
     void metadataSources(Action<? super MetadataSources> configureAction);
 
     /**
+     * Returns the current metadata sources configuration for the repository.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    MetadataSources getMetadataSources();
+
+    /**
      * Allows configuring the sources of metadata for a specific repository.
      *
      * @since 4.5
@@ -136,6 +145,38 @@ public interface MavenArtifactRepository extends ArtifactRepository, UrlArtifact
          *
          */
         void ignoreGradleMetadataRedirection();
+
+        /**
+         * Indicates if this repository contains Gradle module metadata.
+         *
+         * @since 6.4
+         */
+        @Incubating
+        boolean isGradleMetadataEnabled();
+
+        /**
+         * Indicates if this repository contains Maven POM files.
+         *
+         * @since 6.4
+         */
+        @Incubating
+        boolean isMavenPomEnabled();
+
+        /**
+         * Indicates if this repository only contains artifacts.
+         *
+         * @since 6.4
+         */
+        @Incubating
+        boolean isArtifactEnabled();
+
+        /**
+         * Indicates if this repository ignores Gradle module metadata redirection markers.
+         *
+         * @since 6.4
+         */
+        @Incubating
+        boolean isIgnoreGradleMetadataRedirectionEnabled();
     }
 
     /**
