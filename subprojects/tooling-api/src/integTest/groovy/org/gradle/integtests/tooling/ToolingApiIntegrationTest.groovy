@@ -34,6 +34,10 @@ import org.gradle.util.GradleVersion
 import org.junit.Assume
 import spock.lang.Issue
 
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+
 class ToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     final ToolingApi toolingApi = new ToolingApi(distribution, temporaryFolder)
@@ -326,6 +330,13 @@ allprojects {
         }
 
         handle.waitForFinish()
+
+        // https://github.com/gradle/gradle-private/issues/3005
+        println "Waiting for daemon exit, start: ${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)}"
+
+        Thread.sleep(stopTimeoutMs)
+
+        println "Waiting for daemon exit, end: ${ZonedDateTime.now(ZoneOffset.UTC).format(DateTimeFormatter.ISO_INSTANT)}"
 
         where:
         withColor << [true, false]
