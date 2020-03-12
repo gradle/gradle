@@ -75,7 +75,7 @@ class RenderSvg extends DefaultTask{
     }
 }
 
-apply plugin:MyImageRenderingPlugin
+apply plugin: MyImageRenderingPlugin
 
 model {
     components {

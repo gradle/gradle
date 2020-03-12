@@ -1,1 +1,20 @@
+// tag::use-plugin[]
+pluginManagement {
+    repositories {
+        maven {
+// end::use-plugin[]
+            def repoLocation = "../$producerName/build/repo"
+// tag::use-plugin[]
+            url = uri(repoLocation)
+        }
+    }
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.namespace == 'org.samples') {
+                useModule("org.gradle:customPlugin:${requested.version}")
+            }
+        }
+    }
+}
+// end::use-plugin[]
 rootProject.name = 'consumer'

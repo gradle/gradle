@@ -89,8 +89,8 @@ Now we will move our task to a standalone project, so we can publish it and shar
 
 .A build for a custom task
 ====
-include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
+include::sample[dir="snippets/customExternalTask/kotlin/task",files="build.gradle.kts[tags=external-task-build]"]
 ====
 
 
@@ -101,7 +101,7 @@ We just follow the convention for where the source for the task class should go.
 [source.multi-language-sample,groovy]
 .src/main/groovy/org/gradle/GreetingTask.groovy
 ----
-include::{samplesPath}/customPlugin/groovy/plugin/src/main/groovy/org/gradle/GreetingTask.groovy[]
+include::{samplesPath}/customExternalTask/groovy/task/src/main/groovy/org/gradle/GreetingTask.groovy[]
 ----
 
 [[sec:using_your_task_class_in_another_project]]
@@ -111,8 +111,8 @@ To use a task class in a build script, you need to add the class to the build sc
 
 .Using a custom task in another project
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="build.gradle[tags=use-task]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
+include::sample[dir="snippets/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
+include::sample[dir="snippets/customExternalTask/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
 ====
 
 [[sec:writing_tests_for_your_task_class]]
@@ -125,7 +125,7 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingTaskTest.groovy
 ----
-include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
+include::{samplesPath}/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
 ----
 
 [[incremental_tasks]]
