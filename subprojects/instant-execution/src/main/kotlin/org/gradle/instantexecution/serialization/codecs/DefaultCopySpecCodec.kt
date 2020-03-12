@@ -52,8 +52,8 @@ class DefaultCopySpecCodec(
             writeBoolean(value.includeEmptyDirs)
             writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)
-            writeNullableInt(value.dirMode)
-            writeNullableInt(value.fileMode)
+            writeNullableSmallInt(value.dirMode)
+            writeNullableSmallInt(value.fileMode)
             writeCollection(value.children)
         }
     }
@@ -67,8 +67,8 @@ class DefaultCopySpecCodec(
             val includeEmptyDirs = readBoolean()
             val isCaseSensitive = readBoolean()
             val filteringCharset = readString()
-            val dirMode = readNullableInt()
-            val fileMode = readNullableInt()
+            val dirMode = readNullableSmallInt()
+            val fileMode = readNullableSmallInt()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
             copySpec.duplicatesStrategy = duplicatesStrategy

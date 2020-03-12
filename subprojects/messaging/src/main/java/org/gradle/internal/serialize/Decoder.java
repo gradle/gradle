@@ -62,10 +62,10 @@ public interface Decoder {
     /**
      * Reads a nullable signed 32 bit int value.
      *
-     * @see #readInt()
+     * @see #readSmallInt()
      */
     @Nullable
-    Integer readNullableInt() throws EOFException, IOException;
+    Integer readNullableSmallInt() throws EOFException, IOException;
 
     /**
      * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.

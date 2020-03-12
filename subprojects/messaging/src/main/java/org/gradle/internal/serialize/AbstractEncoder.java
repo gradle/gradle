@@ -58,12 +58,12 @@ public abstract class AbstractEncoder implements Encoder {
     }
 
     @Override
-    public void writeNullableInt(@Nullable Integer value) throws IOException {
+    public void writeNullableSmallInt(@Nullable Integer value) throws IOException {
         if (value == null) {
             writeBoolean(false);
         } else {
             writeBoolean(true);
-            writeInt(value);
+            writeSmallInt(value);
         }
     }
 

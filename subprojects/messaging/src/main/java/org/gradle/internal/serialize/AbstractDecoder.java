@@ -57,9 +57,9 @@ public abstract class AbstractDecoder implements Decoder {
 
     @Nullable
     @Override
-    public Integer readNullableInt() throws IOException {
+    public Integer readNullableSmallInt() throws IOException {
         if (readBoolean()) {
-            return readInt();
+            return readSmallInt();
         } else {
             return null;
         }
