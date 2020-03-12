@@ -126,8 +126,7 @@ compileJava.options.debug = false
     }
 
     // JavaFx was removed in JDK 10
-    // Only oracle distribution contains JavaFx
-    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER, TestPrecondition.NOT_JDK_IBM])
+    @Requires([TestPrecondition.JDK8_OR_LATER, TestPrecondition.JDK9_OR_EARLIER])
     def "compileJavaFx8Code"() {
         given:
         file("src/main/java/compile/test/FxApp.java") << '''
