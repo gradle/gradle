@@ -154,4 +154,41 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
         then:
         failure.assertThatDescription(startsWith("Plugin [id: '$HELLO_WORLD_PLUGIN_ID', version: '$HELLO_WORLD_PLUGIN_VERSION'] was not found"))
     }
+
+    def "can resolve plugin from portal with repository filters present"() {
+        given:
+        def helloWorldGroup = 'org.gradle'
+        def helloWorldName = 'gradle-hello-world-plugin'
+
+        when:
+        buildScript """
+            buildscript {
+                repositories {
+                    exclusiveContent {
+                      forRepository {
+                        maven {
+                          url = "https://storage.googleapis.com/r8-releases/raw"
+                          metadataSources {
+                            artifact()
+                          }
+                        }
+                      }
+                      filter {
+                        includeModule("com.android.tools", "r8")
+                      }
+                    }
+                }
+            }
+
+            plugins {
+                id "$HELLO_WORLD_PLUGIN_ID" version "$HELLO_WORLD_PLUGIN_VERSION"
+            }
+        """
+
+        then:
+        succeeds("helloWorld")
+
+        and:
+        output.contains("Hello World!")
+    }
 }

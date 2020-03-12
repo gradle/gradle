@@ -86,6 +86,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
 
+        if (!requests.isEmpty()) {
+            addPluginArtifactRepositories(scriptHandler.getRepositories());
+        }
         List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
             @Override
             public Result transform(PluginRequestInternal request) {
@@ -101,9 +104,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
-
-            addPluginArtifactRepositories(repositories);
-
             final Set<String> repoUrls = newLinkedHashSet();
 
             for (final Result result : results) {
