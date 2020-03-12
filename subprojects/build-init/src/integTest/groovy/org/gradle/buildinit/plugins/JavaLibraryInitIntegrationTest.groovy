@@ -63,6 +63,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--dsl', scriptDsl.id)
@@ -160,6 +161,7 @@ class JavaLibraryInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "creates sample source with package and spock and #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-library', '--test-framework', 'spock', '--package', 'my.lib', '--dsl', scriptDsl.id)

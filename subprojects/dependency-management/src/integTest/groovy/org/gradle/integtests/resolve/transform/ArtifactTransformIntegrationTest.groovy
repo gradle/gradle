@@ -1512,6 +1512,7 @@ Found the following transforms:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when null is registered via outputs.#method"() {
         given:
         buildFile << """
@@ -1734,6 +1735,7 @@ Found the following transforms:
         method << ["file", "dir"]
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform returns a file that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1766,6 +1768,7 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform registers an output that is not part of the input artifact or in the output directory"() {
         given:
         buildFile << """
@@ -1806,6 +1809,7 @@ Found the following transforms:
         failure.assertHasCause("Transform output ${testDirectory.file('other.jar')} must be a part of the input artifact or refer to a relative path.")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "user gets a reasonable error message when transform cannot be instantiated"() {
         given:
         buildFile << """
@@ -1963,6 +1967,10 @@ Found the following transforms:
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(
+        because = "broken file collection",
+        iterationMatchers = ".*immediate transform"
+    )
     def "provides useful error message when parameter value cannot be isolated for #type transform"() {
         mavenRepo.module("test", "a", "1.3").publish()
         settingsFile << "include 'lib'"

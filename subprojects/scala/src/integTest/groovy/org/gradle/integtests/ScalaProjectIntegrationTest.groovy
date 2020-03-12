@@ -16,6 +16,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.junit.Rule
 
@@ -23,6 +24,7 @@ class ScalaProjectIntegrationTest extends AbstractIntegrationSpec {
     @Rule
     ZincScalaCompileFixture zincScalaCompileFixture = new ZincScalaCompileFixture(executer, testDirectoryProvider)
 
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "handles java source only"() {
         file("src/main/java/somepackage/SomeClass.java") << "public class SomeClass { }"
         buildFile << """
