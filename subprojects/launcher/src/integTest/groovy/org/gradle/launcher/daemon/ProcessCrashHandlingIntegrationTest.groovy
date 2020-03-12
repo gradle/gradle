@@ -191,7 +191,7 @@ class ProcessCrashHandlingIntegrationTest extends DaemonIntegrationSpec {
 
         when:
         executer.withStackTraceChecksDisabled() // daemon log may contain stack traces
-        executer.noCrashDaemonChecks()
+        executer.noDaemonCrashChecks()
         def block = server.expectAndBlock("block")
         def build = executer.withTasks("block").start()
         block.waitForAllPendingCalls()

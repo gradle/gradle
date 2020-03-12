@@ -181,7 +181,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
-    private boolean checkCrashDaemons = true;
+    private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
     private DurationMeasurement durationMeasurement;
@@ -857,7 +857,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             }
         }
 
-        if (checkCrashDaemons) {
+        if (checkDaemonCrash) {
             analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
         }
     }
@@ -1300,8 +1300,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
-    public GradleExecuter noCrashDaemonChecks() {
-        checkCrashDaemons = false;
+    public GradleExecuter noDaemonCrashChecks() {
+        checkDaemonCrash = false;
         return this;
     }
 
