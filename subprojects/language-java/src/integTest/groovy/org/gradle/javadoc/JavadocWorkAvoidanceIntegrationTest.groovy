@@ -170,7 +170,6 @@ class JavadocWorkAvoidanceIntegrationTest extends AbstractIntegrationSpec {
             ":a:compileJava", ":a:processResources", ":a:classes", ":a:javadoc")
     }
 
-    @ToBeFixedForInstantExecution
     def "duplicates in an upstream jar are not ignored"() {
         given:
         file("a/build.gradle") << '''
