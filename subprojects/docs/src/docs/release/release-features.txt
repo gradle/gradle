@@ -1,2 +1,0 @@
- - Java 14 support
- - Improved error messages for unexpected failures
