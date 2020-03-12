@@ -256,7 +256,7 @@ empty=
         then:
         def ex = thrown(MissingLockStateException)
         1 * context.identityPath('conf') >> Path.path(':conf')
-        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have a lockfile.'
+        ex.message == 'Locking strict mode: Configuration \':conf\' is locked but does not have lock state.'
 
         where:
         unique << [true, false]

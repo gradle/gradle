@@ -24,7 +24,7 @@ enableFeaturePreview('GROOVY_COMPILATION_AVOIDANCE')
 """
     }
 
-    static void enableDependencyLockingImprovedFormat(File settings) {
+    static void enableOneLockfilePerProject(File settings) {
         settings << """
 enableFeaturePreview('ONE_LOCKFILE_PER_PROJECT')
 """

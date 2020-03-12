@@ -468,7 +468,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLegacyLockfile('lockedConf', ['org:bar:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -517,7 +517,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLegacyLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'

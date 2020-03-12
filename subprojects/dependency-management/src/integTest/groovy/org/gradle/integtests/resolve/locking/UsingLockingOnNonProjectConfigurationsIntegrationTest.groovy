@@ -17,20 +17,24 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+import spock.lang.Unroll
 
 class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDependencyResolutionTest {
 
     def pluginBuilder = new PluginBuilder(file("plugin"))
+    def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
 
     @Rule
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     @ToBeFixedForInstantExecution(because = ":buildEnvironment")
-    def 'locks build script classpath configuration'() {
+    @Unroll
+    def 'locks build script classpath configuration (unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
@@ -38,6 +42,9 @@ class UsingLockingOnNonProjectConfigurationsIntegrationTest extends AbstractDepe
         settingsFile << """
 rootProject.name = 'foo'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 buildscript {
     repositories {
@@ -53,8 +60,7 @@ buildscript {
     }
 }
 """
-        def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+        lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0'], unique)
 
         when:
         succeeds 'buildEnvironment'
@@ -62,9 +68,13 @@ buildscript {
         then:
         outputContains('org.foo:foo-plugin:[1.0,2.0) -> 1.0')
         outputDoesNotContain('org.foo:foo-plugin:1.1')
+
+        where:
+        unique << [true, false]
     }
 
-    def 'strict locks on buildscript classpath does not mean strict locks on project'() {
+    @Unroll
+    def 'strict locks on buildscript classpath does not mean strict locks on project (unique: #unique)'() {
         given:
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
@@ -72,6 +82,9 @@ buildscript {
         settingsFile << """
 rootProject.name = 'foo'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 buildscript {
     repositories {
@@ -112,21 +125,27 @@ task resolve {
     }
 }
 """
-        def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+        lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0'], unique)
 
         when:
         succeeds 'resolve'
 
         then:
         outputContains('foo-plugin-1.0.jar')
+
+        where:
+        unique << [true, false]
     }
 
-    def 'strict lock on build script classpath configuration causes build to fail when no lockfile present'() {
+    @Unroll
+    def 'strict lock on build script classpath configuration causes build to fail when no lockfile present (unique: #unique)'() {
         given:
         settingsFile << """
 rootProject.name = 'foo'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 buildscript {
     repositories {
@@ -148,10 +167,14 @@ buildscript {
 
         then:
         failureHasCause("Locking strict mode:")
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
-    def 'locks build script classpath combined with plugins'() {
+    @Unroll
+    def 'locks build script classpath combined with plugins (unique: #unique)'() {
         given:
         addPlugin()
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -167,6 +190,9 @@ pluginManagement {
 }
 rootProject.name = 'foo-plugin'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 buildscript {
     repositories {
@@ -186,8 +212,7 @@ plugins {
   id 'bar.plugin' version '1.0'
 }
 """
-        def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+        lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'], unique)
 
         when:
         succeeds 'buildEnvironment'
@@ -195,10 +220,14 @@ plugins {
         then:
         outputContains('org.foo:foo-plugin:[1.0,2.0) -> 1.0')
         outputDoesNotContain('org.foo:foo-plugin:1.1')
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
-    def 'creates lock file for build script classpath'() {
+    @Unroll
+    def 'creates lock file for build script classpath (unique: #unique)'() {
         given:
         addPlugin()
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
@@ -214,6 +243,9 @@ pluginManagement {
 }
 rootProject.name = 'foo-plugin'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 buildscript {
     repositories {
@@ -238,16 +270,22 @@ plugins {
         succeeds 'buildEnvironment', '--write-locks'
 
         then:
-        def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.verifyLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'])
+        lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1', 'org.bar:bar-plugin:1.0', 'bar.plugin:bar.plugin.gradle.plugin:1.0'], unique)
+
+        where:
+        unique << [true, false]
     }
 
-    def 'fails to resolve if lock state present but no dependencies remain'() {
+    @Unroll
+    def 'fails to resolve if lock state present but no dependencies remain (unique: #unique)'() {
         given:
 
         settingsFile << """
 rootProject.name = 'foo'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
 
         buildFile << """
 buildscript {
@@ -256,20 +294,22 @@ buildscript {
     }
 }
 """
-        def lockFile = new LockfileFixture(testDirectory: testDirectory)
-        lockFile.createLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.0'])
+        lockfileFixture.createBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.0'], unique)
 
         when:
         fails 'buildEnvironment'
 
         then:
         failureCauseContains('Did not resolve \'org.foo:foo-plugin:1.0\' which is part of the dependency lock state')
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
-    def 'same name buildscript and project configurations result in different lock files'() {
+    @Unroll
+    def 'same name buildscript and project configurations result in different lock files (unique: #unique)'() {
         given:
-        def lockFile = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org.foo', 'foo-plugin', '1.0').publish()
         mavenRepo.module('org.foo', 'foo-plugin', '1.1').publish()
         mavenRepo.module('org.foo', 'foo', '1.0').publish()
@@ -278,6 +318,9 @@ buildscript {
         settingsFile << """
 rootProject.name = 'foo'
 """
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 buildscript {
     repositories {
@@ -310,8 +353,11 @@ dependencies {
         succeeds 'buildEnvironment', 'dependencies', '--write-locks'
 
         then:
-        lockFile.verifyLegacyLockfile('buildscript-classpath', ['org.foo:foo-plugin:1.1'])
-        lockFile.verifyLegacyLockfile('classpath', ['org.foo:foo:1.1'])
+        lockfileFixture.verifyBuildscriptLockfile('classpath', ['org.foo:foo-plugin:1.1'], unique)
+        lockfileFixture.verifyLockfile('classpath', ['org.foo:foo:1.1'], unique)
+
+        where:
+        unique << [true, false]
     }
 
     def addPlugin() {
