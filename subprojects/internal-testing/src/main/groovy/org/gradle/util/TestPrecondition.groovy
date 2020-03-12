@@ -23,12 +23,6 @@ import javax.tools.ToolProvider
 
 enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NULL_REQUIREMENT({ true }),
-    JNA({
-        !UNKNOWN_OS.fulfilled
-    }),
-    NO_JNA({
-        UNKNOWN_OS.fulfilled
-    }),
     SYMLINKS({
         MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
@@ -118,9 +112,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK9_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_1_9
     }),
-    JDK10_OR_EARLIER({
-        JavaVersion.current() <= JavaVersion.VERSION_1_10
-    }),
     JDK11_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_11
     }),
@@ -132,9 +123,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK13_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_13
-    }),
-    JDK7_POSIX({
-        NOT_WINDOWS.fulfilled
     }),
     NOT_JDK_IBM({
         !JDK_IBM.fulfilled
