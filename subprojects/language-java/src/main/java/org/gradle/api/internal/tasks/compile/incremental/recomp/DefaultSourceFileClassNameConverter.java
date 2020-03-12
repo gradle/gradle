@@ -23,7 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class DefaultSourceFileClassNameConverter {
+public class DefaultSourceFileClassNameConverter implements SourceFileClassNameConverter {
     private final Multimap<String, String> sourceClassesMapping;
     private final Map<String, String> classSourceMapping;
 
@@ -36,15 +36,16 @@ public class DefaultSourceFileClassNameConverter {
         return sourceClassesMapping.entries().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
     }
 
+    @Override
     public Collection<String> getClassNames(String sourceFileRelativePath) {
         return sourceClassesMapping.get(sourceFileRelativePath);
     }
 
-    boolean isEmpty() {
+    public boolean isEmpty() {
         return classSourceMapping.isEmpty();
     }
 
-    Optional<String> getRelativeSourcePath(String fqcn) {
+    public Optional<String> getRelativeSourcePath(String fqcn) {
         return Optional.ofNullable(classSourceMapping.get(fqcn));
     }
 }

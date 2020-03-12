@@ -30,6 +30,8 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
+import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
 import org.gradle.api.internal.tasks.compile.CompilerForkUtils;
 import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpec;
@@ -37,10 +39,12 @@ import org.gradle.api.internal.tasks.compile.DefaultJavaCompileSpecFactory;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFileClassNameConverter;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.FileNameDerivingClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
@@ -182,8 +186,17 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private void performIncrementalCompilation(InputChanges inputs, DefaultJavaCompileSpec spec) {
+        boolean isUsingCliCompiler = isUsingCliCompiler(spec);
         File sourceClassesMappingFile = getSourceClassesMappingFile();
-        Multimap<String, String> oldMappings = readSourceClassesMappingFile(sourceClassesMappingFile);
+        Multimap<String, String> oldMappings;
+        SourceFileClassNameConverter sourceFileClassNameConverter;
+        if (isUsingCliCompiler) {
+            oldMappings = null;
+            sourceFileClassNameConverter = new FileNameDerivingClassNameConverter();
+        } else {
+            oldMappings = readSourceClassesMappingFile(sourceClassesMappingFile);
+            sourceFileClassNameConverter = new DefaultSourceFileClassNameConverter(oldMappings);
+        }
         sourceClassesMappingFile.delete();
         spec.getCompileOptions().setIncrementalCompilationMappingFile(sourceClassesMappingFile);
         Compiler<JavaCompileSpec> compiler = createCompiler(spec);
@@ -198,14 +211,18 @@ public class JavaCompile extends AbstractCompile {
                 sources,
                 inputs.isIncremental(),
                 () -> inputs.getFileChanges(getStableSources()).iterator(),
-                new DefaultSourceFileClassNameConverter(oldMappings))
+                sourceFileClassNameConverter)
         );
         WorkResult workResult = performCompilation(spec, compiler);
-        if (workResult instanceof IncrementalCompilationResult) {
+        if (workResult instanceof IncrementalCompilationResult && !isUsingCliCompiler) {
             // The compilation will generate the new mapping file
             // Only merge old mappings into new mapping on incremental recompilation
             mergeIncrementalMappingsIntoOldMappings(sourceClassesMappingFile, getStableSources(), inputs, oldMappings);
         }
+    }
+
+    private boolean isUsingCliCompiler(DefaultJavaCompileSpec spec) {
+        return CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass());
     }
 
     private void performFullCompilation(DefaultJavaCompileSpec spec) {

@@ -16,14 +16,15 @@
 
 package org.gradle.java.compile.incremental
 
-
+import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
 
-class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncrementalCompilationIntegrationTest {
+abstract class BaseJavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest {
     CompiledLanguage language = CompiledLanguage.JAVA
 
     void recompiledWithFailure(String expectedFailure, String... recompiledClasses) {
@@ -56,6 +57,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         'annotated types' | 'RUNTIME' | ['SomeAnnotation', 'A']
     }
 
+    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "deletes headers when source file is deleted"() {
         given:
         def sourceFile = file("src/main/java/my/org/Foo.java")
@@ -103,6 +105,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledClasses 'B', 'A'
     }
 
+    @NotYetImplemented
     //  Can re-enable with compiler plugins. See gradle/gradle#1474
     def "changing an unused non-private constant incurs partial rebuild"() {
         source "class A { int foo() { return 2; } }", "class B { final static int x = 1;}"
@@ -116,120 +119,74 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledClasses 'B'
     }
 
-    @Requires(TestPrecondition.JDK9_OR_LATER)
-    def "recompiles when module info changes"() {
+    def "reports source type that does not support detection of source root"() {
         given:
-        source("""
-            import java.util.logging.Logger;
-            class Foo {
-                Logger logger;
-            }
-        """)
-        def moduleInfo = file("src/main/${language.name}/module-info.${language.name}")
-        moduleInfo.text = """
-            module foo {
-                requires java.logging;
-            }
-        """
+        buildFile << "${language.compileTaskName}.source([file('extra'), file('other'), file('text-file.txt')])"
 
+        source("class A extends B {}")
+        file("extra/B.${language.name}") << "class B {}"
+        file("extra/C.${language.name}") << "class C {}"
+        def textFile = file('text-file.txt')
+        textFile.text = "text file as root"
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("extra/B.${language.name}").text = "class B { String change; }"
+        executer.withArgument "--info"
+        run language.compileTaskName
+
+        then:
+        outputs.recompiledClasses("A", "B", "C")
+        output.contains("Cannot infer source root(s) for source `file '${textFile.absolutePath}'`. Supported types are `File` (directories only), `DirectoryTree` and `SourceDirectorySet`.")
+        output.contains("Full recompilation is required because the source roots could not be inferred.")
+    }
+
+    def "does not recompile when a resource changes"() {
+        given:
+        buildFile << """
+            ${language.compileTaskName}.source 'src/main/resources'
+        """
+        source("class A {}")
+        source("class B {}")
+        def resource = file("src/main/resources/foo.txt")
+        resource.text = 'foo'
+
+        outputs.snapshot { succeeds language.compileTaskName }
+
+        when:
+        resource.text = 'bar'
+
+        then:
         succeeds language.compileTaskName
-
-        when:
-        moduleInfo.text = """
-            module foo {
-            }
-        """
-
-        then:
-        fails language.compileTaskName
-        result.assertHasErrorOutput("package java.util.logging is not visible")
+        outputs.noneRecompiled()
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/7363")
-    def "can recompile classes which depend on a top-level class with a different name than the file"() {
-        file("src/main/java/foo/Strings.java") << """
-            package foo;
-            public class Strings {
-
-            }
-
-            class StringUtils {
-                static void foo() {}
-            }
-
-        """
-
-        file("src/main/java/foo/Consumer.java") << """
-            package foo;
-            public class Consumer {
-                void consume() { StringUtils.foo(); }
-            }
-        """
-
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/8590")
+    def "adding a class with higher resolution priority should trigger recompilation"() {
+        file("src/main/java/foo/A.java") << """
+package foo;
+import bar.*;
+public class A {
+  Other getOther() { return null; }
+}
+"""
+        file("src/main/java/bar/Other.java") << """
+package bar;
+public class Other {}
+"""
         outputs.snapshot { run language.compileTaskName }
 
         when:
-        file("src/main/java/foo/Strings.java").text = """
-            package foo;
-            public class Strings {
-
-            }
-
-            class StringUtils {
-                static void foo() {}
-                static void bar() {}
-            }
-
+        file("src/main/java/foo/Other.java") << """
+package foo;
+public class Other {}
         """
-        run language.compileTaskName
 
         then:
-        outputs.recompiledFqn("foo.StringUtils", "foo.Strings", "foo.Consumer")
-    }
-
-    @Issue("https://github.com/gradle/gradle/issues/7363")
-    def "can recompile classes which depend on a top-level class with a different name than the file (scenario 2)"() {
-        file("src/main/java/foo/Strings.java") << """
-            package foo;
-            public class Strings {
-
-            }
-
-            class StringUtils {
-                static void foo() { Constants.getConstant(); }
-            }
-
-        """
-
-        file("src/main/java/foo/Constants.java") << """
-            package foo;
-            class Constants {
-                static String getConstant() { return " "; }
-            }
-
-        """
-
-        file("src/main/java/foo/Main.java") << """
-            package foo;
-            public class Main {
-                void consume() { StringUtils.foo(); }
-            }
-        """
-
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        file("src/main/java/foo/Constants.java").text = """
-            package foo;
-            class Constants {
-                static String getConstant() { return "two spaces"; }
-            }
-
-        """
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledFqn("foo.StringUtils", "foo.Strings", "foo.Constants")
+        succeeds language.compileTaskName
+        outputs.recompiledFqn("foo.Other") // should be foo.A and foo.Other
     }
 
 }
