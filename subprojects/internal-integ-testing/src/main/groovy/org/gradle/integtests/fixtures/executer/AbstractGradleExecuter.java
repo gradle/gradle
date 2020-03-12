@@ -76,7 +76,6 @@ import java.util.Map;
 import java.util.Set;
 
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
@@ -848,12 +847,14 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private void cleanupIsolatedDaemons() {
-        List<DaemonLogsAnalyzer> analyzers = isolatedDaemonBaseDirs.stream().map(it -> new DaemonLogsAnalyzer(it, gradleVersion.getVersion())).collect(toList());
-        for (DaemonLogsAnalyzer analyzer : analyzers) {
+        List<DaemonLogsAnalyzer> analyzers = new ArrayList<>();
+        for (File dir : isolatedDaemonBaseDirs) {
             try {
+                DaemonLogsAnalyzer analyzer = new DaemonLogsAnalyzer(dir, gradleVersion.getVersion());
+                analyzers.add(analyzer);
                 analyzer.killAll();
             } catch (Exception e) {
-                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + analyzer.getDaemonBaseDir(), e);
+                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + dir, e);
             }
         }
 
