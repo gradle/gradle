@@ -26,8 +26,7 @@ class InstantExecutionGradleExecuter extends DaemonGradleExecuter {
     static final List<String> INSTANT_EXECUTION_ARGS = [
         "-D${SystemProperties.isEnabled}=true",
         "-D${SystemProperties.isQuiet}=true",
-        "-D${SystemProperties.maxProblems}=0",
-        "-D${SystemProperties.failOnProblems}=true"
+        "-D${SystemProperties.maxProblems}=0"
     ].collect { it.toString() }
 
     InstantExecutionGradleExecuter(

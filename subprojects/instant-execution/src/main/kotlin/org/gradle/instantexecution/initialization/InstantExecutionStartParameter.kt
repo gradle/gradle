@@ -44,7 +44,7 @@ class InstantExecutionStartParameter(
     }
 
     val failOnProblems: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.failOnProblems)
+        systemPropertyFlag(SystemProperties.failOnProblems, true)
     }
 
     val recreateCache: Boolean
@@ -97,8 +97,8 @@ class InstantExecutionStartParameter(
             .takeIf { !it.startsWith('.') }
 
     private
-    fun systemPropertyFlag(propertyName: String): Boolean =
-        systemProperty(propertyName)?.toBoolean() ?: false
+    fun systemPropertyFlag(propertyName: String, defaultValue: Boolean = false): Boolean =
+        systemProperty(propertyName)?.toBoolean() ?: defaultValue
 
     private
     fun systemProperty(propertyName: String) =
