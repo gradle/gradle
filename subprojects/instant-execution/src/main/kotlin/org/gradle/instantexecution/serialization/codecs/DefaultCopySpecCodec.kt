@@ -29,8 +29,10 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.internal.reflect.Instantiator
 
 
@@ -46,12 +48,12 @@ class DefaultCopySpecCodec(
             write(value.destPath)
             write(value.sourceFiles)
             write(value.patterns)
-            writeBoolean(value.isCaseSensitive)
+            writeEnum(value.duplicatesStrategy)
             writeBoolean(value.includeEmptyDirs)
+            writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)
             writeNullableInt(value.dirMode)
             writeNullableInt(value.fileMode)
-            write(value.duplicatesStrategy)
             writeCollection(value.children)
         }
     }
@@ -61,16 +63,17 @@ class DefaultCopySpecCodec(
             val destPath = read() as String?
             val sourceFiles = read() as FileCollection
             val patterns = read() as PatternSet
-            val isCaseSensitive = readBoolean()
+            val duplicatesStrategy = readEnum<DuplicatesStrategy>()
             val includeEmptyDirs = readBoolean()
+            val isCaseSensitive = readBoolean()
             val filteringCharset = readString()
             val dirMode = readNullableInt()
             val fileMode = readNullableInt()
-            val duplicatesStrategy = read() as DuplicatesStrategy
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
-            copySpec.isCaseSensitive = isCaseSensitive
+            copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
+            copySpec.isCaseSensitive = isCaseSensitive
             copySpec.filteringCharset = filteringCharset
             if (dirMode != null) {
                 copySpec.dirMode = dirMode
@@ -78,7 +81,6 @@ class DefaultCopySpecCodec(
             if (fileMode != null) {
                 copySpec.fileMode = fileMode
             }
-            copySpec.duplicatesStrategy = duplicatesStrategy
             isolate.identities.putInstance(id, copySpec)
             copySpec
         }
