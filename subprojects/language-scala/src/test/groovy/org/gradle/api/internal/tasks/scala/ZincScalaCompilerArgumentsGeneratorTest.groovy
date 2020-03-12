@@ -107,4 +107,21 @@ class ZincScalaCompilerArgumentsGeneratorTest extends Specification {
         args.contains("-other")
         args.contains("value")
     }
+
+    def "adds compiler plugins"() {
+        def relFile = new File("path/to/plugin1")
+        def absFile = new File("/abspath/to/plugin2")
+
+        spec.scalaCompilerPlugins = [
+            relFile,
+            absFile]
+
+        when:
+        def args = generator.generate(spec)
+
+        then:
+        args.contains("-Xplugin:" + relFile.getPath())
+        args.contains("-Xplugin:" + absFile.getPath())
+
+    }
 }
