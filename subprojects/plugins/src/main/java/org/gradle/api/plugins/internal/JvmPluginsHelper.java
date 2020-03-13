@@ -37,6 +37,8 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 import org.gradle.api.internal.plugins.DslObject;
@@ -44,6 +46,7 @@ import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
@@ -64,6 +67,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * Helpers for Jvm plugins. They are in a separate class so that they don't leak
@@ -236,6 +242,30 @@ public class JvmPluginsHelper {
             return (AdhocComponentWithVariants) component;
         }
         return null;
+    }
+
+    public static void configureAttributesForCompileClasspath(ConfigurationInternal configuration, JavaPluginConvention javaPluginConvention, ObjectFactory objectFactory, boolean javaClasspathPackaging) {
+        configuration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
+        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
+        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
+        configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+        configuration.beforeLocking(configureDefaultTargetPlatform(javaPluginConvention));
+    }
+
+    public static void configureAttributesForRuntimeClasspath(ConfigurationInternal configuration, JavaPluginConvention javaPluginConvention, ObjectFactory objectFactory) {
+        configuration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
+        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+        configuration.beforeLocking(configureDefaultTargetPlatform(javaPluginConvention));
+    }
+
+    public static Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {
+        return conf -> {
+            if (!convention.getAutoTargetJvmDisabled()) {
+                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
+            }
+        };
     }
 
     /**
