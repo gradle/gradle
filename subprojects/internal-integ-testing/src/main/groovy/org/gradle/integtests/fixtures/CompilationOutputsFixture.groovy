@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import groovy.io.FileType
 import org.gradle.internal.FileUtils
+import org.gradle.util.TextUtil
 
 import java.util.function.Predicate
 
@@ -140,7 +141,7 @@ class CompilationOutputsFixture {
                 if (criteria.test(it)) {
                     if (qualified) {
                         String relative = dir.toPath().relativize(it.toPath()).toString()
-                        changed << removeExtension(relative).replace('/', '.')
+                        changed << TextUtil.normaliseFileSeparators(removeExtension(relative)).replace('/', '.')
                     } else {
                         changed << removeExtension(it.name)
                     }
