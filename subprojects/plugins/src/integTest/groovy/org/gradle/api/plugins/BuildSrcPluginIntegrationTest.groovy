@@ -128,7 +128,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("Could not compile build file '$buildFile.canonicalPath'.")
     }
 
-    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/12437")
     def "build uses jar from buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         buildFile << """
@@ -142,7 +142,7 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         outputContains("From MyPlugin")
     }
 
-    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11837")
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/12437")
     def "build uses jars from multi-project buildSrc"() {
         writeBuildSrcPlugin("buildSrc", "MyPlugin")
         writeBuildSrcPlugin("buildSrc/subproject", "MyPluginSub")

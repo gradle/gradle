@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 import spock.lang.IgnoreIf
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
@@ -28,6 +30,9 @@ import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.F
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def setup() {
         // Make the first build in each test drop the VFS state
@@ -212,6 +217,119 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    def "detects input file change just before the task is executed"() {
+        executer.requireDaemon()
+        server.start()
+
+        def inputFile = file("input.txt")
+        buildFile << """
+            def inputFile = file("input.txt")
+            def outputFile = file("build/output.txt")
+
+            task waitForUserChanges {
+                doLast {
+                    ${server.callFromBuild("userInput")}
+                }
+            }
+
+            task consumer {
+                inputs.file(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = inputFile.text
+                }
+                dependsOn(waitForUserChanges)
+            }
+        """
+
+        when:
+        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+            inputFile.text = "initial"
+            waitForChangesToBePickedUp()
+        }
+        then:
+        executedAndNotSkipped(":consumer")
+        retainedFilesInCurrentBuild == 2
+
+        when:
+        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+            inputFile.text = "changed"
+            waitForChangesToBePickedUp()
+        }
+        then:
+        executedAndNotSkipped(":consumer")
+        receivedFileSystemEventsInCurrentBuild >= 1
+        retainedFilesInCurrentBuild == 2
+    }
+
+    def "detects input file change after the task has been executed"() {
+        executer.requireDaemon()
+        server.start()
+
+        def inputFile = file("input.txt")
+        def outputFile = file("build/output.txt")
+        buildFile << """
+            def inputFile = file("input.txt")
+            def outputFile = file("build/output.txt")
+
+            task waitForUserChanges {
+                doLast {
+                    ${server.callFromBuild("userInput")}
+                }
+            }
+
+            task consumer {
+                inputs.file(inputFile)
+                outputs.file(outputFile)
+                doLast {
+                    outputFile.text = inputFile.text
+                }
+                finalizedBy(waitForUserChanges)
+            }
+        """
+
+        when:
+        inputFile.text = "initial"
+        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+            inputFile.text = "changed"
+            waitForChangesToBePickedUp()
+        }
+        then:
+        executedAndNotSkipped(":consumer")
+        outputFile.text == "initial"
+        // TODO: The change after the first task execution will only be detected once
+        //       we start watches during the build, since currently the first build does not watch anything.
+        retainedFilesInCurrentBuild == 2  // TODO: should be 1
+
+        when:
+        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+            inputFile.text = "changedAgain"
+            waitForChangesToBePickedUp()
+        }
+        then:
+        skipped(":consumer") // TODO: should be executedAndNotSkipped
+        outputFile.text == "initial"
+        receivedFileSystemEventsInCurrentBuild >= 1
+        retainedFilesInCurrentBuild == 1
+
+        when:
+        server.expect("userInput")
+        withRetention().run("consumer")
+        then:
+        executedAndNotSkipped(":consumer")
+        outputFile.text == "changedAgain"
+        retainedFilesInCurrentBuild == 2
+    }
+
+    private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {
+        def handle = withRetention().executer.withTasks(task).start()
+        def userInput = server.expectAndBlock(expectedCall)
+        userInput.waitForAllPendingCalls()
+        action()
+        userInput.releaseAll()
+        result = handle.waitForFinish()
     }
 
     def "incubating message is shown for retention"() {
@@ -464,6 +582,18 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         skipped(":localStateTask")
         executedAndNotSkipped(":outputFileTask")
+    }
+
+    def "gracefully handle the root project not being available"() {
+        settingsFile << """
+            throw new RuntimeException("Boom")
+        """
+
+        when:
+        withRetention().fails("help")
+        then:
+        failureHasCause("Boom")
+        errorOutput.contains("Couldn't create watch service, not tracking changes between builds")
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry

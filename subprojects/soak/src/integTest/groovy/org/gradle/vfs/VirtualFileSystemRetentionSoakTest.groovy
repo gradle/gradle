@@ -98,7 +98,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             } else {
                 assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
             }
-            assert receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
+            assert receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
         }
     }
 
@@ -128,7 +128,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         daemons.daemon.logFile == daemon.logFile
         daemon.assertIdle()
         assertWatchingSucceeded()
-        receivedFileSystemEvents >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
+        receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
         retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
     }
 
@@ -162,25 +162,6 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         sourceFiles.take(number).each { sourceFile ->
             modifySourceFile(sourceFile, iteration + 1)
         }
-    }
-
-    private int getReceivedFileSystemEvents() {
-        String eventsSinceLastBuild = result.getOutputLineThatContains("file system events since last build")
-        def numberMatcher = eventsSinceLastBuild =~ /Received (\d+) file system events since last build/
-        return numberMatcher[0][1] as int
-    }
-
-    private int getRetainedFilesSinceLastBuild() {
-        String retainedInformation = result.getOutputLineThatContains("Virtual file system retained information about ")
-        def numberMatcher = retainedInformation =~ /Virtual file system retained information about (\d+) files, (\d+) directories and (\d+) missing files since last build/
-        return numberMatcher[0][1] as int
-    }
-
-    private int getRetainedFilesInCurrentBuild() {
-        // Can't use `getOutputLineThatContains` here, since that only matches the output before the build finished message
-        def retainedInformation = result.normalizedOutput.readLines().stream().filter { line -> line.contains("Virtual file system retains information about ") }.findFirst().get()
-        def numberMatcher = retainedInformation =~ /Virtual file system retains information about (\d+) files, (\d+) directories and (\d+) missing files till next build/
-        return numberMatcher[0][1] as int
     }
 
     private void assertWatchingSucceeded() {
