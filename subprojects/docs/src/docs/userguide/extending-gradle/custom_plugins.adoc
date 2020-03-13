@@ -167,7 +167,7 @@ Gradle provides some types that you can use in task implementations and extensio
 Now we will move our plugin to a standalone project so that we can publish it and share it with others. This project is simply a Java project that produces a JAR containing the plugin classes.
 The easiest and the recommended way to package and publish a plugin is to use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
 This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the implementation configuration,
-generate the required plugin descriptors in the resulting `jar` file and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
+generate the required plugin descriptors in the resulting JAR file and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
 Here is a simple build script for the project.
 
 .A build for a custom plugin
@@ -254,7 +254,7 @@ Gradle provides a number of features that are helpful when developing Gradle typ
 == Behind the scenes
 
 So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation?
-The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin, which is handled by <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
+The answer is you need to provide a properties file in the JAR's `META-INF/gradle-plugins` directory that matches the id of your plugin, which is handled by <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
 
 === Example: Wiring for a custom plugin
 
