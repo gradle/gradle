@@ -59,13 +59,13 @@ public class JdkTools {
         DefaultClassLoaderFactory defaultClassLoaderFactory = new DefaultClassLoaderFactory();
         JavaVersion javaVersion = Jvm.current().getJavaVersion();
         boolean java9Compatible = javaVersion.isJava9Compatible();
-        ClassLoader filteringClassLoader = getSystemFilteringClassLoader(defaultClassLoaderFactory, java9Compatible);
+        ClassLoader filteringClassLoader = getSystemFilteringClassLoader(defaultClassLoaderFactory);
         if (!java9Compatible) {
             File toolsJar = javaInfo.getToolsJar();
             if (toolsJar == null) {
                 throw new IllegalStateException("Could not find tools.jar. Please check that "
-                                                + javaInfo.getJavaHome().getAbsolutePath()
-                                                + " contains a valid JDK installation.");
+                    + javaInfo.getJavaHome().getAbsolutePath()
+                    + " contains a valid JDK installation.");
             }
             ClassPath defaultClassPath = DefaultClassPath.of(toolsJar);
             isolatedToolsLoader = new VisitableURLClassLoader("jdk-tools", filteringClassLoader, defaultClassPath.getAsURLs());
@@ -76,11 +76,9 @@ public class JdkTools {
         }
     }
 
-    private ClassLoader getSystemFilteringClassLoader(ClassLoaderFactory classLoaderFactory, boolean java9compatible) {
+    private ClassLoader getSystemFilteringClassLoader(ClassLoaderFactory classLoaderFactory) {
         FilteringClassLoader.Spec filterSpec = new FilteringClassLoader.Spec();
-        if (java9compatible) {
-            filterSpec.allowPackage("com.sun.tools");
-        }
+        filterSpec.allowPackage("com.sun.tools");
         return classLoaderFactory.createFilteringClassLoader(getSystemClassLoader(), filterSpec);
     }
 
