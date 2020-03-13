@@ -130,29 +130,14 @@ public class JvmPluginsHelper {
         compile.setSource(sourceSet.getJava());
 
         ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
-        classpath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory()));
-            }
-        });
+        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory())));
 
-        compile.getConventionMapping().map("classpath", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return classpath;
-            }
-        });
+        compile.getConventionMapping().map("classpath", () -> classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
         final ConventionMapping conventionMapping = new DslObject(options).getConventionMapping();
-        conventionMapping.map("annotationProcessorPath", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return sourceSet.getAnnotationProcessorPath();
-            }
-        });
+        conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
         String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
         options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
     }
@@ -170,25 +155,17 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(new Callable<File>() {
-            @Override
-            public File call() {
-                return sourceDirectorySet.getDestinationDirectory().getAsFile().get();
-            }
-        });
+        sourceSetOutput.addClassesDir(() -> sourceDirectorySet.getDestinationDirectory().getAsFile().get());
         sourceSetOutput.registerCompileTask(compileTask);
-        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(compileOptions -> compileOptions.getGeneratedSourceOutputDirectory()));
+        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
 
         sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
     public static void configureClassesDirectoryVariant(SourceSet sourceSet, Project target, String targetConfigName, final String usage) {
-        target.getConfigurations().all(new Action<Configuration>() {
-            @Override
-            public void execute(Configuration config) {
-                if (targetConfigName.equals(config.getName())) {
-                    registerClassesDirVariant(sourceSet, target.getObjects(), config);
-                }
+        target.getConfigurations().all(config -> {
+            if (targetConfigName.equals(config.getName())) {
+                registerClassesDirVariant(sourceSet, target.getObjects(), config);
             }
         });
     }

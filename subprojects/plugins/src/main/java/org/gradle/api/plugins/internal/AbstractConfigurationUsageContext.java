@@ -67,8 +67,8 @@ public abstract class AbstractConfigurationUsageContext extends AbstractUsageCon
     public Set<? extends Capability> getCapabilities() {
         if (capabilities == null) {
             this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(getConfiguration(),
-                Sets.<Capability>newHashSet(),
-                Sets.<Configuration>newHashSet()));
+                Sets.newHashSet(),
+                Sets.newHashSet()));
         }
         return capabilities;
     }
