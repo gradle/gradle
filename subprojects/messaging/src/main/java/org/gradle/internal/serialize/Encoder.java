@@ -78,6 +78,13 @@ public interface Encoder {
     void writeSmallInt(int value) throws IOException;
 
     /**
+     * Writes a nullable signed 32 bit int value whose value is likely to be small and positive but may not be.
+     *
+     * @see #writeSmallInt(int)
+     */
+    void writeNullableSmallInt(@Nullable Integer value) throws IOException;
+
+    /**
      * Writes a boolean value.
      */
     void writeBoolean(boolean value) throws IOException;

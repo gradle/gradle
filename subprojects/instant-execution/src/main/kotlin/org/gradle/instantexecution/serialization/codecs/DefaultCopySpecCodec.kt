@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileResolver
@@ -28,8 +29,10 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.internal.reflect.Instantiator
 
 
@@ -45,6 +48,12 @@ class DefaultCopySpecCodec(
             write(value.destPath)
             write(value.sourceFiles)
             write(value.patterns)
+            writeEnum(value.duplicatesStrategy)
+            writeBoolean(value.includeEmptyDirs)
+            writeBoolean(value.isCaseSensitive)
+            writeString(value.filteringCharset)
+            writeNullableSmallInt(value.dirMode)
+            writeNullableSmallInt(value.fileMode)
             writeCollection(value.children)
         }
     }
@@ -54,8 +63,24 @@ class DefaultCopySpecCodec(
             val destPath = read() as String?
             val sourceFiles = read() as FileCollection
             val patterns = read() as PatternSet
+            val duplicatesStrategy = readEnum<DuplicatesStrategy>()
+            val includeEmptyDirs = readBoolean()
+            val isCaseSensitive = readBoolean()
+            val filteringCharset = readString()
+            val dirMode = readNullableSmallInt()
+            val fileMode = readNullableSmallInt()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
             val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
+            copySpec.duplicatesStrategy = duplicatesStrategy
+            copySpec.includeEmptyDirs = includeEmptyDirs
+            copySpec.isCaseSensitive = isCaseSensitive
+            copySpec.filteringCharset = filteringCharset
+            if (dirMode != null) {
+                copySpec.dirMode = dirMode
+            }
+            if (fileMode != null) {
+                copySpec.fileMode = fileMode
+            }
             isolate.identities.putInstance(id, copySpec)
             copySpec
         }
