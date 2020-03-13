@@ -151,13 +151,6 @@ include::sample[dir="snippets/customPlugin/groovy/javaGradlePlugin",files="build
 include::sample[dir="snippets/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
 ====
 
-// TODO - see if the snippets can be cleaned up/removed before deleting this
-//.A build for a custom plugin
-//====
-//include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
-//include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
-//====
-
 [[sec:creating_a_plugin_id]]
 === Creating a plugin id
 
