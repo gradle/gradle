@@ -124,14 +124,8 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK13_OR_EARLIER({
         JavaVersion.current() <= JavaVersion.VERSION_13
     }),
-    NOT_JDK_IBM({
-        !JDK_IBM.fulfilled
-    }),
     FIX_TO_WORK_ON_JAVA9({
         JDK8_OR_EARLIER.fulfilled
-    }),
-    JDK_IBM({
-        System.getProperty('java.vm.vendor') == 'IBM Corporation'
     }),
     JDK_ORACLE({
         System.getProperty('java.vm.vendor') == 'Oracle Corporation'
@@ -166,7 +160,7 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
         !PULL_REQUEST_BUILD.fulfilled
     }),
     KOTLIN_SCRIPT({
-        JDK8_OR_LATER.fulfilled && NOT_JDK_IBM.fulfilled
+        JDK8_OR_LATER.fulfilled
     }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present

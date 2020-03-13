@@ -56,9 +56,8 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         executer.withArguments('help', '--continuous', '-i').run().assertTasksExecuted(':help')
     }
 
-    //IBM JDK adds a bunch of environment variables that make the foreground daemon not match
     //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires([TestPrecondition.NOT_JDK_IBM, TestPrecondition.JDK8_OR_EARLIER])
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def "should capture basic data when a foreground daemon runs multiple builds"() {
         given:
         buildFile << """
@@ -262,7 +261,7 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         import org.gradle.launcher.daemon.server.expiry.*
         import java.util.concurrent.CountDownLatch
         import java.util.concurrent.TimeUnit
-            
+
         def latch = new CountDownLatch(1)
         """
     }
