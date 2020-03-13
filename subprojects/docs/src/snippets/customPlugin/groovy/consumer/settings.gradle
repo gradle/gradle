@@ -8,6 +8,8 @@ pluginManagement {
             url = uri(repoLocation)
         }
     }
+// end::use-plugin[]
+// tag::use-legacy-plugin[]
     resolutionStrategy {
         eachPlugin {
             if (requested.id.namespace == 'org.samples') {
@@ -15,6 +17,8 @@ pluginManagement {
             }
         }
     }
+// end::use-legacy-plugin[]
+// tag::use-plugin[]
 }
 // end::use-plugin[]
 rootProject.name = 'consumer'

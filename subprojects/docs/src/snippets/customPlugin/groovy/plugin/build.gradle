@@ -1,9 +1,6 @@
-// tag::use-plugin[]
 plugins {
     id 'groovy'
-// end::use-plugin[]
     id 'maven-publish'
-// tag::use-plugin[]
 }
 
 // tag::gradle-api-dependencies[]
@@ -11,16 +8,13 @@ plugins {
 dependencies {
 // end::local-groovy-dependencies[]
     implementation gradleApi()
-// end::use-plugin[]
 // end::gradle-api-dependencies[]
 // tag::local-groovy-dependencies[]
     implementation localGroovy()
 // tag::gradle-api-dependencies[]
-// tag::use-plugin[]
 }
 // end::gradle-api-dependencies[]
 // end::local-groovy-dependencies[]
-// end::use-plugin[]
 
 repositories {
     mavenCentral()
