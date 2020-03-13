@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,18 +20,15 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
 
 /**
- * Registered via {@link TaskInputsListeners}.
+ * Allows the registration of {@link TaskInputsListener task inputs listeners}.
  */
-public interface TaskInputsListener {
+public interface TaskInputsListeners {
 
     /**
-     * Called when the execution of the given task is imminent, or would have been if the given file collection was not currently empty.
-     * <p>
-     * The given files may not == taskInternal.inputs.files, as only a subset of that collection may be relevant to the task execution.
-     *
-     * @param task the task to be executed
-     * @param fileSystemInputs the file system inputs relevant to the task execution
+     * Registers the listener with the build and returns an {@link AutoCloseable} registration,
+     * the listener is unregistered once the returned registration is closed.
      */
-    void onExecute(TaskInternal task, FileCollectionInternal fileSystemInputs);
+    AutoCloseable addListener(TaskInputsListener listener);
 
+    void broadcastFileSystemInputsOf(TaskInternal task, FileCollectionInternal fileSystemInputs);
 }

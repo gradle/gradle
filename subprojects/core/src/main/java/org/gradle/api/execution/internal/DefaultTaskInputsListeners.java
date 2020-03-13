@@ -18,23 +18,25 @@ package org.gradle.api.execution.internal;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileSystemSubset;
-import org.gradle.internal.filewatch.FileSystemChangeWaiter;
+import org.gradle.internal.event.AnonymousListenerBroadcast;
+import org.gradle.internal.event.ListenerManager;
 
-public class DefaultTaskInputsListener implements TaskInputsListener {
-    private FileSystemChangeWaiter waiter;
+public class DefaultTaskInputsListeners implements TaskInputsListeners {
 
-    @Override
-    public void onExecute(TaskInternal taskInternal, FileCollectionInternal fileSystemInputs) {
-        if (waiter!=null) {
-            FileSystemSubset.Builder fileSystemSubsetBuilder = FileSystemSubset.builder();
-            fileSystemInputs.visitStructure(fileSystemSubsetBuilder);
-            waiter.watch(fileSystemSubsetBuilder.build());
-        }
+    private final AnonymousListenerBroadcast<TaskInputsListener> broadcaster;
+
+    public DefaultTaskInputsListeners(ListenerManager listenerManager) {
+        broadcaster = listenerManager.createAnonymousBroadcaster(TaskInputsListener.class);
     }
 
     @Override
-    public void setFileSystemWaiter(FileSystemChangeWaiter waiter) {
-        this.waiter = waiter;
+    public AutoCloseable addListener(TaskInputsListener listener) {
+        broadcaster.add(listener);
+        return () -> broadcaster.remove(listener);
+    }
+
+    @Override
+    public void broadcastFileSystemInputsOf(TaskInternal task, FileCollectionInternal fileSystemInputs) {
+        broadcaster.getSource().onExecute(task, fileSystemInputs);
     }
 }

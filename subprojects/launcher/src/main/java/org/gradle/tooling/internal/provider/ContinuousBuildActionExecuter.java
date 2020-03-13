@@ -17,7 +17,8 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Action;
-import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
+import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.deployment.internal.Deployment;
 import org.gradle.deployment.internal.DeploymentInternal;
@@ -51,15 +52,21 @@ import org.gradle.util.DisconnectableInputStream;
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
-    private final TaskInputsListener inputsListener;
+    private final TaskInputsListeners inputsListeners;
     private final OperatingSystem operatingSystem;
     private final FileSystemChangeWaiterFactory changeWaiterFactory;
     private final ExecutorFactory executorFactory;
     private final StyledTextOutput logger;
 
-    public ContinuousBuildActionExecuter(BuildActionExecuter<BuildActionParameters> delegate, FileSystemChangeWaiterFactory changeWaiterFactory, TaskInputsListener inputsListener, StyledTextOutputFactory styledTextOutputFactory, ExecutorFactory executorFactory) {
+    public ContinuousBuildActionExecuter(
+        BuildActionExecuter<BuildActionParameters> delegate,
+        FileSystemChangeWaiterFactory changeWaiterFactory,
+        TaskInputsListeners inputsListeners,
+        StyledTextOutputFactory styledTextOutputFactory,
+        ExecutorFactory executorFactory
+    ) {
         this.delegate = delegate;
-        this.inputsListener = inputsListener;
+        this.inputsListeners = inputsListeners;
         this.operatingSystem = OperatingSystem.current();
         this.executorFactory = executorFactory;
         this.changeWaiterFactory = changeWaiterFactory;
@@ -113,7 +120,7 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
     }
 
     private BuildActionResult executeMultipleBuilds(BuildAction action, final BuildRequestContext requestContext, final BuildActionParameters actionParameters, final ServiceRegistry buildSessionScopeServices,
-                                         CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
+                                                    CancellableOperationManager cancellableOperationManager, ContinuousExecutionGate continuousExecutionGate) {
         BuildCancellationToken cancellationToken = requestContext.getCancellationToken();
 
         BuildActionResult lastResult;
@@ -177,13 +184,24 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         }
     }
 
-    private BuildActionResult executeBuildAndAccumulateInputs(BuildAction action, BuildRequestContext requestContext, BuildActionParameters actionParameters, final FileSystemChangeWaiter waiter, ServiceRegistry buildSessionScopeServices) {
-        try {
-            inputsListener.setFileSystemWaiter(waiter);
+    private BuildActionResult executeBuildAndAccumulateInputs(
+        BuildAction action,
+        BuildRequestContext requestContext,
+        BuildActionParameters actionParameters,
+        final FileSystemChangeWaiter waiter,
+        ServiceRegistry buildSessionScopeServices
+    ) {
+        try (AutoCloseable ignored = watchFileSystemInputsUsing(waiter)) {
             return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
-        } finally {
-            inputsListener.setFileSystemWaiter(null);
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
         }
+    }
 
+    private AutoCloseable watchFileSystemInputsUsing(FileSystemChangeWaiter waiter) {
+        return inputsListeners.addListener(
+            (taskInternal, fileSystemInputs) ->
+                waiter.watch(FileSystemSubset.of(fileSystemInputs))
+        );
     }
 }
