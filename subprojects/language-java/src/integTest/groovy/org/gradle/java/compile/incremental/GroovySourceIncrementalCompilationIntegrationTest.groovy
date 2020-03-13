@@ -19,6 +19,7 @@ package org.gradle.java.compile.incremental
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class GroovySourceIncrementalCompilationIntegrationTest extends AbstractSourceIncrementalCompilationIntegrationTest implements DirectoryBuildCacheFixture {
@@ -208,5 +209,41 @@ class A2{}
         then:
         succeeds language.compileTaskName
         outputs.recompiledClasses("A", "B")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/10340")
+    def "recompiles class when constant from inner class is changed"() {
+        given:
+        file("src/main/${languageName}/MyAnnotation.${languageName}") << """
+            public @interface MyAnnotation { int value(); }
+        """
+        file("src/main/${languageName}/TopLevel.${languageName}") << """
+            public class TopLevel {
+               static class Inner {
+                  public static final int CONST = 9999;
+               }
+            }
+        """
+        file("src/main/${languageName}/MyClass.${languageName}") << """
+            public class MyClass {
+                @MyAnnotation(TopLevel.Inner.CONST)
+                private void foo() { }
+            }
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/TopLevel.${languageName}").text = """
+            public class TopLevel {
+               static class Inner {
+                  public static final int CONST = 1223;
+               }
+            }
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses('MyClass', 'MyAnnotation', 'TopLevel$Inner', 'TopLevel')
     }
 }

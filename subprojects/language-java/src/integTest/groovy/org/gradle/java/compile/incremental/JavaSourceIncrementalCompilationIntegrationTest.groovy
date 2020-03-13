@@ -232,4 +232,39 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledFqn("foo.StringUtils", "foo.Strings", "foo.Constants")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/10340")
+    def "recompiles class when constant from inner class is changed"() {
+        given:
+        file("src/main/${languageName}/MyAnnotation.${languageName}") << """
+            public @interface MyAnnotation { int value(); }
+        """
+        file("src/main/${languageName}/TopLevel.${languageName}") << """
+            public class TopLevel {
+               static class Inner {
+                  public static final int CONST = 9999;
+               }
+            }
+        """
+        file("src/main/${languageName}/MyClass.${languageName}") << """
+            public class MyClass {
+                @MyAnnotation(TopLevel.Inner.CONST)
+                private void foo() { }
+            }
+        """
+
+        outputs.snapshot { run language.compileTaskName }
+
+        when:
+        file("src/main/${languageName}/TopLevel.${languageName}").text = """
+            public class TopLevel {
+               static class Inner {
+                  public static final int CONST = 1223;
+               }
+            }
+        """
+
+        then:
+        succeeds language.compileTaskName
+        outputs.recompiledClasses('MyClass', 'MyAnnotation', 'TopLevel$Inner', 'TopLevel')
+    }
 }
