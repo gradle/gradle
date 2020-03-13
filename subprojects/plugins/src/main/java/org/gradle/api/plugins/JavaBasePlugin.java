@@ -291,11 +291,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.setCanBeConsumed(false);
         JvmPluginsHelper.configureAttributesForCompileClasspath(compileClasspathConfiguration, convention, objectFactory, javaClasspathPackaging);
 
-        DeprecatableConfiguration annotationProcessorConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(annotationProcessorConfigurationName);
+        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeResolved(true);
+        JvmPluginsHelper.configureAttributesForRuntimeClasspath(annotationProcessorConfiguration, convention, objectFactory);
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
