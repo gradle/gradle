@@ -72,6 +72,7 @@ class InstantExecutionFingerprintCheckerTest {
             InstantExecutionFingerprintChecker.FingerprintEncoder.run {
                 encode(
                     InstantExecutionCacheFingerprint(
+                        taskInputs = emptyList(),
                         inputFiles = emptyList(),
                         obtainedValues = listOf(obtainedValue)
                     )

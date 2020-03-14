@@ -16,13 +16,23 @@
 
 package org.gradle.instantexecution.fingerprint
 
+import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.InputFile
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.TaskInputDir
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.vfs.VirtualFileSystem
 import java.io.File
+import java.util.concurrent.ConcurrentHashMap
 
 
 internal
@@ -31,9 +41,17 @@ typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any,
 
 internal
 data class InstantExecutionCacheFingerprint(
+    val taskInputs: List<TaskInputDir>,
     val inputFiles: List<InputFile>,
     val obtainedValues: List<ObtainedValue>
 ) {
+    internal
+    data class TaskInputDir(
+        val taskPath: String,
+        val directory: File,
+        val hashCode: HashCode
+    )
+
     internal
     data class InputFile(
         val file: File,
@@ -44,15 +62,22 @@ data class InstantExecutionCacheFingerprint(
 
 internal
 class InstantExecutionCacheInputs(
-    val virtualFileSystem: VirtualFileSystem
-) : ValueSourceProviderFactory.Listener {
+    val virtualFileSystem: VirtualFileSystem,
+    val fileCollectionSnapshotter: FileCollectionSnapshotter
+) : ValueSourceProviderFactory.Listener, TaskInputsListener {
 
-    val inputFiles = mutableListOf<InstantExecutionCacheFingerprint.InputFile>()
+    val taskInputs = ConcurrentHashMap<String, TaskInputDir>()
+
+    val inputFiles = mutableListOf<InputFile>()
 
     val obtainedValues = mutableListOf<ObtainedValue>()
 
     val fingerprint
-        get() = InstantExecutionCacheFingerprint(inputFiles, obtainedValues)
+        get() = InstantExecutionCacheFingerprint(
+            taskInputs.values.toList(),
+            inputFiles,
+            obtainedValues
+        )
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
@@ -61,12 +86,7 @@ class InstantExecutionCacheInputs(
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
-                    inputFiles.add(
-                        InstantExecutionCacheFingerprint.InputFile(
-                            file,
-                            virtualFileSystem.hashCodeOf(file)
-                        )
-                    )
+                    onInputFile(file, virtualFileSystem.hashCodeForFile(file))
                 }
             }
             else -> {
@@ -74,10 +94,46 @@ class InstantExecutionCacheInputs(
             }
         }
     }
+
+    override fun onExecute(
+        task: TaskInternal,
+        fileSystemInputs: FileCollectionInternal
+    ) {
+        fileCollectionSnapshotter.snapshot(fileSystemInputs).forEach { snapshot ->
+            snapshot.accept(
+                object : FileSystemSnapshotVisitor {
+                    override fun preVisitDirectory(directorySnapshot: CompleteDirectorySnapshot): Boolean = directorySnapshot.run {
+                        taskInputs.computeIfAbsent(absolutePath) {
+                            TaskInputDir(
+                                taskPath = task.identityPath.path,
+                                directory = File(absolutePath),
+                                hashCode = hash
+                            )
+                        }
+                        false
+                    }
+
+                    override fun visitFile(fileSnapshot: CompleteFileSystemLocationSnapshot) = Unit
+
+                    override fun postVisitDirectory(directorySnapshot: CompleteDirectorySnapshot) = Unit
+                }
+            )
+        }
+    }
+
+    private
+    fun onInputFile(file: File, hashCode: HashCode?) {
+        inputFiles.add(
+            InputFile(
+                file,
+                hashCode
+            )
+        )
+    }
 }
 
 
 internal
-fun VirtualFileSystem.hashCodeOf(file: File): HashCode? =
+fun VirtualFileSystem.hashCodeForFile(file: File): HashCode? =
     readRegularFileContentHash(file.path) { hashCode -> hashCode }
         .orElse(null)

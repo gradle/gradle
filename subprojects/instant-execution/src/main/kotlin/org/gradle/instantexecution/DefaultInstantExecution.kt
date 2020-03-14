@@ -17,6 +17,8 @@
 package org.gradle.instantexecution
 
 import org.gradle.api.Project
+import org.gradle.api.execution.internal.TaskInputsListeners
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -32,7 +34,7 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
 import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.fingerprint.ObtainedValue
-import org.gradle.instantexecution.fingerprint.hashCodeOf
+import org.gradle.instantexecution.fingerprint.hashCodeForFile
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -50,11 +52,16 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.Factory
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GFileUtils.relativePathOf
@@ -75,7 +82,10 @@ class DefaultInstantExecution internal constructor(
     private val beanConstructors: BeanConstructors,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val virtualFileSystem: VirtualFileSystem,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val taskInputsListeners: TaskInputsListeners,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    private val fileCollectionFactory: FileCollectionFactory
 ) : InstantExecution {
 
     interface Host {
@@ -252,9 +262,10 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun attachBuildLogicInputsCollector() {
-        InstantExecutionCacheInputs(virtualFileSystem).also {
+        InstantExecutionCacheInputs(virtualFileSystem, fileCollectionSnapshotter).also {
             instantExecutionInputs = it
             valueSourceProviderFactory.addListener(it)
+            taskInputsListeners.addListener(it)
         }
     }
 
@@ -263,6 +274,7 @@ class DefaultInstantExecution internal constructor(
         instantExecutionInputs.let {
             require(it != null)
             valueSourceProviderFactory.removeListener(it)
+            taskInputsListeners.removeListener(it)
         }
     }
 
@@ -472,11 +484,35 @@ class DefaultInstantExecution internal constructor(
     private
     inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
 
-        override fun hashCodeOf(inputFile: File) =
-            virtualFileSystem.hashCodeOf(inputFile)
+        override fun hashCodeForFile(file: File) =
+            virtualFileSystem.hashCodeForFile(file)
 
-        override fun displayNameOf(inputFile: File): String =
-            relativePathOf(inputFile, rootDirectory)
+        override fun hashCodeForDirectory(directory: File): HashCode? {
+            val hashes = mutableListOf<HashCode>()
+            fileCollectionSnapshotter
+                .snapshot(fileCollectionFactory.fixed(directory))
+                .singleOrNull()
+                ?.accept(
+                    object : FileSystemSnapshotVisitor {
+                        override fun preVisitDirectory(directorySnapshot: CompleteDirectorySnapshot): Boolean {
+                            hashes.add(directorySnapshot.hash)
+                            return false
+                        }
+
+                        override fun visitFile(fileSnapshot: CompleteFileSystemLocationSnapshot) {
+                            // Directory became a file?
+                            // Let hashes disagree
+                            hashes.add(fileSnapshot.hash)
+                        }
+
+                        override fun postVisitDirectory(directorySnapshot: CompleteDirectorySnapshot) = Unit
+                    }
+                )
+            return hashes.singleOrNull()
+        }
+
+        override fun displayNameOf(fileOrDirectory: File): String =
+            relativePathOf(fileOrDirectory, rootDirectory)
 
         override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
             (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(

@@ -30,5 +30,7 @@ public interface TaskInputsListeners {
      */
     AutoCloseable addListener(TaskInputsListener listener);
 
+    void removeListener(TaskInputsListener listener);
+
     void broadcastFileSystemInputsOf(TaskInternal task, FileCollectionInternal fileSystemInputs);
 }

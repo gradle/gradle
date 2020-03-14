@@ -23,6 +23,7 @@ import org.gradle.api.tasks.TaskAction
 
 class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     def "can use tasks defined in buildSrc"() {
+        given:
         file("buildSrc/settings.gradle") << """
             include 'ignored' // include some content
         """
@@ -37,7 +38,7 @@ class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIn
 
             public class CustomTask extends DefaultTask {
                 private final Property<String> greeting = getProject().getObjects().property(String.class);
-                 
+
                 @Internal
                 public Property<String> getGreeting() {
                     return greeting;
@@ -55,6 +56,7 @@ class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIn
                 greeting = 'yo instant execution'
             }
         """
+        def instant = newInstantExecutionFixture()
 
         when:
         instantRun("greeting")
@@ -69,5 +71,46 @@ class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIn
         then:
         result.assertTasksExecuted(":greeting")
         outputContains("yo instant execution")
+        instant.assertStateLoaded()
+    }
+
+    def "invalidates cache upon change to buildSrc Java source file"() {
+        given:
+        buildFile << """
+            task greet(type: GreetTask)
+        """
+        file("buildSrc/build.gradle") << """
+            plugins { id("java-library") }
+        """
+        def writeGreetTask = { String greeting ->
+            file("buildSrc/src/main/java/GreetTask.java").text = """
+                public class GreetTask extends ${DefaultTask.name} {
+                    @${TaskAction.name} void greet() { System.out.println("$greeting"); }
+                }
+            """
+        }
+        def instant = newInstantExecutionFixture()
+
+        when:
+        writeGreetTask "Hello!"
+        instantRun "greet"
+
+        then:
+        outputContains "Hello!"
+
+        when:
+        writeGreetTask "G'day!"
+        instantRun "greet"
+
+        then:
+        outputContains "G'day!"
+        instant.assertStateStored()
+
+        when:
+        instantRun "greet"
+
+        then:
+        outputContains "G'day!"
+        instant.assertStateLoaded()
     }
 }
