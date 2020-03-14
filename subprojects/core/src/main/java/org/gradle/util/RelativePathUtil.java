@@ -30,7 +30,7 @@ public class RelativePathUtil {
      */
     public static String relativePath(File from, File to) {
         try {
-            return from.toPath().relativize(to.toPath()).toString();
+            return TextUtil.normaliseFileSeparators(from.toPath().relativize(to.toPath()).toString());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
