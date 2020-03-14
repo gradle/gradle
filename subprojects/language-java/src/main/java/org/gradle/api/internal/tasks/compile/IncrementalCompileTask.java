@@ -26,7 +26,6 @@ import javax.lang.model.element.TypeElement;
 import javax.tools.JavaCompiler;
 import javax.tools.JavaFileObject;
 import java.io.File;
-import java.net.URI;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
@@ -90,11 +89,9 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
         @Override
         public void finished(TaskEvent e) {
             JavaFileObject sourceFile = e.getSourceFile();
-            if (sourceFile != null) {
-                URI sourceURI = sourceFile.toUri();
-                if (isRegularSourceFile(sourceURI)) {
-                    File asSourceFile = new File(sourceURI);
-                    if (isClassGenerationPhase(e)) {
+            if (sourceFile != null && sourceFile.getKind() == JavaFileObject.Kind.SOURCE) {
+                    File asSourceFile = new File(sourceFile.getName());
+                    if (isClassGenerationPhase(e) && asSourceFile.exists()) {
                         Optional<String> relativePath = compilationSourceDirs.relativize(asSourceFile);
                         if (relativePath.isPresent()) {
                             String key = relativePath.get();
@@ -115,7 +112,6 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
                             registerMapping(key, pkgInfo);
                         }
                     }
-                }
             }
         }
 
@@ -133,10 +129,6 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
         public boolean isClassGenerationPhase(TaskEvent e) {
             return e.getKind() == TaskEvent.Kind.GENERATE;
-        }
-
-        public boolean isRegularSourceFile(URI sourceURI) {
-            return "file".equals(sourceURI.getScheme());
         }
 
         public void registerMapping(String key, String symbol) {
