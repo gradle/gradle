@@ -31,7 +31,9 @@ import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassPro
 import org.gradle.api.internal.tasks.testing.processors.PatternMatchTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RunPreviousFailedFirstTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.RunSortedBySizeTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
+import org.gradle.api.internal.tasks.testing.processors.UniqueTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -100,9 +102,11 @@ public class DefaultTestExecuter implements TestExecuter<JvmTestExecutionSpec> {
             }
         };
         processor =
-            new PatternMatchTestClassProcessor(testFilter,
-                new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
-                    new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)));
+            new UniqueTestClassProcessor(
+                new PatternMatchTestClassProcessor(testFilter,
+                    new RunSortedBySizeTestClassProcessor(testExecutionSpec.getPreviousTestClassDurations(),
+                        new RunPreviousFailedFirstTestClassProcessor(testExecutionSpec.getPreviousFailedTestClasses(),
+                            new MaxNParallelTestClassProcessor(getMaxParallelForks(testExecutionSpec), reforkingProcessorFactory, actorFactory)))));
 
         final FileTree testClassFiles = testExecutionSpec.getCandidateClassFiles();
 

@@ -20,22 +20,17 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
+import java.util.LinkedHashSet;
 
 /**
- * In order to speed up the development feedback cycle, this class guarantee previous failed test classes
- * to be passed to its delegate first.
+ * Simply passes incoming test classes through a set to prevent duplicated effort.
+ * This behaviour was extracted from the {@link RunPreviousFailedFirstTestClassProcessor}.
  */
-public class RunPreviousFailedFirstTestClassProcessor implements TestClassProcessor {
-    private final Set<String> previousFailedTestClasses;
+public class UniqueTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor delegate;
-    private final List<TestClassRunInfo> prioritizedTestClasses = new ArrayList<TestClassRunInfo>();
-    private final List<TestClassRunInfo> otherTestClasses = new ArrayList<TestClassRunInfo>();
+    private final LinkedHashSet<TestClassRunInfo> testClasses = new LinkedHashSet<TestClassRunInfo>();
 
-    public RunPreviousFailedFirstTestClassProcessor(Set<String> previousFailedTestClasses, TestClassProcessor delegate) {
-        this.previousFailedTestClasses = previousFailedTestClasses;
+    public UniqueTestClassProcessor(TestClassProcessor delegate) {
         this.delegate = delegate;
     }
 
@@ -46,19 +41,12 @@ public class RunPreviousFailedFirstTestClassProcessor implements TestClassProces
 
     @Override
     public void processTestClass(TestClassRunInfo testClass) {
-        if (previousFailedTestClasses.contains(testClass.getTestClassName())) {
-            prioritizedTestClasses.add(testClass);
-        } else {
-            otherTestClasses.add(testClass);
-        }
+        testClasses.add(testClass);
     }
 
     @Override
     public void stop() {
-        for (TestClassRunInfo test : prioritizedTestClasses) {
-            delegate.processTestClass(test);
-        }
-        for (TestClassRunInfo test : otherTestClasses) {
+        for (TestClassRunInfo test : testClasses) {
             delegate.processTestClass(test);
         }
         delegate.stop();
