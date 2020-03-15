@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.internal.state;
 
-import org.gradle.api.Task;
-import org.gradle.internal.state.OwnerAware;
+import org.gradle.internal.DisplayName;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware {
-    /**
-     * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
-     */
-    void setFromAnyValue(Object object);
-
-    /**
-     * Associates this property with the task that produces its value.
-     */
-    void attachProducer(Task producer);
+public interface OwnerAware {
+    void attachDisplayName(DisplayName displayName);
 }
