@@ -23,6 +23,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.service.ServiceLookup
+import org.gradle.internal.state.ModelObject
 
 import javax.inject.Inject
 
@@ -56,6 +57,8 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         bean.publicType() == AbstractBean
         !bean.hasUsefulDisplayName()
 
+        bean instanceof ModelObject
+
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)
         !(bean instanceof HasConvention)
@@ -76,6 +79,8 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         bean instanceof GeneratedSubclass
         bean.publicType() == BeanWithServiceGetters
         !bean.hasUsefulDisplayName()
+
+        bean instanceof ModelObject
 
         !(bean instanceof DynamicObjectAware)
         !(bean instanceof ExtensionAware)

@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.internal.state;
 
-import org.gradle.internal.DisplayName;
-
-public interface OwnerAware {
-    void attachDisplayName(DisplayName displayName);
+/**
+ * An object that represents some part of a model.
+ */
+public interface ModelObject {
+    /**
+     * Does this type provide a {@link Object#toString()} implementation?
+     */
+    boolean hasUsefulDisplayName();
 }

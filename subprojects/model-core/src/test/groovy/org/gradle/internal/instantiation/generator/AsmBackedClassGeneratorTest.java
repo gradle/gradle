@@ -59,6 +59,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.ModelObject;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Rule;
@@ -154,6 +155,18 @@ public class AsmBackedClassGeneratorTest {
         assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass) bean).publicType());
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpackType(bean));
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean.getClass()));
+    }
+
+    @Test
+    public void mixesInModelObjectInterface() throws Exception {
+        Bean bean = newInstance(Bean.class);
+        assertTrue(bean instanceof ModelObject);
+    }
+
+    @Test
+    public void mixesInModelObjectInterfaceToInterface() throws Exception {
+        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+        assertTrue(bean instanceof ModelObject);
     }
 
     @Test
