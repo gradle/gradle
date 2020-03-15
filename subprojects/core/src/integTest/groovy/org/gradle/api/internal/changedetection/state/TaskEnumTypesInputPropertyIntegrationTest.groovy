@@ -212,7 +212,6 @@ apply from: 'other.gradle'
         skipped(":someTask")
     }
 
-    @ToBeFixedForInstantExecution
     def "task can take an input with enum type and task action defined in buildSrc"() {
         def enumSource = file("buildSrc/src/main/java/SomeEnum.java")
         enumSource << """
@@ -277,7 +276,6 @@ public enum SomeEnum {
         skipped(":someTask")
     }
 
-    @ToBeFixedForInstantExecution
     def "task can take an input with enum type and task type defined in buildSrc"() {
         def enumSource = file("buildSrc/src/main/java/SomeEnum.java")
         enumSource << """
@@ -300,7 +298,7 @@ public class SomeTask extends DefaultTask {
     public File f;
     @OutputDirectory
     public File getF() { return f; }
-    
+
     @TaskAction
     public void go() { }
 }
