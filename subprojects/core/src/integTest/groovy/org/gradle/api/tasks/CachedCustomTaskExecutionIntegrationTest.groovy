@@ -83,7 +83,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
-    @ToBeFixedForInstantExecution
     def "changing custom Groovy task implementation in buildSrc invalidates its cached result"() {
         configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
