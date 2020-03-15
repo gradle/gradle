@@ -402,12 +402,18 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     def 'spotbugs plugin'() {
         given:
         buildFile << """
+            import com.github.spotbugs.snom.SpotBugsTask
+
             plugins {
                 id 'java'
                 id 'com.github.spotbugs' version '${TestedVersions.spotbugs}'
             }
 
             ${jcenterRepository()}
+
+            tasks.withType(SpotBugsTask) {
+                reports.create("html")
+            }
 
             """.stripIndent()
 
@@ -421,7 +427,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
 
         when:
-        def result = runner('check').build()
+        def result = runner('spotbugsMain').build()
 
         then:
         file('build/reports/spotbugs').isDirectory()
