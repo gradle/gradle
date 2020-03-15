@@ -31,6 +31,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.kotlin.dsl.support.serviceOf
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 
@@ -62,8 +63,7 @@ data class InstantExecutionCacheFingerprint(
 
 internal
 class InstantExecutionCacheInputs(
-    val virtualFileSystem: VirtualFileSystem,
-    val fileCollectionSnapshotter: FileCollectionSnapshotter
+    val virtualFileSystem: VirtualFileSystem
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener {
 
     val taskInputs = ConcurrentHashMap<String, TaskInputDir>()
@@ -99,7 +99,7 @@ class InstantExecutionCacheInputs(
         task: TaskInternal,
         fileSystemInputs: FileCollectionInternal
     ) {
-        fileCollectionSnapshotter.snapshot(fileSystemInputs).forEach { snapshot ->
+        fileCollectionSnapshotterFor(task).snapshot(fileSystemInputs).forEach { snapshot ->
             snapshot.accept(
                 object : FileSystemSnapshotVisitor {
                     override fun preVisitDirectory(directorySnapshot: CompleteDirectorySnapshot): Boolean = directorySnapshot.run {
@@ -120,6 +120,10 @@ class InstantExecutionCacheInputs(
             )
         }
     }
+
+    private
+    fun fileCollectionSnapshotterFor(task: TaskInternal) =
+        task.project.serviceOf<FileCollectionSnapshotter>()
 
     private
     fun onInputFile(file: File, hashCode: HashCode?) {

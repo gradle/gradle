@@ -262,7 +262,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun attachBuildLogicInputsCollector() {
-        InstantExecutionCacheInputs(virtualFileSystem, fileCollectionSnapshotter).also {
+        InstantExecutionCacheInputs(virtualFileSystem).also {
             instantExecutionInputs = it
             valueSourceProviderFactory.addListener(it)
             taskInputsListeners.addListener(it)
