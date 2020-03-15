@@ -18,6 +18,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -1018,8 +1019,8 @@ class DependencySubstitutionRulesIntegrationTest extends AbstractIntegrationSpec
         }
     }
 
-    void "rule selects unavailable version"()
-    {
+    @ToBeFixedForInstantExecution(because = "InstantExecutionCacheInputs.onExecute resolves configuration earlier than expected by the test")
+    void "rule selects unavailable version"() {
         mavenRepo.module("org.utils", "api", '1.3').publish()
 
         buildFile << """
@@ -1400,7 +1401,7 @@ Required by:
                 maven { url "${mavenRepo.uri}" }
             }
 
-            task jar(type: Jar) { 
+            task jar(type: Jar) {
                 archiveBaseName = project.name
                 // TODO LJA: No idea why I have to do this
                 if (project.version != 'unspecified') {
@@ -1477,11 +1478,11 @@ dependencies {
 }
 
 configurations.all {
-  resolutionStrategy { 
+  resolutionStrategy {
       dependencySubstitution { DependencySubstitutions subs ->
           subs.substitute(subs.module('foo:bar:1')).with(subs.project(':sub'))
       }
-      failOnVersionConflict()    
+      failOnVersionConflict()
   }
 }
 
@@ -1518,7 +1519,7 @@ configurations.all {
                 constraints {
                     conf 'org:foo'
                 }
-            }                       
+            }
         """
 
         when:
