@@ -145,6 +145,8 @@ if (isSkipBuildSrcVerification) {
 }
 
 if (isCiServer) {
+    println("Current machine has ${Runtime.getRuntime().availableProcessors()} CPU cores")
+    require(Runtime.getRuntime().availableProcessors() >= 4) { "CI machines must have at least 4 CPU cores!" }
     gradle.buildFinished {
         allprojects.forEach { project ->
             project.tasks.all {
