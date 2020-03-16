@@ -137,8 +137,9 @@ public class ManagedObjectFactory {
 
         @Override
         public String getDisplayName() {
-            if (owner.hasUsefulDisplayName()) {
-                return owner + " property '" + propertyName + "'";
+            Describable ownerDisplayName = owner.getIdentityDisplayName();
+            if (ownerDisplayName != null) {
+                return ownerDisplayName.getDisplayName() + " property '" + propertyName + "'";
             } else {
                 return "property '" + propertyName + "'";
             }

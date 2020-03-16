@@ -73,7 +73,7 @@ class DefaultSwiftApplicationTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "Cannot query the value of Swift application 'main' property 'developmentBinary' because it has no value available."
+        ex.message == "Cannot query the value of property 'developmentBinary' because it has no value available."
     }
 
     private NativeVariantIdentity getIdentity() {
