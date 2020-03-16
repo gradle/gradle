@@ -10,12 +10,22 @@ jobs:
             - uses: joschi/setup-jdk@v1
               with:
                 java-version: 'openjdk11'
+            - name: Cache node modules
+              uses: actions/cache@v1
+              env:
+                cache-name: cache-gradle-user-home
+              with:
+                path: ~/.gradle
+                key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/*.gradle') }}-${{ hashFiles('**/*.gradle.kts') }}
+                restore-keys: |
+                  ${{ runner.os }}-${{ env.cache-name }}-
+                  ${{ runner.os }}-
             - name: Show Gradle version
               run: ./gradlew --version
             - name: Increase inotify
               run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
             - name: Sanity Check
-              run: ./gradlew --init-script gradle/init-scripts/build-scan.init.gradle.kts -Dgradle.cache.remote.url=${{ secrets.GRADLE_CACHE_REMOTE_URL }} -Dgradle.cache.remote.username=gradle1 -Dgradle.cache.remote.password=${{ secrets.GRADLE_CACHE_REMOTE_PASSWORD }} -Dscan.tag.Check -Dscan.tag.QuickFeedbackLinuxOnly sanityCheck
+              run: ./gradlew --init-script gradle/init-scripts/build-scan.init.gradle.kts --build-cache -Dgradle.cache.remote.url=${{ secrets.GRADLE_CACHE_REMOTE_URL }} -Dgradle.cache.remote.username=gradle1 -Dgradle.cache.remote.password=${{ secrets.GRADLE_CACHE_REMOTE_PASSWORD }} -Dscan.tag.Check -Dscan.tag.QuickFeedbackLinuxOnly sanityCheck
               env:
                 JAVA_TOOL_OPTIONS: -Dhttps.protocols=TLSv1.2
                 CI: 1
