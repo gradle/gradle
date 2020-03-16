@@ -559,12 +559,14 @@ public class DefaultDependencyManagementServices implements DependencyManagement
 
         DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules, FeaturePreviews featurePreviews, ListenerManager listenerManager) {
             DefaultDependencyLockingProvider dependencyLockingProvider = instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), featurePreviews);
-            listenerManager.addListener(new InternalBuildFinishedListener() {
-                @Override
-                public void buildFinished(GradleInternal gradle) {
-                    dependencyLockingProvider.buildFinished();
-                }
-            });
+            if (startParameter.isWriteDependencyLocks() && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)) {
+                listenerManager.addListener(new InternalBuildFinishedListener() {
+                    @Override
+                    public void buildFinished(GradleInternal gradle) {
+                        dependencyLockingProvider.buildFinished();
+                    }
+                });
+            }
             return dependencyLockingProvider;
         }
 
