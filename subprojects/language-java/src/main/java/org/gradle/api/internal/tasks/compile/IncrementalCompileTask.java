@@ -81,6 +81,8 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
     }
 
     private class ClassNameCollector implements TaskListener {
+        private final Map<File, Optional<String>> relativePaths = new HashMap<>();
+
         @Override
         public void started(TaskEvent e) {
 
@@ -92,7 +94,7 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
             if (sourceFile != null && sourceFile.getKind() == JavaFileObject.Kind.SOURCE) {
                     File asSourceFile = new File(sourceFile.getName());
                     if (isClassGenerationPhase(e) && asSourceFile.exists()) {
-                        Optional<String> relativePath = compilationSourceDirs.relativize(asSourceFile);
+                        Optional<String> relativePath = findRelativePath(asSourceFile);
                         if (relativePath.isPresent()) {
                             String key = relativePath.get();
                             TypeElement typeElement = e.getTypeElement();
@@ -105,7 +107,7 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
                             registerMapping(key, symbol);
                         }
                     } else if (isPackageInfoFile(e, asSourceFile)) {
-                        Optional<String> relativePath = compilationSourceDirs.relativize(asSourceFile);
+                        Optional<String> relativePath = findRelativePath(asSourceFile);
                         if (relativePath.isPresent()) {
                             String key = relativePath.get();
                             String pkgInfo = key.substring(0, key.lastIndexOf(".java")).replace('/', '.');
@@ -113,6 +115,10 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
                         }
                     }
             }
+        }
+
+        public Optional<String> findRelativePath(File asSourceFile) {
+            return relativePaths.computeIfAbsent(asSourceFile, compilationSourceDirs::relativize);
         }
 
         public String normalizeName(Name name) {
