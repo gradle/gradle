@@ -220,7 +220,7 @@ task doIt {
         fails 'doIt'
 
         then:
-        failureHasCause("It is illegal to modify the dependency locking mode after any dependency configuration has been resolved")
+        failureHasCause("The value for property 'lockMode' is final and cannot be changed any further.")
     }
 
 }
