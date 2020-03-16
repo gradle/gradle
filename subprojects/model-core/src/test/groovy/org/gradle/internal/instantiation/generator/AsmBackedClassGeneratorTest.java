@@ -1887,6 +1887,15 @@ public class AsmBackedClassGeneratorTest {
         }
     }
 
+    public static abstract class UsesToStringInConstructor {
+        public final String name = toString();
+    }
+
+    public interface InterfaceUsesToStringBean {
+        @Nested
+        UsesToStringInConstructor getBean();
+    }
+
     public interface InterfacePropertyBean {
         Property<String> getProp();
     }

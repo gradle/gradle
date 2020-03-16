@@ -134,7 +134,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     @SuppressWarnings("unused")
     @Nullable
     public static Describable getDisplayNameForNext() {
-        return SERVICES_FOR_NEXT_OBJECT.get().displayName;
+        ObjectCreationDetails details = SERVICES_FOR_NEXT_OBJECT.get();
+        if (details == null) {
+            return null;
+        }
+        return details.displayName;
     }
 
     private static final String GET_SERVICES_FOR_NEXT_METHOD_NAME = "getServicesForNext";
@@ -1074,7 +1078,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(INVOKEVIRTUAL, generatedType.getInternalName(), FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY, false);
 
-                // GENERATE instance = factory.newInstance(...)
+                // GENERATE return factory.newInstance(this, propertyName, ...)
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitLdcInsn(property.getName());
 
@@ -1540,17 +1544,38 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateToStringSupport() {
+            // Generate
+            // if (displayName != null) {
+            //     return displayName.getDisplayName()
+            // } else if (AsmBackedClassGenerator.getDisplayNameForNext() != null) {
+            //     return AsmBackedClassGenerator.getDisplayNameForNext().getDisplayName()
+            // } else {
+            //     return super.toString()
+            // }
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", RETURN_STRING, null, null);
             methodVisitor.visitCode();
-            // Generate if (displayName != null) { return displayName.toString() } else { return super.toString() }
+
+            // Generate: if (displayName != null) { return displayName.getDisplayName() }
             methodVisitor.visitVarInsn(ALOAD, 0);
             methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
             methodVisitor.visitInsn(DUP);
-            Label label = new Label();
-            methodVisitor.visitJumpInsn(IFNULL, label);
+            Label label1 = new Label();
+            methodVisitor.visitJumpInsn(IFNULL, label1);
             methodVisitor.visitMethodInsn(INVOKEINTERFACE, DESCRIBABLE_TYPE.getInternalName(), "getDisplayName", RETURN_STRING, true);
             methodVisitor.visitInsn(ARETURN);
-            methodVisitor.visitLabel(label);
+
+            // Generate: if (...) { return ... }
+            methodVisitor.visitLabel(label1);
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE, false);
+            methodVisitor.visitInsn(DUP);
+            Label label2 = new Label();
+            methodVisitor.visitJumpInsn(IFNULL, label2);
+            methodVisitor.visitMethodInsn(INVOKEINTERFACE, DESCRIBABLE_TYPE.getInternalName(), "getDisplayName", RETURN_STRING, true);
+            methodVisitor.visitInsn(ARETURN);
+
+            // Generate: return super.toString()
+            methodVisitor.visitLabel(label2);
             methodVisitor.visitVarInsn(ALOAD, 0);
             methodVisitor.visitMethodInsn(INVOKESPECIAL, OBJECT_TYPE.getInternalName(), "toString", RETURN_STRING, false);
             methodVisitor.visitInsn(ARETURN);
