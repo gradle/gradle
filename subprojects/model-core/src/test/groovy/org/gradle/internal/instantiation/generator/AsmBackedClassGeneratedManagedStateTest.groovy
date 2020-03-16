@@ -197,20 +197,37 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def beanWithDisplayName = create(InterfaceNestedBean, Describables.of("<display-name>"))
 
         expect:
-        bean.filesBean.toString() == "property 'filesBean'"
-        bean.filesBean.prop.toString() == "file collection"
         bean.filesBean.prop.empty
         bean.filesBean.prop.from("a", "b")
         bean.filesBean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
 
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.filesBean.identityDisplayName.displayName == "property 'filesBean'"
+        bean.filesBean.prop.toString() == "file collection"
+
         bean.propBean.toString() == "property 'propBean'"
+        bean.propBean.identityDisplayName.displayName == "property 'propBean'"
         bean.propBean.prop.toString() == "property 'propBean.prop'"
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.identityDisplayName.displayName == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.prop.toString() == "file collection"
 
         beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.identityDisplayName.displayName == "<display-name> property 'propBean'"
         beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
+    }
+
+    def "does not assign display name for nested object that is not managed"() {
+        def bean = create(NestedBeanClass, TestUtil.objectFactory())
+        def beanWithDisplayName = create(NestedBeanClass, Describables.of("<display-name>"), TestUtil.objectFactory())
+
+        expect:
+        bean.filesBean.toString().startsWith("${InterfaceFileCollectionBean.name}_Decorated@")
+        bean.propBean.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+
+        beanWithDisplayName.filesBean.toString().startsWith("${InterfaceFileCollectionBean.name}_Decorated@")
+        beanWithDisplayName.propBean.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
     }
 
     @Unroll

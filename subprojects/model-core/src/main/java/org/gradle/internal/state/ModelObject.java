@@ -16,10 +16,20 @@
 
 package org.gradle.internal.state;
 
+import org.gradle.api.Describable;
+
+import javax.annotation.Nullable;
+
 /**
- * An object that represents some part of a model.
+ * An object that represents some part of a model. This interface is mixed-in to all generated classes.
  */
 public interface ModelObject {
+    /**
+     * Returns the display name of this object that indicates its identity, if this is known.
+     */
+    @Nullable
+    Describable getIdentityDisplayName();
+
     /**
      * Does this type provide a {@link Object#toString()} implementation?
      */
