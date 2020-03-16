@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
+import org.gradle.internal.state.ModelObject
 import org.gradle.util.TextUtil
 
 import java.util.concurrent.Callable
@@ -76,7 +77,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         t.message == "Cannot query the value of ${displayName} because it has no value available."
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.get()
 
         then:
@@ -484,7 +485,7 @@ The value of this property is derived from: <source>""")
     def "reports the source of mapped provider when value is missing and source is known"() {
         def transformer = Mock(Transformer)
         def property = propertyWithNoValue()
-        property.attachDisplayName(Describables.of("<a>"))
+        property.attachOwner(owner(), displayName("<a>"))
 
         def provider = property.map(transformer)
 
@@ -500,7 +501,7 @@ The value of this provider is derived from: <a>""")
     def "reports the source of flat mapped provider when value is missing and source is known"() {
         def transformer = Mock(Transformer)
         def property = propertyWithNoValue()
-        property.attachDisplayName(Describables.of("<a>"))
+        property.attachOwner(owner(), displayName("<a>"))
 
         def provider = property.flatMap(transformer)
 
@@ -518,7 +519,7 @@ The value of this provider is derived from: <a>""")
         property.set(someValue())
 
         def other = propertyWithNoValue()
-        other.attachDisplayName(Describables.of("<a>"))
+        other.attachOwner(owner(), displayName("<a>"))
 
         def provider = property.flatMap { other }
 
@@ -533,10 +534,10 @@ The value of this provider is derived from: <a>""")
 
     def "reports the source of orElse provider when both values are missing and its source is known"() {
         def property = propertyWithNoValue()
-        property.attachDisplayName(Describables.of("<a>"))
+        property.attachOwner(owner(), displayName("<a>"))
 
         def other = propertyWithNoValue()
-        other.attachDisplayName(Describables.of("<b>"))
+        other.attachOwner(owner(), displayName("<b>"))
 
         def provider = property.orElse(other)
 
@@ -921,9 +922,9 @@ The value of this provider is derived from:
 
     def "finalized property with no value reports source of value when source is known"() {
         def a = propertyWithNoValue()
-        a.attachDisplayName(Describables.of("<a>"))
+        a.attachOwner(owner(), displayName("<a>"))
         def b = propertyWithNoValue()
-        b.attachDisplayName(Describables.of("<b>"))
+        b.attachOwner(owner(), displayName("<b>"))
         def property = propertyWithNoValue()
 
         given:
@@ -1038,7 +1039,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1074,7 +1075,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1111,7 +1112,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1148,7 +1149,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1199,7 +1200,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1235,7 +1236,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1309,7 +1310,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1338,7 +1339,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1368,7 +1369,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1397,7 +1398,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1426,7 +1427,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1455,7 +1456,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1485,7 +1486,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1514,7 +1515,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1535,7 +1536,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1557,7 +1558,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1580,7 +1581,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1601,7 +1602,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1623,7 +1624,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1645,7 +1646,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1668,7 +1669,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1690,7 +1691,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1715,7 +1716,7 @@ The value of this property is derived from:
         e.message == "Cannot query the value of this property because <reason>."
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.get()
 
         then:
@@ -1825,7 +1826,7 @@ The value of this property is derived from:
         def a = propertyWithNoValue()
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        a.attachDisplayName(Describables.of("<a>"))
+        a.attachOwner(owner(), displayName("<a>"))
         a.set(b)
         b.set(c)
 
@@ -1837,7 +1838,7 @@ The value of this property is derived from:
         e.message == "Cannot query the value of <a> because it has no value available."
 
         when:
-        c.attachDisplayName(Describables.of("<c>"))
+        c.attachOwner(owner(), displayName("<c>"))
         a.get()
 
         then:
@@ -1846,7 +1847,7 @@ The value of this property is derived from:
 The value of this property is derived from: <c>""")
 
         when:
-        b.attachDisplayName(Describables.of("<b>"))
+        b.attachOwner(owner(), displayName("<b>"))
         a.get()
 
         then:
@@ -1862,7 +1863,7 @@ The value of this property is derived from:
         def a = propertyWithNoValue()
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        a.attachDisplayName(Describables.of("<a>"))
+        a.attachOwner(owner(), displayName("<a>"))
         a.set(b.map { it })
         b.set(c.map { it })
         def provider = a.map { it }
@@ -1876,7 +1877,7 @@ The value of this property is derived from:
 The value of this provider is derived from: <a>""")
 
         when:
-        c.attachDisplayName(Describables.of("<c>"))
+        c.attachOwner(owner(), displayName("<c>"))
         provider.get()
 
         then:
@@ -1887,7 +1888,7 @@ The value of this provider is derived from:
   - <c>""")
 
         when:
-        b.attachDisplayName(Describables.of("<b>"))
+        b.attachOwner(owner(), displayName("<b>"))
         provider.get()
 
         then:
@@ -2049,6 +2050,14 @@ The value of this provider is derived from:
         def producers = []
         provider.visitProducerTasks { producers.add(it) }
         assert producers == [task]
+    }
+
+    ModelObject owner() {
+        return Stub(ModelObject)
+    }
+
+    DisplayName displayName(String name) {
+        return Describables.of(name)
     }
 
     /**

@@ -18,6 +18,18 @@ package org.gradle.internal.state;
 
 import org.gradle.internal.DisplayName;
 
+import javax.annotation.Nullable;
+
+/**
+ * Represents an object that may be owned by some model object. This is mixed-in to generated classes and may
+ * also be implemented directly.
+ */
 public interface OwnerAware {
-    void attachDisplayName(DisplayName displayName);
+    /**
+     * Notifies this object that it now has an owner associated with it.
+     *
+     * @param owner The owner object, if any.
+     * @param displayName The display name for this object.
+     */
+    void attachOwner(@Nullable ModelObject owner, DisplayName displayName);
 }

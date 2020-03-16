@@ -36,7 +36,7 @@ abstract class AbstractClassGeneratorSpec extends Specification {
 
     protected <T> T createForSerialization(Class<T> clazz) {
         def nested = Stub(InstanceGenerator)
-        _ * nested.newInstanceWithDisplayName(_, _, _) >> { type, displayName, params -> create(type) }
+        _ * nested.newInstance(_, _) >> { type, params -> create(type) }
         return generator.generate(clazz).getSerializationConstructor(Object).newInstance(defaultServices(), nested)
     }
 

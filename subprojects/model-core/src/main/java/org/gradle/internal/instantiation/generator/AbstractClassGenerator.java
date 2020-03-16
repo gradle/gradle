@@ -87,7 +87,7 @@ import java.util.stream.Collectors;
  *
  * <ul>
  * <li>For each property, a convention mapping is applied. These properties may have a setter method.</li>
- * <li>For each property whose getter is annotated with {@code Inject}, a service instance will be injected instead. These properties may have a setter method and may be abstract.</li>
+ * <li>For each property whose getter is annotated with {@link Inject}, service instance will be injected instead. These properties may have a setter method and may be abstract.</li>
  * <li>For each mutable property as set method is generated.</li>
  * <li>For each method whose last parameter is an {@link org.gradle.api.Action}, an override is generated that accepts a {@link groovy.lang.Closure} instead.</li>
  * <li>Coercion from string to enum property is mixed in.</li>

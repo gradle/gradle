@@ -60,6 +60,7 @@ import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.OwnerAware;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Rule;
@@ -158,15 +159,19 @@ public class AsmBackedClassGeneratorTest {
     }
 
     @Test
-    public void mixesInModelObjectInterface() throws Exception {
+    public void mixesInModelObjectInterfaces() throws Exception {
         Bean bean = newInstance(Bean.class);
         assertTrue(bean instanceof ModelObject);
+        assertNull(((ModelObject) bean).getIdentityDisplayName());
+        assertTrue(bean instanceof OwnerAware);
     }
 
     @Test
-    public void mixesInModelObjectInterfaceToInterface() throws Exception {
+    public void mixesInModelObjectInterfacesToInterface() throws Exception {
         InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
         assertTrue(bean instanceof ModelObject);
+        assertNull(((ModelObject) bean).getIdentityDisplayName());
+        assertTrue(bean instanceof OwnerAware);
     }
 
     @Test

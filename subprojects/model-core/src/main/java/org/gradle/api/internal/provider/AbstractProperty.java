@@ -23,6 +23,7 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
 
@@ -56,7 +57,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public void attachDisplayName(DisplayName displayName) {
+    public void attachOwner(ModelObject owner, DisplayName displayName) {
         this.displayName = displayName;
     }
 
