@@ -21,9 +21,13 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
 
@@ -594,6 +598,40 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         failureHasCause("Boom")
         errorOutput.contains("Couldn't create watch service, not tracking changes between builds")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11851")
+    @Requires(TestPrecondition.SYMLINKS)
+    def "gracefully handle when watching the same path via symlinks"() {
+        def actualDir = file("actualDir").createDir()
+        file("symlink1").createLink(actualDir)
+        file("symlink2").createLink(actualDir)
+
+        buildFile << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.dir("symlink1")
+                inputs.dir("symlink2")
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+
+        when:
+        withRetention().run "myTask"
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        withRetention().run "myTask"
+        then:
+        skipped(":myTask")
+        if (OperatingSystem.current().linux) {
+            postBuildOutputContains("Watching not supported, not tracking changes between builds: Unable to watch same file twice via different paths")
+        }
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry
