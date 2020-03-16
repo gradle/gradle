@@ -91,7 +91,26 @@ junit_tests(
 )
 """
         } else {
-            """FAIL: NOT IMPLEMENTATION"""
+            """
+load("@rules_java//java:defs.bzl", "java_library")
+load("//:junit.bzl", "junit_tests")
+
+java_library(
+    name = "${config.projectName}",
+    srcs = glob(["src/main/java/**/*.java"]),
+    javacopts = ["-XepDisableAllChecks"],
+    visibility = ["//visibility:public"],
+)
+
+junit_tests(
+    name = "tests_${config.projectName}",
+    size = "small",
+    srcs = glob(["src/test/java/**/*.java"]),
+    deps = [
+        "//:${config.projectName}"
+    ]
+)
+"""
         }
     }
 
