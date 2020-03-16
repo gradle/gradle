@@ -66,9 +66,11 @@ class TestProjectGenerator {
         file projectDir, config.dsl.fileNameFor('settings'), fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
         file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree)
-        file projectDir, "WORKSPACE", bazelContentGenerator.generateWorkspace(isRoot)
         file projectDir, "BUILD.bazel", bazelContentGenerator.generateBuildFile(subProjectNumber, dependencyTree)
-        file projectDir, "junit.bzl", bazelContentGenerator.generateJunitHelper()
+        if (isRoot) {
+            file projectDir, "WORKSPACE", bazelContentGenerator.generateWorkspace()
+            file projectDir, "junit.bzl", bazelContentGenerator.generateJunitHelper()
+        }
         file projectDir, "performance.scenarios", fileContentGenerator.generatePerformanceScenarios(isRoot)
 
         if (!isRoot || config.subProjects == 0) {
