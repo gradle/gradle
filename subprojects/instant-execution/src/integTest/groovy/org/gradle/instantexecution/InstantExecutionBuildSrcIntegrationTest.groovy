@@ -73,44 +73,4 @@ class InstantExecutionBuildSrcIntegrationTest extends AbstractInstantExecutionIn
         outputContains("yo instant execution")
         instant.assertStateLoaded()
     }
-
-    def "invalidates cache upon change to buildSrc Java source file"() {
-        given:
-        buildFile << """
-            task greet(type: GreetTask)
-        """
-        file("buildSrc/build.gradle") << """
-            plugins { id("java-library") }
-        """
-        def writeGreetTask = { String greeting ->
-            file("buildSrc/src/main/java/GreetTask.java").text = """
-                public class GreetTask extends ${DefaultTask.name} {
-                    @${TaskAction.name} void greet() { System.out.println("$greeting"); }
-                }
-            """
-        }
-        def instant = newInstantExecutionFixture()
-
-        when:
-        writeGreetTask "Hello!"
-        instantRun "greet"
-
-        then:
-        outputContains "Hello!"
-
-        when:
-        writeGreetTask "G'day!"
-        instantRun "greet"
-
-        then:
-        outputContains "G'day!"
-        instant.assertStateStored()
-
-        when:
-        instantRun "greet"
-
-        then:
-        outputContains "G'day!"
-        instant.assertStateLoaded()
-    }
 }
