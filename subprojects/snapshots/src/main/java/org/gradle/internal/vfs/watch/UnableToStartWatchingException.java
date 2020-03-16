@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,8 @@
 
 package org.gradle.internal.vfs.watch;
 
-import org.gradle.internal.vfs.SnapshotHierarchy;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.function.Predicate;
-
-public interface FileWatcherRegistryFactory {
-    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, FileWatcherRegistry.ChangeHandler handler) throws IOException, UnableToStartWatchingException;
+public class UnableToStartWatchingException extends RuntimeException {
+    public UnableToStartWatchingException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }
