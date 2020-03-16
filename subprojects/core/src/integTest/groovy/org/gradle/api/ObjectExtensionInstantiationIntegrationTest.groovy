@@ -18,6 +18,7 @@ package org.gradle.api
 
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import spock.lang.Unroll
 
 class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpec {
@@ -428,6 +429,46 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         outputContains("display name = <display name>")
     }
 
+    def "generates a display name for settings extension"() {
+        settingsFile << """
+            class NoDisplayName { }
+            class DisplayName {
+                String toString() { return "<display name>" }
+            }
+
+            def noDisplayName = extensions.create("no-name", NoDisplayName)
+            def displayName = extensions.create("name", DisplayName)
+
+            println("no display name = \${noDisplayName}")
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("no display name = extension 'no-name'")
+        outputContains("display name = <display name>")
+    }
+
+    def "generates a display name for Gradle object extension"() {
+        settingsFile << """
+            class NoDisplayName { }
+            class DisplayName {
+                String toString() { return "<display name>" }
+            }
+
+            def noDisplayName = gradle.extensions.create("no-name", NoDisplayName)
+            def displayName = gradle.extensions.create("name", DisplayName)
+
+            println("no display name = \${noDisplayName}")
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("no display name = extension 'no-name'")
+        outputContains("display name = <display name>")
+    }
+
     def "generates a display name for extension interface"() {
         buildFile << """
             interface NoDisplayName { }
@@ -440,5 +481,23 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         expect:
         succeeds()
         outputContains("display name = extension 'no-name'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11466")
+    def "extension toString() implementation can use toString() of managed property"() {
+        buildFile << """
+            abstract class DisplayName {
+                abstract Property<String> getProp()
+
+                String toString() { return "<display name> prop=" + prop }
+            }
+
+            def displayName = extensions.create("name", DisplayName)
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("display name = <display name> prop=extension 'name' property 'prop'")
     }
 }

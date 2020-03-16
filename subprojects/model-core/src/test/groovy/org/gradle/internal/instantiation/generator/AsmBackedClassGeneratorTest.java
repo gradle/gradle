@@ -1848,6 +1848,19 @@ public class AsmBackedClassGeneratorTest {
         InterfacePropertyBean getPropBean();
     }
 
+    public static abstract class NestedBeanClassWithToString {
+        @Override
+        public String toString() {
+            return "<some bean>";
+        }
+
+        @Nested
+        abstract InterfaceFileCollectionBean getFilesBean();
+
+        @Nested
+        abstract InterfacePropertyBean getPropBean();
+    }
+
     public static class NestedBeanClass {
         private final InterfaceFileCollectionBean filesBean;
         private final InterfacePropertyBean propBean;

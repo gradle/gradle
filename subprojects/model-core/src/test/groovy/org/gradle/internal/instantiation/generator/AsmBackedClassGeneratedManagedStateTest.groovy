@@ -197,6 +197,8 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def beanWithDisplayName = create(InterfaceNestedBean, Describables.of("<display-name>"))
 
         expect:
+        beanWithDisplayName.toString() == "<display-name>"
+
         bean.filesBean.prop.empty
         bean.filesBean.prop.from("a", "b")
         bean.filesBean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
@@ -208,6 +210,32 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.propBean.toString() == "property 'propBean'"
         bean.propBean.identityDisplayName.displayName == "property 'propBean'"
         bean.propBean.prop.toString() == "property 'propBean.prop'"
+
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.identityDisplayName.displayName == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.prop.toString() == "file collection"
+
+        beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.identityDisplayName.displayName == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
+    }
+
+    def "assigns display name to nested object when owner has toString() implementation"() {
+        def bean = create(NestedBeanClassWithToString)
+        def beanWithDisplayName = create(NestedBeanClassWithToString, Describables.of("<display-name>"))
+
+        expect:
+        bean.toString() == "<some bean>"
+
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.filesBean.identityDisplayName.displayName == "property 'filesBean'"
+        bean.filesBean.prop.toString() == "file collection"
+
+        bean.propBean.toString() == "property 'propBean'"
+        bean.propBean.identityDisplayName.displayName == "property 'propBean'"
+        bean.propBean.prop.toString() == "property 'propBean.prop'"
+
+        beanWithDisplayName.toString() == "<some bean>"
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.identityDisplayName.displayName == "<display-name> property 'filesBean'"
