@@ -34,6 +34,7 @@ import spock.lang.Issue
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
@@ -81,6 +82,17 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         beanWithNoName.toString().startsWith("${InterfaceBean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
         beanWithNoName.identityDisplayName == null
+    }
+
+    def "constructor can use toString() implementation"() {
+        given:
+        def bean = create(UsesToStringInConstructor, Describables.of("<display name>"))
+        def beanWithNoName = create(UsesToStringInConstructor)
+
+        expect:
+        bean.name == "<display name>"
+
+        beanWithNoName.name.startsWith("${UsesToStringInConstructor.name}_Decorated@")
     }
 
     def "assigns display name to read only property of type Property<T>"() {

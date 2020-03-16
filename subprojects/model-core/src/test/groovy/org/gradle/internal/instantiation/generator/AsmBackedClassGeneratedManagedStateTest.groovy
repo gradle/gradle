@@ -220,6 +220,15 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
     }
 
+    def "nested object can use toString() in its constructor"() {
+        def bean = create(InterfaceUsesToStringBean)
+        def beanWithDisplayName = create(InterfaceUsesToStringBean, Describables.of("<display-name>"))
+
+        expect:
+        bean.bean.name == "property 'bean'"
+        beanWithDisplayName.bean.name == "<display-name> property 'bean'"
+    }
+
     def "assigns display name to nested object when owner has toString() implementation"() {
         def bean = create(NestedBeanClassWithToString)
         def beanWithDisplayName = create(NestedBeanClassWithToString, Describables.of("<display-name>"))

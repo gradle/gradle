@@ -376,6 +376,53 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
+    def "can create instance of interface with read-only @Nested interface property"() {
+        buildFile << """
+            interface Bean {
+                Property<String> getName()
+            }
+
+            interface Thing {
+                @Nested
+                Bean getValue()
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.name.toString() == "extension 'thing' property 'value.name'"
+            thing.value.name = 'some name'
+            assert thing.value.name.get() == 'some name'
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "@Nested property constructor can use identity information"() {
+        buildFile << """
+            abstract class Bean {
+                abstract Property<String> getName()
+
+                Bean() {
+                    println("toString() = " + this)
+                }
+            }
+
+            interface Thing {
+                @Nested
+                Bean getValue()
+            }
+
+            extensions.create("thing", Thing)
+            thing.value.name = 'some name'
+            assert thing.value.name.get() == 'some name'
+        """
+
+        expect:
+        succeeds()
+        outputContains("toString() = extension 'thing' property 'value'")
+    }
+
     def "can create instance of abstract class with mutable property"() {
         buildFile << """
             abstract class Thing {
