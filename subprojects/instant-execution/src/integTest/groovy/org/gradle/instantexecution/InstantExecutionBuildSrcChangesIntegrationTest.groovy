@@ -18,6 +18,8 @@ package org.gradle.instantexecution
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Assume
 import spock.lang.Unroll
 
@@ -28,16 +30,17 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
     private static final String CHANGED_GREETING = "G'day!"
 
     @Unroll
-    def "invalidates cache upon change to buildSrc (#buildSrcChange)"() {
+    def "invalidates cache upon change to buildSrc #language project (#change)"() {
 
         Assume.assumeTrue(
             "wip",
-            buildSrcChange != BuildSrcChange.ADD_RESOURCE
+            change != BuildSrcChange.ADD_RESOURCE && language != BuildSrcLanguage.KOTLIN
         )
 
         given:
         def instant = newInstantExecutionFixture()
-        setUpFor buildSrcChange
+        def fixture = new BuildSrcChangeFixture(testDirectory, language, change)
+        fixture.setup()
 
         when:
         instantRun()
@@ -46,91 +49,147 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         outputContains ORIGINAL_GREETING
 
         when:
-        apply buildSrcChange
+        fixture.applyChange()
         instantRun()
 
         then:
-        outputContains expectedOutputAfterChange
+        outputContains fixture.expectedOutputAfterChange
         instant.assertStateStored()
 
         when:
         instantRun()
 
         then:
-        outputContains expectedOutputAfterChange
+        outputContains fixture.expectedOutputAfterChange
         instant.assertStateLoaded()
 
         where:
-        buildSrcChange                 | expectedOutputAfterChange
-        BuildSrcChange.CHANGE_SOURCE   | CHANGED_GREETING
-        BuildSrcChange.ADD_SOURCE      | ORIGINAL_GREETING
-        BuildSrcChange.CHANGE_RESOURCE | ORIGINAL_GREETING
-        BuildSrcChange.ADD_RESOURCE    | ORIGINAL_GREETING
+        [language_, change_] << [BuildSrcLanguage.values(), BuildSrcChange.values()].combinations()
+        language = language_ as BuildSrcLanguage
+        change = change_ as BuildSrcChange
     }
 
     private instantRun() {
         instantRun TASK_NAME
     }
 
-    private void setUpFor(BuildSrcChange buildSrcChange) {
-        file("buildSrc/build.gradle") << """
-            plugins { id("java-library") }
-        """
-        writeGreetTask "GreetTask", ORIGINAL_GREETING
-        buildFile << """
-            task $TASK_NAME(type: GreetTask)
-        """
-        switch (buildSrcChange) {
-            case BuildSrcChange.CHANGE_RESOURCE:
-                writeBuildSrcResource ""
-                break
+    static class BuildSrcChangeFixture {
+
+        private final TestFile projectDir
+        private final BuildSrcLanguage language
+        private final BuildSrcChange change
+
+        BuildSrcChangeFixture(TestFile projectDir, BuildSrcLanguage language, BuildSrcChange change) {
+            this.projectDir = projectDir
+            this.language = language
+            this.change = change
+        }
+
+        void setup() {
+            file("build.gradle") << """
+                task $TASK_NAME(type: GreetTask)
+            """
+            file("buildSrc/build.gradle.kts") << kotlinDslBuildSrcScript
+            writeGreetTask "GreetTask", ORIGINAL_GREETING
+            switch (change) {
+                case BuildSrcChange.CHANGE_RESOURCE:
+                    writeBuildSrcResource ""
+                    break
+            }
+        }
+
+        void applyChange() {
+            switch (change) {
+                case BuildSrcChange.CHANGE_SOURCE:
+                    writeGreetTask "GreetTask", CHANGED_GREETING
+                    break
+                case BuildSrcChange.ADD_SOURCE:
+                    writeGreetTask "AnotherTask", CHANGED_GREETING
+                    break
+                case BuildSrcChange.CHANGE_RESOURCE:
+                    writeBuildSrcResource "42"
+                    break
+                case BuildSrcChange.ADD_RESOURCE:
+                    writeBuildSrcResource ""
+                    break
+            }
+        }
+
+        String getExpectedOutputAfterChange() {
+            switch (change) {
+                case BuildSrcChange.CHANGE_SOURCE:
+                    return CHANGED_GREETING
+                default:
+                    return ORIGINAL_GREETING
+            }
+        }
+
+        private String getKotlinDslBuildSrcScript() {
+            switch (language) {
+                case BuildSrcLanguage.JAVA:
+                    return "plugins { `java-library` }"
+                case BuildSrcLanguage.GROOVY:
+                    return "plugins { groovy }"
+                case BuildSrcLanguage.KOTLIN:
+                    return KotlinDslTestUtil.kotlinDslBuildSrcScript
+            }
+        }
+
+        private void writeGreetTask(String className, String greeting) {
+            switch (language) {
+                case BuildSrcLanguage.JAVA:
+                    file("buildSrc/src/main/java/${className}.java").text = """
+                        public class $className extends ${DefaultTask.name} {
+                            @${TaskAction.name} void greet() { System.out.println("$greeting"); }
+                        }
+                    """
+                    break
+                case BuildSrcLanguage.GROOVY:
+                    file("buildSrc/src/main/groovy/${className}.groovy").text = """
+                        public class $className extends ${DefaultTask.name} {
+                            @${TaskAction.name} void greet() { System.out.println("$greeting"); }
+                        }
+                    """
+                    break
+                case BuildSrcLanguage.KOTLIN:
+                    file("buildSrc/src/main/kotlin/${className}.kt").text = """
+                        open class $className : ${DefaultTask.name}() {
+                            @${TaskAction.name} fun greet() { println("$greeting") }
+                        }
+                    """
+                    break
+            }
+        }
+
+        private void writeBuildSrcResource(String text) {
+            file("buildSrc/src/main/resources/resource.txt").text = text
+        }
+
+        private TestFile file(String path) {
+            projectDir.file(path)
         }
     }
 
-    private void apply(BuildSrcChange buildSrcChange) {
-        switch (buildSrcChange) {
-            case BuildSrcChange.CHANGE_SOURCE:
-                writeGreetTask "GreetTask", CHANGED_GREETING
-                break
-            case BuildSrcChange.ADD_SOURCE:
-                writeGreetTask "AnotherTask", CHANGED_GREETING
-                break
-            case BuildSrcChange.CHANGE_RESOURCE:
-                writeBuildSrcResource "42"
-                break
-            case BuildSrcChange.ADD_RESOURCE:
-                writeBuildSrcResource ""
-                break
-        }
-    }
-
-    private enum BuildSrcChange {
-        CHANGE_SOURCE("change source file"),
-        ADD_SOURCE("add source file"),
-        CHANGE_RESOURCE("change resource"),
-        ADD_RESOURCE("add resource")
-
-        final String description
-
-        private BuildSrcChange(String description) {
-            this.description = description
-        }
+    enum BuildSrcChange {
+        CHANGE_SOURCE,
+        ADD_SOURCE,
+        CHANGE_RESOURCE,
+        ADD_RESOURCE
 
         @Override
         String toString() {
-            description
+            name().toLowerCase().replace('_', ' ')
         }
     }
 
-    private void writeGreetTask(String className, String greeting) {
-        file("buildSrc/src/main/java/${className}.java").text = """
-            public class $className extends ${DefaultTask.name} {
-                @${TaskAction.name} void greet() { System.out.println("$greeting"); }
-            }
-        """
-    }
+    enum BuildSrcLanguage {
+        JAVA,
+        GROOVY,
+        KOTLIN
 
-    private void writeBuildSrcResource(String text) {
-        file("buildSrc/src/main/resources/resource.txt").text = text
+        @Override
+        String toString() {
+            name().toLowerCase().capitalize()
+        }
     }
 }
