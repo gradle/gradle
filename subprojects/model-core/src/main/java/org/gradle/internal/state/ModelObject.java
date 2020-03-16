@@ -21,7 +21,8 @@ import org.gradle.api.Describable;
 import javax.annotation.Nullable;
 
 /**
- * An object that represents some part of a model. This interface is mixed-in to all generated classes.
+ * An object that represents some part of a model. This interface is mixed-in to all generated classes and should
+ * not be implemented directly.
  */
 public interface ModelObject {
     /**
@@ -31,7 +32,7 @@ public interface ModelObject {
     Describable getIdentityDisplayName();
 
     /**
-     * Does this type provide a {@link Object#toString()} implementation?
+     * Does this type provide a useful {@link Object#toString()} implementation?
      */
     boolean hasUsefulDisplayName();
 }
