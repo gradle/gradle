@@ -46,9 +46,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<display name>"
         bean.hasUsefulDisplayName()
+        bean.identityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString().startsWith("${Bean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
+        beanWithNoName.identityDisplayName == null
     }
 
     def "does not mixes in toString() implementation for class that defines an implementation"() {
@@ -59,9 +61,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<bean>"
         bean.hasUsefulDisplayName()
+        bean.identityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString() == "<bean>"
         beanWithNoName.hasUsefulDisplayName()
+        beanWithNoName.identityDisplayName == null
     }
 
     def "mixes in toString() implementation for interface"() {
@@ -72,8 +76,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<display name>"
         bean.hasUsefulDisplayName()
+        bean.identityDisplayName.displayName == "<display name>"
+
         beanWithNoName.toString().startsWith("${InterfaceBean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
+        beanWithNoName.identityDisplayName == null
     }
 
     def "assigns display name to read only property of type Property<T>"() {
@@ -132,7 +139,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         conf(thing1) { m1() }
 
         then:
-        def e = thrown(groovy.lang.MissingMethodException)
+        def e = thrown(MissingMethodException)
         e.method == "foo"
 
         when:
@@ -140,7 +147,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         conf(thing1) { abc }
 
         then:
-        e = thrown(groovy.lang.MissingPropertyException)
+        e = thrown(MissingPropertyException)
         e.property == "bar"
 
         when:
@@ -148,7 +155,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         conf(thing1) { abc = true }
 
         then:
-        e = thrown(groovy.lang.MissingPropertyException)
+        e = thrown(MissingPropertyException)
         e.property == "baz"
     }
 

@@ -498,6 +498,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visit(V1_8, ACC_PUBLIC | ACC_SYNTHETIC, generatedType.getInternalName(), null,
                 superclass.getInternalName(), interfaceTypes.toArray(EMPTY_STRINGS));
 
+            generateInitMethod();
+            generateGeneratedSubtypeMethods();
+            generateModelObjectMethods();
+
             if (requiresToString) {
                 generateToStringSupport();
             }
@@ -507,8 +511,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             if (requiresFactory) {
                 generateManagedPropertyCreationSupport();
             }
-            generateInitMethod();
-            generateGeneratedSubtypeMethods();
         }
 
         @Override
@@ -580,12 +582,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void initializeFields(MethodVisitor methodVisitor) {
-            if (requiresToString) {
-                // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE, false);
-                methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
-            }
+            // this.displayName = AsmBackedClassGenerator.getDisplayNameForNext()
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitMethodInsn(INVOKESTATIC, ASM_BACKED_CLASS_GENERATOR_TYPE.getInternalName(), GET_DISPLAY_NAME_FOR_NEXT_METHOD_NAME, RETURN_DESCRIBABLE, false);
+            methodVisitor.visitFieldInsn(PUTFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
+
             if (requiresServicesMethod) {
                 // this.services = AsmBackedClassGenerator.getServicesForNext()
                 methodVisitor.visitVarInsn(ALOAD, 0);
@@ -1100,12 +1101,8 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void putDisplayNameOnStack(MethodVisitor methodVisitor) {
-            if (requiresToString) {
-                methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
-            } else {
-                methodVisitor.visitInsn(ACONST_NULL);
-            }
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
         }
 
         @Override
@@ -1153,9 +1150,22 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
-            // Generate: Class hasUsefulDisplayName() { ... }
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "hasUsefulDisplayName", RETURN_BOOLEAN, null, EMPTY_STRINGS);
+            // Generate: static Class generatedFrom() { ... }
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_STATIC, "generatedFrom", RETURN_CLASS, null, EMPTY_STRINGS);
+            methodVisitor.visitLdcInsn(superclassType);
+            methodVisitor.visitInsn(ARETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
+        }
+
+        private void generateModelObjectMethods() {
+            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor(), null, null);
+
+            // Generate: boolean hasUsefulDisplayName() { ... }
+            MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "hasUsefulDisplayName", RETURN_BOOLEAN, null, EMPTY_STRINGS);
             if (requiresToString) {
+                // Type has a generated toString() implementation
+                // Generate: return displayName != null
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
                 Label label = new Label();
@@ -1166,15 +1176,18 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 methodVisitor.visitLdcInsn(false);
                 methodVisitor.visitInsn(BOOLEAN_TYPE.getOpcode(IRETURN));
             } else {
+                // Type has its own toString implementation
+                // Generate: return true
                 methodVisitor.visitLdcInsn(true);
                 methodVisitor.visitInsn(BOOLEAN_TYPE.getOpcode(IRETURN));
             }
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
 
-            // Generate: static Class generatedFrom() { ... }
-            methodVisitor = visitor.visitMethod(ACC_PUBLIC | ACC_STATIC, "generatedFrom", RETURN_CLASS, null, EMPTY_STRINGS);
-            methodVisitor.visitLdcInsn(superclassType);
+            // Generate getDisplayName() { return displayName }
+            methodVisitor = visitor.visitMethod(ACC_PUBLIC, "getIdentityDisplayName", Type.getMethodDescriptor(DESCRIBABLE_TYPE), null, EMPTY_STRINGS);
+            methodVisitor.visitVarInsn(ALOAD, 0);
+            methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor());
             methodVisitor.visitInsn(ARETURN);
             methodVisitor.visitMaxs(0, 0);
             methodVisitor.visitEnd();
@@ -1333,7 +1346,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             methodVisitor.visitLabel(finish);
 
             if (attachOwner) {
-                // ManagedObjectFactory.attachOwner(this, <value>, <property-name>)
+                // ManagedObjectFactory.attachOwner(this, <display-name>, <value>, <property-name>)
                 methodVisitor.visitVarInsn(ASTORE, 1);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 putDisplayNameOnStack(methodVisitor);
@@ -1521,8 +1534,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         }
 
         private void generateToStringSupport() {
-            visitor.visitField(ACC_PRIVATE | ACC_SYNTHETIC, DISPLAY_NAME_FIELD, DESCRIBABLE_TYPE.getDescriptor(), null, null);
-
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, "toString", RETURN_STRING, null, null);
             methodVisitor.visitCode();
             // Generate if (displayName != null) { return displayName.toString() } else { return super.toString() }

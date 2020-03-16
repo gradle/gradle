@@ -1848,6 +1848,27 @@ public class AsmBackedClassGeneratorTest {
         InterfacePropertyBean getPropBean();
     }
 
+    public static class NestedBeanClass {
+        private final InterfaceFileCollectionBean filesBean;
+        private final InterfacePropertyBean propBean;
+
+        @Inject
+        NestedBeanClass(ObjectFactory objectFactory) {
+            this.filesBean = objectFactory.newInstance(InterfaceFileCollectionBean.class);
+            this.propBean = objectFactory.newInstance(InterfacePropertyBean.class);
+        }
+
+        @Nested
+        InterfaceFileCollectionBean getFilesBean() {
+            return filesBean;
+        }
+
+        @Nested
+        InterfacePropertyBean getPropBean() {
+            return propBean;
+        }
+    }
+
     public interface InterfacePropertyBean {
         Property<String> getProp();
     }
