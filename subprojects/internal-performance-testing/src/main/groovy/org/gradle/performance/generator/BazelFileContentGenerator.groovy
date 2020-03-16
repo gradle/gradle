@@ -91,7 +91,7 @@ junit_tests(
 )
 """
         } else {
-            """"""
+            """FAIL: NOT IMPLEMENTATION"""
         }
     }
 
