@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.InputFile
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.TaskInputDir
@@ -95,10 +96,14 @@ class InstantExecutionCacheInputs(
         }
     }
 
-    override fun onExecute(
-        task: TaskInternal,
-        fileSystemInputs: FileCollectionInternal
-    ) {
+    override fun onExecute(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
+        if (isBuildSrcTask(task)) {
+            collectFileSystemInputsOf(task, fileSystemInputs)
+        }
+    }
+
+    private
+    fun collectFileSystemInputsOf(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
         fileCollectionSnapshotterFor(task).snapshot(fileSystemInputs).forEach { snapshot ->
             snapshot.accept(
                 object : FileSystemSnapshotVisitor {
@@ -120,6 +125,10 @@ class InstantExecutionCacheInputs(
             )
         }
     }
+
+    private
+    fun isBuildSrcTask(task: TaskInternal) =
+        task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
 
     private
     fun fileCollectionSnapshotterFor(task: TaskInternal) =
