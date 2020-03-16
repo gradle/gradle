@@ -16,8 +16,8 @@
 
 package org.gradle.internal.vfs.watch;
 
-public class UnableToStartWatchingException extends RuntimeException {
-    public UnableToStartWatchingException(String message, Throwable cause) {
+public class WatchingNotSupportedException extends RuntimeException {
+    public WatchingNotSupportedException(String message, Throwable cause) {
         super(message, cause);
     }
 }

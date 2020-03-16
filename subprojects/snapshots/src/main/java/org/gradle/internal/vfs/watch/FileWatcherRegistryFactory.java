@@ -24,5 +24,10 @@ import java.util.Collection;
 import java.util.function.Predicate;
 
 public interface FileWatcherRegistryFactory {
-    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, FileWatcherRegistry.ChangeHandler handler) throws IOException, UnableToStartWatchingException;
+    /**
+     * Start watching the given snapshot hierarchy.
+     *
+     * @throws WatchingNotSupportedException when the native watcher is unable to watch the given snapshot hierarchy.
+     */
+    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, FileWatcherRegistry.ChangeHandler handler) throws IOException, WatchingNotSupportedException;
 }

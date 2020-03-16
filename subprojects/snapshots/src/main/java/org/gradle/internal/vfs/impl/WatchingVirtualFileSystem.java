@@ -24,7 +24,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.gradle.internal.vfs.watch.UnableToStartWatchingException;
+import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -118,7 +118,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             });
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
-        } catch (UnableToStartWatchingException ex) {
+        } catch (WatchingNotSupportedException ex) {
             // No stacktrace here, since this is a known shortcoming of our implementation
             LOGGER.warn("Watching not supported, not tracking changes between builds: {}", ex.getMessage());
             invalidateAll();

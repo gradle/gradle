@@ -21,8 +21,8 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.gradle.internal.vfs.watch.UnableToStartWatchingException;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
+import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,7 +56,7 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
                 return new LinuxFileWatcherRegistry(directories, handler);
             } catch (NativeException e) {
                 if (e.getMessage().contains("Already watching path: ")) {
-                    throw new UnableToStartWatchingException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
+                    throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
                 }
                 throw e;
             }
