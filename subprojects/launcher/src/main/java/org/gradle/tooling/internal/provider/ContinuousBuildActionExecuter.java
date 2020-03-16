@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.file.FileSystemSubset;
 import org.gradle.api.logging.LogLevel;
@@ -49,6 +50,8 @@ import org.gradle.launcher.exec.BuildActionExecuter;
 import org.gradle.launcher.exec.BuildActionParameters;
 import org.gradle.launcher.exec.BuildActionResult;
 import org.gradle.util.DisconnectableInputStream;
+
+import java.util.function.Supplier;
 
 public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildActionParameters> {
     private final BuildActionExecuter<BuildActionParameters> delegate;
@@ -191,17 +194,18 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
         final FileSystemChangeWaiter waiter,
         ServiceRegistry buildSessionScopeServices
     ) {
-        try (AutoCloseable ignored = watchFileSystemInputsUsing(waiter)) {
-            return delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices);
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
-        }
+        return withTaskInputsListener(
+            (task, fileSystemInputs) -> waiter.watch(FileSystemSubset.of(fileSystemInputs)),
+            () -> delegate.execute(action, requestContext, actionParameters, buildSessionScopeServices)
+        );
     }
 
-    private AutoCloseable watchFileSystemInputsUsing(FileSystemChangeWaiter waiter) {
-        return inputsListeners.addListener(
-            (taskInternal, fileSystemInputs) ->
-                waiter.watch(FileSystemSubset.of(fileSystemInputs))
-        );
+    private <T> T withTaskInputsListener(TaskInputsListener listener, Supplier<T> supplier) {
+        try {
+            inputsListeners.addListener(listener);
+            return supplier.get();
+        } finally {
+            inputsListeners.removeListener(listener);
+        }
     }
 }

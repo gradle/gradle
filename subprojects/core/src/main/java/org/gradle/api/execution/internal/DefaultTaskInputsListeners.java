@@ -30,9 +30,8 @@ public class DefaultTaskInputsListeners implements TaskInputsListeners {
     }
 
     @Override
-    public AutoCloseable addListener(TaskInputsListener listener) {
+    public void addListener(TaskInputsListener listener) {
         broadcaster.add(listener);
-        return () -> removeListener(listener);
     }
 
     @Override

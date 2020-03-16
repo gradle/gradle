@@ -25,10 +25,9 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 public interface TaskInputsListeners {
 
     /**
-     * Registers the listener with the build and returns an {@link AutoCloseable} registration,
-     * the listener is unregistered once the returned registration is closed.
+     * Registers the listener with the build, the listener can be unregistered with {@link #removeListener(TaskInputsListener)}.
      */
-    AutoCloseable addListener(TaskInputsListener listener);
+    void addListener(TaskInputsListener listener);
 
     void removeListener(TaskInputsListener listener);
 
