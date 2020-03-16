@@ -50,7 +50,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
         this.classMappings = CacheBuilder.newBuilder().build(new PotentialPluginCacheLoader(pluginInspector));
         this.idMappings = CacheBuilder.newBuilder().build(new CacheLoader<PluginIdLookupCacheKey, Optional<PluginImplementation<?>>>() {
             @Override
-            public Optional<PluginImplementation<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) throws Exception {
+            public Optional<PluginImplementation<?>> load(@SuppressWarnings("NullableProblems") PluginIdLookupCacheKey key) {
                 PluginId pluginId = key.getId();
                 ClassLoader classLoader = key.getClassLoader();
 
@@ -118,7 +118,7 @@ public class DefaultPluginRegistry implements PluginRegistry {
     @Nullable
     @Override
     public PluginImplementation<?> lookup(PluginId pluginId) {
-        PluginImplementation lookup;
+        PluginImplementation<?> lookup;
         if (parent != null) {
             lookup = parent.lookup(pluginId);
             if (lookup != null) {
@@ -126,7 +126,11 @@ public class DefaultPluginRegistry implements PluginRegistry {
             }
         }
 
-        return lookup(pluginId, classLoaderScope.getLocalClassLoader());
+        lookup = lookup(pluginId, classLoaderScope.getLocalClassLoader());
+        if (lookup != null) {
+            return lookup;
+        }
+        return lookup(pluginId, Thread.currentThread().getContextClassLoader());
     }
 
     @Nullable

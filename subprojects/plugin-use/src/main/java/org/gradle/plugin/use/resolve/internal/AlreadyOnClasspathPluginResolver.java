@@ -17,9 +17,9 @@
 package org.gradle.plugin.use.resolve.internal;
 
 import org.gradle.api.internal.initialization.ClassLoaderScope;
+import org.gradle.api.internal.plugins.DefaultPluginManager;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginInspector;
-import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
 import org.gradle.internal.classpath.ClassPath;
@@ -34,14 +34,12 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     private static final Factory<ClassPath> EMPTY_CLASSPATH_FACTORY = Factories.constant(ClassPath.EMPTY);
 
     private final PluginResolver delegate;
-    private final PluginRegistry corePluginRegistry;
     private final PluginDescriptorLocator pluginDescriptorLocator;
     private final ClassLoaderScope parentLoaderScope;
     private final PluginInspector pluginInspector;
 
-    public AlreadyOnClasspathPluginResolver(PluginResolver delegate, PluginRegistry corePluginRegistry, ClassLoaderScope parentLoaderScope, PluginDescriptorLocator pluginDescriptorLocator, PluginInspector pluginInspector) {
+    public AlreadyOnClasspathPluginResolver(PluginResolver delegate, ClassLoaderScope parentLoaderScope, PluginDescriptorLocator pluginDescriptorLocator, PluginInspector pluginInspector) {
         this.delegate = delegate;
-        this.corePluginRegistry = corePluginRegistry;
         this.pluginDescriptorLocator = pluginDescriptorLocator;
         this.parentLoaderScope = parentLoaderScope;
         this.pluginInspector = pluginInspector;
@@ -49,11 +47,28 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
 
     @Override
     public void resolve(PluginRequestInternal pluginRequest, PluginResolutionResult result) {
+        validatePluginRequest(pluginRequest);
+
         PluginId pluginId = pluginRequest.getId();
-        if (isCorePlugin(pluginId) || !isPresentOnClasspath(pluginId)) {
+        if (hasGradleNamespace(pluginId)) {
             delegate.resolve(pluginRequest, result);
-        } else if (pluginRequest.getOriginalRequest().getVersion() != null) {
-            if (pluginRequest.getId().equals(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID)) {
+            if (result.isFound()) {
+                return;
+            }
+        }
+
+        if (!isPresentOnClasspath(pluginId)) {
+            delegate.resolve(pluginRequest, result);
+        } else {
+            resolveAlreadyOnClasspath(pluginId, result);
+        }
+    }
+
+    private void validatePluginRequest(PluginRequestInternal pluginRequest) {
+        PluginId pluginId = pluginRequest.getId();
+
+        if (!hasGradleNamespace(pluginId) && isPresentOnClasspath(pluginId) && pluginRequest.getOriginalRequest().getVersion() != null) {
+            if (pluginId.equals(AutoAppliedGradleEnterprisePlugin.BUILD_SCAN_PLUGIN_ID)) {
                 if (isPresentOnClasspath(AutoAppliedGradleEnterprisePlugin.ID)) {
                     // The JAR that contains the enterprise plugin also contains the build scan plugin.
                     // If the user is in the process of migrating to Gradle 6 and has not yet moved away from the scan plugin,
@@ -64,8 +79,6 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
                 }
             }
             throw new InvalidPluginRequestException(pluginRequest, "Plugin request for plugin already on the classpath must not include a version");
-        } else {
-            resolveAlreadyOnClasspath(pluginId, result);
         }
     }
 
@@ -78,7 +91,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
         return pluginDescriptorLocator.findPluginDescriptor(pluginId.toString()) != null;
     }
 
-    private boolean isCorePlugin(PluginId pluginId) {
-        return corePluginRegistry.lookup(pluginId) != null;
+    private static boolean hasGradleNamespace(PluginId pluginId) {
+        return pluginId.getNamespace() != null && pluginId.getNamespace().startsWith(DefaultPluginManager.CORE_PLUGIN_NAMESPACE);
     }
 }

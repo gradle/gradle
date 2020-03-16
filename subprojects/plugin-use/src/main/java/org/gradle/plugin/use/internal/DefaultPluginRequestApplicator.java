@@ -222,7 +222,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         ClassLoaderScope parentLoaderScope = classLoaderScope.getParent();
         PluginDescriptorLocator scriptClasspathPluginDescriptorLocator = new ClassloaderBackedPluginDescriptorLocator(parentLoaderScope.getExportClassLoader());
         PluginResolver pluginResolver = pluginResolverFactory.create();
-        return new AlreadyOnClasspathPluginResolver(pluginResolver, pluginRegistry, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector);
+        return new AlreadyOnClasspathPluginResolver(pluginResolver, parentLoaderScope, scriptClasspathPluginDescriptorLocator, pluginInspector);
     }
 
     private void applyPlugin(PluginRequestInternal request, PluginId id, Runnable applicator) {
