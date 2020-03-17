@@ -107,10 +107,8 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
                     writeGreetTask "AnotherTask", CHANGED_GREETING
                     break
                 case BuildSrcChange.CHANGE_RESOURCE:
-                    writeBuildSrcResource "42"
-                    break
                 case BuildSrcChange.ADD_RESOURCE:
-                    writeBuildSrcResource ""
+                    writeBuildSrcResource "42"
                     break
             }
         }
@@ -138,31 +136,47 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         private void writeGreetTask(String className, String greeting) {
             switch (language) {
                 case BuildSrcLanguage.JAVA:
-                    file("buildSrc/src/main/java/${className}.java").text = """
-                        public class $className extends ${DefaultTask.name} {
-                            @${TaskAction.name} void greet() { System.out.println("$greeting"); }
-                        }
-                    """
+                    writeJavaTask(className, greeting)
                     break
                 case BuildSrcLanguage.GROOVY:
-                    file("buildSrc/src/main/groovy/${className}.groovy").text = """
-                        public class $className extends ${DefaultTask.name} {
-                            @${TaskAction.name} void greet() { System.out.println("$greeting"); }
-                        }
-                    """
+                    writeGroovyTask(className, greeting)
                     break
                 case BuildSrcLanguage.KOTLIN:
-                    file("buildSrc/src/main/kotlin/${className}.kt").text = """
-                        open class $className : ${DefaultTask.name}() {
-                            @${TaskAction.name} fun greet() { println("$greeting") }
-                        }
-                    """
+                    writeKotlinTask(className, greeting)
                     break
             }
         }
 
+        private void writeJavaTask(String className, String greeting) {
+            writeBuildSrcSource "java", "${className}.java", """
+                public class $className extends ${DefaultTask.name} {
+                    @${TaskAction.name} void greet() { System.out.println("$greeting"); }
+                }
+            """
+        }
+
+        private void writeGroovyTask(String className, String greeting) {
+            writeBuildSrcSource "groovy", "${className}.groovy", """
+                public class $className extends ${DefaultTask.name} {
+                    @${TaskAction.name} void greet() { System.out.println("$greeting"); }
+                }
+            """
+        }
+
+        private void writeKotlinTask(String className, String greeting) {
+            writeBuildSrcSource "kotlin", "${className}.kt", """
+                open class $className : ${DefaultTask.name}() {
+                    @${TaskAction.name} fun greet() { println("$greeting") }
+                }
+            """
+        }
+
         private void writeBuildSrcResource(String text) {
-            file("buildSrc/src/main/resources/resource.txt").text = text
+            writeBuildSrcSource "resources", "resource.txt", text
+        }
+
+        private void writeBuildSrcSource(String sourceSet, String fileName, String text) {
+            file("buildSrc/src/main/" + sourceSet + "/" + fileName).text = text
         }
 
         private TestFile file(String path) {
