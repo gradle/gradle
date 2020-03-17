@@ -1866,14 +1866,15 @@ public class AsmBackedClassGeneratorTest {
         abstract InterfacePropertyBean getPropBean();
     }
 
-    public static class NestedBeanClass {
+    public static abstract class NestedBeanClass {
         private final InterfaceFileCollectionBean filesBean;
         private final InterfacePropertyBean propBean;
+        private InterfacePropertyBean mutableProperty;
 
-        @Inject
-        NestedBeanClass(ObjectFactory objectFactory) {
+        public NestedBeanClass(ObjectFactory objectFactory) {
             this.filesBean = objectFactory.newInstance(InterfaceFileCollectionBean.class);
             this.propBean = objectFactory.newInstance(InterfacePropertyBean.class);
+            this.mutableProperty = objectFactory.newInstance(InterfacePropertyBean.class);
         }
 
         @Nested
@@ -1882,8 +1883,17 @@ public class AsmBackedClassGeneratorTest {
         }
 
         @Nested
-        InterfacePropertyBean getPropBean() {
+        final InterfacePropertyBean getFinalProp() {
             return propBean;
+        }
+
+        @Nested
+        InterfacePropertyBean getMutableProperty() {
+            return mutableProperty;
+        }
+
+        void setMutableProperty(InterfacePropertyBean mutableProperty) {
+            this.mutableProperty = mutableProperty;
         }
     }
 

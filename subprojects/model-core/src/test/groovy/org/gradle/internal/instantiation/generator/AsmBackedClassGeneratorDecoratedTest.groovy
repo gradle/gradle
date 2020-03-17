@@ -29,12 +29,13 @@ import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.UsesToStringInConstructor
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
     final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
@@ -97,13 +98,13 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
 
     def "assigns display name to read only property of type Property<T>"() {
         given:
-        def finalReadOnlyBean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"), TestUtil.objectFactory())
-        def readOnlyBean = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
-        def readOnlyBeanWithMapping = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def finalReadOnlyBean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"))
+        def readOnlyBean = create(HasReadOnlyProperty, Describables.of("<display name>"))
+        def readOnlyBeanWithMapping = create(HasReadOnlyProperty, Describables.of("<display name>"))
         readOnlyBeanWithMapping.conventionMapping.map("other") { "ignore" }
-        def finalBeanWithOverloads = create(HasReadOnlyFinalBooleanPropertyWithOverloads, Describables.of("<display name>"), TestUtil.objectFactory())
-        def beanWithOverloads = create(HasReadOnlyBooleanPropertyWithOverloads, Describables.of("<display name>"), TestUtil.objectFactory())
-        def mutableBean = create(HasMutableProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def finalBeanWithOverloads = create(HasReadOnlyFinalBooleanPropertyWithOverloads, Describables.of("<display name>"))
+        def beanWithOverloads = create(HasReadOnlyBooleanPropertyWithOverloads, Describables.of("<display name>"))
+        def mutableBean = create(HasMutableProperty, Describables.of("<display name>"))
 
         expect:
         finalReadOnlyBean.someValue.toString() == "<display name> property 'someValue'"
@@ -111,7 +112,23 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         readOnlyBeanWithMapping.someValue.toString() == "<display name> property 'someValue'"
         finalBeanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
         beanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
+
+        // Does not assign display name to mutable property
         mutableBean.someValue.toString() == "property(class java.lang.String, undefined)"
+    }
+
+    def "assigns display name to read only non-final nested property that is not managed"() {
+        def bean = create(NestedBeanClass)
+        def beanWithDisplayName = create(NestedBeanClass, Describables.of("<display-name>"))
+
+        expect:
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        bean.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
     }
 
     def "can attach nested extensions to object"() {

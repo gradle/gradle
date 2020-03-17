@@ -126,10 +126,12 @@ public class JavaPropertyReflectionUtil {
         }
     }
 
+    @Nullable
     public static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType) {
         return getAnnotation(type, annotationType, true);
     }
 
+    @Nullable
     private static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType, boolean checkType) {
         A annotation;
         if (checkType) {

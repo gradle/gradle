@@ -80,8 +80,7 @@ public class JavaCompile extends AbstractCompile {
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
 
     public JavaCompile() {
-        CompileOptions compileOptions = getProject().getObjects().newInstance(CompileOptions.class);
-        this.compileOptions = compileOptions;
+        compileOptions = getProject().getObjects().newInstance(CompileOptions.class);
 
         // Work around for https://github.com/gradle/gradle/issues/6619
         ((PropertyInternal<?>) compileOptions.getHeaderOutputDirectory()).attachProducer(this);

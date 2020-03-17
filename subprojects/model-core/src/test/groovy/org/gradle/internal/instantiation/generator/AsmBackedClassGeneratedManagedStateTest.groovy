@@ -25,7 +25,6 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
@@ -36,6 +35,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceContainerPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDomainSetPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileTreeBean
@@ -46,7 +46,11 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyWithParamTypeBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceSetPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceUsesToStringBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceWithDefaultMethods
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NamedBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClassWithToString
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Param
 
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
@@ -255,16 +259,18 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
     }
 
-    def "does not assign display name for nested object that is not managed"() {
-        def bean = create(NestedBeanClass, TestUtil.objectFactory())
-        def beanWithDisplayName = create(NestedBeanClass, Describables.of("<display-name>"), TestUtil.objectFactory())
+    def "assigns display name to read only non-final nested property that is not managed"() {
+        def bean = create(NestedBeanClass)
+        def beanWithDisplayName = create(NestedBeanClass, Describables.of("<display-name>"))
 
         expect:
-        bean.filesBean.toString().startsWith("${InterfaceFileCollectionBean.name}_Decorated@")
-        bean.propBean.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        bean.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
 
-        beanWithDisplayName.filesBean.toString().startsWith("${InterfaceFileCollectionBean.name}_Decorated@")
-        beanWithDisplayName.propBean.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
     }
 
     @Unroll
