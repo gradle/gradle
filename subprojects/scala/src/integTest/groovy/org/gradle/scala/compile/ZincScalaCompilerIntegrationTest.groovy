@@ -28,7 +28,9 @@ import org.junit.Assume
 import org.junit.Rule
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
+import static org.gradle.util.TextUtil.escapeString
 import static org.gradle.util.TextUtil.normaliseFileSeparators
+import static org.hamcrest.core.IsNull.notNullValue
 
 @TargetCoverage({ScalaCoverage.DEFAULT})
 class ZincScalaCompilerIntegrationTest extends MultiVersionIntegrationSpec {
@@ -145,10 +147,10 @@ compileScala.scalaCompileOptions.failOnError = false
     }
 
     def "respects fork options settings and executable"() {
-        def differentJvm = AvailableJavaHomes.differentJdkWithValidJre
-        Assume.assumeNotNull(differentJvm)
+        def differentJvm = AvailableJavaHomes.differentJdk
+        Assume.assumeThat(differentJvm, notNullValue())
         def differentJavaExecutablePath = normaliseFileSeparators(differentJvm.javaExecutable.absolutePath)
-        def differentJavaExecutableCanonicalPath = normaliseFileSeparators(differentJvm.javaExecutable.canonicalPath)
+        def differentJavaExecutableCanonicalPath = escapeString(differentJvm.javaExecutable.canonicalPath)
 
         file("build.gradle") << """
             import org.gradle.workers.internal.WorkerDaemonClientsManager
