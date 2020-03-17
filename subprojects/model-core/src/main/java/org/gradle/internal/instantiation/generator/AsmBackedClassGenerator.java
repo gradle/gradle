@@ -1309,55 +1309,60 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         @Override
         public void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner) {
-            if (!conventionAware) {
+            if (!conventionAware && !attachOwner) {
                 return;
             }
 
-            // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__); }
-            String flagName = propFieldName(property);
             String getterName = getter.getName();
-
             Type returnType = Type.getType(getter.getReturnType());
             String methodDescriptor = Type.getMethodDescriptor(returnType);
             MethodVisitor methodVisitor = visitor.visitMethod(ACC_PUBLIC, getterName, methodDescriptor, null, EMPTY_STRINGS);
             methodVisitor.visitCode();
 
-            Label finish = new Label();
+            if (conventionAware) {
+                // GENERATE public <type> <getter>() { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__); }
+                Label finish = new Label();
 
-            if (hasMappingField) {
-                // if (conventionMapping == null) { return super.<getter>; }
+                if (hasMappingField) {
+                    // if (conventionMapping == null) { return super.<getter>; }
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR);
+                    Label useConvention = new Label();
+                    methodVisitor.visitJumpInsn(IFNONNULL, useConvention);
+                    methodVisitor.visitVarInsn(ALOAD, 0);
+                    methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), getterName, methodDescriptor, type.isInterface());
+                    methodVisitor.visitJumpInsn(GOTO, finish);
+                    methodVisitor.visitLabel(useConvention);
+                }
+                // else { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__);  }
                 methodVisitor.visitVarInsn(ALOAD, 0);
-                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), MAPPING_FIELD, CONVENTION_MAPPING_FIELD_DESCRIPTOR);
-                Label useConvention = new Label();
-                methodVisitor.visitJumpInsn(IFNONNULL, useConvention);
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_AWARE_TYPE.getInternalName(), "getConventionMapping", Type.getMethodDescriptor(CONVENTION_MAPPING_TYPE), true);
+
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), getterName, methodDescriptor, type.isInterface());
-                methodVisitor.visitJumpInsn(GOTO, finish);
-                methodVisitor.visitLabel(useConvention);
+
+                maybeBox(methodVisitor, getter.getReturnType(), returnType);
+
+                methodVisitor.visitLdcInsn(property.getName());
+
+                String flagName = propFieldName(property);
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), flagName,
+                    Type.BOOLEAN_TYPE.getDescriptor());
+
+                methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "getConventionValue", RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN, true);
+
+                unboxOrCast(methodVisitor, getter.getReturnType(), returnType);
+
+                methodVisitor.visitLabel(finish);
+            } else {
+                // GENERATE super.<getter>()
+                methodVisitor.visitVarInsn(ALOAD, 0);
+                methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), getterName, methodDescriptor, type.isInterface());
             }
-            // else { return (<type>)getConventionMapping().getConventionValue(super.<getter>(), '<prop>', __<prop>__);  }
-            methodVisitor.visitVarInsn(ALOAD, 0);
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_AWARE_TYPE.getInternalName(), "getConventionMapping", Type.getMethodDescriptor(CONVENTION_MAPPING_TYPE), true);
-
-            methodVisitor.visitVarInsn(ALOAD, 0);
-            methodVisitor.visitMethodInsn(INVOKESPECIAL, superclassType.getInternalName(), getterName, methodDescriptor, type.isInterface());
-
-            maybeBox(methodVisitor, getter.getReturnType(), returnType);
-
-            methodVisitor.visitLdcInsn(property.getName());
-
-            methodVisitor.visitVarInsn(ALOAD, 0);
-            methodVisitor.visitFieldInsn(GETFIELD, generatedType.getInternalName(), flagName,
-                Type.BOOLEAN_TYPE.getDescriptor());
-
-            methodVisitor.visitMethodInsn(INVOKEINTERFACE, CONVENTION_MAPPING_TYPE.getInternalName(), "getConventionValue", RETURN_OBJECT_FROM_STRING_OBJECT_BOOLEAN, true);
-
-            unboxOrCast(methodVisitor, getter.getReturnType(), returnType);
-
-            methodVisitor.visitLabel(finish);
 
             if (attachOwner) {
-                // ManagedObjectFactory.attachOwner(this, <value>, <property-name>)
+                // GENERATE ManagedObjectFactory.attachOwner(this, <value>, <property-name>)
                 methodVisitor.visitVarInsn(ASTORE, 1);
                 methodVisitor.visitVarInsn(ALOAD, 0);
                 methodVisitor.visitLdcInsn(property.getName());

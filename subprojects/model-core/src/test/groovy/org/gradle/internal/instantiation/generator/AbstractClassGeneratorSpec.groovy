@@ -27,6 +27,8 @@ import org.junit.ClassRule
 import spock.lang.Shared
 import spock.lang.Specification
 
+import javax.annotation.Nullable
+
 abstract class AbstractClassGeneratorSpec extends Specification {
     @ClassRule
     @Shared
@@ -62,21 +64,20 @@ abstract class AbstractClassGeneratorSpec extends Specification {
 
     ServiceLookup defaultServices() {
         ServiceLookup services = Mock(ServiceLookup)
+        _ * services.find(InstantiatorFactory.class) >> { TestUtil.instantiatorFactory() }
         _ * services.get(InstantiatorFactory.class) >> { TestUtil.instantiatorFactory() }
+        _ * services.find(ObjectFactory.class) >> { TestUtil.objectFactory(tmpDir.testDirectory) }
         _ * services.get(ObjectFactory.class) >> { TestUtil.objectFactory(tmpDir.testDirectory) }
         return services
     }
 
-    protected <T> T doCreate(ClassGenerator generator, Class<T> clazz, ServiceLookup services, Describable displayName, Object[] args) {
-        def type = generator.generate(clazz)
-        def instantiator = Stub(InstanceGenerator) {
-            _ * newInstance(_, _) >> { Class<Object> nested, Object[] nestedArgs ->
-                return doCreate(generator, nested, services, (Describable) null, nestedArgs)
-            }
-            _ * newInstanceWithDisplayName(_, _, _) >> { Class<Object> nested, Describable name, Object[] nestedArgs ->
-                return doCreate(generator, nested, services, name, nestedArgs)
-            }
+    protected <T> T doCreate(ClassGenerator generator, Class<T> clazz, ServiceLookup services, @Nullable Describable displayName, Object[] args) {
+        generator.generate(clazz)
+        def instantiator = new DependencyInjectingInstantiator(new ParamsMatchingConstructorSelector(generator), services)
+        if (displayName == null) {
+            return instantiator.newInstance(clazz, args)
+        } else {
+            return instantiator.newInstanceWithDisplayName(clazz, displayName, args)
         }
-        return type.constructors[0].newInstance(services, instantiator, displayName, args)
     }
 }
