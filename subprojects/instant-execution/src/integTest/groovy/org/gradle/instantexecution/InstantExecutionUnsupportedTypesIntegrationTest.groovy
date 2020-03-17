@@ -121,7 +121,6 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         )
 
         when:
-        withFailOnProblems()
         instantRun "broken"
 
         then:

@@ -48,7 +48,6 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         htmlReportDir.assertDoesNotExist()
 
         and:
-        withFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
 
         then:
