@@ -18,14 +18,14 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.internal.service.scopes.BuildTree
+import org.gradle.internal.service.scopes.ServiceScope
 
 
 class ServicesCodec : EncodingProducer, Decoding {
     override fun encodingForType(type: Class<*>): Encoding? {
         // Only handle build tree scoped service for now
         // TODO - perhaps query the isolate owner to see whether the value is in fact a service
-        return if (type.getAnnotation(BuildTree::class.java) != null) {
+        return if (type.getAnnotation(ServiceScope::class.java) != null) {
             OwnerServiceEncoding
         } else {
             null
