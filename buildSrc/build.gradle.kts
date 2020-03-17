@@ -88,6 +88,10 @@ allprojects {
             }
         }
         maven {
+            name = "Gradle Enterprise Gradle plugin RC"
+            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
+        }
+        maven {
             name = "kotlinx"
             url = uri("https://dl.bintray.com/kotlin/kotlinx")
         }
