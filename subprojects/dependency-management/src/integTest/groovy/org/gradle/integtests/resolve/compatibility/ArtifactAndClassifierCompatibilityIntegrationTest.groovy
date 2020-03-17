@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.compatibility
 
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
-import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 
 class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDependencyResolveTest {
@@ -171,7 +170,6 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
     }
 
     @Issue("gradle/gradle#11825")
-    @ToBeImplemented
     def "dependency on both classifier and regular jar of a given module"() {
         given:
         repository {
@@ -194,10 +192,6 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             }
         """
 
-        // This flag and its use has to be removed to have the right behavior with GMM
-        and:
-        def metadataPublished = isGradleMetadataPublished()
-
         when:
         repositoryInteractions {
             'org:foo:1.0' {
@@ -205,9 +199,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             }
             'org:bar:1.0' {
                 expectGetMetadata()
-                if (!metadataPublished) {
-                    expectGetArtifact()
-                }
+                expectGetArtifact()
                 expectGetArtifact(classifier: 'classy')
             }
         }
@@ -218,9 +210,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             root(':', ':test:') {
                 module("org:foo:1.0") {
                     module("org:bar:1.0") {
-                        if (!metadataPublished) {
-                            artifact([:])
-                        }
+                        artifact([:])
                         artifact(classifier: 'classy')
                     }
                 }
@@ -229,7 +219,6 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
     }
 
     @Issue("gradle/gradle#11825")
-    @ToBeImplemented
     def "dependency on different classifiers of a given module"() {
         given:
         repository {
@@ -253,10 +242,6 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             }
         """
 
-        // This flag and its use has to be removed to have the right behavior with GMM
-        and:
-        def metadataPublished = isGradleMetadataPublished()
-
         when:
         repositoryInteractions {
             'org:foo:1.0' {
@@ -264,9 +249,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             }
             'org:bar:1.0' {
                 expectGetMetadata()
-                if (!metadataPublished) {
-                    expectGetArtifact(classifier: 'other')
-                }
+                expectGetArtifact(classifier: 'other')
                 expectGetArtifact(classifier: 'classy')
             }
         }
@@ -277,9 +260,7 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
             root(':', ':test:') {
                 module("org:foo:1.0") {
                     module("org:bar:1.0") {
-                        if (!metadataPublished) {
-                            artifact(classifier: 'other')
-                        }
+                        artifact(classifier: 'other')
                         artifact(classifier: 'classy')
                     }
                 }
