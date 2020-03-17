@@ -301,7 +301,7 @@ See link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--
 
 [NOTE]
 ====
-There are some known limitations of using JUnit 5 with Gradle, for example that tests in static nested classes won't be discovered and classes are still displayed by their class name instead of `@DisplayName`. These will be fixed in future version of Gradle. If you find more, please tell us at https://github.com/gradle/gradle/issues/new
+There are some known limitations of using JUnit 5 with Gradle, for example that tests in static nested classes won't be discovered. These will be fixed in future version of Gradle. If you find more, please tell us at https://github.com/gradle/gradle/issues/new
 ====
 
 [[compiling_and_executing_junit_jupiter_tests]]
