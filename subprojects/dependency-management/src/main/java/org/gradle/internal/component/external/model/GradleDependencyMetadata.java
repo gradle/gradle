@@ -128,7 +128,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public boolean isTransitive() {
-        return true;
+        // Constraints are _never_ transitive
+        return !isConstraint();
     }
 
     @Override
