@@ -34,7 +34,7 @@
 pluginManagement {
   val helloPluginVersion: String by settings
   plugins {
-    id("org.gradle.sample.hello") version "${helloPluginVersion}"
+    id("com.example.hello") version "${helloPluginVersion}"
   }
 // end::configure-plugin-version[]
   repositories {

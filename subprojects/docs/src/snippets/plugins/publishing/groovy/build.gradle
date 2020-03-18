@@ -5,18 +5,18 @@ plugins {
     id 'ivy-publish'
 }
 
-group 'org.gradle.sample'
+group 'com.example'
 version '1.0.0'
 
 gradlePlugin {
     plugins {
         hello {
-            id = 'org.gradle.sample.hello'
-            implementationClass = 'org.gradle.sample.hello.HelloPlugin'
+            id = 'com.example.hello'
+            implementationClass = 'com.example.hello.HelloPlugin'
         }
         goodbye {
-            id = 'org.gradle.sample.goodbye'
-            implementationClass = 'org.gradle.sample.goodbye.GoodbyePlugin'
+            id = 'com.example.goodbye'
+            implementationClass = 'com.example.goodbye.GoodbyePlugin'
         }
     }
 }

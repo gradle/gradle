@@ -18,8 +18,8 @@
 pluginManagement {
     resolutionStrategy {
         eachPlugin {
-            if (requested.id.namespace == "org.gradle.sample") {
-                useModule("org.gradle.sample:sample-plugins:1.0.0")
+            if (requested.id.namespace == "com.example") {
+                useModule("com.example:sample-plugins:1.0.0")
             }
         }
     }
