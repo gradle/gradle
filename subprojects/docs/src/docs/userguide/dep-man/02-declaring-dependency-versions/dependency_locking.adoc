@@ -86,6 +86,7 @@ In order to generate or update lock state, you specify the `--write-locks` comma
 This will cause the creation of lock state for each resolved configuration in that build execution.
 Note that if lock state existed previously, it is overwritten.
 
+[[lock_all_configurations_in_one_build_execution]]
 === Lock all configurations in one build execution
 
 When locking multiple configurations, you may want to lock them all at once, during a single build execution.
@@ -143,6 +144,7 @@ The complete validation is as follows:
 ** A version mismatch or missing resolved module causes a build failure
 * Resolution result must not contain extra dependencies compared to the lock state
 
+[[fine_tuning_dependency_locking_behaviour_with_lock_mode]]
 === Fine tuning dependency locking behaviour with lock mode
 
 While the default lock mode behaves as described above, two other modes are available:
@@ -161,6 +163,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/l
 include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockModeSelection/kotlin",files="build.gradle.kts[tags=lock-mode]"]
 ====
 
+[[selectively_updating_lock_state_entries]]
 == Selectively updating lock state entries
 
 In order to update only specific modules of a configuration, you can use the `--update-locks` command line flag.
@@ -190,6 +193,68 @@ The resolution may cause other module versions to update, as dictated by the Gra
 
 If you only perform the second step above, then locking will effectively no longer be applied.
 However, if that configuration happens to be resolved in the future at a time where lock state is persisted, it will once again be locked.
+
+== Single lock file per project
+
+Gradle now supports an improved lock file format.
+The goal is to have only a single lock file per project, which contains the lock state for all configurations of said project.
+By default the file is named `gradle.lockfile` and is located inside the project directory.
+The lock state for the buildscript itself is found in a file named `buildscript-gradle.lockfile` inside the project directory.
+
+The main benefit is a substantial reduction in the number of lock files compared to the existing format.
+
+This format is experimental and requires opt-in.
+
+[NOTE]
+====
+The objective is to default to this single lock file per project in Gradle 7.0.
+====
+
+The new format can be activated by enabling the matching <<feature_lifecycle#feature_preview, feature preview>>:
+
+.Single lock file per project activation
+====
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/kotlin",files="settings.gradle.kts[]"]
+====
+
+Then with the following dependency declaration and locked configurations:
+
+.Explicit locking
+====
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-explicit]"]
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-explicit]"]
+====
+
+The lockfile will have the following content:
+
+[listing]
+.gradle.lockfile
+----
+include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/groovy/gradle.lockfile[]
+----
+
+* Each line still represents a single dependency in the `group:artifact:version` notation
+* Each line then lists all configurations that contain the given dependency
+* The last line of the file lists all empty configurations, that is configurations known to have no dependencies
+
+=== Migrating to the new file format
+
+Once you have activated the feature preview (see above), you can simply follow the documentation for <<#lock_all_configurations_in_one_build_execution, writing>> or <<#selectively_updating_lock_state_entries, updating>> dependency lock state.
+
+Then after confirming the single lock file per project contains the lock state for a given configuration, the matching per configuration lock file can be removed from `gradle/dependency-locks`.
+
+=== Configuring the per project lock file name and location
+
+When using the single lock file per project, you can configure its name and location.
+The main reason for providing this is to enable having a file name that is determined by some project properties, effectively allowing a single project to store different lock state for different execution contexts.
+One trivial example in the JVM ecosystem is the Scala version that is often found in artifact coordinates.
+
+.Changing the lock file name
+====
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-file-name]"]
+include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-file-name]"]
+====
 
 [[locking_limitations]]
 == Locking limitations
