@@ -29,6 +29,7 @@ import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
 import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
@@ -47,6 +48,7 @@ import org.gradle.instantexecution.serialization.logNotImplemented
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readFile
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
@@ -63,15 +65,14 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
 import java.io.File
+import java.io.OutputStream
 import java.nio.file.Files
 import java.util.ArrayList
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.startCoroutine
 
 
 class DefaultInstantExecution internal constructor(
@@ -122,7 +123,6 @@ class DefaultInstantExecution internal constructor(
             false
         }
         else -> {
-
             val fingerprintChangedReason = checkFingerprint()
             when {
                 fingerprintChangedReason != null -> {
@@ -287,15 +287,22 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun withWriteContextFor(file: File, report: InstantExecutionReport, writeOperation: suspend DefaultWriteContext.() -> Unit) {
-        KryoBackedEncoder(file.outputStream()).use { encoder ->
-            writeContextFor(encoder, report).run {
-                runToCompletion {
-                    writeOperation()
-                }
-            }
+    fun withWriteContextFor(
+        file: File,
+        report: InstantExecutionReport,
+        writeOperation: suspend DefaultWriteContext.() -> Unit
+    ) {
+        writerContextFor(file.outputStream(), report).useToRun {
+            runWriteOperation(writeOperation)
         }
     }
+
+    private
+    fun writerContextFor(outputStream: OutputStream, report: InstantExecutionReport) =
+        writeContextFor(
+            KryoBackedEncoder(outputStream),
+            report
+        )
 
     private
     fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.() -> R): R =
@@ -554,22 +561,3 @@ fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
 
 private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
-
-
-/**
- * [Starts][startCoroutine] the suspending [block], asserts it runs
- * to completion and returns its result.
- */
-internal
-fun <R> runToCompletion(block: suspend () -> R): R {
-    var completion: Result<R>? = null
-    block.startCoroutine(Continuation(EmptyCoroutineContext) {
-        completion = it
-    })
-    return completion.let {
-        require(it != null) {
-            "Coroutine didn't run to completion."
-        }
-        it.getOrThrow()
-    }
-}

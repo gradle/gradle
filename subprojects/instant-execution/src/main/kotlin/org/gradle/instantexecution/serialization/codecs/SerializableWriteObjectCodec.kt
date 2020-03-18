@@ -16,8 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.instantexecution.runToCompletion
-
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.serialization.EncodingProvider
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext

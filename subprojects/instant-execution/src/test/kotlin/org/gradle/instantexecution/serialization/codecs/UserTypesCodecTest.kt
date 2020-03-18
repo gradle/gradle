@@ -21,8 +21,8 @@ import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
-import org.gradle.instantexecution.runToCompletion
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -333,12 +333,10 @@ class UserTypesCodecTest {
         codec: Codec<Any?>,
         problemHandler: (PropertyProblem) -> Unit = mock()
     ) {
-        KryoBackedEncoder(outputStream).use { encoder ->
-            writeContextFor(encoder, codec, problemHandler).run {
-                withIsolateMock(codec) {
-                    runToCompletion {
-                        write(graph)
-                    }
+        writeContextFor(KryoBackedEncoder(outputStream), codec, problemHandler).useToRun {
+            withIsolateMock(codec) {
+                runToCompletion {
+                    write(graph)
                 }
             }
         }

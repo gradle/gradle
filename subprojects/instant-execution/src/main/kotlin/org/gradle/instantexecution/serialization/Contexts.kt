@@ -47,7 +47,8 @@ class DefaultWriteContext(
     private
     val problemHandler: (PropertyProblem) -> Unit
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
+
     override val sharedIdentities = WriteIdentities()
 
     private
@@ -59,9 +60,12 @@ class DefaultWriteContext(
     private
     val scopes = WriteIdentities()
 
+    override fun close() {
+        (encoder as? AutoCloseable)?.close()
+    }
+
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
-
 
     override val isolate: WriteIsolate
         get() = getIsolate()
