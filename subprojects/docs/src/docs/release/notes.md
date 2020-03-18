@@ -51,18 +51,8 @@ The Java `native` keyword allows declaring methods that are implemented in nativ
 The Java compiler can then generate native headers that should be implemented.
 It is most commonly used with [Java Native Interface (JNI)](https://docs.oracle.com/en/java/javase/11/docs/specs/jni/index.html).
 
-The Java compile task for each Java source set has a default location to generate native headers into.
-
-Some tools may expect header files in a different location. It can be changed now if needed:
-
-```groovy
-compileJava {
-    options {
-        headerOutputDirectory.set(
-            layout.buildDirectory.dir("native-headers"))
-    }
-}
-```
+In previous releases, it was possible to configure the header output directory but it had no default value, so you had to configure it if you wanted to use JNI. In this release, there is a default value for the compile task for each source set so you don’t need to any more.
+If you had a custom header location set before, it is advised to remove it and just use the default value.
 
 Please see the [DSL guide](dsl/org.gradle.api.tasks.compile.CompileOptions.html#org.gradle.api.tasks.compile.CompileOptions:headerOutputDirectory) for more details.
 
