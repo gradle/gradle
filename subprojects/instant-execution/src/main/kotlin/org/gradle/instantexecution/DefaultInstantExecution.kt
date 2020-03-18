@@ -69,6 +69,7 @@ import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
+import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.OutputStream
 import java.nio.file.Files
@@ -168,12 +169,15 @@ class DefaultInstantExecution internal constructor(
                 instantExecutionStateFile.createParentDirectories()
 
                 service<ProjectStateRegistry>().withLenientState {
-                    withWriteContextFor(instantExecutionStateFile, report) {
+                    withWriteContextFor(instantExecutionStateFile) {
                         encodeScheduledWork()
                     }
                 }
-                withWriteContextFor(instantExecutionFingerprintFile, report) {
-                    encodeFingerprint()
+
+                instantExecutionInputs!!.run {
+                    instantExecutionFingerprintFile
+                        .outputStream()
+                        .use(outputStream::writeTo)
                 }
             }
         }
@@ -229,15 +233,6 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    suspend fun DefaultWriteContext.encodeFingerprint() {
-        withHostIsolate {
-            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
-                encode(instantExecutionInputs!!.fingerprint)
-            }
-        }
-    }
-
-    private
     fun checkFingerprint(): InvalidationReason? {
         loadGradleProperties()
         return checkInstantExecutionFingerprintFile()
@@ -262,7 +257,12 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun attachBuildLogicInputsCollector() {
-        InstantExecutionCacheInputs(virtualFileSystem).also {
+        val outputStream = ByteArrayOutputStream()
+        InstantExecutionCacheInputs(
+            virtualFileSystem,
+            cacheInputsWriterContextFor(outputStream),
+            outputStream
+        ).also {
             instantExecutionInputs = it
             valueSourceProviderFactory.addListener(it)
             taskInputsListeners.addListener(it)
@@ -270,11 +270,18 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
+    fun cacheInputsWriterContextFor(outputStream: ByteArrayOutputStream) =
+        writerContextFor(outputStream).apply {
+            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        }
+
+    private
     fun detachBuildLogicInputsCollector() {
         instantExecutionInputs.let {
             require(it != null)
-            valueSourceProviderFactory.removeListener(it)
             taskInputsListeners.removeListener(it)
+            valueSourceProviderFactory.removeListener(it)
+            it.close()
         }
     }
 
@@ -289,20 +296,16 @@ class DefaultInstantExecution internal constructor(
     private
     fun withWriteContextFor(
         file: File,
-        report: InstantExecutionReport,
         writeOperation: suspend DefaultWriteContext.() -> Unit
     ) {
-        writerContextFor(file.outputStream(), report).useToRun {
+        writerContextFor(file.outputStream()).useToRun {
             runWriteOperation(writeOperation)
         }
     }
 
     private
-    fun writerContextFor(outputStream: OutputStream, report: InstantExecutionReport) =
-        writeContextFor(
-            KryoBackedEncoder(outputStream),
-            report
-        )
+    fun writerContextFor(outputStream: OutputStream) =
+        writeContextFor(KryoBackedEncoder(outputStream))
 
     private
     fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.() -> R): R =
@@ -317,8 +320,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeContextFor(
-        encoder: Encoder,
-        report: InstantExecutionReport
+        encoder: Encoder
     ) = DefaultWriteContext(
         codecs.userTypesCodec,
         encoder,

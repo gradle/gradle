@@ -39,6 +39,7 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.util.TestUtil
 
 import org.hamcrest.CoreMatchers.equalTo

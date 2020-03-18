@@ -26,6 +26,9 @@ import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.InputFile
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.TaskInputDir
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.ValueSource
+import org.gradle.instantexecution.serialization.DefaultWriteContext
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.fingerprint.FileCollectionSnapshotter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
@@ -33,8 +36,8 @@ import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.kotlin.dsl.support.serviceOf
+import java.io.ByteArrayOutputStream
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 
 
 internal
@@ -42,43 +45,39 @@ typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any,
 
 
 internal
-data class InstantExecutionCacheFingerprint(
-    val taskInputs: List<TaskInputDir>,
-    val inputFiles: List<InputFile>,
-    val obtainedValues: List<ObtainedValue>
-) {
+sealed class InstantExecutionCacheFingerprint {
+
     internal
     data class TaskInputDir(
         val taskPath: String,
         val directory: File,
         val hashCode: HashCode
-    )
+    ) : InstantExecutionCacheFingerprint()
 
     internal
     data class InputFile(
         val file: File,
         val hashCode: HashCode?
-    )
+    ) : InstantExecutionCacheFingerprint()
+
+    internal
+    data class ValueSource(
+        val obtainedValue: ObtainedValue
+    ) : InstantExecutionCacheFingerprint()
 }
 
 
 internal
 class InstantExecutionCacheInputs(
-    val virtualFileSystem: VirtualFileSystem
+    private val virtualFileSystem: VirtualFileSystem,
+    private val writeContext: DefaultWriteContext,
+    val outputStream: ByteArrayOutputStream
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener {
 
-    val taskInputs = ConcurrentHashMap<String, TaskInputDir>()
-
-    val inputFiles = mutableListOf<InputFile>()
-
-    val obtainedValues = mutableListOf<ObtainedValue>()
-
-    val fingerprint
-        get() = InstantExecutionCacheFingerprint(
-            taskInputs.values.toList(),
-            inputFiles,
-            obtainedValues
-        )
+    fun close() {
+        write(null)
+        writeContext.close()
+    }
 
     override fun <T : Any, P : ValueSourceParameters> valueObtained(
         obtainedValue: ValueSourceProviderFactory.Listener.ObtainedValue<T, P>
@@ -87,11 +86,20 @@ class InstantExecutionCacheInputs(
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
-                    onInputFile(file, virtualFileSystem.hashCodeForFile(file))
+                    write(
+                        InputFile(
+                            file,
+                            virtualFileSystem.hashCodeForFile(file)
+                        )
+                    )
                 }
             }
             else -> {
-                obtainedValues.add(obtainedValue.uncheckedCast())
+                write(
+                    ValueSource(
+                        obtainedValue.uncheckedCast()
+                    )
+                )
             }
         }
     }
@@ -108,13 +116,13 @@ class InstantExecutionCacheInputs(
             snapshot.accept(
                 object : FileSystemSnapshotVisitor {
                     override fun preVisitDirectory(directorySnapshot: CompleteDirectorySnapshot): Boolean = directorySnapshot.run {
-                        taskInputs.computeIfAbsent(absolutePath) {
+                        write(
                             TaskInputDir(
                                 taskPath = task.identityPath.path,
                                 directory = File(absolutePath),
                                 hashCode = hash
                             )
-                        }
+                        )
                         false
                     }
 
@@ -127,22 +135,21 @@ class InstantExecutionCacheInputs(
     }
 
     private
+    fun write(value: InstantExecutionCacheFingerprint?) {
+        synchronized(writeContext) {
+            writeContext.runWriteOperation {
+                write(value)
+            }
+        }
+    }
+
+    private
     fun isBuildSrcTask(task: TaskInternal) =
         task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
 
     private
     fun fileCollectionSnapshotterFor(task: TaskInternal) =
         task.project.serviceOf<FileCollectionSnapshotter>()
-
-    private
-    fun onInputFile(file: File, hashCode: HashCode?) {
-        inputFiles.add(
-            InputFile(
-                file,
-                hashCode
-            )
-        )
-    }
 }
 
 

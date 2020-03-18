@@ -60,6 +60,9 @@ class DefaultWriteContext(
     private
     val scopes = WriteIdentities()
 
+    /**
+     * Closes the given [encoder] if it is [AutoCloseable].
+     */
     override fun close() {
         (encoder as? AutoCloseable)?.close()
     }

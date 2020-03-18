@@ -69,15 +69,8 @@ class InstantExecutionFingerprintCheckerTest {
 
         // when:
         val readContext = recordWritingOf {
-            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
-                encode(
-                    InstantExecutionCacheFingerprint(
-                        taskInputs = emptyList(),
-                        inputFiles = emptyList(),
-                        obtainedValues = listOf(obtainedValue)
-                    )
-                )
-            }
+            write(InstantExecutionCacheFingerprint.ValueSource(obtainedValue))
+            write(null)
         }
 
         // and:
