@@ -19,6 +19,8 @@ package org.gradle.launcher.daemon.registry
 import org.gradle.internal.file.Chmod
 import org.gradle.internal.nativeintegration.ProcessEnvironment
 import org.gradle.internal.remote.Address
+import org.gradle.internal.remote.internal.inet.InetEndpoint
+import org.gradle.internal.remote.internal.inet.MultiChoiceAddress
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DaemonContextBuilder
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus
@@ -139,6 +141,17 @@ class PersistentDaemonRegistryTest extends Specification {
         registry.stopEvents.empty
     }
 
+    def "clear the old entry with same port when storing new daemon info"() {
+        given:
+        MultiChoiceAddress address1 = new MultiChoiceAddress(UUID.randomUUID(), 54321, [InetAddress.localHost])
+        MultiChoiceAddress address2 = new MultiChoiceAddress(UUID.randomUUID(), 54321, [InetAddress.localHost])
+        registry.store(new DaemonInfo(address1, daemonContext(), "password".bytes, Idle))
+        registry.store(new DaemonInfo(address2, daemonContext(), "password".bytes, Idle))
+
+        expect:
+        registry.all.size() == 1
+    }
+
     DaemonContext daemonContext() {
         new DaemonContextBuilder([maybeGetPid: {null}] as ProcessEnvironment).with {
             daemonRegistryDir = tmp.createDir("daemons")
@@ -150,7 +163,7 @@ class PersistentDaemonRegistryTest extends Specification {
         new TestAddress(i.toString())
     }
 
-    private static class TestAddress implements Address {
+    private static class TestAddress implements InetEndpoint {
 
         final String displayName
 
@@ -164,6 +177,16 @@ class PersistentDaemonRegistryTest extends Specification {
 
         int hashCode() {
             displayName.hashCode()
+        }
+
+        @Override
+        int getPort() {
+            return 0
+        }
+
+        @Override
+        List<InetAddress> getCandidates() {
+            return [InetAddress.localHost]
         }
     }
 

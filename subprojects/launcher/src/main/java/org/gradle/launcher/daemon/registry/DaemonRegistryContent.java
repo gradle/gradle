@@ -17,6 +17,7 @@
 package org.gradle.launcher.daemon.registry;
 
 import org.gradle.internal.remote.Address;
+import org.gradle.internal.remote.internal.inet.InetEndpoint;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddress;
 import org.gradle.internal.remote.internal.inet.MultiChoiceAddressSerializer;
 import org.gradle.internal.remote.internal.inet.SocketInetAddress;
@@ -69,8 +70,8 @@ public class DaemonRegistryContent implements Serializable {
     /**
      * Removes the status
      */
-    public void removeInfo(Address address) {
-        infosMap.remove(address);
+    public void removeInfo(int port) {
+        infosMap.keySet().removeIf(address -> ((InetEndpoint) address).getPort() == port);
     }
 
     /**
@@ -125,7 +126,7 @@ public class DaemonRegistryContent implements Serializable {
         private List<DaemonStopEvent> readStopEvents(Decoder decoder) throws Exception {
             int len = decoder.readInt();
             List<DaemonStopEvent> out = new ArrayList<DaemonStopEvent>(len);
-            for (int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 out.add(DaemonStopEvent.SERIALIZER.read(decoder));
             }
             return out;
@@ -197,7 +198,7 @@ public class DaemonRegistryContent implements Serializable {
         private List<Address> readAddresses(Decoder decoder) throws Exception {
             int infosSize = decoder.readInt();
             List<Address> out = new ArrayList<Address>();
-            for (int i=0; i<infosSize; i++) {
+            for (int i = 0; i < infosSize; i++) {
                 byte type = decoder.readByte();
                 switch (type) {
                     case 0:
