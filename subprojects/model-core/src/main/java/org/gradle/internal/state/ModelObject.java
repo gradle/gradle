@@ -17,6 +17,7 @@
 package org.gradle.internal.state;
 
 import org.gradle.api.Describable;
+import org.gradle.api.Task;
 
 import javax.annotation.Nullable;
 
@@ -29,10 +30,16 @@ public interface ModelObject {
      * Returns the display name of this object that indicates its identity, if this is known.
      */
     @Nullable
-    Describable getIdentityDisplayName();
+    Describable getModelIdentityDisplayName();
 
     /**
      * Does this type provide a useful {@link Object#toString()} implementation?
      */
     boolean hasUsefulDisplayName();
+
+    /**
+     * Returns the task that owns this object, if any.
+     */
+    @Nullable
+    Task getTaskThatOwnsThisObject();
 }

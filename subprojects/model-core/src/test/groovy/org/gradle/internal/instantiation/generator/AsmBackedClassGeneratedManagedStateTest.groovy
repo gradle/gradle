@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
@@ -56,7 +57,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
     ManagedFactory generatorFactory = TestUtil.instantiatorFactory().managedFactory
     final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
 
     def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
         def bean = create(BeanWithAbstractProperty)
@@ -208,19 +209,19 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.filesBean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
 
         bean.filesBean.toString() == "property 'filesBean'"
-        bean.filesBean.identityDisplayName.displayName == "property 'filesBean'"
+        bean.filesBean.modelIdentityDisplayName.displayName == "property 'filesBean'"
         bean.filesBean.prop.toString() == "file collection"
 
         bean.propBean.toString() == "property 'propBean'"
-        bean.propBean.identityDisplayName.displayName == "property 'propBean'"
+        bean.propBean.modelIdentityDisplayName.displayName == "property 'propBean'"
         bean.propBean.prop.toString() == "property 'propBean.prop'"
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
-        beanWithDisplayName.filesBean.identityDisplayName.displayName == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.modelIdentityDisplayName.displayName == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.prop.toString() == "file collection"
 
         beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
-        beanWithDisplayName.propBean.identityDisplayName.displayName == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.modelIdentityDisplayName.displayName == "<display-name> property 'propBean'"
         beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
     }
 
@@ -241,21 +242,21 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         bean.toString() == "<some bean>"
 
         bean.filesBean.toString() == "property 'filesBean'"
-        bean.filesBean.identityDisplayName.displayName == "property 'filesBean'"
+        bean.filesBean.modelIdentityDisplayName.displayName == "property 'filesBean'"
         bean.filesBean.prop.toString() == "file collection"
 
         bean.propBean.toString() == "property 'propBean'"
-        bean.propBean.identityDisplayName.displayName == "property 'propBean'"
+        bean.propBean.modelIdentityDisplayName.displayName == "property 'propBean'"
         bean.propBean.prop.toString() == "property 'propBean.prop'"
 
         beanWithDisplayName.toString() == "<some bean>"
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
-        beanWithDisplayName.filesBean.identityDisplayName.displayName == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.modelIdentityDisplayName.displayName == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.prop.toString() == "file collection"
 
         beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
-        beanWithDisplayName.propBean.identityDisplayName.displayName == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.modelIdentityDisplayName.displayName == "<display-name> property 'propBean'"
         beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
     }
 

@@ -27,18 +27,20 @@ import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
 import spock.lang.Issue
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.UsesToStringInConstructor
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "mixes in toString() implementation for class"() {
         given:
@@ -48,11 +50,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<display name>"
         bean.hasUsefulDisplayName()
-        bean.identityDisplayName.displayName == "<display name>"
+        bean.modelIdentityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString().startsWith("${Bean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
-        beanWithNoName.identityDisplayName == null
+        beanWithNoName.modelIdentityDisplayName == null
     }
 
     def "does not mixes in toString() implementation for class that defines an implementation"() {
@@ -63,11 +65,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<bean>"
         bean.hasUsefulDisplayName()
-        bean.identityDisplayName.displayName == "<display name>"
+        bean.modelIdentityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString() == "<bean>"
         beanWithNoName.hasUsefulDisplayName()
-        beanWithNoName.identityDisplayName == null
+        beanWithNoName.modelIdentityDisplayName == null
     }
 
     def "mixes in toString() implementation for interface"() {
@@ -78,11 +80,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<display name>"
         bean.hasUsefulDisplayName()
-        bean.identityDisplayName.displayName == "<display name>"
+        bean.modelIdentityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString().startsWith("${InterfaceBean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
-        beanWithNoName.identityDisplayName == null
+        beanWithNoName.modelIdentityDisplayName == null
     }
 
     def "constructor can use toString() implementation"() {
@@ -129,6 +131,15 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
         beanWithDisplayName.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
         beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+    }
+
+    def "assigns display name to read only final non-managed property of type Property"() {
+        def bean = create(FinalReadOnlyNonManagedPropertyBean)
+        def beanWithDisplayName = create(FinalReadOnlyNonManagedPropertyBean, Describables.of("<display-name>"))
+
+        expect:
+        bean.prop.toString() == "property 'prop'"
+        beanWithDisplayName.prop.toString() == "<display-name> property 'prop'"
     }
 
     def "can attach nested extensions to object"() {

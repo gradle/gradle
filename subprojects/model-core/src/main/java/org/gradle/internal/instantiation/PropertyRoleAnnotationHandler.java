@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,22 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider;
+package org.gradle.internal.instantiation;
 
-import org.gradle.api.Task;
 import org.gradle.internal.state.ModelObject;
-import org.gradle.internal.state.OwnerAware;
 
-public interface PropertyInternal<T> extends ProviderInternal<T>, HasConfigurableValueInternal, OwnerAware {
-    /**
-     * Sets the property's value from some arbitrary object. Used from the Groovy DSL.
-     */
-    void setFromAnyValue(Object object);
+import java.lang.annotation.Annotation;
+import java.util.Set;
 
-    /**
-     * Associates this property with the task that produces its value.
-     */
-    void attachProducer(Task producer);
+/**
+ * Responsible for defining the behaviour of a particular annotation used for defining the role of a property.
+ *
+ * <p>Implementations must be registered as global scoped services.</p>
+ */
+public interface PropertyRoleAnnotationHandler {
+    Set<Class<? extends Annotation>> getAnnotationTypes();
 
-    void attachProducer(ModelObject owner);
+    void applyRoleTo(ModelObject owner, Object target);
 }
