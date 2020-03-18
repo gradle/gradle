@@ -509,7 +509,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         'java-api'     | 'apiElements'
         'java-runtime' | 'runtimeElements'
     }
-    
+
     @RequiredFeatures([
         @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
         @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
@@ -579,6 +579,9 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             }
             'org.test:moduleC:1.0' {
                 expectResolve()
+            }
+            'org.test:moduleD:1.0' {
+                expectGetMetadata()
             }
         }
 
