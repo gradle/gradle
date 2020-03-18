@@ -35,13 +35,13 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionRules;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -70,14 +70,14 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final DomainObjectContext context;
     private final DependencySubstitutionRules dependencySubstitutionRules;
     private final boolean uniqueLockStateEnabled;
-    private final DefaultProperty<LockMode> lockMode;
+    private final Property<LockMode> lockMode;
+    private final Property<File> lockFile;
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
 
     public DefaultDependencyLockingProvider(FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, DependencySubstitutionRules dependencySubstitutionRules, FeaturePreviews featurePreviews, PropertyFactory propertyFactory) {
         this.context = context;
         this.dependencySubstitutionRules = dependencySubstitutionRules;
-        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context);
         this.writeLocks = startParameter.isWriteDependencyLocks();
         if (writeLocks) {
             LOGGER.debug("Write locks is enabled");
@@ -88,6 +88,8 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         uniqueLockStateEnabled = featurePreviews.isFeatureEnabled(ONE_LOCKFILE_PER_PROJECT);
         lockMode = propertyFactory.property(LockMode.class);
         lockMode.convention(LockMode.DEFAULT);
+        lockFile = propertyFactory.property(File.class);
+        this.lockFileReaderWriter = new LockFileReaderWriter(fileResolver, context, lockFile);
     }
 
     @Override
@@ -145,6 +147,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
 
     private void recordUsage() {
         lockMode.finalizeValue();
+        lockFile.finalizeValue();
     }
 
     private boolean isSubstitutedInComposite(ModuleComponentIdentifier lockedIdentifier) {
@@ -211,6 +214,11 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     @Override
     public Property<LockMode> getLockMode() {
         return lockMode;
+    }
+
+    @Override
+    public Property<File> getLockFile() {
+        return lockFile;
     }
 
     private static class LockingDependencySubstitution implements DependencySubstitutionInternal {

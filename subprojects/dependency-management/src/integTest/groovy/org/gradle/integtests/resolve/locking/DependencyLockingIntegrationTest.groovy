@@ -223,4 +223,52 @@ task doIt {
         failureHasCause("The value for property 'lockMode' is final and cannot be changed any further.")
     }
 
+    @ToBeFixedForInstantExecution
+    def 'can use a custom file location for reading and writing per project lock state'() {
+        given:
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockFile = file("\$projectDir/gradle/lock.file")
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+}
+"""
+        def lockFile = testDirectory.file('gradle', 'lock.file')
+        LockfileFixture.createCustomLockfile(lockFile,'lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+
+        when:
+        succeeds 'dependencies'
+
+        then:
+        outputContains('org:foo:[1.0,2.0) -> 1.0')
+        outputContains('org:bar:[1.0,2.0) -> 1.0')
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo', '--refresh-dependencies'
+
+        then:
+        LockfileFixture.verifyCustomLockfile(lockFile, 'lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+
+    }
+
 }

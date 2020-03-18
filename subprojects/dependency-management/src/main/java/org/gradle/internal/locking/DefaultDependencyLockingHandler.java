@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
 import org.gradle.api.provider.Property;
 
+import java.io.File;
+
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
     private static final Action<Configuration> ACTIVATE_LOCKING = configuration -> configuration.getResolutionStrategy().activateDependencyLocking();
@@ -53,5 +55,10 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
     @Override
     public Property<LockMode> getLockMode() {
         return dependencyLockingProvider.getLockMode();
+    }
+
+    @Override
+    public Property<File> getLockFile() {
+        return dependencyLockingProvider.getLockFile();
     }
 }

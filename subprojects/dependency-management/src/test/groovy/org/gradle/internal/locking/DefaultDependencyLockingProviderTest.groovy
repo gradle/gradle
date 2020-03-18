@@ -59,8 +59,10 @@ class DefaultDependencyLockingProviderTest extends Specification {
 
     def setup() {
         context.identityPath(_) >> { String value -> Path.path(value) }
+        context.getProjectPath() >> Path.path(':')
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
+        resolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
         startParameter.getLockedDependenciesToUpdate() >> []
         provider = newProvider()
     }
@@ -83,7 +85,7 @@ org:foo:1.0
 
     def 'can persist resolved modules as unique lockfile'() {
         given:
-        lockDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
         startParameter.isWriteDependencyLocks() >> true
         featurePreviews.enableFeature(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)
         provider = newProvider()
@@ -95,7 +97,7 @@ org:foo:1.0
         provider.buildFinished()
 
         then:
-        lockDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 org:bar:1.3=conf
 org:foo:1.0=conf
 empty=
@@ -272,7 +274,7 @@ empty=
 
     def writeLockFile(List<String> modules, boolean unique = true, String configuration = 'conf') {
         if (unique) {
-            lockDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+            tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 ${modules.toSorted().collect {"$it=$configuration"}.join('\n')}
 empty=
 """.denormalize()

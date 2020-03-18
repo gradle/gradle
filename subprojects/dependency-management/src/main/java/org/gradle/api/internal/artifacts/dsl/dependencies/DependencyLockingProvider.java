@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.provider.Property;
 
+import java.io.File;
 import java.util.Set;
 
 public interface DependencyLockingProvider {
@@ -31,4 +32,6 @@ public interface DependencyLockingProvider {
     Property<LockMode> getLockMode();
 
     void buildFinished();
+
+    Property<File> getLockFile();
 }
