@@ -88,6 +88,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
+    public void attachProducer(ModelObject owner) {
+        Task producer = owner.getTaskThatOwnsThisObject();
+        if (producer != null) {
+            attachProducer(producer);
+        }
+    }
+
+    @Override
     public void attachProducer(Task task) {
         if (this.producer != null && this.producer != task) {
             throw new IllegalStateException(String.format("%s already has a producer task associated with it.", getDisplayName().getCapitalizedDisplayName()));

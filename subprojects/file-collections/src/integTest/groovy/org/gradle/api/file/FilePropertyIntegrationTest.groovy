@@ -337,29 +337,127 @@ task useDirProviderApi {
                 }
             }
 
-            class MergeTask extends DefaultTask {
-                @InputFile
-                final RegularFileProperty inputFile = project.objects.fileProperty()
-                @OutputFile
-                final RegularFileProperty outputFile = project.objects.fileProperty()
-
-                @TaskAction
-                void go() {
-                    def file = outputFile.asFile.get()
-                    file.text = ""
-                    file << inputFile.asFile.get().text
-                }
-            }
-
             task createFile(type: FileOutputTask)
-            task merge(type: MergeTask) {
+            task merge(type: FileOutputTask) {
                 outputFile = layout.buildDirectory.file("merged.txt")
                 inputFile = createFile.outputFile
             }
 
             // Set values lazily
             createFile.inputFile = layout.projectDirectory.file("file-source.txt")
-            createFile.outputFile = layout.buildDirectory.file("file.txt")
+            createFile.outputFile = layout.buildDirectory.file("intermediate.txt")
+
+            buildDir = "output"
+"""
+        file("file-source.txt").text = "file1"
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("file-source.txt").text = "new-file1"
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'new-file1'
+    }
+
+    def "can wire an output file from unmanaged nested property of a task as input to another task using property"() {
+        buildFile << """
+            interface Params {
+                @OutputFile
+                RegularFileProperty getOutputFile()
+            }
+
+            class FileOutputTask extends DefaultTask {
+                private params = project.objects.newInstance(Params)
+
+                @InputFile
+                final RegularFileProperty inputFile = project.objects.fileProperty()
+                @Nested
+                Params getParams() { return params }
+
+                @TaskAction
+                void go() {
+                    def file = params.outputFile.asFile.get()
+                    file.text = inputFile.asFile.get().text
+                }
+            }
+
+            task createFile(type: FileOutputTask) {
+                inputFile = layout.projectDirectory.file("file-source.txt")
+                params.outputFile = layout.buildDirectory.file("intermediate.txt")
+            }
+            task merge(type: FileOutputTask) {
+                params.outputFile = layout.buildDirectory.file("merged.txt")
+                inputFile = createFile.params.outputFile
+            }
+
+            buildDir = "output"
+"""
+        file("file-source.txt").text = "file1"
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'file1'
+
+        when:
+        run("merge")
+
+        then:
+        result.assertTasksNotSkipped()
+
+        when:
+        file("file-source.txt").text = "new-file1"
+        run("merge")
+
+        then:
+        result.assertTasksExecuted(":createFile", ":merge")
+        file("output/merged.txt").text == 'new-file1'
+    }
+
+    def "can wire an output file from managed nested property of a task as input to another task using property"() {
+        buildFile << """
+            interface Params {
+                @OutputFile
+                RegularFileProperty getOutputFile()
+            }
+
+            abstract class FileOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileProperty inputFile = project.objects.fileProperty()
+                @Nested
+                abstract Params getParams()
+
+                @TaskAction
+                void go() {
+                    def file = params.outputFile.asFile.get()
+                    file.text = inputFile.asFile.get().text
+                }
+            }
+
+            task createFile(type: FileOutputTask) {
+                inputFile = layout.projectDirectory.file("file-source.txt")
+                params.outputFile = layout.buildDirectory.file("intermediate.txt")
+            }
+            task merge(type: FileOutputTask) {
+                params.outputFile = layout.buildDirectory.file("merged.txt")
+                inputFile = createFile.params.outputFile
+            }
 
             buildDir = "output"
 """
