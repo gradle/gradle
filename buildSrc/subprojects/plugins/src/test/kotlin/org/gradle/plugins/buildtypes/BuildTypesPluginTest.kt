@@ -20,7 +20,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.gradle.api.Project
+import org.gradle.api.Task
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.gradlebuild.test.integrationtests.splitIntoBuckets
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -43,6 +45,9 @@ class BuildTypesPluginTest {
     val buildType = BuildType("BT").apply {
         tasks("BT0", "my:BT1")
     }
+
+    private
+    val buildTypeTaskProvider = mockk<TaskProvider<Task>>()
 
     @Before
     fun setUp() {
@@ -82,7 +87,7 @@ class BuildTypesPluginTest {
         val taskList = mutableListOf("TL0", "TL1")
 
         // when:
-        project.insertBuildTypeTasksInto(taskList, 1, buildType, subproject)
+        project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, buildType, subproject)
 
         // then:
         assertThat(
@@ -98,7 +103,7 @@ class BuildTypesPluginTest {
         val taskList = mutableListOf("TL0", "TL1")
 
         // when:
-        project.insertBuildTypeTasksInto(taskList, 1, buildType, subproject)
+        project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, buildType, subproject)
 
         // then:
         assertThat(
@@ -120,7 +125,7 @@ class BuildTypesPluginTest {
         every { project.findProject(subproject) } returns mockk()
 
         // when:
-        project.insertBuildTypeTasksInto(taskList, 1, buildType, subproject)
+        project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, buildType, subproject)
 
         // then:
         assertThat(
@@ -142,7 +147,7 @@ class BuildTypesPluginTest {
         every { project.findProject(subproject) } returns mockk()
 
         // when:
-        project.insertBuildTypeTasksInto(taskList, 1, buildType, subproject)
+        project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, buildType, subproject)
 
         // then:
         assertThat(

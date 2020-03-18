@@ -31,7 +31,7 @@ class BuildTypesPlugin : Plugin<Project> {
             description = "The $name build type (can only be abbreviated to '${buildType.abbreviation}')"
 
             doFirst {
-                if(!gradle.startParameter.taskNames.any { it.equals(buildType.name) || it.equals(buildType.abbreviation)}) {
+                if (!gradle.startParameter.taskNames.any { it == buildType.name || it == buildType.abbreviation }) {
                     throw GradleException("'$name' is a build type and must be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
                 }
             }
@@ -95,20 +95,19 @@ fun Project.insertBuildTypeTasksInto(
     fun forEachBuildTypeTask(act: (String) -> Unit) =
         buildType.tasks.reversed().forEach(act)
 
-    fun ensureBuildTypeTaskOrdering(matchingTasks: List<Task>) = {
+    fun ensureBuildTypeTaskOrdering(matchingTasks: List<Task>) =
         matchingTasks.forEach { t ->
             taskList.forEach {
-                t.shouldRunAfter(it)
+//                t.shouldRunAfter(it)
             }
         }
-    }
 
     when {
         subproject.isEmpty() ->
             forEachBuildTypeTask {
                 val matchingTasks = ArrayList<Task>()
-                getAllprojects().forEach { p ->
-                    val matchingTask = p.getTasks().findByName(it)
+                allprojects.forEach { p ->
+                    val matchingTask = p.tasks.findByName(it)
                     if (matchingTask != null) {
                         buildTypeTask.configure {
                             dependsOn(matchingTask)
@@ -117,7 +116,7 @@ fun Project.insertBuildTypeTasksInto(
                     }
                 }
                 ensureBuildTypeTaskOrdering(matchingTasks)
-                matchingTasks.map{t -> t.path}.forEach(::insert)
+                matchingTasks.map { t -> t.path }.forEach(::insert)
             }
 
         findProject(subproject) != null ->
