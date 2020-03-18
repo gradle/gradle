@@ -22,13 +22,11 @@ import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.Requires
 import org.junit.Rule
-import spock.lang.Ignore
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @Requires(KOTLIN_SCRIPT)
-@Ignore
 class SamplesAntlrIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule
