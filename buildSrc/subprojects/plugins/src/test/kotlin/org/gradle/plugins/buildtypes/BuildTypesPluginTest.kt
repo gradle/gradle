@@ -27,6 +27,7 @@ import org.gradle.gradlebuild.test.integrationtests.splitIntoBuckets
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.params.ParameterizedTest
@@ -34,6 +35,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import java.io.File
 
 
+@Ignore
 class BuildTypesPluginTest {
     private
     val project = mockk<Project>()
