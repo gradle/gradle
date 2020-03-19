@@ -18,8 +18,6 @@ package org.gradle.integtests.resolve.maven
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenModule
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
@@ -69,7 +67,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         hasArtifact(moduleA)
     }
 
-    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "can resolve artifacts from local m2 with custom local repository defined in global settings.xml"() {
         given:
         def sysPropRepo = mavenLocal("artifactrepo")

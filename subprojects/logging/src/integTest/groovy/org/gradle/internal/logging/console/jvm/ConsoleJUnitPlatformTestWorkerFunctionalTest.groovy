@@ -16,12 +16,9 @@
 
 package org.gradle.internal.logging.console.jvm
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class ConsoleJUnitPlatformTestWorkerFunctionalTest extends AbstractConsoleJvmTestWorkerFunctionalTest {
 
     @Override

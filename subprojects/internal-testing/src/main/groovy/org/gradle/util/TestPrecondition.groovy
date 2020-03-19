@@ -38,14 +38,8 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NO_FILE_PERMISSIONS({
         !FILE_PERMISSIONS.fulfilled
     }),
-    SET_ENV_VARIABLE({
-        !UNKNOWN_OS.fulfilled
-    }),
     WORKING_DIR({
-        !UNKNOWN_OS.fulfilled && JavaVersion.current() < JavaVersion.VERSION_11
-    }),
-    PROCESS_ID({
-        !UNKNOWN_OS.fulfilled
+        JavaVersion.current() < JavaVersion.VERSION_11
     }),
     NO_FILE_LOCK_ON_OPEN({
         MAC_OS_X.fulfilled || LINUX.fulfilled
@@ -85,12 +79,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
     }),
-    UNKNOWN_OS({
-        OperatingSystem.current().name == "unknown operating system"
-    }),
-    NOT_UNKNOWN_OS({
-        !UNKNOWN_OS.fulfilled
-    }),
     JDK7({
         JavaVersion.current() == JavaVersion.VERSION_1_7
     }),
@@ -99,9 +87,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     JDK9_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_9
-    }),
-    JDK8_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_1_8
     }),
     JDK8({
         JavaVersion.current() == JavaVersion.VERSION_1_8
@@ -158,9 +143,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     }),
     NOT_PULL_REQUEST_BUILD({
         !PULL_REQUEST_BUILD.fulfilled
-    }),
-    KOTLIN_SCRIPT({
-        JDK8_OR_LATER.fulfilled
     }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present

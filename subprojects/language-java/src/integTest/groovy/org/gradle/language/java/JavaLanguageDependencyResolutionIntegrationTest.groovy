@@ -1269,7 +1269,6 @@ model {
         ))
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @ToBeFixedForInstantExecution
     def "should display candidate platforms if no one matches and multiple binaries are defined"() {
         given:

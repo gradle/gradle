@@ -24,8 +24,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import javax.inject.Inject
 import java.nio.file.Files
@@ -33,7 +31,6 @@ import java.nio.file.Paths
 import java.nio.file.StandardCopyOption
 
 @LeaksFileHandles
-@Requires(TestPrecondition.KOTLIN_SCRIPT)
 class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyLanguageInterOpIntegrationTest {
     def setup() {
         usesKotlin(pluginDir)

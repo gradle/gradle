@@ -904,7 +904,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         ! file("build/classes/java/main/com/foo").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can configure custom header output"() {
         given:
         buildFile << """
@@ -923,7 +922,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file("build/headers/java/main/Foo.h").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can connect generated headers to input of another task"() {
         given:
         buildFile << """
@@ -947,7 +945,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file('headers').assertHasDescendants("Foo.h")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:
