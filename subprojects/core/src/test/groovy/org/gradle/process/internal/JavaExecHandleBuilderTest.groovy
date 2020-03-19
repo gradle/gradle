@@ -15,11 +15,12 @@
  */
 package org.gradle.process.internal
 
-
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.jpms.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
+import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -30,7 +31,7 @@ import java.util.concurrent.Executor
 import static java.util.Arrays.asList
 
 class JavaExecHandleBuilderTest extends Specification {
-    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), Mock(Executor), new DefaultBuildCancellationToken(), TestFiles.execFactory().newJavaForkOptions())
+    JavaExecHandleBuilder builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), Mock(Executor), new DefaultBuildCancellationToken(), null, TestFiles.execFactory().newJavaForkOptions())
 
     FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory()
 
