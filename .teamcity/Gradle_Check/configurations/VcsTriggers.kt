@@ -28,11 +28,3 @@ val masterReleaseBranchFilter = """
     +:master
     +:release
 """.trimIndent()
-
-// community branches are tested by Travis
-val nonMasterReleaseCommunityBranchFilter = """
-    +:*
-    -:master
-    -:release
-    -:pull/*/head
-""".trimIndent()
