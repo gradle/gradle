@@ -1,6 +1,6 @@
 package configurations
 
-import Gradle_Check.configurations.masterReleaseBranchFilter
+import Gradle_Check.configurations.allBranchesFilter
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
@@ -63,7 +63,7 @@ fun BuildFeatures.triggeredOnPullRequests() {
                 token = "credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04"
             }
             filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
-            filterTargetBranch = masterReleaseBranchFilter
+            filterTargetBranch = allBranchesFilter
         }
     }
 }

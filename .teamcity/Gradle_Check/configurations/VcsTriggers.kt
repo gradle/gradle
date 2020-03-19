@@ -28,3 +28,8 @@ val masterReleaseBranchFilter = """
     +:master
     +:release
 """.trimIndent()
+
+val allBranchesFilter = """
+    +:*
+    -:<default>
+""".trimIndent()
