@@ -69,7 +69,6 @@ class ProcessEnvironmentTest extends Specification {
         env.setProcessDir(originalDir)
     }
 
-    @Requires(TestPrecondition.PROCESS_ID)
     def "can get pid of current process"() {
         expect:
         env.pid != null

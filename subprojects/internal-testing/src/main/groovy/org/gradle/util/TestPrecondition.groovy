@@ -41,9 +41,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     WORKING_DIR({
         JavaVersion.current() < JavaVersion.VERSION_11
     }),
-    PROCESS_ID({
-        !UNKNOWN_OS.fulfilled
-    }),
     NO_FILE_LOCK_ON_OPEN({
         MAC_OS_X.fulfilled || LINUX.fulfilled
     }),
