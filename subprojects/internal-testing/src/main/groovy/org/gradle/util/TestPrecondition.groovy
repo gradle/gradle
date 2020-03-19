@@ -79,9 +79,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     UNIX_DERIVATIVE({
         MAC_OS_X.fulfilled || LINUX.fulfilled || UNIX.fulfilled
     }),
-    UNKNOWN_OS({
-        OperatingSystem.current().name == "unknown operating system"
-    }),
     JDK7({
         JavaVersion.current() == JavaVersion.VERSION_1_7
     }),
