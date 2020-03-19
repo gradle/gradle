@@ -23,7 +23,6 @@ import org.gradle.tooling.BuildCancelledException
 import org.junit.Rule
 import spock.lang.Ignore
 
-@Ignore('https://github.com/gradle/gradle-private/issues/2976')
 class ContinuousBuildCancellationCrossVersionSpec extends ContinuousBuildToolingApiSpecification {
 
     @Rule

@@ -153,6 +153,10 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
         ExecutionOutput executionOutput = waitUntilOutputContains containsString(WAITING_MESSAGE)
         println("Wait finishes: ${System.currentTimeMillis() - t0} ms")
         result = OutputScrapingExecutionResult.from(executionOutput.stdout, executionOutput.stderr)
+
+        // Wait for extra 10s to wait for unexpected file change events to finish
+        // https://github.com/gradle/gradle-private/issues/2976
+        Thread.sleep(10 * 1000)
     }
 
     private ExecutionOutput waitUntilOutputContains(Matcher<String> expectedMatcher) {
