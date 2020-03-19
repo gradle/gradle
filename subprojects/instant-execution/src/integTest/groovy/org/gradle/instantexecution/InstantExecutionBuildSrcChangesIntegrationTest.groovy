@@ -20,7 +20,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.TestFile
-import org.junit.Assume
 import spock.lang.Unroll
 
 class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
@@ -31,12 +30,6 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
     @Unroll
     def "invalidates cache upon change to buildSrc #language project (#change)"() {
-
-        Assume.assumeTrue(
-            "wip",
-            change != BuildSrcChange.ADD_RESOURCE && language != BuildSrcLanguage.KOTLIN
-        )
-
         given:
         def instant = newInstantExecutionFixture()
         def fixture = new BuildSrcChangeFixture(testDirectory, language, change)

@@ -17,10 +17,11 @@
 package org.gradle.instantexecution.fingerprint
 
 import org.gradle.api.Describable
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import java.io.File
 
@@ -33,8 +34,8 @@ internal
 class InstantExecutionFingerprintChecker(private val host: Host) {
 
     interface Host {
-        fun hashCodeForFile(file: File): HashCode?
-        fun hashCodeForDirectory(directory: File): HashCode?
+        fun hashCodeOf(file: File): HashCode?
+        fun fingerprintOf(fileSystemInputs: FileCollectionInternal): CurrentFileCollectionFingerprint
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
@@ -43,13 +44,16 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
         // TODO: log some debug info
         while (true) {
             when (val input = read()) {
-                is InstantExecutionCacheFingerprint.TaskInputDir -> input.run {
-                    if (host.hashCodeForDirectory(directory) != hashCode) {
-                        return "directory '${displayNameOf(directory)}', an input to task '$taskPath', has changed"
+                null -> return null
+                is InstantExecutionCacheFingerprint.TaskInputs -> input.run {
+                    val currentFingerprint = host.fingerprintOf(fileSystemInputs)
+                    if (currentFingerprint.hash != fileSystemInputsFingerprint.hash) {
+                        // TODO: summarize what has changed
+                        return "an input to '$taskPath' has changed"
                     }
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {
-                    if (host.hashCodeForFile(file) != hashCode) {
+                    if (host.hashCodeOf(file) != hash) {
                         return "configuration file '${displayNameOf(file)}' has changed"
                     }
                 }
@@ -58,7 +62,7 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
                         return reason
                     }
                 }
-                else -> return null
+                else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
             }
         }
     }
@@ -66,13 +70,6 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
     private
     fun displayNameOf(file: File) =
         host.displayNameOf(file)
-
-    private
-    suspend fun ReadContext.checkFingerprintOfObtainedValues(): InvalidationReason? {
-        readCollection {
-        }
-        return null
-    }
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {

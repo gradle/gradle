@@ -18,7 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Project
 import org.gradle.api.execution.internal.TaskInputsListeners
-import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
@@ -31,11 +31,11 @@ import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
-import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintWriter
 import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.fingerprint.ObtainedValue
-import org.gradle.instantexecution.fingerprint.hashCodeForFile
+import org.gradle.instantexecution.fingerprint.hashCodeOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -54,16 +54,12 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.Factory
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
-import org.gradle.internal.fingerprint.FileCollectionSnapshotter
-import org.gradle.internal.hash.HashCode
+import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.internal.snapshot.CompleteDirectorySnapshot
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
-import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
@@ -86,8 +82,7 @@ class DefaultInstantExecution internal constructor(
     private val virtualFileSystem: VirtualFileSystem,
     private val gradlePropertiesController: GradlePropertiesController,
     private val taskInputsListeners: TaskInputsListeners,
-    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
-    private val fileCollectionFactory: FileCollectionFactory
+    private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter
 ) : InstantExecution {
 
     interface Host {
@@ -174,7 +169,7 @@ class DefaultInstantExecution internal constructor(
                     }
                 }
 
-                instantExecutionInputs!!.run {
+                instantExecutionFingerprintWriter!!.run {
                     instantExecutionFingerprintFile
                         .outputStream()
                         .use(outputStream::writeTo)
@@ -258,14 +253,24 @@ class DefaultInstantExecution internal constructor(
     private
     fun attachBuildLogicInputsCollector() {
         val outputStream = ByteArrayOutputStream()
-        InstantExecutionCacheInputs(
+        InstantExecutionCacheFingerprintWriter(
             virtualFileSystem,
             cacheInputsWriterContextFor(outputStream),
             outputStream
         ).also {
-            instantExecutionInputs = it
+            instantExecutionFingerprintWriter = it
             valueSourceProviderFactory.addListener(it)
             taskInputsListeners.addListener(it)
+        }
+    }
+
+    private
+    fun detachBuildLogicInputsCollector() {
+        instantExecutionFingerprintWriter.let {
+            require(it != null)
+            taskInputsListeners.removeListener(it)
+            valueSourceProviderFactory.removeListener(it)
+            it.close()
         }
     }
 
@@ -276,17 +281,7 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
-    fun detachBuildLogicInputsCollector() {
-        instantExecutionInputs.let {
-            require(it != null)
-            taskInputsListeners.removeListener(it)
-            valueSourceProviderFactory.removeListener(it)
-            it.close()
-        }
-    }
-
-    private
-    var instantExecutionInputs: InstantExecutionCacheInputs? = null
+    var instantExecutionFingerprintWriter: InstantExecutionCacheFingerprintWriter? = null
 
     private
     fun discardInstantExecutionState() {
@@ -294,10 +289,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun withWriteContextFor(
-        file: File,
-        writeOperation: suspend DefaultWriteContext.() -> Unit
-    ) {
+    fun withWriteContextFor(file: File, writeOperation: suspend DefaultWriteContext.() -> Unit) {
         writerContextFor(file.outputStream()).useToRun {
             runWriteOperation(writeOperation)
         }
@@ -493,32 +485,11 @@ class DefaultInstantExecution internal constructor(
     private
     inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
 
-        override fun hashCodeForFile(file: File) =
-            virtualFileSystem.hashCodeForFile(file)
+        override fun hashCodeOf(file: File) =
+            virtualFileSystem.hashCodeOf(file)
 
-        override fun hashCodeForDirectory(directory: File): HashCode? {
-            val hashes = mutableListOf<HashCode>()
-            fileCollectionSnapshotter
-                .snapshot(fileCollectionFactory.fixed(directory))
-                .singleOrNull()
-                ?.accept(
-                    object : FileSystemSnapshotVisitor {
-                        override fun preVisitDirectory(directorySnapshot: CompleteDirectorySnapshot): Boolean {
-                            hashes.add(directorySnapshot.hash)
-                            return false
-                        }
-
-                        override fun visitFile(fileSnapshot: CompleteFileSystemLocationSnapshot) {
-                            // Directory became a file?
-                            // Let hashes disagree
-                            hashes.add(fileSnapshot.hash)
-                        }
-
-                        override fun postVisitDirectory(directorySnapshot: CompleteDirectorySnapshot) = Unit
-                    }
-                )
-            return hashes.singleOrNull()
-        }
+        override fun fingerprintOf(fileSystemInputs: FileCollectionInternal) =
+            fileCollectionFingerprinter.fingerprint(fileSystemInputs)
 
         override fun displayNameOf(fileOrDirectory: File): String =
             relativePathOf(fileOrDirectory, rootDirectory)
