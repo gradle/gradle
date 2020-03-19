@@ -1,5 +1,6 @@
 package configurations
 
+import Gradle_Check.configurations.allBranchesFilter
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
@@ -13,7 +14,9 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
 import jetbrains.buildServer.configs.kotlin.v2019_2.ProjectFeatures
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.PullRequests
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.commitStatusPublisher
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildFeatures.pullRequests
 import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 import model.CIBuildModel
 import model.StageNames
@@ -49,6 +52,19 @@ val m2CleanScriptWindows = """
 fun BuildFeatures.publishBuildStatusToGithub(model: CIBuildModel) {
     if (model.publishStatusToGitHub) {
         publishBuildStatusToGithub()
+    }
+}
+
+fun BuildFeatures.triggeredOnPullRequests() {
+    pullRequests {
+        vcsRootExtId = "Gradle_Branches_GradlePersonalBranches"
+        provider = github {
+            authType = token {
+                token = "credentialsJSON:5306bfc7-041e-46e8-8d61-1d49424e7b04"
+            }
+            filterAuthorRole = PullRequests.GitHubRoleFilter.MEMBER
+            filterTargetBranch = allBranchesFilter
+        }
     }
 }
 
