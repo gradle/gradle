@@ -26,7 +26,6 @@ import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
@@ -90,8 +89,8 @@ public class BasicGlobalScopeServices {
         return new CachingJvmVersionDetector(new DefaultJvmVersionDetector(execHandleFactory));
     }
 
-    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, ExecutorFactory executorFactory) {
-        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, objectFactory, executorFactory);
+    ExecFactory createExecFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
+        return DefaultExecActionFactory.of(fileResolver, fileCollectionFactory, executorFactory);
     }
 
     FileResolver createFileResolver(FileLookup lookup) {

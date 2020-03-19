@@ -79,8 +79,8 @@ public class DefaultExecActionFactory implements ExecFactory {
         return of(resolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), new DefaultExecutorFactory(), new DefaultBuildCancellationToken());
     }
 
-    public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, ExecutorFactory executorFactory) {
-        return of(fileResolver, fileCollectionFactory, objectFactory, executorFactory, new DefaultBuildCancellationToken());
+    public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ExecutorFactory executorFactory) {
+        return of(fileResolver, fileCollectionFactory, new InstantiatorBackedObjectFactory(DirectInstantiator.INSTANCE), executorFactory, new DefaultBuildCancellationToken());
     }
 
     public static DefaultExecActionFactory of(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, ExecutorFactory executorFactory, BuildCancellationToken buildCancellationToken) {
