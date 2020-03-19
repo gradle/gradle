@@ -28,6 +28,14 @@ tasks {
     }
 }
 
+afterEvaluate {
+    // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
+    // For the current project, we simply disable it since there are no tasks in there.
+    tasks.withType<ValidatePlugins>().configureEach {
+        enabled = false
+    }
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":baseServicesGroovy"))
