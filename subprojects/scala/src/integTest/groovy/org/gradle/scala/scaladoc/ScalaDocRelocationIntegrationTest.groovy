@@ -19,12 +19,9 @@ package org.gradle.scala.scaladoc
 import org.gradle.api.plugins.scala.ScalaPlugin
 import org.gradle.integtests.fixtures.AbstractTaskRelocationIntegrationTest
 import org.gradle.scala.ScalaCompilationFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.nio.file.Files
 
-@Requires(TestPrecondition.JDK8_OR_LATER) // Scala 2.12 requires JDK 8 or later
 class ScalaDocRelocationIntegrationTest extends AbstractTaskRelocationIntegrationTest {
 
     private classes = new ScalaCompilationFixture(testDirectory)

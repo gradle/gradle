@@ -16,12 +16,9 @@
 
 package org.gradle.groovy
 
-
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.GroovyCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 @TargetCoverage({ GroovyCoverage.SUPPORTS_PARAMETERS })
@@ -40,7 +37,6 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
     }
 
     @Issue('gradle/gradle#2487')
-    @Requires([TestPrecondition.JDK8_OR_LATER])
     def "classes compiled with parameters option must contain metadata about method parameters on jdk8 and above"() {
         given:
         buildFile << """
@@ -56,7 +52,7 @@ class GroovyParametersMetadataIntegrationTest extends MultiVersionIntegrationSpe
             class Person {
                 void setFullName(String fullName) {
                     // no-op
-                }                
+                }
             }
         """.stripIndent()
 

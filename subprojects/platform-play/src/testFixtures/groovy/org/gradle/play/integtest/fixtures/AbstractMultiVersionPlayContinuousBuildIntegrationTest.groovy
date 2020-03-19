@@ -19,8 +19,6 @@ package org.gradle.play.integtest.fixtures
 import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
@@ -28,7 +26,6 @@ import org.junit.runner.RunWith
 @RunWith(MultiVersionSpecRunner)
 @Category(ContextualMultiVersionTest.class)
 @TargetCoverage({ PlayCoverage.DEFAULT })
-@Requires(TestPrecondition.JDK8_OR_LATER)
 abstract class AbstractMultiVersionPlayContinuousBuildIntegrationTest extends AbstractPlayContinuousBuildIntegrationTest {
     static def version
 

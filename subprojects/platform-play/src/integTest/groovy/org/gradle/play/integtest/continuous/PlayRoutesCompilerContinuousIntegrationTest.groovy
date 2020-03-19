@@ -17,12 +17,9 @@
 package org.gradle.play.integtest.continuous
 
 import org.gradle.play.integtest.fixtures.AbstractPlayCompilerContinuousIntegrationTest
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
 
 @Ignore
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayRoutesCompilerContinuousIntegrationTest extends AbstractPlayCompilerContinuousIntegrationTest {
     @Override
     String getCompileTaskName() {

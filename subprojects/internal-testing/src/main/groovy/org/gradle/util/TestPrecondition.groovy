@@ -100,9 +100,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     JDK9_OR_LATER({
         JavaVersion.current() >= JavaVersion.VERSION_1_9
     }),
-    JDK8_OR_LATER({
-        JavaVersion.current() >= JavaVersion.VERSION_1_8
-    }),
     JDK8({
         JavaVersion.current() == JavaVersion.VERSION_1_8
     }),

@@ -17,8 +17,6 @@
 package org.gradle.plugin.devel.impldeps
 
 import org.gradle.testfixtures.ProjectBuilder
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsIntegrationTest {
@@ -151,7 +149,6 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3780")
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can use different JGit API"() {
         when:
         buildFile << testablePluginProject()
@@ -164,7 +161,7 @@ class GradleImplDepsShadingIssuesIntegrationTest extends BaseGradleImplDepsInteg
 
         file('src/test/groovy/JGitTest.groovy') << '''
             import org.junit.Test
-            
+
             class JGitTest {
                 @Test
                 void loadJGitResources() {

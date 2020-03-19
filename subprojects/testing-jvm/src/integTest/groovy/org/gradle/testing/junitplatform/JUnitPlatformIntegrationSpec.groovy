@@ -17,11 +17,9 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         executer.noExtraLogging()
@@ -37,9 +35,9 @@ class JUnitPlatformIntegrationSpec extends AbstractIntegrationSpec {
             apply plugin: 'java'
 
             repositories {
-                ${mavenCentralRepository()} 
+                ${mavenCentralRepository()}
             }
-            dependencies { 
+            dependencies {
                 implementation 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
                 testImplementation 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
             }

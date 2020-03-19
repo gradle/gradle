@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.scala.ScalaCompilationFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @TargetCoverage({ ScalaCoverage.DEFAULT})
 class ScalaDocMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
@@ -30,7 +28,6 @@ class ScalaDocMultiVersionIntegrationTest extends MultiVersionIntegrationSpec {
     String scaladoc = ":${ScalaPlugin.SCALA_DOC_TASK_NAME}"
     ScalaCompilationFixture classes = new ScalaCompilationFixture(testDirectory)
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can generate ScalaDoc"() {
         classes.scalaVersion = version
         classes.baseline()
