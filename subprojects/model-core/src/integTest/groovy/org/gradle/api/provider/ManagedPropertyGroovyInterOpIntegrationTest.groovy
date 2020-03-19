@@ -17,13 +17,10 @@
 package org.gradle.api.provider
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 
-import javax.inject.Inject
-
-class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovyInterOpIntegrationTest {
+class ManagedPropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovyInterOpIntegrationTest {
     def setup() {
         pluginDir.file("src/main/groovy/SomeTask.groovy") << """
             import ${DefaultTask.name}
@@ -31,31 +28,20 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovyInterOp
             import ${ListProperty.name}
             import ${SetProperty.name}
             import ${MapProperty.name}
-            import ${ObjectFactory.name}
             import ${TaskAction.name}
-            import ${Inject.name}
             import ${Internal.name}
 
-            public class SomeTask extends DefaultTask {
+            public abstract class SomeTask extends DefaultTask {
                 @Internal
-                final Property<Boolean> flag
+                abstract Property<Boolean> getFlag()
                 @Internal
-                final Property<String> message
+                abstract Property<String> getMessage()
                 @Internal
-                final ListProperty<Integer> list
+                abstract ListProperty<Integer> getList()
                 @Internal
-                final SetProperty<Integer> set
+                abstract SetProperty<Integer> getSet()
                 @Internal
-                final MapProperty<Integer, Boolean> map
-
-                @Inject
-                SomeTask(ObjectFactory objectFactory) {
-                    flag = objectFactory.property(Boolean)
-                    message = objectFactory.property(String)
-                    list = objectFactory.listProperty(Integer)
-                    set = objectFactory.setProperty(Integer)
-                    map = objectFactory.mapProperty(Integer, Boolean)
-                }
+                abstract MapProperty<Integer, Boolean> getMap()
 
                 @TaskAction
                 void run() {
