@@ -38,12 +38,14 @@ abstract class AbstractModule implements Module {
     /**
      * @param cl A closure that is passed a writer to use to generate the content.
      */
-    protected void publish(TestFile file, @DelegatesTo(value=Writer, strategy=Closure.DELEGATE_FIRST) Closure cl) {
+    protected void publish(TestFile file, @DelegatesTo(value=Writer, strategy=Closure.DELEGATE_FIRST) Closure cl, byte[] content = null) {
         file.parentFile.mkdirs()
         def hashBefore = file.exists() ? getHash(file, "sha1") : null
         def tmpFile = file.parentFile.file("${file.name}.tmp")
 
-        if (isJarFile(file)) {
+        if (content) {
+            tmpFile.bytes = content
+        } else if (isJarFile(file)) {
             writeZipped(tmpFile, cl)
         } else {
             writeContents(tmpFile, cl)
@@ -83,7 +85,7 @@ abstract class AbstractModule implements Module {
         }
     }
 
-    private boolean isJarFile(TestFile testFile) {
+    protected boolean isJarFile(TestFile testFile) {
         return FilenameUtils.getExtension(testFile.getName()) == 'jar'
     }
 
