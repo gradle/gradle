@@ -19,11 +19,7 @@ package org.gradle.api.publish.maven
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires([KOTLIN_SCRIPT])
 class MavenPublishPomCustomizationKotlinDslIntegTest extends AbstractMavenPublishIntegTest {
 
     @Override

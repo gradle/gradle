@@ -159,9 +159,6 @@ enum TestPrecondition implements org.gradle.internal.Factory<Boolean> {
     NOT_PULL_REQUEST_BUILD({
         !PULL_REQUEST_BUILD.fulfilled
     }),
-    KOTLIN_SCRIPT({
-        JDK8_OR_LATER.fulfilled
-    }),
     XCODE({
         // Simplistic approach at detecting Xcode by assuming macOS imply Xcode is present
         MAC_OS_X.fulfilled

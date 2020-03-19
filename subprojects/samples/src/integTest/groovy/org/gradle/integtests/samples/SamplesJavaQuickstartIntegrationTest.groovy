@@ -18,20 +18,17 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
 import java.util.jar.Manifest
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.junit.Assert.assertThat
 
-@Requires(KOTLIN_SCRIPT)
 class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule

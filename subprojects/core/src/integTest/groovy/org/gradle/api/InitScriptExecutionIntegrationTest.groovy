@@ -20,10 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import spock.lang.Issue
-
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @IntegrationTestTimeout(300)
 class InitScriptExecutionIntegrationTest extends AbstractIntegrationSpec {
@@ -133,7 +130,6 @@ try {
         notThrown(Throwable)
     }
 
-    @Requires([KOTLIN_SCRIPT])
     def "each Kotlin init script has independent ClassLoader"() {
         given:
         createExternalJar()
@@ -167,7 +163,6 @@ try {
         outputContains("BuildClass not found as expected")
     }
 
-    @Requires([KOTLIN_SCRIPT])
     def "executes Kotlin init scripts from init.d directory in user home dir in alphabetical order"() {
         given:
         executer.requireOwnGradleUserHomeDir()

@@ -16,17 +16,14 @@
 
 package org.gradle.internal.scan.config
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.KotlinScriptIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterprisePlugin
-import org.gradle.util.Requires
 
 import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOption
 import static org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginFixture.PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
-@Requires([KOTLIN_SCRIPT])
 class BuildScanAutoApplyKotlinIntegrationTest extends KotlinScriptIntegrationTest {
 
     private final GradleEnterprisePluginFixture fixture = new GradleEnterprisePluginFixture(testDirectory, mavenRepo, createExecuter())
