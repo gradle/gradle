@@ -17,15 +17,12 @@
 package org.gradle.api.provider
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.test.fixtures.file.LeaksFileHandles
 
-import javax.inject.Inject
-
 @LeaksFileHandles
-class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOpIntegrationTest {
+class ManagedPropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOpIntegrationTest {
     def setup() {
         pluginDir.file("src/main/kotlin/SomeTask.kt") << """
             import ${DefaultTask.name}
@@ -33,22 +30,20 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOp
             import ${ListProperty.name}
             import ${SetProperty.name}
             import ${MapProperty.name}
-            import ${ObjectFactory.name}
             import ${TaskAction.name}
-            import ${Inject.name}
             import ${Internal.name}
 
-            open class SomeTask @Inject constructor(objectFactory: ObjectFactory): DefaultTask() {
-                @Internal
-                val flag = objectFactory.property(Boolean::class.java)
-                @Internal
-                val message = objectFactory.property(String::class.java)
-                @Internal
-                val list = objectFactory.listProperty(Int::class.java)
-                @Internal
-                val set = objectFactory.setProperty(Int::class.java)
-                @Internal
-                val map = objectFactory.mapProperty(Int::class.java, Boolean::class.java)
+            abstract class SomeTask: DefaultTask() {
+                @get:Internal
+                abstract val flag: Property<Boolean>
+                @get:Internal
+                abstract val message: Property<String>
+                @get:Internal
+                abstract val list: ListProperty<Int>
+                @get:Internal
+                abstract val set: SetProperty<Int>
+                @get:Internal
+                abstract val map: MapProperty<Int, Boolean>
 
                 @TaskAction
                 fun run() {
