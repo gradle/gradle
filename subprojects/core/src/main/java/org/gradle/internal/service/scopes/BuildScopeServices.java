@@ -167,6 +167,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.invocation.DefaultBuildInvocationDetails;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
@@ -232,8 +233,8 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         return fileCollectionFactory.withResolver(fileResolver);
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory) {
-        return parent.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory);
+    protected ExecFactory decorateExecFactory(ExecFactory parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+        return parent.forContext(fileResolver, fileCollectionFactory, instantiator, objectFactory, javaModuleDetector);
     }
 
     protected PublicBuildPath createPublicBuildPath(BuildState buildState) {

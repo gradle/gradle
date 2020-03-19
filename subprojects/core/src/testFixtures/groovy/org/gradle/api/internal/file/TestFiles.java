@@ -55,11 +55,12 @@ import java.util.List;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
+import static org.gradle.util.TestUtil.objectFactory;
 
 public class TestFiles {
     private static final FileSystem FILE_SYSTEM = NativeServicesTestFixture.getInstance().get(FileSystem.class);
     private static final DefaultFileLookup FILE_LOOKUP = new DefaultFileLookup();
-    private static final DefaultExecActionFactory EXEC_FACTORY = DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), new DefaultExecutorFactory());
+    private static final DefaultExecActionFactory EXEC_FACTORY = DefaultExecActionFactory.of(resolver(), fileCollectionFactory(), objectFactory(), new DefaultExecutorFactory());
 
     public static FileCollectionInternal empty() {
         return fileCollectionFactory().empty();
@@ -209,7 +210,7 @@ public class TestFiles {
     }
 
     public static ExecFactory execFactory(File baseDir) {
-        return execFactory().forContext(resolver(baseDir), fileCollectionFactory(baseDir), TestUtil.instantiatorFactory().inject(), TestUtil.objectFactory());
+        return execFactory().forContext(resolver(baseDir), fileCollectionFactory(baseDir), TestUtil.instantiatorFactory().inject(), objectFactory());
     }
 
     public static ExecActionFactory execActionFactory() {

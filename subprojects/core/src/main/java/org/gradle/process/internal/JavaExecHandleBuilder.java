@@ -23,7 +23,9 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
@@ -32,6 +34,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -61,7 +64,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private final JavaForkOptions javaOptions;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptions javaOptions) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Executor executor, BuildCancellationToken buildCancellationToken, @Nullable JavaModuleDetector javaModuleDetector, JavaForkOptions javaOptions) {
         super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
         this.javaOptions = javaOptions;
