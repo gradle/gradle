@@ -22,6 +22,7 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 import java.net.URI;
 import java.util.Collection;
+import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
 
@@ -70,6 +71,14 @@ public final class IvyRepositoryDescriptor extends UrlRepositoryDescriptor {
         builder.put(Property.ARTIFACT_PATTERNS.name(), artifactPatterns);
         builder.put(Property.LAYOUT_TYPE.name(), layoutType);
         builder.put(Property.M2_COMPATIBLE.name(), m2Compatible);
+    }
+
+    public List<String> getIvyPatterns() {
+        return ivyPatterns;
+    }
+
+    public List<String> getArtifactPatterns() {
+        return artifactPatterns;
     }
 
     public static class Builder extends UrlRepositoryDescriptor.Builder<Builder> {

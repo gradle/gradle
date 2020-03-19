@@ -194,19 +194,11 @@ class IvyPublishSftpIntegrationTest extends AbstractIvyPublishIntegTest {
         module.ivy.sha256.expectFileUpload()
         module.ivy.sha512.expectParentCheckdir()
         module.ivy.sha512.expectFileUpload()
-        module.moduleMetadata.expectParentCheckdir()
-        module.moduleMetadata.expectFileUpload()
-        module.moduleMetadata.sha1.expectParentCheckdir()
-        module.moduleMetadata.sha1.expectFileUpload()
-        module.moduleMetadata.sha256.expectParentCheckdir()
-        module.moduleMetadata.sha256.expectFileUpload()
-        module.moduleMetadata.sha512.expectParentCheckdir()
-        module.moduleMetadata.sha512.expectFileUpload()
 
         then:
         succeeds 'publish'
 
-        module.assertMetadataAndJarFilePublished()
+        module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
 
         where:
