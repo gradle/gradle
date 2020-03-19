@@ -29,7 +29,6 @@ class ProcessEnvironmentTest extends Specification {
     @Rule final SetSystemProperties systemProperties = new SetSystemProperties()
     final ProcessEnvironment env = NativeServicesTestFixture.getInstance().get(ProcessEnvironment)
 
-    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "can set and remove environment variable"() {
         when:
         env.setEnvironmentVariable("TEST_ENV_1", "value")
