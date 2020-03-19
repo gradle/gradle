@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.apache.groovy.util.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
@@ -31,8 +32,11 @@ import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.Sync;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.application.CreateStartScripts;
+import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -54,17 +58,30 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     @Override
     public void apply(final Project project) {
+        TaskContainer tasks = project.getTasks();
+
         project.getPluginManager().apply(JavaPlugin.class);
         project.getPluginManager().apply(DistributionPlugin.class);
 
-        ApplicationPluginConvention pluginConvention = addExtensions(project);
-        addRunTask(project, pluginConvention);
+        ApplicationPluginConvention pluginConvention = addConvention(project);
+        JavaApplication pluginExtension = addExtensions(project, pluginConvention);
+        addRunTask(project, pluginExtension, pluginConvention);
         addCreateScriptsTask(project, pluginConvention);
-        configureInstallTask(project.getTasks().named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
+        configureJavaCompileTask(tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class), pluginExtension);
+        configureJarTask(tasks.named(JavaPlugin.JAR_TASK_NAME, Jar.class), pluginExtension);
+        configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
 
         DistributionContainer distributions = (DistributionContainer) project.getExtensions().getByName("distributions");
         Distribution mainDistribution = distributions.getByName(DistributionPlugin.MAIN_DISTRIBUTION_NAME);
         configureDistribution(project, mainDistribution, pluginConvention);
+    }
+
+    private void configureJavaCompileTask(TaskProvider<JavaCompile> javaCompile, JavaApplication pluginExtension) {
+        javaCompile.configure(j -> j.getOptions().getJavaModuleMainClass().convention(pluginExtension.getMainClass()));
+    }
+
+    private void configureJarTask(TaskProvider<Jar> jar, JavaApplication pluginExtension) {
+        jar.configure(j -> j.getManifest().attributes(Maps.of("Main-Class", pluginExtension.getMainClass())));
     }
 
     private void configureInstallTask(TaskProvider<Sync> installTask, ApplicationPluginConvention pluginConvention) {
@@ -102,22 +119,26 @@ public class ApplicationPlugin implements Plugin<Project> {
         }
     }
 
-    private ApplicationPluginConvention addExtensions(Project project) {
+    private ApplicationPluginConvention addConvention(Project project) {
         ApplicationPluginConvention pluginConvention = new DefaultApplicationPluginConvention(project);
         pluginConvention.setApplicationName(project.getName());
         project.getConvention().getPlugins().put("application", pluginConvention);
-        project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
         return pluginConvention;
     }
 
-    private void addRunTask(Project project, ApplicationPluginConvention pluginConvention) {
+    private JavaApplication addExtensions(Project project, ApplicationPluginConvention pluginConvention) {
+        return project.getExtensions().create(JavaApplication.class, "application", DefaultJavaApplication.class, pluginConvention);
+    }
+
+    private void addRunTask(Project project, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
         project.getTasks().register(TASK_RUN_NAME, JavaExec.class, run -> {
             run.setDescription("Runs this project as a JVM application");
             run.setGroup(APPLICATION_GROUP);
 
             JavaPluginConvention javaPluginConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
             run.setClasspath(javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
-            run.getConventionMapping().map("main", pluginConvention::getMainClassName);
+            run.getMainModule().set(pluginExtension.getMainModule());
+            run.getMainClass().set(pluginExtension.getMainClass());
             run.getConventionMapping().map("jvmArgs", pluginConvention::getApplicationDefaultJvmArgs);
         });
     }
