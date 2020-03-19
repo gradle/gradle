@@ -28,8 +28,6 @@ import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrationTest.java9AddJavaSqlModuleArgs
 
@@ -129,7 +127,6 @@ class PlayMultiProjectApplicationIntegrationTest extends AbstractIntegrationSpec
         runningApp.verifyStopped()
     }
 
-    @Requires(TestPrecondition.NOT_UNKNOWN_OS)
     @ToBeFixedForInstantExecution
     def "can run play distribution"() {
         println file(".")

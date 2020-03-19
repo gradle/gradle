@@ -15,13 +15,11 @@
  */
 
 package org.gradle.launcher
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @LeaksFileHandles // Cannot delete `native-platform.dll`
-@Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class GradleNativeIntegrationTest extends AbstractIntegrationSpec {
     def "caches native binaries in specified user home"() {
         given:

@@ -22,8 +22,6 @@ import org.gradle.play.integtest.fixtures.PlayMultiVersionRunApplicationIntegrat
 import org.gradle.process.internal.ExecHandle
 import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersionRunApplicationIntegrationTest {
 
@@ -51,7 +49,6 @@ abstract class PlayDistributionApplicationIntegrationTest extends PlayMultiVersi
         verifyArchives()
     }
 
-    @Requires(TestPrecondition.NOT_UNKNOWN_OS)
     @ToBeFixedForInstantExecution
     def "can run play distribution" () {
         ExecHandleBuilder builder
