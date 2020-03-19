@@ -16,6 +16,7 @@
 
 package org.gradle.api.publish.ivy
 
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
 import org.gradle.internal.jvm.Jvm
@@ -368,17 +369,16 @@ credentials {
         module.ivy.sha1.expectPut()
         module.ivy.sha256.expectPut()
         module.ivy.sha512.expectPut()
-        module.moduleMetadata.expectPut()
-        module.moduleMetadata.sha1.expectPut()
-        module.moduleMetadata.sha256.expectPut()
-        module.moduleMetadata.sha512.expectPut()
 
         when:
         run 'publish'
 
         then:
-        module.assertMetadataAndJarFilePublished()
+        module.assertIvyAndJarFilePublished()
         module.jarFile.assertIsCopyOf(file('build/libs/publish-2.jar'))
+
+        outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
+        !module.ivy.file.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
     @Requires(FIX_TO_WORK_ON_JAVA9)
@@ -527,4 +527,50 @@ credentials {
         then:
         module.assertMetadataAndJarFilePublished()
     }
+
+    @ToBeFixedForInstantExecution
+    @Unroll
+    def "doesn't publish Gradle metadata if custom pattern is used"() {
+        given:
+
+        settingsFile << 'rootProject.name = "publish"'
+        buildFile << """
+            apply plugin: 'java'
+            apply plugin: 'ivy-publish'
+
+            version = '2'
+            group = 'org.gradle'
+            publishing {
+                repositories {
+                    ivy {
+                        url "${ivyRepo.uri}"
+                        patternLayout {
+                           $layout
+                        }
+                    }
+                }
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'publish'
+
+        then:
+        outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
+
+        where:
+        layout << [
+            """
+                artifact "org/foo/[revision]/[artifact](-[classifier]).[ext]"
+                ivy "org/foo/[revision]/[artifact](-[classifier]).[ext]"
+            """,
+            'artifact "org/foo/[revision]/[artifact](-[classifier]).[ext]"'
+        ]
+    }
+
 }

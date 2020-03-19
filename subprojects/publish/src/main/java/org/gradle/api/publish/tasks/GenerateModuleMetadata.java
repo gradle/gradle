@@ -37,7 +37,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.internal.GradleModuleMetadataWriter;
 import org.gradle.api.publish.internal.PublicationInternal;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -60,6 +59,7 @@ import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
@@ -71,6 +71,7 @@ public class GenerateModuleMetadata extends DefaultTask {
     private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
     private final ChecksumService checksumService;
+    private Supplier<Boolean> enabledIf;
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
@@ -85,16 +86,13 @@ public class GenerateModuleMetadata extends DefaultTask {
     }
 
     private void mustHaveAttachedComponent() {
-        setOnlyIf(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();
-                if (publication.getComponent() == null) {
-                    getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
-                    return false;
-                }
-                return true;
+        setOnlyIf(element -> {
+            PublicationInternal publication = (PublicationInternal) GenerateModuleMetadata.this.publication.get();
+            if (publication.getComponent() == null) {
+                getLogger().warn(publication.getDisplayName() + " isn't attached to a component. Gradle metadata only supports publications with software components (e.g. from component.java)");
+                return false;
             }
+            return true;
         });
     }
 
