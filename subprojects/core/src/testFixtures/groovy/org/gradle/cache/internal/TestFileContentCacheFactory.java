@@ -20,18 +20,28 @@ import com.google.common.base.Throwables;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
+import com.google.common.collect.Lists;
 import com.google.common.util.concurrent.UncheckedExecutionException;
 import org.gradle.internal.serialize.Serializer;
 
 import java.io.File;
+import java.util.List;
 
 public class TestFileContentCacheFactory implements FileContentCacheFactory {
+
+    private List<File> calculationLog = Lists.newArrayList();
+
+    public List<File> getCalculationLog() {
+        return calculationLog;
+    }
+
     @Override
     public <V> FileContentCache<V> newCache(String name, int normalizedCacheSize, final Calculator<? extends V> calculator, Serializer<V> serializer) {
         return new FileContentCache<V>() {
             LoadingCache<File, V> cache = CacheBuilder.newBuilder().build(new CacheLoader<File, V>() {
                 @Override
-                public V load(File file) throws Exception {
+                public V load(File file) {
+                    calculationLog.add(file);
                     return calculator.calculate(file, file.isFile());
                 }
             });
