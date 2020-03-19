@@ -34,7 +34,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
     TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
 
     def defaultOptionsWithoutClasspath = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
-    def defaultOptions = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+    def defaultOptions = ["-g", "-sourcepath", "", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
 
     def spec = new DefaultJavaCompileSpec()
     def builder = new JavaCompilerArgumentsBuilder(spec)
@@ -67,7 +67,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.sourceCompatibility = "1.5"
 
         expect:
-        builder.build() == ["-source", "1.5", "-g", "-sourcepath", "", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.build() == ["-source", "1.5", "-g", "-sourcepath", "", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "generates -target option when current Jvm Version is used"() {
@@ -202,7 +202,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.annotationProcessorPath = [file1, file2]
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "", "-processorpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.build() == ["-g", "-sourcepath", "", "-processorpath", "$file1$File.pathSeparator$file2", USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "generates -s option"() {
@@ -210,7 +210,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         spec.compileOptions.annotationProcessorGeneratedSourcesDirectory = outputDir
 
         expect:
-        builder.build() == ["-g", "-sourcepath", "", "-proc:none", "-s", outputDir.path, USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        builder.build() == ["-g", "-sourcepath", "", "-proc:none", "-s", outputDir.path, USE_UNSHARED_COMPILER_TABLE_OPTION]
     }
 
     def "adds custom compiler args last"() {
@@ -233,7 +233,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.includeMainOptions(false)
 
         then:
-        builder.build() == ["-classpath", ""]
+        builder.build() == []
     }
 
     def "includes main options by default"() {
@@ -331,7 +331,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         def file2 = new File("/lib/lib2.jar")
         def fc = [file1, file2]
         spec.compileOptions.sourcepath = fc
-        def expected = ["-g", "-sourcepath", GUtil.asPath(fc), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", ""]
+        def expected = ["-g", "-sourcepath", GUtil.asPath(fc), "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION]
 
         expect:
         builder.build() == expected
@@ -365,7 +365,7 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         given:
         spec.compileOptions.sourcepath = [new File("/ignored")]
         spec.compileOptions.compilerArgs = ['--module-source-path', '/src/other']
-        def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "-classpath", "", "--module-source-path", "/src/other"]
+        def expected = ["-g", "-proc:none", USE_UNSHARED_COMPILER_TABLE_OPTION, "--module-source-path", "/src/other"]
 
         expect:
         builder.build() == expected

@@ -80,9 +80,10 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         impl.recompiledClasses('ImplB')
     }
 
+    // This behavior is kept for backward compatibility - may be removed in the future
     @Requires(TestPrecondition.JDK9_OR_LATER)
     @ToBeFixedForInstantExecution
-    def "recompiles when upstream module-info changes"() {
+    def "recompiles when upstream module-info changes with manual module path"() {
         file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
         file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
         def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
@@ -100,6 +101,40 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
             compileJava.doFirst {
                 options.compilerArgs << "--module-path" << classpath.join(File.pathSeparator)
                 classpath = files()
+            }
+        """
+        succeeds "impl:${language.compileTaskName}"
+
+        when:
+        moduleInfo.text = """
+            module api {
+            }
+        """
+
+        then:
+        fails "impl:${language.compileTaskName}"
+        result.hasErrorOutput("package a is not visible")
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @ToBeFixedForInstantExecution
+    def "recompiles when upstream module-info changes"() {
+        file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
+        file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
+        def moduleInfo = file("api/src/main/${language.name}/module-info.${language.name}")
+        moduleInfo.text = """
+            module api {
+                exports a;
+            }
+        """
+        file("impl/src/main/${language.name}/module-info.${language.name}").text = """
+            module impl {
+                requires api;
+            }
+        """
+        file("impl/build.gradle") << """
+            compileJava {
+                modularClasspathHandling.inferModulePath.set(true)
             }
         """
         succeeds "impl:${language.compileTaskName}"
