@@ -149,7 +149,7 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecHandleBuilder newJavaExec() {
-        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken,null, newJavaForkOptions());
+        return new JavaExecHandleBuilder(fileResolver, fileCollectionFactory, objectFactory, executor, buildCancellationToken, null, newJavaForkOptions());
     }
 
     @Override

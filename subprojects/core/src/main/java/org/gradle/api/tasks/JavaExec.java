@@ -20,12 +20,17 @@ import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.jpms.ModularClasspathHandling;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.options.Option;
+import org.gradle.internal.jpms.DefaultModularClasspathHandling;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.ExecResult;
@@ -103,11 +108,25 @@ import java.util.Map;
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
+    private final Property<String> mainModule;
+    private final Property<String> mainClass;
+    private final ConfigurableFileCollection classpath;
+    private final ModularClasspathHandling modularClasspathHandling;
     private final Property<ExecResult> execResult;
 
     public JavaExec() {
-        javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
+        ObjectFactory objectFactory = getObjectFactory();
+        this.mainModule = objectFactory.property(String.class);
+        this.mainClass = objectFactory.property(String.class);
+        this.classpath = getFileCollectionFactory().configurableFiles("classpath");
+        this.modularClasspathHandling = objectFactory.newInstance(DefaultModularClasspathHandling.class);
         execResult = getObjectFactory().property(ExecResult.class);
+
+        javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
+        javaExecHandleBuilder.getMainClass().convention(mainClass);
+        javaExecHandleBuilder.getMainModule().convention(mainModule);
+        javaExecHandleBuilder.getModularClasspathHandling().getInferModulePath().convention(modularClasspathHandling.getInferModulePath());
+        javaExecHandleBuilder.setClasspath(classpath);
     }
 
     @Inject
@@ -125,10 +144,19 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
         throw new UnsupportedOperationException();
     }
 
+    @Inject
+    protected FileCollectionFactory getFileCollectionFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
+        throw new UnsupportedOperationException();
+    }
+
     @TaskAction
     public void exec() {
-        setMain(getMain()); // make convention mapping work (at least for 'main'...
-        setJvmArgs(getJvmArgs()); // ...and for 'jvmArgs')
+        setJvmArgs(getJvmArgs()); // convention mapping for 'jvmArgs'
         execResult.set(javaExecHandleBuilder.execute());
     }
 
@@ -352,8 +380,25 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      * {@inheritDoc}
      */
     @Override
+    public Property<String> getMainModule() {
+        return mainModule;
+    }
+
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public Property<String> getMainClass() {
+        return mainClass;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
     public String getMain() {
-        return javaExecHandleBuilder.getMain();
+        return getMainClass().getOrNull();
     }
 
     /**
@@ -361,7 +406,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setMain(String mainClassName) {
-        javaExecHandleBuilder.setMain(mainClassName);
+        getMainClass().set(mainClassName);
         return this;
     }
 
@@ -444,7 +489,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setClasspath(FileCollection classpath) {
-        javaExecHandleBuilder.setClasspath(classpath);
+        this.classpath.setFrom(classpath);
         return this;
     }
 
@@ -453,7 +498,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec classpath(Object... paths) {
-        javaExecHandleBuilder.classpath(paths);
+        classpath.from(paths);
         return this;
     }
 
@@ -462,7 +507,15 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public FileCollection getClasspath() {
-        return javaExecHandleBuilder.getClasspath();
+        return classpath;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public ModularClasspathHandling getModularClasspathHandling() {
+        return modularClasspathHandling;
     }
 
     /**
