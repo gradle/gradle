@@ -81,7 +81,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                     Class<?> clazz;
                     try {
                         clazz = classLoader.loadClass(className);
-                    } catch (IllegalAccessError | NoClassDefFoundError | ClassNotFoundException e) {
+                    } catch (IllegalAccessError | NoClassDefFoundError | VerifyError | ClassNotFoundException e) {
                         throw new GradleException("Could not load class: " + className, e);
                     }
                     collectValidationProblems(clazz, taskValidationProblems, params.getEnableStricterValidation().get());
