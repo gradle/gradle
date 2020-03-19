@@ -15,7 +15,7 @@
  */
 
 import java.util.*
-import org.gradle.internal.os.*
+import org.gradle.internal.os.OperatingSystem
 
 plugins {
     `java`
