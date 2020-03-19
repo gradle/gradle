@@ -78,7 +78,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.javaOptions = javaOptions;
-        this.modularClasspathHandling = objectFactory.newInstance(DefaultModularClasspathHandling.class);
+        this.modularClasspathHandling = new DefaultModularClasspathHandling(objectFactory);
         executable(javaOptions.getExecutable());
     }
 
