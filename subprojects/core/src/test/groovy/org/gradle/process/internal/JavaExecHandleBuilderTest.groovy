@@ -15,6 +15,7 @@
  */
 package org.gradle.process.internal
 
+import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
@@ -120,7 +121,64 @@ class JavaExecHandleBuilderTest extends Specification {
 
         then:
         builder.commandLine.contains("$jar2$File.pathSeparator$jar1".toString())
+    }
 
+    def "can be used without module detector service"() {
+        given:
+        builder.mainModule.set("mainModule")
+        builder.mainClass.set("mainClass")
+        builder.classpath(new File("file1.jar").canonicalFile)
+
+        when:
+        // turn off module support:
+        builder.modularClasspathHandling.inferModulePath.set(false)
+
+        then:
+        !builder.getAllArguments().contains('--module')
+    }
+
+    def "throws reasonable error if module support is turned on without module detector service"() {
+        given:
+        builder.mainModule.set("mainModule")
+        builder.mainClass.set("mainClass")
+        builder.classpath(new File("file1.jar").canonicalFile)
+
+        when:
+        builder.modularClasspathHandling.inferModulePath.set(true)
+        builder.getAllArguments()
+
+        then:
+        // This is an internal error. If the builder is used through public API, the detection service is always available
+        def e = thrown(IllegalStateException)
+        e.message == 'Running a Java module is not supported in this context.'
+    }
+
+    def "supports module path"() {
+        given:
+        File libJar = new File("lib.jar")
+        File moduleJar = new File("module.jar")
+        JavaModuleDetector moduleDetector = Mock(JavaModuleDetector) {
+            inferModulePath(_, _, _) >> new AbstractFileCollection() {
+                String getDisplayName() { '' }
+                Set<File> getFiles() { [moduleJar] }
+            }
+            inferClasspath(_, _, _) >> new AbstractFileCollection() {
+                String getDisplayName() { '' }
+                Set<File> getFiles() { [libJar] }
+            }
+        }
+        builder = new JavaExecHandleBuilder(TestFiles.resolver(), TestFiles.fileCollectionFactory(), TestUtil.objectFactory(), Mock(Executor), new DefaultBuildCancellationToken(),
+            moduleDetector, TestFiles.execFactory().newJavaForkOptions())
+
+        builder.mainModule.set("mainModule")
+        builder.mainClass.set("mainClass")
+        builder.classpath(libJar, moduleJar)
+
+        when:
+        builder.modularClasspathHandling.inferModulePath.set(true)
+
+        then:
+        builder.getAllArguments() == ['-Dfile.encoding=UTF-8', '-Duser.country=US', '-Duser.language=en', '-Duser.variant', '-cp', libJar.name, '--module-path', moduleJar.name, '--module', 'mainModule/mainClass']
     }
 
     def "detects null entries early"() {
