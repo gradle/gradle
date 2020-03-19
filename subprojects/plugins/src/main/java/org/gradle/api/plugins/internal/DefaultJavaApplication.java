@@ -61,7 +61,7 @@ public class DefaultJavaApplication implements JavaApplication {
 
     @Override
     public void setMainClassName(String mainClassName) {
-        mainClass.set(mainClass);
+        mainClass.set(mainClassName);
         convention.setMainClassName(mainClassName);
     }
 
