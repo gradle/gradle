@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
@@ -86,9 +87,18 @@ public class JavaCompile extends AbstractCompile {
     private final ModularClasspathHandling modularClasspathHandling;
 
     public JavaCompile() {
-        ObjectFactory objects = getProject().getObjects();
+        Project project = getProject();
+        ObjectFactory objects = project.getObjects();
         compileOptions = objects.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+
+        compileOptions.getJavaModuleVersion().convention(project.provider(() -> {
+            String version = project.getVersion().toString();
+            if (Project.DEFAULT_VERSION.equals(version)) {
+                return null;
+            }
+            return version;
+        }));
 
         this.modularClasspathHandling = objects.newInstance(DefaultModularClasspathHandling.class);
     }

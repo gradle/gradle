@@ -256,12 +256,17 @@ public class JavaCompilerArgumentsBuilder {
 
         List<File> classpath = spec.getCompileClasspath();
         List<File> modulePath = spec.getModulePath();
+        String moduleVersion = spec.getCompileOptions().getJavaModuleVersion();
 
         if (!classpath.isEmpty()) {
             args.add("-classpath");
             args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
         }
         if (!modulePath.isEmpty()) {
+            if (moduleVersion != null) {
+                args.add("--module-version");
+                args.add(moduleVersion);
+            }
             args.add("--module-path");
             args.add(Joiner.on(File.pathSeparatorChar).join(modulePath));
         }
