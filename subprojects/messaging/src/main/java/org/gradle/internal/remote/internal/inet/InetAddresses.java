@@ -19,6 +19,7 @@ package org.gradle.internal.remote.internal.inet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.Inet6Address;
 import java.net.InetAddress;
 import java.net.NetworkInterface;
 import java.net.SocketException;
@@ -34,6 +35,7 @@ class InetAddresses {
 
     private final List<InetAddress> loopback = new ArrayList<InetAddress>();
     private final List<InetAddress> remote = new ArrayList<InetAddress>();
+    private final boolean forceIpv4 = System.getenv("GRADLE_FORCE_IPV4") != null && Boolean.parseBoolean(System.getenv("GRADLE_FORCE_IPV4"));
 
     InetAddresses() throws SocketException {
         analyzeNetworkInterfaces();
@@ -44,7 +46,7 @@ class InetAddresses {
         if (interfaces != null) {
             while (interfaces.hasMoreElements()) {
                 analyzeNetworkInterface(interfaces.nextElement());
-            }   
+            }
         }
     }
 
@@ -55,8 +57,13 @@ class InetAddresses {
             logger.debug("Is this a loopback interface? {}", isLoopbackInterface);
 
             Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
+
             while (candidates.hasMoreElements()) {
                 InetAddress candidate = candidates.nextElement();
+                if (forceIpv4 && candidate instanceof Inet6Address) {
+                    logger.debug("Skipping ipv6 address {}", candidate);
+                    continue;
+                }
                 if (isLoopbackInterface) {
                     if (candidate.isLoopbackAddress()) {
                         logger.debug("Adding loopback address {}", candidate);
