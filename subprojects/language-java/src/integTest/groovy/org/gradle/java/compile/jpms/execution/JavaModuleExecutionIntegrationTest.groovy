@@ -21,22 +21,25 @@ import org.gradle.java.compile.jpms.AbstractJavaModuleIntegrationTest
 class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleIntegrationTest {
 
     def setup() {
-        buildFile.text = buildFile.text.replace('java-library', 'application')
         buildFile << """
-            application {
-                mainClassName = 'consumer.MainModule'
-                // mainModuleName = 'consumer'
-            }
             dependencies {
                 implementation 'org:moda:1.0'
+            }
+            tasks.withType(JavaExec) {
+                modularClasspathHandling.inferModulePath.set(true)
             }
         """
     }
 
-    // documents current behavior, which will be fixed once the feature is implemented
-    // https://github.com/gradle/gradle/issues/12428
-    def "runs a module using the module path"() {
+    def "runs a module using the module path with the application plugin"() {
         given:
+        buildFile.text = buildFile.text.replace('java-library', 'application')
+        buildFile << """
+            application {
+                mainClass.set('consumer.MainModule')
+                mainModule.set('consumer')
+            }
+        """
         publishJavaModule('moda')
         consumingModuleInfo('requires moda')
         consumingModuleClass('moda.ModaClass')
@@ -45,7 +48,108 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleIntegrationTe
         succeeds ':run'
 
         then:
-        outputContains("Module Name: null") // <- this should be 'consumer'
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
+    def "runs a module using the module path with main class defined in compile task"() {
+        given:
+        buildFile << """
+            task run(type: JavaExec) {
+                classpath = files(jar) + configurations.runtimeClasspath
+                mainModule.set('consumer')
+            }
+            tasks.compileJava.configure {
+                options.javaModuleMainClass.set('consumer.MainModule')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        consumingModuleClass('moda.ModaClass')
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
+    def "runs a module using the module path with main class defined in run task"() {
+        given:
+        buildFile << """
+            task run(type: JavaExec) {
+                classpath = files(jar) + configurations.runtimeClasspath
+                mainModule.set('consumer')
+                mainClass.set('consumer.MainModule')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        consumingModuleClass('moda.ModaClass')
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
+    def "runs a module using the module path in a generic task with main class defined in compile task"() {
+        given:
+        buildFile << """
+            task run {
+                dependsOn jar
+                doLast {
+                    project.javaexec {
+                        modularClasspathHandling.inferModulePath.set(true)
+                        classpath = files(jar) + configurations.runtimeClasspath
+                        mainModule.set('consumer')
+                    }
+                }
+            }
+            tasks.compileJava.configure {
+                options.javaModuleMainClass.set('consumer.MainModule')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        consumingModuleClass('moda.ModaClass')
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
+    def "runs a module using the module path with main class defined in a generic task"() {
+        given:
+        buildFile << """
+            task run {
+                dependsOn jar
+                doLast {
+                    project.javaexec {
+                        modularClasspathHandling.inferModulePath.set(true)
+                        classpath = files(jar) + configurations.runtimeClasspath
+                        mainModule.set('consumer')
+                        mainClass.set('consumer.MainModule')
+                    }
+                }
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        consumingModuleClass('moda.ModaClass')
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
     }
 
 }
