@@ -93,7 +93,7 @@ public class CompileOptions extends AbstractOptions {
     private final DirectoryProperty headerOutputDirectory;
 
     @Inject
-    public CompileOptions(ProjectLayout projectLayout, ObjectFactory objectFactory) {
+    public CompileOptions(ObjectFactory objectFactory) {
         this.generatedSourceOutputDirectory = objectFactory.directoryProperty();
         this.headerOutputDirectory = objectFactory.directoryProperty();
     }
