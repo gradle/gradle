@@ -30,13 +30,10 @@ import org.gradle.samples.test.runner.GradleSamplesRunner
 import org.gradle.samples.test.runner.SampleModifiers
 import org.gradle.samples.test.runner.SamplesOutputNormalizers
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.AfterClass
 import org.junit.BeforeClass
 import org.junit.runner.RunWith
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 @RunWith(GradleSamplesRunner.class)
 @SamplesOutputNormalizers([
         JavaObjectSerializationOutputNormalizer,

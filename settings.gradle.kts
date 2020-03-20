@@ -20,11 +20,12 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
     }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.1")
+    id("com.gradle.enterprise").version("3.1.1")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")

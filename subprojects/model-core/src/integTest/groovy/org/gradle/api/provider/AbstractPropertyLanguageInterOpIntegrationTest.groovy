@@ -21,12 +21,9 @@ import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.integtests.fixtures.KotlinDslTestUtil.kotlinDslBuildSrcScript
 
-@Requires(TestPrecondition.KOTLIN_SCRIPT)
 abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
     private hasKotlin = false
 

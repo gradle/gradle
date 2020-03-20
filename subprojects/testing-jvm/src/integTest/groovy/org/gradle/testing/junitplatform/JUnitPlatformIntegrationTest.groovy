@@ -18,8 +18,6 @@ package org.gradle.testing.junitplatform
 
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Timeout
 import spock.lang.Unroll
@@ -27,7 +25,6 @@ import spock.lang.Unroll
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_JUPITER_VERSION
 import static org.hamcrest.CoreMatchers.containsString
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     void createSimpleJupiterTest() {
         file('src/test/java/org/gradle/JUnitJupiterTest.java') << '''
@@ -57,13 +54,13 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
 
     def 'should prompt user to add dependencies when they are not in test runtime classpath'() {
         given:
-        buildFile.text = """ 
+        buildFile.text = """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies { 
+            dependencies {
                 testCompileOnly 'org.junit.jupiter:junit-jupiter-api:${LATEST_JUPITER_VERSION}','org.junit.jupiter:junit-jupiter-engine:${LATEST_JUPITER_VERSION}'
             }
-            
+
             test { useJUnitPlatform() }
             """
         createSimpleJupiterTest()
@@ -105,9 +102,9 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
     @Unroll
     def 'can handle class-level error in #location method'() {
         given:
-        file('src/test/java/org/gradle/ClassErrorTest.java') << """ 
+        file('src/test/java/org/gradle/ClassErrorTest.java') << """
             package org.gradle;
-            
+
             import org.junit.jupiter.api.*;
             import static org.junit.jupiter.api.Assertions.*;
 
@@ -120,7 +117,7 @@ class JUnitPlatformIntegrationTest extends JUnitPlatformIntegrationSpec {
                 public static void before() {
                     $beforeStatement;
                 }
-                
+
                 @AfterAll
                 public static void after() {
                     $afterStatement;
@@ -301,7 +298,7 @@ public class StaticInnerTest {
         @Test
         public void inside() {
         }
-        
+
         public static class Nested2 {
             @Test
             public void inside() {

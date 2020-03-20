@@ -31,7 +31,6 @@ data class CIBuildModel(
     val projectPrefix: String = "Gradle_Check_",
     val rootProjectName: String = "Check",
     val publishStatusToGitHub: Boolean = true,
-    val masterAndReleaseBranches: List<String> = listOf("master", "release"),
     val parentBuildCache: BuildCache = builtInRemoteBuildCacheNode,
     val childBuildCache: BuildCache = builtInRemoteBuildCacheNode,
     val buildScanTags: List<String> = emptyList(),

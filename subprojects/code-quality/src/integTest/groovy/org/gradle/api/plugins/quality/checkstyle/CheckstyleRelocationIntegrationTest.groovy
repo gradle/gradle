@@ -18,12 +18,9 @@ package org.gradle.api.plugins.quality.checkstyle
 
 import org.gradle.integtests.fixtures.AbstractProjectRelocationIntegrationTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import java.util.regex.Pattern
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class CheckstyleRelocationIntegrationTest extends AbstractProjectRelocationIntegrationTest {
 
     @Override

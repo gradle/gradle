@@ -17,8 +17,8 @@
 
 package org.gradle.testkit.runner.enduser
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.testkit.runner.fixtures.NoDebug
@@ -28,12 +28,10 @@ import org.junit.Rule
 import spock.lang.Unroll
 
 import static org.gradle.util.TestPrecondition.JDK8_OR_EARLIER
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TestPrecondition.ONLINE
 
 @NonCrossVersion
 @NoDebug
-@Requires(KOTLIN_SCRIPT)
 class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
 
     @Rule
