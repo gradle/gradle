@@ -32,7 +32,7 @@ class NonWatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        nonWatchingVirtualFileSystem.beforeComplete(retentionEnabled, { -> new File("some/location") })
+        nonWatchingVirtualFileSystem.beforeComplete(retentionEnabled)
         then:
         1 * delegate.invalidateAll()
         0 * _

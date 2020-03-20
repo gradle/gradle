@@ -21,6 +21,11 @@ import com.google.common.collect.Multiset;
 import org.gradle.internal.file.DefaultFileHierarchySet;
 import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemNode;
+import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
@@ -32,10 +37,14 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Collections;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
-import java.util.function.Supplier;
 
 /**
  * A {@link org.gradle.internal.vfs.VirtualFileSystem} which uses watches to maintain
@@ -45,44 +54,149 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
+    private final DelegatingChangeListenerFactory delegatingChangeListenerFactory;
     private final Predicate<String> watchFilter;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
-
     private FileWatcherRegistry watchRegistry;
+    private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(100);
     private volatile boolean buildRunning;
+
+    private static class FileEvent {
+        final Path path;
+        final FileWatcherRegistry.Type type;
+        final boolean lostState;
+
+        public FileEvent(Path path, FileWatcherRegistry.Type type) {
+            this.path = path;
+            this.type = type;
+            this.lostState = false;
+        }
+
+        public FileEvent(boolean lostState) {
+            this.lostState = lostState;
+            this.path = null;
+            this.type = null;
+        }
+    }
+
+    private volatile boolean consumeEvents = true;
+
+    private final VirtualFileSystemChangeListener changeListener = (removedNodes, addedNodes) -> {
+        if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
+            updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
+        }
+    };
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem delegate,
+        DelegatingChangeListenerFactory delegatingChangeListenerFactory,
         Predicate<String> watchFilter
     ) {
         super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
+        this.delegatingChangeListenerFactory = delegatingChangeListenerFactory;
         this.watchFilter = watchFilter;
+
+        // stop thread
+        Thread eventConsumer = new Thread(() -> {
+            try {
+                while (consumeEvents) {
+                    FileEvent nextEvent = fileEvents.take();
+                    try {
+                        if (nextEvent.lostState) {
+                            LOGGER.warn("Dropped VFS state due to lost state");
+                            stopWatching();
+                        } else {
+                            FileWatcherRegistry.Type type = nextEvent.type;
+                            Path path = nextEvent.path;
+
+                            LOGGER.debug("Handling VFS change {} {}", type, path);
+                            String absolutePath = path.toString();
+                            if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
+                                ChangeListenerFactory.LifecycleAwareChangeListener changeListener = new ChangeListenerFactory.LifecycleAwareChangeListener() {
+                                    private final List<FileSystemNode> removedNodes = new ArrayList<>();
+                                    private final List<FileSystemNode> addedNodes = new ArrayList<>();
+
+                                    @Override
+                                    public void start() {
+                                        removedNodes.clear();
+                                        addedNodes.clear();
+                                    }
+
+                                    @Override
+                                    public void finish() {
+                                        if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
+                                            updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
+                                        }
+                                    }
+
+                                    @Override
+                                    public void nodeRemoved(FileSystemNode node) {
+                                        removedNodes.add(node);
+                                    }
+
+                                    @Override
+                                    public void nodeAdded(FileSystemNode node) {
+                                        addedNodes.add(node);
+                                    }
+                                };
+                                getRoot().update(root -> root.invalidate(absolutePath, changeListener), changeListener);
+                            }
+                        }
+                    } catch (Exception e) {
+                        LOGGER.error("Error while processing file events", e);
+                        stopWatching();
+                    }
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                // stop thread
+            }
+        });
+        eventConsumer.setDaemon(true);
+        eventConsumer.setName("File watcher consumer");
+        eventConsumer.start();
     }
 
     @Override
     public void afterStart(boolean watchingEnabled) {
         if (watchingEnabled) {
+            startWatching();
             handleWatcherRegistryEvents("since last build");
             printStatistics("retained", "since last build");
             producedByCurrentBuild.set(DefaultFileHierarchySet.of());
             buildRunning = true;
         } else {
             stopWatching();
-            invalidateAll();
+        }
+    }
+
+    private void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction) {
+        updateWatchRegistry(updateFunction, () -> {});
+    }
+
+    private synchronized void updateWatchRegistry(Consumer<FileWatcherRegistry> updateFunction, Runnable noWatchRegistry) {
+        if (watchRegistry == null) {
+            noWatchRegistry.run();
+        } else {
+            handleWatcherChanges(updateFunction);
         }
     }
 
     @Override
-    public void beforeComplete(boolean watchingEnabled, Supplier<File> rootProjectDirSupplier) {
+    public void updateMustWatchDirectories(Collection<File> mustWatchDirectories) {
+        updateWatchRegistry(watchRegistry -> watchRegistry.updateMustWatchDirectories(mustWatchDirectories));
+    }
+
+    @Override
+    public void beforeComplete(boolean watchingEnabled) {
         if (watchingEnabled) {
             handleWatcherRegistryEvents("for current build");
-            stopWatching();
             buildRunning = false;
             producedByCurrentBuild.set(DefaultFileHierarchySet.of());
             printStatistics("retains", "till next build");
-            startWatching(rootProjectDirSupplier);
+            updateWatchRegistry(watchRegistry -> {}, this::invalidateAll);
         } else {
             invalidateAll();
         }
@@ -90,39 +204,37 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     /**
      * Start watching the known areas of the file system for changes.
-     *
-     * @param rootProjectDirSupplier rootDirectory - always should be watched even when not part of the VFS.
      */
-    private void startWatching(Supplier<File> rootProjectDirSupplier) {
+    private synchronized void startWatching() {
         if (watchRegistry != null) {
-            throw new IllegalStateException("Watch service already started");
+            return;
         }
         try {
             long startTime = System.currentTimeMillis();
-            File rootProjectDir = rootProjectDirSupplier.get();
-            watchRegistry = watcherRegistryFactory.startWatching(getRoot(), watchFilter, Collections.singletonList(rootProjectDir), new FileWatcherRegistry.ChangeHandler() {
+            watchRegistry = watcherRegistryFactory.startWatcher(watchFilter, new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    LOGGER.debug("Handling VFS change {} {}", type, path);
-                    String absolutePath = path.toString();
-                    if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
-                        WatchingVirtualFileSystem.super.update(Collections.singleton(absolutePath), () -> {});
+                    try {
+                        fileEvents.put(new FileEvent(path, type));
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
                     }
                 }
 
                 @Override
                 public void handleLostState() {
-                    LOGGER.warn("Dropped VFS state due to lost state");
-                    invalidateAll();
+                    try {
+                        fileEvents.put(new FileEvent(true));
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
+                    }
                 }
             });
+            delegatingChangeListenerFactory.setVfsChangeListener(changeListener);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
-        } catch (WatchingNotSupportedException ex) {
-            // No stacktrace here, since this is a known shortcoming of our implementation
-            LOGGER.warn("Watching not supported, not tracking changes between builds: {}", ex.getMessage());
-            invalidateAll();
-            close();
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             invalidateAll();
@@ -130,37 +242,52 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         }
     }
 
-    /**
-     * Stop watching the known areas of the file system, and invalidate
-     * the parts that have been changed since calling {@link #startWatching(Supplier)} ()}.
-     */
-    private void stopWatching() {
-        if (watchRegistry == null) {
-            return;
-        }
-
+    private void handleWatcherChanges(Consumer<FileWatcherRegistry> consumer) {
         try {
-            watchRegistry.close();
-        } catch (IOException ex) {
-            LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
-            invalidateAll();
-        } finally {
-            watchRegistry = null;
+            consumer.accept(watchRegistry);
+        } catch (WatchingNotSupportedException ex) {
+            // No stacktrace here, since this is a known shortcoming of our implementation
+            LOGGER.warn("Watching not supported, not tracking changes between builds: {}", ex.getMessage());
+            stopWatching();
+        } catch (Exception ex) {
+            LOGGER.error("Couldn't update watches, not watching anymore", ex);
+            stopWatching();
         }
     }
 
+    /**
+     * Stop watching the known areas of the file system, and invalidate
+     * the parts that have been changed since calling {@link #startWatching()}}.
+     */
+    private void stopWatching() {
+        updateWatchRegistry(fileWatcherRegistry -> {
+            try {
+                delegatingChangeListenerFactory.setVfsChangeListener(null);
+                fileWatcherRegistry.close();
+            } catch (IOException ex) {
+                LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
+                getRoot().update(SnapshotHierarchy::empty, ChangeListenerFactory.LifecycleAwareChangeListener.NOOP);
+            } finally {
+                watchRegistry = null;
+                fileEvents.clear();
+            }
+        });
+        getRoot().update(SnapshotHierarchy::empty, ChangeListenerFactory.LifecycleAwareChangeListener.NOOP);
+    }
+
     private void handleWatcherRegistryEvents(String eventsFor) {
-        if (watchRegistry != null) {
+        updateWatchRegistry(watchRegistry -> {
             FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
             LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
             if (statistics.isUnknownEventEncountered()) {
                 LOGGER.warn("Dropped VFS state due to lost state");
+                stopWatching();
             }
             if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
                 LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
-                invalidateAll();
+                stopWatching();
             }
-        }
+        });
     }
 
     private void printStatistics(String verb, String statisticsFor) {
@@ -191,7 +318,22 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     private VirtualFileSystemStatistics getStatistics() {
         EnumMultiset<FileType> retained = EnumMultiset.create(FileType.class);
-        getRoot().visitSnapshots((snapshot, rootOfCompleteHierarchy) -> retained.add(snapshot.getType()));
+        getRoot().get().visitSnapshotRoots(snapshot -> snapshot.accept(new FileSystemSnapshotVisitor() {
+            @Override
+            public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                retained.add(directorySnapshot.getType());
+                return true;
+            }
+
+            @Override
+            public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+                retained.add(fileSnapshot.getType());
+            }
+
+            @Override
+            public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+            }
+        }));
         return new VirtualFileSystemStatistics(retained);
     }
 
@@ -209,14 +351,15 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     @Override
     public void close() {
+        consumeEvents = false;
         producedByCurrentBuild.set(DefaultFileHierarchySet.of());
-        if (watchRegistry != null) {
+        updateWatchRegistry(fileWatcherRegistry -> {
             try {
-                watchRegistry.close();
+                fileWatcherRegistry.close();
             } catch (IOException ex) {
                 LOGGER.error("Couldn't close watch service", ex);
             }
             watchRegistry = null;
-        }
+        });
     }
 }

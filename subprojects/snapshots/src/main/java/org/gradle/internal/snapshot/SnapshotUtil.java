@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.List;
 import java.util.Optional;
@@ -76,30 +77,38 @@ public class SnapshotUtil {
         return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
     }
 
-    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
+    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.ChangeListener changeListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
                 return child.store(
                     relativePath.fromChild(child.getPathToParent()),
                     caseSensitivity,
-                    snapshot
+                    snapshot,
+                    changeListener
                 );
             }
 
             @Override
             public FileSystemNode handleParent() {
-                return snapshot.asFileSystemNode(relativePath.getAsString());
+                return replacedNode();
             }
 
             @Override
             public FileSystemNode handleSame() {
                 return snapshot instanceof CompleteFileSystemLocationSnapshot
-                    ? snapshot.asFileSystemNode(child.getPathToParent())
+                    ? replacedNode()
                     : child.getSnapshot()
                         .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
                         .map(it -> child)
-                        .orElseGet(() -> snapshot.asFileSystemNode(child.getPathToParent()));
+                        .orElseGet(this::replacedNode);
+            }
+
+            private FileSystemNode replacedNode() {
+                changeListener.nodeRemoved(child);
+                FileSystemNode newNode = snapshot.asFileSystemNode(relativePath.getAsString());
+                changeListener.nodeAdded(newNode);
+                return newNode;
             }
 
             @Override
@@ -112,6 +121,9 @@ public class SnapshotUtil {
                 ImmutableList<FileSystemNode> newChildren = PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
+
+                changeListener.nodeAdded(sibling);
+
                 boolean isDirectory = child.getSnapshot().filter(SnapshotUtil::isRegularFileOrDirectory).isPresent() || isRegularFileOrDirectory(snapshot);
                 return isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren);
             }
@@ -122,20 +134,22 @@ public class SnapshotUtil {
         return metadataSnapshot.getType() != FileType.Missing;
     }
 
-    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.ChangeListener changeListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
+                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity, changeListener);
             }
 
             @Override
             public Optional<FileSystemNode> handleParent() {
+                changeListener.nodeRemoved(child);
                 return Optional.empty();
             }
 
             @Override
             public Optional<FileSystemNode> handleSame() {
+                changeListener.nodeRemoved(child);
                 return Optional.empty();
             }
 

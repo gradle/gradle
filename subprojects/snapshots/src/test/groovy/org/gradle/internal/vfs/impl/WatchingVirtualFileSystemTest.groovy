@@ -17,6 +17,8 @@
 package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.snapshot.CaseSensitivity
+import org.gradle.internal.snapshot.SnapshotHierarchyReference
+import org.gradle.internal.vfs.SnapshotHierarchy
 import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory
 import spock.lang.Specification
@@ -25,18 +27,22 @@ class WatchingVirtualFileSystemTest extends Specification {
     def delegate = Mock(AbstractVirtualFileSystem)
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
-    def watchingVirtualFileSystem = new WatchingVirtualFileSystem(watcherRegistryFactory, delegate, { -> true })
+    def changeListenerFactory = Mock(DelegatingChangeListenerFactory)
+    def rootHierarchy = Mock(SnapshotHierarchy)
+    def rootReference = new SnapshotHierarchyReference(rootHierarchy)
+    def watchingVirtualFileSystem = new WatchingVirtualFileSystem(watcherRegistryFactory, delegate, changeListenerFactory, { -> true })
     def snapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
         when:
         watchingVirtualFileSystem.afterStart(false)
         then:
-        1 * delegate.invalidateAll()
+        1 * delegate.root >> rootReference
+        1 * rootHierarchy.empty()
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(false, { -> new File("some/location") })
+        watchingVirtualFileSystem.beforeComplete(false)
         then:
         1 * delegate.invalidateAll()
         0 * _
@@ -46,21 +52,26 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.afterStart(true)
         then:
-        _ * delegate.getRoot() >> snapshotHierarchy
+        _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
+        1 * watcherRegistryFactory.startWatcher(_, _) >> watcherRegistry
+        1 * changeListenerFactory.setVfsChangeListener(_)
+        1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(true, { -> new File("some/location") })
+        watchingVirtualFileSystem.beforeComplete(true)
         then:
-        _ * delegate.getRoot() >> snapshotHierarchy
-        1 * watcherRegistryFactory.startWatching(snapshotHierarchy, _, _, _) >> watcherRegistry
+        _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
+        1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
         when:
         watchingVirtualFileSystem.afterStart(false)
         then:
-        1 * delegate.invalidateAll()
+        1 * delegate.root >> rootReference
+        1 * rootHierarchy.empty()
         1 * watcherRegistry.close()
+        1 * changeListenerFactory.setVfsChangeListener(null)
         0 * _
     }
 
@@ -68,20 +79,23 @@ class WatchingVirtualFileSystemTest extends Specification {
         when:
         watchingVirtualFileSystem.afterStart(true)
         then:
-        _ * delegate.getRoot() >> snapshotHierarchy
+        _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
+        1 * watcherRegistryFactory.startWatcher(_, _) >> watcherRegistry
+        1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
+        1 * changeListenerFactory.setVfsChangeListener(_)
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(true, { -> new File("some/location") })
+        watchingVirtualFileSystem.beforeComplete(true)
         then:
-        _ * delegate.getRoot() >> snapshotHierarchy
-        1 * watcherRegistryFactory.startWatching(snapshotHierarchy, _, _, _) >> watcherRegistry
+        _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
+        1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
         when:
         watchingVirtualFileSystem.afterStart(true)
         then:
-        _ * delegate.getRoot() >> snapshotHierarchy
+        _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
     }

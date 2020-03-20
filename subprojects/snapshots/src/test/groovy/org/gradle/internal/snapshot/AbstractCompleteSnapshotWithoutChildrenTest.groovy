@@ -17,6 +17,7 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
+import org.gradle.internal.vfs.SnapshotHierarchy
 import spock.lang.Specification
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
@@ -27,16 +28,35 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
 
     T initialRoot = createInitialRootNode("/some/absolute/path")
 
+    List<FileSystemNode> removedSnapshots = []
+    List<FileSystemNode> addedSnapshots = []
+
+    SnapshotHierarchy.ChangeListener changeListener = new SnapshotHierarchy.ChangeListener() {
+        @Override
+        void nodeRemoved(FileSystemNode node) {
+            removedSnapshots.add(node)
+        }
+
+        @Override
+        void nodeAdded(FileSystemNode node) {
+            addedSnapshots.add(node)
+        }
+    }
+
     def "store is ignored"() {
         def snapshot = Mock(MetadataSnapshot)
 
         expect:
-        initialRoot.store(childAbsolutePath("some/child"), CASE_SENSITIVE, snapshot) == initialRoot
+        initialRoot.store(childAbsolutePath("some/child"), CASE_SENSITIVE, snapshot, changeListener) == initialRoot
+        removedSnapshots.empty
+        addedSnapshots.empty
     }
 
     def "invalidate removes the node"() {
         expect:
-        initialRoot.invalidate(childAbsolutePath("some/child"), CASE_SENSITIVE) == Optional.empty()
+        initialRoot.invalidate(childAbsolutePath("some/child"), CASE_SENSITIVE, changeListener) == Optional.empty()
+        removedSnapshots == [initialRoot]
+        addedSnapshots.empty
     }
 
     def "getSnapshot returns itself"() {

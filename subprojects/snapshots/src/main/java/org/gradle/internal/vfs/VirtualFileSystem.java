@@ -18,8 +18,10 @@ package org.gradle.internal.vfs;
 
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 
+import java.util.Collection;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -66,4 +68,10 @@ public interface VirtualFileSystem {
      * Updates the cached state at the location with the snapshot.
      */
     void updateWithKnownSnapshot(CompleteFileSystemLocationSnapshot snapshot);
+
+    interface VirtualFileSystemChangeListener {
+        VirtualFileSystemChangeListener NOOP = (removedNodes, addedNodes) -> {};
+
+        void changed(Collection<FileSystemNode> removedNodes, Collection<FileSystemNode> addedNodes);
+    }
 }

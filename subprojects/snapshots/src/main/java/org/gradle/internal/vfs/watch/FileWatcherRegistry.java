@@ -16,12 +16,16 @@
 
 package org.gradle.internal.vfs.watch;
 
+import org.gradle.internal.vfs.VirtualFileSystem;
+
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Optional;
 
-public interface FileWatcherRegistry extends Closeable {
+public interface FileWatcherRegistry extends Closeable, VirtualFileSystem.VirtualFileSystemChangeListener {
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);
@@ -35,6 +39,8 @@ public interface FileWatcherRegistry extends Closeable {
         REMOVED,
         INVALIDATE
     }
+
+    void updateMustWatchDirectories(Collection<File> updatedWatchDirectories);
 
     /**
      * Get statistics about the received changes.

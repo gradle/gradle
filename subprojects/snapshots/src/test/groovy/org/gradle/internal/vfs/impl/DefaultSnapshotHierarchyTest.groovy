@@ -46,6 +46,16 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
 
+    def changeListener = new SnapshotHierarchy.ChangeListener() {
+        @Override
+        void nodeRemoved(FileSystemNode node) {
+        }
+
+        @Override
+        void nodeAdded(FileSystemNode node) {
+        }
+    }
+
     def "creates from a single file"() {
         def dir = tmpDir.createDir("dir")
         def child = dir.file("child").createFile()
@@ -111,11 +121,11 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def dir1Snapshot = snapshotDir(dir1)
         def dir2Snapshot = snapshotDir(dir2)
         expect:
-        def s1 = empty.store(dir1.absolutePath, dir1Snapshot)
+        def s1 = empty.store(dir1.absolutePath, dir1Snapshot, changeListener)
         snapshotPresent(s1, dir1)
         !snapshotPresent(s1, dir2)
 
-        def s2 = empty.store(dir2.absolutePath, dir2Snapshot)
+        def s2 = empty.store(dir2.absolutePath, dir2Snapshot, changeListener)
         !snapshotPresent(s2, dir1)
         s2.getMetadata(dir2.absolutePath).get() == dir2Snapshot
     }
@@ -433,12 +443,12 @@ class DefaultSnapshotHierarchyTest extends Specification {
         Assume.assumeTrue("Root is only defined for the file separator '/'", File.separator == '/')
 
         when:
-        def set = EMPTY.store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)))
+        def set = EMPTY.store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)), changeListener)
         then:
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
 
         when:
-        set = set.invalidate("/root.txt").store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)))
+        set = set.invalidate("/root.txt", changeListener).store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)), changeListener)
         then:
         set.getMetadata("/base.txt").get().type == FileType.RegularFile
     }
@@ -470,9 +480,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def secondPath = "/usr/bin"
 
         def set = EMPTY
-            .store(firstPath, directorySnapshotForPath(firstPath))
-            .store(secondPath, directorySnapshotForPath(secondPath))
-            .store("/other/just-checking", directorySnapshotForPath("/other/just-checking"))
+            .store(firstPath, directorySnapshotForPath(firstPath), changeListener)
+            .store(secondPath, directorySnapshotForPath(secondPath), changeListener)
+            .store("/other/just-checking", directorySnapshotForPath("/other/just-checking"), changeListener)
 
         expect:
         set.getSnapshot(firstPath).present
@@ -481,7 +491,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
         !set.getSnapshot("/").present
 
         when:
-        def invalidated = set.invalidate(firstPath)
+        def invalidated = set.invalidate(firstPath, changeListener)
         then:
         !invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
@@ -492,7 +502,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
     def "can update the root path"() {
         when:
         def set = EMPTY
-            .store("/", rootDirectorySnapshot())
+            .store("/", rootDirectorySnapshot(), changeListener)
         then:
         set.getMetadata("/").present
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
@@ -500,8 +510,8 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
         when:
         set = EMPTY
-            .store("/some/path", directorySnapshotForPath("/some/path"))
-            .store("/", rootDirectorySnapshot())
+            .store("/some/path", directorySnapshotForPath("/some/path"), changeListener)
+            .store("/", rootDirectorySnapshot(), changeListener)
         then:
         set.getMetadata("/").present
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
@@ -509,15 +519,15 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
         when:
         set = EMPTY
-            .store("/firstPath", directorySnapshotForPath("/firstPath"))
-            .store("/secondPath", directorySnapshotForPath("/secondPath"))
+            .store("/firstPath", directorySnapshotForPath("/firstPath"), changeListener)
+            .store("/secondPath", directorySnapshotForPath("/secondPath"), changeListener)
         then:
-        set.invalidate("/") == EMPTY
+        set.invalidate("/", changeListener) == EMPTY
 
         when:
         set = EMPTY
-            .store("/", rootDirectorySnapshot())
-            .invalidate("/root.txt")
+            .store("/", rootDirectorySnapshot(), changeListener)
+            .invalidate("/root.txt", changeListener)
         then:
         set.getMetadata("/").get().type == FileType.Directory
         !set.getSnapshot("/").present
@@ -531,9 +541,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def thirdPath = "E:\\Some\\other"
 
         def set = EMPTY
-            .store(firstPath, directorySnapshotForPath(firstPath))
-            .store(secondPath, directorySnapshotForPath(secondPath))
-            .store(thirdPath, directorySnapshotForPath(thirdPath))
+            .store(firstPath, directorySnapshotForPath(firstPath), changeListener)
+            .store(secondPath, directorySnapshotForPath(secondPath), changeListener)
+            .store(thirdPath, directorySnapshotForPath(thirdPath), changeListener)
 
         expect:
         set.getMetadata(firstPath).present
@@ -541,19 +551,19 @@ class DefaultSnapshotHierarchyTest extends Specification {
         set.getMetadata(thirdPath).present
 
         when:
-        def invalidated = set.invalidate(firstPath)
+        def invalidated = set.invalidate(firstPath, changeListener)
         then:
         !invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
 
         when:
-        invalidated = set.invalidate("C:\\")
+        invalidated = set.invalidate("C:\\", changeListener)
         then:
         !invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
 
         when:
-        invalidated = set.invalidate("D:\\")
+        invalidated = set.invalidate("D:\\", changeListener)
         then:
         invalidated.getMetadata(firstPath).present
         !invalidated.getMetadata(secondPath).present
@@ -565,10 +575,10 @@ class DefaultSnapshotHierarchyTest extends Specification {
         def thirdPath = "\\\\otherServer\\whatever"
 
         def set = EMPTY
-            .store(firstPath, directorySnapshotForPath(firstPath))
-            .store(secondPath, directorySnapshotForPath(secondPath))
-            .store(thirdPath, directorySnapshotForPath(thirdPath))
-            .store("C:\\Some\\Location", directorySnapshotForPath("C:\\Some\\Location"))
+            .store(firstPath, directorySnapshotForPath(firstPath), changeListener)
+            .store(secondPath, directorySnapshotForPath(secondPath), changeListener)
+            .store(thirdPath, directorySnapshotForPath(thirdPath), changeListener)
+            .store("C:\\Some\\Location", directorySnapshotForPath("C:\\Some\\Location"), changeListener)
 
         expect:
         set.getMetadata(firstPath).present
@@ -576,20 +586,20 @@ class DefaultSnapshotHierarchyTest extends Specification {
         set.getMetadata(thirdPath).present
 
         when:
-        def invalidated = set.invalidate(firstPath)
+        def invalidated = set.invalidate(firstPath, changeListener)
         then:
         !invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
 
         when:
-        invalidated = set.invalidate("\\\\server")
+        invalidated = set.invalidate("\\\\server", changeListener)
         then:
         !invalidated.getMetadata(firstPath).present
         !invalidated.getMetadata(secondPath).present
         invalidated.getMetadata(thirdPath).present
 
         when:
-        invalidated = set.invalidate("\\\\otherServer")
+        invalidated = set.invalidate("\\\\otherServer", changeListener)
         then:
         invalidated.getMetadata(firstPath).present
         invalidated.getMetadata(secondPath).present
@@ -655,24 +665,24 @@ class DefaultSnapshotHierarchyTest extends Specification {
         set.getMetadata(location.absolutePath).present
     }
 
-    private static SnapshotHierarchy invalidate(SnapshotHierarchy set, File location) {
-        set.invalidate(location.absolutePath)
+    private SnapshotHierarchy invalidate(SnapshotHierarchy set, File location) {
+        set.invalidate(location.absolutePath, changeListener)
     }
 
     private SnapshotHierarchy fileHierarchySet(File location) {
-        EMPTY.store(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location))
+        EMPTY.store(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location), changeListener)
     }
 
     private SnapshotHierarchy fileHierarchySet(Iterable<? extends File> locations) {
         SnapshotHierarchy set = EMPTY
         for (File location : locations) {
-            set = set.store(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location))
+            set = set.store(location.absolutePath, location.directory ? snapshotDir(location) : snapshotFile(location), changeListener)
         }
         return set
     }
 
     private SnapshotHierarchy updateDir(SnapshotHierarchy set, File dir) {
-        set.store(dir.absolutePath, snapshotDir(dir))
+        set.store(dir.absolutePath, snapshotDir(dir), changeListener)
     }
 
     private static List<String> flatten(SnapshotHierarchy set) {

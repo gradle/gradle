@@ -93,7 +93,7 @@ class VirtualFileSystemServicesTest extends Specification {
         when:
         buildLifecycleListener.beforeComplete(gradle)
         then:
-        1 * virtualFileSystem.beforeComplete(retentionEnabled, _)
+        1 * virtualFileSystem.beforeComplete(retentionEnabled)
 
         where:
         retentionEnabled << [true, false]

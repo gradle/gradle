@@ -17,7 +17,6 @@
 package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -100,10 +99,9 @@ class WatchRootUtilTest extends Specification {
 
     private static Set<String> resolveDirectoriesToWatch(Map roots, String prefix) {
         def dirs = directoriesFromMap(roots, prefix)
-        def hierarchy = dirs.inject(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) { acc, snapshot ->
-            acc.store(snapshot.getAbsolutePath(), snapshot)
+        return dirs.inject([] as Set<String>) { acc, snapshot ->
+            return acc  + WatchRootUtil.resolveDirectoriesToWatch(snapshot, { true }, [])
         }
-        WatchRootUtil.resolveDirectoriesToWatch(hierarchy, { true }, [])
     }
 
     private static List<CompleteDirectorySnapshot> directoriesFromMap(Map entries, String prefix) {

@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs;
 
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
 
 import javax.annotation.CheckReturnValue;
@@ -47,13 +48,13 @@ public interface SnapshotHierarchy {
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
      */
     @CheckReturnValue
-    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot);
+    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, ChangeListener changeListener);
 
     /**
      * Returns a hierarchy without any information at the absolute path.
      */
     @CheckReturnValue
-    SnapshotHierarchy invalidate(String absolutePath);
+    SnapshotHierarchy invalidate(String absolutePath, ChangeListener changeListener);
 
     /**
      * The empty hierarchy.
@@ -61,9 +62,24 @@ public interface SnapshotHierarchy {
     @CheckReturnValue
     SnapshotHierarchy empty();
 
-    void visitSnapshots(SnapshotVisitor snapshotVisitor);
+    void visitSnapshotRoots(SnapshotVisitor snapshotVisitor);
 
     interface SnapshotVisitor {
-        void visitSnapshot(CompleteFileSystemLocationSnapshot snapshot, boolean rootOfCompleteHierarchy);
+        void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
+    }
+
+    interface ChangeListener {
+        ChangeListener NOOP = new ChangeListener() {
+            @Override
+            public void nodeRemoved(FileSystemNode node) {
+            }
+
+            @Override
+            public void nodeAdded(FileSystemNode node) {
+            }
+        };
+
+        void nodeRemoved(FileSystemNode node);
+        void nodeAdded(FileSystemNode node);
     }
 }
