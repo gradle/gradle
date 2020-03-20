@@ -82,10 +82,8 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     ) {
         validateExpectedProblems(totalProblemsCount, uniqueProblems)
 
-        assert !(result instanceof ExecutionFailure)
-
-        assertProblemsConsoleSummary(totalProblemsCount, uniqueProblems as List)
-        assertProblemsHtmlReport(totalProblemsCount, uniqueProblems.size())
+        assertProblemsConsoleSummary(result.output, totalProblemsCount, uniqueProblems as List)
+        assertProblemsHtmlReport(result.output, totalProblemsCount, uniqueProblems.size())
     }
 
     protected void expectInstantExecutionFailure(
@@ -136,7 +134,7 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
 
         // HTML report contains problems
-        assertProblemsHtmlReport(totalProblemsCount, uniqueProblems.size())
+        assertProblemsHtmlReport(failure.error, totalProblemsCount, uniqueProblems.size())
     }
 
     private static void validateExpectedProblems(int totalProblemsCount, String... uniqueProblems) {
@@ -148,17 +146,17 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    private void assertProblemsConsoleSummary(int totalProblemsCount, List<String> uniqueProblems) {
-        assertProblemsSummaryHeaderInOutput(totalProblemsCount, uniqueProblems.size())
-        assertUniqueProblemsInOutput(uniqueProblems)
+    private void assertProblemsConsoleSummary(String output, int totalProblemsCount, List<String> uniqueProblems) {
+        assertProblemsSummaryHeaderInOutput(output, totalProblemsCount, uniqueProblems.size())
+        assertUniqueProblemsInOutput(output, uniqueProblems)
     }
 
-    private void assertProblemsSummaryHeaderInOutput(int totalProblems, int uniqueProblems) {
+    private void assertProblemsSummaryHeaderInOutput(String output, int totalProblems, int uniqueProblems) {
         if (totalProblems > 0 || uniqueProblems > 0) {
             def header = problemsSummaryHeaderFor(totalProblems, uniqueProblems)
-            assertThat(relevantOutput(), containsNormalizedString(header))
+            assertThat(output, containsNormalizedString(header))
         } else {
-            assertThat(relevantOutput(), not(containsNormalizedString("instant execution problem")))
+            assertThat(output, not(containsNormalizedString("instant execution problem")))
         }
     }
 
@@ -167,11 +165,10 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
             "${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
     }
 
-    private void assertUniqueProblemsInOutput(List<String> uniqueProblems) {
+    private void assertUniqueProblemsInOutput(String output, List<String> uniqueProblems) {
         def uniqueProblemsCount = uniqueProblems.size()
         def problems = uniqueProblems.collect { "> $it".toString() }
         def found = 0
-        def output = relevantOutput()
         output.readLines().eachWithIndex { String line, int idx ->
             if (problems.remove(line.trim())) {
                 found++
@@ -181,9 +178,9 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         assert problems.empty, "Expected ${uniqueProblemsCount} unique problems, found ${found} unique problems, remaining:\n${problems.collect { " - $it" }.join("\n")}"
     }
 
-    private void assertProblemsHtmlReport(int totalProblemCount, int uniqueProblemCount) {
+    private void assertProblemsHtmlReport(String output, int totalProblemCount, int uniqueProblemCount) {
         def expectReport = totalProblemCount > 0 || uniqueProblemCount > 0
-        def reportDir = resolveInstantExecutionReportDirectory()
+        def reportDir = resolveInstantExecutionReportDirectory(output)
         if (expectReport) {
             assertThat("HTML report URI not found", reportDir, notNullValue())
             assertTrue("HTML report directory not found '$reportDir'", reportDir.isDirectory())
@@ -202,18 +199,14 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Nullable
-    protected TestFile resolveInstantExecutionReportDirectory() {
+    protected TestFile resolveInstantExecutionReportDirectory(String output) {
         def baseDirUri = clickableUrlFor(new File(executer.workingDir, "build/reports/instant-execution"))
         def pattern = Pattern.compile("See the complete report at (${baseDirUri}.*)$PROBLEMS_REPORT_HTML_FILE_NAME")
-        def reportDirUri = relevantOutput().readLines().findResult { line ->
+        def reportDirUri = output.readLines().findResult { line ->
             def matcher = pattern.matcher(line)
             matcher.matches() ? matcher.group(1) : null
         }
         return reportDirUri ? new TestFile(Paths.get(URI.create(reportDirUri)).toFile().absoluteFile) : null
-    }
-
-    private String relevantOutput() {
-        return result instanceof ExecutionFailure ? errorOutput : output
     }
 
     private static int numberOfProblemsIn(File jsFile) {

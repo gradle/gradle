@@ -121,6 +121,25 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         )
     }
 
+    def "problems not causing build failure are reported"() {
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        def expectedProblems = withStateSerializationProblems()
+        buildFile << """
+            broken.doFirst { throw new Exception("BOOM") }
+        """
+
+        when:
+        withDoNotFailOnProblems()
+        instantFails 'broken'
+
+        then:
+        expectInstantExecutionProblems(*expectedProblems)
+        failure.assertHasDescription("Execution failed for task ':broken'.")
+        failure.assertHasCause("java.lang.Exception: BOOM")
+    }
+
     def "mixed problems and errors"() {
 
         expect:
@@ -219,7 +238,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         and:
         expectInstantExecutionProblems(*expectedProblems)
         numberOfProblemsWithStacktraceIn(
-            resolveInstantExecutionReportDirectory().file("instant-execution-report-data.js")
+            resolveInstantExecutionReportDirectory(result.output).file("instant-execution-report-data.js")
         ) == 2
     }
 
