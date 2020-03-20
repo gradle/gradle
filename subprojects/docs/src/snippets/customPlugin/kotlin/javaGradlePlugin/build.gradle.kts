@@ -1,7 +1,6 @@
 // tag::use-and-configure-plugin[]
 plugins {
     `java-gradle-plugin`
-    groovy
 // end::use-and-configure-plugin[]
     `maven-publish`
 // tag::use-and-configure-plugin[]

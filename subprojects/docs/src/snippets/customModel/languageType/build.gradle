@@ -19,8 +19,8 @@ import sample.documentation.DocumentationComponent
 import sample.documentation.TextSourceSet
 import sample.markdown.MarkdownSourceSet
 
-apply plugin:sample.documentation.DocumentationPlugin
-apply plugin:sample.markdown.MarkdownPlugin
+apply plugin: sample.documentation.DocumentationPlugin
+apply plugin: sample.markdown.MarkdownPlugin
 
 model {
     components {

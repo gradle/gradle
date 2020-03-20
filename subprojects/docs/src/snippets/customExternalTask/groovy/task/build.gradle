@@ -1,20 +1,15 @@
+// tag::external-task-build[]
 plugins {
     id 'groovy'
+// end::external-task-build[]
     id 'maven-publish'
+// tag::external-task-build[]
 }
 
-// tag::gradle-api-dependencies[]
-// tag::local-groovy-dependencies[]
 dependencies {
-// end::local-groovy-dependencies[]
     implementation gradleApi()
-// end::gradle-api-dependencies[]
-// tag::local-groovy-dependencies[]
-    implementation localGroovy()
-// tag::gradle-api-dependencies[]
 }
-// end::gradle-api-dependencies[]
-// end::local-groovy-dependencies[]
+// end::external-task-build[]
 
 repositories {
     mavenCentral()
