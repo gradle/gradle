@@ -54,6 +54,7 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.Factory
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
@@ -494,8 +495,8 @@ class DefaultInstantExecution internal constructor(
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)
 
-        override fun fingerprintOf(fileSystemInputs: FileCollectionInternal) =
-            fileCollectionFingerprinter.fingerprint(fileSystemInputs)
+        override fun fingerprintOf(fileCollection: FileCollectionInternal): CurrentFileCollectionFingerprint =
+            fileCollectionFingerprinter.fingerprint(fileCollection)
 
         override fun displayNameOf(fileOrDirectory: File): String =
             relativePathOf(fileOrDirectory, rootDirectory)

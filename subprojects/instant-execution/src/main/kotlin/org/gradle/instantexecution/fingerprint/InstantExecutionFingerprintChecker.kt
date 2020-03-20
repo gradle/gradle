@@ -34,8 +34,8 @@ internal
 class InstantExecutionFingerprintChecker(private val host: Host) {
 
     interface Host {
+        fun fingerprintOf(fileCollection: FileCollectionInternal): CurrentFileCollectionFingerprint
         fun hashCodeOf(file: File): HashCode?
-        fun fingerprintOf(fileSystemInputs: FileCollectionInternal): CurrentFileCollectionFingerprint
         fun displayNameOf(fileOrDirectory: File): String
         fun instantiateValueSourceOf(obtainedValue: ObtainedValue): ValueSource<Any, ValueSourceParameters>
     }
