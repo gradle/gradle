@@ -48,6 +48,7 @@ class AbstractLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
             }
         """
     }
+
     def cleanup() {
         // Let's copy the Kotlin compiler logs in case of failure
         if (result instanceof ExecutionFailure) {

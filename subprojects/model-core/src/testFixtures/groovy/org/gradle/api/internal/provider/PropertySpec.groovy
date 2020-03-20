@@ -1900,7 +1900,7 @@ The value of this provider is derived from:
   - <c>""")
     }
 
-    def "producer task for a property is not known by default"() {
+    def "producer task for a property is not known when property has a fixed value"() {
         def context = Mock(TaskDependencyResolveContext)
         def property = propertyWithNoValue()
         property.set(someValue())
@@ -1918,7 +1918,7 @@ The value of this provider is derived from:
         def context = Mock(TaskDependencyResolveContext)
         def property = propertyWithNoValue()
         property.set(someValue())
-        property.attachProducer(task)
+        property.attachProducer(owner(task))
 
         when:
         def known = property.maybeVisitBuildDependencies(context)
@@ -1930,8 +1930,8 @@ The value of this provider is derived from:
     }
 
     def "has build dependencies when value is provider with producer task"() {
-        def producer = "some task"
-        def provider = supplierWithProducer(producer)
+        def task = Stub(Task)
+        def provider = supplierWithProducer(task)
         def context = Mock(TaskDependencyResolveContext)
         def property = propertyWithNoValue()
         property.set(provider)
@@ -1941,7 +1941,7 @@ The value of this provider is derived from:
 
         then:
         known
-        1 * context.add(producer)
+        1 * context.add(task)
         0 * context._
     }
 
@@ -1953,7 +1953,7 @@ The value of this provider is derived from:
         assertContentIsNotProducedByTask(property)
         !property.valueProducedByTask
 
-        property.attachProducer(task)
+        property.attachProducer(owner(task))
 
         assertContentIsProducedByTask(property, task)
         !property.valueProducedByTask
@@ -1980,7 +1980,7 @@ The value of this provider is derived from:
         assertContentIsNotProducedByTask(mapped)
         !mapped.valueProducedByTask
 
-        property.attachProducer(task)
+        property.attachProducer(owner(task))
 
         assertContentIsProducedByTask(mapped, task)
         mapped.valueProducedByTask
@@ -1995,7 +1995,7 @@ The value of this provider is derived from:
         assertContentIsNotProducedByTask(mapped)
         !mapped.valueProducedByTask
 
-        property.attachProducer(task)
+        property.attachProducer(owner(task))
 
         assertContentIsProducedByTask(mapped, task)
         mapped.valueProducedByTask
@@ -2012,6 +2012,49 @@ The value of this provider is derived from:
         expect:
         assertContentIsProducedByTask(mapped, task)
         mapped.valueProducedByTask
+    }
+
+    def "fails when property has multiple producers attached"() {
+        def owner1 = owner()
+        owner1.modelIdentityDisplayName >> displayName("<owner 1>")
+        def owner2 = owner()
+        owner2.modelIdentityDisplayName >> displayName("<owner 2>")
+
+        given:
+        def property = propertyWithNoValue()
+        property.attachProducer(owner1)
+
+        when:
+        property.attachProducer(owner2)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "This property is already declared as an output property of <owner 1> (type ${owner1.class.simpleName}). Cannot also declare it as an output property of <owner 2> (type ${owner2.class.simpleName})."
+
+        when:
+        property.attachOwner(owner(), displayName("<display-name>"))
+        property.attachProducer(owner2)
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "<display-name> is already declared as an output property of <owner 1> (type ${owner1.class.simpleName}). Cannot also declare it as an output property of <owner 2> (type ${owner2.class.simpleName})."
+    }
+
+    def "fails when property has producer with no task"() {
+        def owner = owner()
+        owner.taskThatOwnsThisObject >> null
+        owner.modelIdentityDisplayName >> displayName("<owner>")
+
+        given:
+        def property = propertyWithNoValue()
+        property.attachProducer(owner)
+
+        when:
+        property.maybeVisitBuildDependencies(Stub(TaskDependencyResolveContext))
+
+        then:
+        def e =  thrown(IllegalStateException)
+        e.message == "This property is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it."
     }
 
     def "can unpack state and recreate instance"() {
@@ -2056,6 +2099,12 @@ The value of this provider is derived from:
         return Stub(ModelObject)
     }
 
+    ModelObject owner(Task task) {
+        def owner = Stub(ModelObject)
+        _ * owner.taskThatOwnsThisObject >> task
+        return owner
+    }
+
     DisplayName displayName(String name) {
         return Describables.of(name)
     }
@@ -2088,7 +2137,7 @@ The value of this provider is derived from:
         return ProviderTestUtil.withValues(values)
     }
 
-    ProviderInternal<T> supplierWithProducer(Object producer) {
+    ProviderInternal<T> supplierWithProducer(Task producer) {
         return ProviderTestUtil.withProducer(type(), producer)
     }
 

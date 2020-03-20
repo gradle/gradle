@@ -35,16 +35,16 @@ public class ProviderTestUtil {
         return new TestProvider<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
     }
 
-    public static <T> ProviderInternal<T> withProducer(Class<T> type, Object producer) {
+    public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer) {
         return new TestProvider<>(type, Collections.emptyList(), producer);
     }
 
     private static class TestProvider<T> extends AbstractMinimalProvider<T> {
         final Class<T> type;
         final Iterator<T> values;
-        final Object producer;
+        final Task producer;
 
-        TestProvider(Class<T> type, List<T> values, Object producer) {
+        TestProvider(Class<T> type, List<T> values, Task producer) {
             this.producer = producer;
             this.values = values.iterator();
             this.type = type;
@@ -58,7 +58,7 @@ public class ProviderTestUtil {
         @Override
         public void visitProducerTasks(Action<? super Task> visitor) {
             if (producer != null) {
-                visitor.execute((Task) producer);
+                visitor.execute(producer);
             }
         }
 

@@ -45,7 +45,7 @@ public class LocalStatePropertyAnnotationHandler implements PropertyAnnotationHa
 
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
-        return !visitor.visitOutputFilePropertiesOnly();
+        return true;
     }
 
     @Override
