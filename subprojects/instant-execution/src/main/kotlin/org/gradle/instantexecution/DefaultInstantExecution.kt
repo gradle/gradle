@@ -169,11 +169,7 @@ class DefaultInstantExecution internal constructor(
                     }
                 }
 
-                instantExecutionFingerprintWriter!!.run {
-                    instantExecutionFingerprintFile
-                        .outputStream()
-                        .use(outputStream::writeTo)
-                }
+                writeInstantExecutionCacheFingerprint()
             }
         }
     }
@@ -275,13 +271,23 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
+    fun writeInstantExecutionCacheFingerprint() {
+        instantExecutionFingerprintWriter!!.run {
+            instantExecutionFingerprintFile
+                .outputStream()
+                .use(outputStream::writeTo)
+        }
+        instantExecutionFingerprintWriter = null
+    }
+
+    private
+    var instantExecutionFingerprintWriter: InstantExecutionCacheFingerprintWriter? = null
+
+    private
     fun cacheInputsWriterContextFor(outputStream: ByteArrayOutputStream) =
         writerContextFor(outputStream).apply {
             push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
         }
-
-    private
-    var instantExecutionFingerprintWriter: InstantExecutionCacheFingerprintWriter? = null
 
     private
     fun discardInstantExecutionState() {
