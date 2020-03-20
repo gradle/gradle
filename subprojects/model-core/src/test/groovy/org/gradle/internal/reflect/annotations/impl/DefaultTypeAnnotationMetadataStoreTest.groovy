@@ -294,7 +294,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         @SuppressWarnings("unused")
         static class TypeWithIgnoredFieldAndGetterInput {
             @Ignored
-            private String ignoredByField;
+            private String ignoredByField
 
             @Small
             String getIgnoredByField() {
