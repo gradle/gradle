@@ -101,6 +101,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         file("out.txt").text == """helloworld"""
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can run JavaExec with an executable jar configured in the application plugin"() {
 
         buildFile << """
@@ -117,6 +118,7 @@ class JavaExecWithExecutableJarIntegrationTest extends AbstractIntegrationSpec {
         file("out.txt").text == """helloworld"""
     }
 
+    @ToBeFixedForInstantExecution
     def "can run javaexec with executable jar configured in the application plugin"() {
 
         buildFile << """
