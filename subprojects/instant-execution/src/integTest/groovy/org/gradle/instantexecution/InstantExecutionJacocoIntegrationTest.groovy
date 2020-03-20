@@ -44,7 +44,6 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         expectInstantExecutionFailure(
-            null, // TODO
             InstantExecutionProblemsException,
             expectedProblemCount,
             *expectedProblems

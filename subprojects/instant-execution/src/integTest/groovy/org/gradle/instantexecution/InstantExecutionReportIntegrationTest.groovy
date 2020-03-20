@@ -140,12 +140,6 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         failure.assertHasCause("java.lang.Exception: BOOM")
     }
 
-    def "mixed problems and errors"() {
-
-        expect:
-        true // TODO
-    }
-
     private List<String> withStateSerializationErrors() {
         buildFile << """
             class BrokenSerializable implements java.io.Serializable {
@@ -326,7 +320,6 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             "field 'p$it' from type 'Bean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
         }
         expectInstantExecutionFailure(
-            null, // TODO
             TooManyInstantExecutionProblemsException,
             expectedNumberOfProblems,
             *expectedProblems

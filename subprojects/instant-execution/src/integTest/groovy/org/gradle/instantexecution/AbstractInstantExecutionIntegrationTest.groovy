@@ -80,10 +80,23 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         int totalProblemsCount = uniqueProblems.length,
         String... uniqueProblems
     ) {
-        validateExpectedProblems(totalProblemsCount, uniqueProblems)
+        validateExpectedProblems(totalProblemsCount, uniqueProblems as List)
 
         assertProblemsConsoleSummary(result.output, totalProblemsCount, uniqueProblems as List)
         assertProblemsHtmlReport(result.output, totalProblemsCount, uniqueProblems.size())
+    }
+
+    protected void expectInstantExecutionFailure(
+        Class<? extends InstantExecutionException> exceptionType,
+        int totalProblemsCount,
+        String... uniqueProblems
+    ) {
+        doExpectInstantExecutionFailure(
+            null,
+            exceptionType,
+            totalProblemsCount,
+            uniqueProblems as List
+        )
     }
 
     protected void expectInstantExecutionFailure(
@@ -92,12 +105,27 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         int totalProblemsCount = uniqueProblems.length,
         String... uniqueProblems
     ) {
+        doExpectInstantExecutionFailure(
+            rootCauseDescription,
+            exceptionType,
+            totalProblemsCount,
+            uniqueProblems as List
+        )
+    }
+
+    private void doExpectInstantExecutionFailure(
+        String rootCauseDescription,
+        Class<? extends InstantExecutionException> exceptionType,
+        int totalProblemsCount,
+        List<String> uniqueProblems
+    ) {
+
         validateExpectedProblems(totalProblemsCount, uniqueProblems)
 
         assert result instanceof ExecutionFailure
 
         def exceptionMessagePrefix = exceptionType.getField("MESSAGE").get(null).toString()
-        def summaryHeader = problemsSummaryHeaderFor(totalProblemsCount, uniqueProblems.length)
+        def summaryHeader = problemsSummaryHeaderFor(totalProblemsCount, uniqueProblems.size())
 
         // No console log summary in stdout
         assertThat(result.output, not(containsString("instant execution problem")))
@@ -137,7 +165,7 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         assertProblemsHtmlReport(failure.error, totalProblemsCount, uniqueProblems.size())
     }
 
-    private static void validateExpectedProblems(int totalProblemsCount, String... uniqueProblems) {
+    private static void validateExpectedProblems(int totalProblemsCount, List<String>... uniqueProblems) {
         if (uniqueProblems.length == 0) {
             throw new IllegalArgumentException("Use expectNoInstantExecutionProblem() when expecting no reported problems")
         }
