@@ -27,7 +27,7 @@ import org.junit.Assume
 
 import static org.gradle.util.TestPrecondition.SUPPORTS_TARGETING_JAVA6
 
-@TargetVersions(["1.6", "1.7", "1.8"])
+@TargetVersions(["1.6", "1.7", "1.8", "9", "10", "11"])
 class ScalaCrossCompilationIntegrationTest extends MultiVersionIntegrationSpec {
     JavaVersion getJavaVersion() {
         JavaVersion.toVersion(MultiVersionIntegrationSpec.version)
