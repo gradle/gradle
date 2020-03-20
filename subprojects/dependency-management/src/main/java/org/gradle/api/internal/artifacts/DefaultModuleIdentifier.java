@@ -53,7 +53,7 @@ public class DefaultModuleIdentifier implements ModuleIdentifier {
 
     @Override
     public String toString() {
-        return String.format("%s:%s", group, name);
+        return group + ":" + name;
     }
 
     @Override
