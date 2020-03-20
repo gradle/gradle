@@ -22,8 +22,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -45,6 +45,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
@@ -71,17 +72,24 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     private final ClassPathRegistry classPathRegistry;
     private final TemporaryFileProvider temporaryFileProvider;
     private final JvmVersionDetector jvmVersionDetector;
+    private final JavaModuleDetector javaModuleDetector;
     private final File gradleUserHomeDir;
 
-    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider, JvmVersionDetector jvmVersionDetector, File gradleUserHomeDir) {
+    public ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(ClassPathRegistry classPathRegistry, TemporaryFileProvider temporaryFileProvider,
+                                                                            JvmVersionDetector jvmVersionDetector, JavaModuleDetector javaModuleDetector, File gradleUserHomeDir) {
         this.classPathRegistry = classPathRegistry;
         this.temporaryFileProvider = temporaryFileProvider;
         this.jvmVersionDetector = jvmVersionDetector;
+        this.javaModuleDetector = javaModuleDetector;
         this.gradleUserHomeDir = gradleUserHomeDir;
     }
 
+    public JavaModuleDetector getJavaModuleDetector() {
+        return javaModuleDetector;
+    }
+
     @Override
-    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
+    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();

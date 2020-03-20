@@ -19,11 +19,9 @@ package org.gradle.internal.jpms
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.jpms.ModularClasspathHandling
 import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.JarUtils
-import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -34,11 +32,6 @@ class JavaModuleDetectorTest extends Specification {
 
     TestFileContentCacheFactory cacheFactory = new TestFileContentCacheFactory()
     JavaModuleDetector moduleDetector = new JavaModuleDetector(cacheFactory, TestFiles.fileCollectionFactory())
-    ModularClasspathHandling modularClasspathHandling = new DefaultModularClasspathHandling(TestUtil.objectFactory())
-
-    def setup() {
-        modularClasspathHandling.inferModulePath.set(true)
-    }
 
     def "detects modules on classpath"() {
         def path = path('lib.jar', 'module.jar', 'classes', 'classes-module', 'automaticModule.jar', 'mrjarModule.jar')
@@ -69,11 +62,11 @@ class JavaModuleDetectorTest extends Specification {
     }
 
     List<String> inferClasspath(FileCollection entries) {
-        moduleDetector.inferClasspath(true, modularClasspathHandling, entries).collect { it.name as String }
+        moduleDetector.inferClasspath(true, entries).collect { it.name as String }
     }
 
     List<String> inferModulePath(FileCollection entries) {
-        moduleDetector.inferModulePath(true, modularClasspathHandling, entries).collect { it.name as String }
+        moduleDetector.inferModulePath(true, entries).collect { it.name as String }
     }
 
     FileCollection path(String... entries) {
