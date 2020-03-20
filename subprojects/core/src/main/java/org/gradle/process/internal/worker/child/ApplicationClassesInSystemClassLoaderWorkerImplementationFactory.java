@@ -91,22 +91,25 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
     @Override
     public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
+        boolean inferApplicationModulePath = processBuilder.isInferApplicationModulePath();
         LogLevel logLevel = processBuilder.getLogLevel();
         Set<String> sharedPackages = processBuilder.getSharedPackages();
         Object requestedSecurityManager = execSpec.getSystemProperties().get("java.security.manager");
-        ClassPath workerMainClassPath = classPathRegistry.getClassPath("WORKER_MAIN");
+        List<File> workerMainClassPath = classPathRegistry.getClassPath("WORKER_MAIN").getAsFiles();
 
-        execSpec.setMain("worker." + GradleWorkerMain.class.getName());
+        execSpec.getModularClasspathHandling().getInferModulePath().set(inferApplicationModulePath);
+        execSpec.getMainModule().set("gradle.worker");
+        execSpec.getMainClass().set("worker." + GradleWorkerMain.class.getName());
 
         boolean useOptionsFile = shouldUseOptionsFile(execSpec);
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
-            List<String> jvmArgs = writeOptionsFile(workerMainClassPath.getAsFiles(), applicationClasspath, optionsFile);
+            List<String> jvmArgs = writeOptionsFile(workerMainClassPath, implementationModulePath, applicationClasspath, inferApplicationModulePath, optionsFile);
             execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
-            execSpec.classpath(workerMainClassPath.getAsFiles());
+            execSpec.classpath(workerMainClassPath);
             execSpec.systemProperty("java.security.manager", "worker." + BootstrapSecurityManager.class.getName());
         }
 
@@ -132,9 +135,21 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             }
 
             // Serialize the worker implementation classpath, this is consumed by GradleWorkerMain
-            outstr.writeInt(implementationClassPath.size());
-            for (URL entry : implementationClassPath) {
-                outstr.writeUTF(entry.toString());
+            if (execSpec.getModularClasspathHandling().getInferModulePath().get() || implementationModulePath == null) {
+                outstr.writeInt(implementationClassPath.size());
+                for (URL entry : implementationClassPath) {
+                    outstr.writeUTF(entry.toString());
+                }
+                // We do not serialize the module path. Instead, implementation modules are directly added to the application module path when
+                // starting the worker process. Implementation modules are hidden to the application modules by module visibility.
+            } else {
+                outstr.writeInt(implementationClassPath.size() + implementationModulePath.size());
+                for (URL entry : implementationClassPath) {
+                    outstr.writeUTF(entry.toString());
+                }
+                for (URL entry : implementationModulePath) {
+                    outstr.writeUTF(entry.toString());
+                }
             }
 
             // Serialize the worker config, this is consumed by SystemApplicationClassLoaderWorker
@@ -162,11 +177,30 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         return executableVersion != null && executableVersion.isJava9Compatible();
     }
 
-    private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<File> applicationClasspath, File optionsFile) {
-        List<File> classpath = new ArrayList<File>(workerMainClassPath.size() + applicationClasspath.size());
-        classpath.addAll(workerMainClassPath);
-        classpath.addAll(applicationClasspath);
-        List<String> argumentList = Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath));
+    private List<String> writeOptionsFile(Collection<File> workerMainClassPath, Collection<URL> implementationModulePath, Collection<File> applicationClasspath, boolean inferApplicationModulePath, File optionsFile) {
+        List<File> classpath = new ArrayList<>();
+        List<File> modulePath = new ArrayList<>();
+
+        if (inferApplicationModulePath) {
+            modulePath.addAll(workerMainClassPath);
+        } else {
+            classpath.addAll(workerMainClassPath);
+        }
+        modulePath.addAll(javaModuleDetector.inferModulePath(inferApplicationModulePath, applicationClasspath).getFiles());
+        classpath.addAll(javaModuleDetector.inferClasspath(inferApplicationModulePath, applicationClasspath).getFiles());
+
+        if (!modulePath.isEmpty() && implementationModulePath != null && !implementationModulePath.isEmpty()) {
+            // We add the implementation module path as well, as we do not load modules dynamically through a separate class loader in the worker.
+            // This acceptable, because the implementation modules are hidden to the application by module visibility.
+            modulePath.addAll(implementationModulePath.stream().map(url -> new File(url.getFile())).collect(Collectors.toList()));
+        }
+        List<String> argumentList = new ArrayList<>();
+        if (!modulePath.isEmpty()) {
+            argumentList.addAll(Arrays.asList("--module-path", Joiner.on(File.pathSeparator).join(modulePath), "--add-modules", "ALL-MODULE-PATH"));
+        }
+        if (!classpath.isEmpty()) {
+            argumentList.addAll(Arrays.asList("-cp", Joiner.on(File.pathSeparator).join(classpath)));
+        }
         return ArgWriter.argsFileGenerator(optionsFile, ArgWriter.javaStyleFactory()).transform(argumentList);
     }
 }
