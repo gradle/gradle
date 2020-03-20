@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
@@ -37,12 +36,12 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.runToCompletion
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
@@ -66,12 +65,8 @@ class TaskNodeCodec(
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
         val task = value.task
-        try {
-            runToCompletionWithMutableStateOf(task.project) {
-                writeTask(task)
-            }
-        } catch (e: Exception) {
-            throw GradleException("Could not save state of $task.", e)
+        runToCompletionWithMutableStateOf(task.project) {
+            writeTask(task)
         }
     }
 

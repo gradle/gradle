@@ -18,9 +18,9 @@ package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
 import org.gradle.instantexecution.extensions.unsafeLazy
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.IsolateContext
-import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logPropertyWarning

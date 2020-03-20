@@ -55,6 +55,7 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         server.expectConcurrent("b")
         server.expectConcurrent("c")
         server.expectConcurrent("a")
+        withDoNotFailOnProblems()
         instantRun "a:slow"
 
         then:
@@ -63,6 +64,7 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
+        withDoNotFailOnProblems()
         instantRun "a:slow"
 
         then:

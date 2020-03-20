@@ -16,25 +16,75 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.GradleException
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.internal.exceptions.Contextual
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 
 
-abstract class InstantExecutionException(message: String) : GradleException(message)
+// TODO lazy message?
+@Contextual
+abstract class InstantExecutionException internal constructor(
+    message: String,
+    causes: Iterable<Throwable>
+) : DefaultMultiCauseException(message, causes)
 
 
-/**
- * Instant execution state could not be cached.
- */
-class InstantExecutionErrorsException : InstantExecutionException(
-    "Instant execution state could not be cached."
-)
+class InstantExecutionErrorsException(
+    summary: String,
+    problems: List<PropertyProblem>
+) : InstantExecutionException(
+    "${MESSAGE}\n$summary",
+    problems.map(PropertyProblem::exception)
+) {
+    companion object {
+        const val MESSAGE = "Instant execution state could not be cached."
+    }
+}
 
 
-class TooManyInstantExecutionProblemsException : InstantExecutionException(
-    "Maximum number of instant execution problems has been reached. This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
-)
+@Contextual
+class InstantExecutionErrorException(
+    message: String,
+    cause: Throwable? = null
+) : Exception(message, cause) {
+    override fun fillInStackTrace(): Throwable =
+        if (cause == null) super.fillInStackTrace()
+        else this
+}
 
 
-class InstantExecutionProblemsException : InstantExecutionException(
-    "Problems found while caching instant execution state. Failing because -D${SystemProperties.failOnProblems} is 'true'."
-)
+class TooManyInstantExecutionProblemsException(
+    summary: String,
+    problems: List<PropertyProblem>
+) : InstantExecutionException(
+    "${MESSAGE}\n$summary",
+    problems.map(PropertyProblem::exception)
+) {
+    companion object {
+        const val MESSAGE = "Maximum number of instant execution problems has been reached.\nThis behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
+    }
+}
+
+
+class InstantExecutionProblemsException(
+    summary: String,
+    problems: List<PropertyProblem>
+) : InstantExecutionException(
+    "$MESSAGE\n$summary",
+    problems.map(PropertyProblem::exception)
+) {
+    companion object {
+        const val MESSAGE = "Problems found while caching instant execution state.\nFailing because -D${SystemProperties.failOnProblems} is 'true'."
+    }
+}
+
+
+@Contextual
+class InstantExecutionProblemException(
+    message: String,
+    cause: Throwable? = null
+) : Exception(message, cause) {
+    override fun fillInStackTrace(): Throwable =
+        if (cause == null) super.fillInStackTrace()
+        else this
+}

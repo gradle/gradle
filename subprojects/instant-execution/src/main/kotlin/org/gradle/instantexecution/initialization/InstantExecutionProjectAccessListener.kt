@@ -22,9 +22,9 @@ import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
 import org.gradle.instantexecution.InstantExecutionReport
-import org.gradle.instantexecution.serialization.PropertyProblem
-import org.gradle.instantexecution.serialization.PropertyTrace
-import org.gradle.instantexecution.serialization.StructuredMessage
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.PropertyTrace
+import org.gradle.instantexecution.problems.StructuredMessage
 
 
 class InstantExecutionProjectAccessListener internal constructor(
@@ -51,7 +51,7 @@ class InstantExecutionProjectAccessListener internal constructor(
                     invocationSource.path
                 )
                 else PropertyTrace.Unknown
-            report.add(PropertyProblem.Warning(
+            report.add(PropertyProblem.forWarning(
                 trace,
                 StructuredMessage.build { text(message) },
                 exception

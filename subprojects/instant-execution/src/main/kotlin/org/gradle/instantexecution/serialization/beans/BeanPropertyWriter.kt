@@ -20,8 +20,9 @@ import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.instantexecution.InstantExecutionException
+import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.serialization.Codec
-import org.gradle.instantexecution.serialization.PropertyKind
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
@@ -79,7 +80,7 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
         } catch (passThrough: InstantExecutionException) {
             throw passThrough
         } catch (e: Exception) {
-            logPropertyError("write", e) {
+            logPropertyError("write", e.maybeUnwrapInvocationTargetException()) {
                 text("error writing value of type ")
                 reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
             }
