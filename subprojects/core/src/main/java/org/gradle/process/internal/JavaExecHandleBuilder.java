@@ -339,7 +339,9 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
-        this.classpath.setFrom(classpath);
+        ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
+        newClasspath.setFrom(classpath);
+        this.classpath = newClasspath;
         return this;
     }
 
