@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.junit.Rule
 import spock.lang.Unroll
 
+
 class SamplesAntlrIntegrationSpec extends AbstractSampleIntegrationTest {
 
     @Rule
