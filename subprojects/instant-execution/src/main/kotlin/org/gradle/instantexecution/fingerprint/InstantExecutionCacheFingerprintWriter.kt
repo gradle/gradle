@@ -40,20 +40,17 @@ import java.io.File
 internal
 sealed class InstantExecutionCacheFingerprint {
 
-    internal
     data class TaskInputs(
         val taskPath: String,
         val fileSystemInputs: FileCollectionInternal,
         val fileSystemInputsFingerprint: CurrentFileCollectionFingerprint
     ) : InstantExecutionCacheFingerprint()
 
-    internal
     data class InputFile(
         val file: File,
         val hash: HashCode?
     ) : InstantExecutionCacheFingerprint()
 
-    internal
     data class ValueSource(
         val obtainedValue: ObtainedValue
     ) : InstantExecutionCacheFingerprint()
@@ -124,10 +121,6 @@ class InstantExecutionCacheFingerprintWriter(
     }
 
     private
-    fun fileCollectionFingerprinterFor(task: TaskInternal) =
-        task.serviceOf<AbsolutePathFileCollectionFingerprinter>()
-
-    private
     fun write(value: InstantExecutionCacheFingerprint?) {
         synchronized(writeContext) {
             writeContext.runWriteOperation {
@@ -139,6 +132,10 @@ class InstantExecutionCacheFingerprintWriter(
     private
     fun isBuildSrcTask(task: TaskInternal) =
         task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
+
+    private
+    fun fileCollectionFingerprinterFor(task: TaskInternal) =
+        task.serviceOf<AbsolutePathFileCollectionFingerprinter>()
 }
 
 
