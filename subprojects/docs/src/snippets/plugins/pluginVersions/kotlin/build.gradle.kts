@@ -30,8 +30,6 @@
  * limitations under the License.
  */
 
-// tag::apply-plugin[]
 plugins {
-    id("org.gradle.sample.hello")
+    id("com.example.hello")
 }
-// end::apply-plugin[]

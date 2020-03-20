@@ -1,3 +1,3 @@
 plugins {
-    id("org.gradle.sample.goodbye")
+    id("com.example.goodbye")
 }
