@@ -16,7 +16,7 @@
 
 package org.gradle.java.compile.jpms.compile
 
-class MultiSourceSetsJavaModulesCompileIntegrationTest extends MultipleLocalJavaModulesCompileIntegrationTest {
+class MultiSourceSetsJavaModulesCompileIntegrationTest extends AbstractMultipleLocalJavaModulesCompileIntegrationTest {
 
     def setup() {
         buildFile << """

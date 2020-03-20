@@ -16,9 +16,9 @@
 
 package org.gradle.java.compile.jpms.execution
 
-import org.gradle.java.compile.jpms.AbstractJavaModuleIntegrationTest
+import org.gradle.java.compile.jpms.AbstractJavaModuleCompileIntegrationTest
 
-class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleIntegrationTest {
+class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegrationTest {
 
     def setup() {
         buildFile << """

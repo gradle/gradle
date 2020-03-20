@@ -18,7 +18,7 @@ package org.gradle.java.compile.jpms.compile
 
 import org.gradle.java.compile.jpms.AbstractJavaModuleIntegrationTest
 
-abstract class MultipleLocalJavaModulesCompileIntegrationTest extends AbstractJavaModuleIntegrationTest {
+abstract class AbstractMultipleLocalJavaModulesCompileIntegrationTest extends AbstractJavaModuleIntegrationTest {
 
     def "compiles multiple modules in one project using the module path"() {
         given:

@@ -18,7 +18,7 @@ package org.gradle.java.compile.jpms.compile
 
 import org.gradle.test.fixtures.file.TestFile
 
-class MultiProjectJavaModulesCompileIntegrationTest extends MultipleLocalJavaModulesCompileIntegrationTest {
+class MultiProjectJavaModulesCompileIntegrationTest extends AbstractMultipleLocalJavaModulesCompileIntegrationTest {
 
     def producerBuildFile = file('producer/build.gradle')
 

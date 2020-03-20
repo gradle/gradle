@@ -16,22 +16,16 @@
 
 package org.gradle.java.compile.jpms
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.JavaCompileMultiTestRunner
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
-import org.gradle.util.TextUtil
-import org.junit.runner.RunWith
 
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.autoModuleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.moduleJar
 import static org.gradle.test.fixtures.jpms.ModuleJarFixture.traditionalJar
 
 @Requires(TestPrecondition.JDK9_OR_LATER)
-@RunWith(JavaCompileMultiTestRunner.class)
 abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
@@ -46,34 +40,10 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
             repositories {
                 maven { url '${mavenRepo.uri}' }
             }
+            tasks.withType(JavaCompile) {
+                modularClasspathHandling.inferModulePath.set(true)
+            }
         """
-        switch (JavaCompileMultiTestRunner.compiler) {
-            case JavaCompileMultiTestRunner.Compiler.IN_PROCESS_JDK_COMPILER:
-                buildFile << """
-                    tasks.withType(JavaCompile) {
-                        modularClasspathHandling.inferModulePath.set(true)
-                    }
-                """
-                break
-            case JavaCompileMultiTestRunner.Compiler.WORKER_JDK_COMPILER:
-                buildFile << """
-                    tasks.withType(JavaCompile) {
-                        modularClasspathHandling.inferModulePath.set(true)
-                        options.fork = true
-                    }
-                """
-                break
-            case JavaCompileMultiTestRunner.Compiler.WORKER_COMMAND_LINE_COMPILER:
-                def javaHome = TextUtil.escapeString(AvailableJavaHomes.getJdk(JavaVersion.current()).javaHome.absolutePath)
-                buildFile << """
-                    tasks.withType(JavaCompile) {
-                        modularClasspathHandling.inferModulePath.set(true)
-                        options.fork = true
-                        options.forkOptions.javaHome = file('$javaHome')
-                    }
-                """
-                break
-        }
     }
 
     protected MavenModule publishJavaModule(String name, String moduleInfoStatements = '') {
@@ -95,6 +65,10 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
             public class MainModule {
                 public void run() {
                     ${dependencies.collect { "new ${it}();"}.join('\n')}
+                }
+
+                protected String protectedName() {
+                    return "protected name";
                 }
 
                 public static void main(String[] args) {
