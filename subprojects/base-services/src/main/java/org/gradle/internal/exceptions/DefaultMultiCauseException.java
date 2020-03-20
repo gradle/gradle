@@ -118,7 +118,7 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     @Override
     public void printStackTrace(PrintWriter printWriter) {
-        if (causes.size() <= 1) {
+        if (causes.isEmpty()) {
             super.printStackTrace(printWriter);
             return;
         }
@@ -126,10 +126,17 @@ public class DefaultMultiCauseException extends GradleException implements Multi
         hideCause.set(true);
         try {
             super.printStackTrace(printWriter);
-            for (int i = 0; i < causes.size(); i++) {
-                Throwable cause = causes.get(i);
-                printWriter.format("Cause %s: ", i + 1);
+
+            if (causes.size() == 1) {
+                Throwable cause = causes.get(0);
+                printWriter.print("Caused by: ");
                 cause.printStackTrace(printWriter);
+            } else {
+                for (int i = 0; i < causes.size(); i++) {
+                    Throwable cause = causes.get(i);
+                    printWriter.format("Cause %s: ", i + 1);
+                    cause.printStackTrace(printWriter);
+                }
             }
         } finally {
             hideCause.set(false);
