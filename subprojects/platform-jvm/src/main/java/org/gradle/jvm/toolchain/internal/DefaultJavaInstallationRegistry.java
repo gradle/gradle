@@ -28,7 +28,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.service.scopes.BuildTree;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaDevelopmentKit;
 import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
@@ -39,7 +39,7 @@ import java.io.FileNotFoundException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-@BuildTree
+@ServiceScope(ServiceScope.Value.Build)
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final JavaInstallationProbe installationProbe;
     private final ProviderFactory providerFactory;

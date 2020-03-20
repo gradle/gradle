@@ -53,7 +53,6 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     public void buildSrcProjectCanReferToSourceOutsideBuildSrcDir() {
         testFile("gradle/src/BuildClass.java").writelns("public class BuildClass { }");
         testFile("buildSrc/build.gradle").writelns(

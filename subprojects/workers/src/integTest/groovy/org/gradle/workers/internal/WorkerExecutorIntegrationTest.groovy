@@ -40,7 +40,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
 
     def buildOperations = new BuildOperationsFixture(executer, temporaryFolder)
 
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*PROCESS")
     def "can create and use a work action defined in buildSrc in #isolationMode"() {
         fixture.withWorkActionClassInBuildSrc()
 
@@ -75,7 +74,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*PROCESS")
     def "can create and use a work action defined in build script in #isolationMode"() {
         fixture.withWorkActionClassInBuildScript()
 

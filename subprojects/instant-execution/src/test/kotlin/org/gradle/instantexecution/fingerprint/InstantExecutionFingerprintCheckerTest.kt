@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.instantexecution.runToCompletion
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.PropertyProblem
@@ -69,14 +69,8 @@ class InstantExecutionFingerprintCheckerTest {
 
         // when:
         val readContext = recordWritingOf {
-            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
-                encode(
-                    InstantExecutionCacheFingerprint(
-                        inputFiles = emptyList(),
-                        obtainedValues = listOf(obtainedValue)
-                    )
-                )
-            }
+            write(InstantExecutionCacheFingerprint.ValueSource(obtainedValue))
+            write(null)
         }
 
         // and:
