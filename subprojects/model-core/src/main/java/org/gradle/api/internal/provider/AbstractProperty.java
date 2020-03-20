@@ -132,32 +132,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
-        if (producer != null) {
-            Task task = producer.getTaskThatOwnsThisObject();
-            if (task == null) {
-                TreeFormatter formatter = new TreeFormatter();
-                formatter.node(getDisplayName().getCapitalizedDisplayName());
-                formatter.append(" is declared as an output property of ");
-                format(producer, formatter);
-                formatter.append(" but does not have a task associated with it.");
-                throw new IllegalStateException(formatter.toString());
-            }
+        Task task = getProducerTask();
+        if (task != null) {
             visitor.execute(task);
         } else {
             getSupplier().visitProducerTasks(visitor);
         }
-    }
-
-    private void format(ModelObject modelObject, TreeFormatter formatter) {
-        if (modelObject.getModelIdentityDisplayName() != null) {
-            formatter.append(modelObject.getModelIdentityDisplayName().getDisplayName());
-        } else if (modelObject.hasUsefulDisplayName()) {
-            formatter.append(modelObject.toString());
-        } else {
-            formatter.append("an object");
-        }
-        formatter.append(" with type ");
-        formatter.appendType(modelObject.getClass());
     }
 
     @Override
@@ -167,11 +147,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (producer != null) {
-            context.add(producer);
+        Task task = getProducerTask();
+        if (task != null) {
+            context.add(task);
             return true;
+        } else {
+            return getSupplier().maybeVisitBuildDependencies(context);
         }
-        return getSupplier().maybeVisitBuildDependencies(context);
     }
 
     @Override
@@ -243,6 +225,40 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected void assertCanMutate() {
         state.beforeMutate(getDisplayName());
+    }
+
+    @Nullable
+    private Task getProducerTask() {
+        if (producer == null) {
+            return null;
+        }
+        Task task = producer.getTaskThatOwnsThisObject();
+        if (task == null) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(getDisplayName().getCapitalizedDisplayName());
+            formatter.append(" is declared as an output property of ");
+            format(producer, formatter);
+            formatter.append(" but does not have a task associated with it.");
+            throw new IllegalStateException(formatter.toString());
+        }
+        return task;
+    }
+
+    private void format(ModelObject modelObject, TreeFormatter formatter) {
+        if (modelObject.getModelIdentityDisplayName() != null) {
+            formatter.append(modelObject.getModelIdentityDisplayName().getDisplayName());
+            formatter.append(" (type ");
+            formatter.appendType(modelObject.getClass());
+            formatter.append(")");
+        } else if (modelObject.hasUsefulDisplayName()) {
+            formatter.append(modelObject.toString());
+            formatter.append(" (type ");
+            formatter.appendType(modelObject.getClass());
+            formatter.append(")");
+        } else {
+            formatter.append("an object with type ");
+            formatter.appendType(modelObject.getClass());
+        }
     }
 
     private static abstract class FinalizationState<S> {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
 
@@ -47,11 +46,6 @@ public interface PropertyValue extends Callable<Object> {
      * Returns the dependencies of the property value, if supported by the value implementation. Returns an empty collection if not supported or the value has no producer tasks.
      */
     TaskDependencyContainer getTaskDependencies();
-
-    /**
-     * Associates the task that produces this value with the property value itself, if supported by the value implementation.
-     */
-    void attachProducer(Task producer);
 
     /**
      * Finalizes the property value, if possible. This makes the value final, so that it no longer changes, but not necessarily immutable.
