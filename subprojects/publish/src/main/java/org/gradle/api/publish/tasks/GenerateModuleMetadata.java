@@ -59,7 +59,6 @@ import java.io.Writer;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 
 /**
  * Generates a Gradle metadata file to represent a published {@link org.gradle.api.component.SoftwareComponent} instance.
@@ -71,7 +70,6 @@ public class GenerateModuleMetadata extends DefaultTask {
     private final ListProperty<Publication> publications;
     private final RegularFileProperty outputFile;
     private final ChecksumService checksumService;
-    private Supplier<Boolean> enabledIf;
 
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getProject().getObjects();
