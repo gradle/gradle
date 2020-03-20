@@ -18,7 +18,6 @@ package org.gradle.internal.jpms;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.jpms.ModularClasspathHandling;
 import org.gradle.api.specs.Spec;
 import org.gradle.cache.internal.FileContentCache;
 import org.gradle.cache.internal.FileContentCacheFactory;
@@ -27,6 +26,7 @@ import org.gradle.internal.serialize.BaseSerializerFactory;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.jar.JarInputStream;
 import java.util.jar.Manifest;
 import java.util.regex.Pattern;
@@ -52,30 +52,41 @@ public class JavaModuleDetector {
         this.fileCollectionFactory = fileCollectionFactory;
     }
 
-    public FileCollection inferClasspath(boolean forModule, ModularClasspathHandling modularClasspathHandling, FileCollection classpath) {
-        if (classpath == null) {
-            return fileCollectionFactory.empty();
-        }
-        if (!forModule) {
-            return classpath;
-        }
-        if (modularClasspathHandling.getInferModulePath().get()) {
-            return classpath.filter(classpathFilter);
-        }
-        return classpath;
+    public FileCollection inferClasspath(boolean inferModulePath, Collection<File> classpath) {
+        return inferClasspath(inferModulePath, fileCollectionFactory.fixed(classpath));
     }
 
-    public FileCollection inferModulePath(boolean forModule, ModularClasspathHandling modularClasspathHandling, FileCollection classpath) {
+    public FileCollection inferClasspath(boolean inferModulePath, FileCollection classpath) {
         if (classpath == null) {
             return fileCollectionFactory.empty();
         }
-        if (!forModule) {
+        if (!inferModulePath) {
+            return classpath;
+        }
+        return classpath.filter(classpathFilter);
+    }
+
+    public FileCollection inferModulePath(boolean inferModulePath, Collection<File> classpath) {
+        return inferModulePath(inferModulePath, fileCollectionFactory.fixed(classpath));
+    }
+
+    public FileCollection inferModulePath(boolean inferModulePath, FileCollection classpath) {
+        if (classpath == null) {
             return fileCollectionFactory.empty();
         }
-        if (modularClasspathHandling.getInferModulePath().get()) {
-            return classpath.filter(modulePathFilter);
+        if (!inferModulePath) {
+            return fileCollectionFactory.empty();
         }
-        return fileCollectionFactory.empty();
+        return classpath.filter(modulePathFilter);
+    }
+
+    public boolean isModule(FileCollection files) {
+        for(File file : files.getFiles()) {
+            if (cache.get(file)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean isModule(File file) {

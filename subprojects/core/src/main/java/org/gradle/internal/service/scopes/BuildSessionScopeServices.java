@@ -32,7 +32,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheRepositoryServices;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CleanupActionFactory;
-import org.gradle.cache.internal.FileContentCacheFactory;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.VersionStrategy;
 import org.gradle.deployment.internal.DefaultDeploymentRegistry;
@@ -175,10 +174,6 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
 
     protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
         return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory, javaModuleDetector);
-    }
-
-    protected JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
-        return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
     }
 
     DeprecatedUsageBuildOperationProgressBroadcaster createDeprecatedUsageBuildOperationProgressBroadcaster(

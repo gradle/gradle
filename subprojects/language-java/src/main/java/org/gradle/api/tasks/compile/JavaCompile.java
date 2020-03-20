@@ -245,8 +245,8 @@ public class JavaCompile extends AbstractCompile {
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
         spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, modularClasspathHandling, getClasspath())));
-        spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, modularClasspathHandling, getClasspath())));
+        spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule && modularClasspathHandling.getInferModulePath().get(), getClasspath())));
+        spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule && modularClasspathHandling.getInferModulePath().get(), getClasspath())));
         if (isModule) {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }

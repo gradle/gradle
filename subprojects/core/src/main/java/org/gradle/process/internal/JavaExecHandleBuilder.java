@@ -121,8 +121,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         if (javaModuleDetector == null) {
             throw new IllegalStateException("Running a Java module is not supported in this context.");
         }
-        FileCollection rtModulePath = javaModuleDetector.inferModulePath(true, modularClasspathHandling, classpath);
-        FileCollection rtClasspath = javaModuleDetector.inferClasspath(true, modularClasspathHandling, classpath);
+        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularClasspathHandling.getInferModulePath().get(), classpath);
+        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularClasspathHandling.getInferModulePath().get(), classpath);
 
         if (rtClasspath != null && !rtClasspath.isEmpty()) {
             allArgs.add("-cp");
