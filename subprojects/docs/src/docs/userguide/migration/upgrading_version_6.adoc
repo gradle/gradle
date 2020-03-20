@@ -38,7 +38,8 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
-There were no breaking changes between Gradle 6.3 and 6.4.
+Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
+Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
 
 === Deprecations
 
