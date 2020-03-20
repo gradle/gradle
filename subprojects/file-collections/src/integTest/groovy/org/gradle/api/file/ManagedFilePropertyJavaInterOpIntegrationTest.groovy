@@ -40,7 +40,7 @@ class ManagedFilePropertyJavaInterOpIntegrationTest extends AbstractFileProperty
 
                 @TaskAction
                 public void run() throws IOException {
-                    Files.writeString(getOutFile().get().getAsFile().toPath(), "content");
+                    Files.write(getOutFile().get().getAsFile().toPath(), "content".getBytes());
                 }
             }
         """
@@ -62,7 +62,7 @@ class ManagedFilePropertyJavaInterOpIntegrationTest extends AbstractFileProperty
 
                 @TaskAction
                 public void run() throws IOException {
-                    Files.writeString(getParams().getOutFile().get().getAsFile().toPath(), "content");
+                    Files.write(getParams().getOutFile().get().getAsFile().toPath(), "content".getBytes());
                 }
             }
         """

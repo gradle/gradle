@@ -32,7 +32,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
-    private Task producer;
+    private ModelObject producer;
     private DisplayName displayName;
     private FinalizationState<S> state;
     private S value;
@@ -89,18 +89,18 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void attachProducer(ModelObject owner) {
-        Task producer = owner.getTaskThatOwnsThisObject();
-        if (producer != null) {
-            attachProducer(producer);
+        if (this.producer == null) {
+            this.producer = owner;
+        } else if (this.producer != owner) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(getDisplayName().getCapitalizedDisplayName());
+            formatter.append(" is already declared as an output property of ");
+            format(this.producer, formatter);
+            formatter.append(". Cannot also declare it as an output property of ");
+            format(owner, formatter);
+            formatter.append(".");
+            throw new IllegalStateException(formatter.toString());
         }
-    }
-
-    @Override
-    public void attachProducer(Task task) {
-        if (this.producer != null && this.producer != task) {
-            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", getDisplayName().getCapitalizedDisplayName()));
-        }
-        this.producer = task;
     }
 
     protected S getSupplier() {
@@ -133,10 +133,31 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
         if (producer != null) {
-            visitor.execute(producer);
+            Task task = producer.getTaskThatOwnsThisObject();
+            if (task == null) {
+                TreeFormatter formatter = new TreeFormatter();
+                formatter.node(getDisplayName().getCapitalizedDisplayName());
+                formatter.append(" is declared as an output property of ");
+                format(producer, formatter);
+                formatter.append(" but does not have a task associated with it.");
+                throw new IllegalStateException(formatter.toString());
+            }
+            visitor.execute(task);
         } else {
             getSupplier().visitProducerTasks(visitor);
         }
+    }
+
+    private void format(ModelObject modelObject, TreeFormatter formatter) {
+        if (modelObject.getModelIdentityDisplayName() != null) {
+            formatter.append(modelObject.getModelIdentityDisplayName().getDisplayName());
+        } else if (modelObject.hasUsefulDisplayName()) {
+            formatter.append(modelObject.toString());
+        } else {
+            formatter.append("an object");
+        }
+        formatter.append(" with type ");
+        formatter.appendType(modelObject.getClass());
     }
 
     @Override
