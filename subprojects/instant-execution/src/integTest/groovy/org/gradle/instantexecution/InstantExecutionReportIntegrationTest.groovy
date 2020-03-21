@@ -18,6 +18,8 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.invocation.Gradle
+import org.gradle.invocation.DefaultGradle
 import spock.lang.Unroll
 
 
@@ -39,6 +41,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
         failure.assertHasCause("BOOM")
+
+        and: 'state discarded'
         !file(".instant-execution-state").allDescendants().any { it.endsWith(".fingerprint") }
 
         when:
@@ -53,6 +57,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(4)
         failure.assertHasCause("BOOM")
+
+        and: 'state discarded'
         !file(".instant-execution-state").allDescendants().any { it.endsWith(".fingerprint") }
     }
 
@@ -172,8 +178,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             }
         """
         return [
-            "input property 'brokenProperty' of ':broken': cannot serialize object of type '$DefaultProject.name', a subtype of '$Project.name', as these are not supported with instant execution.",
-            "input property 'otherBrokenProperty' of ':broken': cannot serialize object of type '$DefaultProject.name', a subtype of '$Project.name', as these are not supported with instant execution.",
+            "input property 'brokenProperty' of ':broken': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+            "input property 'otherBrokenProperty' of ':broken': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
         ]
     }
 
@@ -281,9 +287,9 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         then:
         expectInstantExecutionProblems(
             6,
-            "field 'gradle' from type 'SomeBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.",
-            "field 'gradle' from type 'NestedBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.",
-            "field 'project' from type 'NestedBean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
+            "field 'gradle' from type 'SomeBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
+            "field 'gradle' from type 'NestedBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
+            "field 'project' from type 'NestedBean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
         )
     }
 
@@ -318,11 +324,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         when:
         withDoNotFailOnProblems()
-        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.max-problems=$maxProblems"
+        instantFails "foo", "-D${SystemProperties.maxProblems}=$maxProblems"
 
         then:
         def expectedProblems = (1..expectedNumberOfProblems).collect {
-            "field 'p$it' from type 'Bean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
+            "field 'p$it' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
         }
         expectInstantExecutionFailure(
             TooManyInstantExecutionProblemsException,
@@ -354,7 +360,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         expectInstantExecutionProblems(
-            "field 'p1' from type 'Bean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
+            "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
         )
     }
 }
