@@ -18,7 +18,7 @@ package org.gradle.instantexecution
 
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.internal.exceptions.Contextual
-import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace
 
 
 // TODO lazy message?
@@ -26,7 +26,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 sealed class InstantExecutionException(
     message: String,
     causes: Iterable<Throwable>
-) : DefaultMultiCauseException(message, causes)
+) : DefaultMultiCauseExceptionNoStackTrace({ message }, causes)
 
 
 class InstantExecutionErrorsException(
@@ -47,9 +47,7 @@ class InstantExecutionErrorException(
     message: String,
     cause: Throwable? = null
 ) : Exception(message, cause) {
-    override fun fillInStackTrace(): Throwable =
-        if (cause == null) super.fillInStackTrace()
-        else this
+    override fun fillInStackTrace() = this
 }
 
 
@@ -84,7 +82,5 @@ class InstantExecutionProblemException(
     message: String,
     cause: Throwable? = null
 ) : Exception(message, cause) {
-    override fun fillInStackTrace(): Throwable =
-        if (cause == null) super.fillInStackTrace()
-        else this
+    override fun fillInStackTrace() = this
 }
