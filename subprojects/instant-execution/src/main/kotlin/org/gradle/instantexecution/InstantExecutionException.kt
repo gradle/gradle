@@ -23,7 +23,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 
 // TODO lazy message?
 @Contextual
-abstract class InstantExecutionException internal constructor(
+sealed class InstantExecutionException(
     message: String,
     causes: Iterable<Throwable>
 ) : DefaultMultiCauseException(message, causes)
