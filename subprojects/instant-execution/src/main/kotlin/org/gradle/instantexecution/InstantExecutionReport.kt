@@ -26,17 +26,16 @@ import org.gradle.api.logging.Logging
 import org.gradle.instantexecution.extensions.isOrHasCause
 import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
-import org.gradle.instantexecution.problems.firstTypeFrom
-import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
-import org.gradle.instantexecution.problems.StructuredMessage
+import org.gradle.instantexecution.problems.buildConsoleSummary
+import org.gradle.instantexecution.problems.buildExceptionSummary
+import org.gradle.instantexecution.problems.firstTypeFrom
 import org.gradle.instantexecution.problems.taskPathFrom
 import org.gradle.instantexecution.serialization.unknownPropertyError
 
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.logging.ConsoleRenderer
 
 import org.gradle.util.GFileUtils.copyURLToFile
 
@@ -97,7 +96,10 @@ class InstantExecutionReport(
     fun add(problem: PropertyProblem) = synchronized(problems) {
         problems.add(problem)
         if (problems.size >= startParameter.maxProblems) {
-            throw TooManyInstantExecutionProblemsException(buildExceptionSummary(), problems)
+            throw TooManyInstantExecutionProblemsException(
+                buildExceptionSummary(problems, htmlReportFile),
+                problems
+            )
         }
     }
 
@@ -155,17 +157,23 @@ class InstantExecutionReport(
 
     private
     fun instantExecutionExceptionForErrors(): Throwable? =
-        if (errors().isNotEmpty()) InstantExecutionErrorsException(buildExceptionSummary(), problems)
+        if (errors().isNotEmpty()) InstantExecutionErrorsException(
+            buildExceptionSummary(problems, htmlReportFile),
+            problems
+        )
         else null
 
     private
     fun instantExecutionExceptionForProblems(): Throwable? =
-        if (startParameter.failOnProblems) InstantExecutionProblemsException(buildExceptionSummary(), problems)
+        if (startParameter.failOnProblems) InstantExecutionProblemsException(
+            buildExceptionSummary(problems, htmlReportFile),
+            problems
+        )
         else null
 
     private
     fun errors() =
-        problems.asIterable().filterIsInstance<PropertyProblem.Error>()
+        problems.filterIsInstance<PropertyProblem.Error>()
 
     private
     val outputDirectory: File by lazy {
@@ -180,8 +188,12 @@ class InstantExecutionReport(
     }
 
     private
+    val htmlReportFile: File
+        get() = outputDirectory.resolve(reportHtmlFileName)
+
+    private
     fun logConsoleSummary() {
-        logger.warn(buildConsoleSummary())
+        logger.warn(buildConsoleSummary(problems, htmlReportFile))
     }
 
     private
@@ -192,48 +204,6 @@ class InstantExecutionReport(
         copyReportResources(outputDirectory)
         writeJsReportData(outputDirectory)
     }
-
-    private
-    fun buildExceptionSummary(): String =
-        StringBuilder().apply {
-            appendln(buildSummaryHeader(uniquePropertyProblems()))
-            append(buildSummaryReportLink())
-        }.toString()
-
-    private
-    fun buildConsoleSummary(): String {
-        val uniquePropertyProblems = uniquePropertyProblems()
-        return StringBuilder().apply {
-            appendln()
-            appendln(buildSummaryHeader(uniquePropertyProblems))
-            uniquePropertyProblems.forEach { (property, message) ->
-                append("  > ")
-                append(property)
-                append(": ")
-                appendln(message)
-            }
-            appendln(buildSummaryReportLink())
-        }.toString()
-    }
-
-    private
-    fun uniquePropertyProblems(): Set<UniquePropertyProblem> =
-        problems.sortedBy { it.trace.sequence.toList().reversed().joinToString(".") }
-            .groupBy { propertyDescriptionFor(it.trace) to it.message }
-            .keys
-
-    private
-    fun buildSummaryHeader(uniquePropertyProblems: Set<UniquePropertyProblem>): String {
-        val totalProblemCount = problems.size
-        val problemOrProblems = if (totalProblemCount == 1) "problem was" else "problems were"
-        val uniqueProblemCount = uniquePropertyProblems.size
-        val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
-        return "$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique."
-    }
-
-    private
-    fun buildSummaryReportLink() =
-        "See the complete report at ${clickableUrlFor(outputDirectory.resolve(reportHtmlFileName))}"
 
     private
     fun copyReportResources(outputDirectory: File) {
@@ -271,10 +241,6 @@ class InstantExecutionReport(
             }
         }
     }
-
-    private
-    fun clickableUrlFor(file: File) =
-        ConsoleRenderer().asClickableFileUrl(file)
 
     private
     fun Class<*>.requireResource(path: String): URL = getResource(path).also {
@@ -322,7 +288,3 @@ class InstantExecutionReport(
         )
     }
 }
-
-
-private
-typealias UniquePropertyProblem = Pair<String, StructuredMessage>
