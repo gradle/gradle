@@ -52,10 +52,14 @@ class BuildTypesPlugin : Plugin<Project> {
         if (usedTaskNames.isNotEmpty()) {
             afterEvaluate {
                 usedTaskNames.forEach { (index, usedName) ->
+                    invokedTaskNames.removeAt(index)
                     val subproject = usedName.substringBeforeLast(":", "")
                     insertBuildTypeTasksInto(invokedTaskNames, buildTypeTask, index, buildType, subproject)
-                    gradle.startParameter.setTaskNames(invokedTaskNames)
                 }
+                if (!invokedTaskNames.contains(buildType.name)) {
+                    invokedTaskNames.add(buildType.name)
+                }
+                gradle.startParameter.setTaskNames(invokedTaskNames)
             }
         }
     }

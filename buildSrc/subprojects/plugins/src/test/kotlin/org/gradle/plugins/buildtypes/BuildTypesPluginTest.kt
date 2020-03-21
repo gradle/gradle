@@ -132,7 +132,7 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = ""
-        val taskList = mutableListOf("TL0", "quickTest", "TL1")
+        val taskList = mutableListOf("TL0", "TL1")
 
         // when:
         project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, quickTestBuildType, subproject)
@@ -140,7 +140,7 @@ class BuildTypesPluginTest {
         // then:
         assertThat(
             taskList,
-            equalTo(listOf("TL0", ":subproject2:test", ":subproject1:test", ":subproject1:integTest", ":subproject1:crossVersionTest", "quickTest", "TL1")))
+            equalTo(listOf("TL0", ":subproject2:test", ":subproject1:test", ":subproject1:integTest", ":subproject1:crossVersionTest", "TL1")))
     }
 
 
@@ -149,7 +149,7 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = ""
-        val taskList = mutableListOf("TL0", "sanityCheck", "TL1")
+        val taskList = mutableListOf("TL0", "TL1")
 
         // when:
         project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, sanityCheckBuildType, subproject)
@@ -157,7 +157,7 @@ class BuildTypesPluginTest {
         // then:
         assertThat(
             taskList,
-            equalTo(listOf("TL0", ":subproject2:classes", ":subproject1:classes", ":docs:javadocAll", "sanityCheck", "TL1")))
+            equalTo(listOf("TL0", ":subproject2:classes", ":subproject1:classes", ":docs:javadocAll", "TL1")))
     }
 
     @Test
@@ -165,7 +165,7 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "unknown"
-        val taskList = mutableListOf("TL0", "sanityCheck", "TL1")
+        val taskList = mutableListOf("TL0", "TL1")
 
         // when:
         project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, sanityCheckBuildType, subproject)
@@ -173,7 +173,7 @@ class BuildTypesPluginTest {
         // then:
         assertThat(
             taskList,
-            equalTo(listOf("TL0", "sanityCheck", "TL1")))
+            equalTo(listOf("TL0", "TL1")))
 
         // and:
         verify { project.findProject(subproject) }
@@ -184,7 +184,7 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "subproject1"
-        val taskList = mutableListOf("TL0", "subproject1:quickTest", "TL1")
+        val taskList = mutableListOf("TL0", "TL1")
 
         // when:
         project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, quickTestBuildType, subproject)
@@ -192,7 +192,7 @@ class BuildTypesPluginTest {
         // then:
         assertThat(
             taskList,
-            equalTo(listOf("TL0", "subproject1:test", "subproject1:integTest", "subproject1:crossVersionTest", "subproject1:quickTest", "TL1")))
+            equalTo(listOf("TL0", "subproject1:test", "subproject1:integTest", "subproject1:crossVersionTest", "TL1")))
 
         // and:
         verify { taskContainer.findByPath("subproject1:test") }
@@ -205,14 +205,14 @@ class BuildTypesPluginTest {
 
         // given:
         val subproject = "subproject2"
-        val taskList = mutableListOf("TL0", "subproject2:quickTest", "TL1")
+        val taskList = mutableListOf("TL0", "TL1")
         // when:
         project.insertBuildTypeTasksInto(taskList, buildTypeTaskProvider, 1, quickTestBuildType, subproject)
 
         // then:
         assertThat(
             taskList,
-            equalTo(listOf("TL0", "subproject2:test", "subproject2:quickTest", "TL1")))
+            equalTo(listOf("TL0", "subproject2:test", "TL1")))
 
         // and:
         verify { taskContainer.findByPath("subproject2:test") }
