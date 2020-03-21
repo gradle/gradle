@@ -33,15 +33,19 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         instantFails("help")
 
         then:
-        expectInstantExecutionFailure(InstantExecutionProblemsException, expectedProblem)
+        problems.expectFailure(result, InstantExecutionProblemsException) {
+            withUniqueProblems(expectedProblem)
+        }
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantRun("help")
 
         then:
         instantExecution.assertStateStored()
-        expectInstantExecutionProblems(expectedProblem)
+        problems.expectWarnings(result) {
+            withUniqueProblems(expectedProblem)
+        }
 
         when:
         instantRun("help")

@@ -29,6 +29,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         given:
         def expectedProblems = withStateSerializationErrors()
+        def failureSpec = problems.newFailureSpec(InstantExecutionErrorsException) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(2)
+            withLocation("Build file '${buildFile.absolutePath}'", 4)
+        }
 
         when:
         instantFails 'brokenInputs'
@@ -37,25 +42,21 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         notExecuted('brokenInputs')
 
         and:
-        expectInstantExecutionFailure(InstantExecutionErrorsException, *expectedProblems)
-        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(4)
+        problems.expectFailure(result, failureSpec)
         failure.assertHasCause("BOOM")
 
         and: 'state discarded'
         !file(".instant-execution-state").allDescendants().any { it.endsWith(".fingerprint") }
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantFails 'brokenInputs'
 
         then:
         notExecuted('brokenInputs')
 
         and:
-        expectInstantExecutionFailure(InstantExecutionErrorsException, *expectedProblems)
-        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
-        failure.assertHasLineNumber(4)
+        problems.expectFailure(result, failureSpec)
         failure.assertHasCause("BOOM")
 
         and: 'state discarded'
@@ -74,16 +75,22 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         notExecuted(':broken', ':a', ':b')
-        expectInstantExecutionFailure(InstantExecutionProblemsException, *stateSerializationProblems)
+        problems.expectFailure(result, InstantExecutionProblemsException) {
+            withUniqueProblems(stateSerializationProblems)
+            withProblemsWithStackTraceCount(0)
+        }
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantRun 'broken', 'a', 'b'
 
         then:
         executed(':broken', ':a', ':b')
         instantExecution.assertStateStored()
-        expectInstantExecutionProblems(*[stateSerializationProblems, taskExecutionProblems].flatten())
+        problems.expectWarnings(result) {
+            withUniqueProblems(stateSerializationProblems + taskExecutionProblems)
+            withProblemsWithStackTraceCount(2)
+        }
 
         when:
         instantFails 'broken', 'a', 'b'
@@ -91,7 +98,10 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         then:
         executed(':broken', ':a', ':b')
         instantExecution.assertStateLoaded()
-        expectInstantExecutionFailure(InstantExecutionProblemsException, *taskExecutionProblems)
+        problems.expectFailure(result, InstantExecutionProblemsException) {
+            withUniqueProblems(taskExecutionProblems)
+            withProblemsWithStackTraceCount(2)
+        }
     }
 
     def "problems are reported and fail the build when failOnProblems is false but maxProblems is reached"() {
@@ -107,11 +117,10 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         notExecuted(':broken', ':a', ':b')
-        expectInstantExecutionFailure(
-            null,
-            TooManyInstantExecutionProblemsException,
-            *stateSerializationProblems
-        )
+        problems.expectFailure(result, TooManyInstantExecutionProblemsException) {
+            withUniqueProblems(stateSerializationProblems)
+            withProblemsWithStackTraceCount(0)
+        }
 
         when:
         executer.withStackTraceChecksDisabled()
@@ -120,16 +129,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         executed(':broken', ':a', ':b')
-        expectInstantExecutionFailure(
-            "Execution failed for task ':b'.",
-            TooManyInstantExecutionProblemsException,
-            *[stateSerializationProblems, taskExecutionProblems].flatten()
-        )
-
-        and:
-        numberOfProblemsWithStacktraceIn(
-            resolveInstantExecutionReportDirectory(failure.error).file("instant-execution-report-data.js")
-        ) == 2
+        problems.expectFailure(result, TooManyInstantExecutionProblemsException) {
+            withRootCauseDescription("Execution failed for task ':b'.")
+            withUniqueProblems(stateSerializationProblems + taskExecutionProblems)
+            withProblemsWithStackTraceCount(2)
+        }
     }
 
     def "problems not causing build failure are reported"() {
@@ -142,11 +146,14 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantFails 'broken'
 
         then:
-        expectInstantExecutionProblems(*expectedProblems)
+        problems.expectWarnings(result) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(0)
+        }
         failure.assertHasDescription("Execution failed for task ':broken'.")
         failure.assertHasCause("java.lang.Exception: BOOM")
     }
@@ -230,10 +237,13 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         instantExecution.assertStateStored()
-        expectInstantExecutionFailure(InstantExecutionProblemsException, *expectedProblems)
+        problems.expectFailure(result, InstantExecutionProblemsException) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(2)
+        }
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantRun "a", "b"
 
         then:
@@ -241,10 +251,10 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantExecution.assertStateLoaded()
 
         and:
-        expectInstantExecutionProblems(*expectedProblems)
-        numberOfProblemsWithStacktraceIn(
-            resolveInstantExecutionReportDirectory(result.output).file("instant-execution-report-data.js")
-        ) == 2
+        problems.expectWarnings(result) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(2)
+        }
     }
 
     def "summarizes unsupported properties"() {
@@ -281,16 +291,19 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantRun "c"
 
         then:
-        expectInstantExecutionProblems(
-            6,
-            "field 'gradle' from type 'SomeBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
-            "field 'gradle' from type 'NestedBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
-            "field 'project' from type 'NestedBean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
-        )
+        problems.expectWarnings(result) {
+            withTotalProblemsCount(6)
+            withUniqueProblems(
+                "field 'gradle' from type 'SomeBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
+                "field 'gradle' from type 'NestedBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
+                "field 'project' from type 'NestedBean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
     }
 
     @Unroll
@@ -323,18 +336,18 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantFails "foo", "-D${SystemProperties.maxProblems}=$maxProblems"
 
         then:
         def expectedProblems = (1..expectedNumberOfProblems).collect {
             "field 'p$it' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
         }
-        expectInstantExecutionFailure(
-            TooManyInstantExecutionProblemsException,
-            expectedNumberOfProblems,
-            *expectedProblems
-        )
+        problems.expectFailure(result, TooManyInstantExecutionProblemsException) {
+            withTotalProblemsCount(expectedNumberOfProblems)
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(0)
+        }
 
         where:
         maxProblems << [0, 1, 2]
@@ -359,8 +372,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "foo", "-D${SystemProperties.failOnProblems}=false"
 
         then:
-        expectInstantExecutionProblems(
-            "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
-        )
+        problems.expectWarnings(result) {
+            withUniqueProblems(
+                "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
     }
 }

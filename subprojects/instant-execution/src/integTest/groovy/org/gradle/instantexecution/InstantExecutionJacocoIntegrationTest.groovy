@@ -43,19 +43,21 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         instantFails 'test', 'jacocoTestReport'
 
         then:
-        expectInstantExecutionFailure(
-            InstantExecutionProblemsException,
-            expectedProblemCount,
-            *expectedProblems
-        )
+        problems.expectFailure(result, InstantExecutionProblemsException) {
+            withUniqueProblems(expectedProblems)
+            withTotalProblemsCount(expectedProblemCount)
+        }
 
         when:
-        withDoNotFailOnProblems()
+        problems.withDoNotFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
 
         then:
         instantExecution.assertStateStored()
-        expectInstantExecutionProblems(expectedProblemCount, *expectedProblems)
+        problems.expectWarnings(result) {
+            withTotalProblemsCount(expectedProblemCount)
+            withUniqueProblems(expectedProblems)
+        }
         htmlReportDir.assertIsDir()
 
         when:
