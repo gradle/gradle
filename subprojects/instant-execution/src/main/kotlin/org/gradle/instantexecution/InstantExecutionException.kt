@@ -17,25 +17,29 @@
 package org.gradle.instantexecution
 
 import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.buildExceptionSummary
+
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace
 
+import java.io.File
 
-// TODO lazy message?
+
 @Contextual
 sealed class InstantExecutionException(
     message: String,
-    causes: Iterable<Throwable>
-) : DefaultMultiCauseExceptionNoStackTrace({ message }, causes)
+    problems: List<PropertyProblem>,
+    htmlReportFile: File
+) : DefaultMultiCauseExceptionNoStackTrace(
+    { "$message\n${buildExceptionSummary(problems, htmlReportFile)}" },
+    problems.map(PropertyProblem::exception)
+)
 
 
 class InstantExecutionErrorsException(
-    summary: String,
-    problems: List<PropertyProblem>
-) : InstantExecutionException(
-    "${MESSAGE}\n$summary",
-    problems.map(PropertyProblem::exception)
-) {
+    problems: List<PropertyProblem>,
+    htmlReportFile: File
+) : InstantExecutionException(MESSAGE, problems, htmlReportFile) {
     companion object {
         const val MESSAGE = "Instant execution state could not be cached."
     }
@@ -52,27 +56,25 @@ class InstantExecutionErrorException(
 
 
 class TooManyInstantExecutionProblemsException(
-    summary: String,
-    problems: List<PropertyProblem>
-) : InstantExecutionException(
-    "${MESSAGE}\n$summary",
-    problems.map(PropertyProblem::exception)
-) {
+    problems: List<PropertyProblem>,
+    htmlReportFile: File
+) : InstantExecutionException(MESSAGE, problems, htmlReportFile) {
     companion object {
-        const val MESSAGE = "Maximum number of instant execution problems has been reached.\nThis behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
+        const val MESSAGE =
+            "Maximum number of instant execution problems has been reached.\n" +
+                "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
     }
 }
 
 
 class InstantExecutionProblemsException(
-    summary: String,
-    problems: List<PropertyProblem>
-) : InstantExecutionException(
-    "$MESSAGE\n$summary",
-    problems.map(PropertyProblem::exception)
-) {
+    problems: List<PropertyProblem>,
+    htmlReportFile: File
+) : InstantExecutionException(MESSAGE, problems, htmlReportFile) {
     companion object {
-        const val MESSAGE = "Problems found while caching instant execution state.\nFailing because -D${SystemProperties.failOnProblems} is 'true'."
+        const val MESSAGE =
+            "Problems found while caching instant execution state.\n" +
+                "Failing because -D${SystemProperties.failOnProblems} is 'true'."
     }
 }
 

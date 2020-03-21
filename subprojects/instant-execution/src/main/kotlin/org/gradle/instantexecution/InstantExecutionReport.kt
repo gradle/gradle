@@ -30,7 +30,6 @@ import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.buildConsoleSummary
-import org.gradle.instantexecution.problems.buildExceptionSummary
 import org.gradle.instantexecution.problems.firstTypeFrom
 import org.gradle.instantexecution.problems.taskPathFrom
 import org.gradle.instantexecution.serialization.unknownPropertyError
@@ -96,10 +95,7 @@ class InstantExecutionReport(
     fun add(problem: PropertyProblem) = synchronized(problems) {
         problems.add(problem)
         if (problems.size >= startParameter.maxProblems) {
-            throw TooManyInstantExecutionProblemsException(
-                buildExceptionSummary(problems, htmlReportFile),
-                problems
-            )
+            throw TooManyInstantExecutionProblemsException(problems, htmlReportFile)
         }
     }
 
@@ -157,18 +153,12 @@ class InstantExecutionReport(
 
     private
     fun instantExecutionExceptionForErrors(): Throwable? =
-        if (errors().isNotEmpty()) InstantExecutionErrorsException(
-            buildExceptionSummary(problems, htmlReportFile),
-            problems
-        )
+        if (errors().isNotEmpty()) InstantExecutionErrorsException(problems, htmlReportFile)
         else null
 
     private
     fun instantExecutionExceptionForProblems(): Throwable? =
-        if (startParameter.failOnProblems) InstantExecutionProblemsException(
-            buildExceptionSummary(problems, htmlReportFile),
-            problems
-        )
+        if (startParameter.failOnProblems) InstantExecutionProblemsException(problems, htmlReportFile)
         else null
 
     private
