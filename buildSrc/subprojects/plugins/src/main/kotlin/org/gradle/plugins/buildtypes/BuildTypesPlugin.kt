@@ -52,9 +52,9 @@ class BuildTypesPlugin : Plugin<Project> {
         if (usedTaskNames.isNotEmpty()) {
             afterEvaluate {
                 usedTaskNames.forEach { (index, usedName) ->
-                    invokedTaskNames.removeAt(index)
                     val subproject = usedName.substringBeforeLast(":", "")
                     insertBuildTypeTasksInto(invokedTaskNames, buildTypeTask, index, buildType, subproject)
+                    gradle.startParameter.setTaskNames(invokedTaskNames)
                 }
             }
         }
@@ -82,55 +82,45 @@ class BuildTypesPlugin : Plugin<Project> {
 
 
 internal
+fun Project.findTaskNameOrEmptyList(taskName: String) = tasks.findByName(taskName)?.let { listOf(it.path) } ?: emptyList()
+
+
+internal
 fun Project.insertBuildTypeTasksInto(
-    taskList: MutableList<String>,
+    invokeTaskNames: MutableList<String>,
     buildTypeTask: TaskProvider<Task>,
     index: Int,
     buildType: BuildType,
     subproject: String
 ) {
 
-    fun insert(task: String) =
-        taskList.add(index, task)
+    fun insert(tasks: List<String>) = tasks.forEach { task ->
+        buildTypeTask.configure { dependsOn(task) }
+        invokeTaskNames.add(index, task)
+    }
 
     fun forEachBuildTypeTask(act: (String) -> Unit) =
         buildType.tasks.reversed().forEach(act)
 
-    fun ensureBuildTypeTaskOrdering(matchingTasks: List<Task>) =
-        matchingTasks.forEach { t ->
-            taskList.forEach {
-//                t.shouldRunAfter(it)
-            }
-        }
-
     when {
         subproject.isEmpty() ->
-            forEachBuildTypeTask {
-                val matchingTasks = ArrayList<Task>()
-                allprojects.forEach { p ->
-                    val matchingTask = p.tasks.findByName(it)
-                    if (matchingTask != null) {
-                        buildTypeTask.configure {
-                            dependsOn(matchingTask)
-                        }
-                        matchingTasks.add(matchingTask)
-                    }
+            forEachBuildTypeTask { taskInBuildType ->
+                if (taskInBuildType.startsWith(":")) {
+                    insert(listOf(taskInBuildType))
+                } else {
+                    insert(subprojects.flatMap { it.findTaskNameOrEmptyList(taskInBuildType) })
                 }
-                ensureBuildTypeTaskOrdering(matchingTasks)
-                matchingTasks.map { t -> t.path }.forEach(::insert)
             }
 
         findProject(subproject) != null ->
-            forEachBuildTypeTask {
-                val taskPath = "$subproject:$it"
-                when {
-                    tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
-                    else -> {
-                        buildTypeTask.configure {
-                            dependsOn(taskPath)
-                        }
-                        ensureBuildTypeTaskOrdering(listOf(tasks.getByPath(taskPath)))
-                        insert(taskPath)
+            forEachBuildTypeTask { taskInBuildType ->
+                if (taskInBuildType.startsWith(":")) {
+                    insert(listOf(taskInBuildType))
+                } else {
+                    val taskPath = "$subproject:$taskInBuildType"
+                    when {
+                        tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
+                        else -> insert(listOf(taskPath))
                     }
                 }
             }
@@ -139,8 +129,8 @@ fun Project.insertBuildTypeTasksInto(
         }
     }
 
-    if (taskList.isEmpty()) {
-        taskList.add("help") // do not trigger the default tasks
+    if (invokeTaskNames.isEmpty()) {
+        invokeTaskNames.add("help") // do not trigger the default tasks
     }
 }
 
