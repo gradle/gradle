@@ -37,9 +37,12 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         """
         buildFile << """
             class SlowTask extends DefaultTask {
+
+                private final String projectName = project.name
+
                 @TaskAction
                 def go() {
-                    ${server.callFromBuildUsingExpression("project.name")}
+                    ${server.callFromBuildUsingExpression("projectName")}
                 }
             }
 
@@ -55,7 +58,6 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         server.expectConcurrent("b")
         server.expectConcurrent("c")
         server.expectConcurrent("a")
-        withDoNotFailOnProblems()
         instantRun "a:slow"
 
         then:
@@ -64,7 +66,6 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         when:
         server.expectConcurrent("b", "c")
         server.expectConcurrent("a")
-        withDoNotFailOnProblems()
         instantRun "a:slow"
 
         then:
