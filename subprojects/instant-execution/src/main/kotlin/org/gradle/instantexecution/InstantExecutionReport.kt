@@ -44,7 +44,6 @@ import java.io.File
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.net.URL
-import java.util.concurrent.CopyOnWriteArrayList
 
 
 class InstantExecutionReport(
@@ -93,9 +92,9 @@ class InstantExecutionReport(
     }
 
     private
-    val problems = CopyOnWriteArrayList<PropertyProblem>()
+    val problems = mutableListOf<PropertyProblem>()
 
-    fun add(problem: PropertyProblem) {
+    fun add(problem: PropertyProblem) = synchronized(problems) {
         problems.add(problem)
         if (problems.size >= startParameter.maxProblems) {
             throw TooManyInstantExecutionProblemsException(buildExceptionSummary(), problems)
@@ -114,18 +113,20 @@ class InstantExecutionReport(
 
         val fatalError = runWithExceptionHandling(block)
 
-        return when {
-            problems.isEmpty() -> {
-                require(fatalError == null)
-                null
-            }
-            fatalError != null -> {
-                require(fatalError is InstantExecutionException)
-                fatalError
-            }
-            else -> {
-                instantExecutionExceptionForErrors()
-                    ?: instantExecutionExceptionForProblems()
+        return synchronized(problems) {
+            when {
+                problems.isEmpty() -> {
+                    require(fatalError == null)
+                    null
+                }
+                fatalError != null -> {
+                    require(fatalError is InstantExecutionException)
+                    fatalError
+                }
+                else -> {
+                    instantExecutionExceptionForErrors()
+                        ?: instantExecutionExceptionForProblems()
+                }
             }
         }
     }
@@ -146,7 +147,7 @@ class InstantExecutionReport(
     }
 
     private
-    fun add(e: Throwable) {
+    fun add(e: Throwable) = synchronized(problems) {
         problems.add(
             unknownPropertyError(e.message ?: e.javaClass.name, e)
         )
