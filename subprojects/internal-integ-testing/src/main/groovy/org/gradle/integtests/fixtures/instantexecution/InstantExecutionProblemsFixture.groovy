@@ -174,11 +174,12 @@ final class InstantExecutionWarningsSpec extends InstantExecutionProblemSpec {
 
     @PackageScope
     void assertOn(ExecutionResult result, File rootDir) {
-        def total = totalProblemsCount ?: uniqueProblems.size()
-        validateExpectedProblems(total, uniqueProblems)
+        def uniqueCount = uniqueProblems.size()
+        def totalCount = totalProblemsCount ?: uniqueCount
+        validateExpectedProblems(totalCount, uniqueCount, problemsWithStackTraceCount)
 
-        assertProblemsConsoleSummary(result.output, total, uniqueProblems)
-        assertProblemsHtmlReport(rootDir, result.output, total, uniqueProblems.size(), problemsWithStackTraceCount)
+        assertProblemsConsoleSummary(result.output, totalCount, uniqueProblems)
+        assertProblemsHtmlReport(rootDir, result.output, totalCount, uniqueCount, problemsWithStackTraceCount)
     }
 
     private static void assertProblemsConsoleSummary(String output, int totalProblemsCount, List<String> uniqueProblems) {
@@ -269,13 +270,14 @@ final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
 
     @PackageScope
     void assertOn(ExecutionResult result, File rootDir) {
-        def total = totalProblemsCount ?: uniqueProblems.size()
-        validateExpectedProblems(total, uniqueProblems)
+        def uniqueCount = uniqueProblems.size()
+        def totalCount = totalProblemsCount ?: uniqueCount
+        validateExpectedProblems(totalCount, uniqueCount, problemsWithStackTraceCount)
 
         assert result instanceof ExecutionFailure
 
         def exceptionMessagePrefix = exceptionType.getField("MESSAGE").get(null).toString()
-        def summaryHeader = problemsSummaryHeaderFor(total, uniqueProblems.size())
+        def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
 
         // No console log summary in stdout
         assertThat(result.output, not(containsString("instant execution problem")))
@@ -303,15 +305,15 @@ final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
         def detailExceptionType = exceptionType == InstantExecutionErrorsException
             ? InstantExecutionErrorException
             : InstantExecutionProblemException
-        if (total == 1) {
+        if (totalCount == 1) {
             assertThat(result.error, containsString("Caused by: ${detailExceptionType.name}: ${uniqueProblems.first()}"))
         } else {
-            (1..total).each { problemNumber ->
+            (1..totalCount).each { problemNumber ->
                 assertThat(result.error, containsString("Cause $problemNumber: ${detailExceptionType.name}:"))
             }
         }
 
-        assertProblemsHtmlReport(rootDir, result.error, total, uniqueProblems.size(), problemsWithStackTraceCount)
+        assertProblemsHtmlReport(rootDir, result.error, totalCount, uniqueCount, problemsWithStackTraceCount)
         assertLocationOn(result)
     }
 
@@ -331,12 +333,21 @@ abstract class InstantExecutionProblemSpec {
 
     protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
 
-    protected static void validateExpectedProblems(int totalProblemsCount, List<String>... uniqueProblems) {
-        if (uniqueProblems.length == 0) {
-            throw new IllegalArgumentException("Use expectNoInstantExecutionProblem() when expecting no reported problems") // TODO
+    protected static void validateExpectedProblems(
+        int totalProblemsCount,
+        int uniqueProblemsCount,
+        @Nullable Integer problemsWithStackTraceCount
+    ) {
+        if (totalProblemsCount < uniqueProblemsCount) {
+            throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
         }
-        if (totalProblemsCount < uniqueProblems.length) {
-            throw new IllegalArgumentException("`totalProblemsCount` can't be lesser than `uniqueProblems.length`")
+        if (problemsWithStackTraceCount != null) {
+            if (problemsWithStackTraceCount < 0) {
+                throw new IllegalArgumentException("Count of problems with stacktrace can't be negative.")
+            }
+            if (problemsWithStackTraceCount > totalProblemsCount) {
+                throw new IllegalArgumentException("Count of problems with stacktrace can't be greater that count of total problems.")
+            }
         }
     }
 
