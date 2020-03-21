@@ -18,6 +18,7 @@ package org.gradle.api.file
 
 import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Assume
 
 abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest implements TasksWithInputsAndOutputs {
@@ -29,6 +30,10 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         false
     }
 
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["FilePropertyKotlinInterOpIntegrationTest", "ManagedFilePropertyKotlinInterOpIntegrationTest"]
+    )
     def "can connect task output file property to task input"() {
         pluginDefinesTask()
         taskTypeWithInputFileProperty()
@@ -48,6 +53,10 @@ abstract class AbstractFilePropertyLanguageInterOpIntegrationTest extends Abstra
         file("out.txt").text == "content"
     }
 
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["ManagedFilePropertyKotlinInterOpIntegrationTest"]
+    )
     def "can connect task nested output file property to task input"() {
         Assume.assumeTrue(!nestedGetterIsFinal()) // currently not supported
 
