@@ -53,7 +53,7 @@ sealed class PropertyProblem {
     data class Warning internal constructor(
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
-        override val exception: Throwable
+        override val exception: InstantExecutionProblemException
     ) : PropertyProblem()
 
     /**
@@ -63,7 +63,7 @@ sealed class PropertyProblem {
     data class Error internal constructor(
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
-        override val exception: Throwable
+        override val exception: InstantExecutionErrorException
     ) : PropertyProblem()
 }
 

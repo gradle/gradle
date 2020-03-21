@@ -119,6 +119,11 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             TooManyInstantExecutionProblemsException,
             *[stateSerializationProblems, taskExecutionProblems].flatten()
         )
+
+        and:
+        numberOfProblemsWithStacktraceIn(
+            resolveInstantExecutionReportDirectory(failure.error).file("instant-execution-report-data.js")
+        ) == 2
     }
 
     def "problems not causing build failure are reported"() {

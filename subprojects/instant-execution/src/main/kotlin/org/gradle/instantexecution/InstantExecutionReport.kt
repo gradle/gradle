@@ -239,7 +239,11 @@ class InstantExecutionReport(
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =
-        StringWriter().also { problem.exception.printStackTrace(PrintWriter(it)) }.toString()
+        problem.exception.cause?.let { stackTraceStringOf(it) }
+
+    private
+    fun stackTraceStringOf(throwable: Throwable): String =
+        StringWriter().also { throwable.printStackTrace(PrintWriter(it)) }.toString()
 
     private
     fun traceListOf(problem: PropertyProblem): List<Map<String, Any>> =
