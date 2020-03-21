@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.execution
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.api.execution.internal.TaskInputsListener
+import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TestFiles
@@ -31,15 +31,16 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultEmptySourceTaskSkipperTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     final task = Stub(TaskInternal)
     final inputFiles = Mock(FileCollectionInternal)
     final sourceFiles = Mock(FileCollectionInternal)
-    final taskInputsListener = Mock(TaskInputsListener)
+    final taskInputsListeners = Mock(TaskInputsListeners)
     final cleanupRegistry = Mock(BuildOutputCleanupRegistry)
     final outputChangeListener = Mock(OutputChangeListener)
-    final skipper = new DefaultEmptySourceTaskSkipper(cleanupRegistry, TestFiles.deleter(), outputChangeListener, taskInputsListener)
+    final skipper = new DefaultEmptySourceTaskSkipper(cleanupRegistry, TestFiles.deleter(), outputChangeListener, taskInputsListeners)
     final fileCollectionSnapshotter = TestFiles.fileCollectionSnapshotter()
     final fingerprinter = new AbsolutePathFileCollectionFingerprinter(fileCollectionSnapshotter)
 
@@ -52,7 +53,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
 
         and:
         1 * sourceFiles.empty >> true
-        1 * taskInputsListener.onExecute(task, sourceFiles)
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
 
         then:
         0 * _
@@ -80,7 +81,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile.parentFile) >> false
 
         then:
-        1 * taskInputsListener.onExecute(task, sourceFiles)
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
 
         then:
         !previousFile.exists()
@@ -108,7 +109,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * cleanupRegistry.isOutputOwnedByBuild(previousFile) >> false
 
         then:
-        1 * taskInputsListener.onExecute(task, sourceFiles)
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
 
         then:
         previousFile.exists()
@@ -164,7 +165,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         }
 
         then:
-        1 * taskInputsListener.onExecute(task, sourceFiles)
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, sourceFiles)
 
         then:
         0 * _
@@ -208,7 +209,7 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         1 * sourceFiles.empty >> false
 
         then:
-        1 * taskInputsListener.onExecute(task, inputFiles)
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, inputFiles)
         0 * _
     }
 
@@ -220,12 +221,12 @@ class DefaultEmptySourceTaskSkipperTest extends Specification {
         !outcome.present
 
         and:
-        1 * taskInputsListener.onExecute(task, inputFiles)
+        1 * taskInputsListeners.broadcastFileSystemInputsOf(task, inputFiles)
         0 * _
     }
 
     def fingerprint(File... files) {
-        ImmutableSortedMap.<String, CurrentFileCollectionFingerprint>of(
+        ImmutableSortedMap.<String, CurrentFileCollectionFingerprint> of(
             "output", fingerprinter.fingerprint(TestFiles.fixed(files))
         )
     }
