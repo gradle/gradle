@@ -26,9 +26,6 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -37,10 +34,6 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
-
-        // Skip versions broken for this test
-        // https://issuetracker.google.com/issues/150438232
-        assumeThat(agpVersion, not(equalTo("4.1.0-alpha01")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
