@@ -23,6 +23,7 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
+import org.gradle.configuration.project.DefaultCompileOperationFactory
 import org.gradle.groovy.scripts.BasicScript
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.ScriptCompiler
@@ -61,14 +62,15 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
+    def compileOperationsFactory = new DefaultCompileOperationFactory(documentationRegistry)
 
     def factory = new DefaultScriptPluginFactory(
         new DefaultServiceRegistry(),
         scriptCompilerFactory,
         loggingManagerFactory,
-        documentationRegistry,
         autoAppliedPluginHandler,
         pluginRequestApplicator,
+        compileOperationsFactory
     )
 
     def setup() {

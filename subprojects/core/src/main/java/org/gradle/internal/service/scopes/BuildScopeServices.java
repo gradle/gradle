@@ -87,6 +87,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.caching.internal.BuildCacheServices;
 import org.gradle.configuration.BuildOperatingFiringProjectsPreparer;
+import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.DefaultInitScriptProcessor;
 import org.gradle.configuration.DefaultProjectsPreparer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
@@ -97,6 +98,7 @@ import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
 import org.gradle.configuration.project.BuildScriptProcessor;
 import org.gradle.configuration.project.ConfigureActionsProjectEvaluator;
+import org.gradle.configuration.project.DefaultCompileOperationFactory;
 import org.gradle.configuration.project.DelayedConfigurationActions;
 import org.gradle.configuration.project.LifecycleProjectEvaluator;
 import org.gradle.configuration.project.PluginsProjectConfigureActions;
@@ -112,6 +114,7 @@ import org.gradle.groovy.scripts.internal.CrossBuildInMemoryCachingScriptClassCa
 import org.gradle.groovy.scripts.internal.DefaultScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.DefaultScriptRunnerFactory;
 import org.gradle.groovy.scripts.internal.FileCacheBackedScriptClassCompiler;
+import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildLoader;
 import org.gradle.initialization.BuildOperatingFiringSettingsPreparer;
@@ -174,7 +177,6 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.logging.BuildOperationLoggerFactory;
 import org.gradle.internal.operations.logging.DefaultBuildOperationLoggerFactory;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.DefaultTextFileResourceLoader;
 import org.gradle.internal.resource.TextFileResourceLoader;
@@ -342,17 +344,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             ));
     }
 
-    protected ScriptCompilerFactory createScriptCompileFactory(ListenerManager listenerManager,
-                                                               FileCacheBackedScriptClassCompiler scriptCompiler,
-                                                               CrossBuildInMemoryCachingScriptClassCache cache) {
-        ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
+    protected ScriptCompilerFactory createScriptCompileFactory(FileCacheBackedScriptClassCompiler scriptCompiler,
+                                                               CrossBuildInMemoryCachingScriptClassCache cache,
+                                                               ScriptRunnerFactory scriptRunnerFactory) {
         return new DefaultScriptCompilerFactory(
             new BuildScopeInMemoryCachingScriptClassCompiler(cache, scriptCompiler),
-            new DefaultScriptRunnerFactory(
-                scriptExecutionListener,
-                // Should use `InstantiatorFactory` instead to pick up some validation, but this is currently somewhat expensive
-                DirectInstantiator.INSTANCE
-            )
+            scriptRunnerFactory
         );
     }
 
@@ -361,14 +358,12 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         CacheRepository cacheRepository,
         ClassLoaderCache classLoaderCache,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-        Deleter deleter,
-        ImportsReader importsReader,
+        DefaultScriptCompilationHandler scriptCompilationHandler,
         ProgressLoggerFactory progressLoggerFactory
     ) {
         return new FileCacheBackedScriptClassCompiler(
             cacheRepository,
-            new BuildOperationBackedScriptCompilationHandler(
-                new DefaultScriptCompilationHandler(deleter, importsReader), buildOperationExecutor),
+            new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
             progressLoggerFactory,
             classLoaderCache,
             classLoaderHierarchyHasher);
@@ -387,9 +382,9 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             this,
             get(ScriptCompilerFactory.class),
             getFactory(LoggingManagerInternal.class),
-            get(DocumentationRegistry.class),
             get(AutoAppliedPluginHandler.class),
-            get(PluginRequestApplicator.class));
+            get(PluginRequestApplicator.class),
+            get(CompileOperationFactory.class));
     }
 
     protected SettingsLoaderFactory createSettingsLoaderFactory(
@@ -588,5 +583,21 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected BuildInvocationDetails createBuildInvocationDetails(BuildStartedTime buildStartedTime) {
         return new DefaultBuildInvocationDetails(buildStartedTime);
+    }
+
+    protected CompileOperationFactory createCompileOperationFactory(DocumentationRegistry documentationRegistry) {
+        return new DefaultCompileOperationFactory(documentationRegistry);
+    }
+
+    protected DefaultScriptCompilationHandler createScriptCompilationHandler(Deleter deleter, ImportsReader importsReader) {
+        return new DefaultScriptCompilationHandler(deleter, importsReader);
+    }
+
+    protected ScriptRunnerFactory createScriptRunnerFactory(ListenerManager listenerManager, InstantiatorFactory instantiatorFactory) {
+        ScriptExecutionListener scriptExecutionListener = listenerManager.getBroadcaster(ScriptExecutionListener.class);
+        return new DefaultScriptRunnerFactory(
+            scriptExecutionListener,
+            instantiatorFactory.inject()
+        );
     }
 }

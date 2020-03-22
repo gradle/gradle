@@ -69,7 +69,7 @@ import java.util.List;
 import java.util.Map;
 
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
-    private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
     private static final NoOpGroovyResourceLoader NO_OP_GROOVY_RESOURCE_LOADER = new NoOpGroovyResourceLoader();
     private static final String METADATA_FILE_NAME = "metadata.bin";
     private static final int EMPTY_FLAG = 1;
@@ -160,16 +160,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         File metadataFile = new File(metadataDir, METADATA_FILE_NAME);
         try {
             GFileUtils.mkdirs(metadataDir);
-            KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile));
-            try {
+            try (KryoBackedEncoder encoder = new KryoBackedEncoder(new FileOutputStream(metadataFile))) {
                 byte flags = (byte) ((emptyScript ? EMPTY_FLAG : 0) | (hasMethods ? HAS_METHODS_FLAG : 0));
                 encoder.writeByte(flags);
                 if (extractingTransformer != null && extractingTransformer.getDataSerializer() != null) {
                     Serializer<M> serializer = extractingTransformer.getDataSerializer();
                     serializer.write(encoder, extractingTransformer.getExtractedData());
                 }
-            } finally {
-                encoder.close();
             }
         } catch (Exception e) {
             throw new GradleException(String.format("Failed to serialize script metadata extracted for %s", scriptSource.getDisplayName()), e);
@@ -210,8 +207,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                                                                   File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try {
-            KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile));
-            try {
+            try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
                 byte flags = decoder.readByte();
                 boolean isEmpty = (flags & EMPTY_FLAG) != 0;
                 boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
@@ -221,9 +217,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 } else {
                     data = null;
                 }
-                return new ClassesDirCompiledScript<T, M>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
-            } finally {
-                decoder.close();
+                return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
             }
         } catch (Exception e) {
             throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()), e);
