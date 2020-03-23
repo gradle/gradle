@@ -1,0 +1,26 @@
+plugins {
+    id 'play'
+}
+
+allprojects {
+    repositories {
+        jcenter()
+        maven {
+            name "lightbend-maven-release"
+            url "https://repo.lightbend.com/lightbend/maven-releases"
+        }
+        ivy {
+            name "lightbend-ivy-release"
+            url "https://repo.lightbend.com/lightbend/ivy-releases"
+            layout "ivy"
+        }
+    }
+}
+
+// tag::play-multiproject-dependencies[]
+dependencies {
+    play project(":admin")
+    play project(":user")
+    play project(":util")
+}
+// end::play-multiproject-dependencies[]
