@@ -87,8 +87,8 @@ public class DefaultTestClassScanner implements Runnable {
         }
 
         private boolean isClass(FileVisitDetails fileVisitDetails) {
-            String absolutePath = fileVisitDetails.getFile().getAbsolutePath();
-            return absolutePath.endsWith(".class") && !absolutePath.endsWith("/module-info.class");
+            String fileName = fileVisitDetails.getFile().getName();
+            return fileName.endsWith(".class") && !"module-info.class".equals(fileName);
         }
     }
 
