@@ -16,24 +16,32 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readFile
+import org.gradle.instantexecution.serialization.writeFile
 
 
 internal
-class ConfigurableFileCollectionCodec(
-    private val codec: Codec<FileCollectionInternal>,
+class ConfigurableFileTreeCodec(
     private val fileCollectionFactory: FileCollectionFactory
-) : Codec<ConfigurableFileCollection> {
-    override suspend fun WriteContext.encode(value: ConfigurableFileCollection) =
-        codec.run { encode(value as FileCollectionInternal) }
+) : Codec<ConfigurableFileTree> {
+    override suspend fun WriteContext.encode(value: ConfigurableFileTree) {
+        writeFile(value.dir)
+        write(value.patterns)
+    }
 
-    override suspend fun ReadContext.decode(): ConfigurableFileCollection =
-        fileCollectionFactory.configurableFiles().also {
-            it.from(codec.run { decode() })
-        }
+    override suspend fun ReadContext.decode(): ConfigurableFileTree {
+        val dir = readFile()
+        val patterns = read() as PatternSet
+        val tree = fileCollectionFactory.fileTree()
+        tree.setDir(dir)
+        // TODO - read patterns directly into tree
+        tree.patterns.copyFrom(patterns)
+        return tree
+    }
 }
