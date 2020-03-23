@@ -1,0 +1,25 @@
+// tag::use-plugin[]
+plugins {
+    id 'play'
+}
+
+repositories {
+    jcenter()
+    maven {
+        name "lightbend-maven-release"
+        url "https://repo.lightbend.com/lightbend/maven-releases"
+    }
+    ivy {
+        name "lightbend-ivy-release"
+        url "https://repo.lightbend.com/lightbend/ivy-releases"
+        layout "ivy"
+    }
+}
+// end::use-plugin[]
+
+dependencies {
+    play 'commons-lang:commons-lang:2.6'
+    playTest "com.google.guava:guava:17.0"
+    play "com.typesafe.play:play-guice_2.12:2.6.15"
+    play "ch.qos.logback:logback-classic:1.2.3"
+}
