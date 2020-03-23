@@ -49,7 +49,9 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
 
     private void assertMutable() {
         if (locked) {
-            throw new IllegalStateException(String.format("Cannot mutate content repository descriptor '%s' after repository has been used", repositoryName));
+            throw new IllegalStateException("Cannot mutate content repository descriptor '" +
+                repositoryName +
+                "' after repository has been used");
         }
     }
 
