@@ -1,0 +1,31 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to generate code coverage reports within a JVM multi-project build in Gradle.
+This is the same pattern used by all JVM languages (Java, Groovy, Scala).
+
+Each subproject uses the `application` or `java-library` plugin.
+
+====
+include::sample[dir="groovy",files="application/build.gradle[]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[]"]
+====
+
+The root build provides the `codeCoverageTask` that collects the coverage information from the subprojects.
+To ensure the coverage data is present, the `codeCoverageTask` depends on all `test` tasks (but does not have to).
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+To generate the code coverage report, you simply need to invoke the task:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew :codeCoverageReport
+
+BUILD SUCCESSFUL
+10 actionable tasks: 10 executed
+----
+
+For more information, see link:{userManualPath}/jacoco_plugin.html[JaCoCo Plugin chapter].

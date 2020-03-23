@@ -115,6 +115,7 @@ samples {
         javaApplication
         javaListLibrary
         javaUtilitiesLibrary
+        jvmMultiProjectCoverage
         javaApplicationAsSubproject {
             sourceDirectory = javaApplication.sourceDirectory
             target = "application"
@@ -265,6 +266,14 @@ samples {
             common {
                 from(templates.javaListLibrary)
                 from(templates.javaUtilitiesLibrary)
+            }
+        }
+        jvmMultiProjectCodeCoverage {
+            sampleDirectory = samplesRoot.dir("jvm-multi-project-coverage")
+            description = "Generate code coverage report using link:https://www.jacoco.org/jacoco/index.html[Jacoco]."
+            category = "Java"
+            common {
+                from(templates.jvmMultiProjectCoverage)
             }
         }
 
