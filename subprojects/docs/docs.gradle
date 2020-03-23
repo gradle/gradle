@@ -143,8 +143,8 @@ samples {
         javaJunit4IntegrationTestForApplication {
             target = "application"
         }
-        javaJunit4IntegrationTestForListLibrary {
-            target = "list"
+        javaJunit4IntegrationTestForUtilitiesLibrary {
+            target = "utilities"
         }
 
         groovyApplication
@@ -196,7 +196,7 @@ samples {
 
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaJunit4TestForListLibrary)
-                from(templates.javaJunit4IntegrationTestForListLibrary)
+                from(templates.javaJunit4IntegrationTestForUtilitiesLibrary)
 
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
