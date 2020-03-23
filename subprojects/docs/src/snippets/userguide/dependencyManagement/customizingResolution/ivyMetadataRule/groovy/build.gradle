@@ -15,6 +15,7 @@ class IvyVariantDerivationRule implements ComponentMetadataRule {
     @Inject ObjectFactory getObjects() { }
 
     void execute(ComponentMetadataContext context) {
+        // This filters out any non Ivy module
         if(context.getDescriptor(IvyModuleDescriptor) == null) {
             return
         }
