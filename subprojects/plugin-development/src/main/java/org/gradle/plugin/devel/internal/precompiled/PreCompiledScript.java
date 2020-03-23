@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import com.google.common.base.CaseFormat;
 import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
@@ -37,7 +38,7 @@ class PreCompiledScript {
     }
 
     String getGeneratedPluginClassName() {
-        return getFileNameWithoutExtension() + "Plugin";
+        return kebabCaseToPascalCase(getFileNameWithoutExtension()) + "Plugin";
     }
 
     String getPluginMetadataDirPath() {
@@ -72,5 +73,9 @@ class PreCompiledScript {
     private String getFileNameWithoutExtension() {
         String fileName = new File(scriptSource.getFileName()).getName();
         return fileName.substring(0, fileName.indexOf(SCRIPT_PLUGIN_EXTENSION));
+    }
+
+    private static String kebabCaseToPascalCase(String s) {
+        return CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, s);
     }
 }

@@ -37,16 +37,14 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         succeeds("help")
 
         then:
-        outputContains("foo: fooPlugin")
-        outputContains("bar: barPlugin")
+        outputContains("foo: FooPlugin")
+        outputContains("bar: BarPlugin")
     }
 
     def "can apply a precompiled script plugin by id"() {
-        def buildSrcDir = file("buildSrc")
-        def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
-        def fooPlugin = pluginDir.file("foo.gradle")
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
 
-        fooPlugin << """
+        pluginDir.file("foo.gradle") << """
             plugins {
                 id 'base'
             }
@@ -67,13 +65,27 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("foo script plugin applied")
     }
 
-    def "can apply a precompiled script plugin by id that applies another precompiled script plugin by id"() {
-        def buildSrcDir = file("buildSrc")
-        def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
-        def fooPlugin = pluginDir.file("foo.gradle")
-        def barPlugin = pluginDir.file("bar.gradle")
+    def "can use kebab-case in plugin id"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/")
 
-        fooPlugin << """
+        pluginDir.file("my-plugin.gradle") << """
+            tasks.register("myTask") {}
+        """
+
+        buildFile << """
+            plugins {
+                id 'my-plugin'
+            }
+        """
+
+        expect:
+        succeeds("myTask")
+    }
+
+    def "can apply a precompiled script plugin by id that applies another precompiled script plugin by id"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+
+        pluginDir.file("foo.gradle") << """
             plugins {
                 id 'base'
             }
@@ -81,7 +93,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
             logger.lifecycle "foo script plugin applied"
         """
 
-        barPlugin << """
+        pluginDir.file("bar.gradle") << """
             plugins {
                 id 'foo'
             }
@@ -104,15 +116,13 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     def "can apply configuration in a precompiled script plugin to the current project"() {
-        def buildSrcDir = file("buildSrc")
-        def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
-        def fooPlugin = pluginDir.file("foo.gradle")
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
 
-        fooPlugin << """
+        pluginDir.file("foo.gradle") << """
             sourceSets.main.java.srcDir 'src'
         """
 
-        testDirectory.createDir("src").file("Foo.java") << """
+        createDir("src").file("Foo.java") << """
             public class Foo { }
         """
 
@@ -134,11 +144,9 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     def "can apply and configure a plugin in a precompiled script plugin"() {
-        def buildSrcDir = file("buildSrc")
-        def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
-        def fooPlugin = pluginDir.file("foo.gradle")
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
 
-        fooPlugin << """
+        pluginDir.file("foo.gradle") << """
             plugins {
                 id 'java'
             }
@@ -167,11 +175,9 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     def "can add tasks in a precompiled script plugin"() {
-        def buildSrcDir = file("buildSrc")
-        def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
-        def fooPlugin = pluginDir.file("foo.gradle")
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
 
-        fooPlugin << """
+        pluginDir.file("foo.gradle") << """
             task doSomething {
                 doFirst { println "from foo plugin" }
             }
@@ -198,12 +204,9 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
-        when:
-        def buildSrcDir = file("buildSrc")
-        def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
-        def fooPlugin = pluginDir.file("foo.gradle")
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
 
-        fooPlugin << """
+        pluginDir.file("foo.gradle") << """
             tasks.register("myTask") {}
         """
 
@@ -213,7 +216,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
             }
         """
 
-        then:
+        expect:
         succeeds("myTask")
     }
 }
