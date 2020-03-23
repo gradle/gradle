@@ -61,7 +61,7 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
-    private final JavaModuleDetector javaModuleDetector;
+    private JavaModuleDetector javaModuleDetector;
     private Property<String> mainModule;
     private Property<String> mainClass;
     private final List<Object> applicationArgs = new ArrayList<>();
@@ -80,6 +80,10 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.javaOptions = javaOptions;
         this.modularClasspathHandling = new DefaultModularClasspathHandling(objectFactory);
         executable(javaOptions.getExecutable());
+    }
+
+    public void setJavaModuleDetector(JavaModuleDetector javaModuleDetector) {
+        this.javaModuleDetector = javaModuleDetector;
     }
 
     @Override
@@ -121,8 +125,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         if (javaModuleDetector == null) {
             throw new IllegalStateException("Running a Java module is not supported in this context.");
         }
-        FileCollection rtModulePath = javaModuleDetector.inferModulePath(true, modularClasspathHandling, classpath);
-        FileCollection rtClasspath = javaModuleDetector.inferClasspath(true, modularClasspathHandling, classpath);
+        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularClasspathHandling.getInferModulePath().get(), classpath);
+        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularClasspathHandling.getInferModulePath().get(), classpath);
 
         if (rtClasspath != null && !rtClasspath.isEmpty()) {
             allArgs.add("-cp");

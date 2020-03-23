@@ -16,10 +16,10 @@
 
 package org.gradle.java.compile.jpms.compile
 
-import org.gradle.java.compile.jpms.AbstractJavaModuleIntegrationTest
+import org.gradle.java.compile.jpms.AbstractJavaModuleCompileIntegrationTest
 import org.gradle.util.TestPrecondition
 
-class JavaModuleCompileIntegrationTest extends AbstractJavaModuleIntegrationTest {
+class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrationTest {
 
     def setup() {
         buildFile << """
