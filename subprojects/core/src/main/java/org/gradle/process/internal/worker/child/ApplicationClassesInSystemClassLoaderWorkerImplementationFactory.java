@@ -39,6 +39,7 @@ import org.gradle.util.GUtil;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -192,7 +193,13 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         if (!modulePath.isEmpty() && implementationModulePath != null && !implementationModulePath.isEmpty()) {
             // We add the implementation module path as well, as we do not load modules dynamically through a separate class loader in the worker.
             // This acceptable, because the implementation modules are hidden to the application by module visibility.
-            modulePath.addAll(implementationModulePath.stream().map(url -> new File(url.getFile())).collect(Collectors.toList()));
+            modulePath.addAll(implementationModulePath.stream().map(url -> {
+                try {
+                    return new File(url.toURI());
+                } catch (URISyntaxException e) {
+                    throw new RuntimeException(e);
+                }
+            }).collect(Collectors.toList()));
         }
         List<String> argumentList = new ArrayList<>();
         if (!modulePath.isEmpty()) {
