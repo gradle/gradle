@@ -100,6 +100,7 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
                 public static void main(String[] args) {
                     new MainModule().run();
                     System.out.println("Module Name: " + MainModule.class.getModule().getName());
+                    System.out.println("Module Version: " + MainModule.class.getModule().getDescriptor().version().get());
                 }
             }
         """

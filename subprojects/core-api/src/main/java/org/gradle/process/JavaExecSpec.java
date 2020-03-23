@@ -15,9 +15,13 @@
  */
 package org.gradle.process;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 
@@ -28,13 +32,38 @@ import java.util.List;
  * Specifies the options for executing a Java application.
  */
 public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
+
+    /**
+     * The name of the main module to be executed if the application should run as a Java module.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Optional
+    @Input
+    Property<String> getMainModule();
+
+    /**
+     * The fully qualified name of the Main class to be executed.
+     * <p>
+     * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
+     * <p>
+     * Use this property instead of {@link #getMain()} and {@link #setMain(String)}.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Optional
+    @Input
+    Property<String> getMainClass();
+
     /**
      * Returns the fully qualified name of the Main class to be executed.
      * <p>
      * This does not need to be set if using an <a href="https://docs.oracle.com/javase/tutorial/deployment/jar/appman.html">Executable Jar</a> with a {@code Main-Class} attribute.
      * </p>
      */
-    @Nullable @Optional @Input
+    @Nullable @Optional @Internal
     String getMain();
 
     /**
@@ -120,4 +149,13 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @return this
      */
     JavaExecSpec setClasspath(FileCollection classpath);
+
+    /**
+     * Returns the module path handling for executing the main class.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Nested
+    ModularClasspathHandling getModularClasspathHandling();
 }

@@ -17,14 +17,21 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.ApplicationPluginConvention;
 import org.gradle.api.plugins.JavaApplication;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.ProviderFactory;
 
 public class DefaultJavaApplication implements JavaApplication {
     private final ApplicationPluginConvention convention;
+    private Property<String> mainModule;
+    private Property<String> mainClass;
 
-    public DefaultJavaApplication(ApplicationPluginConvention convention) {
+    public DefaultJavaApplication(ApplicationPluginConvention convention, ObjectFactory objectFactory, ProviderFactory providerFactory) {
         this.convention = convention;
+        this.mainModule = objectFactory.property(String.class);
+        this.mainClass = objectFactory.property(String.class).convention(providerFactory.provider(convention::getMainClassName));
     }
 
     @Override
@@ -38,12 +45,23 @@ public class DefaultJavaApplication implements JavaApplication {
     }
 
     @Override
+    public Property<String> getMainModule() {
+        return mainModule;
+    }
+
+    @Override
+    public Property<String> getMainClass() {
+        return mainClass;
+    }
+
+    @Override
     public String getMainClassName() {
-        return convention.getMainClassName();
+        return mainClass.get();
     }
 
     @Override
     public void setMainClassName(String mainClassName) {
+        mainClass.set(mainClassName);
         convention.setMainClassName(mainClassName);
     }
 

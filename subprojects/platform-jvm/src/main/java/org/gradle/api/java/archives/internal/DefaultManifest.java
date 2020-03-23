@@ -42,6 +42,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.jar.Manifest;
 
+import static org.gradle.internal.Cast.uncheckedCast;
+
 public class DefaultManifest implements ManifestInternal {
     public static final String DEFAULT_CONTENT_CHARSET = "UTF-8";
 
@@ -154,7 +156,9 @@ public class DefaultManifest implements ManifestInternal {
             for (Map.Entry<String, Object> attribute : entry.getValue().entrySet()) {
                 String attributeName = attribute.getKey();
                 String attributeValue = resolveValueToString(attribute.getValue());
-                sectionAttributes.putValue(attributeName, attributeValue);
+                if (attributeValue != null) {
+                    sectionAttributes.putValue(attributeName, attributeValue);
+                }
             }
             javaManifest.getEntries().put(sectionName, sectionAttributes);
         }
@@ -163,7 +167,11 @@ public class DefaultManifest implements ManifestInternal {
     private static String resolveValueToString(Object value) {
         Object underlyingValue = value;
         if (value instanceof Provider) {
-            underlyingValue = ((Provider) value).get();
+            Provider<?> provider = uncheckedCast(value);
+            if (!provider.isPresent()) {
+                return null;
+            }
+            underlyingValue = provider.get();
         }
         return underlyingValue.toString();
     }
