@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.plugin.devel.internal.precompiled.PreCompiledScriptPluginsPlugin
 
 class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationSpec {
     def "adds plugin metadata to extension for all script plugins"() {
@@ -27,7 +26,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         pluginDir.file("bar.gradle").createNewFile()
 
         buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
             afterEvaluate {
                 gradlePlugin.plugins.all {
                     println it.id + ": " + it.implementationClass
@@ -54,10 +52,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
             }
 
             logger.lifecycle "foo script plugin applied"
-        """
-
-        buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
         """
 
         buildFile << """
@@ -95,10 +89,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
             logger.lifecycle "bar script plugin applied"
         """
 
-        buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
-        """
-
         buildFile << """
             plugins {
                 id 'bar'
@@ -124,10 +114,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
 
         testDirectory.createDir("src").file("Foo.java") << """
             public class Foo { }
-        """
-
-        buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
         """
 
         buildFile << """
@@ -164,10 +150,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
             public class Foo { }
         """
 
-        buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
-        """
-
         buildFile << """
             plugins {
                 id 'foo'
@@ -195,10 +177,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
             }
         """
 
-        buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
-        """
-
         buildFile << """
             plugins {
                 id 'foo'
@@ -224,10 +202,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         def buildSrcDir = file("buildSrc")
         def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
         def fooPlugin = pluginDir.file("foo.gradle")
-
-        buildSrcDir.file("build.gradle") << """
-            apply plugin: ${PreCompiledScriptPluginsPlugin.name}
-        """
 
         fooPlugin << """
             tasks.register("myTask") {}
