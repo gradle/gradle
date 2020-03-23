@@ -38,6 +38,13 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
 
+    /**
+     * Required by test-retry-gradle-plugin <= 1.1.3
+     */
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
+        this(testFramework, classpath, false, candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
+    }
+
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, boolean inferModulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
         this.testFramework = testFramework;
         this.classpath = classpath;
