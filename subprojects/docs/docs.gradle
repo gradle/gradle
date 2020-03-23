@@ -22,7 +22,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.16.2"
+    id 'org.gradle.samples' version "0.16.3"
 }
 
 repositories { handler ->
@@ -143,8 +143,8 @@ samples {
         javaJunit4IntegrationTestForApplication {
             target = "application"
         }
-        javaJunit4IntegrationTestForListLibrary {
-            target = "list"
+        javaJunit4IntegrationTestForUtilitiesLibrary {
+            target = "utilities"
         }
 
         groovyApplication
@@ -196,7 +196,7 @@ samples {
 
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaJunit4TestForListLibrary)
-                from(templates.javaJunit4IntegrationTestForListLibrary)
+                from(templates.javaJunit4IntegrationTestForUtilitiesLibrary)
 
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
