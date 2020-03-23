@@ -157,8 +157,7 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
 
     def "can resolve plugin from portal with repository filters present"() {
         given:
-        def helloWorldGroup = 'org.gradle'
-        def helloWorldName = 'gradle-hello-world-plugin'
+        mavenRepo.module('com.android.tools', 'r8', '1.5.70').publish()
 
         when:
         buildScript """
@@ -167,7 +166,7 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
                     exclusiveContent {
                       forRepository {
                         maven {
-                          url = "https://storage.googleapis.com/r8-releases/raw"
+                          url = "${mavenRepo.uri}"
                           metadataSources {
                             artifact()
                           }
@@ -194,19 +193,21 @@ class DeployedPortalIntegrationSpec extends AbstractPluginIntegrationTest {
 
     def "resolution fails from portal with repository filters present"() {
         given:
+        mavenRepo.module('com.android.tools', 'r8', '1.5.70').publish()
+
         buildScript """
             buildscript {
                 repositories {
                     exclusiveContent {
                         forRepository {
-                            mavenCentral()
+                            ${mavenCentralRepository()}
                         }
                         filter {
                             includeModule("com.android.tools", "r8") // force resolving r8 from wrong repo
                         }
                     }
                     maven {
-                        url = "https://storage.googleapis.com/r8-releases/raw"
+                        url = "${mavenRepo.uri}"
                         metadataSources {
                             artifact()
                         }
