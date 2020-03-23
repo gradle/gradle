@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -71,6 +73,9 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
 
     @Override
     public List<File> getCompileClasspath() {
+        if (classpath == null) {
+            classpath = ImmutableList.of();
+        }
         return classpath;
     }
 
