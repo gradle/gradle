@@ -46,7 +46,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
     private static final List<String> SUPPORTED = [
         "3.0",
         "3.1",
-        "3.1.1"
+        "3.1.1",
+        "3.2"
     ]
 
     @Unroll
