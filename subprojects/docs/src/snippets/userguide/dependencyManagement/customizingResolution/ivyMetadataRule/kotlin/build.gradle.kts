@@ -16,7 +16,7 @@ open class IvyVariantDerivationRule : ComponentMetadataRule {
 
     override fun execute(context: ComponentMetadataContext) {
         // This filters out any non Ivy module
-        if(context.getDescriptor(IvyModuleDescriptor) == null) {
+        if(context.getDescriptor(IvyModuleDescriptor::class) == null) {
             return
         }
 
