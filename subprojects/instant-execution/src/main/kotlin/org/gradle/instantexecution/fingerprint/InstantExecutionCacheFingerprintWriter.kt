@@ -33,7 +33,6 @@ import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprin
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.kotlin.dsl.support.serviceOf
-import java.io.ByteArrayOutputStream
 import java.io.File
 
 
@@ -64,8 +63,7 @@ typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any,
 internal
 class InstantExecutionCacheFingerprintWriter(
     private val virtualFileSystem: VirtualFileSystem,
-    private val writeContext: DefaultWriteContext,
-    val outputStream: ByteArrayOutputStream
+    private val writeContext: DefaultWriteContext
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener {
 
     /**
