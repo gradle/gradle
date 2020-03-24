@@ -38,8 +38,6 @@ import static org.gradle.initialization.StartParameterBuildOptions.BuildScanOpti
 public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegistry {
 
     private static final PluginRequests GRADLE_ENTERPRISE_PLUGIN_REQUEST = PluginRequests.of(createGradleEnterprisePluginRequest());
-    private static final PluginRequestInternal PRECOMPILED_GROOVY_PLUGINS_REQUEST =
-        new DefaultPluginRequest("org.gradle.precompiled-groovy-plugins", null, true, null, "Precompiled Groovy Plugins");
 
     private final BuildDefinition buildDefinition;
 
@@ -49,7 +47,7 @@ public class DefaultAutoAppliedPluginRegistry implements AutoAppliedPluginRegist
 
     @Override
     public PluginRequests getAutoAppliedPlugins(Project target) {
-        return PluginRequests.of(PRECOMPILED_GROOVY_PLUGINS_REQUEST);
+        return PluginRequests.EMPTY;
     }
 
     @Override
