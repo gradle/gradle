@@ -41,10 +41,17 @@ class DefaultRepositoryContentDescriptor implements RepositoryContentDescriptorI
     private boolean locked;
 
     private Action<? super ArtifactResolutionDetails> cachedAction;
+    private String repositoryName;
+
+    public DefaultRepositoryContentDescriptor(String repositoryName) {
+        this.repositoryName = repositoryName;
+    }
 
     private void assertMutable() {
         if (locked) {
-            throw new IllegalStateException("Cannot mutate content repository descriptor after repository has been used");
+            throw new IllegalStateException("Cannot mutate content repository descriptor '" +
+                repositoryName +
+                "' after repository has been used");
         }
     }
 

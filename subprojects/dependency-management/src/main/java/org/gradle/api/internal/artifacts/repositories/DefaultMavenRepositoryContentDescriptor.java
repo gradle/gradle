@@ -23,6 +23,10 @@ class DefaultMavenRepositoryContentDescriptor extends DefaultRepositoryContentDe
     private boolean snapshots = true;
     private boolean releases = true;
 
+    public DefaultMavenRepositoryContentDescriptor(String repositoryName) {
+        super(repositoryName);
+    }
+
     @Override
     public void releasesOnly() {
         snapshots = false;
