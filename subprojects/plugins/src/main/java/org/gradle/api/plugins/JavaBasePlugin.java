@@ -35,8 +35,10 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
@@ -55,6 +57,7 @@ import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -175,6 +178,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 createProcessResourcesTask(sourceSet, sourceSet.getResources(), project);
                 TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
+
+                // If we are potentially compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
+                if (JavaModuleDetector.isModuleSource(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
+                    Configuration compileClasspathConfiguration = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
+                    // Ideally, the attribute would be configured lazily taking 'JavaCompile.modularClasspathHandling' into account after the task is realized and configured.
+                    // For that we need: https://github.com/gradle/gradle/issues/11139
+                    compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+                }
 
                 JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
                     @Override

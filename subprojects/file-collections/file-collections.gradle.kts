@@ -55,6 +55,9 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
 
     testFixturesImplementation(library("guava"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 java {

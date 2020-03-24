@@ -22,6 +22,9 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyLockingHandler;
 import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvider;
+import org.gradle.api.provider.Property;
+
+import java.io.File;
 
 public class DefaultDependencyLockingHandler implements DependencyLockingHandler {
 
@@ -50,12 +53,12 @@ public class DefaultDependencyLockingHandler implements DependencyLockingHandler
     }
 
     @Override
-    public LockMode getLockMode() {
+    public Property<LockMode> getLockMode() {
         return dependencyLockingProvider.getLockMode();
     }
 
     @Override
-    public void setLockMode(LockMode mode) {
-        dependencyLockingProvider.setLockMode(mode);
+    public Property<File> getLockFile() {
+        return dependencyLockingProvider.getLockFile();
     }
 }

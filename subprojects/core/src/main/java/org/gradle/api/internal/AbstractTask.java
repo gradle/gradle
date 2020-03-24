@@ -144,8 +144,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final TaskLocalStateInternal taskLocalState;
     private LoggingManagerInternal loggingManager;
 
-    private String toStringValue;
-
     private Set<Provider<? extends BuildService<?>>> requiredServices;
 
     protected AbstractTask() {
@@ -456,14 +454,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         } else {
             return depthCompare;
         }
-    }
-
-    @Override
-    public String toString() {
-        if (toStringValue == null) {
-            toStringValue = "task '" + getIdentityPath() + "'";
-        }
-        return toStringValue;
     }
 
     @Override

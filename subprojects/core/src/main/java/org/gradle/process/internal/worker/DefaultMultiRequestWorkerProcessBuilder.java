@@ -62,6 +62,17 @@ class DefaultMultiRequestWorkerProcessBuilder<IN, OUT> implements MultiRequestWo
     }
 
     @Override
+    public WorkerProcessSettings setInferApplicationModulePath(boolean inferApplicationModulePath) {
+        workerProcessBuilder.setInferApplicationModulePath(inferApplicationModulePath);
+        return this;
+    }
+
+    @Override
+    public boolean isInferApplicationModulePath() {
+        return workerProcessBuilder.isInferApplicationModulePath();
+    }
+
+    @Override
     public Set<File> getApplicationClasspath() {
         return workerProcessBuilder.getApplicationClasspath();
     }

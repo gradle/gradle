@@ -37,6 +37,9 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     WorkerProcessBuilder applicationClasspath(Iterable<File> files);
 
     @Override
+    WorkerProcessBuilder setInferApplicationModulePath(boolean inferApplicationModulePath);
+
+    @Override
     WorkerProcessBuilder setBaseName(String baseName);
 
     @Override
@@ -51,6 +54,8 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     Action<? super WorkerProcessContext> getWorker();
 
     void setImplementationClasspath(List<URL> implementationClasspath);
+
+    void setImplementationModulePath(List<URL> implementationModulePath);
 
     void enableJvmMemoryInfoPublishing(boolean shouldPublish);
 

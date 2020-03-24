@@ -18,40 +18,10 @@ package org.gradle.api.provider
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.api.internal.provider.AbstractLanguageInterOpIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.test.fixtures.file.TestFile
 
-import static org.gradle.integtests.fixtures.KotlinDslTestUtil.kotlinDslBuildSrcScript
-
-abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIntegrationSpec {
-    private hasKotlin = false
-
-    TestFile pluginDir = file("buildSrc/plugin")
-
-    void usesKotlin(TestFile dir) {
-        def buildfile = dir.file("build.gradle.kts")
-        if (!buildfile.file) {
-            buildfile.createFile()
-        }
-        buildfile.text = kotlinDslBuildSrcScript + buildfile.text
-        if (!hasKotlin) {
-            hasKotlin = true
-        }
-    }
-
-    def setup() {
-        executer.withRepositoryMirrors()
-        executer.withPluginRepositoryMirror()
-        file("buildSrc/settings.gradle.kts") << """
-            include("plugin")
-        """
-        file("buildSrc/build.gradle.kts") << """
-            dependencies {
-                implementation(project(":plugin"))
-            }
-        """
-    }
+abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLanguageInterOpIntegrationTest {
 
     abstract void pluginSetsValues()
 
@@ -63,7 +33,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property and set value from language plugin"() {
         pluginSetsValues()
@@ -84,7 +54,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property and set calculated value using function from language plugin"() {
         pluginSetsCalculatedValuesUsingCallable()
@@ -105,7 +75,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property and set calculated value using mapped provider from language plugin"() {
         pluginSetsCalculatedValuesUsingMappedProvider()
@@ -122,6 +92,26 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
         outputContains("list = [1, 2]")
         outputContains("set = [1, 2]")
         outputContains("map = {1=true, 2=false}")
+    }
+
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
+    )
+    def "attaches diagnostic information to property"() {
+        pluginDefinesTask()
+
+        buildFile << """
+            apply plugin: SomePlugin
+
+            println "flag = " + tasks.someTask.flag
+        """
+
+        when:
+        run()
+
+        then:
+        outputContains("flag = task ':someTask' property 'flag'")
     }
 
     @ToBeFixedForInstantExecution
@@ -215,7 +205,7 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractIn
 
     @ToBeFixedForInstantExecution(
         because = "Kotlin Gradle Plugin",
-        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest"]
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
     )
     def "can define property in language plugin and set value from Java plugin"() {
         pluginDefinesTask()

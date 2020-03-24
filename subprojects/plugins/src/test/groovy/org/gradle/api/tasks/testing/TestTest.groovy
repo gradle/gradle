@@ -164,6 +164,10 @@ class TestTest extends AbstractConventionTaskTest {
             Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
                 return null
             }
+
+            List<String> getTestWorkerImplementationModules() {
+                return null
+            }
         })
 
         when:

@@ -38,6 +38,20 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+==== Changes in dependency locking
+
+With Gradle 6.4, the incubating API for <<dependency_locking#fine_tuning_dependency_locking_behaviour_with_lock_mode, dependency locking `LockMode`>> has changed.
+The value is now set via a `Property<LockMode>` instead of a direct setter.
+This means that the notation to set the value has to be updated for the Kotlin DSL:
+
+```
+dependencyLocking {
+    lockMode.set(LockMode.STRICT)
+}
+```
+
+Users of the Groovy DSL should not be impacted as the notation `lockMode = LockMode.STRICT` remains valid.
+
 ==== Ivy repositories with custom layouts
 
 Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.

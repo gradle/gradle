@@ -46,7 +46,7 @@ public class DestroysPropertyAnnotationHandler implements PropertyAnnotationHand
 
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
-        return !visitor.visitOutputFilePropertiesOnly();
+        return true;
     }
 
     @Override

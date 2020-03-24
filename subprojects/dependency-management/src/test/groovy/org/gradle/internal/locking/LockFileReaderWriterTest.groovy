@@ -18,6 +18,9 @@ package org.gradle.internal.locking
 
 import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.provider.DefaultProperty
+import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.provider.Property
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Path
@@ -35,12 +38,14 @@ class LockFileReaderWriterTest extends Specification {
     LockFileReaderWriter lockFileReaderWriter
     FileResolver resolver = Mock()
     DomainObjectContext context = Mock()
+    Property<File> lockFile = new DefaultProperty<>(Stub(PropertyHost), File)
 
     def setup() {
         context.identityPath(_) >> { String value -> Path.path(value) }
         resolver.canResolveRelativePath() >> true
         resolver.resolve(LockFileReaderWriter.DEPENDENCY_LOCKING_FOLDER) >> lockDir
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        resolver.resolve(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) >> tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
     }
 
     def 'writes a unique lock file'() {
@@ -48,7 +53,23 @@ class LockFileReaderWriterTest extends Specification {
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
 
         then:
-        lockDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+bar=a
+foo=a,b
+empty=c
+""".denormalize()
+    }
+
+    def 'writes a unique lock file to a custom location'() {
+        def lockFile = tmpDir.file('different', 'lock.file')
+        given:
+        this.lockFile.set(lockFile)
+
+        when:
+        lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
+
+        then:
+        lockFile.text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 bar=a
 foo=a,b
 empty=c
@@ -82,7 +103,24 @@ line2"""
 
     def 'reads a unique lock file'() {
         given:
-        lockDir.file('project.lockfile') << """#ignored
+        tmpDir.file('gradle.lockfile') << """#ignored
+bar=a,c
+foo=a,b,c
+empty=d
+"""
+
+        when:
+        def result = lockFileReaderWriter.readUniqueLockFile()
+
+        then:
+        result == [a: ['bar', 'foo'], b: ['foo'], c: ['bar', 'foo'], d: []]
+    }
+
+    def 'reads a unique lock file from a custom location'() {
+        given:
+        def file = tmpDir.file('custom', 'lock.file')
+        lockFile.set(file)
+        file << """#ignored
 bar=a,c
 foo=a,b,c
 empty=d
@@ -98,11 +136,12 @@ empty=d
     def 'writes a unique lock file with prefix'() {
         when:
         context.isScript() >> true
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
 
         then:
-        lockDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME").text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+        tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME").text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
 bar=a
 foo=a,b
 empty=c
@@ -113,7 +152,7 @@ empty=c
     def 'writes a legacy lock file with prefix on persist'() {
         when:
         context.isScript() >> true
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
         lockFileReaderWriter.writeLockFile('conf', ['line1', 'line2'])
 
         then:
@@ -126,7 +165,7 @@ line2
     def 'reads a legacy lock file with prefix'() {
         given:
         context.isScript() >> true
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
         lockDir.file('buildscript-conf.lockfile') << """#Ignored
 line1
 
@@ -142,8 +181,9 @@ line2"""
     def 'reads a unique lock file with prefix'() {
         given:
         context.isScript() >> true
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
-        lockDir.file('buildscript-project.lockfile') << """#ignored
+        resolver.resolve("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME") >> tmpDir.file("buildscript-$LockFileReaderWriter.UNIQUE_LOCKFILE_NAME")
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
+        tmpDir.file('buildscript-gradle.lockfile') << """#ignored
 bar=a,c
 foo=a,b,c
 empty=d
@@ -159,7 +199,7 @@ empty=d
     def 'fails to read a unique lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
 
         when:
         lockFileReaderWriter.readUniqueLockFile()
@@ -174,7 +214,7 @@ empty=d
     def 'fails to read a legacy lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
 
         when:
         lockFileReaderWriter.readLockFile('foo')
@@ -189,7 +229,7 @@ empty=d
     def 'fails to write a unique lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
 
         when:
         lockFileReaderWriter.writeUniqueLockfile([foo: ['a:b:1.0']])
@@ -204,7 +244,7 @@ empty=d
     def 'fails to write a legacy lockfile if root could not be determined'() {
         FileResolver resolver = Mock()
         resolver.canResolveRelativePath() >> false
-        lockFileReaderWriter = new LockFileReaderWriter(resolver, context)
+        lockFileReaderWriter = new LockFileReaderWriter(resolver, context, lockFile)
 
         when:
         lockFileReaderWriter.writeLockFile('foo', [])
