@@ -178,7 +178,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.modularClasspathHandling.inferModulePath.set(true)
 
         then:
-        builder.getAllArguments() == ['-Dfile.encoding=UTF-8', '-Duser.country=US', '-Duser.language=en', '-Duser.variant', '-cp', libJar.name, '--module-path', moduleJar.name, '--module', 'mainModule/mainClass']
+        builder.getAllArguments().findAll { !it.startsWith('-Duser.') } == ['-Dfile.encoding=UTF-8', '-cp', libJar.name, '--module-path', moduleJar.name, '--module', 'mainModule/mainClass']
     }
 
     def "detects null entries early"() {
