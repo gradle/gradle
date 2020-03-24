@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -28,7 +29,6 @@ import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
-import org.gradle.configuration.PreCompiledScriptTarget;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
@@ -44,7 +44,6 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 class PreCompileGroovyScriptsTask extends DefaultTask {
-    private static final ScriptTarget SCRIPT_TARGET = new PreCompiledScriptTarget();
 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry;
@@ -53,6 +52,8 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     private final Set<PreCompiledScript> scriptPlugins = new HashSet<>();
     private final DirectoryProperty classesDir = getProject().getObjects().directoryProperty();
     private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
+
+    private final CopySpec classesSpec = getProject().copySpec();
 
     @Inject
     public PreCompileGroovyScriptsTask(ScriptCompilationHandler scriptCompilationHandler,
@@ -100,25 +101,36 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
             compilePluginRequests(classLoader, scriptPlugin);
             compileBuildScript(classLoader, scriptPlugin);
         }
+
+        getProject().copy(copySpec -> {
+            copySpec.with(classesSpec);
+            copySpec.into(getClassOutputDir());
+        });
     }
 
     private void compilePluginRequests(ClassLoader classLoader, PreCompiledScript scriptPlugin) {
-        CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(SCRIPT_TARGET);
+        ScriptTarget target = scriptPlugin.getTarget();
+        CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(target);
         File pluginMetadataDir = new File(metadataDir.getAsFile().get(), scriptPlugin.getPluginMetadataDirPath());
         File pluginClassesDir = new File(classesDir.getAsFile().get(), scriptPlugin.getPluginClassesDirPath());
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getSource(), classLoader, pluginClassesDir, pluginMetadataDir, pluginRequestsCompileOperation,
-            SCRIPT_TARGET.getScriptClass(), Actions.doNothing());
+            scriptPlugin.getPluginsBlockSource(), classLoader, pluginClassesDir, pluginMetadataDir, pluginRequestsCompileOperation,
+            target.getScriptClass(), Actions.doNothing());
+
+        classesSpec.from(pluginClassesDir);
     }
 
     private void compileBuildScript(ClassLoader classLoader, PreCompiledScript scriptPlugin) {
+        ScriptTarget target = scriptPlugin.getTarget();
         CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(
-            scriptPlugin.getSource(), SCRIPT_TARGET);
+            scriptPlugin.getSource(), target);
         File buildScriptMetadataDir = new File(metadataDir.getAsFile().get(), scriptPlugin.getBuildScriptMetadataDirPath());
         File buildScriptClassesDir = new File(classesDir.getAsFile().get(), scriptPlugin.getBuildScriptClassesDirPath());
         scriptCompilationHandler.compileToDir(
             scriptPlugin.getSource(), classLoader, buildScriptClassesDir,
-            buildScriptMetadataDir, buildScriptDataCompileOperation, SCRIPT_TARGET.getScriptClass(),
+            buildScriptMetadataDir, buildScriptDataCompileOperation, target.getScriptClass(),
             ClosureCreationInterceptingVerifier.INSTANCE);
+
+        classesSpec.from(buildScriptClassesDir);
     }
 }

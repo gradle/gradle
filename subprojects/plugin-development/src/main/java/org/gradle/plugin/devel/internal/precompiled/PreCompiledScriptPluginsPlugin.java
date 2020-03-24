@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -35,6 +36,7 @@ import static org.gradle.plugin.devel.internal.precompiled.PreCompiledScript.SCR
 class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply(GroovyBasePlugin.class);
         project.getPluginManager().apply(JavaGradlePluginPlugin.class);
 
         GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);

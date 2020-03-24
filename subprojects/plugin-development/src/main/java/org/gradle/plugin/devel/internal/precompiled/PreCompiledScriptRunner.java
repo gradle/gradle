@@ -98,31 +98,29 @@ public class PreCompiledScriptRunner {
 
     private PluginRequests extractPlugins() {
         CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(scriptTarget);
-        CompiledScript<? extends BasicScript, ?> compiledPluginRequests = loadCompiledScript(pluginsBlockDir, pluginsMetadataDir, pluginRequestsCompileOperation);
-        ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, script.getSource(), classLoader);
+        CompiledScript<? extends BasicScript, ?> compiledPluginRequests = scriptCompilationHandler.loadFromDir(
+            script.getPluginsBlockSource(), script.getContentHash(), classLoaderScope, pluginsBlockDir, pluginsMetadataDir,
+            pluginRequestsCompileOperation, scriptTarget.getScriptClass());
+        ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, script.getPluginsBlockSource(), classLoader);
         initialRunner.run(project, projectServices);
         PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
         return autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, project);
     }
 
     private void applyPlugins(PluginRequests pluginRequests) {
-        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(script.getSource(), classLoaderScope);
+        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(script.getPluginsBlockSource(), classLoaderScope);
         pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, scriptTarget.getPluginManager(), classLoaderScope);
     }
 
     private void executeScript() {
         CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(script.getSource(), scriptTarget);
-        CompiledScript<? extends BasicScript, BuildScriptData> compiledScript = loadCompiledScript(scriptClassesDir, scriptMetadataDir, buildScriptDataCompileOperation);
+        CompiledScript<? extends BasicScript, BuildScriptData> compiledScript = scriptCompilationHandler.loadFromDir(
+            script.getSource(), script.getContentHash(), classLoaderScope, scriptClassesDir, scriptMetadataDir,
+            buildScriptDataCompileOperation, scriptTarget.getScriptClass());
         ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, script.getSource(), classLoader);
         if (runner.getRunDoesSomething()) {
             runner.run(project, projectServices);
         }
-    }
-
-    private <T> CompiledScript<? extends BasicScript, T> loadCompiledScript(File classesDir, File metadataDir, CompileOperation<T> compileOperation) {
-        return scriptCompilationHandler.loadFromDir(
-            script.getSource(), script.getContentHash(), classLoaderScope, classesDir, metadataDir,
-            compileOperation, scriptTarget.getScriptClass());
     }
 
     private static PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {

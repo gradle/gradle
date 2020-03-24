@@ -17,9 +17,12 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import com.google.common.base.CaseFormat;
+import org.gradle.configuration.PreCompiledScriptTarget;
+import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
@@ -85,6 +88,10 @@ class PreCompiledScript {
         return scriptSource;
     }
 
+    ScriptSource getPluginsBlockSource() {
+        return new PluginsBlockSourceWrapper(scriptSource);
+    }
+
     private String getFileNameWithoutExtension() {
         String fileName = new File(scriptSource.getFileName()).getName();
         return fileName.substring(0, fileName.indexOf(SCRIPT_PLUGIN_EXTENSION));
@@ -107,5 +114,38 @@ class PreCompiledScript {
             }
         }
         return sb.toString();
+    }
+
+    public ScriptTarget getTarget() {
+        // TODO: support settings and init script targets
+        return new PreCompiledScriptTarget();
+    }
+
+    private static class PluginsBlockSourceWrapper implements ScriptSource {
+        private final ScriptSource delegate;
+
+        public PluginsBlockSourceWrapper(ScriptSource scriptSource) {
+            this.delegate = scriptSource;
+        }
+
+        @Override
+        public String getClassName() {
+            return "plugins_" + delegate.getClassName();
+        }
+
+        @Override
+        public TextResource getResource() {
+            return delegate.getResource();
+        }
+
+        @Override
+        public String getFileName() {
+            return delegate.getFileName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
     }
 }
