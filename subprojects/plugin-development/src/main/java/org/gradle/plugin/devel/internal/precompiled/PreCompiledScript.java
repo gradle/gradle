@@ -18,8 +18,14 @@ package org.gradle.plugin.devel.internal.precompiled;
 
 import com.google.common.base.CaseFormat;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.TextResourceScriptSource;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.resource.UriTextResource;
+import org.gradle.plugin.use.PluginId;
+import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.io.File;
+import java.util.Optional;
 
 class PreCompiledScript {
     public static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
@@ -27,18 +33,24 @@ class PreCompiledScript {
     private static final String BUILDSCRIPT_PREFIX = "script";
 
     private final ScriptSource scriptSource;
+    private final PluginId pluginId;
 
-    PreCompiledScript(ScriptSource scriptSource) {
-        this.scriptSource = scriptSource;
+    PreCompiledScript(File scriptFile) {
+        this.scriptSource = new TextResourceScriptSource(new UriTextResource("script", scriptFile));
+        // TODO should also detect package name and add it to the id
+        this.pluginId = DefaultPluginId.of(getFileNameWithoutExtension());
     }
 
     String getId() {
-        // TODO should also detect package name and add it to the id
-        return getFileNameWithoutExtension();
+        return pluginId.getId();
+    }
+
+    Optional<String> getGeneratedPluginPackage() {
+        return Optional.empty();
     }
 
     String getGeneratedPluginClassName() {
-        return kebabCaseToPascalCase(getFileNameWithoutExtension()) + "Plugin";
+        return toJavaIdentifier(kebabCaseToPascalCase(pluginId.getName())) + "Plugin";
     }
 
     String getPluginMetadataDirPath() {
@@ -62,8 +74,11 @@ class PreCompiledScript {
     }
 
     String getClassName() {
-        // TODO should also include the package name
         return scriptSource.getClassName();
+    }
+
+    HashCode getContentHash() {
+        return scriptSource.getResource().getContentHash();
     }
 
     ScriptSource getSource() {
@@ -77,5 +92,20 @@ class PreCompiledScript {
 
     private static String kebabCaseToPascalCase(String s) {
         return CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, s);
+    }
+
+    private static String toJavaIdentifier(String s) {
+        StringBuilder sb = new StringBuilder();
+        if (!Character.isJavaIdentifierStart(s.charAt(0))) {
+            sb.append("_");
+        }
+        for (char c : s.toCharArray()) {
+            if (Character.isJavaIdentifierPart(c)) {
+                sb.append(c);
+            } else {
+                sb.append("_");
+            }
+        }
+        return sb.toString();
     }
 }

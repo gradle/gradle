@@ -24,8 +24,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.groovy.scripts.TextResourceScriptSource;
-import org.gradle.internal.resource.UriTextResource;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
@@ -48,7 +46,8 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         pluginExtension.plugins(pluginDeclarations -> {
             for (PreCompiledScript scriptPlugin : scriptPlugins) {
                 pluginDeclarations.create(scriptPlugin.getId(), pluginDeclaration -> {
-                    pluginDeclaration.setImplementationClass(scriptPlugin.getGeneratedPluginClassName());
+                    pluginDeclaration.setImplementationClass(scriptPlugin.getGeneratedPluginPackage()
+                        .map(packageName -> packageName + '.').orElse("") + scriptPlugin.getGeneratedPluginClassName());
                     pluginDeclaration.setId(scriptPlugin.getId());
                 });
             }
@@ -62,7 +61,7 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         }
 
         Set<PreCompiledScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
-            .map(file -> new PreCompiledScript(new TextResourceScriptSource(new UriTextResource("script", file))))
+            .map(PreCompiledScript::new)
             .collect(Collectors.toSet());
 
         declarePluginMetadata(pluginExtension, scriptPlugins);

@@ -32,6 +32,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -85,9 +86,12 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
     }
 
     private void generateScriptPluginAdapter(PreCompiledScript scriptPlugin, File baseClassesDir, File baseMetadataDir) {
-        // TODO should take package into account
         File outputFile = generatedClassesDir.file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
+            Optional<String> packageName = scriptPlugin.getGeneratedPluginPackage();
+            if (packageName.isPresent()) {
+                writer.write("package " + packageName.get() + ";\n\n");
+            }
             writer.write("import org.gradle.api.Project;\n");
             writer.write("import org.gradle.api.internal.project.ProjectInternal;\n");
             writer.write("import org.gradle.plugin.devel.internal.precompiled.PreCompiledScriptRunner;\n");

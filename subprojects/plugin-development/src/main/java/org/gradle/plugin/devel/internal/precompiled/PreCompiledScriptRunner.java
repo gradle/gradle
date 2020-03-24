@@ -26,16 +26,11 @@ import org.gradle.configuration.DefaultScriptTarget;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptRunner;
-import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.TextResource;
-import org.gradle.internal.resource.UriTextResource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
@@ -61,8 +56,7 @@ public class PreCompiledScriptRunner {
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
 
-    private final ScriptSource scriptSource;
-    private final HashCode hashCode;
+    private final PreCompiledScript script;
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoader classLoader;
@@ -76,10 +70,7 @@ public class PreCompiledScriptRunner {
         this.project = project;
         this.projectServices = project.getServices();
 
-        TextResource scriptResource = new UriTextResource("script", new File(scriptFilePath));
-        this.hashCode = scriptResource.getContentHash();
-        this.scriptSource = new TextResourceScriptSource(scriptResource);
-        PreCompiledScript script = new PreCompiledScript(scriptSource);
+        this.script = new PreCompiledScript(new File(scriptFilePath));
         this.pluginsBlockDir = new File(baseClassesDir, script.getPluginClassesDirPath());
         this.pluginsMetadataDir = new File(baseMetadataDir, script.getPluginMetadataDirPath());
         this.scriptClassesDir = new File(baseClassesDir, script.getBuildScriptClassesDirPath());
@@ -108,21 +99,21 @@ public class PreCompiledScriptRunner {
     private PluginRequests extractPlugins() {
         CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(scriptTarget);
         CompiledScript<? extends BasicScript, ?> compiledPluginRequests = loadCompiledScript(pluginsBlockDir, pluginsMetadataDir, pluginRequestsCompileOperation);
-        ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, scriptSource, classLoader);
+        ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, script.getSource(), classLoader);
         initialRunner.run(project, projectServices);
         PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
         return autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, project);
     }
 
     private void applyPlugins(PluginRequests pluginRequests) {
-        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScope);
+        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(script.getSource(), classLoaderScope);
         pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, scriptTarget.getPluginManager(), classLoaderScope);
     }
 
     private void executeScript() {
-        CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(scriptSource, scriptTarget);
+        CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(script.getSource(), scriptTarget);
         CompiledScript<? extends BasicScript, BuildScriptData> compiledScript = loadCompiledScript(scriptClassesDir, scriptMetadataDir, buildScriptDataCompileOperation);
-        ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, scriptSource, classLoader);
+        ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, script.getSource(), classLoader);
         if (runner.getRunDoesSomething()) {
             runner.run(project, projectServices);
         }
@@ -130,7 +121,7 @@ public class PreCompiledScriptRunner {
 
     private <T> CompiledScript<? extends BasicScript, T> loadCompiledScript(File classesDir, File metadataDir, CompileOperation<T> compileOperation) {
         return scriptCompilationHandler.loadFromDir(
-            scriptSource, hashCode, classLoaderScope, classesDir, metadataDir,
+            script.getSource(), script.getContentHash(), classLoaderScope, classesDir, metadataDir,
             compileOperation, scriptTarget.getScriptClass());
     }
 

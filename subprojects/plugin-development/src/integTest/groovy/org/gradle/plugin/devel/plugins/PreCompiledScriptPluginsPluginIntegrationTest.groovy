@@ -17,8 +17,12 @@
 package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 
 class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final String SAMPLE_TASK = "sampleTask"
+
     def "adds plugin metadata to extension for all script plugins"() {
         def buildSrcDir = file("buildSrc")
         def pluginDir = buildSrcDir.createDir("src/main/groovy/plugins")
@@ -67,10 +71,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
 
     def "can use kebab-case in plugin id"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/")
-
-        pluginDir.file("my-plugin.gradle") << """
-            tasks.register("myTask") {}
-        """
+        pluginWithSampleTask(pluginDir, "my-plugin.gradle")
 
         buildFile << """
             plugins {
@@ -79,8 +80,48 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         """
 
         expect:
-        succeeds("myTask")
+        succeeds(SAMPLE_TASK)
     }
+
+    def "plugin without package can declare fully qualified id in file name"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/")
+        pluginWithSampleTask(pluginDir, "foo.bar.my-plugin.gradle")
+
+        buildFile << """
+            plugins {
+                id 'foo.bar.my-plugin'
+            }
+        """
+
+        expect:
+        succeeds(SAMPLE_TASK)
+    }
+
+    def "displays reasonable error message when plugin filename does not comply with plugin id naming rules"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/")
+        pluginWithSampleTask(pluginDir, "foo.bar.m%y-plugin.gradle")
+
+        expect:
+        fails("help")
+        failureCauseContains("plugin id 'foo.bar.m%y-plugin' is invalid")
+    }
+
+    /*def "plugin package is reflected in plugin id"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/foo/bar/")
+
+        pluginDir.file("my-plugin.gradle") << """
+            tasks.register("myTask") {}
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo.bar.my-plugin'
+            }
+        """
+
+        expect:
+        succeeds("myTask")
+    }*/
 
     def "can apply a precompiled script plugin by id that applies another precompiled script plugin by id"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
@@ -205,10 +246,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
 
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
-
-        pluginDir.file("foo.gradle") << """
-            tasks.register("myTask") {}
-        """
+        pluginWithSampleTask(pluginDir, "foo.gradle")
 
         buildKotlinFile << """
             plugins {
@@ -217,6 +255,12 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         """
 
         expect:
-        succeeds("myTask")
+        succeeds(SAMPLE_TASK)
+    }
+
+    private static void pluginWithSampleTask(TestFile pluginDir, String pluginFile) {
+        pluginDir.file(pluginFile) << """
+            tasks.register("$SAMPLE_TASK") {}
+        """
     }
 }
