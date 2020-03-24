@@ -88,12 +88,19 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     def "single source with include and exclude closures"() {
         given:
+        file('files/a.a').createFile()
+        file('files/a.b').createFile()
+        file('files/dir/a.a').createFile()
+        file('files/dir/a.b').createFile()
+        file('files/dir/ignore.c').createFile()
+        file('files/dir.b/a.a').createFile()
+        file('files/dir.b/a.b').createFile()
         buildScript '''
             task (copy, type:Copy) {
-               from 'src'
+               from 'files'
                into 'dest'
                include { fte -> !fte.file.name.endsWith('b') }
-               exclude { fte -> fte.file.name == 'bad.file' }
+               exclude { fte -> fte.file.name.contains('ignore') }
             }
         '''.stripIndent()
 
@@ -102,10 +109,32 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         file('dest').assertHasDescendants(
-            'root.a',
-            'accents.c',
-            'one/one.a',
-            'two/two.a',
+            'a.a',
+            'dir/a.a'
+        )
+
+        when:
+        file('files/dir/ignore.d').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'a.a',
+            'dir/a.a'
+        )
+
+        when:
+        file('files/dir/a.c').createFile()
+        file('files/dir/ignore.e').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'a.a',
+            'dir/a.a',
+            'dir/a.c'
         )
     }
 
