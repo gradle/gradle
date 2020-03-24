@@ -1,0 +1,45 @@
+plugins {
+    id 'java-library'
+}
+
+configurations {
+    sourcesPath {
+        canBeResolved = true
+        canBeConsumed = false
+        extendsFrom implementation
+        attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+        }
+    }
+    coverageData {
+        canBeResolved = true
+        canBeConsumed = false
+        attributes {
+            attribute(Attribute.of("org.gradle.jacocoCoverageData", String), "exec")
+        }
+    }
+}
+
+dependencies {
+    rootProject.subprojects.each { subproject ->
+        if (subproject.name != 'aggregator' && subproject.name != 'utilities') {
+            implementation subproject
+            sourcesPath subproject
+            coverageData subproject
+        }
+    }
+}
+
+task codeCoverageReport(type: JacocoReport) {
+    additionalSourceDirs configurations.sourcesPath
+    additionalClassDirs configurations.runtimeClasspath
+    executionData configurations.coverageData
+
+    reports {
+        xml.enabled false
+        html.enabled true
+        csv.enabled false
+    }
+}

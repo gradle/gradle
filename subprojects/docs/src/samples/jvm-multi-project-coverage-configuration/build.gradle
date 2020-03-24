@@ -1,0 +1,64 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+
+allprojects {
+    group = 'org.gradle.multi.coverage'
+    version = '1.0'
+    repositories {
+        mavenCentral()
+    }
+
+}
+
+subprojects {
+    apply plugin: 'java'
+    apply plugin: 'jacoco'
+
+    dependencies {
+        testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+        testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    configurations {
+        coverageData {
+            canBeResolved = false
+            canBeConsumed = true
+            attributes {
+                attribute(Attribute.of("org.gradle.jacocoCoverageData", String), "exec")
+            }
+        }
+    }
+
+    artifacts {
+        coverageData(test.extensions.findByType(JacocoTaskExtension).destinationFile) {
+            builtBy(test)
+        }
+    }
+
+    plugins.withType(JavaPlugin) {
+        configurations {
+            sourcesElements {
+                canBeResolved = false
+                canBeConsumed = true
+                attributes {
+                    attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                    attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+                    attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, DocsType.SOURCES))
+                }
+                sourceSets.main.java.srcDirs.forEach {
+                    outgoing.artifact(it)
+                }
+                sourceSets.test.java.srcDirs.forEach {
+                    outgoing.artifact(it)
+                }
+            }
+        }
+    }
+
+}
