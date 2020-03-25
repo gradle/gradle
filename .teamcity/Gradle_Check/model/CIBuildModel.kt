@@ -50,8 +50,9 @@ data class CIBuildModel(
             specificBuilds = listOf(
                 SpecificBuild.BuildDistributions,
                 SpecificBuild.Gradleception,
-                SpecificBuild.SmokeTestsMinJavaVersion,
-                SpecificBuild.InstantSmokeTestsMaxJavaVersion
+                SpecificBuild.SmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMaxJavaVersion,
+                SpecificBuild.InstantSmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(3, TestType.platform, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
@@ -62,8 +63,7 @@ data class CIBuildModel(
         Stage(StageNames.READY_FOR_NIGHTLY,
             trigger = Trigger.eachCommit,
             specificBuilds = listOf(
-                SpecificBuild.SmokeTestsMaxJavaVersion,
-                SpecificBuild.InstantSmokeTestsMinJavaVersion
+                SpecificBuild.SmokeTestsMinJavaVersion
             ),
             functionalTests = listOf(
                 TestCoverage(5, TestType.quickFeedbackCrossVersion, Os.linux, JvmCategory.MIN_VERSION.version, vendor = JvmCategory.MIN_VERSION.vendor),
