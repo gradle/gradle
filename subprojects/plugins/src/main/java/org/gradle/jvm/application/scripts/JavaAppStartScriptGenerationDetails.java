@@ -16,6 +16,7 @@
 
 package org.gradle.jvm.application.scripts;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -55,6 +56,7 @@ public interface JavaAppStartScriptGenerationDetails {
     /**
      * This system property to use to pass the script name to the application. May be null.
      */
+    @Nullable
     String getAppNameSystemProperty();
 }
 
