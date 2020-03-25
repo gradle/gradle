@@ -65,21 +65,19 @@ public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final Factory<PatternSet> patternSetFactory;
     protected final FileCollectionFactory fileCollectionFactory;
+    protected final Instantiator instantiator;
     private final ConfigurableFileCollection sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
     private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<>();
-    protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private boolean hasCustomActions;
     private Integer dirMode;
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
-
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
-
     private String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
