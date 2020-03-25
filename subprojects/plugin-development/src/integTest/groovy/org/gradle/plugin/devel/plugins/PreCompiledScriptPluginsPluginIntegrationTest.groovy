@@ -363,6 +363,35 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    def "can use Gradle API classes directly in precompiled script plugin"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+        enablePrecompiledPluginsInBuildSrc()
+
+        pluginScript(pluginDir, "test-plugin.gradle", """
+            class TestTask extends DefaultTask {
+                @TaskAction
+                void run() {
+                    println 'from custom task'
+                }
+            }
+
+            task testTask(type: TestTask)
+        """)
+
+        buildFile << """
+            plugins {
+                id 'test-plugin'
+            }
+        """
+
+        expect:
+        succeeds("testTask")
+
+        and:
+        outputContains("from custom task")
+    }
+
+    @ToBeFixedForInstantExecution
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
