@@ -73,7 +73,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
-    def "packages precompiled plugins in a jar"() {
+    def "can share precompiled plugin via a jar"() {
         given:
         def pluginDir = createDir("plugin/src/main/groovy/plugins")
         pluginWithSampleTask(pluginDir, "foo.gradle")
@@ -99,6 +99,51 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         buildFile << """
             plugins {
                 id 'foo'
+            }
+        """
+
+        then:
+        succeeds(SAMPLE_TASK)
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can share precompiled plugin by publishing it"() {
+        given:
+        def pluginDir = createDir("plugin/src/main/groovy/plugins")
+        pluginWithSampleTask(pluginDir, "foo.bar.my-plugin.gradle")
+        file("plugin/build.gradle") << """
+            plugins {
+                id 'precompiled-groovy-plugin'
+                id 'maven-publish'
+            }
+            group = 'com.example'
+            version = '1.0'
+            publishing {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
+
+        when:
+        executer.inDirectory(file("plugin")).withTasks("publish").run()
+        mavenRepo.module('com.example', 'plugin', '1.0').assertPublished()
+
+        settingsFile << """
+            pluginManagement {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo.bar.my-plugin' version '1.0'
             }
         """
 
