@@ -74,14 +74,7 @@ public class Jar extends Zip {
                 manifestInternal.setContentCharset(manifestContentCharset);
                 manifestInternal.writeTo(outputStream);
             }));
-        getMainSpec().appendCachingSafeCopyAction(new Action<FileCopyDetails>() {
-            @Override
-            public void execute(FileCopyDetails details) {
-                if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
-                    details.exclude();
-                }
-            }
-        });
+        getMainSpec().appendCachingSafeCopyAction(new ExcludeManifestAction());
     }
 
     /**
@@ -223,5 +216,14 @@ public class Jar extends Zip {
         CopySpec metaInf = getMetaInf();
         configureAction.execute(metaInf);
         return metaInf;
+    }
+
+    private static class ExcludeManifestAction implements Action<FileCopyDetails> {
+        @Override
+        public void execute(FileCopyDetails details) {
+            if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
+                details.exclude();
+            }
+        }
     }
 }

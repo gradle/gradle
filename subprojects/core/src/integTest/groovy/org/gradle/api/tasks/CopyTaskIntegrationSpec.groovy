@@ -232,6 +232,127 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
+    def "can rename files using a regexp string and replacement pattern"() {
+        given:
+        file('files/one.a').createFile()
+        file('files/one.b').createFile()
+        file('files/dir/two.a').createFile()
+        file('files/dir/two.b').createFile()
+        buildScript '''
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                rename '(.*).a', '\$1.renamed'
+            }
+        '''
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest').assertHasDescendants(
+            'one.renamed',
+            'one.b',
+            'dir/two.renamed',
+            'dir/two.b'
+        )
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.renamed',
+            'one.b',
+            'dir/two.renamed',
+            'dir/two.b'
+        )
+
+        when:
+        file('files/one.c').createNewFile()
+        file('files/dir/another.a').createNewFile()
+
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.renamed',
+            'one.b',
+            'one.c',
+            'dir/two.renamed',
+            'dir/two.b',
+            'dir/another.renamed'
+        )
+    }
+
+    def "can rename files using a closure"() {
+        given:
+        file('files/one.a').createFile()
+        file('files/one.b').createFile()
+        file('files/dir/two.a').createFile()
+        file('files/dir/two.b').createFile()
+        buildScript '''
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                rename {
+                    println("rename $it")
+                    if (it.endsWith('.b')) {
+                        return null
+                    } else {
+                        return it.replace('.a', '.renamed')
+                    }
+                }
+            }
+        '''
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest').assertHasDescendants(
+            'one.renamed',
+            'one.b',
+            'dir/two.renamed',
+            'dir/two.b'
+        )
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        output.count("rename") == 0
+        file('dest').assertHasDescendants(
+            'one.renamed',
+            'one.b',
+            'dir/two.renamed',
+            'dir/two.b'
+        )
+
+        when:
+        file('files/one.c').createNewFile()
+        file('files/dir/another.a').createNewFile()
+
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        output.count("rename") == 6
+        outputContains("rename one.a")
+        outputContains("rename another.a")
+        file('dest').assertHasDescendants(
+            'one.renamed',
+            'one.b',
+            'one.c',
+            'dir/two.renamed',
+            'dir/two.b',
+            'dir/another.renamed'
+        )
+    }
+
     def "rename"() {
         given:
         buildScript '''
@@ -345,7 +466,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         it.next().startsWith('16')
     }
 
-    def "can rename files using closure"() {
+    def "can rename files in eachFile() action defined using closure"() {
         given:
         file('files/a.txt').createFile()
         file('files/dir/b.txt').createFile()
@@ -401,7 +522,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
-    def "can rename files that match a pattern using closure"() {
+    def "can rename files that match a pattern in filesMatching() action defined using closure"() {
         given:
         file('files/a.txt').createFile()
         file('files/dir/b.txt').createFile()
@@ -457,7 +578,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         )
     }
 
-    def "can rename files that do not match a pattern using closure"() {
+    def "can rename files that do not match a pattern in filesNotMatching() action defined using closure"() {
         given:
         file('files/a.txt').createFile()
         file('files/dir/b.txt').createFile()
