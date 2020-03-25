@@ -100,7 +100,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.getPluginManager().apply(JavaBasePlugin.class);
 
-
         ScalaRuntime scalaRuntime = project.getExtensions().create(SCALA_RUNTIME_EXTENSION_NAME, ScalaRuntime.class, project);
         ScalaPluginExtension scalaPluginExtension = project.getExtensions().create(ScalaPluginExtension.class, "scala", DefaultScalaPluginExtension.class);
 
@@ -174,12 +173,8 @@ public class ScalaBasePlugin implements Plugin<Project> {
                 scalaDirectorySet.srcDir(project.file("src/" + sourceSet.getName() + "/scala"));
                 sourceSet.getAllJava().source(scalaDirectorySet);
                 sourceSet.getAllSource().source(scalaDirectorySet);
-                sourceSet.getResources().getFilter().exclude(new Spec<FileTreeElement>() {
-                    @Override
-                    public boolean isSatisfiedBy(FileTreeElement element) {
-                        return scalaDirectorySet.contains(element.getFile());
-                    }
-                });
+                FileCollection scalaSource = scalaDirectorySet;
+                sourceSet.getResources().getFilter().exclude(new IsScalaSourceSpec(scalaSource));
 
                 Configuration classpath = project.getConfigurations().getByName(sourceSet.getImplementationConfigurationName());
                 Configuration incrementalAnalysis = project.getConfigurations().create("incrementalScalaAnalysisFor" + sourceSet.getName());
@@ -318,6 +313,19 @@ public class ScalaBasePlugin implements Plugin<Project> {
                     details.closestMatch(javaRuntime);
                 }
             }
+        }
+    }
+
+    private static class IsScalaSourceSpec implements Spec<FileTreeElement> {
+        private final FileCollection scalaSource;
+
+        public IsScalaSourceSpec(FileCollection scalaSource) {
+            this.scalaSource = scalaSource;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(FileTreeElement element) {
+            return scalaSource.contains(element.getFile());
         }
     }
 }

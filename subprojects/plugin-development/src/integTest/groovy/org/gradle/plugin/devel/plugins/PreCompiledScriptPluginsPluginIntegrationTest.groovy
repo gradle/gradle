@@ -78,7 +78,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     @ToBeFixedForInstantExecution
     def "can share precompiled plugin via a jar"() {
         given:
-        TestFile pluginJar = packagePrecompiledPlugin("foo.gradle")
+        def pluginJar = packagePrecompiledPlugin("foo.gradle")
 
         when:
         settingsFile << """
@@ -147,7 +147,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     @ToBeFixedForInstantExecution
     def "can apply a precompiled settings plugin by id"() {
         given:
-        TestFile pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+        def pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
             println("my-settings-plugin applied!")
         """)
 
@@ -169,7 +169,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     @ToBeFixedForInstantExecution
     def "can apply a precompiled init plugin"() {
         given:
-        TestFile pluginJar = packagePrecompiledPlugin("my-init-plugin.init.gradle", """
+        def pluginJar = packagePrecompiledPlugin("my-init-plugin.init.gradle", """
             println("my-init-plugin applied!")
         """)
 
@@ -379,7 +379,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         succeeds(SAMPLE_TASK)
     }
 
-    private TestFile packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
+    private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
         def pluginDir = createDir("plugin/src/main/groovy/plugins")
         pluginScript(pluginDir, pluginFile, pluginContent)
         file("plugin/build.gradle") << """
@@ -390,7 +390,10 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
 
         executer.inDirectory(file("plugin")).withTasks("jar").run()
             .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
-        return file("plugin/build/libs/plugin.jar").assertExists()
+        def pluginJar = file("plugin/build/libs/plugin.jar").assertExists()
+        def movedJar = file('plugin.jar')
+        pluginJar.renameTo(movedJar)
+        return movedJar.name
     }
 
     private void enablePrecompiledPluginsInBuildSrc() {
