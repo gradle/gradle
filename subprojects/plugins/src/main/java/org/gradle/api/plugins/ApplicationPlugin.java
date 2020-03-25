@@ -66,7 +66,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         ApplicationPluginConvention pluginConvention = addConvention(project);
         JavaApplication pluginExtension = addExtensions(project, pluginConvention);
         addRunTask(project, pluginExtension, pluginConvention);
-        addCreateScriptsTask(project, pluginConvention);
+        addCreateScriptsTask(project, pluginExtension, pluginConvention);
         configureJavaCompileTask(tasks.named(JavaPlugin.COMPILE_JAVA_TASK_NAME, JavaCompile.class), pluginExtension);
         configureJarTask(tasks.named(JavaPlugin.JAR_TASK_NAME, Jar.class), pluginExtension);
         configureInstallTask(tasks.named(TASK_INSTALL_NAME, Sync.class), pluginConvention);
@@ -144,12 +144,13 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     // @Todo: refactor this task configuration to extend a copy task and use replace tokens
-    private void addCreateScriptsTask(Project project, ApplicationPluginConvention pluginConvention) {
+    private void addCreateScriptsTask(Project project, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
             startScripts.setClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
 
-            startScripts.getConventionMapping().map("mainClassName", pluginConvention::getMainClassName);
+            startScripts.getMainModule().set(pluginExtension.getMainModule());
+            startScripts.getMainClass().set(pluginExtension.getMainClass());
 
             startScripts.getConventionMapping().map("applicationName", pluginConvention::getApplicationName);
 

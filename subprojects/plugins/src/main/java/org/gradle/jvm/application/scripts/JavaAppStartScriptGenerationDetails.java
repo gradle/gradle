@@ -16,6 +16,8 @@
 
 package org.gradle.jvm.application.scripts;
 
+import org.gradle.api.Incubating;
+
 import javax.annotation.Nullable;
 import java.util.List;
 
@@ -47,6 +49,14 @@ public interface JavaAppStartScriptGenerationDetails {
      * The classpath, relative to the application home directory.
      */
     List<String> getClasspath();
+
+    /**
+     * The module path, relative to the application home directory.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    List<String> getModulePath();
 
     /**
      * The path of the script, relative to the application home directory.
