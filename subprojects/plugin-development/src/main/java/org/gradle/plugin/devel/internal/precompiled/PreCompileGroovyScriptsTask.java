@@ -22,6 +22,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -43,6 +44,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@CacheableTask
 class PreCompileGroovyScriptsTask extends DefaultTask {
 
     private final ScriptCompilationHandler scriptCompilationHandler;
@@ -69,8 +71,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
         return scriptPlugins;
     }
 
-    // TODO: figure out caching
-    @PathSensitive(PathSensitivity.ABSOLUTE)
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     Set<File> getScriptFiles() {
         return scriptPlugins.stream().map(PreCompiledScript::getScriptFile).collect(Collectors.toSet());

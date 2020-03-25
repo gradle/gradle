@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.internal.precompiled;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
@@ -36,6 +37,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+@CacheableTask
 class GenerateScriptPluginAdaptersTask extends DefaultTask {
     private final Set<PreCompiledScript> scriptPlugins = new HashSet<>();
     private final DirectoryProperty generatedClassesDir;
@@ -48,8 +50,7 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
         this.classesDir = getProject().getObjects().directoryProperty();
     }
 
-    // TODO: figure out caching
-    @PathSensitive(PathSensitivity.ABSOLUTE)
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     Set<File> getScriptFiles() {
         return scriptPlugins.stream().map(PreCompiledScript::getScriptFile).collect(Collectors.toSet());

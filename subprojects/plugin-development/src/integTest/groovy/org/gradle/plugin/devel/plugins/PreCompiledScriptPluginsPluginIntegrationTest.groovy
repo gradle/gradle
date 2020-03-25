@@ -436,6 +436,52 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    def "precompiled script plugins tasks are cached and relocatable"() {
+        given:
+        def cacheDir = createDir("cache-dir")
+        def firstDir = createDir("first-location")
+
+        file("$firstDir.name/settings.gradle") << """
+            rootProject.name = "test"
+            buildCache {
+                local {
+                    directory = file("../${cacheDir.name}")
+                }
+            }
+        """
+        file("$firstDir.name/build.gradle") << """
+            plugins {
+                id 'precompiled-groovy-plugin'
+            }
+        """
+        pluginWithSampleTask(firstDir.file("src/main/groovy/"), "my-plugin.gradle")
+
+        def secondDir = createDir("second-location")
+        firstDir.copyTo(secondDir)
+
+        def cachedTasks = [
+            ":generateScriptPluginAdapters",
+            ":preCompileScriptPlugins",
+            ":compileJava"
+        ]
+
+        def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
+        cachedTasks.forEach {
+            result.assertTaskExecuted(it)
+        }
+
+        result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
+        cachedTasks.forEach {
+            result.assertOutputContains("$it UP-TO-DATE")
+        }
+
+        result = executer.inDirectory(secondDir).withTasks("classes").withArgument("--build-cache").run()
+        cachedTasks.forEach {
+            result.assertOutputContains("$it FROM-CACHE")
+        }
+    }
+
+    @ToBeFixedForInstantExecution
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
