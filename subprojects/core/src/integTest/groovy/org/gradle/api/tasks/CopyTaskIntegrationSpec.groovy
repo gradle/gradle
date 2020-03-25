@@ -345,6 +345,174 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         it.next().startsWith('16')
     }
 
+    def "can rename files using closure"() {
+        given:
+        file('files/a.txt').createFile()
+        file('files/dir/b.txt').createFile()
+        buildScript '''
+            task copy(type: Copy) {
+                into 'dest'
+                from 'files'
+                eachFile { fcd ->
+                    println("visiting ${fcd.path}")
+                    fcd.path = "sub/${fcd.path}"
+                }
+            }
+        '''
+
+        when:
+        run 'copy'
+
+        then:
+        output.count('visiting ') == 2
+        outputContains('visiting a.txt')
+        outputContains('visiting dir/b.txt')
+        file('dest').assertHasDescendants(
+            'sub/a.txt',
+            'sub/dir/b.txt'
+        )
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        output.count('visiting ') == 0
+        file('dest').assertHasDescendants(
+            'sub/a.txt',
+            'sub/dir/b.txt'
+        )
+
+        when:
+        file('files/c.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        output.count('visiting ') == 3
+        outputContains('visiting a.txt')
+        outputContains('visiting dir/b.txt')
+        outputContains('visiting c.txt')
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'sub/a.txt',
+            'sub/c.txt',
+            'sub/dir/b.txt'
+        )
+    }
+
+    def "can rename files that match a pattern using closure"() {
+        given:
+        file('files/a.txt').createFile()
+        file('files/dir/b.txt').createFile()
+        buildScript '''
+            task copy(type: Copy) {
+                into 'dest'
+                from 'files'
+                filesMatching('dir/**') { fcd ->
+                    println("visiting ${fcd.path}")
+                    fcd.path = "sub/${fcd.path}"
+                }
+            }
+        '''
+
+        when:
+        run 'copy'
+
+        then:
+        output.count('visiting ') == 1
+        outputContains('visiting dir/b.txt')
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'sub/dir/b.txt'
+        )
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        output.count('visiting ') == 0
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'sub/dir/b.txt'
+        )
+
+        when:
+        file('files/c.txt').createFile()
+        file('files/dir/d/e.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        output.count('visiting ') == 2
+        outputContains('visiting dir/b.txt')
+        outputContains('visiting dir/d/e.txt')
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'c.txt',
+            'sub/dir/b.txt',
+            'sub/dir/d/e.txt'
+        )
+    }
+
+    def "can rename files that do not match a pattern using closure"() {
+        given:
+        file('files/a.txt').createFile()
+        file('files/dir/b.txt').createFile()
+        buildScript '''
+            task copy(type: Copy) {
+                into 'dest'
+                from 'files'
+                filesNotMatching('*.txt') { fcd ->
+                    println("visiting ${fcd.path}")
+                    fcd.path = "sub/${fcd.path}"
+                }
+            }
+        '''
+
+        when:
+        run 'copy'
+
+        then:
+        output.count('visiting ') == 1
+        outputContains('visiting dir/b.txt')
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'sub/dir/b.txt'
+        )
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        output.count('visiting ') == 0
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'sub/dir/b.txt'
+        )
+
+        when:
+        file('files/c.txt').createFile()
+        file('files/dir/d/e.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        output.count('visiting ') == 2
+        outputContains('visiting dir/b.txt')
+        outputContains('visiting dir/d/e.txt')
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'c.txt',
+            'sub/dir/b.txt',
+            'sub/dir/d/e.txt'
+        )
+    }
+
     def "chained transformations"() {
         given:
         buildScript '''
@@ -809,7 +977,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         !file('dest', 'yet', 'another', 'veryEmptyDir').exists()
     }
 
-    def "copy exclude duplicates"() {
+    def "copy excludes duplicates"() {
         given:
         file('dir1', 'path', 'file.txt').createFile() << "f1"
         file('dir2', 'path', 'file.txt').createFile() << "f2"
@@ -1424,7 +1592,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     @Unroll
     def "task output caching is disabled when #description is used"() {
-        file("src.txt").createNewFile()
+        file("src.txt").createFile()
         buildFile << """
             task copy(type: Copy) {
                 outputs.cacheIf { true }
