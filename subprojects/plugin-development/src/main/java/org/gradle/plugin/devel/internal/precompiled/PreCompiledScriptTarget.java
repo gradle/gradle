@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.configuration;
+package org.gradle.plugin.devel.internal.precompiled;
 
 import groovy.lang.Script;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
+import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
-public class PreCompiledScriptTarget implements ScriptTarget {
+class PreCompiledScriptTarget implements ScriptTarget {
     @Override
     public String getId() {
         return "dsl";

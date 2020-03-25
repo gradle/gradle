@@ -109,7 +109,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     }
 
     private void compilePluginRequests(ClassLoader classLoader, PreCompiledScript scriptPlugin) {
-        ScriptTarget target = scriptPlugin.getTarget();
+        ScriptTarget target = scriptPlugin.getScriptTarget();
         CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(target);
         File pluginMetadataDir = new File(metadataDir.getAsFile().get(), scriptPlugin.getPluginMetadataDirPath());
         File pluginClassesDir = new File(classesDir.getAsFile().get(), scriptPlugin.getPluginClassesDirPath());
@@ -121,7 +121,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     }
 
     private void compileBuildScript(ClassLoader classLoader, PreCompiledScript scriptPlugin) {
-        ScriptTarget target = scriptPlugin.getTarget();
+        ScriptTarget target = scriptPlugin.getScriptTarget();
         CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(
             scriptPlugin.getSource(), target);
         File buildScriptMetadataDir = new File(metadataDir.getAsFile().get(), scriptPlugin.getBuildScriptMetadataDirPath());

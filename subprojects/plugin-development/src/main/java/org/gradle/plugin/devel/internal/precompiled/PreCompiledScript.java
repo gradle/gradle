@@ -17,7 +17,9 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import com.google.common.base.CaseFormat;
-import org.gradle.configuration.PreCompiledScriptTarget;
+import org.gradle.api.Project;
+import org.gradle.api.initialization.Settings;
+import org.gradle.api.invocation.Gradle;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
@@ -32,16 +34,49 @@ import java.util.Optional;
 
 class PreCompiledScript {
     public static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
+
     private static final String PLUGIN_PREFIX = "plugins";
     private static final String BUILDSCRIPT_PREFIX = "script";
 
     private final ScriptSource scriptSource;
+    private final Type type;
     private final PluginId pluginId;
+
+    private enum Type {
+        PROJECT(Project.class, ProjectPluginAdapter.class, SCRIPT_PLUGIN_EXTENSION),
+        SETTINGS(Settings.class, SettingsPluginAdapter.class, ".settings.gradle"),
+        INIT(Gradle.class, InitPluginAdapter.class, ".init.gradle");
+
+        private final Class<?> targetClass;
+        private final Class<?> adapterClass;
+        private final String fileExtension;
+
+        Type(Class<?> targetClass, Class<?> adapterClass, String fileExtension) {
+            this.targetClass = targetClass;
+            this.adapterClass = adapterClass;
+            this.fileExtension = fileExtension;
+        }
+
+        static Type getType(String fileName) {
+            if (fileName.endsWith(SETTINGS.fileExtension)) {
+                return SETTINGS;
+            }
+            if (fileName.endsWith(INIT.fileExtension)) {
+                return INIT;
+            }
+            return PROJECT;
+        }
+
+        PluginId toPluginId(String fileName) {
+            return DefaultPluginId.of(fileName.substring(0, fileName.indexOf(fileExtension)));
+        }
+    }
 
     PreCompiledScript(File scriptFile) {
         this.scriptSource = new TextResourceScriptSource(new UriTextResource("script", scriptFile));
-        // TODO should also detect package name and add it to the id
-        this.pluginId = DefaultPluginId.of(getFileNameWithoutExtension());
+        String fileName = new File(scriptSource.getFileName()).getName();
+        this.type = Type.getType(fileName);
+        this.pluginId = type.toPluginId(fileName);
     }
 
     String getId() {
@@ -92,11 +127,6 @@ class PreCompiledScript {
         return new PluginsBlockSourceWrapper(scriptSource);
     }
 
-    private String getFileNameWithoutExtension() {
-        String fileName = new File(scriptSource.getFileName()).getName();
-        return fileName.substring(0, fileName.indexOf(SCRIPT_PLUGIN_EXTENSION));
-    }
-
     private static String kebabCaseToPascalCase(String s) {
         return CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, s);
     }
@@ -116,9 +146,16 @@ class PreCompiledScript {
         return sb.toString();
     }
 
-    public ScriptTarget getTarget() {
-        // TODO: support settings and init script targets
+    public ScriptTarget getScriptTarget() {
         return new PreCompiledScriptTarget();
+    }
+
+    public Class<?> getTargetClass() {
+        return type.targetClass;
+    }
+
+    public Class<?> getAdapterClass() {
+        return type.adapterClass;
     }
 
     private static class PluginsBlockSourceWrapper implements ScriptSource {

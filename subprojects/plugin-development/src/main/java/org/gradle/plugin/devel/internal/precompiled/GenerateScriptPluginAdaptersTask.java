@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -24,7 +25,6 @@ import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.UncheckedException;
 
 import java.io.BufferedWriter;
 import java.io.File;
@@ -86,31 +86,29 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
     }
 
     private void generateScriptPluginAdapter(PreCompiledScript scriptPlugin, File baseClassesDir, File baseMetadataDir) {
+        String targetClass = scriptPlugin.getTargetClass().getName();
         File outputFile = generatedClassesDir.file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
             Optional<String> packageName = scriptPlugin.getGeneratedPluginPackage();
             if (packageName.isPresent()) {
                 writer.write("package " + packageName.get() + ";\n\n");
             }
-            writer.write("import org.gradle.api.Project;\n");
-            writer.write("import org.gradle.api.internal.project.ProjectInternal;\n");
-            writer.write("import org.gradle.plugin.devel.internal.precompiled.PreCompiledScriptRunner;\n");
-            writer.write("import java.io.File;\n");
+            writer.write("import " + targetClass + ";\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getScriptFile().getName() + " script plugin.\n");
             writer.write(" **/\n");
-            writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<org.gradle.api.Project> {\n");
-            writer.write("  public void apply(Project project) {\n");
-            writer.write("      new PreCompiledScriptRunner(\n");
-            writer.write("          (ProjectInternal)project,");
-            writer.write("         \"" + toEscapedPath(scriptPlugin.getScriptFile()) + "\",\n");
-            writer.write("         \"" + toEscapedPath(baseClassesDir) + "\",\n");
-            writer.write("         \"" + toEscapedPath(baseMetadataDir) + "\"\n");
-            writer.write("      ).run();\n");
+            writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
+            writer.write("  public void apply(" + targetClass + " target) {\n");
+            writer.write("      new " + scriptPlugin.getAdapterClass().getName() + "(\n");
+            writer.write("              target,\n");
+            writer.write("              \"" + toEscapedPath(scriptPlugin.getScriptFile()) + "\",\n");
+            writer.write("              \"" + toEscapedPath(baseClassesDir) + "\",\n");
+            writer.write("              \"" + toEscapedPath(baseMetadataDir) + "\"\n");
+            writer.write("          ).run();\n");
             writer.write("  }\n");
             writer.write("}\n");
         } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

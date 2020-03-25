@@ -23,6 +23,9 @@ import org.gradle.test.fixtures.file.TestFile
 class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String SAMPLE_TASK = "sampleTask"
+    private static final String REGISTER_SAMPLE_TASK = """
+            tasks.register("$SAMPLE_TASK") {}
+        """
 
     @ToBeFixedForInstantExecution
     def "adds plugin metadata to extension for all script plugins"() {
@@ -75,23 +78,13 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     @ToBeFixedForInstantExecution
     def "can share precompiled plugin via a jar"() {
         given:
-        def pluginDir = createDir("plugin/src/main/groovy/plugins")
-        pluginWithSampleTask(pluginDir, "foo.gradle")
-        file("plugin/build.gradle") << """
-            plugins {
-                id 'precompiled-groovy-plugin'
-            }
-        """
+        TestFile pluginJar = packagePrecompiledPlugin("foo.gradle")
 
         when:
-        executer.inDirectory(file("plugin")).withTasks("jar").run()
-            .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
-        file("plugin/build/libs/plugin.jar").assertExists()
-
         settingsFile << """
             buildscript {
                 dependencies {
-                    classpath(files("plugin/build/libs/plugin.jar"))
+                    classpath(files("$pluginJar"))
                 }
             }
         """
@@ -151,47 +144,49 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         succeeds(SAMPLE_TASK)
     }
 
-    /*def "can apply a precompiled settings plugin by id"() {
-        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
-        enablePrecompiledPluginsInBuildSrc()
-
-        pluginDir.file("my-settings-plugin.settings.gradle") << """
+    @ToBeFixedForInstantExecution
+    def "can apply a precompiled settings plugin by id"() {
+        given:
+        TestFile pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
             println("my-settings-plugin applied!")
-        """
+        """)
 
-
+        when:
         settingsFile << """
-        plugins {
-            id 'my-settings-plugin'
-        }
+            buildscript {
+                dependencies {
+                    classpath(files("$pluginJar"))
+                }
+            }
+            apply plugin: 'my-settings-plugin'
         """
 
-        expect:
+        then:
         succeeds("help")
-
-        and:
         outputContains("my-settings-plugin applied!")
     }
 
+    @ToBeFixedForInstantExecution
     def "can apply a precompiled init plugin"() {
-        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
-        enablePrecompiledPluginsInBuildSrc()
-
-        pluginDir.file("my-settings-plugin.init.gradle") << """
+        given:
+        TestFile pluginJar = packagePrecompiledPlugin("my-init-plugin.init.gradle", """
             println("my-init-plugin applied!")
-        """
+        """)
 
-
+        when:
         settingsFile << """
-        apply plugin: MyInitPluginPlugin
+            buildscript {
+                dependencies {
+                    classpath(files("$pluginJar"))
+                }
+            }
+            apply(plugin: MyInitPluginPlugin, to: gradle)
         """
 
-        expect:
+        then:
         succeeds("help")
-
-        and:
         outputContains("my-init-plugin applied!")
-    }*/
+    }
 
     @ToBeFixedForInstantExecution
     def "can use kebab-case in plugin id"() {
@@ -384,6 +379,20 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         succeeds(SAMPLE_TASK)
     }
 
+    private TestFile packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
+        def pluginDir = createDir("plugin/src/main/groovy/plugins")
+        pluginScript(pluginDir, pluginFile, pluginContent)
+        file("plugin/build.gradle") << """
+            plugins {
+                id 'precompiled-groovy-plugin'
+            }
+        """
+
+        executer.inDirectory(file("plugin")).withTasks("jar").run()
+            .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
+        return file("plugin/build/libs/plugin.jar").assertExists()
+    }
+
     private void enablePrecompiledPluginsInBuildSrc() {
         file("buildSrc/build.gradle") << """
             plugins {
@@ -393,8 +402,10 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     private static void pluginWithSampleTask(TestFile pluginDir, String pluginFile) {
-        pluginDir.file(pluginFile) << """
-            tasks.register("$SAMPLE_TASK") {}
-        """
+        pluginScript(pluginDir, pluginFile, REGISTER_SAMPLE_TASK)
+    }
+
+    private static void pluginScript(TestFile pluginDir, String pluginFile, String content) {
+        pluginDir.file(pluginFile) << content
     }
 }

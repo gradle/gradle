@@ -16,11 +16,9 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
-import org.gradle.api.Project;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.DefaultScriptTarget;
 import org.gradle.configuration.ScriptTarget;
@@ -39,10 +37,10 @@ import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import java.io.File;
 
-@SuppressWarnings("unused")
-public class PreCompiledScriptRunner {
 
-    private final Project project;
+class PreCompiledScriptRunner {
+
+    private final Object target;
     private final ServiceRegistry projectServices;
     private final File pluginsBlockDir;
     private final File pluginsMetadataDir;
@@ -63,12 +61,14 @@ public class PreCompiledScriptRunner {
 
     private final ScriptTarget scriptTarget;
 
-    public PreCompiledScriptRunner(ProjectInternal project,
-                                   String scriptFilePath,
-                                   String baseClassesDir,
-                                   String baseMetadataDir) {
-        this.project = project;
-        this.projectServices = project.getServices();
+    PreCompiledScriptRunner(Object target,
+                            ServiceRegistry projectServices,
+                            ClassLoaderScope classLoaderScope,
+                            String scriptFilePath,
+                            String baseClassesDir,
+                            String baseMetadataDir) {
+        this.target = target;
+        this.projectServices = projectServices;
 
         this.script = new PreCompiledScript(new File(scriptFilePath));
         this.pluginsBlockDir = new File(baseClassesDir, script.getPluginClassesDirPath());
@@ -83,12 +83,11 @@ public class PreCompiledScriptRunner {
         this.autoAppliedPluginHandler = projectServices.get(AutoAppliedPluginHandler.class);
         this.pluginRequestApplicator = projectServices.get(PluginRequestApplicator.class);
 
-        // TODO is this the right scope?
-        this.classLoaderScope = project.getClassLoaderScope().createChild("pre-compiled-script");
+        this.classLoaderScope = classLoaderScope;
         this.classLoaderScope.lock();
         this.classLoader = classLoaderScope.getExportClassLoader();
 
-        this.scriptTarget = new DefaultScriptTarget(project);
+        this.scriptTarget = new DefaultScriptTarget(target);
     }
 
     public void run() {
@@ -102,9 +101,9 @@ public class PreCompiledScriptRunner {
             script.getPluginsBlockSource(), script.getContentHash(), classLoaderScope, pluginsBlockDir, pluginsMetadataDir,
             pluginRequestsCompileOperation, scriptTarget.getScriptClass());
         ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, script.getPluginsBlockSource(), classLoader);
-        initialRunner.run(project, projectServices);
+        initialRunner.run(target, projectServices);
         PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
-        return autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, project);
+        return autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
     }
 
     private void applyPlugins(PluginRequests pluginRequests) {
@@ -118,9 +117,7 @@ public class PreCompiledScriptRunner {
             script.getSource(), script.getContentHash(), classLoaderScope, scriptClassesDir, scriptMetadataDir,
             buildScriptDataCompileOperation, scriptTarget.getScriptClass());
         ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, script.getSource(), classLoader);
-        if (runner.getRunDoesSomething()) {
-            runner.run(project, projectServices);
-        }
+        runner.run(target, projectServices);
     }
 
     private static PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {
@@ -132,4 +129,5 @@ public class PreCompiledScriptRunner {
         }
         return PluginRequests.EMPTY;
     }
+
 }
