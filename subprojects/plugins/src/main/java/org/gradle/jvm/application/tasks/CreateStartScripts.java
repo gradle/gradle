@@ -25,6 +25,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
+import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
@@ -247,8 +248,9 @@ public class CreateStartScripts extends ConventionTask {
     /**
      * The class path for the application.
      */
-    @Internal
     @Nullable
+    @Classpath
+    @Optional
     public FileCollection getClasspath() {
         return classpath;
     }

@@ -578,16 +578,12 @@ rootProject.name = 'sample'
         skipped(":startScripts")
     }
 
-    def "up-to-date if only the content change"() {
-        given:
-        succeeds("startScripts")
-
+    def "start script generation depends on jar creation"() {
         when:
-        generateMainClass """System.out.println("Goodbye World!");"""
-        succeeds("startScripts")
+        succeeds('startScripts')
 
         then:
-        skipped(":startScripts")
+        executed ":processResources", ":classes", ":jar"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4627")
