@@ -96,10 +96,11 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.patternSet = patternSet;
     }
 
-    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<CopySpecInternal> children) {
+    public DefaultCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, @Nullable String destPath, FileCollection source, PatternSet patternSet, Collection<? extends Action<? super FileCopyDetails>> copyActions, Collection<CopySpecInternal> children) {
         this(fileCollectionFactory, instantiator, patternSetFactory, patternSet);
         sourcePaths.from(source);
         destDir = destPath;
+        this.copyActions.addAll(copyActions);
         for (CopySpecInternal child : children) {
             addChildSpec(child);
         }
@@ -118,8 +119,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         return false;
     }
 
-    @VisibleForTesting
-    List<Action<? super FileCopyDetails>> getCopyActions() {
+    public List<Action<? super FileCopyDetails>> getCopyActions() {
         return copyActions;
     }
 

@@ -21,6 +21,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -73,9 +74,12 @@ public class Jar extends Zip {
                 manifestInternal.setContentCharset(manifestContentCharset);
                 manifestInternal.writeTo(outputStream);
             }));
-        getMainSpec().appendCachingSafeCopyAction(details -> {
-            if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
-                details.exclude();
+        getMainSpec().appendCachingSafeCopyAction(new Action<FileCopyDetails>() {
+            @Override
+            public void execute(FileCopyDetails details) {
+                if (details.getPath().equalsIgnoreCase("META-INF/MANIFEST.MF")) {
+                    details.exclude();
+                }
             }
         });
     }
