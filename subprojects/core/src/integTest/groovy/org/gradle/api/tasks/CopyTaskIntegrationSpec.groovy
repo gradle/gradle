@@ -33,9 +33,17 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
     def "single source with include and exclude"() {
         given:
+        file("files/sub/a.txt").createFile()
+        file("files/sub/dir/b.txt").createFile()
+        file("files/sub/ignore/ignore.txt").createFile()
+        file("files/dir/sub/dir/c.txt").createFile()
+        file("files/dir/sub/dir/ignore/dir/ignore.txt").createFile()
+        file("files/ignore/sub/ignore.txt").createFile()
+        file("files/ignore.txt").createFile()
+        file("files/other/ignore.txt").createFile()
         buildScript '''
             task (copy, type:Copy) {
-               from 'src'
+               from 'files'
                into 'dest'
                include '**/sub/**'
                exclude '**/ignore/**'
@@ -47,8 +55,34 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         file('dest').assertHasDescendants(
-            'one/sub/onesub.a',
-            'one/sub/onesub.b'
+            'sub/a.txt',
+            'sub/dir/b.txt',
+            'dir/sub/dir/c.txt'
+        )
+
+        when:
+        file("files/sub/ignore/ignore-2.txt").createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(":copy")
+        file('dest').assertHasDescendants(
+            'sub/a.txt',
+            'sub/dir/b.txt',
+            'dir/sub/dir/c.txt'
+        )
+
+        when:
+        file("files/sub/d.txt").createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(":copy")
+        file('dest').assertHasDescendants(
+            'sub/a.txt',
+            'sub/d.txt',
+            'sub/dir/b.txt',
+            'dir/sub/dir/c.txt'
         )
     }
 
@@ -317,6 +351,50 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         def it = file('dest/root.renamed_twice').readLines().iterator()
         it.next().equals('[prefix: line 1]')
         it.next().equals('[prefix: line 2]')
+    }
+
+    def "copy from location specified lazily using closure"() {
+        given:
+        file('files/a.txt').createFile()
+        file('files/dir/b.txt').createFile()
+
+        buildScript '''
+            def location = null
+
+            task copy(type: Copy) {
+                into 'dest'
+                from { file(location) }
+            }
+
+            location = 'files'
+        '''
+
+        when:
+        run'copy'
+
+        then:
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'dir/b.txt'
+        )
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+
+        when:
+        file('files/c.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'a.txt',
+            'dir/b.txt',
+            'c.txt'
+        )
     }
 
     def "copy from file tree"() {
