@@ -23,41 +23,15 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
+import org.gradle.instantexecution.extensions.hashCodeOf
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.InputFile
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.ValueSource
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
-import org.gradle.internal.hash.HashCode
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.kotlin.dsl.support.serviceOf
-import java.io.File
-
-
-internal
-sealed class InstantExecutionCacheFingerprint {
-
-    data class TaskInputs(
-        val taskPath: String,
-        val fileSystemInputs: FileCollectionInternal,
-        val fileSystemInputsFingerprint: CurrentFileCollectionFingerprint
-    ) : InstantExecutionCacheFingerprint()
-
-    data class InputFile(
-        val file: File,
-        val hash: HashCode?
-    ) : InstantExecutionCacheFingerprint()
-
-    data class ValueSource(
-        val obtainedValue: ObtainedValue
-    ) : InstantExecutionCacheFingerprint()
-}
-
-
-internal
-typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>
 
 
 internal
@@ -134,15 +108,8 @@ class InstantExecutionCacheFingerprintWriter(
     private
     fun fileCollectionFingerprinterFor(task: TaskInternal) =
         task.serviceOf<AbsolutePathFileCollectionFingerprinter>()
+
+    private
+    inline fun <reified T : Any> TaskInternal.serviceOf(): T =
+        project.serviceOf()
 }
-
-
-private
-inline fun <reified T : Any> TaskInternal.serviceOf(): T =
-    project.serviceOf()
-
-
-internal
-fun VirtualFileSystem.hashCodeOf(file: File): HashCode? =
-    readRegularFileContentHash(file.path) { hashCode -> hashCode }
-        .orElse(null)

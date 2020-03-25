@@ -20,6 +20,7 @@ import org.gradle.api.execution.internal.TaskInputsListeners
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.instantexecution.extensions.hashCodeOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
