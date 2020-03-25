@@ -23,22 +23,27 @@ import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
-import org.gradle.instantexecution.extensions.hashCodeOf
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.InputFile
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.ValueSource
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.support.serviceOf
+import java.io.File
 
 
 internal
 class InstantExecutionCacheFingerprintWriter(
-    private val virtualFileSystem: VirtualFileSystem,
+    private val host: Host,
     private val writeContext: DefaultWriteContext
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener {
+
+    interface Host {
+
+        fun hashCodeOf(file: File): HashCode?
+    }
 
     /**
      * Finishes writing to the given [writeContext] and closes it.
@@ -60,7 +65,7 @@ class InstantExecutionCacheFingerprintWriter(
                     write(
                         InputFile(
                             file,
-                            virtualFileSystem.hashCodeOf(file)
+                            host.hashCodeOf(file)
                         )
                     )
                 }

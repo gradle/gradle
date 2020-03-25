@@ -51,7 +51,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
         val outputStream = ByteArrayOutputStream()
         InstantExecutionCacheFingerprintWriter(
-            virtualFileSystem,
+            FingerprintComponentsHost(),
             writeContextForOutputStream(outputStream)
         ).also { writer ->
             fingerprintWriter = writer
@@ -88,10 +88,11 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     fun fingerprintChecker() =
-        InstantExecutionFingerprintChecker(InstantExecutionFingerprintCheckerHost())
+        InstantExecutionFingerprintChecker(FingerprintComponentsHost())
 
     private
-    inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
+    inner class FingerprintComponentsHost
+        : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionFingerprintChecker.Host {
 
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)
