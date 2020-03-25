@@ -392,6 +392,50 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    def "can write tests for precompiled script plugins"() {
+        when:
+        def pluginDir = createDir("src/main/groovy/")
+        pluginWithSampleTask(pluginDir, "test-plugin.gradle")
+
+        file("src/test/groovy/Test.groovy") << """
+            import org.gradle.testfixtures.ProjectBuilder
+            import org.gradle.api.Project
+            import spock.lang.Specification
+
+            class Test extends Specification {
+                def "plugin registers sample task"() {
+                    given:
+                    def project = ProjectBuilder.builder().build()
+
+                    when:
+                    project.plugins.apply("test-plugin")
+
+                    then:
+                    project.tasks.findByName("$SAMPLE_TASK") != null
+                }
+            }
+        """
+
+        settingsFile << """
+            rootProject.name = 'test'
+        """
+
+        buildFile << """
+            plugins {
+                id 'precompiled-groovy-plugin'
+            }
+            repositories { mavenCentral() }
+            dependencies {
+                testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
+            }
+        """
+
+        then:
+        succeeds 'build'
+        executedAndNotSkipped ':test'
+    }
+
+    @ToBeFixedForInstantExecution
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
