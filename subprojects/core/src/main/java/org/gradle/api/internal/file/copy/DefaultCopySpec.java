@@ -405,7 +405,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec filter(final Class<? extends FilterReader> filterType) {
-        appendCopyAction(fileCopyDetails -> fileCopyDetails.filter(filterType));
+        appendCopyAction(new TypeBackedFilterAction(filterType));
         return this;
     }
 
@@ -416,19 +416,19 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec filter(final Transformer<String, String> transformer) {
-        appendCopyAction(fileCopyDetails -> fileCopyDetails.filter(transformer));
+        appendCopyAction(new TransformerBackedFilterAction(transformer));
         return this;
     }
 
     @Override
     public CopySpec filter(final Map<String, ?> properties, final Class<? extends FilterReader> filterType) {
-        appendCopyAction(fileCopyDetails -> fileCopyDetails.filter(properties, filterType));
+        appendCopyAction(new MapTypeBackedFilterAction(properties, filterType));
         return this;
     }
 
     @Override
     public CopySpec expand(final Map<String, ?> properties) {
-        appendCopyAction(fileCopyDetails -> fileCopyDetails.expand(properties));
+        appendCopyAction(new MapBackedExpandAction(properties));
         return this;
     }
 
@@ -439,9 +439,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
     @Override
     public CopySpec rename(Transformer<String, String> renamer) {
-        ChainingTransformer<String> transformer = new ChainingTransformer<>(String.class);
-        transformer.add(renamer);
-        appendCopyAction(new RenamingCopyAction(transformer));
+        appendCopyAction(new RenamingCopyAction(renamer));
         return this;
     }
 
@@ -525,6 +523,60 @@ public class DefaultCopySpec implements CopySpecInternal {
             throw new InvalidUserDataException(String.format("filteringCharset %s is not supported by your JVM", charset));
         }
         this.filteringCharset = charset;
+    }
+
+    private static class MapBackedExpandAction implements Action<FileCopyDetails> {
+        private final Map<String, ?> properties;
+
+        public MapBackedExpandAction(Map<String, ?> properties) {
+            this.properties = properties;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.expand(properties);
+        }
+    }
+
+    private static class TypeBackedFilterAction implements Action<FileCopyDetails> {
+        private final Class<? extends FilterReader> filterType;
+
+        public TypeBackedFilterAction(Class<? extends FilterReader> filterType) {
+            this.filterType = filterType;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.filter(filterType);
+        }
+    }
+
+    private static class TransformerBackedFilterAction implements Action<FileCopyDetails> {
+        private final Transformer<String, String> transformer;
+
+        public TransformerBackedFilterAction(Transformer<String, String> transformer) {
+            this.transformer = transformer;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.filter(transformer);
+        }
+    }
+
+    private static class MapTypeBackedFilterAction implements Action<FileCopyDetails> {
+        private final Map<String, ?> properties;
+        private final Class<? extends FilterReader> filterType;
+
+        public MapTypeBackedFilterAction(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
+            this.properties = properties;
+            this.filterType = filterType;
+        }
+
+        @Override
+        public void execute(FileCopyDetails fileCopyDetails) {
+            fileCopyDetails.filter(properties, filterType);
+        }
     }
 
     public class DefaultCopySpecResolver implements CopySpecResolver {

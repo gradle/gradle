@@ -17,7 +17,6 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
@@ -108,7 +107,6 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*PROCESS")
     def "can create and use a work action defined in an external jar in #isolationMode"() {
         def workActionJarName = "workAction.jar"
         withWorkActionClassInExternalJar(file(workActionJarName))
