@@ -87,8 +87,10 @@ public class DefaultExceptionAnalyser implements ExceptionCollector, ScriptExecu
 
         if (source == null) {
             for (
-                    Throwable currentException = actualException; currentException != null;
-                    currentException = currentException.getCause()) {
+                Throwable currentException = actualException;
+                currentException != null;
+                currentException = currentException.getCause()
+            ) {
                 for (StackTraceElement element : currentException.getStackTrace()) {
                     if (element.getLineNumber() >= 0 && scripts.containsKey(element.getFileName())) {
                         source = scripts.get(element.getFileName());

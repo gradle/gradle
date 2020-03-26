@@ -57,6 +57,10 @@ Users of the Groovy DSL should not be impacted as the notation `lockMode = LockM
 Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
 Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
 
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.71[Kotlin 1.3.71].
+
 === Deprecations
 
 There were no deprecations between Gradle 6.3 and 6.4.

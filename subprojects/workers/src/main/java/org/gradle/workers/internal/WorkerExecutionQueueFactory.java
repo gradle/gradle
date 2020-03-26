@@ -22,7 +22,9 @@ import org.gradle.internal.work.ConditionalExecutionQueue;
 import org.gradle.internal.work.ConditionalExecutionQueueFactory;
 
 import javax.annotation.Nullable;
+import javax.annotation.concurrent.ThreadSafe;
 
+@ThreadSafe
 public class WorkerExecutionQueueFactory implements Factory<ConditionalExecutionQueue<DefaultWorkResult>>, Stoppable {
     public static final String QUEUE_DISPLAY_NAME = "WorkerExecutor Queue";
     private final ConditionalExecutionQueueFactory conditionalExecutionQueueFactory;
@@ -34,7 +36,7 @@ public class WorkerExecutionQueueFactory implements Factory<ConditionalExecution
 
     @Nullable
     @Override
-    public ConditionalExecutionQueue<DefaultWorkResult> create() {
+    public synchronized ConditionalExecutionQueue<DefaultWorkResult> create() {
         if (queue == null) {
             queue = conditionalExecutionQueueFactory.create(QUEUE_DISPLAY_NAME, DefaultWorkResult.class);
         }
@@ -42,7 +44,7 @@ public class WorkerExecutionQueueFactory implements Factory<ConditionalExecution
     }
 
     @Override
-    public void stop() {
+    public synchronized void stop() {
         if (queue != null) {
             queue.stop();
         }

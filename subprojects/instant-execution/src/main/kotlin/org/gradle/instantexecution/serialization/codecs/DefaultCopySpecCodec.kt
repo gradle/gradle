@@ -16,8 +16,10 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.Action
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
@@ -54,6 +56,7 @@ class DefaultCopySpecCodec(
             writeString(value.filteringCharset)
             writeNullableSmallInt(value.dirMode)
             writeNullableSmallInt(value.fileMode)
+            writeCollection(value.copyActions)
             writeCollection(value.children)
         }
     }
@@ -69,8 +72,9 @@ class DefaultCopySpecCodec(
             val filteringCharset = readString()
             val dirMode = readNullableSmallInt()
             val fileMode = readNullableSmallInt()
+            val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
-            val copySpec = DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, children)
+            val copySpec = DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
             copySpec.duplicatesStrategy = duplicatesStrategy
             copySpec.includeEmptyDirs = includeEmptyDirs
             copySpec.isCaseSensitive = isCaseSensitive
