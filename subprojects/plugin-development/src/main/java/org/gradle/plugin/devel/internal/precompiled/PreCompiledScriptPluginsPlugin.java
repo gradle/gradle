@@ -28,7 +28,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
-import java.util.Set;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.gradle.plugin.devel.internal.precompiled.PreCompiledScript.SCRIPT_PLUGIN_EXTENSION;
@@ -44,7 +44,7 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         project.afterEvaluate(p -> exposeScriptsAsPlugins(pluginExtension, project.getTasks(), project.getLayout()));
     }
 
-    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, Set<PreCompiledScript> scriptPlugins) {
+    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PreCompiledScript> scriptPlugins) {
         pluginExtension.plugins(pluginDeclarations -> {
             for (PreCompiledScript scriptPlugin : scriptPlugins) {
                 pluginDeclarations.create(scriptPlugin.getId(), pluginDeclaration -> {
@@ -62,9 +62,9 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
             return;
         }
 
-        Set<PreCompiledScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
+        List<PreCompiledScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
             .map(PreCompiledScript::new)
-            .collect(Collectors.toSet());
+            .collect(Collectors.toList());
 
         declarePluginMetadata(pluginExtension, scriptPlugins);
 
@@ -83,8 +83,8 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         Provider<Directory> generatedClassesDir = buildLayout.getBuildDirectory().dir("generated-classes/groovy-dsl-plugins/java");
         TaskProvider<GenerateScriptPluginAdaptersTask> generateAdaptersTask = tasks.register("generateScriptPluginAdapters", GenerateScriptPluginAdaptersTask.class, task -> {
             task.getScriptPlugins().addAll(scriptPlugins);
-            task.getMetadataDir().set(baseMetadataDir);
             task.getClassesDir().set(baseClassesDir);
+            task.getMetadataDir().set(baseMetadataDir);
             task.getGeneratedClassesDir().set(generatedClassesDir);
         });
 

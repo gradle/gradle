@@ -32,22 +32,20 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @CacheableTask
 class GenerateScriptPluginAdaptersTask extends DefaultTask {
-    private final Set<PreCompiledScript> scriptPlugins = new HashSet<>();
-    private final DirectoryProperty generatedClassesDir;
-    private final DirectoryProperty metadataDir;
-    private final DirectoryProperty classesDir;
+    private final List<PreCompiledScript> scriptPlugins = new ArrayList<>();
+    private final DirectoryProperty generatedClassesDir = getProject().getObjects().directoryProperty();
+    private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
+    private final DirectoryProperty classesDir = getProject().getObjects().directoryProperty();
 
     public GenerateScriptPluginAdaptersTask() {
-        this.generatedClassesDir = getProject().getObjects().directoryProperty();
-        this.metadataDir = getProject().getObjects().directoryProperty();
-        this.classesDir = getProject().getObjects().directoryProperty();
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -62,7 +60,7 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
     }
 
     @Internal
-    Set<PreCompiledScript> getScriptPlugins() {
+    List<PreCompiledScript> getScriptPlugins() {
         return scriptPlugins;
     }
 

@@ -40,7 +40,8 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -51,7 +52,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry;
     private final CompileOperationFactory compileOperationFactory;
 
-    private final Set<PreCompiledScript> scriptPlugins = new HashSet<>();
+    private final List<PreCompiledScript> scriptPlugins = new ArrayList<>();
     private final DirectoryProperty classesDir = getProject().getObjects().directoryProperty();
     private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
 
@@ -67,7 +68,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     }
 
     @Internal
-    Set<PreCompiledScript> getScriptPlugins() {
+    List<PreCompiledScript> getScriptPlugins() {
         return scriptPlugins;
     }
 
