@@ -58,11 +58,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.lang.reflect.Field;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.CodeSource;
 import java.util.List;
@@ -207,18 +208,32 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                                                                   File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
         File metadataFile = new File(metadataCacheDir, METADATA_FILE_NAME);
         try {
-            try (KryoBackedDecoder decoder = new KryoBackedDecoder(new FileInputStream(metadataFile))) {
-                byte flags = decoder.readByte();
-                boolean isEmpty = (flags & EMPTY_FLAG) != 0;
-                boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
-                M data;
-                if (transformer != null && transformer.getDataSerializer() != null) {
-                    data = transformer.getDataSerializer().read(decoder);
-                } else {
-                    data = null;
-                }
-                return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, scriptCacheDir, targetScope, source, sourceHashCode, data);
+            return load(source, sourceHashCode, targetScope, scriptCacheDir, new FileInputStream(metadataFile), transformer, scriptBaseClass);
+        } catch (FileNotFoundException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    @Override
+    public <T extends Script, M> CompiledScript<T, M> loadFromClasspath(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File jarFile,
+                                                                        String metadataCacheDirPath, CompileOperation<M> transformer, Class<T> scriptBaseClass, Class<?> scriptClass) {
+        InputStream metadataStream = scriptClass.getResourceAsStream(metadataCacheDirPath + "/" + METADATA_FILE_NAME);
+        return load(source, sourceHashCode, targetScope, jarFile, metadataStream, transformer, scriptBaseClass);
+    }
+
+    private <T extends Script, M> CompiledScript<T, M> load(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File jarFile,
+                                                            InputStream metadataStream, CompileOperation<M> transformer, Class<T> scriptBaseClass) {
+        try (KryoBackedDecoder decoder = new KryoBackedDecoder(metadataStream)) {
+            byte flags = decoder.readByte();
+            boolean isEmpty = (flags & EMPTY_FLAG) != 0;
+            boolean hasMethods = (flags & HAS_METHODS_FLAG) != 0;
+            M data;
+            if (transformer != null && transformer.getDataSerializer() != null) {
+                data = transformer.getDataSerializer().read(decoder);
+            } else {
+                data = null;
             }
+            return new ClassesDirCompiledScript<>(isEmpty, hasMethods, scriptBaseClass, jarFile, targetScope, source, sourceHashCode, data);
         } catch (Exception e) {
             throw new IllegalStateException(String.format("Failed to deserialize script metadata extracted for %s", source.getDisplayName()), e);
         }
@@ -268,7 +283,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     private static class NoOpGroovyResourceLoader implements GroovyResourceLoader {
         @Override
-        public URL loadGroovySource(String filename) throws MalformedURLException {
+        public URL loadGroovySource(String filename) {
             return null;
         }
     }

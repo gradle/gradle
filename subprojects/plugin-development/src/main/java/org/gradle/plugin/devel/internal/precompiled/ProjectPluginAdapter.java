@@ -21,11 +21,12 @@ import org.gradle.api.internal.project.ProjectInternal;
 
 public class ProjectPluginAdapter extends PreCompiledScriptRunner {
 
-    public ProjectPluginAdapter(Project project, String scriptFilePath, String baseClassesDir, String baseMetadataDir) {
+    public ProjectPluginAdapter(Project project, Class<?> precompiledScriptClass, String hashCode) {
         super(project,
             ((ProjectInternal) project).getServices(),
             ((ProjectInternal) project).getClassLoaderScope(),
-            scriptFilePath, baseClassesDir, baseMetadataDir);
+            precompiledScriptClass,
+            hashCode);
     }
 
 }

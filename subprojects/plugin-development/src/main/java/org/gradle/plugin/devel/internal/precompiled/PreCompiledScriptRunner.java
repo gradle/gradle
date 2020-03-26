@@ -24,11 +24,16 @@ import org.gradle.configuration.DefaultScriptTarget;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptRunner;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.resource.StringTextResource;
+import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
@@ -36,16 +41,13 @@ import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import java.io.File;
+import java.net.URISyntaxException;
 
 
 class PreCompiledScriptRunner {
 
     private final Object target;
     private final ServiceRegistry serviceRegistry;
-    private final File pluginsBlockDir;
-    private final File pluginsMetadataDir;
-    private final File scriptClassesDir;
-    private final File scriptMetadataDir;
 
     private final CompileOperationFactory compileOperationFactory;
     private final ScriptCompilationHandler scriptCompilationHandler;
@@ -54,27 +56,25 @@ class PreCompiledScriptRunner {
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
 
-    private final PreCompiledScript script;
+    private final ScriptSource scriptSource;
+    private final ScriptSource pluginsBlockSource;
 
     private final ClassLoaderScope classLoaderScope;
     private final ClassLoader classLoader;
 
     private final ScriptTarget scriptTarget;
 
+    private final File jarFile;
+    private final Class<?> scriptClass;
+    private final HashCode hashCode;
+
     PreCompiledScriptRunner(Object target,
                             ServiceRegistry serviceRegistry,
                             ClassLoaderScope classLoaderScope,
-                            String scriptFilePath,
-                            String baseClassesDir,
-                            String baseMetadataDir) {
+                            Class<?> precompiledScriptClass,
+                            String hashCode) {
         this.target = target;
         this.serviceRegistry = serviceRegistry;
-
-        this.script = new PreCompiledScript(new File(scriptFilePath));
-        this.pluginsBlockDir = new File(baseClassesDir, script.getPluginClassesDirPath());
-        this.pluginsMetadataDir = new File(baseMetadataDir, script.getPluginMetadataDirPath());
-        this.scriptClassesDir = new File(baseClassesDir, script.getBuildScriptClassesDirPath());
-        this.scriptMetadataDir = new File(baseMetadataDir, script.getBuildScriptMetadataDirPath());
 
         this.compileOperationFactory = serviceRegistry.get(CompileOperationFactory.class);
         this.scriptCompilationHandler = serviceRegistry.get(ScriptCompilationHandler.class);
@@ -88,6 +88,39 @@ class PreCompiledScriptRunner {
         this.classLoader = classLoaderScope.getExportClassLoader();
 
         this.scriptTarget = new DefaultScriptTarget(target);
+
+        this.scriptClass = precompiledScriptClass;
+        try {
+            this.jarFile = new File(scriptClass.getProtectionDomain().getCodeSource().getLocation().toURI());
+        } catch (URISyntaxException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
+
+        this.hashCode = HashCode.fromString(hashCode);
+
+        this.scriptSource = new ScriptSource() {
+            @Override
+            public String getClassName() {
+                return scriptClass.getSimpleName();
+            }
+
+            @Override
+            public TextResource getResource() {
+                return new StringTextResource(scriptClass.getSimpleName(), "");
+            }
+
+            @Override
+            public String getFileName() {
+                return null;
+            }
+
+            @Override
+            public String getDisplayName() {
+                return scriptClass.getSimpleName();
+            }
+        };
+
+        this.pluginsBlockSource = new PluginsBlockSourceWrapper(scriptSource);
     }
 
     public void run() {
@@ -97,26 +130,26 @@ class PreCompiledScriptRunner {
 
     private PluginRequests extractPlugins() {
         CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(scriptTarget);
-        CompiledScript<? extends BasicScript, ?> compiledPluginRequests = scriptCompilationHandler.loadFromDir(
-            script.getPluginsBlockSource(), script.getContentHash(), classLoaderScope, pluginsBlockDir, pluginsMetadataDir,
-            pluginRequestsCompileOperation, scriptTarget.getScriptClass());
-        ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, script.getPluginsBlockSource(), classLoader);
+        CompiledScript<? extends BasicScript, ?> compiledPluginRequests = scriptCompilationHandler.loadFromClasspath(
+            pluginsBlockSource, hashCode, classLoaderScope, jarFile, pluginsBlockSource.getClassName(),
+            pluginRequestsCompileOperation, scriptTarget.getScriptClass(), scriptClass);
+        ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, pluginsBlockSource, classLoader);
         initialRunner.run(target, serviceRegistry);
         PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
         return autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
     }
 
     private void applyPlugins(PluginRequests pluginRequests) {
-        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(script.getPluginsBlockSource(), classLoaderScope);
+        ScriptHandlerInternal scriptHandler = scriptHandlerFactory.create(pluginsBlockSource, classLoaderScope);
         pluginRequestApplicator.applyPlugins(pluginRequests, scriptHandler, scriptTarget.getPluginManager(), classLoaderScope);
     }
 
     private void executeScript() {
-        CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(script.getSource(), scriptTarget);
-        CompiledScript<? extends BasicScript, BuildScriptData> compiledScript = scriptCompilationHandler.loadFromDir(
-            script.getSource(), script.getContentHash(), classLoaderScope, scriptClassesDir, scriptMetadataDir,
-            buildScriptDataCompileOperation, scriptTarget.getScriptClass());
-        ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, script.getSource(), classLoader);
+        CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(scriptSource, scriptTarget);
+        CompiledScript<? extends BasicScript, BuildScriptData> compiledScript = scriptCompilationHandler.loadFromClasspath(
+            scriptSource, hashCode, classLoaderScope, jarFile, scriptSource.getClassName(),
+            buildScriptDataCompileOperation, scriptTarget.getScriptClass(), scriptClass);
+        ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, scriptSource, classLoader);
         runner.run(target, serviceRegistry);
     }
 

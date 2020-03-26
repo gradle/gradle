@@ -24,7 +24,6 @@ import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
@@ -33,9 +32,6 @@ import java.io.File;
 
 class PreCompiledScript {
     public static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
-
-    private static final String PLUGIN_PREFIX = "plugins";
-    private static final String BUILDSCRIPT_PREFIX = "script";
 
     private final ScriptSource scriptSource;
     private final Type type;
@@ -73,7 +69,7 @@ class PreCompiledScript {
 
     PreCompiledScript(File scriptFile) {
         this.scriptSource = new TextResourceScriptSource(new UriTextResource("script", scriptFile));
-        String fileName = new File(scriptSource.getFileName()).getName();
+        String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
     }
@@ -86,28 +82,16 @@ class PreCompiledScript {
         return toJavaIdentifier(kebabCaseToPascalCase(pluginId.getName())) + "Plugin";
     }
 
-    String getPluginMetadataDirPath() {
-        return getClassName() + "/" + PLUGIN_PREFIX + "-metadata";
-    }
-
-    String getBuildScriptMetadataDirPath() {
-        return getClassName() + "/" + BUILDSCRIPT_PREFIX + "-metadata";
-    }
-
-    String getPluginClassesDirPath() {
-        return getClassName() + "/" + PLUGIN_PREFIX + "-classes";
-    }
-
-    String getBuildScriptClassesDirPath() {
-        return getClassName() + "/" + BUILDSCRIPT_PREFIX + "-classes";
-    }
-
     File getScriptFile() {
         return new File(scriptSource.getFileName());
     }
 
     String getClassName() {
         return scriptSource.getClassName();
+    }
+
+    String getPluginsBlockClassName() {
+        return getPluginsBlockSource().getClassName();
     }
 
     HashCode getContentHash() {
@@ -153,31 +137,4 @@ class PreCompiledScript {
         return type.adapterClass;
     }
 
-    private static class PluginsBlockSourceWrapper implements ScriptSource {
-        private final ScriptSource delegate;
-
-        public PluginsBlockSourceWrapper(ScriptSource scriptSource) {
-            this.delegate = scriptSource;
-        }
-
-        @Override
-        public String getClassName() {
-            return "plugins_" + delegate.getClassName();
-        }
-
-        @Override
-        public TextResource getResource() {
-            return delegate.getResource();
-        }
-
-        @Override
-        public String getFileName() {
-            return delegate.getFileName();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return delegate.getDisplayName();
-        }
-    }
 }

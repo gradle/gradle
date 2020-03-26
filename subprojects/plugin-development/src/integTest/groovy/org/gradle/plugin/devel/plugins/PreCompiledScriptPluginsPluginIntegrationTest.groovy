@@ -100,6 +100,38 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    def "can share multiple precompiled plugins via a jar"() {
+        given:
+        def pluginsJar = packagePrecompiledPlugins([
+            "foo.gradle": 'tasks.register("firstPluginTask") {}',
+            "bar.gradle": 'tasks.register("secondPluginTask") {}',
+            "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
+        ])
+
+        when:
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath(files("$pluginsJar"))
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo'
+                id 'bar'
+                id 'fizz.buzz.foo-bar'
+            }
+        """
+
+        then:
+        succeeds("firstPluginTask")
+        succeeds("secondPluginTask")
+        succeeds("thirdPluginTask")
+    }
+
+    @ToBeFixedForInstantExecution
     def "can share precompiled plugin by publishing it"() {
         given:
         def pluginDir = createDir("plugin/src/main/groovy/plugins")
@@ -123,6 +155,7 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         when:
         executer.inDirectory(file("plugin")).withTasks("publish").run()
         mavenRepo.module('com.example', 'plugin', '1.0').assertPublished()
+        file('plugin').forceDeleteDir()
 
         settingsFile << """
             pluginManagement {
@@ -499,19 +532,28 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     private String packagePrecompiledPlugin(String pluginFile, String pluginContent = REGISTER_SAMPLE_TASK) {
-        def pluginDir = createDir("plugin/src/main/groovy/plugins")
-        pluginScript(pluginDir, pluginFile, pluginContent)
-        file("plugin/build.gradle") << """
+        Map<String, String> plugins = [:]
+        plugins.putAt(pluginFile, pluginContent)
+        return packagePrecompiledPlugins(plugins)
+    }
+
+    private String packagePrecompiledPlugins(Map<String, String> pluginToContent) {
+        def pluginDir = createDir("plugins/src/main/groovy/plugins")
+        pluginToContent.each { pluginFile, pluginContent ->
+            pluginScript(pluginDir, pluginFile, pluginContent)
+        }
+        file("plugins/build.gradle") << """
             plugins {
                 id 'precompiled-groovy-plugin'
             }
         """
 
-        executer.inDirectory(file("plugin")).withTasks("jar").run()
+        executer.inDirectory(file("plugins")).withTasks("jar").run()
             .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
-        def pluginJar = file("plugin/build/libs/plugin.jar").assertExists()
-        def movedJar = file('plugin.jar')
+        def pluginJar = file("plugins/build/libs/plugins.jar").assertExists()
+        def movedJar = file('plugins.jar')
         pluginJar.renameTo(movedJar)
+        file('plugins').forceDeleteDir()
         return movedJar.name
     }
 

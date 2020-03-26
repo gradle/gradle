@@ -21,11 +21,12 @@ import org.gradle.api.internal.SettingsInternal;
 
 public class SettingsPluginAdapter extends PreCompiledScriptRunner {
 
-    public SettingsPluginAdapter(Settings settings, String scriptFilePath, String baseClassesDir, String baseMetadataDir) {
+    public SettingsPluginAdapter(Settings settings, Class<?> precompiledScriptClass, String hashCode) {
         super(settings,
             ((SettingsInternal) settings).getGradle().getServices(),
             ((SettingsInternal) settings).getClassLoaderScope(),
-            scriptFilePath, baseClassesDir, baseMetadataDir);
+            precompiledScriptClass,
+            hashCode);
     }
 
 }

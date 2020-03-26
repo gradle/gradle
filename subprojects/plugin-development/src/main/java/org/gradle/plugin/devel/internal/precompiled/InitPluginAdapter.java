@@ -21,11 +21,12 @@ import org.gradle.api.invocation.Gradle;
 
 public class InitPluginAdapter extends PreCompiledScriptRunner {
 
-    public InitPluginAdapter(Gradle gradle, String scriptFilePath, String baseClassesDir, String baseMetadataDir) {
+    public InitPluginAdapter(Gradle gradle, Class<?> precompiledScriptClass, String hashCode) {
         super(gradle,
             ((GradleInternal) gradle).getServices(),
             ((GradleInternal) gradle).getClassLoaderScope().createChild("init-plugin"),
-            scriptFilePath, baseClassesDir, baseMetadataDir);
+            precompiledScriptClass,
+            hashCode);
     }
 
 }

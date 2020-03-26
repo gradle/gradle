@@ -20,9 +20,9 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
@@ -41,7 +41,7 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
 
         GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
 
-        project.afterEvaluate(p -> exposeScriptsAsPlugins(pluginExtension, project.getTasks(), project.getLayout()));
+        project.afterEvaluate(p -> exposeScriptsAsPlugins(pluginExtension, project.getTasks()));
     }
 
     private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PreCompiledScript> scriptPlugins) {
@@ -55,8 +55,9 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         });
     }
 
-    private void exposeScriptsAsPlugins(GradlePluginDevelopmentExtension pluginExtension, TaskContainer tasks, ProjectLayout buildLayout) {
-        FileTree scriptPluginFiles = pluginExtension.getPluginSourceSet().getAllSource()
+    private void exposeScriptsAsPlugins(GradlePluginDevelopmentExtension pluginExtension, TaskContainer tasks) {
+        SourceSet pluginSourceSet = pluginExtension.getPluginSourceSet();
+        FileTree scriptPluginFiles = pluginSourceSet.getAllSource()
             .matching(patternFilterable -> patternFilterable.include("**/*" + SCRIPT_PLUGIN_EXTENSION));
         if (scriptPluginFiles.isEmpty()) {
             return;
@@ -68,21 +69,16 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
 
         declarePluginMetadata(pluginExtension, scriptPlugins);
 
-        Provider<Directory> baseMetadataDir = buildLayout.getBuildDirectory().dir("groovy-dsl/compiled-scripts/groovy-metadata");
-        Provider<Directory> baseClassesDir = buildLayout.getBuildDirectory().dir("groovy-dsl/compiled-scripts/groovy");
-
         TaskProvider<PreCompileGroovyScriptsTask> preCompileTask = tasks.register(
-            "preCompileScriptPlugins", PreCompileGroovyScriptsTask.class,
-            scriptPlugins, baseClassesDir, baseMetadataDir);
+            "preCompileScriptPlugins", PreCompileGroovyScriptsTask.class, scriptPlugins);
 
-        pluginExtension.getPluginSourceSet().getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getClassOutputDir));
-        pluginExtension.getPluginSourceSet().getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getMetadataDir));
+        Provider<Directory> metadataOutputDir = preCompileTask.flatMap(PreCompileGroovyScriptsTask::getMetadataDir);
+        pluginSourceSet.getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getClassOutputDir));
 
-        Provider<Directory> generatedClassesDir = buildLayout.getBuildDirectory().dir("generated-classes/groovy-dsl-plugins/java");
         TaskProvider<GenerateScriptPluginAdaptersTask> generateAdaptersTask = tasks.register(
             "generateScriptPluginAdapters", GenerateScriptPluginAdaptersTask.class,
-            scriptPlugins, baseClassesDir, baseMetadataDir, generatedClassesDir);
+            scriptPlugins, preCompileTask.flatMap(PreCompileGroovyScriptsTask::getBaseClassOutputDir), metadataOutputDir);
 
-        pluginExtension.getPluginSourceSet().getJava().srcDir(generateAdaptersTask.flatMap(GenerateScriptPluginAdaptersTask::getGeneratedClassesDir));
+        pluginSourceSet.getJava().srcDir(generateAdaptersTask.flatMap(GenerateScriptPluginAdaptersTask::getGeneratedClassesDir));
     }
 }

@@ -48,12 +48,11 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
     @Inject
     public GenerateScriptPluginAdaptersTask(List<PreCompiledScript> scriptPlugins,
                                             Provider<Directory> classesDir,
-                                            Provider<Directory> metadataDir,
-                                            Provider<Directory> generatedClassesDir) {
+                                            Provider<Directory> metadataDir) {
         this.scriptPlugins = scriptPlugins;
         this.classesDir.set(classesDir);
         this.metadataDir.set(metadataDir);
-        this.generatedClassesDir.set(generatedClassesDir);
+        this.generatedClassesDir.set(getProject().getLayout().getBuildDirectory().dir("generated-classes/groovy-dsl-plugins/java"));
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -87,12 +86,14 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
             writer.write(" **/\n");
             writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
             writer.write("  public void apply(" + targetClass + " target) {\n");
-            writer.write("      new " + scriptPlugin.getAdapterClass().getName() + "(\n");
-            writer.write("              target,\n");
-            writer.write("              \"" + toEscapedPath(scriptPlugin.getScriptFile()) + "\",\n");
-            writer.write("              \"" + toEscapedPath(baseClassesDir) + "\",\n");
-            writer.write("              \"" + toEscapedPath(baseMetadataDir) + "\"\n");
-            writer.write("          ).run();\n");
+            writer.write("      try {\n");
+            writer.write("          Class<?> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\");\n");
+            writer.write("          new " + scriptPlugin.getAdapterClass().getName() + "(\n");
+            writer.write("                  target,\n");
+            writer.write("                  precompiledScriptClass,\n");
+            writer.write("                  \"" + scriptPlugin.getContentHash() + "\"\n");
+            writer.write("              ).run();\n");
+            writer.write("      } catch (ClassNotFoundException e) { throw new RuntimeException(e); }\n");
             writer.write("  }\n");
             writer.write("}\n");
         } catch (IOException e) {
@@ -100,7 +101,4 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
         }
     }
 
-    private static String toEscapedPath(File file) {
-        return file.toString().replace("\\", "\\\\");
-    }
 }
