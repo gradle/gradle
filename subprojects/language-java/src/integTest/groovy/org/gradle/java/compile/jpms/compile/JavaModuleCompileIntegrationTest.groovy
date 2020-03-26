@@ -142,9 +142,6 @@ class JavaModuleCompileIntegrationTest extends AbstractJavaModuleCompileIntegrat
             repositories {
                 maven { url '${mavenRepo.uri}' }
             }
-            tasks.withType(JavaCompile) {
-                modularClasspathHandling.inferModulePath.set(true)
-            }
             dependencies {
                 api 'org:moda:1.0'
             }

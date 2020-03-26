@@ -24,6 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentContainer;
+import org.gradle.api.jpms.ModularClasspathHandling;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -32,6 +33,7 @@ import org.gradle.api.plugins.PluginManager;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
+import org.gradle.internal.jpms.DefaultModularClasspathHandling;
 
 import java.util.regex.Pattern;
 
@@ -52,6 +54,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final SoftwareComponentContainer components;
     private final TaskContainer tasks;
     private final Project project;
+    private final ModularClasspathHandling modularClasspathHandling;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project) {
@@ -62,6 +65,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.components = project.getComponents();
         this.tasks = project.getTasks();
         this.project = project;
+        this.modularClasspathHandling = project.getObjects().newInstance(DefaultModularClasspathHandling.class);
     }
 
     @Override
@@ -118,6 +122,11 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         ConfigurationContainer configurations = project.getConfigurations();
         SourceSet main = convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         configureDocumentationVariantWithArtifact(SOURCES_ELEMENTS_CONFIGURATION_NAME, null, SOURCES, ImmutableList.of(), main.getSourcesJarTaskName(), main.getAllSource(), findJavaComponent(components), configurations, tasks, objectFactory);
+    }
+
+    @Override
+    public ModularClasspathHandling getModularClasspathHandling() {
+        return modularClasspathHandling;
     }
 
     private static String validateFeatureName(String name) {
