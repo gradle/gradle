@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,28 +16,19 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import groovy.lang.Closure
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import java.util.regex.Pattern
 
 
-object ClosureCodec : Codec<Closure<*>> {
-    private
-    val defaultOwner = Any()
-
-    private
-    val beanCodec = BeanCodec()
-
-    override suspend fun WriteContext.encode(value: Closure<*>) {
-        // TODO - should write the owner, delegate and thisObject, replacing project and script references
-        beanCodec.run { encode(value.dehydrate()) }
+object RegexpPatternCodec : Codec<Pattern> {
+    override suspend fun WriteContext.encode(value: Pattern) {
+        writeString(value.pattern())
+        writeInt(value.flags())
     }
 
-    override suspend fun ReadContext.decode(): Closure<*>? {
-        return beanCodec.run {
-            val closure = decode() as Closure<*>
-            closure.rehydrate(null, defaultOwner, defaultOwner)
-        }
+    override suspend fun ReadContext.decode(): Pattern? {
+        return Pattern.compile(readString(), readInt())
     }
 }

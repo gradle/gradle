@@ -18,7 +18,7 @@ package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
-class FileTreeIntegrationTest extends AbstractIntegrationSpec {
+class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
     def "can include the elements of a tree using a Groovy closure spec"() {
         buildFile << """
             class SomeTask extends DefaultTask {
@@ -70,12 +70,13 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file("src/d/d.txt").createFile()
+        file("src/ignore-3.txt").createFile()
 
         run("generate")
 
         then:
         result.assertTaskNotSkipped(":generate")
-        output.count("checking") == 20 // checked twice, once to snapshot and once when the task action runs
+        output.count("checking") == 22 // checked twice, once to snapshot and once when the task action runs
         outputContains("checking a/a.txt")
         outputContains("checking d/d.txt")
         file("out.txt").text == "a.txt,c.txt,d.txt"
@@ -131,12 +132,13 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file("src/d/e/f.txt").createFile()
+        file("src/a/ignore-3.txt").createFile()
 
         run("generate")
 
         then:
         result.assertTaskNotSkipped(":generate")
-        output.count("checking") == 18 // checked twice, once for snapshots and once when the task action runs
+        output.count("checking") == 20 // checked twice, once for snapshots and once when the task action runs
         outputContains("checking a.txt")
         outputContains("checking d/e/f.txt")
         file("out.txt").text == "a.txt,c.txt,f.txt"
