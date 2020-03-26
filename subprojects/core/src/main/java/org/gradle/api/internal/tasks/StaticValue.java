@@ -23,6 +23,7 @@ import org.gradle.api.internal.provider.PropertyInternal;
 import org.gradle.api.internal.tasks.properties.PropertyValue;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
 
@@ -51,17 +52,16 @@ public class StaticValue implements PropertyValue {
         return TaskDependencyContainer.EMPTY;
     }
 
-    @Override
     public void attachProducer(Task producer) {
         if (value instanceof PropertyInternal) {
-            ((PropertyInternal)value).attachProducer(producer);
+            ((PropertyInternal<?>) value).attachProducer((ModelObject) producer);
         }
     }
 
     @Override
     public void maybeFinalizeValue() {
         if (value instanceof HasConfigurableValue) {
-            ((HasConfigurableValueInternal)value).implicitFinalizeValue();
+            ((HasConfigurableValueInternal) value).implicitFinalizeValue();
         }
     }
 

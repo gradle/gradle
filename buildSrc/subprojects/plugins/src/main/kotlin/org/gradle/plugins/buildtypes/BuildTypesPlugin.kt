@@ -3,8 +3,6 @@ package org.gradle.plugins.buildtypes
 import org.gradle.api.GradleException
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskProvider
 
 import org.gradle.kotlin.dsl.*
 
@@ -25,16 +23,14 @@ class BuildTypesPlugin : Plugin<Project> {
 
     private
     fun Project.register(buildType: BuildType) {
-        val buildTypeTask = tasks.register(buildType.name) {
+        tasks.register(buildType.name) {
 
             group = "Build Type"
 
             description = "The $name build type (can only be abbreviated to '${buildType.abbreviation}')"
 
             doFirst {
-                if (!gradle.startParameter.taskNames.any { it == buildType.name || it == buildType.abbreviation }) {
-                    throw GradleException("'$name' is a build type and must be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
-                }
+                throw GradleException("'$name' is a build type and must be invoked directly, and its name can only be abbreviated to '${buildType.abbreviation}'.")
             }
         }
 
@@ -53,13 +49,12 @@ class BuildTypesPlugin : Plugin<Project> {
             afterEvaluate {
                 usedTaskNames.forEach { (index, usedName) ->
                     invokedTaskNames.removeAt(index)
+
                     val subproject = usedName.substringBeforeLast(":", "")
-                    insertBuildTypeTasksInto(invokedTaskNames, buildTypeTask, index, buildType, subproject)
+                    insertBuildTypeTasksInto(invokedTaskNames, index, buildType, subproject)
+
+                    gradle.startParameter.setTaskNames(invokedTaskNames)
                 }
-                if (!invokedTaskNames.contains(buildType.name)) {
-                    invokedTaskNames.add(buildType.name)
-                }
-                gradle.startParameter.setTaskNames(invokedTaskNames)
             }
         }
     }
@@ -86,46 +81,29 @@ class BuildTypesPlugin : Plugin<Project> {
 
 
 internal
-fun Project.findTaskNameOrEmptyList(taskName: String) = tasks.findByName(taskName)?.let { listOf(it.path) } ?: emptyList()
-
-
-internal
 fun Project.insertBuildTypeTasksInto(
-    invokeTaskNames: MutableList<String>,
-    buildTypeTask: TaskProvider<Task>,
+    taskList: MutableList<String>,
     index: Int,
     buildType: BuildType,
     subproject: String
 ) {
 
-    fun insert(tasks: List<String>) = tasks.forEach { task ->
-        buildTypeTask.configure { dependsOn(task) }
-        invokeTaskNames.add(index, task)
-    }
+    fun insert(task: String) =
+        taskList.add(index, task)
 
     fun forEachBuildTypeTask(act: (String) -> Unit) =
         buildType.tasks.reversed().forEach(act)
 
     when {
         subproject.isEmpty() ->
-            forEachBuildTypeTask { taskInBuildType ->
-                if (taskInBuildType.startsWith(":")) {
-                    insert(listOf(taskInBuildType))
-                } else {
-                    insert(subprojects.flatMap { it.findTaskNameOrEmptyList(taskInBuildType) })
-                }
-            }
+            forEachBuildTypeTask(::insert)
 
         findProject(subproject) != null ->
-            forEachBuildTypeTask { taskInBuildType ->
-                if (taskInBuildType.startsWith(":")) {
-                    insert(listOf(taskInBuildType))
-                } else {
-                    val taskPath = "$subproject:$taskInBuildType"
-                    when {
-                        tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
-                        else -> insert(listOf(taskPath))
-                    }
+            forEachBuildTypeTask {
+                val taskPath = "$subproject:$it"
+                when {
+                    tasks.findByPath(taskPath) == null -> println("Skipping task '$taskPath' requested by build type ${buildType.name}, as it does not exist.")
+                    else -> insert(taskPath)
                 }
             }
         else -> {
@@ -133,8 +111,8 @@ fun Project.insertBuildTypeTasksInto(
         }
     }
 
-    if (invokeTaskNames.isEmpty()) {
-        invokeTaskNames.add("help") // do not trigger the default tasks
+    if (taskList.isEmpty()) {
+        taskList.add("help") // do not trigger the default tasks
     }
 }
 

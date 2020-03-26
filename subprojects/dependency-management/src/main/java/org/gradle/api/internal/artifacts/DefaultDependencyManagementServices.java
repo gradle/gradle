@@ -106,6 +106,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
@@ -557,8 +558,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer, dependencyLockingProvider);
         }
 
-        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules, FeaturePreviews featurePreviews, ListenerManager listenerManager) {
-            DefaultDependencyLockingProvider dependencyLockingProvider = instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), featurePreviews);
+        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules, FeaturePreviews featurePreviews, ListenerManager listenerManager, PropertyFactory propertyFactory) {
+            DefaultDependencyLockingProvider dependencyLockingProvider = instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), featurePreviews, propertyFactory);
             if (startParameter.isWriteDependencyLocks() && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)) {
                 listenerManager.addListener(new InternalBuildFinishedListener() {
                     @Override

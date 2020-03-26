@@ -24,6 +24,21 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## New dependency locking file format
+
+Gradle 6.4 introduces an experimental dependency locking file format.
+This format uses a single lock file per project instead of a file per locked configuration.
+The main benefit is a reduction in the total number of lock files in a given project.
+
+In addition, when using this format, the lock file name can be configured.
+This enables use cases where a given project may resolve different dependency graphs for the same configuration based on some project state.
+A typical example in the JVM world are Scala projects where the Scala version is encoded in dependency names.
+
+The format is experimental because it requires opt-in and a migration for existing dependency locking users.
+It is however stable and expected to become the default format in Gradle 7.0.
+
+Take a look at [the documentation](userguide/dependency_locking.html#single_lock_file_per_project) for more information and how to enable the feature.
+
 <!-- 
 Add release features here!
 ## 1

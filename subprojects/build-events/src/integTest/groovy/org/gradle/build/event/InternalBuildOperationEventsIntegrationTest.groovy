@@ -26,38 +26,16 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.runner.RunWith
 
 @RunWith(InstantExecutionRunner)
 class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpec {
     def "init script can inject listener via use internal API to subscribe to build operation events"() {
-        def initScript = file("init.gradle") << """
-            import ${BuildEventsListenerRegistry.name}
-            import ${BuildOperationListener.name}
-            import ${BuildOperationDescriptor.name}
-            import ${OperationStartEvent.name}
-            import ${OperationFinishEvent.name}
-            import ${OperationProgressEvent.name}
-            import ${OperationIdentifier.name}
-            import ${ExecuteTaskBuildOperationType.name}
-            import ${BuildServiceParameters.name}
-
-            abstract class LoggingListener implements BuildOperationListener, BuildService<BuildServiceParameters.None> {
-                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
-                    throw new RuntimeException()
-                }
-                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
-                    throw new RuntimeException()
-                }
-                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
-                    if (buildOperation.details instanceof ExecuteTaskBuildOperationType.Details) {
-                        println("EVENT: " + buildOperation.details)
-                    }
-                }
-            }
-
-            def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { } 
-
+        def initScript = file("init.gradle")
+        loggingListener(initScript)
+        initScript << """
+            def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
             def registry = services.get(BuildEventsListenerRegistry)
             registry.onOperationCompletion(listener)
         """
@@ -93,5 +71,68 @@ class InternalBuildOperationEventsIntegrationTest extends AbstractIntegrationSpe
 
         then:
         output.count("EVENT:") == 2
+    }
+
+    def "init script listener receives events from buildSrc and main build"() {
+        def initScript = file("init.gradle")
+        loggingListener(initScript)
+        initScript << """
+            if (gradle.parent == null) {
+                def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
+                def registry = services.get(BuildEventsListenerRegistry)
+                registry.onOperationCompletion(listener)
+            }
+        """
+
+        file("buildSrc/src/main/java/Thing.java") << """
+            class Thing { }
+        """
+        buildFile << """
+            task a
+        """
+        executer.beforeExecute {
+            usingInitScript(initScript)
+        }
+
+        when:
+        run("a")
+
+        then:
+        output.count("EVENT:") == 14
+        outputContains("EVENT: task ':a'")
+
+        when:
+        run("a")
+
+        then:
+        outputContains("EVENT: task ':a'")
+    }
+
+    void loggingListener(TestFile file) {
+        file << """
+            import ${BuildEventsListenerRegistry.name}
+            import ${BuildOperationListener.name}
+            import ${BuildOperationDescriptor.name}
+            import ${OperationStartEvent.name}
+            import ${OperationFinishEvent.name}
+            import ${OperationProgressEvent.name}
+            import ${OperationIdentifier.name}
+            import ${ExecuteTaskBuildOperationType.name}
+            import ${BuildServiceParameters.name}
+
+            abstract class LoggingListener implements BuildOperationListener, BuildService<BuildServiceParameters.None> {
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+                    throw new RuntimeException()
+                }
+                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+                    throw new RuntimeException()
+                }
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+                    if (buildOperation.details instanceof ExecuteTaskBuildOperationType.Details) {
+                        println("EVENT: " + buildOperation.details.task)
+                    }
+                }
+            }
+        """
     }
 }

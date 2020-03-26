@@ -38,9 +38,8 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
 
-        // Skip versions broken for this test
-        // https://issuetracker.google.com/issues/150438232
-        assumeThat(agpVersion, not(equalTo("4.1.0-alpha01")))
+        // 4.1.0 nightly has new cacheable tasks, remove this once alpha04 is out
+        assumeThat(agpVersion, not(equalTo("4.1.0-alpha03")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
@@ -309,6 +308,7 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':santa-tracker:preDevelopmentDebugBuild': UP_TO_DATE,
         ':santa-tracker:processDevelopmentDebugJavaRes': NO_SOURCE,
         ':santa-tracker:processDevelopmentDebugManifest': FROM_CACHE,
+        ':santa-tracker:processDevelopmentDebugManifestForPackage': FROM_CACHE,
         ':santa-tracker:processDevelopmentDebugResources': SUCCESS,
         ':santa-tracker:stripDevelopmentDebugDebugSymbols': NO_SOURCE,
         ':santa-tracker:validateSigningDevelopmentDebug': FROM_CACHE,

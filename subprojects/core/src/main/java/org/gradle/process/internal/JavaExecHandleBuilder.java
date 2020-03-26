@@ -21,9 +21,14 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.jpms.ModularClasspathHandling;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.jpms.DefaultModularClasspathHandling;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
@@ -32,6 +37,7 @@ import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -55,18 +61,29 @@ import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasC
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private static final Logger LOGGER = Logging.getLogger(JavaExecHandleBuilder.class);
     private final FileCollectionFactory fileCollectionFactory;
-    private String mainClass;
-    private final List<Object> applicationArgs = new ArrayList<Object>();
+    private JavaModuleDetector javaModuleDetector;
+    private Property<String> mainModule;
+    private Property<String> mainClass;
+    private final List<Object> applicationArgs = new ArrayList<>();
     private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
-    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<CommandLineArgumentProvider>();
+    private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
+    private final ModularClasspathHandling modularClasspathHandling;
 
-    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Executor executor, BuildCancellationToken buildCancellationToken, JavaForkOptions javaOptions) {
+    public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Executor executor, BuildCancellationToken buildCancellationToken, @Nullable JavaModuleDetector javaModuleDetector, JavaForkOptions javaOptions) {
         super(fileResolver, executor, buildCancellationToken);
         this.fileCollectionFactory = fileCollectionFactory;
+        this.javaModuleDetector = javaModuleDetector;
+        this.classpath = fileCollectionFactory.configurableFiles("classpath");
+        this.mainModule = objectFactory.property(String.class);
+        this.mainClass = objectFactory.property(String.class);
         this.javaOptions = javaOptions;
+        this.modularClasspathHandling = new DefaultModularClasspathHandling(objectFactory);
         executable(javaOptions.getExecutable());
+    }
 
+    public void setJavaModuleDetector(JavaModuleDetector javaModuleDetector) {
+        this.javaModuleDetector = javaModuleDetector;
     }
 
     @Override
@@ -75,22 +92,56 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
-        List<String> allArgs = new ArrayList<String>(javaOptions.getAllJvmArgs());
-        if (mainClass == null) {
-            if (realClasspath != null && realClasspath.getFiles().size() == 1) {
+        List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
+        boolean runAsModule = modularClasspathHandling.getInferModulePath().get() && mainModule.isPresent();
+
+        if (runAsModule) {
+            addModularJavaRunArgs(realClasspath, allArgs);
+        } else {
+            addClassicJavaRunArgs(realClasspath, allArgs);
+        }
+
+        return allArgs;
+    }
+
+    private void addClassicJavaRunArgs(FileCollection classpath, List<String> allArgs) {
+        if (!mainClass.isPresent()) {
+            if (classpath != null && classpath.getFiles().size() == 1) {
                 allArgs.add("-jar");
-                allArgs.add(realClasspath.getSingleFile().getAbsolutePath());
+                allArgs.add(classpath.getSingleFile().getAbsolutePath());
             } else {
                 throw new IllegalStateException("No main class specified and classpath is not an executable jar.");
             }
         } else {
-            if (realClasspath != null && !realClasspath.isEmpty()) {
+            if (classpath != null && !classpath.isEmpty()) {
                 allArgs.add("-cp");
-                allArgs.add(CollectionUtils.join(File.pathSeparator, realClasspath));
+                allArgs.add(CollectionUtils.join(File.pathSeparator, classpath));
             }
-            allArgs.add(mainClass);
+            allArgs.add(mainClass.get());
         }
-        return allArgs;
+    }
+
+    private void addModularJavaRunArgs(FileCollection classpath, List<String> allArgs) {
+        if (javaModuleDetector == null) {
+            throw new IllegalStateException("Running a Java module is not supported in this context.");
+        }
+        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularClasspathHandling.getInferModulePath().get(), classpath);
+        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularClasspathHandling.getInferModulePath().get(), classpath);
+
+        if (rtClasspath != null && !rtClasspath.isEmpty()) {
+            allArgs.add("-cp");
+            allArgs.add(CollectionUtils.join(File.pathSeparator, rtClasspath));
+        }
+        if (rtModulePath != null && !rtModulePath.isEmpty()) {
+            allArgs.add("--module-path");
+            allArgs.add(CollectionUtils.join(File.pathSeparator, rtModulePath));
+        }
+        allArgs.add("--module");
+        if (!mainClass.isPresent()) {
+            allArgs.add(mainModule.get());
+        } else {
+            allArgs.add(mainModule.get() + "/" + mainClass.get());
+        }
     }
 
     @Override
@@ -229,13 +280,23 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public String getMain() {
+    public Property<String> getMainModule() {
+        return mainModule;
+    }
+
+    @Override
+    public Property<String> getMainClass() {
         return mainClass;
     }
 
     @Override
+    public String getMain() {
+        return mainClass.getOrNull();
+    }
+
+    @Override
     public JavaExecHandleBuilder setMain(String mainClassName) {
-        this.mainClass = mainClassName;
+        this.mainClass.set(mainClassName);
         return this;
     }
 
@@ -289,20 +350,18 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
+    public ModularClasspathHandling getModularClasspathHandling() {
+        return modularClasspathHandling;
+    }
+
+    @Override
     public JavaExecHandleBuilder classpath(Object... paths) {
-        doGetClasspath().from(paths);
+        this.classpath.from(paths);
         return this;
     }
 
     @Override
     public FileCollection getClasspath() {
-        return doGetClasspath();
-    }
-
-    private ConfigurableFileCollection doGetClasspath() {
-        if (classpath == null) {
-            classpath = fileCollectionFactory.configurableFiles("classpath");
-        }
         return classpath;
     }
 
@@ -312,7 +371,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     private List<String> getAllArguments(FileCollection realClasspath) {
-        List<String> arguments = new ArrayList<String>(getAllJvmArgs(realClasspath));
+        List<String> arguments = new ArrayList<>(getAllJvmArgs(realClasspath));
         arguments.addAll(getArgs());
         for (CommandLineArgumentProvider argumentProvider : argumentProviders) {
             Iterables.addAll(arguments, argumentProvider.asArguments());

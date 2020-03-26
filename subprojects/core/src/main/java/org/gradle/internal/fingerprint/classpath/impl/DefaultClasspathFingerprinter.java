@@ -33,13 +33,15 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
         ResourceFilter classpathResourceFilter,
         StringInterner stringInterner
     ) {
-        super(ClasspathFingerprintingStrategy.runtimeClasspath(
-            classpathResourceFilter,
-            new RuntimeClasspathResourceHasher(),
-            cacheService,
-            stringInterner
+        super(
+            ClasspathFingerprintingStrategy.runtimeClasspath(
+                classpathResourceFilter,
+                new RuntimeClasspathResourceHasher(),
+                cacheService,
+                stringInterner
             ),
-            fileCollectionSnapshotter);
+            fileCollectionSnapshotter
+        );
     }
 
     @Override

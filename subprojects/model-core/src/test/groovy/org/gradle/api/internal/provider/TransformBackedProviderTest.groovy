@@ -25,6 +25,7 @@ import org.gradle.internal.deprecation.DeprecatedFeatureUsage
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster
 import org.gradle.internal.featurelifecycle.UsageLocationReporter
+import org.gradle.internal.state.ModelObject
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.TestUtil
@@ -169,9 +170,11 @@ class TransformBackedProviderTest extends Specification {
         def state = Mock(TaskState)
         _ * task.toString() >> "<task>"
         _ * task.state >> state
+        def owner = Stub(ModelObject)
+        _ * owner.taskThatOwnsThisObject >> task
         def property = TestUtil.objectFactory().property(String)
-        property.attachDisplayName(Describables.of("<prop>"))
-        property.attachProducer(task)
+        property.attachOwner(owner, Describables.of("<prop>"))
+        property.attachProducer(owner)
         property.set("12")
         return property
     }
@@ -182,9 +185,11 @@ class TransformBackedProviderTest extends Specification {
         _ * task.toString() >> "<task>"
         _ * task.state >> state
         _ * state.executed >> true
+        def owner = Stub(ModelObject)
+        _ * owner.taskThatOwnsThisObject >> task
         def property = TestUtil.objectFactory().property(String)
-        property.attachDisplayName(Describables.of("<prop>"))
-        property.attachProducer(task)
+        property.attachOwner(owner, Describables.of("<prop>"))
+        property.attachProducer(owner)
         property.set("12")
         return property
     }

@@ -309,6 +309,29 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'Object[]'  | "(['hello', 42] as Object[])"
     }
 
+    def "task constructor can use identity properties of task"() {
+        given:
+        buildFile << """
+            class LoggingTask extends DefaultTask {
+                LoggingTask() {
+                    println("name = " + name)
+                    println("path = " + path)
+                    println("toString() = " + this)
+                }
+            }
+
+            task one(type: LoggingTask)
+        """
+
+        when:
+        run("one")
+
+        then:
+        outputContains("name = one")
+        outputContains("path = :one")
+        outputContains("toString() = task ':one'")
+    }
+
     @Unroll
     def "fails to create custom task using #description if constructor arguments are missing"() {
         given:

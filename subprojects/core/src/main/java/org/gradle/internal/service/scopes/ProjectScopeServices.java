@@ -76,6 +76,7 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -159,8 +160,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {
-        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory, javaModuleDetector);
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {

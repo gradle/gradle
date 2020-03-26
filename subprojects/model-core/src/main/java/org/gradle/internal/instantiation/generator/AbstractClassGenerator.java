@@ -54,6 +54,7 @@ import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.ClassDetails;
 import org.gradle.internal.reflect.ClassInspector;
@@ -87,7 +88,7 @@ import java.util.stream.Collectors;
  *
  * <ul>
  * <li>For each property, a convention mapping is applied. These properties may have a setter method.</li>
- * <li>For each property whose getter is annotated with {@code Inject}, a service instance will be injected instead. These properties may have a setter method and may be abstract.</li>
+ * <li>For each property whose getter is annotated with {@link Inject}, service instance will be injected instead. These properties may have a setter method and may be abstract.</li>
  * <li>For each mutable property as set method is generated.</li>
  * <li>For each method whose last parameter is an {@link org.gradle.api.Action}, an override is generated that accepts a {@link groovy.lang.Closure} instead.</li>
  * <li>Coercion from string to enum property is mixed in.</li>
@@ -116,8 +117,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private final ImmutableSet<Class<? extends Annotation>> enabledAnnotations;
     private final ImmutableMultimap<Class<? extends Annotation>, TypeToken<?>> allowedTypesForAnnotation;
     private final Transformer<GeneratedClassImpl, Class<?>> generator = type -> generateUnderLock(type);
+    private final PropertyRoleAnnotationHandler roleHandler;
 
-    protected AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations, Collection<Class<? extends Annotation>> enabledAnnotations, CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache) {
+    protected AbstractClassGenerator(Collection<? extends InjectAnnotationHandler> allKnownAnnotations,
+                                     Collection<Class<? extends Annotation>> enabledAnnotations,
+                                     PropertyRoleAnnotationHandler roleHandler,
+                                     CrossBuildInMemoryCache<Class<?>, GeneratedClassImpl> generatedClassesCache) {
         this.generatedClasses = generatedClassesCache;
         this.enabledAnnotations = ImmutableSet.copyOf(enabledAnnotations);
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builder();
@@ -140,6 +145,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
         this.disabledAnnotations = builder.build();
         this.allowedTypesForAnnotation = allowedTypesBuilder.build();
+        this.roleHandler = roleHandler;
+    }
+
+    PropertyRoleAnnotationHandler getRoleHandler() {
+        return roleHandler;
     }
 
     private <T> TypeToken<Provider<T>> providerOf(Class<T> providerType) {
@@ -306,20 +316,14 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
         }
 
-        visitFields(type, generationHandlers);
+        visitFields(classDetails, generationHandlers);
     }
 
-    private void visitFields(Class<?> type, List<ClassGenerationHandler> generationHandlers) {
-        for (Field field : type.getDeclaredFields()) {
-            if (!Modifier.isStatic(field.getModifiers())) {
-                for (ClassGenerationHandler handler : generationHandlers) {
-                    handler.hasFields();
-                }
-                return;
+    private void visitFields(ClassDetails type, List<ClassGenerationHandler> generationHandlers) {
+        if (!type.getInstanceFields().isEmpty()) {
+            for (ClassGenerationHandler handler : generationHandlers) {
+                handler.hasFields();
             }
-        }
-        if (type.getSuperclass() != null && type.getSuperclass() != Object.class) {
-            visitFields(type.getSuperclass(), generationHandlers);
         }
     }
 
@@ -331,6 +335,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             for (Method method : property.getSetters()) {
                 propertyMetaData.addSetter(method);
+            }
+            if (property.getBackingField() != null) {
+                propertyMetaData.field(property.getBackingField());
             }
         }
         for (Method method : classDetails.getInstanceMethods()) {
@@ -355,10 +362,40 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
 
-    private static boolean isPropertyProperty(Class<?> type) {
+    private static boolean isManagedProperty(PropertyMetadata property) {
+        // Property is read only and the type can be created
+        return property.isReadOnly() && (MANAGED_PROPERTY_TYPES.contains(property.getType()) || property.hasAnnotation(Nested.class));
+    }
+
+    private static boolean isEagerAttachProperty(PropertyMetadata property) {
+        // Property is read only and getter is final, so attach owner eagerly in constructor
+        // This should apply to all 'managed' types however for backwards compatibility is applied only to property types
+        return property.isReadOnly() && !property.getMainGetter().shouldOverride() && isPropertyType(property.getType());
+    }
+
+    private static boolean isLazyAttachProperty(PropertyMetadata property) {
+        // Property is read only and getter is not final, so attach owner lazily when queried
+        // This should apply to all 'managed' types however only the Provider types and @Nested value current implement OwnerAware
+        return property.isReadOnly() && !property.getOverridableGetters().isEmpty() && (Provider.class.isAssignableFrom(property.getType()) || property.hasAnnotation(Nested.class));
+    }
+
+    private static boolean isPropertyType(Class<?> type) {
         return Property.class.isAssignableFrom(type) ||
             HasMultipleValues.class.isAssignableFrom(type) ||
             MapProperty.class.isAssignableFrom(type);
+    }
+
+    private static boolean isAttachableType(MethodMetadata method) {
+        return Provider.class.isAssignableFrom(method.getReturnType()) || method.method.getAnnotation(Nested.class) != null;
+    }
+
+    private boolean isRoleType(PropertyMetadata property) {
+        for (Class<? extends Annotation> roleAnnotation : roleHandler.getAnnotationTypes()) {
+            if (property.hasAnnotation(roleAnnotation)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected class GeneratedClassImpl implements GeneratedClass<Object> {
@@ -547,6 +584,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final List<Method> setters = new ArrayList<>();
         private final List<Method> setMethods = new ArrayList<>();
         private MethodMetadata mainGetter;
+        private Field backingField;
 
         private PropertyMetadata(String name) {
             this.name = name;
@@ -561,8 +599,24 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             return name;
         }
 
+        public boolean isReadOnly() {
+            return mainGetter != null && setters.isEmpty();
+        }
+
         public boolean isReadable() {
             return mainGetter != null;
+        }
+
+        public boolean isWritable() {
+            return !setters.isEmpty();
+        }
+
+        public boolean hasAnnotation(Class<? extends Annotation> type) {
+            if (backingField != null && backingField.getAnnotation(type) != null) {
+                return true;
+            } else {
+                return mainGetter.method.getAnnotation(type) != null;
+            }
         }
 
         public MethodMetadata getMainGetter() {
@@ -623,6 +677,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         public void addSetMethod(Method method) {
             setMethods.add(method);
+        }
+
+        public void field(Field backingField) {
+            this.backingField = backingField;
         }
     }
 
@@ -704,7 +762,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.setters.isEmpty()) {
+            if (!property.isWritable()) {
                 return;
             }
             if (Iterable.class.isAssignableFrom(property.getType())) {
@@ -807,7 +865,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class ExtensibleTypePropertyHandler extends ClassGenerationHandler implements UnclaimedPropertyHandler {
+    private class ExtensibleTypePropertyHandler extends ClassGenerationHandler implements UnclaimedPropertyHandler {
         private Class<?> type;
         private Class<?> noMappingClass;
         private boolean conventionAware;
@@ -868,6 +926,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (conventionAware) {
                 visitor.mixInConventionAware();
             }
+            for (PropertyMetadata property : conventionProperties) {
+                boolean applyRole = isLazyAttachProperty(property) && isRoleType(property);
+                if (applyRole) {
+                    visitor.instantiatesNestedObjects();
+                }
+            }
         }
 
         @Override
@@ -880,9 +944,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             for (PropertyMetadata property : conventionProperties) {
                 visitor.applyConventionMappingToProperty(property);
+                boolean attachProperty = isLazyAttachProperty(property);
+                boolean applyRole = attachProperty && isRoleType(property);
                 for (MethodMetadata getter : property.getOverridableGetters()) {
-                    boolean isPropertyType = property.setters.isEmpty() && isPropertyProperty(getter.getReturnType());
-                    visitor.applyConventionMappingToGetter(property, getter, isPropertyType);
+                    boolean attachOwner = attachProperty && isAttachableType(getter);
+                    visitor.applyConventionMappingToGetter(property, getter, attachOwner, applyRole);
                 }
                 for (Method setter : property.getOverridableSetters()) {
                     visitor.applyConventionMappingToSetter(property, setter);
@@ -891,14 +957,24 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         }
     }
 
-    private static class ManagedPropertiesHandler extends ClassGenerationHandler {
+    private class ManagedPropertiesHandler extends ClassGenerationHandler {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
+        private final List<PropertyMetadata> eagerAttachProperties = new ArrayList<>();
         private boolean hasFields;
 
         @Override
         public void hasFields() {
             hasFields = true;
+        }
+
+        @Override
+        void visitProperty(PropertyMetadata property) {
+            if (isEagerAttachProperty(property)) {
+                // Property is read-only and main getter is final, so attach eagerly in constructor
+                // If the getter is not final, then attach lazily in the getter
+                eagerAttachProperties.add(property);
+            }
         }
 
         @Override
@@ -914,26 +990,19 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     return false;
                 }
             }
-            if (property.getters.isEmpty()) {
-                return false;
-            }
 
             // Property is readable and all getters and setters are abstract
-            if (property.setters.isEmpty()) {
-                if (MANAGED_PROPERTY_TYPES.contains(property.getType())) {
-                    // Read-only property with managed type
-                    readOnlyProperties.add(property);
-                    return true;
-                } else if (property.getMainGetter().method.getAnnotation(Nested.class) != null) {
-                    // Read-only nested property with managed type
-                    readOnlyProperties.add(property);
-                    return true;
-                }
-                return false;
-            } else {
+            if (isManagedProperty(property)) {
+                // Abstract read-only property with managed type
+                readOnlyProperties.add(property);
+                return true;
+            } else if (property.isReadable() && property.isWritable()) {
                 // Mutable property
                 mutableProperties.add(property);
                 return true;
+            } else {
+                // Read only but unrecognized type
+                return false;
             }
         }
 
@@ -944,6 +1013,10 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             if (!readOnlyProperties.isEmpty()) {
                 visitor.instantiatesNestedObjects();
+            }
+            for (PropertyMetadata property : eagerAttachProperties) {
+                boolean applyRole = isRoleType(property);
+                visitor.attachDuringConstruction(property, applyRole);
             }
         }
 
@@ -960,8 +1033,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
             for (PropertyMetadata property : readOnlyProperties) {
                 visitor.applyManagedStateToProperty(property);
+                boolean applyRole = isRoleType(property);
                 for (MethodMetadata getter : property.getters) {
-                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method);
+                    visitor.applyReadOnlyManagedStateToGetter(property, getter.method, applyRole);
                 }
             }
             if (!hasFields) {
@@ -975,18 +1049,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         @Override
         void visitProperty(PropertyMetadata property) {
-            if (property.isReadable() && isPropertyProperty(property.getType())) {
+            if (property.isReadable() && isPropertyType(property.getType())) {
                 propertyTyped.add(property);
-            }
-        }
-
-        @Override
-        void applyTo(ClassInspectionVisitor visitor) {
-            for (PropertyMetadata property : propertyTyped) {
-                if (!property.mainGetter.shouldOverride() && property.setters.isEmpty()) {
-                    // Property is read-only and main getter is final, so attach in constructor
-                    visitor.attachDuringConstruction(property);
-                }
             }
         }
 
@@ -1251,7 +1315,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void instantiatesNestedObjects();
 
-        void attachDuringConstruction(PropertyMetadata property);
+        void attachDuringConstruction(PropertyMetadata property, boolean applyRole);
 
         ClassGenerationVisitor builder();
     }
@@ -1291,13 +1355,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
         void applyManagedStateToSetter(PropertyMetadata property, Method setter);
 
-        void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter);
+        void applyReadOnlyManagedStateToGetter(PropertyMetadata property, Method getter, boolean applyRole);
 
         void addManagedMethods(Iterable<PropertyMetadata> mutableProperties, Iterable<PropertyMetadata> readOnlyProperties);
 
         void applyConventionMappingToProperty(PropertyMetadata property);
 
-        void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner);
+        void applyConventionMappingToGetter(PropertyMetadata property, MethodMetadata getter, boolean attachOwner, boolean applyRole);
 
         void applyConventionMappingToSetter(PropertyMetadata property, Method setter);
 

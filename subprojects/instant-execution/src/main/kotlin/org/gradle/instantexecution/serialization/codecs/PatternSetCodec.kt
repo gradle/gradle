@@ -16,27 +16,38 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.FileTreeElement
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.IntersectionPatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readStrings
+import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeStrings
 
 
-// TODO includeSpecs & excludeSpecs
 object PatternSetCodec : Codec<PatternSet> {
 
     override suspend fun WriteContext.encode(value: PatternSet) {
         writeStrings(value.includes)
         writeStrings(value.excludes)
+        writeCollection(value.includeSpecs)
+        writeCollection(value.excludeSpecs)
     }
 
     override suspend fun ReadContext.decode() =
         PatternSet().apply {
             setIncludes(readStrings())
             setExcludes(readStrings())
+            readCollection {
+                include(read() as Spec<FileTreeElement>)
+            }
+            readCollection {
+                exclude(read() as Spec<FileTreeElement>)
+            }
         }
 }
 

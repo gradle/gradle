@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile
 
-import org.gradle.api.file.ProjectLayout
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 import spock.lang.Unroll
@@ -28,7 +27,7 @@ class CompileOptionsTest extends Specification {
     CompileOptions compileOptions
 
     def setup()  {
-        compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
+        compileOptions = new CompileOptions(TestUtil.objectFactory())
         compileOptions.debugOptions = [optionMap: {TEST_DEBUG_OPTION_MAP}] as DebugOptions
         compileOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as ForkOptions
     }

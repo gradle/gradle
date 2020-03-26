@@ -27,6 +27,7 @@ import java.util.Set;
 public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final TestFramework testFramework;
     private final Iterable<? extends File> classpath;
+    private final boolean inferModulePath;
     private final FileTree candidateClassFiles;
     private final boolean scanForTestClasses;
     private final FileCollection testClassesDirs;
@@ -37,9 +38,17 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final int maxParallelForks;
     private final Set<String> previousFailedTestClasses;
 
+    /**
+     * Required by test-retry-gradle-plugin <= 1.1.3
+     */
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
+        this(testFramework, classpath, false, candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
+    }
+
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, boolean inferModulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
         this.testFramework = testFramework;
         this.classpath = classpath;
+        this.inferModulePath = inferModulePath;
         this.candidateClassFiles = candidateClassFiles;
         this.scanForTestClasses = scanForTestClasses;
         this.testClassesDirs = testClassesDirs;
@@ -57,6 +66,10 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
 
     public Iterable<? extends File> getClasspath() {
         return classpath;
+    }
+
+    public boolean isInferModulePath() {
+        return inferModulePath;
     }
 
     public FileTree getCandidateClassFiles() {

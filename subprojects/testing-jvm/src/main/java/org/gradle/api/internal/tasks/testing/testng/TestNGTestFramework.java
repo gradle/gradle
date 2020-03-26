@@ -39,6 +39,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.Callable;
 
@@ -120,6 +121,11 @@ public class TestNGTestFramework implements TestFramework {
                 workerProcessBuilder.sharedPackages("org.testng");
             }
         };
+    }
+
+    @Override
+    public List<String> getTestWorkerImplementationModules() {
+        return Collections.emptyList();
     }
 
     @Override

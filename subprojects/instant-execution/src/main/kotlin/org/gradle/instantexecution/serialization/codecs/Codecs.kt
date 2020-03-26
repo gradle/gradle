@@ -215,9 +215,11 @@ class Codecs(
     fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, patternSetFactory: Factory<PatternSet>, fileSystem: FileSystem, fileFactory: FileFactory) {
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
+        bind(ConfigurableFileTreeCodec(fileCollectionFactory))
         bind(FileTreeCodec(directoryFileTreeFactory, patternSetFactory, fileSystem))
-        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
-        bind(FileCollectionCodec(fileCollectionFactory))
+        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory)
+        bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
+        bind(fileCollectionCodec)
         bind(IntersectPatternSetCodec)
         bind(PatternSetCodec)
     }
@@ -258,5 +260,6 @@ class Codecs(
 
         bind(arrayCodec)
         bind(EnumCodec)
+        bind(RegexpPatternCodec)
     }
 }
