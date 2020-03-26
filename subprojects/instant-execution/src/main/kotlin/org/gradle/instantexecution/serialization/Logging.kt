@@ -29,26 +29,9 @@ import kotlin.reflect.KClass
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
-fun IsolateContext.logPropertyWarning(action: String, message: StructuredMessageBuilder) {
-    logPropertyProblem(action, PropertyProblem.forWarning(trace, build(message)))
+fun IsolateContext.logPropertyWarning(action: String, exception: Throwable? = null, message: StructuredMessageBuilder) {
+    logPropertyProblem(action, PropertyProblem.forWarning(trace, build(message), exception))
 }
-
-
-fun IsolateContext.logPropertyError(action: String, error: Throwable, message: StructuredMessageBuilder) {
-    logPropertyProblem(action, propertyError(error, trace, message))
-}
-
-
-internal
-fun unknownPropertyError(message: String, e: Throwable): PropertyProblem =
-    propertyError(e, PropertyTrace.Unknown) {
-        text(message)
-    }
-
-
-private
-fun propertyError(error: Throwable, trace: PropertyTrace, message: StructuredMessageBuilder) =
-    PropertyProblem.forError(trace, build(message), error)
 
 
 fun IsolateContext.logPropertyInfo(action: String, value: Any?) {

@@ -35,22 +35,11 @@ sealed class InstantExecutionException(
     problems.map(PropertyProblem::exception)
 )
 
-
-class InstantExecutionErrorsException(
-    problems: List<PropertyProblem>,
-    htmlReportFile: File
-) : InstantExecutionException(MESSAGE, problems, htmlReportFile) {
-    companion object {
-        const val MESSAGE = "Instant execution state could not be cached."
-    }
-}
-
-
 @Contextual
 class InstantExecutionErrorException(
-    message: String,
+    error: String,
     cause: Throwable? = null
-) : Exception(message, cause) {
+) : Exception(error, cause) {
     override fun fillInStackTrace() = this
 }
 

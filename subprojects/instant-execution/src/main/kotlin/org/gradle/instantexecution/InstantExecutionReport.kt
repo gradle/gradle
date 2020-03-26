@@ -32,7 +32,6 @@ import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.buildConsoleSummary
 import org.gradle.instantexecution.problems.firstTypeFrom
 import org.gradle.instantexecution.problems.taskPathFrom
-import org.gradle.instantexecution.serialization.unknownPropertyError
 
 import org.gradle.internal.event.ListenerManager
 
@@ -71,22 +70,31 @@ class InstantExecutionReport(
 
         override fun buildFinished(result: BuildResult) {
             if (problems.isNotEmpty()) {
-                if (result.failure?.isOrHasCause(InstantExecutionException::class) == true) {
-                    writeReportFiles()
-                } else {
-                    val problemsFailure =
-                        instantExecutionExceptionForErrors()
-                            ?: instantExecutionExceptionForProblems()
-                    if (problemsFailure != null) {
-                        writeReportFiles()
-                        throw problemsFailure
-                    } else {
-                        logConsoleSummary()
-                        writeReportFiles()
+                try {
+                    when {
+                        result.isInstantExecutionErrorFailure -> {
+                            logConsoleSummary()
+                        }
+                        !result.isInstantExecutionProblemsFailure -> {
+                            when (val taskExecutionProblems = instantExecutionExceptionForProblems()) {
+                                null -> logConsoleSummary()
+                                else -> throw taskExecutionProblems // task execution problems, or, too many during task execution
+                            }
+                        }
                     }
+                } finally {
+                    writeReportFiles()
                 }
             }
         }
+
+        private
+        val BuildResult.isInstantExecutionErrorFailure
+            get() = failure?.isOrHasCause(InstantExecutionErrorException::class) == true
+
+        private
+        val BuildResult.isInstantExecutionProblemsFailure
+            get() = failure?.isOrHasCause(InstantExecutionException::class) == true
     }
 
     private
@@ -111,59 +119,36 @@ class InstantExecutionReport(
 
         val fatalError = runWithExceptionHandling(block)
 
+        if (fatalError != null) {
+            require(fatalError is InstantExecutionException || fatalError is InstantExecutionErrorException)
+            return fatalError
+        }
+
         return synchronized(problems) {
             when {
-                problems.isEmpty() -> {
-                    require(fatalError == null)
-                    null
-                }
-                fatalError != null -> {
-                    require(fatalError is InstantExecutionException)
-                    fatalError
-                }
-                else -> {
-                    instantExecutionExceptionForErrors()
-                        ?: instantExecutionExceptionForProblems()
-                }
+                problems.isNotEmpty() -> instantExecutionExceptionForProblems()
+                else -> null
             }
         }
     }
 
     private
-    fun runWithExceptionHandling(block: () -> Unit): Throwable? {
+    fun runWithExceptionHandling(block: () -> Unit): Throwable? =
         try {
             block()
+            null
         } catch (e: Throwable) {
             when (val cause = e.maybeUnwrapInvocationTargetException()) {
-                is InstantExecutionException -> return cause
-                is StackOverflowError -> add(cause)
-                is Error -> throw cause
-                else -> add(cause)
+                is InstantExecutionException -> cause
+                is InstantExecutionErrorException -> cause
+                else -> throw cause
             }
         }
-        return null
-    }
-
-    private
-    fun add(e: Throwable) = synchronized(problems) {
-        problems.add(
-            unknownPropertyError(e.message ?: e.javaClass.name, e)
-        )
-    }
-
-    private
-    fun instantExecutionExceptionForErrors(): Throwable? =
-        if (errors().isNotEmpty()) InstantExecutionErrorsException(problems, htmlReportFile)
-        else null
 
     private
     fun instantExecutionExceptionForProblems(): Throwable? =
         if (startParameter.failOnProblems) InstantExecutionProblemsException(problems, htmlReportFile)
         else null
-
-    private
-    fun errors() =
-        problems.filterIsInstance<PropertyProblem.Error>()
 
     private
     val outputDirectory: File by lazy {

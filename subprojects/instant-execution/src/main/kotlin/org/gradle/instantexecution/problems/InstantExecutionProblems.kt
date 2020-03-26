@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.problems
 
-import org.gradle.instantexecution.InstantExecutionErrorException
 import org.gradle.instantexecution.InstantExecutionProblemException
 
 import kotlin.reflect.KClass
@@ -37,11 +36,6 @@ sealed class PropertyProblem {
                 exceptionMessageFor(trace, message), cause
             ))
 
-        fun forError(trace: PropertyTrace, message: StructuredMessage, cause: Throwable) =
-            Error(trace, message, InstantExecutionErrorException(
-                exceptionMessageFor(trace, message), cause
-            ))
-
         private
         fun exceptionMessageFor(trace: PropertyTrace, message: StructuredMessage) =
             propertyDescriptionFor(trace) + ": " + message
@@ -54,16 +48,6 @@ sealed class PropertyProblem {
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
         override val exception: InstantExecutionProblemException
-    ) : PropertyProblem()
-
-    /**
-     * A problem that compromises the execution of the build.
-     * Instant execution state should be discarded.
-     */
-    data class Error internal constructor(
-        override val trace: PropertyTrace,
-        override val message: StructuredMessage,
-        override val exception: InstantExecutionErrorException
     ) : PropertyProblem()
 }
 

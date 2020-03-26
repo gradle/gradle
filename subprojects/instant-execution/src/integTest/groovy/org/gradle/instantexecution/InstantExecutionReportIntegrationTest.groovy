@@ -28,6 +28,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
     def "state serialization errors are reported and fail the build"() {
 
         given:
+        def instant = newInstantExecutionFixture()
         def expectedProblems = withStateSerializationErrors()
         def failureSpec = problems.newFailureSpec(InstantExecutionErrorsException) {
             withUniqueProblems(expectedProblems)
@@ -43,10 +44,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         and:
         problems.expectFailure(result, failureSpec)
+        instant.assertStateStoreFailed()
         failure.assertHasCause("BOOM")
-
-        and: 'state discarded'
-        !file(".instant-execution-state").allDescendants().any { it.endsWith(".fingerprint") }
 
         when:
         problems.withDoNotFailOnProblems()
@@ -57,10 +56,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         and:
         problems.expectFailure(result, failureSpec)
+        instant.assertStateStoreFailed()
         failure.assertHasCause("BOOM")
-
-        and: 'state discarded'
-        !file(".instant-execution-state").allDescendants().any { it.endsWith(".fingerprint") }
     }
 
     def "problems are reported and fail the build by default"() {
@@ -172,8 +169,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             }
         """
         return [
-            "input property 'brokenProperty' of ':brokenInputs': error writing value of type 'BrokenSerializable'",
-            "input property 'otherBrokenProperty' of ':brokenInputs': error writing value of type 'BrokenSerializable'"
+            "input property `brokenProperty` of task `:taskWithStateSerializationError` of type `org.gradle.api.DefaultTask`: error writing value of type 'BrokenSerializable'"
         ]
     }
 

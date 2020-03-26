@@ -19,12 +19,12 @@ package org.gradle.instantexecution.serialization.beans
 import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
+import org.gradle.instantexecution.InstantExecutionErrorException
 import org.gradle.instantexecution.InstantExecutionException
 import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logPropertyError
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
 import java.util.concurrent.Callable
@@ -79,12 +79,11 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
             throw passThrough
         } catch (passThrough: InstantExecutionException) {
             throw passThrough
-        } catch (e: Exception) {
-            logPropertyError("write", e.maybeUnwrapInvocationTargetException()) {
-                text("error writing value of type ")
-                reference(value?.let { unpackedTypeNameOf(it) } ?: "null")
-            }
-            return false
+        } catch (error: Exception) {
+            throw InstantExecutionErrorException(
+                "Instant execution state could not be cached: $trace: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'",
+                error.maybeUnwrapInvocationTargetException()
+            )
         }
         logPropertyInfo("serialize", value)
         return true
