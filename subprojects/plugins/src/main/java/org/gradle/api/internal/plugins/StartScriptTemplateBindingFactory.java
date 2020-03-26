@@ -49,7 +49,7 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
 
     @Override
     public Map<String, String> transform(JavaAppStartScriptGenerationDetails details) {
-        Map<String, String> binding = new HashMap<String, String>();
+        Map<String, String> binding = new HashMap<>();
         binding.put(ScriptBindingParameter.APP_NAME.getKey(), details.getApplicationName());
         binding.put(ScriptBindingParameter.OPTS_ENV_VAR.getKey(), details.getOptsEnvironmentVar());
         binding.put(ScriptBindingParameter.EXIT_ENV_VAR.getKey(), details.getExitEnvironmentVar());
@@ -57,21 +57,25 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         binding.put(ScriptBindingParameter.DEFAULT_JVM_OPTS.getKey(), createJoinedDefaultJvmOpts(details.getDefaultJvmOpts()));
         binding.put(ScriptBindingParameter.APP_NAME_SYS_PROP.getKey(), details.getAppNameSystemProperty());
         binding.put(ScriptBindingParameter.APP_HOME_REL_PATH.getKey(), createJoinedAppHomeRelativePath(details.getScriptRelPath()));
-        binding.put(ScriptBindingParameter.CLASSPATH.getKey(), createJoinedClasspath(details.getClasspath()));
+        binding.put(ScriptBindingParameter.CLASSPATH.getKey(), createJoinedPath(details.getClasspath()));
+        binding.put(ScriptBindingParameter.MODULE_PATH.getKey(), createJoinedPath(details.getModulePath()));
         return binding;
 
     }
 
-    private String createJoinedClasspath(Iterable<String> classpath) {
+    private String createJoinedPath(Iterable<String> path) {
         if (windows) {
-            return Joiner.on(";").join(Iterables.transform(classpath, new Function<String, String>() {
+            return Joiner.on(";").join(Iterables.transform(path, new Function<String, String>() {
                 @Override
                 public String apply(String input) {
                     return "%APP_HOME%\\" + input.replace("/", "\\");
                 }
             }));
         } else {
-            return Joiner.on(":").join(Iterables.transform(classpath, new Function<String, String>() {
+            if (!path.iterator().hasNext()) {
+                return "\"\\\\\\\"\\\\\\\"\""; // empty path argument for shell script
+            }
+            return Joiner.on(":").join(Iterables.transform(path, new Function<String, String>() {
                 @Override
                 public String apply(String input) {
                     return "$APP_HOME/" + input.replace("\\", "/");
@@ -150,19 +154,21 @@ public class StartScriptTemplateBindingFactory implements Transformer<Map<String
         return escapedJvmOpt.toString();
     }
 
-    private static enum ScriptBindingParameter {
+    private enum ScriptBindingParameter {
         APP_NAME("applicationName"),
         OPTS_ENV_VAR("optsEnvironmentVar"),
         EXIT_ENV_VAR("exitEnvironmentVar"),
+        MAIN_MODULE_NAME("mainModuleName"),
         MAIN_CLASSNAME("mainClassName"),
         DEFAULT_JVM_OPTS("defaultJvmOpts"),
         APP_NAME_SYS_PROP("appNameSystemProperty"),
         APP_HOME_REL_PATH("appHomeRelativePath"),
-        CLASSPATH("classpath");
+        CLASSPATH("classpath"),
+        MODULE_PATH("modulePath");
 
         private final String key;
 
-        private ScriptBindingParameter(String key) {
+        ScriptBindingParameter(String key) {
             this.key = key;
         }
 
