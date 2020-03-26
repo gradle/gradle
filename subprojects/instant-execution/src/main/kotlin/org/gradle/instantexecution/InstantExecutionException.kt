@@ -17,61 +17,70 @@
 package org.gradle.instantexecution
 
 import org.gradle.instantexecution.problems.PropertyProblem
-import org.gradle.instantexecution.problems.buildExceptionSummary
+import org.gradle.instantexecution.problems.buildConsoleSummary
 
 import org.gradle.internal.exceptions.Contextual
-import org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 
 import java.io.File
 
 
-@Contextual
-sealed class InstantExecutionException(
-    message: String,
-    problems: List<PropertyProblem>,
-    htmlReportFile: File
-) : DefaultMultiCauseExceptionNoStackTrace(
-    { "$message\n${buildExceptionSummary(problems, htmlReportFile)}" },
-    problems.map(PropertyProblem::exception)
-)
+/**
+ * Marker interface for exception handling.
+ */
+internal interface InstantExecutionThrowable
 
+
+/**
+ * State might be corrupted and should be discarded.
+ */
 @Contextual
-class InstantExecutionErrorException(
+class InstantExecutionError internal constructor(
     error: String,
     cause: Throwable? = null
-) : Exception(error, cause) {
-    override fun fillInStackTrace() = this
-}
-
-
-class TooManyInstantExecutionProblemsException(
-    problems: List<PropertyProblem>,
-    htmlReportFile: File
-) : InstantExecutionException(MESSAGE, problems, htmlReportFile) {
-    companion object {
-        const val MESSAGE =
-            "Maximum number of instant execution problems has been reached.\n" +
-                "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
-    }
-}
-
-
-class InstantExecutionProblemsException(
-    problems: List<PropertyProblem>,
-    htmlReportFile: File
-) : InstantExecutionException(MESSAGE, problems, htmlReportFile) {
-    companion object {
-        const val MESSAGE =
-            "Problems found while caching instant execution state.\n" +
-                "Failing because -D${SystemProperties.failOnProblems} is 'true'."
-    }
-}
+) : Exception(
+    "Instant execution state could not be cached: $error",
+    cause
+), InstantExecutionThrowable
 
 
 @Contextual
-class InstantExecutionProblemException(
-    message: String,
-    cause: Throwable? = null
-) : Exception(message, cause) {
-    override fun fillInStackTrace() = this
+sealed class InstantExecutionException private constructor(
+    message: () -> String,
+    causes: Iterable<Throwable>
+) : DefaultMultiCauseException(message, causes), InstantExecutionThrowable
+
+
+open class InstantExecutionProblemsException : InstantExecutionException {
+
+    protected constructor(
+        message: String,
+        problems: List<PropertyProblem>,
+        htmlReportFile: File
+    ) : super(
+        { "$message\n${buildConsoleSummary(problems, htmlReportFile)}" },
+        problems.mapNotNull(PropertyProblem::exception)
+    )
+
+    internal constructor(
+        problems: List<PropertyProblem>,
+        htmlReportFile: File
+    ) : this(
+        "Problems found while caching instant execution state.\n" +
+            "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
+        problems,
+        htmlReportFile
+    )
 }
+
+
+class TooManyInstantExecutionProblemsException internal constructor(
+    problems: List<PropertyProblem>,
+    htmlReportFile: File
+) : InstantExecutionProblemsException(
+    "Maximum number of instant execution problems has been reached.\n" +
+        "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>.",
+    problems,
+    htmlReportFile
+)
+

@@ -16,8 +16,6 @@
 
 package org.gradle.instantexecution.problems
 
-import org.gradle.instantexecution.InstantExecutionProblemException
-
 import kotlin.reflect.KClass
 
 
@@ -27,19 +25,7 @@ sealed class PropertyProblem {
 
     abstract val message: StructuredMessage
 
-    abstract val exception: Throwable
-
-    companion object {
-
-        fun forWarning(trace: PropertyTrace, message: StructuredMessage, cause: Throwable? = null) =
-            Warning(trace, message, InstantExecutionProblemException(
-                exceptionMessageFor(trace, message), cause
-            ))
-
-        private
-        fun exceptionMessageFor(trace: PropertyTrace, message: StructuredMessage) =
-            propertyDescriptionFor(trace) + ": " + message
-    }
+    abstract val exception: Throwable?
 
     /**
      * A problem that does not necessarily compromise the execution of the build.
@@ -47,7 +33,7 @@ sealed class PropertyProblem {
     data class Warning internal constructor(
         override val trace: PropertyTrace,
         override val message: StructuredMessage,
-        override val exception: InstantExecutionProblemException
+        override val exception: Throwable? = null
     ) : PropertyProblem()
 }
 

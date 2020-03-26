@@ -19,11 +19,12 @@ package org.gradle.instantexecution.serialization.beans
 import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
-import org.gradle.instantexecution.InstantExecutionErrorException
-import org.gradle.instantexecution.InstantExecutionException
+import org.gradle.instantexecution.InstantExecutionError
+import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.serialization.Codec
+import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
@@ -77,13 +78,10 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
             write(value)
         } catch (passThrough: IOException) {
             throw passThrough
-        } catch (passThrough: InstantExecutionException) {
+        } catch (passThrough: InstantExecutionProblemsException) {
             throw passThrough
         } catch (error: Exception) {
-            throw InstantExecutionErrorException(
-                "Instant execution state could not be cached: $trace: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'",
-                error.maybeUnwrapInvocationTargetException()
-            )
+            throw InstantExecutionError(propertyErrorMessage(value), error.maybeUnwrapInvocationTargetException())
         }
         logPropertyInfo("serialize", value)
         return true
@@ -92,4 +90,10 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 
 
 private
-fun unpackedTypeNameOf(value: Any) = GeneratedSubclasses.unpackType(value).name
+fun IsolateContext.propertyErrorMessage(value: Any?) =
+    "$trace: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'"
+
+
+private
+fun unpackedTypeNameOf(value: Any) =
+    GeneratedSubclasses.unpackType(value).name

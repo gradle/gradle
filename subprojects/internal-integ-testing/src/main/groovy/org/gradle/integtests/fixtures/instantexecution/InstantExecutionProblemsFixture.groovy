@@ -20,12 +20,9 @@ import groovy.transform.PackageScope
 
 import org.gradle.api.Action
 
-import org.gradle.instantexecution.InstantExecutionErrorException
-import org.gradle.instantexecution.InstantExecutionErrorsException
-import org.gradle.instantexecution.InstantExecutionException
-import org.gradle.instantexecution.InstantExecutionProblemException
+import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.SystemProperties
-
+import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -74,7 +71,7 @@ final class InstantExecutionProblemsFixture {
 
     void expectFailure(
         ExecutionResult result,
-        Class<? extends InstantExecutionException> exceptionType,
+        Class<? extends InstantExecutionProblemsException> exceptionType,
         @DelegatesTo(value = InstantExecutionFailureSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         expectFailure(result, exceptionType, ConfigureUtil.configureUsing(specClosure))
@@ -82,7 +79,7 @@ final class InstantExecutionProblemsFixture {
 
     void expectFailure(
         ExecutionResult result,
-        Class<? extends InstantExecutionException> exceptionType,
+        Class<? extends InstantExecutionProblemsException> exceptionType,
         Action<InstantExecutionFailureSpec> specAction = {}
     ) {
         expectFailure(result, newFailureSpec(exceptionType, specAction))
@@ -93,14 +90,14 @@ final class InstantExecutionProblemsFixture {
     }
 
     static InstantExecutionFailureSpec newFailureSpec(
-        Class<? extends InstantExecutionException> exception,
+        Class<? extends InstantExecutionProblemsException> exception,
         @DelegatesTo(value = InstantExecutionFailureSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
         return newFailureSpec(exception, ConfigureUtil.configureUsing(specClosure))
     }
 
     static InstantExecutionFailureSpec newFailureSpec(
-        Class<? extends InstantExecutionException> exception,
+        Class<? extends InstantExecutionProblemsException> exception,
         Action<InstantExecutionFailureSpec> specAction = {}
     ) {
         def spec = new InstantExecutionFailureSpec(exception)
@@ -198,7 +195,7 @@ final class InstantExecutionWarningsSpec extends InstantExecutionProblemSpec {
 
     private static void assertUniqueProblemsInOutput(String output, List<String> uniqueProblems) {
         def uniqueProblemsCount = uniqueProblems.size()
-        def problems = uniqueProblems.collect { "> $it".toString() }
+        def problems = uniqueProblems.collect { "- $it".toString() }
         def found = 0
         output.readLines().eachWithIndex { String line, int idx ->
             if (problems.remove(line.trim())) {
@@ -213,7 +210,7 @@ final class InstantExecutionWarningsSpec extends InstantExecutionProblemSpec {
 
 final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
 
-    private final Class<? extends InstantExecutionException> exceptionType
+    private final Class<? extends InstantExecutionProblemsException> exceptionType
 
     private final List<String> uniqueProblems = []
 
@@ -233,7 +230,7 @@ final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
     private Integer locationLineNumber
 
     @PackageScope
-    InstantExecutionFailureSpec(Class<? extends InstantExecutionException> exceptionType) {
+    InstantExecutionFailureSpec(Class<? extends InstantExecutionProblemsException> exceptionType) {
         this.exceptionType = exceptionType
     }
 
@@ -276,7 +273,9 @@ final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
 
         assert result instanceof ExecutionFailure
 
-        def exceptionMessagePrefix = exceptionType.getField("MESSAGE").get(null).toString()
+        def exceptionMessagePrefix = exceptionType == TooManyInstantExecutionProblemsException
+            ? "Maximum number of instant execution problems has been reached.\nThis behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
+            : "Problems found while caching instant execution state.\nFailing because -D${SystemProperties.failOnProblems} is 'true'."
         def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
 
         // No console log summary in stdout
@@ -286,7 +285,8 @@ final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
         def failureMatcher = allOf(
             startsWith(exceptionMessagePrefix),
             containsString(summaryHeader),
-            matchesRegexp(".*See the complete report at file:.*${PROBLEMS_REPORT_HTML_FILE_NAME}")
+            containsString("See the complete report at file:"),
+            containsString(PROBLEMS_REPORT_HTML_FILE_NAME)
         )
         if (rootCauseDescription) {
             result.assertHasDescription(rootCauseDescription)
@@ -294,22 +294,19 @@ final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
         } else {
             result.assertThatDescription(failureMatcher)
         }
-        uniqueProblems.each { problem ->
-            result.assertHasCause(problem)
-        }
 
         // Stacktrace contains problems
         assertThat(result.error, containsNormalizedString(
-            "${exceptionType.name}: $exceptionMessagePrefix\n$summaryHeader\nSee the complete report at"
+            "${exceptionType.name}: $exceptionMessagePrefix\n\n$summaryHeader"
         ))
-        def detailExceptionType = exceptionType == InstantExecutionErrorsException
-            ? InstantExecutionErrorException
-            : InstantExecutionProblemException
-        if (totalCount == 1) {
-            assertThat(result.error, containsString("Caused by: ${detailExceptionType.name}: ${uniqueProblems.first()}"))
-        } else {
-            (1..totalCount).each { problemNumber ->
-                assertThat(result.error, containsString("Cause $problemNumber: ${detailExceptionType.name}:"))
+        if (problemsWithStackTraceCount == 0) {
+            result.assertHasNoCause()
+            assertThat(result.error, not(containsString("Cause")))
+        } else if (problemsWithStackTraceCount == 1) {
+            assertThat(result.error, containsString("Caused by: "))
+        } else if (problemsWithStackTraceCount != null) {
+            (1..problemsWithStackTraceCount).each { problemNumber ->
+                assertThat(result.error, containsString("Cause $problemNumber: "))
             }
         }
 

@@ -25,26 +25,19 @@ typealias UniquePropertyProblem = Pair<String, StructuredMessage>
 
 
 internal
-fun buildExceptionSummary(problems: List<PropertyProblem>, reportFile: File): String =
-    StringBuilder().apply {
-        appendln(buildSummaryHeader(problems.size, uniquePropertyProblems(problems)))
-        append(buildSummaryReportLink(reportFile))
-    }.toString()
-
-
-internal
 fun buildConsoleSummary(problems: List<PropertyProblem>, reportFile: File): String {
     val uniquePropertyProblems = uniquePropertyProblems(problems)
     return StringBuilder().apply {
         appendln()
         appendln(buildSummaryHeader(problems.size, uniquePropertyProblems))
         uniquePropertyProblems.forEach { (property, message) ->
-            append("  > ")
+            append("- ")
             append(property)
             append(": ")
             appendln(message)
         }
-        appendln(buildSummaryReportLink(reportFile))
+        appendln()
+        append(buildSummaryReportLink(reportFile))
     }.toString()
 }
 

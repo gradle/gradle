@@ -90,11 +90,11 @@ class InstantExecutionReport(
 
         private
         val BuildResult.isInstantExecutionErrorFailure
-            get() = failure?.isOrHasCause(InstantExecutionErrorException::class) == true
+            get() = failure?.isOrHasCause(InstantExecutionError::class) == true
 
         private
         val BuildResult.isInstantExecutionProblemsFailure
-            get() = failure?.isOrHasCause(InstantExecutionException::class) == true
+            get() = failure?.isOrHasCause(InstantExecutionProblemsException::class) == true
     }
 
     private
@@ -120,7 +120,7 @@ class InstantExecutionReport(
         val fatalError = runWithExceptionHandling(block)
 
         if (fatalError != null) {
-            require(fatalError is InstantExecutionException || fatalError is InstantExecutionErrorException)
+            require(fatalError is InstantExecutionThrowable)
             return fatalError
         }
 
@@ -139,8 +139,7 @@ class InstantExecutionReport(
             null
         } catch (e: Throwable) {
             when (val cause = e.maybeUnwrapInvocationTargetException()) {
-                is InstantExecutionException -> cause
-                is InstantExecutionErrorException -> cause
+                is InstantExecutionThrowable -> cause
                 else -> throw cause
             }
         }
@@ -224,7 +223,7 @@ class InstantExecutionReport(
 
     private
     fun stackTraceStringOf(problem: PropertyProblem): String? =
-        problem.exception.cause?.let {
+        problem.exception?.let {
             stackTraceStringFor(it)
         }
 

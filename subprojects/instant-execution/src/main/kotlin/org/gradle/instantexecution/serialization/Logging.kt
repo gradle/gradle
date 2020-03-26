@@ -19,7 +19,6 @@ package org.gradle.instantexecution.serialization
 import org.gradle.api.internal.GeneratedSubclasses
 
 import org.gradle.instantexecution.problems.PropertyProblem
-import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.instantexecution.problems.StructuredMessage.Companion.build
 
@@ -30,7 +29,7 @@ typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
 fun IsolateContext.logPropertyWarning(action: String, exception: Throwable? = null, message: StructuredMessageBuilder) {
-    logPropertyProblem(action, PropertyProblem.forWarning(trace, build(message), exception))
+    logPropertyProblem(action, PropertyProblem.Warning(trace, build(message), exception))
 }
 
 
@@ -77,7 +76,7 @@ fun IsolateContext.logNotImplemented(feature: String) {
 
 private
 fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
-    val problem = PropertyProblem.forWarning(trace, build(message))
+    val problem = PropertyProblem.Warning(trace, build(message))
     logPropertyProblem("serialize", problem)
 }
 

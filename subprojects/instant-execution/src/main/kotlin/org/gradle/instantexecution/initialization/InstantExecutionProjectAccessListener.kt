@@ -51,7 +51,7 @@ class InstantExecutionProjectAccessListener internal constructor(
                     invocationSource.path
                 )
                 else PropertyTrace.Unknown
-            report.add(PropertyProblem.forWarning(
+            report.add(PropertyProblem.Warning(
                 trace,
                 StructuredMessage.build { text(message) },
                 exception
