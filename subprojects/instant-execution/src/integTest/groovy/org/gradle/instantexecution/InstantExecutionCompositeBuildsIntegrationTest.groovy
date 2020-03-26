@@ -33,7 +33,7 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         instantFails("help")
 
         then:
-        problems.expectFailure(result, InstantExecutionProblemsException) {
+        problems.assertFailureHasProblems(failure) {
             withUniqueProblems(expectedProblem)
         }
 
@@ -43,7 +43,7 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
 
         then:
         instantExecution.assertStateStored()
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblem)
         }
 

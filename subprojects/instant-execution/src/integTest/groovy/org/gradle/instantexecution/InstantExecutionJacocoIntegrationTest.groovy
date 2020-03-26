@@ -43,7 +43,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         instantFails 'test', 'jacocoTestReport'
 
         then:
-        problems.expectFailure(result, InstantExecutionProblemsException) {
+        problems.assertFailureHasProblems(failure) {
             withUniqueProblems(expectedProblems)
             withTotalProblemsCount(expectedProblemCount)
         }
@@ -54,7 +54,7 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         instantExecution.assertStateStored()
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withTotalProblemsCount(expectedProblemCount)
             withUniqueProblems(expectedProblems)
         }

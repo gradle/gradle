@@ -17,19 +17,14 @@
 package org.gradle.integtests.fixtures.instantexecution
 
 import groovy.transform.PackageScope
-
 import org.gradle.api.Action
-
-import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.SystemProperties
-import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.internal.logging.ConsoleRenderer
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ConfigureUtil
-
 import org.hamcrest.Matcher
 
 import javax.annotation.Nullable
@@ -38,7 +33,6 @@ import javax.script.ScriptEngineManager
 import java.nio.file.Paths
 import java.util.regex.Pattern
 
-import static org.gradle.util.Matchers.matchesRegexp
 import static org.gradle.util.Matchers.normalizedLineSeparators
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
@@ -52,6 +46,8 @@ import static org.junit.Assert.assertTrue
 
 
 final class InstantExecutionProblemsFixture {
+
+    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
 
     private final GradleExecuter executer
     private final File rootDir
@@ -69,114 +65,187 @@ final class InstantExecutionProblemsFixture {
         executer.withArgument("-D${SystemProperties.failOnProblems}=false")
     }
 
-    void expectFailure(
-        ExecutionResult result,
-        Class<? extends InstantExecutionProblemsException> exceptionType,
-        @DelegatesTo(value = InstantExecutionFailureSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    void assertFailureHasError(
+        ExecutionFailure failure,
+        String error,
+        @DelegatesTo(value = HasInstantExecutionErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
-        expectFailure(result, exceptionType, ConfigureUtil.configureUsing(specClosure))
+        assertFailureHasError(failure, error, ConfigureUtil.configureUsing(specClosure))
     }
 
-    void expectFailure(
-        ExecutionResult result,
-        Class<? extends InstantExecutionProblemsException> exceptionType,
-        Action<InstantExecutionFailureSpec> specAction = {}
+    void assertFailureHasError(
+        ExecutionFailure failure,
+        String error,
+        Action<HasInstantExecutionErrorSpec> specAction = {}
     ) {
-        expectFailure(result, newFailureSpec(exceptionType, specAction))
+        assertFailureHasError(failure, newErrorSpec(error, specAction))
     }
 
-    void expectFailure(ExecutionResult result, InstantExecutionFailureSpec spec) {
-        spec.assertOn(result, rootDir)
+    void assertFailureHasError(
+        ExecutionFailure failure,
+        HasInstantExecutionErrorSpec spec
+    ) {
+        spec.validateSpec()
+
+        assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForError(spec))
+
+        if (spec.hasProblems()) {
+            assertProblemsConsoleSummary(failure.output, spec)
+            assertProblemsHtmlReport(failure.output, rootDir, spec)
+        } else {
+            assertNoConsoleLogSummaryIn(failure.output)
+        }
     }
 
-    static InstantExecutionFailureSpec newFailureSpec(
-        Class<? extends InstantExecutionProblemsException> exception,
-        @DelegatesTo(value = InstantExecutionFailureSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    HasInstantExecutionErrorSpec newErrorSpec(
+        String error,
+        @DelegatesTo(value = HasInstantExecutionErrorSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
-        return newFailureSpec(exception, ConfigureUtil.configureUsing(specClosure))
+        return newErrorSpec(error, ConfigureUtil.configureUsing(specClosure))
     }
 
-    static InstantExecutionFailureSpec newFailureSpec(
-        Class<? extends InstantExecutionProblemsException> exception,
-        Action<InstantExecutionFailureSpec> specAction = {}
+    HasInstantExecutionErrorSpec newErrorSpec(
+        String error,
+        Action<HasInstantExecutionErrorSpec> specAction = {}
     ) {
-        def spec = new InstantExecutionFailureSpec(exception)
+        def spec = new HasInstantExecutionErrorSpec(error)
         specAction.execute(spec)
         return spec
     }
 
-    void expectWarnings(
+    void assertFailureHasProblems(
+        ExecutionFailure failure,
+        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertFailureHasProblems(failure, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertFailureHasProblems(
+        ExecutionFailure failure,
+        Action<HasInstantExecutionProblemsSpec> specAction = {}
+    ) {
+        assertFailureHasProblems(failure, newProblemsSpec(specAction))
+    }
+
+    void assertFailureHasProblems(
+        ExecutionFailure failure,
+        HasInstantExecutionProblemsSpec spec
+    ) {
+        assertNoConsoleLogSummaryIn(failure.output)
+        assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForProblems(spec))
+        assertProblemsConsoleSummary(failure.error, spec)
+        assertProblemsHtmlReport(failure.error, rootDir, spec)
+    }
+
+    void assertFailureHasTooManyProblems(
+        ExecutionFailure failure,
+        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    ) {
+        assertFailureHasTooManyProblems(failure, ConfigureUtil.configureUsing(specClosure))
+    }
+
+    void assertFailureHasTooManyProblems(
+        ExecutionFailure failure,
+        Action<HasInstantExecutionProblemsSpec> specAction = {}
+    ) {
+        assertFailureHasTooManyProblems(failure, newProblemsSpec(specAction))
+    }
+
+    void assertFailureHasTooManyProblems(
+        ExecutionFailure failure,
+        HasInstantExecutionProblemsSpec spec
+    ) {
+        assertNoConsoleLogSummaryIn(failure.output)
+        assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForTooManyProblems(spec))
+        assertProblemsConsoleSummary(failure.error, spec)
+        assertProblemsHtmlReport(failure.error, rootDir, spec)
+    }
+
+    void assertResultHasProblems(
         ExecutionResult result,
-        @DelegatesTo(value = InstantExecutionWarningsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
-        expectWarnings(result, ConfigureUtil.configureUsing(specClosure))
+        assertResultHasProblems(result, ConfigureUtil.configureUsing(specClosure))
     }
 
-    void expectWarnings(
+    void assertResultHasProblems(
         ExecutionResult result,
-        Action<InstantExecutionWarningsSpec> specAction = {}
+        Action<HasInstantExecutionProblemsSpec> specAction = {}
     ) {
-        expectWarnings(result, newWarningsSpec(specAction))
+        assertResultHasProblems(result, newProblemsSpec(specAction))
     }
 
-    void expectWarnings(ExecutionResult result, InstantExecutionWarningsSpec spec) {
-        spec.assertOn(result, rootDir)
+    void assertResultHasProblems(
+        ExecutionResult result,
+        HasInstantExecutionProblemsSpec spec
+    ) {
+        // assert !(result instanceof ExecutionFailure)
+        assertProblemsConsoleSummary(result.output, spec)
+        assertProblemsHtmlReport(result.output, rootDir, spec)
     }
 
-    static InstantExecutionWarningsSpec newWarningsSpec(
-        @DelegatesTo(value = InstantExecutionWarningsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
+    HasInstantExecutionProblemsSpec newProblemsSpec(
+        @DelegatesTo(value = HasInstantExecutionProblemsSpec, strategy = Closure.DELEGATE_FIRST) Closure<?> specClosure
     ) {
-        return newWarningsSpec(ConfigureUtil.configureUsing(specClosure))
+        return newProblemsSpec(ConfigureUtil.configureUsing(specClosure))
     }
 
-    static InstantExecutionWarningsSpec newWarningsSpec(
-        Action<InstantExecutionWarningsSpec> specAction = {}
+    HasInstantExecutionProblemsSpec newProblemsSpec(
+        Action<HasInstantExecutionProblemsSpec> specAction = {}
     ) {
-        def spec = new InstantExecutionWarningsSpec()
+        def spec = new HasInstantExecutionProblemsSpec()
         specAction.execute(spec)
         return spec
     }
-}
 
-
-final class InstantExecutionWarningsSpec extends InstantExecutionProblemSpec {
-
-    private final List<String> uniqueProblems = []
-
-    @Nullable
-    private Integer totalProblemsCount
-
-    @Nullable
-    private Integer problemsWithStackTraceCount
-
-    InstantExecutionWarningsSpec withUniqueProblems(String... uniqueProblems) {
-        return withUniqueProblems(uniqueProblems as List)
+    private static Matcher<String> failureDescriptionMatcherForError(HasInstantExecutionErrorSpec spec) {
+        return equalTo("Instant execution state could not be cached: ${spec.error}".toString())
     }
 
-    InstantExecutionWarningsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
-        this.uniqueProblems.clear()
-        this.uniqueProblems.addAll(uniqueProblems)
-        return this
+    private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
+        def uniqueCount = spec.uniqueProblems.size()
+        def totalCount = spec.totalProblemsCount ?: uniqueCount
+        def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
+        return allOf(
+            startsWith("Problems found while caching instant execution state.\nFailing because -D${SystemProperties.failOnProblems} is 'true'."),
+            containsString(summaryHeader),
+            containsString("See the complete report at file:"),
+            containsString(PROBLEMS_REPORT_HTML_FILE_NAME)
+        )
     }
 
-    InstantExecutionWarningsSpec withTotalProblemsCount(int totalProblemsCount) {
-        this.totalProblemsCount = totalProblemsCount
-        return this
+    private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
+        def uniqueCount = spec.uniqueProblems.size()
+        def totalCount = spec.totalProblemsCount ?: uniqueCount
+        def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
+        return allOf(
+            startsWith("Maximum number of instant execution problems has been reached.\nThis behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."),
+            containsString(summaryHeader),
+            containsString("See the complete report at file:"),
+            containsString(PROBLEMS_REPORT_HTML_FILE_NAME)
+        )
     }
 
-    InstantExecutionWarningsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
-        this.problemsWithStackTraceCount = problemsWithStackTraceCount
-        return this
+    private static void assertNoConsoleLogSummaryIn(String text) {
+        assertThat(text, not(containsString("instant execution problem")))
     }
 
-    @PackageScope
-    void assertOn(ExecutionResult result, File rootDir) {
-        def uniqueCount = uniqueProblems.size()
-        def totalCount = totalProblemsCount ?: uniqueCount
-        validateExpectedProblems(totalCount, uniqueCount, problemsWithStackTraceCount)
+    private static void assertFailureDescription(
+        ExecutionFailure failure,
+        @Nullable String rootCauseDescription = null,
+        Matcher<String> failureMatcher
+    ) {
+        if (rootCauseDescription) {
+            failure.assertHasDescription(rootCauseDescription)
+            failure.assertThatCause(failureMatcher)
+        } else {
+            failure.assertThatDescription(failureMatcher)
+        }
+    }
 
-        assertProblemsConsoleSummary(result.output, totalCount, uniqueProblems)
-        assertProblemsHtmlReport(rootDir, result.output, totalCount, uniqueCount, problemsWithStackTraceCount)
+    private static void assertProblemsConsoleSummary(String output, HasInstantExecutionProblemsSpec spec) {
+        def totalCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
+        assertProblemsConsoleSummary(output, totalCount, spec.uniqueProblems)
     }
 
     private static void assertProblemsConsoleSummary(String output, int totalProblemsCount, List<String> uniqueProblems) {
@@ -205,152 +274,25 @@ final class InstantExecutionWarningsSpec extends InstantExecutionProblemSpec {
         }
         assert problems.empty, "Expected ${uniqueProblemsCount} unique problems, found ${found} unique problems, remaining:\n${problems.collect { " - $it" }.join("\n")}"
     }
-}
 
-
-final class InstantExecutionFailureSpec extends InstantExecutionProblemSpec {
-
-    private final Class<? extends InstantExecutionProblemsException> exceptionType
-
-    private final List<String> uniqueProblems = []
-
-    @Nullable
-    private String rootCauseDescription
-
-    @Nullable
-    private Integer totalProblemsCount
-
-    @Nullable
-    private Integer problemsWithStackTraceCount
-
-    @Nullable
-    private String locationFilename
-
-    @Nullable
-    private Integer locationLineNumber
-
-    @PackageScope
-    InstantExecutionFailureSpec(Class<? extends InstantExecutionProblemsException> exceptionType) {
-        this.exceptionType = exceptionType
-    }
-
-    InstantExecutionFailureSpec withUniqueProblems(String... uniqueProblems) {
-        return withUniqueProblems(uniqueProblems as List)
-    }
-
-    InstantExecutionFailureSpec withUniqueProblems(Iterable<String> uniqueProblems) {
-        this.uniqueProblems.clear()
-        this.uniqueProblems.addAll(uniqueProblems)
-        return this
-    }
-
-    InstantExecutionFailureSpec withRootCauseDescription(String rootCauseDescription) {
-        this.rootCauseDescription = rootCauseDescription
-        return this
-    }
-
-    InstantExecutionFailureSpec withTotalProblemsCount(int totalProblemsCount) {
-        this.totalProblemsCount = totalProblemsCount
-        return this
-    }
-
-    InstantExecutionFailureSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
-        this.problemsWithStackTraceCount = problemsWithStackTraceCount
-        return this
-    }
-
-    InstantExecutionFailureSpec withLocation(String filename, int lineNumber) {
-        locationFilename = filename
-        locationLineNumber = lineNumber
-        return this
-    }
-
-    @PackageScope
-    void assertOn(ExecutionResult result, File rootDir) {
-        def uniqueCount = uniqueProblems.size()
-        def totalCount = totalProblemsCount ?: uniqueCount
-        validateExpectedProblems(totalCount, uniqueCount, problemsWithStackTraceCount)
-
-        assert result instanceof ExecutionFailure
-
-        def exceptionMessagePrefix = exceptionType == TooManyInstantExecutionProblemsException
-            ? "Maximum number of instant execution problems has been reached.\nThis behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
-            : "Problems found while caching instant execution state.\nFailing because -D${SystemProperties.failOnProblems} is 'true'."
-        def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
-
-        // No console log summary in stdout
-        assertThat(result.output, not(containsString("instant execution problem")))
-
-        // Build failure details problems
-        def failureMatcher = allOf(
-            startsWith(exceptionMessagePrefix),
-            containsString(summaryHeader),
-            containsString("See the complete report at file:"),
-            containsString(PROBLEMS_REPORT_HTML_FILE_NAME)
-        )
-        if (rootCauseDescription) {
-            result.assertHasDescription(rootCauseDescription)
-            result.assertThatCause(failureMatcher)
-        } else {
-            result.assertThatDescription(failureMatcher)
-        }
-
-        // Stacktrace contains problems
-        assertThat(result.error, containsNormalizedString(
-            "${exceptionType.name}: $exceptionMessagePrefix\n\n$summaryHeader"
-        ))
-        if (problemsWithStackTraceCount == 0) {
-            result.assertHasNoCause()
-            assertThat(result.error, not(containsString("Cause")))
-        } else if (problemsWithStackTraceCount == 1) {
-            assertThat(result.error, containsString("Caused by: "))
-        } else if (problemsWithStackTraceCount != null) {
-            (1..problemsWithStackTraceCount).each { problemNumber ->
-                assertThat(result.error, containsString("Cause $problemNumber: "))
-            }
-        }
-
-        assertProblemsHtmlReport(rootDir, result.error, totalCount, uniqueCount, problemsWithStackTraceCount)
-        assertLocationOn(result)
-    }
-
-    private void assertLocationOn(ExecutionFailure failure) {
-        if (locationFilename != null) {
-            failure.assertHasFileName(locationFilename)
-        }
-        if (locationLineNumber != null) {
-            failure.assertHasLineNumber(locationLineNumber)
-        }
-    }
-}
-
-
-@PackageScope
-abstract class InstantExecutionProblemSpec {
-
-    protected static final String PROBLEMS_REPORT_HTML_FILE_NAME = "instant-execution-report.html"
-
-    protected static void validateExpectedProblems(
-        int totalProblemsCount,
-        int uniqueProblemsCount,
-        @Nullable Integer problemsWithStackTraceCount
-    ) {
-        if (totalProblemsCount < uniqueProblemsCount) {
-            throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
-        }
-        if (problemsWithStackTraceCount != null) {
-            if (problemsWithStackTraceCount < 0) {
-                throw new IllegalArgumentException("Count of problems with stacktrace can't be negative.")
-            }
-            if (problemsWithStackTraceCount > totalProblemsCount) {
-                throw new IllegalArgumentException("Count of problems with stacktrace can't be greater that count of total problems.")
-            }
-        }
-    }
 
     protected static String problemsSummaryHeaderFor(int totalProblems, int uniqueProblems) {
         return "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found, " +
             "${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
+    }
+
+    protected static void assertProblemsHtmlReport(
+        String output,
+        File rootDir,
+        HasInstantExecutionProblemsSpec spec
+    ) {
+        assertProblemsHtmlReport(
+            rootDir,
+            output,
+            spec.totalProblemsCount ? spec.totalProblemsCount : spec.uniqueProblems.size(),
+            spec.uniqueProblems.size(),
+            spec.problemsWithStackTraceCount
+        )
     }
 
     protected static void assertProblemsHtmlReport(
@@ -423,3 +365,80 @@ abstract class InstantExecutionProblemSpec {
         return normalizedLineSeparators(containsString(string))
     }
 }
+
+final class HasInstantExecutionErrorSpec extends HasInstantExecutionProblemsSpec {
+
+    @PackageScope
+    String error
+
+    @PackageScope
+    HasInstantExecutionErrorSpec(String error) {
+        this.error = error
+    }
+}
+
+
+class HasInstantExecutionProblemsSpec {
+
+    @Nullable
+    @PackageScope
+    String rootCauseDescription
+
+    @PackageScope
+    final List<String> uniqueProblems = []
+
+    @Nullable
+    @PackageScope
+    Integer totalProblemsCount
+
+    @Nullable
+    @PackageScope
+    Integer problemsWithStackTraceCount
+
+    @PackageScope
+    void validateSpec() {
+        def totalCount = totalProblemsCount ?: uniqueProblems.size()
+        if (totalCount < uniqueProblems.size()) {
+            throw new IllegalArgumentException("Count of total problems can't be lesser than count of unique problems.")
+        }
+        if (problemsWithStackTraceCount != null) {
+            if (problemsWithStackTraceCount < 0) {
+                throw new IllegalArgumentException("Count of problems with stacktrace can't be negative.")
+            }
+            if (problemsWithStackTraceCount > totalCount) {
+                throw new IllegalArgumentException("Count of problems with stacktrace can't be greater that count of total problems.")
+            }
+        }
+    }
+
+    @PackageScope
+    boolean hasProblems() {
+        return !uniqueProblems.isEmpty()
+    }
+
+    HasInstantExecutionProblemsSpec withRootCauseDescription(String rootCauseDescription) {
+        this.rootCauseDescription = rootCauseDescription
+        return this
+    }
+
+    HasInstantExecutionProblemsSpec withUniqueProblems(String... uniqueProblems) {
+        return withUniqueProblems(uniqueProblems as List)
+    }
+
+    HasInstantExecutionProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
+        this.uniqueProblems.clear()
+        this.uniqueProblems.addAll(uniqueProblems)
+        return this
+    }
+
+    HasInstantExecutionProblemsSpec withTotalProblemsCount(int totalProblemsCount) {
+        this.totalProblemsCount = totalProblemsCount
+        return this
+    }
+
+    HasInstantExecutionProblemsSpec withProblemsWithStackTraceCount(int problemsWithStackTraceCount) {
+        this.problemsWithStackTraceCount = problemsWithStackTraceCount
+        return this
+    }
+}
+

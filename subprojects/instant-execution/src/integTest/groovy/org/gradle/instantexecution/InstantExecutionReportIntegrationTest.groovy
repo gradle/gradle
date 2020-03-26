@@ -29,34 +29,38 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         given:
         def instant = newInstantExecutionFixture()
-        def expectedProblems = withStateSerializationErrors()
-        def failureSpec = problems.newFailureSpec(InstantExecutionErrorsException) {
-            withUniqueProblems(expectedProblems)
-            withProblemsWithStackTraceCount(2)
-            withLocation("Build file '${buildFile.absolutePath}'", 4)
+        def stateSerializationProblems = withStateSerializationProblems()
+        def stateSerializationErrors = withStateSerializationErrors()
+        def errorSpec = problems.newErrorSpec(stateSerializationErrors.first()) {
+            withUniqueProblems(stateSerializationProblems)
+            withProblemsWithStackTraceCount(0)
         }
 
         when:
-        instantFails 'brokenInputs'
+        instantFails 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
 
         then:
-        notExecuted('brokenInputs')
+        notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
 
         and:
-        problems.expectFailure(result, failureSpec)
         instant.assertStateStoreFailed()
+        problems.assertFailureHasError(failure, errorSpec)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(9)
         failure.assertHasCause("BOOM")
 
         when:
         problems.withDoNotFailOnProblems()
-        instantFails 'brokenInputs'
+        instantFails 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
 
         then:
-        notExecuted('brokenInputs')
+        notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
 
         and:
-        problems.expectFailure(result, failureSpec)
         instant.assertStateStoreFailed()
+        problems.assertFailureHasError(failure, errorSpec)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(9)
         failure.assertHasCause("BOOM")
     }
 
@@ -68,34 +72,34 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def taskExecutionProblems = withTaskExecutionProblems()
 
         when:
-        instantFails 'broken', 'a', 'b'
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b'
 
         then:
-        notExecuted(':broken', ':a', ':b')
-        problems.expectFailure(result, InstantExecutionProblemsException) {
+        notExecuted(':taskWithStateSerializationProblems', ':a', ':b')
+        problems.assertFailureHasProblems(failure) {
             withUniqueProblems(stateSerializationProblems)
             withProblemsWithStackTraceCount(0)
         }
 
         when:
         problems.withDoNotFailOnProblems()
-        instantRun 'broken', 'a', 'b'
+        instantRun 'taskWithStateSerializationProblems', 'a', 'b'
 
         then:
-        executed(':broken', ':a', ':b')
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
         instantExecution.assertStateStored()
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(stateSerializationProblems + taskExecutionProblems)
             withProblemsWithStackTraceCount(2)
         }
 
         when:
-        instantFails 'broken', 'a', 'b'
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b'
 
         then:
-        executed(':broken', ':a', ':b')
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
         instantExecution.assertStateLoaded()
-        problems.expectFailure(result, InstantExecutionProblemsException) {
+        problems.assertFailureHasProblems(failure) {
             withUniqueProblems(taskExecutionProblems)
             withProblemsWithStackTraceCount(2)
         }
@@ -108,25 +112,23 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def taskExecutionProblems = withTaskExecutionProblems()
 
         when:
-        executer.withStackTraceChecksDisabled()
-        instantFails 'broken', 'a', 'b',
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b',
             "-D${SystemProperties.failOnProblems}=false", "-D${SystemProperties.maxProblems}=2"
 
         then:
-        notExecuted(':broken', ':a', ':b')
-        problems.expectFailure(result, TooManyInstantExecutionProblemsException) {
+        notExecuted(':taskWithStateSerializationProblems', ':a', ':b')
+        problems.assertFailureHasTooManyProblems(failure) {
             withUniqueProblems(stateSerializationProblems)
             withProblemsWithStackTraceCount(0)
         }
 
         when:
-        executer.withStackTraceChecksDisabled()
-        instantFails 'broken', 'a', 'b',
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b',
             "-D${SystemProperties.failOnProblems}=false", "-D${SystemProperties.maxProblems}=4"
 
         then:
-        executed(':broken', ':a', ':b')
-        problems.expectFailure(result, TooManyInstantExecutionProblemsException) {
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        problems.assertFailureHasTooManyProblems(failure) {
             withRootCauseDescription("Execution failed for task ':b'.")
             withUniqueProblems(stateSerializationProblems + taskExecutionProblems)
             withProblemsWithStackTraceCount(2)
@@ -139,19 +141,21 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         settingsFile << "rootProject.name = 'test'"
         def expectedProblems = withStateSerializationProblems()
         buildFile << """
-            broken.doFirst { throw new Exception("BOOM") }
+            taskWithStateSerializationProblems.doFirst { throw new Exception("BOOM") }
         """
 
         when:
         problems.withDoNotFailOnProblems()
-        instantFails 'broken'
+        instantFails 'taskWithStateSerializationProblems'
 
         then:
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblems)
             withProblemsWithStackTraceCount(0)
         }
-        failure.assertHasDescription("Execution failed for task ':broken'.")
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':taskWithStateSerializationProblems'.")
         failure.assertHasCause("java.lang.Exception: BOOM")
     }
 
@@ -163,7 +167,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
                 }
             }
 
-            task brokenInputs {
+            task taskWithStateSerializationError {
                 inputs.property 'brokenProperty', new BrokenSerializable()
                 inputs.property 'otherBrokenProperty', new BrokenSerializable()
             }
@@ -175,14 +179,14 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
     private List<String> withStateSerializationProblems() {
         buildFile << """
-            task broken {
+            task taskWithStateSerializationProblems {
                 inputs.property 'brokenProperty', project
                 inputs.property 'otherBrokenProperty', project
             }
         """
         return [
-            "input property 'brokenProperty' of ':broken': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
-            "input property 'otherBrokenProperty' of ':broken': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+            "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+            "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
         ]
     }
 
@@ -233,7 +237,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         instantExecution.assertStateStored()
-        problems.expectFailure(result, InstantExecutionProblemsException) {
+        problems.assertFailureHasProblems(failure) {
             withUniqueProblems(expectedProblems)
             withProblemsWithStackTraceCount(2)
         }
@@ -247,7 +251,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantExecution.assertStateLoaded()
 
         and:
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(expectedProblems)
             withProblemsWithStackTraceCount(2)
         }
@@ -291,7 +295,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "c"
 
         then:
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withTotalProblemsCount(6)
             withUniqueProblems(
                 "field 'gradle' from type 'SomeBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
@@ -339,7 +343,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         def expectedProblems = (1..expectedNumberOfProblems).collect {
             "field 'p$it' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
         }
-        problems.expectFailure(result, TooManyInstantExecutionProblemsException) {
+        problems.assertFailureHasTooManyProblems(failure) {
             withTotalProblemsCount(expectedNumberOfProblems)
             withUniqueProblems(expectedProblems)
             withProblemsWithStackTraceCount(0)
@@ -368,7 +372,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "foo", "-D${SystemProperties.failOnProblems}=false"
 
         then:
-        problems.expectWarnings(result) {
+        problems.assertResultHasProblems(result) {
             withUniqueProblems(
                 "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
             )
