@@ -71,22 +71,17 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         Provider<Directory> baseMetadataDir = buildLayout.getBuildDirectory().dir("groovy-dsl/compiled-scripts/groovy-metadata");
         Provider<Directory> baseClassesDir = buildLayout.getBuildDirectory().dir("groovy-dsl/compiled-scripts/groovy");
 
-        TaskProvider<PreCompileGroovyScriptsTask> preCompileTask = tasks.register("preCompileScriptPlugins", PreCompileGroovyScriptsTask.class, task -> {
-            task.getScriptPlugins().addAll(scriptPlugins);
-            task.getClassesDir().set(baseClassesDir);
-            task.getMetadataDir().set(baseMetadataDir);
-        });
+        TaskProvider<PreCompileGroovyScriptsTask> preCompileTask = tasks.register(
+            "preCompileScriptPlugins", PreCompileGroovyScriptsTask.class,
+            scriptPlugins, baseClassesDir, baseMetadataDir);
 
         pluginExtension.getPluginSourceSet().getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getClassOutputDir));
         pluginExtension.getPluginSourceSet().getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getMetadataDir));
 
         Provider<Directory> generatedClassesDir = buildLayout.getBuildDirectory().dir("generated-classes/groovy-dsl-plugins/java");
-        TaskProvider<GenerateScriptPluginAdaptersTask> generateAdaptersTask = tasks.register("generateScriptPluginAdapters", GenerateScriptPluginAdaptersTask.class, task -> {
-            task.getScriptPlugins().addAll(scriptPlugins);
-            task.getClassesDir().set(baseClassesDir);
-            task.getMetadataDir().set(baseMetadataDir);
-            task.getGeneratedClassesDir().set(generatedClassesDir);
-        });
+        TaskProvider<GenerateScriptPluginAdaptersTask> generateAdaptersTask = tasks.register(
+            "generateScriptPluginAdapters", GenerateScriptPluginAdaptersTask.class,
+            scriptPlugins, baseClassesDir, baseMetadataDir, generatedClassesDir);
 
         pluginExtension.getPluginSourceSet().getJava().srcDir(generateAdaptersTask.flatMap(GenerateScriptPluginAdaptersTask::getGeneratedClassesDir));
     }

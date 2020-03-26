@@ -41,7 +41,7 @@ import java.io.File;
 class PreCompiledScriptRunner {
 
     private final Object target;
-    private final ServiceRegistry projectServices;
+    private final ServiceRegistry serviceRegistry;
     private final File pluginsBlockDir;
     private final File pluginsMetadataDir;
     private final File scriptClassesDir;
@@ -62,13 +62,13 @@ class PreCompiledScriptRunner {
     private final ScriptTarget scriptTarget;
 
     PreCompiledScriptRunner(Object target,
-                            ServiceRegistry projectServices,
+                            ServiceRegistry serviceRegistry,
                             ClassLoaderScope classLoaderScope,
                             String scriptFilePath,
                             String baseClassesDir,
                             String baseMetadataDir) {
         this.target = target;
-        this.projectServices = projectServices;
+        this.serviceRegistry = serviceRegistry;
 
         this.script = new PreCompiledScript(new File(scriptFilePath));
         this.pluginsBlockDir = new File(baseClassesDir, script.getPluginClassesDirPath());
@@ -76,12 +76,12 @@ class PreCompiledScriptRunner {
         this.scriptClassesDir = new File(baseClassesDir, script.getBuildScriptClassesDirPath());
         this.scriptMetadataDir = new File(baseMetadataDir, script.getBuildScriptMetadataDirPath());
 
-        this.compileOperationFactory = projectServices.get(CompileOperationFactory.class);
-        this.scriptCompilationHandler = projectServices.get(ScriptCompilationHandler.class);
-        this.scriptRunnerFactory = projectServices.get(ScriptRunnerFactory.class);
-        this.scriptHandlerFactory = projectServices.get(ScriptHandlerFactory.class);
-        this.autoAppliedPluginHandler = projectServices.get(AutoAppliedPluginHandler.class);
-        this.pluginRequestApplicator = projectServices.get(PluginRequestApplicator.class);
+        this.compileOperationFactory = serviceRegistry.get(CompileOperationFactory.class);
+        this.scriptCompilationHandler = serviceRegistry.get(ScriptCompilationHandler.class);
+        this.scriptRunnerFactory = serviceRegistry.get(ScriptRunnerFactory.class);
+        this.scriptHandlerFactory = serviceRegistry.get(ScriptHandlerFactory.class);
+        this.autoAppliedPluginHandler = serviceRegistry.get(AutoAppliedPluginHandler.class);
+        this.pluginRequestApplicator = serviceRegistry.get(PluginRequestApplicator.class);
 
         this.classLoaderScope = classLoaderScope;
         this.classLoaderScope.lock();
@@ -101,7 +101,7 @@ class PreCompiledScriptRunner {
             script.getPluginsBlockSource(), script.getContentHash(), classLoaderScope, pluginsBlockDir, pluginsMetadataDir,
             pluginRequestsCompileOperation, scriptTarget.getScriptClass());
         ScriptRunner<? extends BasicScript, ?> initialRunner = scriptRunnerFactory.create(compiledPluginRequests, script.getPluginsBlockSource(), classLoader);
-        initialRunner.run(target, projectServices);
+        initialRunner.run(target, serviceRegistry);
         PluginRequests initialPluginRequests = getInitialPluginRequests(initialRunner);
         return autoAppliedPluginHandler.mergeWithAutoAppliedPlugins(initialPluginRequests, target);
     }
@@ -117,7 +117,7 @@ class PreCompiledScriptRunner {
             script.getSource(), script.getContentHash(), classLoaderScope, scriptClassesDir, scriptMetadataDir,
             buildScriptDataCompileOperation, scriptTarget.getScriptClass());
         ScriptRunner<? extends BasicScript, BuildScriptData> runner = scriptRunnerFactory.create(compiledScript, script.getSource(), classLoader);
-        runner.run(target, projectServices);
+        runner.run(target, serviceRegistry);
     }
 
     private static PluginRequests getInitialPluginRequests(ScriptRunner<? extends BasicScript, ?> initialRunner) {

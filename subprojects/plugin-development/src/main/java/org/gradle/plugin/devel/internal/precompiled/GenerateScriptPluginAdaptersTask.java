@@ -18,33 +18,42 @@ package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 
+import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @CacheableTask
 class GenerateScriptPluginAdaptersTask extends DefaultTask {
-    private final List<PreCompiledScript> scriptPlugins = new ArrayList<>();
-    private final DirectoryProperty generatedClassesDir = getProject().getObjects().directoryProperty();
-    private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
+    private final List<PreCompiledScript> scriptPlugins;
     private final DirectoryProperty classesDir = getProject().getObjects().directoryProperty();
+    private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
+    private final DirectoryProperty generatedClassesDir = getProject().getObjects().directoryProperty();
 
-    public GenerateScriptPluginAdaptersTask() {
+    @Inject
+    public GenerateScriptPluginAdaptersTask(List<PreCompiledScript> scriptPlugins,
+                                            Provider<Directory> classesDir,
+                                            Provider<Directory> metadataDir,
+                                            Provider<Directory> generatedClassesDir) {
+        this.scriptPlugins = scriptPlugins;
+        this.classesDir.set(classesDir);
+        this.metadataDir.set(metadataDir);
+        this.generatedClassesDir.set(generatedClassesDir);
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -56,21 +65,6 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
     @OutputDirectory
     DirectoryProperty getGeneratedClassesDir() {
         return generatedClassesDir;
-    }
-
-    @Internal
-    List<PreCompiledScript> getScriptPlugins() {
-        return scriptPlugins;
-    }
-
-    @Internal
-    DirectoryProperty getMetadataDir() {
-        return metadataDir;
-    }
-
-    @Internal
-    DirectoryProperty getClassesDir() {
-        return classesDir;
     }
 
     @TaskAction

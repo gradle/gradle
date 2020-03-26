@@ -24,7 +24,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
@@ -40,7 +39,6 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -52,7 +50,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry;
     private final CompileOperationFactory compileOperationFactory;
 
-    private final List<PreCompiledScript> scriptPlugins = new ArrayList<>();
+    private final List<PreCompiledScript> scriptPlugins;
     private final DirectoryProperty classesDir = getProject().getObjects().directoryProperty();
     private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
 
@@ -61,26 +59,22 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     @Inject
     public PreCompileGroovyScriptsTask(ScriptCompilationHandler scriptCompilationHandler,
                                        ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                       CompileOperationFactory compileOperationFactory) {
+                                       CompileOperationFactory compileOperationFactory,
+                                       List<PreCompiledScript> scriptPlugins,
+                                       Provider<Directory> classesDir,
+                                       Provider<Directory> metadataDir) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderScopeRegistry = classLoaderScopeRegistry;
         this.compileOperationFactory = compileOperationFactory;
-    }
-
-    @Internal
-    List<PreCompiledScript> getScriptPlugins() {
-        return scriptPlugins;
+        this.scriptPlugins = scriptPlugins;
+        this.classesDir.set(classesDir);
+        this.metadataDir.set(metadataDir);
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     Set<File> getScriptFiles() {
         return scriptPlugins.stream().map(PreCompiledScript::getScriptFile).collect(Collectors.toSet());
-    }
-
-    @Internal
-    DirectoryProperty getClassesDir() {
-        return classesDir;
     }
 
     @OutputDirectory
