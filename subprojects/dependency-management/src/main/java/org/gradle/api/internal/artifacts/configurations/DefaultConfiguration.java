@@ -485,8 +485,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
-        intrinsicFiles.visitStructure(visitor);
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        intrinsicFiles.visitContents(visitor);
     }
 
     @Override
@@ -1230,9 +1230,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public void visitStructure(FileCollectionStructureVisitor visitor) {
-            ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
-            visitContents(collectingVisitor);
+        protected void visitContents(FileCollectionStructureVisitor visitor) {
+            visitContents(new ResolvedFileCollectionVisitor(visitor));
         }
 
         private void visitContents(ResolvedFilesCollectingVisitor visitor) {

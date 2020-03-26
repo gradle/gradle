@@ -196,7 +196,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public void visitStructure(FileCollectionStructureVisitor visitor) {
+        protected void visitContents(FileCollectionStructureVisitor visitor) {
         }
 
         @Override
@@ -242,7 +242,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
 
         @Override
-        public void visitStructure(FileCollectionStructureVisitor visitor) {
+        protected void visitContents(FileCollectionStructureVisitor visitor) {
         }
     }
 

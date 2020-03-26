@@ -96,7 +96,7 @@ public class FileTreeAdapter extends AbstractFileTree implements FileCollectionC
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
         tree.visitStructure(visitor, this);
     }
 }

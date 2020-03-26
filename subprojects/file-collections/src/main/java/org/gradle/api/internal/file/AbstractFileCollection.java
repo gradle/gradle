@@ -74,7 +74,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return getDisplayName();
     }
 
-    // This is final - use {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
+    // This is final - override {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
     @Override
     public final TaskDependency getBuildDependencies() {
         return new AbstractTaskDependency() {
@@ -135,29 +135,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection minus(final FileCollection collection) {
-        return new AbstractFileCollection(patternSetFactory) {
-            @Override
-            public String getDisplayName() {
-                return AbstractFileCollection.this.getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                AbstractFileCollection.this.visitDependencies(context);
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                Set<File> files = new LinkedHashSet<File>(AbstractFileCollection.this.getFiles());
-                files.removeAll(collection.getFiles());
-                return files;
-            }
-
-            @Override
-            public boolean contains(File file) {
-                return AbstractFileCollection.this.contains(file) && !collection.contains(file);
-            }
-        };
+        return new SubtractingFileCollection(this, collection);
     }
 
     @Override
@@ -234,9 +212,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     /**
-     * Visits all the files of this tree.
+     * Visits all the files of the given tree.
      */
-    protected boolean visitAll(FileSystemMirroringFileTree tree) {
+    protected static boolean visitAll(FileSystemMirroringFileTree tree) {
         final MutableBoolean hasContent = new MutableBoolean();
         tree.visit(new FileVisitor() {
             @Override
@@ -306,11 +284,18 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         };
     }
 
+    /**
+     * This is final - override {@link #visitContents(FileCollectionStructureVisitor)} instead to provide the contents.
+     */
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
-        if (visitor.prepareForVisit(OTHER) != FileCollectionStructureVisitor.VisitType.NoContents) {
-            visitor.visitCollection(OTHER, this);
+    public final void visitStructure(FileCollectionStructureVisitor visitor) {
+        if (visitor.startVisit(OTHER, this)) {
+            visitContents(visitor);
         }
+    }
+
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        visitor.visitCollection(OTHER, this);
     }
 
     private static class ElementsProvider extends AbstractProviderWithValue<Set<FileSystemLocation>> {

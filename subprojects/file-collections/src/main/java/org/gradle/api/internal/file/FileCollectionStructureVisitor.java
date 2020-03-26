@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 
@@ -40,7 +41,20 @@ public interface FileCollectionStructureVisitor {
     }
 
     /**
-     * Called prior to visiting a file collection with the given spec, and allows this visitor to skip the collection.
+     * Called when starting to visit a file collection. Can return true to continue with visiting or false to skip this collection and its contents.
+     *
+     * <p>When a file collection represents a container of file collections, the children of the file collection are visited in order. Visiting a child works in the
+     * same way as visiting this collection, starting with a call to {@link #startVisit(FileCollectionInternal.Source, FileCollectionInternal)}.
+     *
+     * <p>When the file collection contains some other source of files then {@link #prepareForVisit(FileCollectionInternal.Source)} is called for each source in order.
+     */
+    default boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
+        return true;
+    }
+
+    /**
+     * Called prior to visiting a file source with the given spec, and allows this visitor to skip these files.
+     * A "file source" is some opaque source of files that is not a full {@link FileCollection}.
      *
      * <p>Note that this method is not necessarily called immediately before one of the visit methods, as some collections may be
      * resolved in parallel. However, all visiting is performed sequentially and in order.
@@ -53,7 +67,7 @@ public interface FileCollectionStructureVisitor {
     }
 
     /**
-     * Visits an opaque file collection element that cannot be visited in further detail.
+     * Visits an opaque file source that cannot be visited in further detail.
      */
     void visitCollection(FileCollectionInternal.Source source, Iterable<File> contents);
 
