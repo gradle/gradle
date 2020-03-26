@@ -46,16 +46,21 @@ class InstantExecutionCacheFingerprintController internal constructor(
 ) {
 
     private
-    open inner class WritingState {
+    open class WritingState {
 
         open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
-            throw IllegalStateException()
+            illegalStateFor("start")
 
         open fun stop(): WritingState =
-            throw IllegalStateException()
+            illegalStateFor("stop")
 
-        open fun copyFingerprintTo(fingerprintFile: File): WritingState =
-            throw IllegalStateException()
+        open fun commit(fingerprintFile: File): WritingState =
+            illegalStateFor("commit")
+
+        private
+        fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
+            "'$operation' is illegal while in '${javaClass.simpleName}' state."
+        )
     }
 
     private
@@ -63,7 +68,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
         override fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
             val outputStream = ByteArrayOutputStream()
             val fingerprintWriter = InstantExecutionCacheFingerprintWriter(
-                FingerprintComponentsHost(),
+                CacheFingerprintComponentHost(),
                 writeContextForOutputStream(outputStream)
             )
             addListener(fingerprintWriter)
@@ -87,7 +92,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     inner class Written(
         private val outputStream: ByteArrayOutputStream
     ) : WritingState() {
-        override fun copyFingerprintTo(fingerprintFile: File): WritingState {
+        override fun commit(fingerprintFile: File): WritingState {
             fingerprintFile
                 .outputStream()
                 .use(outputStream::writeTo)
@@ -107,7 +112,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     }
 
     fun commitFingerprintTo(fingerprintFile: File) {
-        writingState = writingState.copyFingerprintTo(fingerprintFile)
+        writingState = writingState.commit(fingerprintFile)
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
@@ -128,7 +133,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     }
 
     private
-    inner class FingerprintComponentsHost
+    inner class CacheFingerprintComponentHost
         : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
 
         override fun hashCodeOf(file: File) =
