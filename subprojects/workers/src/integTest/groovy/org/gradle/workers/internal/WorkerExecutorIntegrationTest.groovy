@@ -144,6 +144,48 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
         isolationMode << ISOLATION_MODES
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12636")
+    def "can use work actions from multiple projects when running with --parallel"() {
+        settingsFile << """
+            include('project1')
+            include('project2')
+            include('project3')
+            include('project4')
+            include('project5')
+        """
+        buildFile << """
+            import javax.inject.Inject
+
+            abstract class SubmitsAndWaits extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                def go() {
+                    workerExecutor.submit(SomeWork) { }
+                    workerExecutor.submit(SomeWork) { }
+                    workerExecutor.await()
+                }
+            }
+
+            class SomeWork implements Runnable {
+                void run() {
+                    Thread.sleep(50)
+                }
+            }
+
+            allprojects {
+                task run(type: SubmitsAndWaits)
+            }
+        """
+
+        when:
+        succeeds("run", "--parallel")
+
+        then:
+        noExceptionThrown()
+    }
+
     def "re-uses an existing idle worker daemon"() {
         executer.withWorkerDaemonsExpirationDisabled()
         fixture.withWorkActionClassInBuildSrc()
