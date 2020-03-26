@@ -144,8 +144,7 @@ class DefaultInstantExecution internal constructor(
 
         buildOperationExecutor.withStoreOperation {
 
-            // Discard the state file on serialization errors
-            report.withExceptionHandling(::discardInstantExecutionState) {
+            try {
 
                 instantExecutionStateFile.createParentDirectories()
 
@@ -156,6 +155,15 @@ class DefaultInstantExecution internal constructor(
                 }
 
                 writeInstantExecutionCacheFingerprint()
+
+            } catch (error: Throwable) {
+                // Invalidate unusable state on errors
+                invalidateInstantExecutionState()
+                throw error
+            }
+            if (startParameter.failOnProblems) {
+                // Invalidate state on problems
+                report.runIfHasProblems(::invalidateInstantExecutionState)
             }
         }
     }
@@ -258,7 +266,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun discardInstantExecutionState() {
+    fun invalidateInstantExecutionState() {
         instantExecutionFingerprintFile.delete()
     }
 

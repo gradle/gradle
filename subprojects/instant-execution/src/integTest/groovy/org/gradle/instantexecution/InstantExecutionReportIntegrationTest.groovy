@@ -75,10 +75,10 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantFails 'taskWithStateSerializationProblems', 'a', 'b'
 
         then:
-        notExecuted(':taskWithStateSerializationProblems', ':a', ':b')
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(stateSerializationProblems)
-            withProblemsWithStackTraceCount(0)
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
+            withProblemsWithStackTraceCount(2)
         }
 
         when:

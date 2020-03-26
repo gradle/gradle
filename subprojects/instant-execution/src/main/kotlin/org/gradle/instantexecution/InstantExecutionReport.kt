@@ -24,7 +24,6 @@ import org.gradle.BuildResult
 import org.gradle.api.logging.Logging
 
 import org.gradle.instantexecution.extensions.isOrHasCause
-import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyProblem
@@ -102,47 +101,19 @@ class InstantExecutionReport(
 
     fun add(problem: PropertyProblem) = synchronized(problems) {
         problems.add(problem)
+        problemsBroadcaster.onProblem(problem)
         if (problems.size >= startParameter.maxProblems) {
             throw TooManyInstantExecutionProblemsException(problems, htmlReportFile)
         }
     }
 
-    fun withExceptionHandling(onError: () -> Unit = {}, block: () -> Unit) {
-        withExceptionHandling(block)?.let { error ->
-            onError()
-            throw error
-        }
-    }
-
-    private
-    fun withExceptionHandling(block: () -> Unit): Throwable? {
-
-        val fatalError = runWithExceptionHandling(block)
-
-        if (fatalError != null) {
-            require(fatalError is InstantExecutionThrowable)
-            return fatalError
-        }
-
-        return synchronized(problems) {
-            when {
-                problems.isNotEmpty() -> instantExecutionExceptionForProblems()
-                else -> null
+    fun runIfHasProblems(action: () -> Unit) {
+        synchronized(problems) {
+            if (problems.isNotEmpty()) {
+                action()
             }
         }
     }
-
-    private
-    fun runWithExceptionHandling(block: () -> Unit): Throwable? =
-        try {
-            block()
-            null
-        } catch (e: Throwable) {
-            when (val cause = e.maybeUnwrapInvocationTargetException()) {
-                is InstantExecutionThrowable -> cause
-                else -> throw cause
-            }
-        }
 
     private
     fun instantExecutionExceptionForProblems(): Throwable? =
