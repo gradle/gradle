@@ -17,10 +17,12 @@
 package org.gradle.instantexecution.fingerprint
 
 import org.gradle.api.execution.internal.TaskInputsListeners
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.instantexecution.extensions.hashCodeOf
+import org.gradle.instantexecution.extensions.serviceOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
@@ -139,7 +141,15 @@ class InstantExecutionCacheFingerprintController internal constructor(
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)
 
-        override fun fingerprintOf(fileCollection: FileCollectionInternal): CurrentFileCollectionFingerprint =
+        override fun fingerprintOf(
+            fileCollection: FileCollectionInternal,
+            owner: TaskInternal
+        ): CurrentFileCollectionFingerprint =
+            fileCollectionFingerprinterFor(owner).fingerprint(fileCollection)
+
+        override fun fingerprintOf(
+            fileCollection: FileCollectionInternal
+        ): CurrentFileCollectionFingerprint =
             fileCollectionFingerprinter.fingerprint(fileCollection)
 
         override fun displayNameOf(fileOrDirectory: File): String =
@@ -151,6 +161,10 @@ class InstantExecutionCacheFingerprintController internal constructor(
                 obtainedValue.valueSourceParametersType,
                 obtainedValue.valueSourceParameters
             )
+
+        private
+        fun fileCollectionFingerprinterFor(task: TaskInternal) =
+            task.serviceOf<AbsolutePathFileCollectionFingerprinter>()
 
         private
         val rootDirectory

@@ -28,9 +28,8 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.ValueSource
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
-import org.gradle.kotlin.dsl.support.serviceOf
 import java.io.File
 
 
@@ -43,6 +42,11 @@ class InstantExecutionCacheFingerprintWriter(
     interface Host {
 
         fun hashCodeOf(file: File): HashCode?
+
+        fun fingerprintOf(
+            fileCollection: FileCollectionInternal,
+            owner: TaskInternal
+        ): CurrentFileCollectionFingerprint
     }
 
     /**
@@ -92,7 +96,7 @@ class InstantExecutionCacheFingerprintWriter(
             InstantExecutionCacheFingerprint.TaskInputs(
                 task.identityPath.path,
                 fileSystemInputs,
-                fileCollectionFingerprinterFor(task).fingerprint(fileSystemInputs)
+                host.fingerprintOf(fileSystemInputs, task)
             )
         )
     }
@@ -109,12 +113,4 @@ class InstantExecutionCacheFingerprintWriter(
     private
     fun isBuildSrcTask(task: TaskInternal) =
         task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
-
-    private
-    fun fileCollectionFingerprinterFor(task: TaskInternal) =
-        task.serviceOf<AbsolutePathFileCollectionFingerprinter>()
-
-    private
-    inline fun <reified T : Any> TaskInternal.serviceOf(): T =
-        project.serviceOf()
 }
