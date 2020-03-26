@@ -18,10 +18,8 @@ package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.file.Directory;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.GroovyBasePlugin;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -70,15 +68,9 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         declarePluginMetadata(pluginExtension, scriptPlugins);
 
         TaskProvider<PreCompileGroovyScriptsTask> preCompileTask = tasks.register(
-            "preCompileScriptPlugins", PreCompileGroovyScriptsTask.class, scriptPlugins);
+            "preCompileScriptPlugins", PreCompileGroovyScriptsTask.class, scriptPluginFiles.getFiles(), scriptPlugins);
 
-        Provider<Directory> metadataOutputDir = preCompileTask.flatMap(PreCompileGroovyScriptsTask::getMetadataDir);
         pluginSourceSet.getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getClassOutputDir));
-
-        TaskProvider<GenerateScriptPluginAdaptersTask> generateAdaptersTask = tasks.register(
-            "generateScriptPluginAdapters", GenerateScriptPluginAdaptersTask.class,
-            scriptPlugins, preCompileTask.flatMap(PreCompileGroovyScriptsTask::getBaseClassOutputDir), metadataOutputDir);
-
-        pluginSourceSet.getJava().srcDir(generateAdaptersTask.flatMap(GenerateScriptPluginAdaptersTask::getGeneratedClassesDir));
+        pluginSourceSet.getJava().srcDir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getGeneratedClassesDir));
     }
 }

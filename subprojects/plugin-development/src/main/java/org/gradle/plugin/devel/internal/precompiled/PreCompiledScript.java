@@ -24,6 +24,7 @@ import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
@@ -38,17 +39,15 @@ class PreCompiledScript {
     private final PluginId pluginId;
 
     private enum Type {
-        PROJECT(Project.class, ProjectPluginAdapter.class, SCRIPT_PLUGIN_EXTENSION),
-        SETTINGS(Settings.class, SettingsPluginAdapter.class, ".settings.gradle"),
-        INIT(Gradle.class, InitPluginAdapter.class, ".init.gradle");
+        PROJECT(Project.class, SCRIPT_PLUGIN_EXTENSION),
+        SETTINGS(Settings.class, ".settings.gradle"),
+        INIT(Gradle.class, ".init.gradle");
 
         private final Class<?> targetClass;
-        private final Class<?> adapterClass;
         private final String fileExtension;
 
-        Type(Class<?> targetClass, Class<?> adapterClass, String fileExtension) {
+        Type(Class<?> targetClass, String fileExtension) {
             this.targetClass = targetClass;
-            this.adapterClass = adapterClass;
             this.fileExtension = fileExtension;
         }
 
@@ -80,10 +79,6 @@ class PreCompiledScript {
 
     String getGeneratedPluginClassName() {
         return toJavaIdentifier(kebabCaseToPascalCase(pluginId.getName())) + "Plugin";
-    }
-
-    File getScriptFile() {
-        return new File(scriptSource.getFileName());
     }
 
     String getClassName() {
@@ -133,8 +128,31 @@ class PreCompiledScript {
         return type.targetClass;
     }
 
-    public Class<?> getAdapterClass() {
-        return type.adapterClass;
-    }
+    private static class PluginsBlockSourceWrapper implements ScriptSource {
+        private final ScriptSource delegate;
 
+        PluginsBlockSourceWrapper(ScriptSource scriptSource) {
+            this.delegate = scriptSource;
+        }
+
+        @Override
+        public String getClassName() {
+            return "plugins_" + delegate.getClassName();
+        }
+
+        @Override
+        public TextResource getResource() {
+            return delegate.getResource();
+        }
+
+        @Override
+        public String getFileName() {
+            return delegate.getFileName();
+        }
+
+        @Override
+        public String getDisplayName() {
+            return delegate.getDisplayName();
+        }
+    }
 }

@@ -493,7 +493,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         firstDir.copyTo(secondDir)
 
         def cachedTasks = [
-            ":generateScriptPluginAdapters",
             ":preCompileScriptPlugins",
             ":compileJava"
         ]

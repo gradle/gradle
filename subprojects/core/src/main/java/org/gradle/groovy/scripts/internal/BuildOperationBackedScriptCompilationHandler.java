@@ -73,11 +73,6 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
         return delegate.loadFromDir(source, sourceHashCode, targetScope, scriptCacheDir, metadataCacheDir, transformer, scriptBaseClass);
     }
 
-    @Override
-    public <T extends Script, M> CompiledScript<T, M> loadFromClasspath(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCachePath, String metadataCacheDirPath, CompileOperation<M> transformer, Class<T> scriptBaseClass, Class<?> scriptClass) {
-        return delegate.loadFromClasspath(source, sourceHashCode, targetScope, scriptCachePath, metadataCacheDirPath, transformer, scriptBaseClass, scriptClass);
-    }
-
     private static class Details implements CompileScriptBuildOperationType.Details {
 
         private final String stage;
