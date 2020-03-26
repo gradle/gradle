@@ -36,7 +36,7 @@ By default, a HTML report is generated at `__$buildDir__/reports/jacoco/test`.
 [NOTE]
 ====
 
-While tests should be executed before generation of report, `jacocoTestReport` task does not depend on the `test` task.
+While tests should be executed before generation of the report, the `jacocoTestReport` task does not depend on the `test` task.
 
 ====
 
