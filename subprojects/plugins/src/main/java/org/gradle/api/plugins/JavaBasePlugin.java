@@ -214,6 +214,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 String generatedHeadersDir = "generated/sources/headers/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
                 compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
                 JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
+                compileTask.getRelease().convention(javaPluginExtension.getRelease());
                 compileTask.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
             }
         });
