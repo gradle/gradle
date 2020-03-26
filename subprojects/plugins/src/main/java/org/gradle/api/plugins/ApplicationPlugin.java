@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-import org.apache.groovy.util.Maps;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
@@ -39,6 +38,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.JavaCompile;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTALL_NAME;
@@ -81,7 +81,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureJarTask(TaskProvider<Jar> jar, JavaApplication pluginExtension) {
-        jar.configure(j -> j.getManifest().attributes(Maps.of("Main-Class", pluginExtension.getMainClass())));
+        jar.configure(j -> j.getManifest().attributes(Collections.singletonMap("Main-Class", pluginExtension.getMainClass())));
     }
 
     private void configureInstallTask(TaskProvider<Sync> installTask, ApplicationPluginConvention pluginConvention) {
