@@ -48,8 +48,7 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         pluginExtension.plugins(pluginDeclarations -> {
             for (PreCompiledScript scriptPlugin : scriptPlugins) {
                 pluginDeclarations.create(scriptPlugin.getId(), pluginDeclaration -> {
-                    pluginDeclaration.setImplementationClass(scriptPlugin.getGeneratedPluginPackage()
-                        .map(packageName -> packageName + '.').orElse("") + scriptPlugin.getGeneratedPluginClassName());
+                    pluginDeclaration.setImplementationClass(scriptPlugin.getGeneratedPluginClassName());
                     pluginDeclaration.setId(scriptPlugin.getId());
                 });
             }
@@ -57,7 +56,8 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
     }
 
     private void exposeScriptsAsPlugins(GradlePluginDevelopmentExtension pluginExtension, TaskContainer tasks, ProjectLayout buildLayout) {
-        FileTree scriptPluginFiles = pluginExtension.getPluginSourceSet().getAllSource().matching(patternFilterable -> patternFilterable.include("**/*" + SCRIPT_PLUGIN_EXTENSION));
+        FileTree scriptPluginFiles = pluginExtension.getPluginSourceSet().getAllSource()
+            .matching(patternFilterable -> patternFilterable.include("**/*" + SCRIPT_PLUGIN_EXTENSION));
         if (scriptPluginFiles.isEmpty()) {
             return;
         }

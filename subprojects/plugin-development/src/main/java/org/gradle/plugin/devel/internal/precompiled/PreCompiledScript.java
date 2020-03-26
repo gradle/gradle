@@ -30,7 +30,6 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.io.File;
-import java.util.Optional;
 
 class PreCompiledScript {
     public static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
@@ -81,10 +80,6 @@ class PreCompiledScript {
 
     String getId() {
         return pluginId.getId();
-    }
-
-    Optional<String> getGeneratedPluginPackage() {
-        return Optional.empty();
     }
 
     String getGeneratedPluginClassName() {

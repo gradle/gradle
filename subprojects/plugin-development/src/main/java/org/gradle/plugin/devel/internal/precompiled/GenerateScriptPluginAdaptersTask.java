@@ -34,7 +34,6 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -88,10 +87,6 @@ class GenerateScriptPluginAdaptersTask extends DefaultTask {
         String targetClass = scriptPlugin.getTargetClass().getName();
         File outputFile = generatedClassesDir.file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
-            Optional<String> packageName = scriptPlugin.getGeneratedPluginPackage();
-            if (packageName.isPresent()) {
-                writer.write("package " + packageName.get() + ";\n\n");
-            }
             writer.write("import " + targetClass + ";\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getScriptFile().getName() + " script plugin.\n");
