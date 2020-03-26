@@ -89,7 +89,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         executed(':taskWithStateSerializationProblems', ':a', ':b')
         instantExecution.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withUniqueProblems(stateSerializationProblems + taskExecutionProblems)
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
             withProblemsWithStackTraceCount(2)
         }
 
@@ -130,7 +130,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         executed(':taskWithStateSerializationProblems', ':a', ':b')
         problems.assertFailureHasTooManyProblems(failure) {
             withRootCauseDescription("Execution failed for task ':b'.")
-            withUniqueProblems(stateSerializationProblems + taskExecutionProblems)
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
             withProblemsWithStackTraceCount(2)
         }
     }

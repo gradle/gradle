@@ -36,6 +36,7 @@ import java.util.regex.Pattern
 import static org.gradle.util.Matchers.normalizedLineSeparators
 import static org.hamcrest.CoreMatchers.allOf
 import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.endsWith
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.notNullValue
@@ -90,10 +91,10 @@ final class InstantExecutionProblemsFixture {
         assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForError(spec))
 
         if (spec.hasProblems()) {
-            assertProblemsConsoleSummary(failure.output, spec)
+            assertHasConsoleSummary(failure.output, spec)
             assertProblemsHtmlReport(failure.output, rootDir, spec)
         } else {
-            assertNoConsoleLogSummaryIn(failure.output)
+            assertNoProblemsSummary(failure.output)
         }
     }
 
@@ -131,9 +132,8 @@ final class InstantExecutionProblemsFixture {
         ExecutionFailure failure,
         HasInstantExecutionProblemsSpec spec
     ) {
-        assertNoConsoleLogSummaryIn(failure.output)
+        assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForProblems(spec))
-        assertProblemsConsoleSummary(failure.error, spec)
         assertProblemsHtmlReport(failure.error, rootDir, spec)
     }
 
@@ -155,9 +155,8 @@ final class InstantExecutionProblemsFixture {
         ExecutionFailure failure,
         HasInstantExecutionProblemsSpec spec
     ) {
-        assertNoConsoleLogSummaryIn(failure.output)
+        assertNoProblemsSummary(failure.output)
         assertFailureDescription(failure, spec.rootCauseDescription, failureDescriptionMatcherForTooManyProblems(spec))
-        assertProblemsConsoleSummary(failure.error, spec)
         assertProblemsHtmlReport(failure.error, rootDir, spec)
     }
 
@@ -180,7 +179,7 @@ final class InstantExecutionProblemsFixture {
         HasInstantExecutionProblemsSpec spec
     ) {
         // assert !(result instanceof ExecutionFailure)
-        assertProblemsConsoleSummary(result.output, spec)
+        assertHasConsoleSummary(result.output, spec)
         assertProblemsHtmlReport(result.output, rootDir, spec)
     }
 
@@ -203,30 +202,48 @@ final class InstantExecutionProblemsFixture {
     }
 
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
-        def uniqueCount = spec.uniqueProblems.size()
-        def totalCount = spec.totalProblemsCount ?: uniqueCount
-        def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
-        return allOf(
-            startsWith("Problems found while caching instant execution state.\nFailing because -D${SystemProperties.failOnProblems} is 'true'."),
-            containsString(summaryHeader),
-            containsString("See the complete report at file:"),
-            containsString(PROBLEMS_REPORT_HTML_FILE_NAME)
+        return buildMatcherForProblemsFailureDescription(
+            "Problems found while caching instant execution state.\n" +
+                "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
+            spec
         )
     }
 
     private static Matcher<String> failureDescriptionMatcherForTooManyProblems(HasInstantExecutionProblemsSpec spec) {
-        def uniqueCount = spec.uniqueProblems.size()
-        def totalCount = spec.totalProblemsCount ?: uniqueCount
-        def summaryHeader = problemsSummaryHeaderFor(totalCount, uniqueCount)
-        return allOf(
-            startsWith("Maximum number of instant execution problems has been reached.\nThis behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."),
-            containsString(summaryHeader),
-            containsString("See the complete report at file:"),
-            containsString(PROBLEMS_REPORT_HTML_FILE_NAME)
+        return buildMatcherForProblemsFailureDescription(
+            "Maximum number of instant execution problems has been reached.\n" +
+                "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>.",
+            spec
         )
     }
 
-    private static void assertNoConsoleLogSummaryIn(String text) {
+    private static Matcher<String> buildMatcherForProblemsFailureDescription(
+        String message,
+        HasInstantExecutionProblemsSpec spec
+    ) {
+        def expectedMessage = """
+$message
+
+${textProblemsSummary(spec)}
+
+See the complete report at file:
+        """.trim()
+        return allOf(
+            startsWith(expectedMessage),
+            endsWith(PROBLEMS_REPORT_HTML_FILE_NAME)
+        )
+    }
+
+    private static String textProblemsSummary(HasInstantExecutionProblemsSpec spec) {
+        def uniqueCount = spec.uniqueProblems.size()
+        def totalCount = spec.totalProblemsCount ?: uniqueCount
+        return """
+${problemsSummaryHeaderFor(totalCount, uniqueCount)}
+- ${spec.uniqueProblems.join("\n- ")}
+        """.trim()
+    }
+
+    private static void assertNoProblemsSummary(String text) {
         assertThat(text, not(containsString("instant execution problem")))
     }
 
@@ -243,38 +260,12 @@ final class InstantExecutionProblemsFixture {
         }
     }
 
-    private static void assertProblemsConsoleSummary(String output, HasInstantExecutionProblemsSpec spec) {
-        def totalCount = spec.totalProblemsCount ?: spec.uniqueProblems.size()
-        assertProblemsConsoleSummary(output, totalCount, spec.uniqueProblems)
+    private static void assertHasConsoleSummary(String output, HasInstantExecutionProblemsSpec spec) {
+        assertThat(output, allOf(
+            containsNormalizedString(textProblemsSummary(spec)),
+            containsNormalizedString(PROBLEMS_REPORT_HTML_FILE_NAME)
+        ))
     }
-
-    private static void assertProblemsConsoleSummary(String output, int totalProblemsCount, List<String> uniqueProblems) {
-        assertProblemsSummaryHeaderInOutput(output, totalProblemsCount, uniqueProblems.size())
-        assertUniqueProblemsInOutput(output, uniqueProblems)
-    }
-
-    private static void assertProblemsSummaryHeaderInOutput(String output, int totalProblems, int uniqueProblems) {
-        if (totalProblems > 0 || uniqueProblems > 0) {
-            def header = problemsSummaryHeaderFor(totalProblems, uniqueProblems)
-            assertThat(output, containsNormalizedString(header))
-        } else {
-            assertThat(output, not(containsNormalizedString("instant execution problem")))
-        }
-    }
-
-    private static void assertUniqueProblemsInOutput(String output, List<String> uniqueProblems) {
-        def uniqueProblemsCount = uniqueProblems.size()
-        def problems = uniqueProblems.collect { "- $it".toString() }
-        def found = 0
-        output.readLines().eachWithIndex { String line, int idx ->
-            if (problems.remove(line.trim())) {
-                found++
-                return
-            }
-        }
-        assert problems.empty, "Expected ${uniqueProblemsCount} unique problems, found ${found} unique problems, remaining:\n${problems.collect { " - $it" }.join("\n")}"
-    }
-
 
     protected static String problemsSummaryHeaderFor(int totalProblems, int uniqueProblems) {
         return "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found, " +
