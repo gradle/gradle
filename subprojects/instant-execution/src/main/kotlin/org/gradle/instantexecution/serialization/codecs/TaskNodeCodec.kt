@@ -205,15 +205,15 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     propertyWriter: BeanPropertyWriter
 ) = propertyWriter.run {
 
-    suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind): Boolean {
+    suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind) {
         writeString(propertyName)
-        return writeNextProperty(propertyName, propertyValue, kind)
+        writeNextProperty(propertyName, propertyValue, kind)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?): Boolean =
+    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
 
-    suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?): Boolean =
+    suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
 
     val inputProperties = collectRegisteredInputsOf(task)
@@ -222,20 +222,18 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
             when (this) {
                 is RegisteredProperty.InputFile -> {
                     val finalValue = DeferredUtil.unpack(propertyValue)
-                    if (writeInputProperty(propertyName, finalValue)) {
-                        writeBoolean(optional)
-                        writeBoolean(true)
-                        writeEnum(filePropertyType)
-                        writeBoolean(skipWhenEmpty)
-                        writeClass(fileNormalizer!!)
-                    }
+                    writeInputProperty(propertyName, finalValue)
+                    writeBoolean(optional)
+                    writeBoolean(true)
+                    writeEnum(filePropertyType)
+                    writeBoolean(skipWhenEmpty)
+                    writeClass(fileNormalizer!!)
                 }
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
-                    if (writeInputProperty(propertyName, finalValue)) {
-                        writeBoolean(optional)
-                        writeBoolean(false)
-                    }
+                    writeInputProperty(propertyName, finalValue)
+                    writeBoolean(optional)
+                    writeBoolean(false)
                 }
             }
         }
@@ -245,10 +243,9 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     writeCollection(outputProperties) { property ->
         property.run {
             val finalValue = DeferredUtil.unpack(propertyValue)
-            if (writeOutputProperty(propertyName, finalValue)) {
-                writeBoolean(optional)
-                writeEnum(filePropertyType)
-            }
+            writeOutputProperty(propertyName, finalValue)
+            writeBoolean(optional)
+            writeEnum(filePropertyType)
         }
     }
 }

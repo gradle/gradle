@@ -72,7 +72,7 @@ class BeanPropertyWriter(
  * Returns whether the given property could be written. A property can only be written when there's
  * a suitable [Codec] for its [value].
  */
-suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind): Boolean {
+suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
     withPropertyTrace(kind, name) {
         try {
             write(value)
@@ -84,7 +84,6 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
             throw InstantExecutionError(propertyErrorMessage(value), error.maybeUnwrapInvocationTargetException())
         }
         logPropertyInfo("serialize", value)
-        return true
     }
 }
 
