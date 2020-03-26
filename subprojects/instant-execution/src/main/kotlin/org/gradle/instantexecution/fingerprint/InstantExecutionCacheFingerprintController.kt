@@ -33,6 +33,9 @@ import java.io.File
 import java.io.OutputStream
 
 
+/**
+ * Coordinates the writing and reading of the instant execution cache fingerprint.
+ */
 internal
 class InstantExecutionCacheFingerprintController internal constructor(
     private val startParameter: InstantExecutionStartParameter,
@@ -43,45 +46,71 @@ class InstantExecutionCacheFingerprintController internal constructor(
 ) {
 
     private
-    var fingerprintWriter: InstantExecutionCacheFingerprintWriter? = null
+    open inner class WritingState {
+
+        open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
+            throw IllegalStateException()
+
+        open fun stop(): WritingState =
+            throw IllegalStateException()
+
+        open fun copyFingerprintTo(fingerprintFile: File): WritingState =
+            throw IllegalStateException()
+    }
 
     private
-    var fingerprintOutputStream: ByteArrayOutputStream? = null
-
-    fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
-        val outputStream = ByteArrayOutputStream()
-        InstantExecutionCacheFingerprintWriter(
-            FingerprintComponentsHost(),
-            writeContextForOutputStream(outputStream)
-        ).also { writer ->
-            fingerprintWriter = writer
-            fingerprintOutputStream = outputStream
-            valueSourceProviderFactory.addListener(writer)
-            taskInputsListeners.addListener(writer)
+    inner class Idle : WritingState() {
+        override fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
+            val outputStream = ByteArrayOutputStream()
+            val fingerprintWriter = InstantExecutionCacheFingerprintWriter(
+                FingerprintComponentsHost(),
+                writeContextForOutputStream(outputStream)
+            )
+            addListener(fingerprintWriter)
+            return Writing(fingerprintWriter, outputStream)
         }
     }
 
-    fun stop() {
-        fingerprintWriter.let { writer ->
-            require(writer != null)
-            taskInputsListeners.removeListener(writer)
-            valueSourceProviderFactory.removeListener(writer)
-            writer.close()
+    private
+    inner class Writing(
+        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter,
+        private val outputStream: ByteArrayOutputStream
+    ) : WritingState() {
+        override fun stop(): WritingState {
+            removeListener(fingerprintWriter)
+            fingerprintWriter.close()
+            return Written(outputStream)
         }
-        fingerprintWriter = null
     }
 
-    fun writeFingerprintTo(fingerprintFile: File) {
-        fingerprintOutputStream.let { outputStream ->
-            require(outputStream != null)
+    private
+    inner class Written(
+        private val outputStream: ByteArrayOutputStream
+    ) : WritingState() {
+        override fun copyFingerprintTo(fingerprintFile: File): WritingState {
             fingerprintFile
                 .outputStream()
                 .use(outputStream::writeTo)
+            return Idle()
         }
-        fingerprintOutputStream = null
     }
 
-    suspend fun ReadContext.check(): InvalidationReason? =
+    private
+    var writingState: WritingState = Idle()
+
+    fun startCollectingFingerprint(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
+        writingState = writingState.start(writeContextForOutputStream)
+    }
+
+    fun stopCollectingFingerprint() {
+        writingState = writingState.stop()
+    }
+
+    fun commitFingerprintTo(fingerprintFile: File) {
+        writingState = writingState.copyFingerprintTo(fingerprintFile)
+    }
+
+    suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
         fingerprintChecker().run {
             checkFingerprint()
         }
@@ -89,6 +118,18 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private
     fun fingerprintChecker() =
         InstantExecutionFingerprintChecker(FingerprintComponentsHost())
+
+    private
+    fun addListener(listener: InstantExecutionCacheFingerprintWriter) {
+        valueSourceProviderFactory.addListener(listener)
+        taskInputsListeners.addListener(listener)
+    }
+
+    private
+    fun removeListener(listener: InstantExecutionCacheFingerprintWriter) {
+        taskInputsListeners.removeListener(listener)
+        valueSourceProviderFactory.removeListener(listener)
+    }
 
     private
     inner class FingerprintComponentsHost

@@ -128,7 +128,7 @@ class DefaultInstantExecution internal constructor(
 
         if (!isInstantExecutionEnabled) return
 
-        attachBuildLogicInputsCollector()
+        startCollectingCacheFingerprint()
     }
 
     override fun saveScheduledWork() {
@@ -140,7 +140,7 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        detachBuildLogicInputsCollector()
+        stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
 
@@ -210,16 +210,34 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun checkFingerprint(): InvalidationReason? {
-        loadGradleProperties()
-        return checkInstantExecutionFingerprintFile()
+    fun startCollectingCacheFingerprint() {
+        cacheFingerprintController.startCollectingFingerprint {
+            cacheFingerprintWriterContextFor(it)
+        }
     }
 
     private
-    fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(
-            startParameter.settingsDirectory
+    fun stopCollectingCacheFingerprint() {
+        cacheFingerprintController.stopCollectingFingerprint()
+    }
+
+    private
+    fun writeInstantExecutionCacheFingerprint() {
+        cacheFingerprintController.commitFingerprintTo(
+            instantExecutionFingerprintFile
         )
+    }
+
+    private
+    fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
+        writerContextFor(outputStream).apply {
+            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        }
+
+    private
+    fun checkFingerprint(): InvalidationReason? {
+        loadGradleProperties()
+        return checkInstantExecutionFingerprintFile()
     }
 
     private
@@ -227,35 +245,17 @@ class DefaultInstantExecution internal constructor(
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
                 cacheFingerprintController.run {
-                    check()
+                    checkFingerprint()
                 }
             }
         }
 
     private
-    fun attachBuildLogicInputsCollector() {
-        cacheFingerprintController.start {
-            cacheInputsWriterContextFor(it)
-        }
-    }
-
-    private
-    fun detachBuildLogicInputsCollector() {
-        cacheFingerprintController.stop()
-    }
-
-    private
-    fun writeInstantExecutionCacheFingerprint() {
-        cacheFingerprintController.writeFingerprintTo(
-            instantExecutionFingerprintFile
+    fun loadGradleProperties() {
+        gradlePropertiesController.loadGradlePropertiesFrom(
+            startParameter.settingsDirectory
         )
     }
-
-    private
-    fun cacheInputsWriterContextFor(outputStream: OutputStream) =
-        writerContextFor(outputStream).apply {
-            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
-        }
 
     private
     fun discardInstantExecutionState() {
