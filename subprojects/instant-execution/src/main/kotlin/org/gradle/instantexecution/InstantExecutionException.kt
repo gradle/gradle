@@ -28,7 +28,8 @@ import java.io.File
 /**
  * Marker interface for exception handling.
  */
-internal interface InstantExecutionThrowable
+internal
+interface InstantExecutionThrowable
 
 
 /**
@@ -53,7 +54,8 @@ sealed class InstantExecutionException private constructor(
 
 open class InstantExecutionProblemsException : InstantExecutionException {
 
-    protected constructor(
+    protected
+    constructor(
         message: String,
         problems: List<PropertyProblem>,
         htmlReportFile: File
@@ -62,7 +64,8 @@ open class InstantExecutionProblemsException : InstantExecutionException {
         problems.mapNotNull(PropertyProblem::exception)
     )
 
-    internal constructor(
+    internal
+    constructor(
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : this(
@@ -83,4 +86,3 @@ class TooManyInstantExecutionProblemsException internal constructor(
     problems,
     htmlReportFile
 )
-
