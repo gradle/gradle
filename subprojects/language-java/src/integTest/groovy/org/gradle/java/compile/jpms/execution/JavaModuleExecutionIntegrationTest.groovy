@@ -25,9 +25,6 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             dependencies {
                 implementation 'org:moda:1.0'
             }
-            tasks.withType(JavaExec) {
-                modularClasspathHandling.inferModulePath.set(true)
-            }
         """
     }
 
@@ -56,6 +53,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
+                modularClasspathHandling.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
             }
@@ -79,6 +77,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
+                modularClasspathHandling.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
                 mainClass.set('consumer.MainModule')

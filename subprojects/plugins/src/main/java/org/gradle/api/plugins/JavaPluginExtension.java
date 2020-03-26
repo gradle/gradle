@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.jpms.ModularClasspathHandling;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -107,4 +108,13 @@ public interface JavaPluginExtension {
      */
     @Incubating
     void withSourcesJar();
+
+    /**
+     * Configure the module path handling for tasks that have a 'classpath' as input. The module classpath handling defines
+     * to determine for each entry if it is passed to Java tools using '-classpath' or '--module-path'.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    ModularClasspathHandling getModularClasspathHandling();
 }
