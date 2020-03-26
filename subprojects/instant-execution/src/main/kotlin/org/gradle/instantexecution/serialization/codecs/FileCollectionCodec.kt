@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFiles
 import org.gradle.api.internal.artifacts.transform.TransformationNode
@@ -23,6 +24,7 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
 import org.gradle.api.tasks.util.PatternSet
@@ -65,6 +67,7 @@ class FileCollectionCodec(
                     when (element) {
                         is File -> element
                         is TransformationNode -> Callable { element.transformedSubject.get().files }
+                        is SubtractingFileCollectionSpec -> element.left.minus(element.right)
                         is FileTree -> element
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                     }
@@ -80,8 +83,22 @@ class FileCollectionCodec(
 
 
 private
+class
+SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollection)
+
+
+private
 class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
+    override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
+        if (fileCollection is SubtractingFileCollection) {
+            // TODO - when left and right are both static then we could calculate the difference here and serialize the result
+            elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
+            return false
+        } else {
+            return true
+        }
+    }
 
     override fun prepareForVisit(source: FileCollectionInternal.Source): FileCollectionStructureVisitor.VisitType {
         return if (source is ConsumerProvidedVariantFiles && source.scheduledNodes.isNotEmpty()) {

@@ -18,7 +18,6 @@ package org.gradle.api.internal.file
 
 import org.gradle.api.Task
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext
-import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.tasks.TaskDependencyContainer
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 
@@ -297,13 +296,10 @@ class CompositeFileCollectionSpec extends FileCollectionSpec {
         collection.buildDependencies.getDependencies(task) == [dependency1, dependency2] as LinkedHashSet
     }
 
-    def "can visit structure"() {
-        def child1 = Stub(FileCollectionInternal)
-        def child2 = Stub(FileTreeInternal)
-        def child2Source = Stub(FileSystemMirroringFileTree)
-        def source = Stub(FileCollectionInternal.Source)
-
-        def tree = new TestCollection() {
+    def "visits children when visitor requests contents"() {
+        def child1 = Mock(FileCollectionInternal)
+        def child2 = Mock(FileTreeInternal)
+        def collection = new TestCollection() {
             @Override
             void visitContents(FileCollectionResolveContext context) {
                 context.add(child1)
@@ -313,14 +309,33 @@ class CompositeFileCollectionSpec extends FileCollectionSpec {
         def visitor = Mock(FileCollectionStructureVisitor)
 
         when:
-        tree.visitStructure(visitor)
+        collection.visitStructure(visitor)
 
         then:
-        child1.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitCollection(source, child1) }
-        child2.visitStructure(visitor) >> { FileCollectionStructureVisitor v -> v.visitGenericFileTree(child2, child2Source) }
-        1 * visitor.visitCollection(source, child1)
-        1 * visitor.visitGenericFileTree(child2, child2Source)
-        0 * visitor._
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> true
+        1 * child1.visitStructure(visitor)
+        1 * child2.visitStructure(visitor)
+        0 * _
+    }
+
+    def "does not visit children when visitor does not request contents"() {
+        def child1 = Mock(FileCollectionInternal)
+        def child2 = Mock(FileTreeInternal)
+        def collection = new TestCollection() {
+            @Override
+            void visitContents(FileCollectionResolveContext context) {
+                context.add(child1)
+                context.add(child2)
+            }
+        }
+        def visitor = Mock(FileCollectionStructureVisitor)
+
+        when:
+        collection.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> false
+        0 * _
     }
 
     def collectionDependsOn(Task... tasks) {

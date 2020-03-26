@@ -142,4 +142,46 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         result.assertTasksExecuted(":produce1", ":produce2", ":merge")
         file("merge.txt").text == "one,two"
     }
+
+    def "can subtract the elements of another file collection"() {
+        given:
+        file('files/a/one.txt').createFile()
+        file('files/b/two.txt').createFile()
+        buildFile << """
+            def files = files('files/a', 'files/b').minus(files('files/b'))
+            task copy(type: Copy) {
+                from files
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest').assertHasDescendants(
+            'one.txt'
+        )
+
+        when:
+        file('files/b/ignore.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.txt'
+        )
+
+        when:
+        file('files/a/three.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'three.txt'
+        )
+    }
 }
