@@ -19,6 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -26,26 +27,34 @@ import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.TreeMap;
 
 public class AmbiguousConfigurationSelectionException extends RuntimeException {
-    public AmbiguousConfigurationSelectionException(AttributeContainerInternal fromConfigurationAttributes,
+    public AmbiguousConfigurationSelectionException(ConsumerAttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent,
-                                                    boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, matches, targetComponent, variantAware));
+                                                    boolean variantAware,
+                                                    Set<ConfigurationMetadata> discarded) {
+        super(generateMessage(describer, fromConfigurationAttributes, attributeMatcher, matches, discarded, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(ConsumerAttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Cannot choose between the following " + (variantAware ? "variants" : "configurations") + " of ");
+        String configTerm = variantAware ? "variants" : "configurations";
+        if (fromConfigurationAttributes.isEmpty()) {
+            formatter.node("Cannot choose between the following " + configTerm + " of ");
+        } else {
+            formatter.node("The consumer was configured to find " + describer.describe(fromConfigurationAttributes) + ". However we cannot choose between the following " + configTerm + " of ");
+        }
         formatter.append(targetComponent.getId().getDisplayName());
         formatter.startChildren();
         for (String configuration : ambiguousConfigurations.keySet()) {
@@ -60,6 +69,17 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, ambiguousConf, variantAware, true);
         }
         formatter.endChildren();
+        if (!discarded.isEmpty()) {
+            formatter.node("The following " + configTerm + " were also considered but didn't match the requested attributes:");
+            formatter.startChildren();
+            discarded.stream()
+                .sorted(Comparator.comparing(ConfigurationMetadata::getName))
+                .forEach(discardedConf -> {
+                    formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, discardedConf, variantAware, false);
+                });
+            formatter.endChildren();
+        }
+
         return formatter.toString();
     }
 

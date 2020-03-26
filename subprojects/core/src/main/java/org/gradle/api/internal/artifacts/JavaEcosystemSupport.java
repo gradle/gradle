@@ -24,15 +24,16 @@ import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.api.attributes.AttributesSchema;
+import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.CompatibilityCheckDetails;
-import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.HasAttributes;
+import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.MultipleCandidatesDetails;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.ReusableAction;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.DescribableAttributesSchema;
 import org.gradle.api.model.ObjectFactory;
 
 import javax.inject.Inject;
@@ -44,6 +45,11 @@ public abstract class JavaEcosystemSupport {
         configureLibraryElements(attributesSchema, objectFactory);
         configureBundling(attributesSchema);
         configureTargetPlatform(attributesSchema);
+        configureConsumerDescriptors((DescribableAttributesSchema) attributesSchema);
+    }
+
+    private static void configureConsumerDescriptors(DescribableAttributesSchema attributesSchema) {
+        attributesSchema.addConsumerDescriber(new JavaEcosystemAttributesDescriber());
     }
 
     public static void configureDefaultTargetPlatform(HasAttributes configuration, int majorVersion) {

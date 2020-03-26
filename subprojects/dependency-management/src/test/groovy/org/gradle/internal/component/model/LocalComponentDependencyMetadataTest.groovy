@@ -236,7 +236,7 @@ Configuration 'bar':
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following variants of <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
+                assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '$queryAttributes.flavor'":""}. However we cannot choose between the following variants of <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }
@@ -306,7 +306,7 @@ Configuration 'bar':
             assert result == [expected] as Set
         } catch (AmbiguousConfigurationSelectionException e) {
             if (expected == null) {
-                assert e.message.startsWith(toPlatformLineSeparators("Cannot choose between the following variants of <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
+                assert e.message.startsWith(toPlatformLineSeparators("The consumer was configured to find attribute 'platform' with value '${queryAttributes.platform}'${queryAttributes.flavor?", attribute 'flavor' with value '${queryAttributes.flavor}'":""}. However we cannot choose between the following variants of <target>:\n  - bar\n  - foo\nAll of them match the consumer attributes:"))
             } else {
                 throw e
             }

@@ -22,6 +22,7 @@ import org.gradle.api.attributes.AttributeMatchingStrategy;
 import org.gradle.internal.component.model.AttributeMatcher;
 
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 public class EmptySchema implements AttributesSchemaInternal {
@@ -41,6 +42,16 @@ public class EmptySchema implements AttributesSchemaInternal {
     @Override
     public DisambiguationRule<Object> disambiguationRules(Attribute<?> attribute) {
         return disambiguationRule;
+    }
+
+    @Override
+    public List<ConsumerAttributeDescriber> getConsumerDescribers() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public void addConsumerDescriber(ConsumerAttributeDescriber describer) {
+        throw new UnsupportedOperationException();
     }
 
     @Override

@@ -19,6 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -31,14 +32,15 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 
 public class NoMatchingConfigurationSelectionException extends RuntimeException {
     public NoMatchingConfigurationSelectionException(
+        ConsumerAttributeDescriber describer,
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentResolveMetadata targetComponent,
         boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
+        super(generateMessage(describer, fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(ConsumerAttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));
@@ -46,7 +48,11 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             configurations.put(configurationMetadata.getName(), configurationMetadata);
         }
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName());
+        if (fromConfigurationAttributes.isEmpty()) {
+            formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName());
+        } else {
+            formatter.node("The consumer was configured to find " + describer.describe(fromConfigurationAttributes) + " but no matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName() + " was found.");
+        }
         formatter.startChildren();
         if (configurations.isEmpty()) {
             formatter.node("None of the " + (variantAware ? "variants" : "consumable configurations") + " have attributes.");

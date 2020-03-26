@@ -123,7 +123,7 @@ allprojects {
 
                 dependencies {
                     compile project(':lib'), project(':ui')
-                    
+
                     attributesSchema {
                         attribute(otherAttributeOptional)
                     }
@@ -136,8 +136,8 @@ allprojects {
                     doLast {
                         // Get a view specifying the default type
                         def defaultView = configurations.compile.incoming.artifactView {
-                            attributes { 
-                                it.attribute(artifactType, 'jar') 
+                            attributes {
+                                it.attribute(artifactType, 'jar')
                             }
                         }
                         assert defaultView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
@@ -145,9 +145,9 @@ allprojects {
 
                         // Get a view with additional optional attribute
                         def optionalAttributeView =  configurations.compile.incoming.artifactView {
-                            attributes { 
+                            attributes {
                                 it.attribute(artifactType, 'jar')
-                                it.attribute(otherAttributeOptional, 'anything') 
+                                it.attribute(otherAttributeOptional, 'anything')
                             }
                         }
                         assert optionalAttributeView.files.collect { it.name } == ['lib.jar', 'lib-util.jar', 'ui.jar', 'some-jar-1.0.jar']
@@ -222,8 +222,8 @@ allprojects {
                 }
 
                 task resolve {
-                    def view = configurations.compile.incoming.artifactView { 
-                        attributes { it.attribute(artifactType, 'classes') } 
+                    def view = configurations.compile.incoming.artifactView {
+                        attributes { it.attribute(artifactType, 'classes') }
                     }
                     inputs.files view.files
                     doLast {
@@ -248,14 +248,14 @@ allprojects {
         buildFile << """
 class BuildTypeCompatibilityRule implements AttributeCompatibilityRule<String> {
     void execute(CompatibilityCheckDetails<String> details) {
-        if (details.consumerValue == "debug" && details.producerValue == "profile") { 
+        if (details.consumerValue == "debug" && details.producerValue == "profile") {
             details.compatible()
-        }    
+        }
     }
 }
 class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
     void execute(MultipleCandidatesDetails<String> details) {
-        if (details.candidateValues.contains('tasty')) { 
+        if (details.candidateValues.contains('tasty')) {
             details.closestMatch('tasty')
         }
     }
@@ -329,7 +329,7 @@ class FlavorCompatibilityRule implements AttributeCompatibilityRule<String> {
 }
 class FlavorSelectionRule implements AttributeDisambiguationRule<String> {
     void execute(MultipleCandidatesDetails<String> details) {
-        if (details.candidateValues.contains('tasty')) { 
+        if (details.candidateValues.contains('tasty')) {
             details.closestMatch('tasty')
         }
     }
@@ -395,7 +395,7 @@ task show {
         buildFile << """
 class ExtraSelectionRule implements AttributeDisambiguationRule<String> {
     void execute(MultipleCandidatesDetails<String> details) {
-        if (details.candidateValues.contains('good')) { 
+        if (details.candidateValues.contains('good')) {
             details.closestMatch('good')
         }
     }
@@ -413,7 +413,7 @@ project(':lib') {
             disambiguationRules.add(ExtraSelectionRule)
         }
     }
-    
+
     configurations {
         compile {
             outgoing {
@@ -767,7 +767,7 @@ task show {
         fails "resolveView"
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:compile'.")
-        failure.assertHasCause("""More than one variant of project :lib matches the consumer attributes:
+        failure.assertHasCause("""The consumer was configured to find attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api'. However we cannot choose between the following variants of project :lib:
   - Configuration ':lib:compile':
       - Unmatched attribute:
           - Found buildType 'n/a' but wasn't required.
@@ -865,7 +865,7 @@ task show {
 
             project(':app') {
                 configurations.compile.attributes.attribute(artifactType, 'dll')
-                
+
                 dependencies {
                     compile project(':lib')
                     compile 'test:test:1.2'
@@ -946,14 +946,14 @@ task show {
                     }
                 }
             }
-            
+
             project(':ui') {
                 def attr = Attribute.of('attr', Number)
                 dependencies {
                     attributesSchema {
                         attribute(attr)
                     }
-                }                
+                }
                 configurations {
                     compile {
                         outgoing {
@@ -983,8 +983,8 @@ task show {
                 task resolve {
                     doLast {
                         configurations.compile.incoming.artifactView {
-                            attributes { 
-                                it.attribute(attr, 'jar') 
+                            attributes {
+                                it.attribute(attr, 'jar')
                             }
                         }.files.each { println it }
                     }

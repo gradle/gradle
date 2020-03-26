@@ -44,7 +44,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 conf(project(':dep')) {
                     attributes {
-                        attribute(Attribute.of('color', String), '$color')                        
+                        attribute(Attribute.of('color', String), '$color')
                     }
                 }
             }
@@ -75,7 +75,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 conf(project(':dep')) {
                     attributes {
-                        attribute(Attribute.of('color', String), 'green')                        
+                        attribute(Attribute.of('color', String), 'green')
                     }
                 }
             }
@@ -86,7 +86,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching variant of project :dep:
+        failure.assertHasCause("""The consumer was configured to find attribute 'color' with value 'green' but no matching variant of project :dep was found.
   - Variant 'blueVariant' capability test:dep:unspecified:
       - Incompatible attribute:
           - Required color 'green' and found incompatible value 'blue'.
@@ -102,14 +102,14 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 conf {
                     attributes {
-                        attribute(Attribute.of('color', String), 'blue')                        
+                        attribute(Attribute.of('color', String), 'blue')
                     }
                 }
             }
             dependencies {
                 conf(project(':dep')) {
                     attributes {
-                        attribute(Attribute.of('color', String), 'red')                        
+                        attribute(Attribute.of('color', String), 'red')
                     }
                 }
             }

@@ -158,7 +158,7 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause('''Unable to find a matching variant of project :platform:
+        failure.assertHasCause('''The consumer was configured to find the API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :platform was found.
   - Variant 'apiElements' capability org.test:platform:1.9:
       - Incompatible attribute:
           - Required org.gradle.category 'library' and found incompatible value 'platform'.

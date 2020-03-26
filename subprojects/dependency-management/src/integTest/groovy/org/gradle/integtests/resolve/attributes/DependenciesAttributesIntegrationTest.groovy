@@ -386,7 +386,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
+        failure.assertHasCause("""The consumer was configured to find attribute 'custom' with value 'c1', attribute 'org.gradle.usage' with value 'java-runtime' but no matching variant of org:test:1.0 was found.
   - Variant 'api' capability org:test:1.0:
       - Incompatible attribute:
           - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
@@ -552,7 +552,7 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching variant of org:test:1.0:
+        failure.assertHasCause("""The consumer was configured to find attribute 'custom' with value 'c1', attribute 'org.gradle.usage' with value 'java-runtime' but no matching variant of org:test:1.0 was found.
   - Variant 'api' capability org:test:1.0:
       - Incompatible attribute:
           - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.

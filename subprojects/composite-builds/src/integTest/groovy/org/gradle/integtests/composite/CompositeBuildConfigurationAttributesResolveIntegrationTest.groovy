@@ -416,7 +416,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         """
         buildFile << """
             interface Thing extends Named { }
-            
+
             class CompatRule implements AttributeCompatibilityRule<Thing> {
                 void execute(CompatibilityCheckDetails<Thing> details) {
                     if (details.consumerValue.name == 'paid' && details.producerValue.name == 'blue') {
@@ -525,7 +525,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
         """
         buildFile << """
             interface Thing extends Named { }
-            
+
             class CompatRule implements AttributeCompatibilityRule<Thing> {
                 void execute(CompatibilityCheckDetails<Thing> details) {
                     if (details.consumerValue.name == 'paid') {
@@ -602,7 +602,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
-        failure.assertHasCause("""Unable to find a matching variant of project :includedBuild:
+        failure.assertHasCause("""The consumer was configured to find attribute 'flavor' with value 'free' but no matching variant of project :includedBuild was found.
   - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
       - Incompatible attribute:
           - Required flavor 'free' and found incompatible value 'blue'.
@@ -615,7 +615,7 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
-        failure.assertHasCause("""Cannot choose between the following variants of project :includedBuild:
+        failure.assertHasCause("""The consumer was configured to find attribute 'flavor' with value 'paid'. However we cannot choose between the following variants of project :includedBuild:
   - bar
   - foo
 All of them match the consumer attributes:

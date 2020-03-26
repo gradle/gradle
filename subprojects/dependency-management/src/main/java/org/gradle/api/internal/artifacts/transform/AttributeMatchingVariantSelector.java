@@ -17,25 +17,34 @@
 package org.gradle.api.internal.artifacts.transform;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariantSet;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Pair;
 import org.gradle.internal.component.AmbiguousVariantSelectionException;
 import org.gradle.internal.component.NoMatchingVariantSelectionException;
 import org.gradle.internal.component.VariantSelectionException;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
+import org.gradle.internal.component.model.DescriberSelector;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 class AttributeMatchingVariantSelector implements VariantSelector {
@@ -73,7 +82,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
     @Override
     public ResolvedArtifactSet select(ResolvedVariantSet producer) {
         try {
-            return doSelect(producer);
+            return doSelect(producer, AttributeMatchingExplanationBuilder.logging());
         } catch (VariantSelectionException t) {
             return new BrokenResolvedArtifactSet(t);
         } catch (Exception t) {
@@ -81,15 +90,22 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         }
     }
 
-    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer) {
+    private ResolvedArtifactSet doSelect(ResolvedVariantSet producer, AttributeMatchingExplanationBuilder explanationBuilder) {
         AttributeMatcher matcher = schema.withProducer(producer.getSchema());
         ImmutableAttributes componentRequested = attributesFactory.concat(requested, producer.getOverriddenAttributes());
-        List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested);
+        List<? extends ResolvedVariant> matches = matcher.matches(producer.getVariants(), componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             return matches.get(0).getArtifacts();
         }
         if (matches.size() > 1) {
-            throw new AmbiguousVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, matches, matcher);
+            if (explanationBuilder instanceof TraceDiscardedVariants) {
+                Set<ResolvedVariant> discarded = Cast.uncheckedCast(((TraceDiscardedVariants) explanationBuilder).discarded);
+                ConsumerAttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
+                throw new AmbiguousVariantSelectionException(describer, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
+            } else {
+                // because we're going to fail, we can afford a second run with details
+                return doSelect(producer, new TraceDiscardedVariants());
+            }
         }
 
         List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates = new ArrayList<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>>();
@@ -101,7 +117,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         if (candidates.size() > 1) {
-            candidates = tryDisambiguate(matcher, candidates, componentRequested);
+            candidates = tryDisambiguate(matcher, candidates, componentRequested, explanationBuilder);
         }
         if (candidates.size() == 1) {
             Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant> result = candidates.get(0);
@@ -121,8 +137,8 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested) {
-        candidates = disambiguateWithSchema(matcher, candidates, componentRequested);
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
+        candidates = disambiguateWithSchema(matcher, candidates, componentRequested, explanationBuilder);
 
         if (candidates.size() == 1) {
             return candidates;
@@ -170,9 +186,9 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         return shortestTransforms;
     }
 
-    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> disambiguateWithSchema(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested) {
+    private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> disambiguateWithSchema(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
         List<AttributeContainerInternal> candidateAttributes = candidates.stream().map(pair -> pair.getRight().attributes).collect(Collectors.toList());
-        List<AttributeContainerInternal> matches = matcher.matches(candidateAttributes, componentRequested);
+        List<AttributeContainerInternal> matches = matcher.matches(candidateAttributes, componentRequested, explanationBuilder);
         if (matches.size() == 1) {
             AttributeContainerInternal singleMatch = matches.get(0);
             return candidates.stream().filter(pair -> pair.getRight().attributes.equals(singleMatch)).collect(Collectors.toList());
@@ -195,5 +211,29 @@ class AttributeMatchingVariantSelector implements VariantSelector {
             }
         }
         return Optional.empty();
+    }
+
+    private static class TraceDiscardedVariants implements AttributeMatchingExplanationBuilder {
+
+        private final Set<HasAttributes> discarded = Sets.newHashSet();
+
+        @Override
+        public boolean canSkipExplanation() {
+            return false;
+        }
+
+        @Override
+        public <T extends HasAttributes> void candidateDoesNotMatchAttributes(T candidate, AttributeContainerInternal requested) {
+            recordDiscardedCandidate(candidate);
+        }
+
+        public <T extends HasAttributes> void recordDiscardedCandidate(T candidate) {
+            discarded.add(candidate);
+        }
+
+        @Override
+        public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
+            recordDiscardedCandidate(candidate);
+        }
     }
 }

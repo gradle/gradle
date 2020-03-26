@@ -99,7 +99,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''Unable to find a matching variant of org:producer:1.0:
+        failure.assertHasCause('''The consumer was configured to find the API of a library compatible with Java 5, preferably in the form of class files, and its dependencies declared externally but no matching variant of org:producer:1.0 was found.
   - Variant 'apiElementsJdk6' capability org:producer:1.0:
       - Incompatible attribute:
           - Required org.gradle.jvm.version '5' and found incompatible value '6'.
