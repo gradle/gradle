@@ -169,7 +169,7 @@ project(':b') {
         attributesSchema.attribute(flavor) {
             compatibilityRules.add(PaidRule)
         }
-    }    
+    }
     ${freeAndPaidFlavoredJars('b')}
 }
 
@@ -232,7 +232,7 @@ project(':b') {
             attributesSchema.attribute(flavor) {
             disambiguationRules.add(SelectPaidRule)
         }
-    }    
+    }
     ${freeAndPaidFlavoredJars('b')}
 }
 
@@ -280,7 +280,7 @@ project(':a') {
 project(':b') {
     dependencies {
         attributesSchema.attribute(flavor)
-    }    
+    }
     ${freeAndPaidFlavoredJars('b')}
 }
 
@@ -292,7 +292,7 @@ task show {
 """
         expect:
         fails("show")
-        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant free:
       - Unmatched attributes:
           - Found artifactType 'jar' but wasn't required.
@@ -585,7 +585,7 @@ task show {
         failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
-        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
+        failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
 
         where:
         expression                                                                                         | _

@@ -84,7 +84,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching ${variantTerm()} of org.test:module:1.0:")
+            failure.assertHasCause("The consumer was configured to find attribute 'quality' with value 'qa' but no matching ${variantTerm()} of org.test:module:1.0 was found.")
             failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
         }
 
@@ -296,7 +296,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
+            failure.assertHasCause("The consumer was configured to find attribute 'quality' with value 'qa' but no matching variant of org.test:module:1.0 was found.")
             failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
         }
 

@@ -25,7 +25,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         '''
             interface Flavor extends Named {
             }
-            
+
             enum BuildType {
                 debug,
                 release
@@ -391,7 +391,7 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """Cannot choose between the following variants of project :b:
+        failure.assertHasCause """The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug'. However we cannot choose between the following variants of project :b:
   - foo2
   - foo3
 All of them match the consumer attributes:
@@ -402,6 +402,12 @@ All of them match the consumer attributes:
   - Variant 'foo3' capability test:b:unspecified:
       - Compatible attributes:
           - Required buildType 'debug' and found compatible value 'debug'.
+          - Required flavor 'free' and found compatible value 'ONE'.
+The following variants were also considered but didn't match the requested attributes:
+  - Variant 'bar' capability test:b:unspecified:
+      - Incompatible attribute:
+          - Required buildType 'debug' and found incompatible value 'release'.
+      - Other attribute:
           - Required flavor 'free' and found compatible value 'ONE'."""
     }
 
@@ -525,9 +531,9 @@ All of them match the consumer attributes:
             class FlavorSelectionRule implements AttributeDisambiguationRule<Flavor> {
                 void execute(MultipleCandidatesDetails<Flavor> details) {
                     if (details.consumerValue == null) {
-                        details.closestMatch(details.candidateValues.find { it.name == 'ONE' }) 
+                        details.closestMatch(details.candidateValues.find { it.name == 'ONE' })
                     } else if (details.consumerValue.name == 'free') {
-                        details.closestMatch(details.candidateValues.find { it.name == 'TWO' }) 
+                        details.closestMatch(details.candidateValues.find { it.name == 'TWO' })
                     }
                 }
             }
@@ -770,7 +776,7 @@ All of them match the consumer attributes:
                     }
                 }
             }
-            
+
             project(':b') {
                 dependencies.attributesSchema {
                     attribute(flavor) {
@@ -1016,7 +1022,7 @@ All of them match the consumer attributes:
 
             class FlavorCompatibilityRule implements AttributeCompatibilityRule<Flavor> {
                 String value
-            
+
                 @javax.inject.Inject
                 FlavorCompatibilityRule(String value) { this.value = value }
 

@@ -19,12 +19,12 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.attributes.AttributesSchema
 import org.gradle.api.attributes.Bundling
 import org.gradle.api.attributes.Usage
 import org.gradle.api.attributes.java.TargetJvmVersion
 import org.gradle.api.internal.artifacts.DependencyResolutionServices
 import org.gradle.api.internal.attributes.AttributeContainerInternal
+import org.gradle.api.internal.attributes.AttributesSchemaInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.util.ConfigureUtil
@@ -38,7 +38,7 @@ class DefaultScriptHandlerTest extends Specification {
     def configuration = Mock(Configuration)
     def scriptSource = Stub(ScriptSource)
     def depMgmtServices = Mock(DependencyResolutionServices) {
-        getAttributesSchema() >> Stub(AttributesSchema)
+        getAttributesSchema() >> Stub(AttributesSchemaInternal)
     }
     def baseClassLoader = new ClassLoader() {}
     def classLoaderScope = Stub(ClassLoaderScope) {

@@ -49,7 +49,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             library {
@@ -160,14 +160,14 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${repoDir.toURI()}' } }
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 dependencies {
                     api project(':card')
                     implementation project(':shuffle')
@@ -281,7 +281,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
@@ -300,13 +300,13 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             apply plugin: 'maven-publish'
 
             repositories { maven { url '${repoDir.toURI()}' } }
-            
+
             group = 'some.group'
             version = '1.2'
             publishing {
                 repositories { maven { url '${repoDir.toURI()}' } }
             }
-            
+
             dependencies {
                 api 'some.group:card:1.2'
                 implementation 'some.group:shuffle:1.2'
@@ -394,7 +394,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
 
@@ -402,7 +402,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
                     repositories { maven { url '${repoDir.toURI()}' } }
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 library.baseName = 'card_deck'
                 dependencies {
                     api project(':card')
@@ -504,7 +504,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             library {
@@ -539,7 +539,7 @@ class CppLibraryPublishingIntegrationTest extends AbstractCppPublishingIntegrati
         buildFile << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             publishing {
@@ -591,7 +591,7 @@ library.publicHeaders.from 'src/main/public', 'src/main/headers'
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
@@ -644,17 +644,17 @@ dependencies { implementation 'some.group:greeter:1.2' }
         producer.file("build.gradle") << """
             apply plugin: 'cpp-library'
             apply plugin: 'maven-publish'
-            
+
             group = 'some.group'
             version = '1.2'
             publishing {
                 repositories { maven { url '${repoDir.toURI()}' } }
             }
-            
+
             library.binaries.get { it.optimized }.configure {
                 compileTask.get().macros(WITH_FEATURE: "true")
             }
-            
+
         """
         app.greeterLib.writeToProject(file(producer))
 
@@ -708,7 +708,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
@@ -760,18 +760,18 @@ dependencies { implementation 'some.group:greeter:1.2' }
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
-                
+
                 components.withType(CppComponent) {
                     targetMachines = [machines.windows.architecture('${currentArchitecture}'), machines.linux.architecture('${currentArchitecture}'), machines.macOS.architecture('${currentArchitecture}')]
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 dependencies {
                     api project(':card')
                     implementation project(':shuffle')
@@ -830,18 +830,18 @@ dependencies { implementation 'some.group:greeter:1.2' }
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
-                
+
                 components.withType(CppComponent) {
                     targetMachines = [machines.host().x86, machines.host().x86_64]
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 dependencies {
                     api project(':card')
                     implementation project(':shuffle')
@@ -899,18 +899,18 @@ dependencies { implementation 'some.group:greeter:1.2' }
             subprojects {
                 apply plugin: 'cpp-library'
                 apply plugin: 'maven-publish'
-                
+
                 group = 'some.group'
                 version = '1.2'
                 publishing {
                     repositories { maven { url '${mavenRepo.uri}' } }
                 }
-                
+
                 components.withType(CppComponent) {
                     targetMachines = [machines.host().x86_64]
                 }
             }
-            project(':deck') { 
+            project(':deck') {
                 dependencies {
                     api project(':card')
                     implementation project(':shuffle')
@@ -942,7 +942,7 @@ dependencies { implementation 'some.group:greeter:1.2' }
         fails("assemble")
 
         then:
-        failure.assertHasCause("Unable to find a matching variant of some.group:deck:1.2")
+        failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.usage' with value 'native-link', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value 'x86' but no matching variant of some.group:deck:1.2 was found.")
         failure.assertHasErrorOutput("Required org.gradle.native.architecture 'x86' and found incompatible value 'x86-64'.")
     }
 

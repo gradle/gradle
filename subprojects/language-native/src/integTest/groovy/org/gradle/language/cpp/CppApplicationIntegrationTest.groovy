@@ -477,7 +477,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("Unable to find a matching variant of project :greeter")
+        failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but no matching variant of project :greeter was found.")
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
@@ -521,7 +521,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         given:
         file("src/main/cpp/main.cpp") << """
             #include "foo.h"
-            
+
             int main(int argc, char** argv) {
                 return EXIT_VALUE;
             }
@@ -530,9 +530,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         and:
         buildFile << """
             apply plugin: 'cpp-application'
-            
+
             def headerDirectory = objects.directoryProperty()
-            
+
             task generateHeader {
                 outputs.dir(headerDirectory)
                 headerDirectory.set(layout.buildDirectory.dir("headers"))
@@ -544,7 +544,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     '''
                 }
             }
-            
+
             application.binaries.whenElementFinalized { binary ->
                 def dependency = project.dependencies.create(files(headerDirectory))
                 binary.getIncludePathConfiguration().dependencies.add(dependency)
@@ -623,7 +623,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """Unable to find a matching variant of project :hello:
+        failure.assertHasCause """The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but no matching variant of project :hello was found.
   - Variant 'cppApiElements' capability test:hello:unspecified:
       - Incompatible attribute:
           - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'.
@@ -650,7 +650,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
-                
+
                 library.linkage = [Linkage.STATIC]
             }
         """
@@ -683,7 +683,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
-                
+
                 library.linkage = [Linkage.STATIC, Linkage.SHARED]
             }
         """
@@ -1088,7 +1088,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         and:
         buildFile << """
             apply plugin: 'cpp-application'
-            
+
             application {
                 binaries.configureEach {
                     compileTask.get().compilerArgs.add("-Wall")
@@ -1123,7 +1123,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         buildFile << """
             apply plugin: 'cpp-application'
-            
+
             application {
                 privateHeaders.from 'src/main/headers', 'src/sumHeaders'
             }

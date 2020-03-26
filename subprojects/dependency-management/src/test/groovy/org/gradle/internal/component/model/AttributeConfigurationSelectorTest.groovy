@@ -88,7 +88,7 @@ class AttributeConfigurationSelectorTest extends Specification {
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api'. However we cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
 All of them match the consumer attributes:
@@ -115,7 +115,7 @@ All of them match the consumer attributes:
 
         then:
         NoMatchingConfigurationSelectionException e = thrown()
-        failsWith(e, '''Unable to find a matching variant of org:lib:1.0:
+        failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but no matching variant of org:lib:1.0 was found.
   - Variant 'api' capability org:lib:1.0:
       - Incompatible attribute:
           - Required org.gradle.usage 'cplusplus-headers' and found incompatible value 'java-api'.
@@ -195,7 +195,7 @@ All of them match the consumer attributes:
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api'. However we cannot choose between the following variants of org:lib:1.0:
   - api1
   - api2
   - api3
@@ -209,6 +209,98 @@ All of them match the consumer attributes:
   - Variant 'api3' capabilities org:lib:1.0 and org:second:1.0:
       - Compatible attribute:
           - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.''')
+        /*
+        There were multiple variants of `org:lib:1.0` which provided what this configuration was looking for:
+        All api1, api2 and api3 are compatible with what this configuration is looking for (a Java API).
+         */
+        /*
+        Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve com.squareup.okio:okio:2.4.1.
+             Required by:
+                 project :telemetry-definitions > com.squareup.okhttp3:okhttp:4.3.1
+             Caused by: org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of com.squareup.okio:okio:2.4.3:
+               - jvm-api
+               - jvm-runtime
+               - metadata-api
+             All of them match the consumer attributes:
+               - Variant 'jvm-api' capability com.squareup.okio:okio:2.4.3:
+                   - Unmatched attributes:
+                       - Found org.gradle.status 'release' but wasn't required.
+                       - Found org.gradle.usage 'java-api' but wasn't required.
+                       - Found org.jetbrains.kotlin.platform.type 'jvm' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.gradle.libraryelements 'resources' and found compatible value 'jar'.
+               - Variant 'jvm-runtime' capability com.squareup.okio:okio:2.4.3:
+                   - Unmatched attributes:
+                       - Found org.gradle.status 'release' but wasn't required.
+                       - Found org.gradle.usage 'java-runtime' but wasn't required.
+                       - Found org.jetbrains.kotlin.platform.type 'jvm' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.gradle.libraryelements 'resources' and found compatible value 'jar'.
+               - Variant 'metadata-api' capability com.squareup.okio:okio:2.4.3:
+                   - Unmatched attributes:
+                       - Required org.gradle.libraryelements 'resources' but no value provided.
+                       - Found org.gradle.status 'release' but wasn't required.
+                       - Found org.gradle.usage 'kotlin-api' but wasn't required.
+                       - Found org.jetbrains.kotlin.platform.type 'common' but wasn't required.
+
+         */
+        /*
+        2020-02-04T21:53:19.7995006Z Caused by: org.gradle.internal.resolve.ModuleVersionResolveException: Could not resolve project :carbonite:carbonite.
+             Required by:
+                 project :carbonite:carbonite-compiler
+             Caused by: org.gradle.internal.component.AmbiguousConfigurationSelectionException: Cannot choose between the following variants of project :carbonite:carbonite:
+               - compile
+               - default
+               - runtime
+               - testCompile
+               - testRuntime
+             All of them match the consumer attributes:
+               - Variant 'compile' capability slack-android-ng.carbonite:carbonite:unspecified:
+                   - Unmatched attributes:
+                       - Required org.gradle.dependency.bundling 'external' but no value provided.
+                       - Required org.gradle.jvm.version '8' but no value provided.
+                       - Required org.gradle.libraryelements 'classes' but no value provided.
+                       - Required org.gradle.usage 'java-api' but no value provided.
+                       - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+               - Variant 'default' capability slack-android-ng.carbonite:carbonite:unspecified:
+                   - Unmatched attributes:
+                       - Required org.gradle.dependency.bundling 'external' but no value provided.
+                       - Required org.gradle.jvm.version '8' but no value provided.
+                       - Required org.gradle.libraryelements 'classes' but no value provided.
+                       - Required org.gradle.usage 'java-api' but no value provided.
+                       - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+               - Variant 'runtime' capability slack-android-ng.carbonite:carbonite:unspecified:
+                   - Unmatched attributes:
+                       - Required org.gradle.dependency.bundling 'external' but no value provided.
+                       - Required org.gradle.jvm.version '8' but no value provided.
+                       - Required org.gradle.libraryelements 'classes' but no value provided.
+                       - Required org.gradle.usage 'java-api' but no value provided.
+                       - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+               - Variant 'testCompile' capability slack-android-ng.carbonite:carbonite:unspecified:
+                   - Unmatched attributes:
+                       - Required org.gradle.dependency.bundling 'external' but no value provided.
+                       - Required org.gradle.jvm.version '8' but no value provided.
+                       - Required org.gradle.libraryelements 'classes' but no value provided.
+                       - Required org.gradle.usage 'java-api' but no value provided.
+                       - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+               - Variant 'testRuntime' capability slack-android-ng.carbonite:carbonite:unspecified:
+                   - Unmatched attributes:
+                       - Required org.gradle.dependency.bundling 'external' but no value provided.
+                       - Required org.gradle.jvm.version '8' but no value provided.
+                       - Required org.gradle.libraryelements 'classes' but no value provided.
+                       - Required org.gradle.usage 'java-api' but no value provided.
+                       - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
+                   - Compatible attribute:
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+         */
     }
 
     def "should select the variant which matches the most attributes"() {
@@ -243,7 +335,7 @@ All of them match the consumer attributes:
 
         then:
         AmbiguousConfigurationSelectionException e = thrown()
-        failsWith(e, '''Cannot choose between the following variants of org:lib:1.0:
+        failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'java-api'. However we cannot choose between the following variants of org:lib:1.0:
   - first
   - second
 All of them match the consumer attributes:
@@ -332,7 +424,7 @@ All of them match the consumer attributes:
         then:
         selected.name == 'B' // B matches best: capabilities match exactly, attributes match exactly
     }
-    
+
     def "should select the variant with the most exact match in case of ambiguity between attributes and capabilities"() {
         given:
         attributesSchema.attribute(Attribute.of('other', String)) {

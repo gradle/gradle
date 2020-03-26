@@ -21,28 +21,46 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
+import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 
-import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForAmbiguity;
+import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.*;
 
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
-    public AmbiguousVariantSelectionException(String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher) {
-        super(format(producerDisplayName, requested, matches, matcher));
+    public AmbiguousVariantSelectionException(ConsumerAttributeDescriber describer, String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
+        super(format(describer, producerDisplayName, requested, matches, matcher, discarded));
     }
 
-    private static String format(String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher) {
+    private static String format(ConsumerAttributeDescriber describer, String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
+        if (consumer.getAttributes().isEmpty()) {
+            formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
+        } else {
+            formatter.node("The consumer was configured to find " + describer.describe(consumer) + ". However we cannot choose between the following variants of " + producerDisplayName);
+        }
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
             formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable());
         }
         formatter.endChildren();
+        if (!discarded.isEmpty()) {
+            formatter.node("The following variants were also considered but didn't match the requested attributes:");
+            formatter.startChildren();
+            discarded.stream()
+                .sorted(Comparator.comparing(v -> v.asDescribable().getCapitalizedDisplayName()))
+                .forEach(discardedVariant -> {
+                    formatter.node(discardedVariant.asDescribable().getCapitalizedDisplayName());
+                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.getAttributes().asImmutable());
+                });
+            formatter.endChildren();
+        }
         return formatter.toString();
     }
 

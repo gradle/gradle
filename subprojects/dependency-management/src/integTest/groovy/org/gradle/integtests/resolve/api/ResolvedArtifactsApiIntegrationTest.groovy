@@ -473,7 +473,7 @@ task show {
         fails 'show'
 
         then:
-        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:compile' variant var1:
       - Unmatched attributes:
           - Found artifactType 'jar' but wasn't required.
@@ -642,7 +642,7 @@ task show {
 allprojects {
     repositories {
         maven {
-            url '$mavenHttpRepo.uri' 
+            url '$mavenHttpRepo.uri'
             metadataSources {
                 mavenPom()
                 artifact()
@@ -709,11 +709,11 @@ ${showFailuresTask(expression)}
 
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
-        failure.assertHasCause("""Unable to find a matching variant of project :a:
+        failure.assertHasCause("""The consumer was configured to find attribute 'volume' with value '11' but no matching variant of project :a was found.
   - Variant 'compile' capability test:a:unspecified:
       - Incompatible attribute:
           - Required volume '11' and found incompatible value '8'.""")
-        failure.assertHasCause("""Unable to find a matching variant of project :b:
+        failure.assertHasCause("""The consumer was configured to find attribute 'volume' with value '11' but no matching variant of project :b was found.
   - Variant 'compile' capability test:b:unspecified:
       - Incompatible attribute:
           - Required volume '11' and found incompatible value '9'.""")
@@ -907,7 +907,7 @@ task resolveLenient {
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
+        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:default' variant v1:
       - Unmatched attribute:
           - Required usage 'compile' but no value provided.
@@ -939,7 +939,7 @@ configurations.compile.attributes.attribute(usage, "compile")
 project(':a') {
     task jar1(type: Jar)
     task jar2(type: Jar)
-    dependencies { 
+    dependencies {
         compile project(':c')
     }
     configurations.default.outgoing.variants {

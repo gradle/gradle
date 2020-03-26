@@ -207,7 +207,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
             apply plugin: 'swift-application'
 
             task compileDebug {
-                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.objects } 
+                dependsOn application.binaries.get { it.debuggable && !it.optimized }.map { it.objects }
             }
          """
 
@@ -498,7 +498,7 @@ class SwiftApplicationIntegrationTest extends AbstractSwiftIntegrationTest imple
 
         and:
         failure.assertHasCause("Could not resolve project :greeter.")
-        failure.assertHasCause("Unable to find a matching configuration of project :greeter")
+        failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value 'linux', attribute 'org.gradle.native.architecture' with value 'x86-64' but no matching configuration of project :greeter was found.")
     }
 
     @ToBeFixedForInstantExecution

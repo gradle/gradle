@@ -56,7 +56,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''Unable to find a matching variant of project :producer:
+        failure.assertHasCause('''The consumer was configured to find the API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
   - Variant 'apiElements' capability test:producer:unspecified:
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.
@@ -149,7 +149,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching variant of project :producer:
+        failure.assertHasCause("""The consumer was configured to find the API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
   - Variant 'apiElements' capability test:producer:unspecified:
       - Incompatible attribute:
           - Required org.gradle.jvm.version '6' and found incompatible value '7'.

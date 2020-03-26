@@ -74,6 +74,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private final ImmutableAttributes requested;
     private final List<? extends T> candidates;
     private final ImmutableAttributes[] candidateAttributeSets;
+    private final AttributeMatchingExplanationBuilder explanationBuilder;
 
     private final List<Attribute<?>> requestedAttributes;
     private final BitSet compatible;
@@ -85,11 +86,12 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
     private BitSet remaining;
     private Attribute<?>[] extraAttributes;
 
-    MultipleCandidateMatcher(AttributeSelectionSchema schema, Collection<? extends T> candidates, ImmutableAttributes requested) {
+    MultipleCandidateMatcher(AttributeSelectionSchema schema, Collection<? extends T> candidates, ImmutableAttributes requested, AttributeMatchingExplanationBuilder explanationBuilder) {
         this.schema = schema;
         this.requested = requested;
         this.candidates = (candidates instanceof List) ? (List<? extends T>) candidates : ImmutableList.copyOf(candidates);
         candidateAttributeSets = new ImmutableAttributes[candidates.size()];
+        this.explanationBuilder = explanationBuilder;
         for (int i = 0; i < candidates.size(); i++) {
             candidateAttributeSets[i] = ((AttributeContainerInternal) this.candidates.get(i).getAttributes()).asImmutable();
         }
@@ -106,7 +108,9 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             return getCandidates(compatible);
         }
         if (longestMatchIsSuperSetOfAllOthers()) {
-            return Collections.singletonList(candidates.get(candidateWithLongestMatch));
+            T o = candidates.get(candidateWithLongestMatch);
+            explanationBuilder.candidateIsSuperSetOfAllOthers(o);
+            return Collections.singletonList(o);
         }
         return disambiguateCompatibleCandidates();
     }
@@ -156,13 +160,18 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
 
         if (!candidateValue.isPresent()) {
             setCandidateValue(c, a, null);
+            explanationBuilder.candidateAttributeMissing(candidates.get(c), attribute, requestedValue);
             return MatchResult.MISSING;
         }
 
         Object coercedValue = candidateValue.coerce(attribute);
         setCandidateValue(c, a, coercedValue);
 
-        return schema.matchValue(attribute, requestedValue, coercedValue) ? MatchResult.MATCH : MatchResult.NO_MATCH;
+        if (schema.matchValue(attribute, requestedValue, coercedValue)) {
+            return MatchResult.MATCH;
+        }
+        explanationBuilder.candidateAttributeDoesNotMatch(candidates.get(c), attribute, requestedValue, candidateValue);
+        return MatchResult.NO_MATCH;
     }
 
 

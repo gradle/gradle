@@ -19,13 +19,20 @@ package org.gradle.internal.component.model;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ArtifactIdentifier;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.capabilities.CapabilitiesMetadata;
 import org.gradle.api.capabilities.Capability;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
+import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
 import org.gradle.internal.component.NoMatchingCapabilitiesException;
 import org.gradle.internal.component.NoMatchingConfigurationSelectionException;
@@ -36,10 +43,15 @@ import org.gradle.internal.component.external.model.ShadowedCapabilityOnly;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 public abstract class AttributeConfigurationSelector {
 
     public static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts) {
+        return selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, requestedArtifacts, AttributeMatchingExplanationBuilder.logging());
+    }
+
+    private static ConfigurationMetadata selectConfigurationUsingAttributeMatching(ImmutableAttributes consumerAttributes, Collection<? extends Capability> explicitRequestedCapabilities, ComponentResolveMetadata targetComponent, AttributesSchemaInternal consumerSchema, List<IvyArtifactName> requestedArtifacts, AttributeMatchingExplanationBuilder explanationBuilder) {
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> consumableConfigurations = variantsForGraphTraversal.or(ImmutableList.<ConfigurationMetadata>of());
         AttributesSchemaInternal producerAttributeSchema = targetComponent.getAttributesSchema();
@@ -50,23 +62,23 @@ public abstract class AttributeConfigurationSelector {
         }
         ModuleVersionIdentifier versionId = targetComponent.getModuleVersionId();
         if (!consumableConfigurations.isEmpty()) {
-            ImmutableList<ConfigurationMetadata> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, consumableConfigurations, versionId.getGroup(), versionId.getName(), true);
+            ImmutableList<ConfigurationMetadata> variantsProvidingRequestedCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, consumableConfigurations, versionId.getGroup(), versionId.getName(), true, explanationBuilder);
             if (variantsProvidingRequestedCapabilities.isEmpty()) {
                 throw new NoMatchingCapabilitiesException(targetComponent, explicitRequestedCapabilities, consumableConfigurations);
             }
             consumableConfigurations = variantsProvidingRequestedCapabilities;
         }
-        List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration);
+        List<ConfigurationMetadata> matches = attributeMatcher.matches(consumableConfigurations, consumerAttributes, fallbackConfiguration, explanationBuilder);
         if (matches.size() > 1) {
             // there's an ambiguity, but we may have several variants matching the requested capabilities.
             // Here we're going to check if in the candidates, there's a single one _strictly_ matching the requested capabilities.
-            List<ConfigurationMetadata> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, versionId.getGroup(), versionId.getName(), false);
+            List<ConfigurationMetadata> strictlyMatchingCapabilities = filterVariantsByRequestedCapabilities(targetComponent, explicitRequestedCapabilities, matches, versionId.getGroup(), versionId.getName(), false, explanationBuilder);
             if (strictlyMatchingCapabilities.size() == 1) {
                 return singleVariant(variantsForGraphTraversal, strictlyMatchingCapabilities);
             } else if (strictlyMatchingCapabilities.size() > 1) {
                 // there are still more than one candidate, but this time we know only a subset strictly matches the required attributes
                 // so we perform another round of selection on the remaining candidates
-                strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, consumerAttributes, fallbackConfiguration);
+                strictlyMatchingCapabilities = attributeMatcher.matches(strictlyMatchingCapabilities, consumerAttributes, fallbackConfiguration, explanationBuilder);
                 if (strictlyMatchingCapabilities.size() == 1) {
                     return singleVariant(variantsForGraphTraversal, strictlyMatchingCapabilities);
                 }
@@ -87,9 +99,17 @@ public abstract class AttributeConfigurationSelector {
         if (matches.size() == 1) {
             return singleVariant(variantsForGraphTraversal, matches);
         } else if (!matches.isEmpty()) {
-            throw new AmbiguousConfigurationSelectionException(consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent());
+            ConsumerAttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+            if (explanationBuilder instanceof TraceDiscardedConfigurations) {
+                Set<ConfigurationMetadata> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
+                throw new AmbiguousConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent(), discarded);
+            } else {
+                // Perform a second resolution with tracing
+                return selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
+            }
         } else {
-            throw new NoMatchingConfigurationSelectionException(consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent());
+            ConsumerAttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+            throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent());
         }
     }
 
@@ -124,7 +144,7 @@ public abstract class AttributeConfigurationSelector {
         return match;
     }
 
-    private static ImmutableList<ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends ConfigurationMetadata> consumableConfigurations, String group, String name, boolean lenient) {
+    private static ImmutableList<ConfigurationMetadata> filterVariantsByRequestedCapabilities(ComponentResolveMetadata targetComponent, Collection<? extends Capability> explicitRequestedCapabilities, Collection<? extends ConfigurationMetadata> consumableConfigurations, String group, String name, boolean lenient, AttributeMatchingExplanationBuilder explanationBuilder) {
         if (consumableConfigurations.isEmpty()) {
             return ImmutableList.of();
         }
@@ -223,6 +243,30 @@ public abstract class AttributeConfigurationSelector {
 
         MatchResult(boolean match) {
             this.matches = match;
+        }
+    }
+
+    private static class TraceDiscardedConfigurations implements AttributeMatchingExplanationBuilder {
+
+        private final Set<HasAttributes> discarded = Sets.newHashSet();
+
+        @Override
+        public boolean canSkipExplanation() {
+            return false;
+        }
+
+        @Override
+        public <T extends HasAttributes> void candidateDoesNotMatchAttributes(T candidate, AttributeContainerInternal requested) {
+            recordDiscardedCandidate(candidate);
+        }
+
+        public <T extends HasAttributes> void recordDiscardedCandidate(T candidate) {
+            discarded.add(candidate);
+        }
+
+        @Override
+        public <T extends HasAttributes> void candidateAttributeDoesNotMatch(T candidate, Attribute<?> attribute, Object requestedValue, AttributeValue<?> candidateValue) {
+            recordDiscardedCandidate(candidate);
         }
     }
 }

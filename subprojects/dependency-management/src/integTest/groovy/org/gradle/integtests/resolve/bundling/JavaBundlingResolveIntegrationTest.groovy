@@ -165,7 +165,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
 
         then:
         if (shouldFail) {
-            failure.assertHasCause("Unable to find a matching variant of org:producer:1.0")
+            failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.dependency.bundling' with value 'shadowed', attribute 'org.gradle.usage' with value 'java-api' but no matching variant of org:producer:1.0 was found.")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {

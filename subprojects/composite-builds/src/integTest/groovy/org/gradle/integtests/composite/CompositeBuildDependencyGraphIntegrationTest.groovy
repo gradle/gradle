@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.composite
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
@@ -727,7 +728,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("Unable to find a matching configuration of project :buildC:\n" +
+        failure.assertHasCause("The consumer was configured to find the runtime of a library compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally but no matching configuration of project :buildC was found.\n" +
             "  - None of the consumable configurations have attributes.")
     }
 
@@ -749,22 +750,22 @@ afterEvaluate {
                 maven { url '$mavenRepo.uri' }
             }
 
-            configurations { 
-                buildInputs 
+            configurations {
+                buildInputs
                 create('default')
             }
-            
+
             dependencies {
                 buildInputs "org.test:test:1.2"
             }
-            
+
             task buildOutputs {
                 inputs.files configurations.buildInputs
                 doLast {
                     configurations.buildInputs.each { }
                 }
             }
-            
+
             artifacts {
                 "default" file: file("out.jar"), builtBy: buildOutputs
             }
