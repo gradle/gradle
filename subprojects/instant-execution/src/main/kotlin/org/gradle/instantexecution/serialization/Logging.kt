@@ -28,8 +28,8 @@ import kotlin.reflect.KClass
 typealias StructuredMessageBuilder = StructuredMessage.Builder.() -> Unit
 
 
-fun IsolateContext.logPropertyWarning(action: String, exception: Throwable? = null, message: StructuredMessageBuilder) {
-    logPropertyProblem(action, PropertyProblem.Warning(trace, build(message), exception))
+fun IsolateContext.logPropertyProblem(action: String, exception: Throwable? = null, message: StructuredMessageBuilder) {
+    logPropertyProblem(action, PropertyProblem(trace, build(message), exception))
 }
 
 
@@ -39,7 +39,7 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 
 
 fun IsolateContext.logUnsupported(baseType: KClass<*>, actualType: Class<*>) {
-    logPropertyWarning {
+    logPropertyProblem {
         text("cannot serialize object of type ")
         reference(GeneratedSubclasses.unpack(actualType))
         text(", a subtype of ")
@@ -50,7 +50,7 @@ fun IsolateContext.logUnsupported(baseType: KClass<*>, actualType: Class<*>) {
 
 
 fun IsolateContext.logUnsupported(baseType: KClass<*>) {
-    logPropertyWarning {
+    logPropertyProblem {
         text("cannot serialize object of type ")
         reference(baseType)
         text(" as these are not supported with instant execution.")
@@ -59,7 +59,7 @@ fun IsolateContext.logUnsupported(baseType: KClass<*>) {
 
 
 fun IsolateContext.logNotImplemented(baseType: Class<*>) {
-    logPropertyWarning {
+    logPropertyProblem {
         text("objects of type ")
         reference(baseType)
         text(" are not yet supported with instant execution.")
@@ -68,15 +68,15 @@ fun IsolateContext.logNotImplemented(baseType: Class<*>) {
 
 
 fun IsolateContext.logNotImplemented(feature: String) {
-    logPropertyWarning {
+    logPropertyProblem {
         text("support for $feature is not yet implemented with instant execution.")
     }
 }
 
 
 private
-fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
-    val problem = PropertyProblem.Warning(trace, build(message))
+fun IsolateContext.logPropertyProblem(message: StructuredMessageBuilder) {
+    val problem = PropertyProblem(trace, build(message))
     logPropertyProblem("serialize", problem)
 }
 

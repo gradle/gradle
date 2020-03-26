@@ -19,23 +19,14 @@ package org.gradle.instantexecution.problems
 import kotlin.reflect.KClass
 
 
-sealed class PropertyProblem {
-
-    abstract val trace: PropertyTrace
-
-    abstract val message: StructuredMessage
-
-    abstract val exception: Throwable?
-
-    /**
-     * A problem that does not necessarily compromise the execution of the build.
-     */
-    data class Warning internal constructor(
-        override val trace: PropertyTrace,
-        override val message: StructuredMessage,
-        override val exception: Throwable? = null
-    ) : PropertyProblem()
-}
+/**
+ * A problem that does not necessarily compromise the execution of the build.
+ */
+data class PropertyProblem internal constructor(
+    val trace: PropertyTrace,
+    val message: StructuredMessage,
+    val exception: Throwable? = null
+)
 
 
 data class StructuredMessage(val fragments: List<Fragment>) {
