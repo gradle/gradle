@@ -1,0 +1,16 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        reportPlugin {
+            id = 'jacoco-report-all'
+            implementationClass = 'com.example.jacoco.report.JacocoReportAllPlugin'
+        }
+        collectPlugin {
+            id = 'jacoco-collect-coverage'
+            implementationClass = 'com.example.jacoco.report.JacocoCollectCoveragePlugin'
+        }
+    }
+}

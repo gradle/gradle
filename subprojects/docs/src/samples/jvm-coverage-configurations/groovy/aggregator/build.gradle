@@ -1,0 +1,18 @@
+plugins {
+    id 'java'
+    id 'jacoco-report-all'
+}
+
+dependencies {
+    coverageSource project(":application")
+    coverageSource project(":list")
+}
+
+codeCoverageReport {
+    reports {
+        // this is useful for checking coverage locally
+        html.enabled true
+        // this is usually what you want to use for Sonarqube, Coveralls, Codecov
+        xml.enabled true
+    }
+}

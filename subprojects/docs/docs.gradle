@@ -127,6 +127,7 @@ samples {
             sourceDirectory = javaUtilitiesLibrary.sourceDirectory
             target = "utilities"
         }
+        jvmCoverageConfigurations
 
         groovySpockTestForListLibrary {
             target = "list"
@@ -207,6 +208,19 @@ samples {
             description = "Use dependencies in a multi-project build."
             category = "JVM"
             common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
+
+        jvmCoverageConfiguration {
+            sampleDirectory = samplesRoot.dir("jvm-coverage-configurations")
+            displayName = "Collecting code coverage statistics."
+            description = "Test a Java application and collect code coverage using link:https://www.jacoco.org/jacoco/index.html[Jacoco]."
+            category = "JVM"
+            common {
+                from(templates.jvmCoverageConfigurations)
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaUtilitiesLibraryAsSubproject)
