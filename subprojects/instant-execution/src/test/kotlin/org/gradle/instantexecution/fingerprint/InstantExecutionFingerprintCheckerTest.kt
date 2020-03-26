@@ -63,7 +63,7 @@ class InstantExecutionFingerprintCheckerTest {
             on { value } doReturn Try.successful<Any>(42)
         }
 
-        val fingerprintCheckerHost = mock<InstantExecutionFingerprintChecker.Host> {
+        val fingerprintCheckerHost = mock<InstantExecutionCacheFingerprintChecker.Host> {
             on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
         }
 
@@ -75,7 +75,7 @@ class InstantExecutionFingerprintCheckerTest {
 
         // and:
         val invalidationReason = readContext.readToCompletion {
-            InstantExecutionFingerprintChecker(fingerprintCheckerHost).run {
+            InstantExecutionCacheFingerprintChecker(fingerprintCheckerHost).run {
                 checkFingerprint()
             }
         }

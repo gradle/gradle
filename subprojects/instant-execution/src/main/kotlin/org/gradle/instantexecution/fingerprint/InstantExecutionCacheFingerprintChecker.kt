@@ -31,7 +31,7 @@ typealias InvalidationReason = String
 
 
 internal
-class InstantExecutionFingerprintChecker(private val host: Host) {
+class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
         fun fingerprintOf(fileCollection: FileCollectionInternal): CurrentFileCollectionFingerprint

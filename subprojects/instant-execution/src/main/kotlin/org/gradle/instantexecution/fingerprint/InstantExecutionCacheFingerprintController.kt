@@ -111,13 +111,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =
-        fingerprintChecker().run {
+        InstantExecutionCacheFingerprintChecker(CacheFingerprintComponentHost()).run {
             checkFingerprint()
         }
-
-    private
-    fun fingerprintChecker() =
-        InstantExecutionFingerprintChecker(FingerprintComponentsHost())
 
     private
     fun addListener(listener: InstantExecutionCacheFingerprintWriter) {
@@ -133,7 +129,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     inner class FingerprintComponentsHost
-        : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionFingerprintChecker.Host {
+        : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
 
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)
