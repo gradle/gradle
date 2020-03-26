@@ -259,7 +259,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/l
 [[locking_limitations]]
 == Locking limitations
 
-* Locking can not yet be applied to source dependencies.
+* Locking cannot yet be applied to source dependencies.
 
 == Nebula locking plugin
 

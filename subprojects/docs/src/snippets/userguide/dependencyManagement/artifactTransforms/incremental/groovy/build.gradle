@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.transform.TransformParameters
 // tag::artifact-transform-countloc[]
 abstract class CountLoc implements TransformAction<TransformParameters.None> {
 
-    @Inject
+    @Inject                                                             // <1>
     abstract InputChanges getInputChanges()
 
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -29,7 +29,7 @@ abstract class CountLoc implements TransformAction<TransformParameters.None> {
     abstract Provider<FileSystemLocation> getInput()
 
     @Override
-    void transform(TransformOutputs outputs) {                          // <1>
+    void transform(TransformOutputs outputs) {
         def outputDir = outputs.dir("${input.get().asFile.name}.loc")
         println("Running transform on ${input.get().asFile.name}, incremental: ${inputChanges.incremental}")
         inputChanges.getFileChanges(input).forEach { change ->          // <2>

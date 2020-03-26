@@ -172,7 +172,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/artifactTransforms/
 <1> Declare the parameter type
 <2> Interface for the transform parameters
 <3> Use the parameters
-<4> Use the unchanged input artifact when not minification is required
+<4> Use the unchanged input artifact when no minification is required
 
 Remember that the input artifact is a dependency, which may have its own dependencies.
 If your artifact transform needs access to those transitive dependencies, it can declare an abstract getter returning a `FileCollection` and annotate it with link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[@InputArtifactDependencies].
@@ -183,7 +183,7 @@ Moreover, artifact transforms can make use of the <<build_cache.adoc#build_cache
 To enable the build cache for an artifact transform, add the `@link:{javadocPath}/org/gradle/api/artifacts/transform/CacheableTransform.html[CacheableTransform]` annotation on the action class.
 For cacheable transforms, you must annotate its link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifact.html[@InputArtifact] property — and any property marked with link:{javadocPath}/org/gradle/api/artifacts/transform/InputArtifactDependencies.html[@InputArtifactDependencies] — with normalization annotations such as link:{javadocPath}/org/gradle/api/tasks/PathSensitive.html[@PathSensitive].
 
-The following example shows a more complicated transforms.
+The following example shows a more complicated transform.
 It moves some selected classes of a JAR to a different package, rewriting the byte code of the moved classes and all classes using the moved classes (class relocation).
 In order to determine the classes to relocate, it looks at the packages of the input artifact and the dependencies of the input artifact.
 It also does not relocate packages contained in JAR files in an external classpath.
@@ -222,7 +222,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/artifactTransforms/
 include::sample[dir="snippets/userguide/dependencyManagement/artifactTransforms/unzip/kotlin",files="build.gradle.kts[tags=artifact-transform-registration]"]
 ====
 
-Another example is that you want minify JARs by only keeping some `class` files from them.
+Another example is that you want to minify JARs by only keeping some `class` files from them.
 Note the use of the `parameters {}` block to provide the classes to keep in the minified JARs to the `Minify` transform.
 
 .Artifact transform registration with parameters

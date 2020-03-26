@@ -75,8 +75,8 @@ NOTE: This behavior is enforced for published components only if you use Gradle 
 [[sec:align-versions-unpublished]]
 == Aligning versions of modules not published with Gradle
 
-Whenever the publisher doesn't use Gradle, like in our Jackson example, we can explain to Gradle that that all Jackson modules "belong to" the same platform and benefit from the same behavior as with native alignment.
-There are are two options to express that a set of modules belong to a platform:
+Whenever the publisher doesn't use Gradle, like in our Jackson example, we can explain to Gradle that all Jackson modules "belong to" the same platform and benefit from the same behavior as with native alignment.
+There are two options to express that a set of modules belong to a platform:
 
 1. A platform is **published** as a <<platforms.adoc#sub:bom_import,BOM>> and can be used:
    For example, `com.fasterxml.jackson:jackson-bom` can be used as platform.
@@ -110,7 +110,7 @@ In that BOM, the following versions are defined and will be used:
 `jackson-core:2.9.5`,
 `jackson-databind:2.9.5` and
 `jackson-annotation:2.9.0`.
-The lower versions of `jackson-annotation` here might be the desired result as the it is what the BOM recommends.
+The lower versions of `jackson-annotation` here might be the desired result as it is what the BOM recommends.
 
 NOTE: This behavior is working reliable since Gradle 6.1. Effectively, it is similar to a <<component_metadata_rules.adoc#,component metadata rule>> that adds a platform dependency to all members of the platform using `withDependencies`.
 
