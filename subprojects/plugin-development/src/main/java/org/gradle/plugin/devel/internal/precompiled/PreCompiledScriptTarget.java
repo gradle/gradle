@@ -23,6 +23,13 @@ import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 class PreCompiledScriptTarget implements ScriptTarget {
+
+    private final boolean supportsPluginsBlock;
+
+    PreCompiledScriptTarget(boolean supportsPluginsBlock) {
+        this.supportsPluginsBlock = supportsPluginsBlock;
+    }
+
     @Override
     public String getId() {
         return "dsl";
@@ -40,7 +47,7 @@ class PreCompiledScriptTarget implements ScriptTarget {
 
     @Override
     public boolean getSupportsPluginsBlock() {
-        return true;
+        return supportsPluginsBlock;
     }
 
     @Override

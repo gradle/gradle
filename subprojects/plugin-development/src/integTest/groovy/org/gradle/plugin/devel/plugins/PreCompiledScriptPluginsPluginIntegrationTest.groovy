@@ -200,6 +200,23 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    def "precompiled settings plugin can not use plugins block"() {
+        when:
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+        enablePrecompiledPluginsInBuildSrc()
+
+        pluginDir.file("my-settings-plugin.settings.gradle") << """
+            plugins {
+                id 'base'
+            }
+        """
+
+        then:
+        fails("build")
+        failureCauseContains("Only Project and Settings build scripts can contain plugins {} blocks")
+    }
+
+    @ToBeFixedForInstantExecution
     def "can apply a precompiled init plugin"() {
         given:
         def pluginJar = packagePrecompiledPlugin("my-init-plugin.init.gradle", """
@@ -219,6 +236,23 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         then:
         succeeds("help")
         outputContains("my-init-plugin applied!")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "precompiled init plugin can not use plugins block"() {
+        when:
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+        enablePrecompiledPluginsInBuildSrc()
+
+        pluginDir.file("my-init-plugin.init.gradle") << """
+            plugins {
+                id 'base'
+            }
+        """
+
+        then:
+        fails("build")
+        failureCauseContains("Only Project and Settings build scripts can contain plugins {} blocks")
     }
 
     @ToBeFixedForInstantExecution

@@ -37,6 +37,7 @@ class PreCompiledScript {
     private final ScriptSource scriptSource;
     private final Type type;
     private final PluginId pluginId;
+    private final ScriptTarget scriptTarget;
 
     private enum Type {
         PROJECT(Project.class, SCRIPT_PLUGIN_EXTENSION),
@@ -71,6 +72,7 @@ class PreCompiledScript {
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
+        this.scriptTarget = new PreCompiledScriptTarget(type == Type.PROJECT);
     }
 
     String getId() {
@@ -121,7 +123,7 @@ class PreCompiledScript {
     }
 
     public ScriptTarget getScriptTarget() {
-        return new PreCompiledScriptTarget();
+        return scriptTarget;
     }
 
     public Class<?> getTargetClass() {
