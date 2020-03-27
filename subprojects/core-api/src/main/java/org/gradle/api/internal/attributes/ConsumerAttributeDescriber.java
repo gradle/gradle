@@ -22,5 +22,9 @@ import java.util.Set;
 
 public interface ConsumerAttributeDescriber {
     Set<Attribute<?>> getAttributes();
-    String describe(AttributeContainer attributes);
+    String describeConsumerAttributes(AttributeContainer attributes);
+    String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
+    String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
+    String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);
+    String describeExtraAttribute(Attribute<?> attribute, Object producerValue);
 }

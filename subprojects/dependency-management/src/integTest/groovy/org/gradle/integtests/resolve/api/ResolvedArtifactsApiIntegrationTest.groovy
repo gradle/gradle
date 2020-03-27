@@ -480,14 +480,14 @@ task show {
           - Found buildType 'debug' but wasn't required.
           - Found flavor 'one' but wasn't required.
       - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.
+          - Required usage 'compile' and found value 'compile'.
   - Configuration ':a:compile' variant var2:
       - Unmatched attributes:
           - Found artifactType 'jar' but wasn't required.
           - Found buildType 'debug' but wasn't required.
           - Found flavor 'two' but wasn't required.
       - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.""")
+          - Required usage 'compile' and found value 'compile'.""")
 
         where:
         expression                                                    | _

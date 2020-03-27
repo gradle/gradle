@@ -51,7 +51,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
         if (fromConfigurationAttributes.isEmpty()) {
             formatter.node("Unable to find a matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName());
         } else {
-            formatter.node("The consumer was configured to find " + describer.describe(fromConfigurationAttributes) + " but no matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName() + " was found.");
+            formatter.node("The consumer was configured to find " + describer.describeConsumerAttributes(fromConfigurationAttributes) + " but no matching " + (variantAware ? "variant" : "configuration") + " of " + targetComponent.getId().getDisplayName() + " was found.");
         }
         formatter.startChildren();
         if (configurations.isEmpty()) {
@@ -60,7 +60,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
             // We're sorting the names of the configurations and later attributes
             // to make sure the output is consistently the same between invocations
             for (ConfigurationMetadata configuration : configurations.values()) {
-                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware, false);
+                formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, configuration, variantAware, false, describer);
             }
         }
         formatter.endChildren();

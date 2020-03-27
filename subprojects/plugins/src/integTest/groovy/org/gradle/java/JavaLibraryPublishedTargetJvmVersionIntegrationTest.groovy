@@ -99,61 +99,61 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''The consumer was configured to find the API of a library compatible with Java 5, preferably in the form of class files, and its dependencies declared externally but no matching variant of org:producer:1.0 was found.
+        failure.assertHasCause('''The consumer was configured to find an API of a library compatible with Java 5, preferably in the form of class files, and its dependencies declared externally but no matching variant of org:producer:1.0 was found.
   - Variant 'apiElementsJdk6' capability org:producer:1.0:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '5' and found incompatible value '6'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required compatibility with Java 5 and found incompatible Java 6
+      - Other compatible attributes:
+          - Required a library and found a library
+          - Required its dependencies declared externally and found its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides  but the consumer didn't ask for it
+          - Required an API and found an API
   - Variant 'apiElementsJdk7' capability org:producer:1.0:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '5' and found incompatible value '7'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required compatibility with Java 5 and found incompatible Java 7
+      - Other compatible attributes:
+          - Required a library and found a library
+          - Required its dependencies declared externally and found its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides  but the consumer didn't ask for it
+          - Required an API and found an API
   - Variant 'apiElementsJdk9' capability org:producer:1.0:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '5' and found incompatible value '9'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required compatibility with Java 5 and found incompatible Java 9
+      - Other compatible attributes:
+          - Required a library and found a library
+          - Required its dependencies declared externally and found its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides  but the consumer didn't ask for it
+          - Required an API and found an API
   - Variant 'runtimeElementsJdk6' capability org:producer:1.0:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '5' and found incompatible value '6'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.
+          - Required compatibility with Java 5 and found incompatible Java 6
+      - Other compatible attributes:
+          - Required a library and found a library
+          - Required its dependencies declared externally and found its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides  but the consumer didn't ask for it
+          - Required an API and found a runtime
   - Variant 'runtimeElementsJdk7' capability org:producer:1.0:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '5' and found incompatible value '7'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.
+          - Required compatibility with Java 5 and found incompatible Java 7
+      - Other compatible attributes:
+          - Required a library and found a library
+          - Required its dependencies declared externally and found its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides  but the consumer didn't ask for it
+          - Required an API and found a runtime
   - Variant 'runtimeElementsJdk9' capability org:producer:1.0:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '5' and found incompatible value '9'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
+          - Required compatibility with Java 5 and found incompatible Java 9
+      - Other compatible attributes:
+          - Required a library and found a library
+          - Required its dependencies declared externally and found its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides  but the consumer didn't ask for it
+          - Required an API and found a runtime''')
     }
 
     @Unroll

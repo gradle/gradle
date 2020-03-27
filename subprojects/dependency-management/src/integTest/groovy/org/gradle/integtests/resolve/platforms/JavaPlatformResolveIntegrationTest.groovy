@@ -158,39 +158,39 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause('''The consumer was configured to find the API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :platform was found.
+        failure.assertHasCause('''The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :platform was found.
   - Variant 'apiElements' capability org.test:platform:1.9:
       - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required a library and found a platform
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+          - Provides an API
   - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9:
       - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required a library and found an enforced platform
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+          - Provides an API
   - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9:
       - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.
+          - Required a library and found an enforced platform
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+          - Required an API and found a runtime
   - Variant 'runtimeElements' capability org.test:platform:1.9:
       - Incompatible attribute:
-          - Required org.gradle.category 'library' and found incompatible value 'platform'.
-      - Other attributes:
-          - Required org.gradle.dependency.bundling 'external' but no value provided.
-          - Required org.gradle.jvm.version '8' but no value provided.
-          - Required org.gradle.libraryelements 'classes' but no value provided.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
+          - Required a library and found a platform
+      - Other compatible attributes:
+          - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+          - Doesn't say anything about its target Java version (required compatibility with Java 8)
+          - Doesn't say anything about its elements (required them preferably in the form of class files)
+          - Required an API and found a runtime''')
     }
 
     def "can enforce a local platform dependency"() {

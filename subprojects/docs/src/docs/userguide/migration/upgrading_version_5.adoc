@@ -682,13 +682,13 @@ However if B is built for Java 9+, then it's not binary compatible anymore, and 
 ```
 Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.dependency.bundling 'external' and found value 'external'.
       - Required org.gradle.jvm.version '8' and found incompatible value '9'.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-api-jars'.
+      - Required org.gradle.usage 'java-api' and found value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
+      - Required org.gradle.dependency.bundling 'external' and found value 'external'.
       - Required org.gradle.jvm.version '8' and found incompatible value '9'.
-      - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime-jars'.
+      - Required org.gradle.usage 'java-api' and found value 'java-runtime-jars'.
 ```
 
 In general, this is a sign that your project is misconfigured and that your dependencies are not compatible.

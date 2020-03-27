@@ -42,7 +42,7 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
         if (consumer.getAttributes().isEmpty()) {
             formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
         } else {
-            formatter.node("The consumer was configured to find " + describer.describe(consumer) + ". However we cannot choose between the following variants of " + producerDisplayName);
+            formatter.node("The consumer was configured to find " + describer.describeConsumerAttributes(consumer) + ". However we cannot choose between the following variants of " + producerDisplayName);
         }
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
@@ -57,7 +57,7 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
                 .sorted(Comparator.comparing(v -> v.asDescribable().getCapitalizedDisplayName()))
                 .forEach(discardedVariant -> {
                     formatter.node(discardedVariant.asDescribable().getCapitalizedDisplayName());
-                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.getAttributes().asImmutable());
+                    formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, discardedVariant.getAttributes().asImmutable(), describer);
                 });
             formatter.endChildren();
         }

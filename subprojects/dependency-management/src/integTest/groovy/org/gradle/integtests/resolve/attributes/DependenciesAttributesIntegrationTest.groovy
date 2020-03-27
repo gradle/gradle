@@ -390,19 +390,19 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
   - Variant 'api' capability org:test:1.0:
       - Incompatible attribute:
           - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
-      - Other attributes:
-          - Required custom 'c1' and found compatible value 'c1'.
+      - Other compatible attributes:
+          - Required custom 'c1' and found value 'c1'.
           - Found org.gradle.category 'library' but wasn't required.
           - Found org.gradle.libraryelements 'jar' but wasn't required.
           - Found org.gradle.status '${defaultStatus()}' but wasn't required.
   - Variant 'runtime' capability org:test:1.0:
       - Incompatible attribute:
           - Required custom 'c1' and found incompatible value 'c2'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found org.gradle.category 'library' but wasn't required.
           - Found org.gradle.libraryelements 'jar' but wasn't required.
           - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-          - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime'.""")
+          - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -556,19 +556,19 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
   - Variant 'api' capability org:test:1.0:
       - Incompatible attribute:
           - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
-      - Other attributes:
-          - Required custom 'c1' and found compatible value 'c1'.
+      - Other compatible attributes:
+          - Required custom 'c1' and found value 'c1'.
           - Found org.gradle.category 'library' but wasn't required.
           - Found org.gradle.libraryelements 'jar' but wasn't required.
           - Found org.gradle.status '${defaultStatus()}' but wasn't required.
   - Variant 'runtime' capability org:test:1.0:
       - Incompatible attribute:
           - Required custom 'c1' and found incompatible value 'c2'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found org.gradle.category 'library' but wasn't required.
           - Found org.gradle.libraryelements 'jar' but wasn't required.
           - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-          - Required org.gradle.usage 'java-runtime' and found compatible value 'java-runtime'.""")
+          - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")

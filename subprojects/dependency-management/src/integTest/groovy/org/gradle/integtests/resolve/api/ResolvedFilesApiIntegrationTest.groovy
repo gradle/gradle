@@ -298,13 +298,13 @@ task show {
           - Found artifactType 'jar' but wasn't required.
           - Found flavor 'free' but wasn't required.
       - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.
+          - Required usage 'compile' and found value 'compile'.
   - Configuration ':a:compile' variant paid:
       - Unmatched attributes:
           - Found artifactType 'jar' but wasn't required.
           - Found flavor 'paid' but wasn't required.
       - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.""")
+          - Required usage 'compile' and found value 'compile'.""")
 
         where:
         expression                                                                                         | _
@@ -372,20 +372,20 @@ task show {
       - Incompatible attributes:
           - Required artifactType 'dll' and found incompatible value 'jar'.
           - Required flavor 'preview' and found incompatible value 'free'.
-      - Other attribute:
-          - Required usage 'compile' and found compatible value 'compile'.
+      - Other compatible attribute:
+          - Required usage 'compile' and found value 'compile'.
   - Configuration ':a:compile' variant paid:
       - Incompatible attributes:
           - Required artifactType 'dll' and found incompatible value 'jar'.
           - Required flavor 'preview' and found incompatible value 'paid'.
-      - Other attribute:
-          - Required usage 'compile' and found compatible value 'compile'.""")
+      - Other compatible attribute:
+          - Required usage 'compile' and found value 'compile'.""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Required flavor 'preview' but no value provided.
           - Found org.gradle.status 'release' but wasn't required.
           - Required usage 'compile' but no value provided.""")
@@ -394,7 +394,7 @@ task show {
   - things.jar:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Required flavor 'preview' but no value provided.
           - Required usage 'compile' but no value provided.""")
 

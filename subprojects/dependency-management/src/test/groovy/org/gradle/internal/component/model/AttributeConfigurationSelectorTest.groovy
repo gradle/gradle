@@ -94,10 +94,10 @@ class AttributeConfigurationSelectorTest extends Specification {
 All of them match the consumer attributes:
   - Variant 'api1' capability org:lib:1.0:
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.
   - Variant 'api2' capability org:lib:1.0:
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.''')
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.''')
     }
 
     def "fails to select a variant when there no matching candidates"() {
@@ -202,13 +202,13 @@ All of them match the consumer attributes:
 All of them match the consumer attributes:
   - Variant 'api1' capability org:lib:1.0:
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.
   - Variant 'api2' capability org:lib:1.0:
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.
   - Variant 'api3' capabilities org:lib:1.0 and org:second:1.0:
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.''')
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.''')
         /*
         There were multiple variants of `org:lib:1.0` which provided what this configuration was looking for:
         All api1, api2 and api3 are compatible with what this configuration is looking for (a Java API).
@@ -228,14 +228,14 @@ All of them match the consumer attributes:
                        - Found org.gradle.usage 'java-api' but wasn't required.
                        - Found org.jetbrains.kotlin.platform.type 'jvm' but wasn't required.
                    - Compatible attribute:
-                       - Required org.gradle.libraryelements 'resources' and found compatible value 'jar'.
+                       - Required org.gradle.libraryelements 'resources' and found value 'jar'.
                - Variant 'jvm-runtime' capability com.squareup.okio:okio:2.4.3:
                    - Unmatched attributes:
                        - Found org.gradle.status 'release' but wasn't required.
                        - Found org.gradle.usage 'java-runtime' but wasn't required.
                        - Found org.jetbrains.kotlin.platform.type 'jvm' but wasn't required.
                    - Compatible attribute:
-                       - Required org.gradle.libraryelements 'resources' and found compatible value 'jar'.
+                       - Required org.gradle.libraryelements 'resources' and found value 'jar'.
                - Variant 'metadata-api' capability com.squareup.okio:okio:2.4.3:
                    - Unmatched attributes:
                        - Required org.gradle.libraryelements 'resources' but no value provided.
@@ -263,7 +263,7 @@ All of them match the consumer attributes:
                        - Required org.gradle.usage 'java-api' but no value provided.
                        - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
                    - Compatible attribute:
-                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found value 'jvm'.
                - Variant 'default' capability slack-android-ng.carbonite:carbonite:unspecified:
                    - Unmatched attributes:
                        - Required org.gradle.dependency.bundling 'external' but no value provided.
@@ -272,7 +272,7 @@ All of them match the consumer attributes:
                        - Required org.gradle.usage 'java-api' but no value provided.
                        - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
                    - Compatible attribute:
-                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found value 'jvm'.
                - Variant 'runtime' capability slack-android-ng.carbonite:carbonite:unspecified:
                    - Unmatched attributes:
                        - Required org.gradle.dependency.bundling 'external' but no value provided.
@@ -281,7 +281,7 @@ All of them match the consumer attributes:
                        - Required org.gradle.usage 'java-api' but no value provided.
                        - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
                    - Compatible attribute:
-                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found value 'jvm'.
                - Variant 'testCompile' capability slack-android-ng.carbonite:carbonite:unspecified:
                    - Unmatched attributes:
                        - Required org.gradle.dependency.bundling 'external' but no value provided.
@@ -290,7 +290,7 @@ All of them match the consumer attributes:
                        - Required org.gradle.usage 'java-api' but no value provided.
                        - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
                    - Compatible attribute:
-                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found value 'jvm'.
                - Variant 'testRuntime' capability slack-android-ng.carbonite:carbonite:unspecified:
                    - Unmatched attributes:
                        - Required org.gradle.dependency.bundling 'external' but no value provided.
@@ -299,7 +299,7 @@ All of them match the consumer attributes:
                        - Required org.gradle.usage 'java-api' but no value provided.
                        - Found org.jetbrains.kotlin.localToProject 'local to :carbonite:carbonite' but wasn't required.
                    - Compatible attribute:
-                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found compatible value 'jvm'.
+                       - Required org.jetbrains.kotlin.platform.type 'jvm' and found value 'jvm'.
          */
     }
 
@@ -342,11 +342,11 @@ All of them match the consumer attributes:
   - Variant 'first' capability org:lib:1.0:
       - Unmatched attribute: Found extra 'v1' but wasn't required.
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.
   - Variant 'second' capability org:lib:1.0:
       - Unmatched attribute: Found other 'true' but wasn't required.
       - Compatible attribute:
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.''')
+          - Required org.gradle.usage 'java-api' and found value 'java-api'.''')
 
     }
 

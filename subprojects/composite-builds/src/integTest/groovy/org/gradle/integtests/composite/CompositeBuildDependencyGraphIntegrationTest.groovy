@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.build.BuildTestFile
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Unroll
-
 /**
  * Tests for resolving dependency graph with substitution within a composite build.
  */
@@ -728,7 +727,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("The consumer was configured to find the runtime of a library compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally but no matching configuration of project :buildC was found.\n" +
+        failure.assertHasCause("The consumer was configured to find a runtime of a library compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally but no matching configuration of project :buildC was found.\n" +
             "  - None of the consumable configurations have attributes.")
     }
 

@@ -17,6 +17,7 @@
 package org.gradle.internal.component;
 
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -29,14 +30,20 @@ public class IncompatibleConfigurationSelectionException extends RuntimeExceptio
         AttributeMatcher attributeMatcher,
         ComponentResolveMetadata targetComponent,
         String targetConfiguration,
-        boolean variantAware) {
-        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware));
+        boolean variantAware,
+        ConsumerAttributeDescriber describer) {
+        super(generateMessage(fromConfigurationAttributes, attributeMatcher, targetComponent, targetConfiguration, variantAware, describer));
     }
 
-    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, ComponentResolveMetadata targetComponent, String targetConfiguration, boolean variantAware) {
+    private static String generateMessage(AttributeContainerInternal fromConfigurationAttributes,
+                                          AttributeMatcher attributeMatcher,
+                                          ComponentResolveMetadata targetComponent,
+                                          String targetConfiguration,
+                                          boolean variantAware,
+                                          ConsumerAttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node((variantAware ? "Variant '" : "Configuration '") + targetConfiguration + "' in " + targetComponent.getId().getDisplayName() + " does not match the consumer attributes");
-        formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetComponent.getConfiguration(targetConfiguration), variantAware, false);
+        formatConfiguration(formatter, targetComponent, fromConfigurationAttributes, attributeMatcher, targetComponent.getConfiguration(targetConfiguration), variantAware, false, describer);
         return formatter.toString();
     }
 
