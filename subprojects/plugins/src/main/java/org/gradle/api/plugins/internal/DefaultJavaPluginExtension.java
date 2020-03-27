@@ -30,6 +30,7 @@ import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -55,6 +56,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final TaskContainer tasks;
     private final Project project;
     private final ModularClasspathHandling modularClasspathHandling;
+    private final Property<Integer> release;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project) {
@@ -66,6 +68,12 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.tasks = project.getTasks();
         this.project = project;
         this.modularClasspathHandling = project.getObjects().newInstance(DefaultModularClasspathHandling.class);
+        this.release = project.getObjects().property(Integer.class);
+    }
+
+    @Override
+    public Property<Integer> getRelease() {
+        return release;
     }
 
     @Override
