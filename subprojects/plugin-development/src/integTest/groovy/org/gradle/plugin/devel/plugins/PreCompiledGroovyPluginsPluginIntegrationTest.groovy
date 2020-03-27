@@ -76,6 +76,29 @@ class PreCompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
     }
 
     @ToBeFixedForInstantExecution
+    def "multiple plugins with same namespace do not clash"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+        enablePrecompiledPluginsInBuildSrc()
+
+        pluginDir.file("foo.bar.gradle") << "println 'foo.bar applied'"
+        pluginDir.file("baz.bar.gradle") << "println 'baz.bar applied'"
+
+        buildFile << """
+            plugins {
+                id 'foo.bar'
+                id 'baz.bar'
+            }
+        """
+
+        expect:
+        succeeds("help")
+
+        and:
+        outputContains("foo.bar applied")
+        outputContains("baz.bar applied")
+    }
+
+    @ToBeFixedForInstantExecution
     def "can share precompiled plugin via a jar"() {
         given:
         def pluginJar = packagePrecompiledPlugin("foo.gradle")

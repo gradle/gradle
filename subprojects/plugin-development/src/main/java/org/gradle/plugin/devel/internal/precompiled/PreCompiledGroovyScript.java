@@ -91,7 +91,7 @@ class PreCompiledGroovyScript {
     }
 
     String getGeneratedPluginClassName() {
-        return toJavaIdentifier(kebabCaseToPascalCase(pluginId.getName())) + "Plugin";
+        return toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-'))) + "Plugin";
     }
 
     String getClassName() {

@@ -39,11 +39,11 @@ class PreCompiledGroovyScriptTest extends Specification {
         where:
         filename                     | javaClass
         "foo.gradle"                 | "FooPlugin"
-        "foo.bar.gradle"             | "BarPlugin"
+        "foo.bar.gradle"             | "FooBarPlugin"
         "test-plugin.gradle"         | "TestPluginPlugin"
-        "foo.bar.test-plugin.gradle" | "TestPluginPlugin"
-        "foo.bar.-foo.gradle"        | "FooPlugin"
-        "foo.bar._foo.gradle"        | "_fooPlugin"
+        "foo.bar.test-plugin.gradle" | "FooBarTestPluginPlugin"
+        "foo.bar.-foo.gradle"        | "FooBarFooPlugin"
+        "foo.bar._foo.gradle"        | "FooBar_fooPlugin"
         "123.gradle"                 | "_123Plugin"
     }
 }
