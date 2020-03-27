@@ -57,6 +57,7 @@ import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.util.GradleVersion
 import java.io.File
+import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
 import java.util.ArrayList
@@ -222,7 +223,7 @@ class DefaultInstantExecution internal constructor(
     private
     fun startCollectingCacheFingerprint() {
         cacheFingerprintController.startCollectingFingerprint {
-            cacheFingerprintWriterContextFor(it)
+            cacheFingerprintWriteContextFor(it)
         }
     }
 
@@ -239,26 +240,37 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
-        writerContextFor(outputStream).apply {
-            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+    fun checkInstantExecutionFingerprintFile(): InvalidationReason? =
+        cacheFingerprintReadContextFor(instantExecutionFingerprintFile.inputStream()).useToRun {
+            runToCompletion {
+                cacheFingerprintController.run {
+                    checkFingerprint()
+                }
+            }
         }
+
+    private
+    fun cacheFingerprintWriteContextFor(outputStream: OutputStream) =
+        writeContextFor(outputStream).apply {
+            pushHostIsolate()
+        }
+
+    private
+    fun cacheFingerprintReadContextFor(inputStream: InputStream) =
+        readContextFor(inputStream).apply {
+            pushHostIsolate()
+        }
+
+    private
+    fun MutableIsolateContext.pushHostIsolate() {
+        push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+    }
 
     private
     fun checkFingerprint(): InvalidationReason? {
         loadGradleProperties()
         return checkInstantExecutionFingerprintFile()
     }
-
-    private
-    fun checkInstantExecutionFingerprintFile(): InvalidationReason? =
-        withReadContextFor(instantExecutionFingerprintFile) {
-            withHostIsolate {
-                cacheFingerprintController.run {
-                    checkFingerprint()
-                }
-            }
-        }
 
     private
     fun loadGradleProperties() {
@@ -274,24 +286,31 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun withWriteContextFor(file: File, writeOperation: suspend DefaultWriteContext.() -> Unit) {
-        writerContextFor(file.outputStream()).useToRun {
+        writeContextFor(file.outputStream()).useToRun {
             runWriteOperation(writeOperation)
         }
     }
 
     private
-    fun writerContextFor(outputStream: OutputStream) =
+    fun writeContextFor(outputStream: OutputStream) =
         writeContextFor(KryoBackedEncoder(outputStream))
 
     private
     fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.() -> R): R =
-        KryoBackedDecoder(file.inputStream()).use { decoder ->
-            readContextFor(decoder).run {
-                initClassLoader(javaClass.classLoader)
-                runToCompletion {
-                    readOperation()
-                }
+        withReadContextFor(file.inputStream(), readOperation)
+
+    private
+    fun <R> withReadContextFor(inputStream: InputStream, readOperation: suspend DefaultReadContext.() -> R): R =
+        readContextFor(inputStream).useToRun {
+            runToCompletion {
+                readOperation()
             }
+        }
+
+    private
+    fun readContextFor(inputStream: InputStream): DefaultReadContext =
+        readContextFor(KryoBackedDecoder(inputStream)).apply {
+            initClassLoader(javaClass.classLoader)
         }
 
     private

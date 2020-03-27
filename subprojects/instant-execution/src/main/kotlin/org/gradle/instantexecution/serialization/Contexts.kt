@@ -175,7 +175,7 @@ class DefaultReadContext(
     val constructors: BeanConstructors,
 
     override val logger: Logger
-) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
+) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder, AutoCloseable {
 
     override val sharedIdentities = ReadIdentities()
 
@@ -195,6 +195,10 @@ class DefaultReadContext(
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
+
+    override fun close() {
+        (decoder as? AutoCloseable)?.close()
+    }
 
     internal
     fun initClassLoader(classLoader: ClassLoader) {
