@@ -23,13 +23,9 @@ import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 
 @Category(SoakTest)
-// Fixme: See https://github.com/gradle/gradle/issues/12457
-@Requires(TestPrecondition.MAC_OS_X)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
