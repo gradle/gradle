@@ -6,7 +6,7 @@ guice-4.2.2-no_aop.jar
 guava-25.1-jre.jar
 lwjgl-3.2.3.jar
 lwjgl-3.2.3-natives-windows-x86.jar
-commons-lang3-3.9.jar
+commons-lang3-3.10.jar
 jsr305-3.0.2.jar
 error_prone_annotations-2.1.3.jar
 j2objc-annotations-1.1.jar
