@@ -173,7 +173,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             }
         """
         return [
-            "input property `brokenProperty` of task `:taskWithStateSerializationError` of type `org.gradle.api.DefaultTask`: error writing value of type 'BrokenSerializable'"
+            "input property 'brokenProperty' of ':taskWithStateSerializationError': error writing value of type 'BrokenSerializable'"
         ]
     }
 

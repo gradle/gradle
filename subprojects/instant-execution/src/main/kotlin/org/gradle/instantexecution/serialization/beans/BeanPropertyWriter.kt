@@ -23,6 +23,7 @@ import org.gradle.instantexecution.InstantExecutionError
 import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
 import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
@@ -90,7 +91,7 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 
 private
 fun IsolateContext.propertyErrorMessage(value: Any?) =
-    "$trace: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'"
+    "${propertyDescriptionFor(trace)}: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'"
 
 
 private
