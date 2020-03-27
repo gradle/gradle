@@ -36,6 +36,7 @@ import java.io.File;
 class PrecompiledGroovyScript {
     private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
 
+    private final ScriptSource pluginsSource;
     private final ScriptSource scriptSource;
     private final Type type;
     private final PluginId pluginId;
@@ -70,7 +71,9 @@ class PrecompiledGroovyScript {
     }
 
     PrecompiledGroovyScript(File scriptFile) {
-        this.scriptSource = new TextResourceScriptSource(new UriTextResource("script", scriptFile));
+        TextResource scriptResource = new UriTextResource("script", scriptFile);
+        this.pluginsSource = new PluginsBlockSourceWrapper(scriptResource);
+        this.scriptSource = new TextResourceScriptSource(scriptResource);
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
@@ -111,7 +114,7 @@ class PrecompiledGroovyScript {
     }
 
     ScriptSource getPluginsBlockSource() {
-        return new PluginsBlockSourceWrapper(scriptSource);
+        return pluginsSource;
     }
 
     private static String kebabCaseToPascalCase(String s) {
@@ -141,31 +144,14 @@ class PrecompiledGroovyScript {
         return type.targetClass.getName();
     }
 
-    private static class PluginsBlockSourceWrapper implements ScriptSource {
-        private final ScriptSource delegate;
-
-        PluginsBlockSourceWrapper(ScriptSource scriptSource) {
-            this.delegate = scriptSource;
+    private static class PluginsBlockSourceWrapper extends TextResourceScriptSource {
+        public PluginsBlockSourceWrapper(TextResource resource) {
+            super(resource);
         }
 
         @Override
         public String getClassName() {
-            return "plugins_" + delegate.getClassName();
-        }
-
-        @Override
-        public TextResource getResource() {
-            return delegate.getResource();
-        }
-
-        @Override
-        public String getFileName() {
-            return delegate.getFileName();
-        }
-
-        @Override
-        public String getDisplayName() {
-            return delegate.getDisplayName();
+            return "plugins_" + super.getClassName();
         }
     }
 }
