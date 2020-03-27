@@ -256,6 +256,7 @@ class DefaultReadContext(
         } else {
             ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
         }
+        Workarounds.maybeSetDefaultStaticStateIn(newScope)
         scopes.putInstance(id, newScope)
         return newScope
     }
