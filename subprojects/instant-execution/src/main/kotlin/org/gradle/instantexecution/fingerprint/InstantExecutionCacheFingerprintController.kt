@@ -29,6 +29,8 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
+import org.gradle.kotlin.dsl.concurrent.IOScope
 import org.gradle.util.GFileUtils
 import java.io.ByteArrayOutputStream
 import java.io.File
@@ -44,7 +46,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val taskInputsListeners: TaskInputsListeners,
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val virtualFileSystem: VirtualFileSystem,
-    private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter
+    private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
+    private val asyncIOScopeFactory: AsyncIOScopeFactory
 ) {
 
     private
@@ -137,6 +140,9 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private
     inner class CacheFingerprintComponentHost
         : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
+
+        override fun newIOScope(): IOScope =
+            asyncIOScopeFactory.newScope()
 
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)

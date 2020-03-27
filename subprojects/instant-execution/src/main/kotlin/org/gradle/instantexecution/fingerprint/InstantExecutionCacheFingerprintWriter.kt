@@ -30,6 +30,7 @@ import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
+import org.gradle.kotlin.dsl.concurrent.IOScope
 import java.io.File
 
 
@@ -47,6 +48,8 @@ class InstantExecutionCacheFingerprintWriter(
             fileCollection: FileCollectionInternal,
             owner: TaskInternal
         ): CurrentFileCollectionFingerprint
+
+        fun newIOScope(): IOScope
     }
 
     /**
@@ -55,7 +58,18 @@ class InstantExecutionCacheFingerprintWriter(
      * **MUST ALWAYS BE CALLED**
      */
     fun close() {
-        write(null)
+        closeIOScope()
+        closeWriteContext()
+    }
+
+    private
+    fun closeIOScope() {
+        ioScope.close()
+    }
+
+    private
+    fun closeWriteContext() {
+        syncWrite(null)
         writeContext.close()
     }
 
@@ -103,12 +117,20 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     fun write(value: InstantExecutionCacheFingerprint?) {
-        synchronized(writeContext) {
-            writeContext.runWriteOperation {
-                write(value)
-            }
+        ioScope.io {
+            syncWrite(value)
         }
     }
+
+    private
+    fun syncWrite(value: InstantExecutionCacheFingerprint?) {
+        writeContext.runWriteOperation {
+            write(value)
+        }
+    }
+
+    private
+    val ioScope = host.newIOScope()
 
     private
     fun isBuildSrcTask(task: TaskInternal) =
