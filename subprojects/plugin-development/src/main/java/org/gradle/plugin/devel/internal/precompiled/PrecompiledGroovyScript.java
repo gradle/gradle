@@ -117,6 +117,14 @@ class PrecompiledGroovyScript {
         return pluginsSource;
     }
 
+    ScriptTarget getScriptTarget() {
+        return scriptTarget;
+    }
+
+    String getTargetClassName() {
+        return type.targetClass.getName();
+    }
+
     private static String kebabCaseToPascalCase(String s) {
         return CaseFormat.LOWER_HYPHEN.to(CaseFormat.UPPER_CAMEL, s);
     }
@@ -134,14 +142,6 @@ class PrecompiledGroovyScript {
             }
         }
         return sb.toString();
-    }
-
-    public ScriptTarget getScriptTarget() {
-        return scriptTarget;
-    }
-
-    public String getTargetClassName() {
-        return type.targetClass.getName();
     }
 
     private static class PluginsBlockSourceWrapper extends TextResourceScriptSource {
