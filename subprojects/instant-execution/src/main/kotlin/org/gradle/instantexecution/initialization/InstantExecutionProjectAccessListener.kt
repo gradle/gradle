@@ -43,19 +43,34 @@ class InstantExecutionProjectAccessListener internal constructor(
 
     override fun onProjectAccess(invocationDescription: String, invocationSource: Any) {
         if (startParameter.isEnabled) {
-            val message = "invocation of '$invocationDescription' at execution time is unsupported."
-            val exception = InvalidUserCodeException(message.capitalize())
-            val trace =
-                if (invocationSource is Task) PropertyTrace.Task(
-                    GeneratedSubclasses.unpackType(invocationSource),
-                    invocationSource.path
-                )
-                else PropertyTrace.Unknown
-            problems.onProblem(PropertyProblem(
-                trace,
-                StructuredMessage.build { text(message) },
+            val exception = InvalidUserCodeException(
+                "Invocation of '$invocationDescription' by $invocationSource at execution time is unsupported."
+            )
+            problems.onProblem(projectAccessProblem(
+                traceFor(invocationSource),
+                invocationDescription,
                 exception
             ))
         }
     }
+
+    private
+    fun traceFor(invocationSource: Any) =
+        if (invocationSource is Task) PropertyTrace.Task(
+            GeneratedSubclasses.unpackType(invocationSource),
+            invocationSource.path
+        )
+        else PropertyTrace.Unknown
+
+    private
+    fun projectAccessProblem(trace: PropertyTrace, invocationDescription: String, exception: InvalidUserCodeException) =
+        PropertyProblem(
+            trace,
+            StructuredMessage.build {
+                text("invocation of ")
+                reference(invocationDescription)
+                text(" at execution time is unsupported.")
+            },
+            exception
+        )
 }
