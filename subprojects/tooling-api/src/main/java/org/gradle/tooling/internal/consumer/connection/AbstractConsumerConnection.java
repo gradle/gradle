@@ -83,4 +83,9 @@ public abstract class AbstractConsumerConnection extends HasCompatibilityMapping
     public void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters) {
         // Default is no-op
     }
+
+    @Override
+    public void stopWhenIdle(ConsumerOperationParameters operationParameters) {
+        // Default is no-op
+    }
 }

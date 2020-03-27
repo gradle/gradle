@@ -191,6 +191,13 @@ public class ProviderConnection {
         client.notifyDaemonsAboutChangedPaths(changedPaths);
     }
 
+    public void stopWhenIdle(ProviderOperationParameters providerParameters) {
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+        Parameters params = initParams(providerParameters);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
+        ((ShutdownCoordinator)clientServices.find(ShutdownCoordinator.class)).stop();
+    }
+
     private Object run(BuildAction action, BuildCancellationToken cancellationToken,
                        ProgressListenerConfiguration progressListenerConfiguration,
                        BuildEventConsumer buildEventConsumer,
@@ -199,6 +206,7 @@ public class ProviderConnection {
         try {
             BuildActionExecuter<ProviderOperationParameters> executer = createExecuter(providerParameters, parameters);
             boolean interactive = providerParameters.getStandardInput() != null;
+            // TODO inject a different metadata here
             BuildRequestContext buildRequestContext = new DefaultBuildRequestContext(new DefaultBuildRequestMetaData(providerParameters.getStartTime(), interactive), cancellationToken, buildEventConsumer);
             BuildActionResult result = executer.execute(action, buildRequestContext, providerParameters, sharedServices);
             throwFailure(result);

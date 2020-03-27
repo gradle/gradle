@@ -44,7 +44,13 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
 
     @Override
     public void stop() {
+        // TODO instead of stopping the current build, request cancellation and send a stopWhenIdle
         CompositeStoppable.stoppable(lifecycle, executor, actionExecutor).stop();
+    }
+
+    @Override
+    public void disconnect() {
+        actionExecutor.disconnect();
     }
 
     @Override

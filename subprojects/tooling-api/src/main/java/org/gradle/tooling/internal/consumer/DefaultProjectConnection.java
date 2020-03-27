@@ -34,15 +34,23 @@ import java.util.List;
 class DefaultProjectConnection implements ProjectConnection {
     private final AsyncConsumerActionExecutor connection;
     private final ConnectionParameters parameters;
+    private final ProjectConnectionCloseListener listener;
 
-    public DefaultProjectConnection(AsyncConsumerActionExecutor connection, ConnectionParameters parameters) {
+    public DefaultProjectConnection(AsyncConsumerActionExecutor connection, ConnectionParameters parameters, ProjectConnectionCloseListener listener) {
         this.connection = connection;
         this.parameters = parameters;
+        this.listener = listener;
     }
 
     @Override
     public void close() {
         connection.stop();
+        listener.connectionClosed(this);
+    }
+
+    void disconnect() {
+        // TODO no-op when close() was called
+        connection.disconnect();
     }
 
     @Override

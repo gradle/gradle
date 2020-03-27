@@ -67,6 +67,11 @@ public class ProgressLoggingConsumerActionExecutor implements ConsumerActionExec
         }
     }
 
+    @Override
+    public void disconnect() {
+        actionExecutor.disconnect();
+    }
+
     private static class ProgressListenerAdapter implements ProgressListener {
         private final ProgressListenerVersion1 progressListener;
 

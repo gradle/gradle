@@ -36,4 +36,9 @@ public interface AsyncConsumerActionExecutor {
     void stop();
 
     String getDisplayName();
+
+    /**
+     * Requests cancellation on the current operation and send a 'stop when idle' message to the daemon.
+     */
+    void disconnect();
 }

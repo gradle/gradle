@@ -73,6 +73,11 @@ public class ParameterValidatingConsumerConnection implements ConsumerConnection
         delegate.notifyDaemonsAboutChangedPaths(changedPaths, operationParameters);
     }
 
+    @Override
+    public void stopWhenIdle(ConsumerOperationParameters operationParameters) {
+        delegate.stopWhenIdle(operationParameters);
+    }
+
     private void validateParameters(ConsumerOperationParameters operationParameters) {
         if (!targetVersionDetails.supportsEnvironmentVariablesCustomization()) {
             if (operationParameters.getEnvironmentVariables() != null) {

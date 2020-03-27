@@ -35,6 +35,8 @@ public interface DaemonStateControl {
      */
     void requestForcefulStop(String reason);
 
+    // TODO requestXXXStop() // based on who created the daemon in step 2.
+
     /**
      * Returns the current state of the daemon
      *

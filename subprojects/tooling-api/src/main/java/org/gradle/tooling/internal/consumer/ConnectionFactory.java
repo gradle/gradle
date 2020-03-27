@@ -32,21 +32,21 @@ public class ConnectionFactory {
     private final LoggingProvider loggingProvider;
 
     public ConnectionFactory(ToolingImplementationLoader toolingImplementationLoader, ExecutorFactory executorFactory, LoggingProvider loggingProvider) {
-        this.toolingImplementationLoader = toolingImplementationLoader;
-        this.executorFactory = executorFactory;
-        this.loggingProvider = loggingProvider;
+    this.toolingImplementationLoader = toolingImplementationLoader;
+    this.executorFactory = executorFactory;
+    this.loggingProvider = loggingProvider;
     }
 
-    public ProjectConnection create(Distribution distribution, ConnectionParameters parameters) {
-        ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
-        ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
-        ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);
-        ConsumerActionExecutor rethrowingErrorsConnection = new RethrowingErrorsConsumerActionExecutor(progressLoggingConnection);
-        AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(rethrowingErrorsConnection, executorFactory);
-        return new DefaultProjectConnection(asyncConnection, parameters);
+public ProjectConnection create(Distribution distribution, ConnectionParameters parameters, ProjectConnectionCloseListener listener) {
+    ConsumerActionExecutor lazyConnection = new LazyConsumerActionExecutor(distribution, toolingImplementationLoader, loggingProvider, parameters);
+    ConsumerActionExecutor cancellableConnection = new CancellableConsumerActionExecutor(lazyConnection);
+    ConsumerActionExecutor progressLoggingConnection = new ProgressLoggingConsumerActionExecutor(cancellableConnection, loggingProvider);
+    ConsumerActionExecutor rethrowingErrorsConnection = new RethrowingErrorsConsumerActionExecutor(progressLoggingConnection);
+    AsyncConsumerActionExecutor asyncConnection = new DefaultAsyncConsumerActionExecutor(rethrowingErrorsConnection, executorFactory);
+    return new DefaultProjectConnection(asyncConnection, parameters, listener);
     }
 
     ToolingImplementationLoader getToolingImplementationLoader() {
-        return toolingImplementationLoader;
+    return toolingImplementationLoader;
     }
-}
+    }

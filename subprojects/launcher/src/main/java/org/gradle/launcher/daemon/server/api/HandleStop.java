@@ -41,6 +41,8 @@ public class HandleStop implements DaemonCommandAction {
         } else if (execution.getCommand() instanceof StopWhenIdle) {
             listenerBroadcast.onExpirationEvent(new DaemonExpirationResult(DaemonExpirationStatus.GRACEFUL_EXPIRE, EXPIRATION_REASON));
             execution.getConnection().completed(new Success(null));
+
+            // TODO add new expiration result to distingu
         } else {
             execution.proceed();
         }
