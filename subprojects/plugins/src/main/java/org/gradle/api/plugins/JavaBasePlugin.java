@@ -179,6 +179,8 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
+                configureTargetPlatform(compileTask, sourceSet, configurations, pluginConvention);
+
                 // If we are potentially compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
                 if (JavaModuleDetector.isModuleSource(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
                     Configuration compileClasspathConfiguration = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
@@ -195,6 +197,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 }));
             }
         });
+    }
+
+    private void configureTargetPlatform(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, JavaPluginConvention pluginConvention) {
+        Action<ConfigurationInternal> configureDefaultTargetPlatform = JvmPluginsHelper.configureDefaultTargetPlatform(pluginConvention, false, compileTaskProvider);
+        ((ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName())).beforeLocking(configureDefaultTargetPlatform);
+        ((ConfigurationInternal) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName())).beforeLocking(configureDefaultTargetPlatform);
     }
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
@@ -275,8 +283,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
         String runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
         String sourceSetName = sourceSet.toString();
-        Action<ConfigurationInternal> configureDefaultTargetPlatform = JvmPluginsHelper.configureDefaultTargetPlatform(convention);
-
 
         DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);

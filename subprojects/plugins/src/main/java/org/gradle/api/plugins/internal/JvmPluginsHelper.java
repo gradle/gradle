@@ -17,6 +17,7 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
@@ -56,6 +57,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -228,7 +230,6 @@ public class JvmPluginsHelper {
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
         configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        configuration.beforeLocking(configureDefaultTargetPlatform(javaPluginConvention));
     }
 
     public static void configureAttributesForRuntimeClasspath(ConfigurationInternal configuration, JavaPluginConvention javaPluginConvention, ObjectFactory objectFactory) {
@@ -236,13 +237,19 @@ public class JvmPluginsHelper {
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        configuration.beforeLocking(configureDefaultTargetPlatform(javaPluginConvention));
     }
 
-    public static Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {
+    public static Action<ConfigurationInternal> configureDefaultTargetPlatform(JavaPluginConvention convention, boolean alwaysEnabled, TaskProvider<JavaCompile> compileTaskProvider) {
         return conf -> {
-            if (!convention.getAutoTargetJvmDisabled()) {
-                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
+            if (alwaysEnabled || !convention.getAutoTargetJvmDisabled()) {
+                JavaCompile javaCompile = compileTaskProvider.get();
+                int majorVersion;
+                if (javaCompile.getRelease().isPresent()) {
+                    majorVersion = javaCompile.getRelease().get();
+                } else {
+                    majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
+                }
+                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
             }
         };
     }

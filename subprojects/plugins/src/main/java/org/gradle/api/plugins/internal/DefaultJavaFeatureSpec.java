@@ -26,13 +26,11 @@ import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -42,6 +40,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.util.TextUtil;
 
@@ -152,8 +151,8 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configureUsage(runtimeElements, Usage.JAVA_RUNTIME);
         configurePacking(apiElements);
         configurePacking(runtimeElements);
-        configureTargetPlatform(apiElements);
-        configureTargetPlatform(runtimeElements);
+        configureTargetPlatform(apiElements, sourceSet);
+        configureTargetPlatform(runtimeElements, sourceSet);
         configureCategory(apiElements);
         configureCategory(runtimeElements);
         configureCapabilities(apiElements);
@@ -184,18 +183,9 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         }
     }
 
-    private void configureTargetPlatform(Configuration configuration) {
-        ((ConfigurationInternal)configuration).beforeLocking(new Action<ConfigurationInternal>() {
-            @Override
-            public void execute(ConfigurationInternal configuration) {
-                String majorVersion = javaPluginConvention.getTargetCompatibility().getMajorVersion();
-                AttributeContainerInternal attributes = configuration.getAttributes();
-                // If nobody said anything about this variant's target platform, use whatever the convention says
-                if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
-                    attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(majorVersion));
-                }
-            }
-        });
+    private void configureTargetPlatform(Configuration configuration, SourceSet sourceSet) {
+        ((ConfigurationInternal) configuration).beforeLocking(
+            JvmPluginsHelper.configureDefaultTargetPlatform(javaPluginConvention, true, tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class)));
     }
 
     private void configurePacking(Configuration configuration) {
