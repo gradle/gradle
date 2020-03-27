@@ -14,12 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.extensions
-
-import java.lang.reflect.InvocationTargetException
+package org.gradle.instantexecution.problems
 
 
-internal
-fun Throwable.maybeUnwrapInvocationTargetException() =
-    if (this is InvocationTargetException) targetException
-    else this
+interface ProblemsListener {
+
+    fun onProblem(problem: PropertyProblem)
+}

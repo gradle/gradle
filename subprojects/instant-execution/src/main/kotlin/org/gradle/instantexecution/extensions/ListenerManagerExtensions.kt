@@ -16,10 +16,9 @@
 
 package org.gradle.instantexecution.extensions
 
-import java.lang.reflect.InvocationTargetException
+import org.gradle.internal.event.ListenerManager
 
 
 internal
-fun Throwable.maybeUnwrapInvocationTargetException() =
-    if (this is InvocationTargetException) targetException
-    else this
+inline fun <reified T> ListenerManager.getBroadcaster(): T =
+    getBroadcaster(T::class.java)

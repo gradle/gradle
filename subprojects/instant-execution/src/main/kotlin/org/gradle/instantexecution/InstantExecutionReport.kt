@@ -18,12 +18,8 @@ package org.gradle.instantexecution
 
 import groovy.json.JsonOutput
 
-import org.gradle.BuildAdapter
-import org.gradle.BuildResult
-
 import org.gradle.api.logging.Logging
 
-import org.gradle.instantexecution.extensions.isOrHasCause
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.PropertyProblem
@@ -31,8 +27,6 @@ import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.buildConsoleSummary
 import org.gradle.instantexecution.problems.firstTypeFrom
 import org.gradle.instantexecution.problems.taskPathFrom
-
-import org.gradle.internal.event.ListenerManager
 
 import org.gradle.util.GFileUtils.copyURLToFile
 
@@ -45,9 +39,7 @@ import java.net.URL
 class InstantExecutionReport(
 
     private
-    val startParameter: InstantExecutionStartParameter,
-
-    listenerManager: ListenerManager
+    val startParameter: InstantExecutionStartParameter
 
 ) {
 
@@ -59,66 +51,6 @@ class InstantExecutionReport(
         private
         const val reportHtmlFileName = "instant-execution-report.html"
     }
-
-    init {
-        listenerManager.addListener(BuildFinishedReporter())
-    }
-
-    private
-    inner class BuildFinishedReporter : BuildAdapter() {
-
-        override fun buildFinished(result: BuildResult) {
-            if (problems.isNotEmpty()) {
-                try {
-                    when {
-                        result.isInstantExecutionErrorFailure -> {
-                            logConsoleSummary()
-                        }
-                        !result.isInstantExecutionProblemsFailure -> {
-                            when (val taskExecutionProblems = instantExecutionExceptionForProblems()) {
-                                null -> logConsoleSummary()
-                                else -> throw taskExecutionProblems // task execution problems, or, too many during task execution
-                            }
-                        }
-                    }
-                } finally {
-                    writeReportFiles()
-                }
-            }
-        }
-
-        private
-        val BuildResult.isInstantExecutionErrorFailure
-            get() = failure?.isOrHasCause(InstantExecutionError::class) == true
-
-        private
-        val BuildResult.isInstantExecutionProblemsFailure
-            get() = failure?.isOrHasCause(InstantExecutionProblemsException::class) == true
-    }
-
-    private
-    val problems = mutableListOf<PropertyProblem>()
-
-    fun add(problem: PropertyProblem) = synchronized(problems) {
-        problems.add(problem)
-        problemsBroadcaster.onProblem(problem)
-        if (problems.size >= startParameter.maxProblems) {
-            throw TooManyInstantExecutionProblemsException(problems, htmlReportFile)
-        }
-    }
-
-    fun runIfHasProblems(action: () -> Unit) {
-        synchronized(problems) {
-            if (problems.isNotEmpty()) {
-                action()
-            }
-        }
-    }
-
-    private
-    fun instantExecutionExceptionForProblems(): Throwable? =
-        if (startParameter.failOnProblems) InstantExecutionProblemsException(problems, htmlReportFile)
-        else null
 
     private
     val outputDirectory: File by lazy {
@@ -132,22 +64,22 @@ class InstantExecutionReport(
         }
     }
 
-    private
+    internal
     val htmlReportFile: File
         get() = outputDirectory.resolve(reportHtmlFileName)
 
-    private
-    fun logConsoleSummary() {
+    internal
+    fun logConsoleSummary(problems: List<PropertyProblem>) {
         logger.warn(buildConsoleSummary(problems, htmlReportFile))
     }
 
-    private
-    fun writeReportFiles() {
+    internal
+    fun writeReportFiles(problems: List<PropertyProblem>) {
         require(outputDirectory.mkdirs()) {
             "Could not create instant execution report directory '$outputDirectory'"
         }
         copyReportResources(outputDirectory)
-        writeJsReportData(outputDirectory)
+        writeJsReportData(problems, outputDirectory)
     }
 
     private
@@ -166,7 +98,7 @@ class InstantExecutionReport(
     }
 
     private
-    fun writeJsReportData(outputDirectory: File) {
+    fun writeJsReportData(problems: List<PropertyProblem>, outputDirectory: File) {
         outputDirectory.resolve("instant-execution-report-data.js").bufferedWriter().use { writer ->
             writer.run {
                 appendln("function instantExecutionProblems() { return [")

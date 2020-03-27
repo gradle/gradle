@@ -30,6 +30,7 @@ import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -64,7 +65,7 @@ import java.util.ArrayList
 class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val startParameter: InstantExecutionStartParameter,
-    private val report: InstantExecutionReport,
+    private val problems: InstantExecutionProblems,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
@@ -155,15 +156,16 @@ class DefaultInstantExecution internal constructor(
                 }
 
                 writeInstantExecutionCacheFingerprint()
-
-            } catch (error: Throwable) {
+            } catch (error: InstantExecutionError) {
                 // Invalidate unusable state on errors
                 invalidateInstantExecutionState()
+                problems.requestConsoleSummary()
                 throw error
-            }
-            if (startParameter.failOnProblems) {
-                // Invalidate state on problems
-                report.runIfHasProblems(::invalidateInstantExecutionState)
+            } finally {
+                if (startParameter.failOnProblems) {
+                    // Invalidate state on problems that fail the build
+                    problems.runIfProblems { invalidateInstantExecutionState() }
+                }
             }
         }
     }
@@ -300,7 +302,7 @@ class DefaultInstantExecution internal constructor(
         encoder,
         scopeRegistryListener,
         logger,
-        report::add
+        problems::onProblem
     )
 
     private

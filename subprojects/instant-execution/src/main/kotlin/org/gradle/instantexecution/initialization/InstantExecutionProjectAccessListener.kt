@@ -21,7 +21,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.initialization.ProjectAccessListener
-import org.gradle.instantexecution.InstantExecutionReport
+import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
@@ -33,7 +33,7 @@ class InstantExecutionProjectAccessListener internal constructor(
     val startParameter: InstantExecutionStartParameter,
 
     private
-    val report: InstantExecutionReport
+    val problems: InstantExecutionProblems
 
 ) : ProjectAccessListener {
 
@@ -51,7 +51,7 @@ class InstantExecutionProjectAccessListener internal constructor(
                     invocationSource.path
                 )
                 else PropertyTrace.Unknown
-            report.add(PropertyProblem(
+            problems.onProblem(PropertyProblem(
                 trace,
                 StructuredMessage.build { text(message) },
                 exception

@@ -16,157 +16,98 @@
 
 package org.gradle.instantexecution.problems
 
-import kotlin.reflect.KClass
+import org.gradle.BuildAdapter
+import org.gradle.BuildResult
+import org.gradle.instantexecution.InstantExecutionProblemsException
+import org.gradle.instantexecution.InstantExecutionReport
+import org.gradle.instantexecution.TooManyInstantExecutionProblemsException
+import org.gradle.instantexecution.extensions.getBroadcaster
+import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.internal.event.ListenerManager
 
 
-/**
- * A problem that does not necessarily compromise the execution of the build.
- */
-data class PropertyProblem internal constructor(
-    val trace: PropertyTrace,
-    val message: StructuredMessage,
-    val exception: Throwable? = null
-)
-
-
-data class StructuredMessage(val fragments: List<Fragment>) {
-
-    override fun toString(): String = fragments.joinToString(separator = "") { fragment ->
-        when (fragment) {
-            is Fragment.Text -> fragment.text
-            is Fragment.Reference -> "'${fragment.name}'"
-        }
-    }
-
-    sealed class Fragment {
-
-        data class Text(val text: String) : Fragment()
-
-        data class Reference(val name: String) : Fragment()
-    }
-
-    companion object {
-
-        fun build(builder: Builder.() -> Unit) = StructuredMessage(
-            Builder().apply(builder).fragments
-        )
-    }
-
-    class Builder {
-
-        internal
-        val fragments = mutableListOf<Fragment>()
-
-        fun text(string: String) {
-            fragments.add(Fragment.Text(string))
-        }
-
-        fun reference(name: String) {
-            fragments.add(Fragment.Reference(name))
-        }
-
-        fun reference(type: Class<*>) {
-            reference(type.name)
-        }
-
-        fun reference(type: KClass<*>) {
-            reference(type.qualifiedName!!)
-        }
-    }
-}
-
-
-sealed class PropertyTrace {
-
-    object Unknown : PropertyTrace()
-
-    object Gradle : PropertyTrace()
-
-    class Task(
-        val type: Class<*>,
-        val path: String
-    ) : PropertyTrace()
-
-    class Bean(
-        val type: Class<*>,
-        val trace: PropertyTrace
-    ) : PropertyTrace()
-
-    class Property(
-        val kind: PropertyKind,
-        val name: String,
-        val trace: PropertyTrace
-    ) : PropertyTrace()
-
-    override fun toString(): String =
-        StringBuilder().apply {
-            sequence.forEach {
-                appendStringOf(it)
-            }
-        }.toString()
+class InstantExecutionProblems(
 
     private
-    fun StringBuilder.appendStringOf(trace: PropertyTrace) {
-        when (trace) {
-            is Gradle -> {
-                append("Gradle runtime")
-            }
-            is Property -> {
-                append(trace.kind)
-                append(" ")
-                quoted(trace.name)
-                append(" of ")
-            }
-            is Bean -> {
-                quoted(trace.type.name)
-                append(" bean found in ")
-            }
-            is Task -> {
-                append("task ")
-                quoted(trace.path)
-                append(" of type ")
-                quoted(trace.type.name)
-            }
-            is Unknown -> {
-                append("unknown property")
+    val startParameter: InstantExecutionStartParameter,
+
+    private
+    val report: InstantExecutionReport,
+
+    private
+    val listenerManager: ListenerManager
+
+) : ProblemsListener, AutoCloseable {
+
+    private
+    val broadcaster = listenerManager.getBroadcaster<ProblemsListener>()
+
+    private
+    val problemHandler = ProblemHandler()
+
+    private
+    val buildFinishedHandler = BuildFinishedProblemsHandler()
+
+    private
+    val problems = mutableListOf<PropertyProblem>()
+
+    init {
+        listenerManager.addListener(problemHandler)
+        listenerManager.addListener(buildFinishedHandler)
+    }
+
+    override fun close() {
+        listenerManager.removeListener(problemHandler)
+        listenerManager.removeListener(buildFinishedHandler)
+    }
+
+    override fun onProblem(problem: PropertyProblem) {
+        broadcaster.onProblem(problem)
+    }
+
+    private
+    var isConsoleSummaryRequested = false
+
+    internal
+    fun requestConsoleSummary() {
+        isConsoleSummaryRequested = true
+    }
+
+    fun runIfProblems(action: () -> Unit) {
+        if (problems.isNotEmpty()) action()
+    }
+
+    private
+    inner class ProblemHandler : ProblemsListener {
+
+        override fun onProblem(problem: PropertyProblem) {
+            problems.add(problem)
+            when {
+                problems.size >= startParameter.maxProblems -> {
+                    isConsoleSummaryRequested = false
+                    throw TooManyInstantExecutionProblemsException(problems, report.htmlReportFile)
+                }
+                !startParameter.failOnProblems -> {
+                    requestConsoleSummary()
+                }
             }
         }
     }
 
     private
-    fun StringBuilder.quoted(s: String) {
-        append('`')
-        append(s)
-        append('`')
-    }
+    inner class BuildFinishedProblemsHandler : BuildAdapter() {
 
-    val sequence: Sequence<PropertyTrace>
-        get() = sequence {
-            var trace = this@PropertyTrace
-            while (true) {
-                yield(trace)
-                trace = trace.tail ?: break
+        override fun buildFinished(result: BuildResult) {
+            if (problems.isEmpty()) return
+            report.writeReportFiles(problems)
+            when {
+                isConsoleSummaryRequested -> {
+                    report.logConsoleSummary(problems)
+                }
+                startParameter.failOnProblems -> {
+                    throw InstantExecutionProblemsException(problems, report.htmlReportFile)
+                }
             }
         }
-
-    private
-    val tail: PropertyTrace?
-        get() = when (this) {
-            is Bean -> trace
-            is Property -> trace
-            else -> null
-        }
-}
-
-
-enum class PropertyKind {
-    Field {
-        override fun toString() = "field"
-    },
-    InputProperty {
-        override fun toString() = "input property"
-    },
-    OutputProperty {
-        override fun toString() = "output property"
     }
 }
