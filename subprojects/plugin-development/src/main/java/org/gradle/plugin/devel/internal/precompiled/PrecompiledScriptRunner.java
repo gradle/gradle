@@ -30,10 +30,10 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.internal.resource.StringTextResource;
-import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
@@ -90,7 +90,7 @@ public class PrecompiledScriptRunner {
     }
 
     private void applyPlugins(Class<?> pluginsBlockClass) {
-        ScriptSource scriptSource = new PrecompiledScriptSource(pluginsBlockClass);
+        ScriptSource scriptSource = scriptSource(pluginsBlockClass);
         ScriptRunner<PluginsAwareScript, ?> runner = scriptRunnerFactory.create(compiledPluginsBlock(pluginsBlockClass), scriptSource, classLoaderScope.getExportClassLoader());
         runner.run(target, serviceRegistry);
 
@@ -103,13 +103,16 @@ public class PrecompiledScriptRunner {
     }
 
     private void executeScript(Class<?> scriptClass) {
-        ScriptSource scriptSource = new PrecompiledScriptSource(scriptClass);
-        scriptRunnerFactory.create(compiledScript(scriptClass), scriptSource, classLoaderScope.getExportClassLoader())
+        scriptRunnerFactory.create(compiledScript(scriptClass), scriptSource(scriptClass), classLoaderScope.getExportClassLoader())
             .run(target, serviceRegistry);
     }
 
     private CompiledScript<BasicScript, ?> compiledScript(Class<?> precompiledScriptClass) {
         return new CompiledGroovyPlugin<>(precompiledScriptClass, BasicScript.class);
+    }
+
+    private static ScriptSource scriptSource(Class<?> scriptClass) {
+        return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), ""));
     }
 
     private class CompiledGroovyPlugin<T extends Script> implements CompiledScript<T, Object> {
@@ -147,32 +150,4 @@ public class PrecompiledScriptRunner {
         }
     }
 
-    private static class PrecompiledScriptSource implements ScriptSource {
-
-        private final Class<?> scriptClass;
-
-        private PrecompiledScriptSource(Class<?> scriptClass) {
-            this.scriptClass = scriptClass;
-        }
-
-        @Override
-        public String getClassName() {
-            return scriptClass.getSimpleName();
-        }
-
-        @Override
-        public TextResource getResource() {
-            return new StringTextResource(getClassName(), "");
-        }
-
-        @Override
-        public String getFileName() {
-            return getClassName() + ".class";
-        }
-
-        @Override
-        public String getDisplayName() {
-            return scriptClass.toString();
-        }
-    }
 }
