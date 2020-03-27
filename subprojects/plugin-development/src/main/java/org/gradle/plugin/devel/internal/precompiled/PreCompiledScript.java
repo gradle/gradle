@@ -20,19 +20,21 @@ import com.google.common.base.CaseFormat;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
+import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.io.File;
 
 class PreCompiledScript {
-    public static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
+    private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
 
     private final ScriptSource scriptSource;
     private final Type type;
@@ -73,6 +75,15 @@ class PreCompiledScript {
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
         this.scriptTarget = new PreCompiledScriptTarget(type == Type.PROJECT);
+    }
+
+    static void filterPluginFiles(PatternFilterable patternFilterable) {
+        patternFilterable.include("**/*" + SCRIPT_PLUGIN_EXTENSION);
+    }
+
+    void declarePlugin(PluginDeclaration pluginDeclaration) {
+        pluginDeclaration.setImplementationClass(getGeneratedPluginClassName());
+        pluginDeclaration.setId(pluginId.getId());
     }
 
     String getId() {
@@ -126,8 +137,8 @@ class PreCompiledScript {
         return scriptTarget;
     }
 
-    public Class<?> getTargetClass() {
-        return type.targetClass;
+    public String getTargetClassName() {
+        return type.targetClass.getName();
     }
 
     private static class PluginsBlockSourceWrapper implements ScriptSource {

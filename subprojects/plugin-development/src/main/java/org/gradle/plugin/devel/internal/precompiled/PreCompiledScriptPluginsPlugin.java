@@ -21,7 +21,6 @@ import org.gradle.api.Project;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
@@ -29,34 +28,26 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.gradle.plugin.devel.internal.precompiled.PreCompiledScript.SCRIPT_PLUGIN_EXTENSION;
-
 class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
         project.getPluginManager().apply(JavaGradlePluginPlugin.class);
 
-        GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
-
-        project.afterEvaluate(p -> exposeScriptsAsPlugins(pluginExtension, project.getTasks()));
+        project.afterEvaluate(this::exposeScriptsAsPlugins);
     }
 
     private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PreCompiledScript> scriptPlugins) {
-        pluginExtension.plugins(pluginDeclarations -> {
-            for (PreCompiledScript scriptPlugin : scriptPlugins) {
-                pluginDeclarations.create(scriptPlugin.getId(), pluginDeclaration -> {
-                    pluginDeclaration.setImplementationClass(scriptPlugin.getGeneratedPluginClassName());
-                    pluginDeclaration.setId(scriptPlugin.getId());
-                });
-            }
-        });
+        pluginExtension.plugins(pluginDeclarations ->
+            scriptPlugins.forEach(scriptPlugin ->
+                pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
     }
 
-    private void exposeScriptsAsPlugins(GradlePluginDevelopmentExtension pluginExtension, TaskContainer tasks) {
+    private void exposeScriptsAsPlugins(Project project) {
+        GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
+
         SourceSet pluginSourceSet = pluginExtension.getPluginSourceSet();
-        FileTree scriptPluginFiles = pluginSourceSet.getAllSource()
-            .matching(patternFilterable -> patternFilterable.include("**/*" + SCRIPT_PLUGIN_EXTENSION));
+        FileTree scriptPluginFiles = pluginSourceSet.getAllSource().matching(PreCompiledScript::filterPluginFiles);
         if (scriptPluginFiles.isEmpty()) {
             return;
         }
@@ -67,10 +58,10 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
 
         declarePluginMetadata(pluginExtension, scriptPlugins);
 
-        TaskProvider<PreCompileGroovyScriptsTask> preCompileTask = tasks.register(
+        TaskProvider<PreCompileGroovyScriptsTask> preCompileTask = project.getTasks().register(
             "preCompileScriptPlugins", PreCompileGroovyScriptsTask.class, scriptPluginFiles.getFiles(), scriptPlugins);
 
-        pluginSourceSet.getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getClassOutputDir));
-        pluginSourceSet.getJava().srcDir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getGeneratedClassesDir));
+        pluginSourceSet.getOutput().dir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getPrecompiledGroovyScriptsDir));
+        pluginSourceSet.getJava().srcDir(preCompileTask.flatMap(PreCompileGroovyScriptsTask::getGeneratedPluginAdaptersDir));
     }
 }

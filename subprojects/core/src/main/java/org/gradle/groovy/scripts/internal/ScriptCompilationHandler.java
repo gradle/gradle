@@ -31,5 +31,4 @@ public interface ScriptCompilationHandler {
 
     <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, File scriptCacheDir,
                                                            File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass);
-
 }

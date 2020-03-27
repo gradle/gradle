@@ -18,46 +18,28 @@ package org.gradle.plugin.devel.internal.precompiled;
 
 import groovy.lang.Script;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.configuration.ScriptTarget;
+import org.gradle.configuration.DefaultScriptTarget;
 import org.gradle.groovy.scripts.BasicScript;
+import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
-class PreCompiledScriptTarget implements ScriptTarget {
+class PreCompiledScriptTarget extends DefaultScriptTarget {
 
     private final boolean supportsPluginsBlock;
 
     PreCompiledScriptTarget(boolean supportsPluginsBlock) {
+        super(null);
         this.supportsPluginsBlock = supportsPluginsBlock;
     }
 
     @Override
-    public String getId() {
-        return "dsl";
-    }
-
-    @Override
     public Class<? extends BasicScript> getScriptClass() {
-        return PluginsAwareScript.class;
-    }
-
-    @Override
-    public String getClasspathBlockName() {
-        return "buildscript";
+        return supportsPluginsBlock ? PluginsAwareScript.class : DefaultScript.class;
     }
 
     @Override
     public boolean getSupportsPluginsBlock() {
         return supportsPluginsBlock;
-    }
-
-    @Override
-    public boolean getSupportsPluginManagementBlock() {
-        return false;
-    }
-
-    @Override
-    public boolean getSupportsMethodInheritance() {
-        return false;
     }
 
     @Override

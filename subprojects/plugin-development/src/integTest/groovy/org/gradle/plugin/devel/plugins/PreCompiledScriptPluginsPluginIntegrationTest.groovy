@@ -199,7 +199,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("my-settings-plugin applied!")
     }
 
-    @ToBeFixedForInstantExecution
     def "precompiled settings plugin can not use plugins block"() {
         when:
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
@@ -238,7 +237,6 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("my-init-plugin applied!")
     }
 
-    @ToBeFixedForInstantExecution
     def "precompiled init plugin can not use plugins block"() {
         when:
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
@@ -544,6 +542,16 @@ class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationS
         result = executer.inDirectory(secondDir).withTasks("classes").withArgument("--build-cache").run()
         cachedTasks.forEach {
             result.assertOutputContains("$it FROM-CACHE")
+        }
+
+        // changing content should invalidate cache
+        pluginScript(secondDir.file("src/main/groovy/"), "my-plugin.gradle", """println 'changed content'""")
+
+        result = executer.inDirectory(secondDir).withTasks("classes").withArgument("--build-cache").run()
+        cachedTasks.forEach {
+            result.assertTaskExecuted(it)
+            result.assertNotOutput("$it UP-TO-DATE")
+            result.assertNotOutput("$it FROM-CACHE")
         }
     }
 
