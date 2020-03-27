@@ -28,7 +28,7 @@ import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
+class PreCompiledGroovyPluginsPlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {
         project.getPluginManager().apply(GroovyBasePlugin.class);
@@ -37,7 +37,7 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         project.afterEvaluate(this::exposeScriptsAsPlugins);
     }
 
-    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PreCompiledScript> scriptPlugins) {
+    private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PreCompiledGroovyScript> scriptPlugins) {
         pluginExtension.plugins(pluginDeclarations ->
             scriptPlugins.forEach(scriptPlugin ->
                 pluginDeclarations.create(scriptPlugin.getId(), scriptPlugin::declarePlugin)));
@@ -47,13 +47,13 @@ class PreCompiledScriptPluginsPlugin implements Plugin<Project> {
         GradlePluginDevelopmentExtension pluginExtension = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
 
         SourceSet pluginSourceSet = pluginExtension.getPluginSourceSet();
-        FileTree scriptPluginFiles = pluginSourceSet.getAllSource().matching(PreCompiledScript::filterPluginFiles);
+        FileTree scriptPluginFiles = pluginSourceSet.getAllSource().matching(PreCompiledGroovyScript::filterPluginFiles);
         if (scriptPluginFiles.isEmpty()) {
             return;
         }
 
-        List<PreCompiledScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
-            .map(PreCompiledScript::new)
+        List<PreCompiledGroovyScript> scriptPlugins = scriptPluginFiles.getFiles().stream()
+            .map(PreCompiledGroovyScript::new)
             .collect(Collectors.toList());
 
         declarePluginMetadata(pluginExtension, scriptPlugins);

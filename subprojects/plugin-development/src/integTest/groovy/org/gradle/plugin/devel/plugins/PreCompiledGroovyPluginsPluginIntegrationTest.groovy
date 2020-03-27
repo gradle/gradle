@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 
-class PreCompiledScriptPluginsPluginIntegrationTest extends AbstractIntegrationSpec {
+class PreCompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String SAMPLE_TASK = "sampleTask"
     private static final String REGISTER_SAMPLE_TASK = """

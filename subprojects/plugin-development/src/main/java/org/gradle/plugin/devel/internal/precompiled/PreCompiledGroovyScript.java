@@ -33,7 +33,7 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 
 import java.io.File;
 
-class PreCompiledScript {
+class PreCompiledGroovyScript {
     private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
 
     private final ScriptSource scriptSource;
@@ -69,7 +69,7 @@ class PreCompiledScript {
         }
     }
 
-    PreCompiledScript(File scriptFile) {
+    PreCompiledGroovyScript(File scriptFile) {
         this.scriptSource = new TextResourceScriptSource(new UriTextResource("script", scriptFile));
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);

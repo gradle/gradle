@@ -20,11 +20,11 @@ import org.gradle.plugin.internal.InvalidPluginIdException
 import spock.lang.Specification
 import spock.lang.Unroll
 
-class PreCompiledScriptTest extends Specification {
+class PreCompiledGroovyScriptTest extends Specification {
 
     def "throws for filename yielding invalid plugin id"() {
         when:
-        new PreCompiledScript(new File("/foo/bar/f%izzbuzz.gradle"))
+        new PreCompiledGroovyScript(new File("/foo/bar/f%izzbuzz.gradle"))
 
         then:
         thrown InvalidPluginIdException
@@ -33,7 +33,7 @@ class PreCompiledScriptTest extends Specification {
     @Unroll
     def "creates valid java classname '#javaClass' from script filename based plugin id: #filename"() {
         expect:
-        def script = new PreCompiledScript(new File("/foo/bar/$filename"))
+        def script = new PreCompiledGroovyScript(new File("/foo/bar/$filename"))
         script.generatedPluginClassName == javaClass
 
         where:

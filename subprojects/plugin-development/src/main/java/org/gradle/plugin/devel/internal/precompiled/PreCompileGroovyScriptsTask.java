@@ -58,7 +58,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
     private final CompileOperationFactory compileOperationFactory;
 
     private final Set<File> pluginSourceFiles;
-    private final List<PreCompiledScript> scriptPlugins;
+    private final List<PreCompiledGroovyScript> scriptPlugins;
 
     private final DirectoryProperty classesDir = getProject().getObjects().directoryProperty();
     private final DirectoryProperty metadataDir = getProject().getObjects().directoryProperty();
@@ -71,7 +71,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
                                        ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                        CompileOperationFactory compileOperationFactory,
                                        Set<File> pluginSourceFiles,
-                                       List<PreCompiledScript> scriptPlugins) {
+                                       List<PreCompiledGroovyScript> scriptPlugins) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderScopeRegistry = classLoaderScopeRegistry;
         this.compileOperationFactory = compileOperationFactory;
@@ -107,7 +107,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
         ClassLoaderScope classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope().createChild("pre-compiled-scripts");
         classLoaderScope.lock();
 
-        for (PreCompiledScript scriptPlugin : scriptPlugins) {
+        for (PreCompiledGroovyScript scriptPlugin : scriptPlugins) {
             CompiledScript<? extends BasicScript, ?> pluginsBlock = compilePluginsBlock(classLoaderScope, scriptPlugin);
             CompiledScript<? extends BasicScript, ?> buildScript = compileBuildScript(classLoaderScope, scriptPlugin);
             generateScriptPluginAdapter(scriptPlugin, pluginsBlock, buildScript);
@@ -119,7 +119,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
         });
     }
 
-    private CompiledScript<? extends BasicScript, ?> compilePluginsBlock(ClassLoaderScope classLoaderScope, PreCompiledScript scriptPlugin) {
+    private CompiledScript<? extends BasicScript, ?> compilePluginsBlock(ClassLoaderScope classLoaderScope, PreCompiledGroovyScript scriptPlugin) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(target);
         String targetPath = scriptPlugin.getPluginsBlockClassName();
@@ -133,7 +133,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
             classLoaderScope, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation, target.getScriptClass());
     }
 
-    private CompiledScript<? extends BasicScript, ?> compileBuildScript(ClassLoaderScope classLoaderScope, PreCompiledScript scriptPlugin) {
+    private CompiledScript<? extends BasicScript, ?> compileBuildScript(ClassLoaderScope classLoaderScope, PreCompiledGroovyScript scriptPlugin) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
         CompileOperation<BuildScriptData> scriptCompileOperation = compileOperationFactory.getScriptCompileOperation(scriptPlugin.getSource(), target);
         String targetPath = scriptPlugin.getClassName();
@@ -148,7 +148,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
             classLoaderScope, scriptClassesDir, scriptMetadataDir, scriptCompileOperation, target.getScriptClass());
     }
 
-    private void generateScriptPluginAdapter(PreCompiledScript scriptPlugin,
+    private void generateScriptPluginAdapter(PreCompiledGroovyScript scriptPlugin,
                                              CompiledScript<? extends BasicScript, ?> pluginsBlock,
                                              CompiledScript<? extends BasicScript, ?> buildScript) {
         String targetClass = scriptPlugin.getTargetClassName();
