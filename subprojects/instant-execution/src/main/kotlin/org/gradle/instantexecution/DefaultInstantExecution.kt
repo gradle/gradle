@@ -75,10 +75,12 @@ class DefaultInstantExecution internal constructor(
 
     interface Host {
 
+        // TODO: rename ClassicModeBuild to VintageBuild
         val currentBuild: ClassicModeBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
+        // TODO: rename to service
         fun <T> getService(serviceType: Class<T>): T
 
         fun <T> factory(serviceType: Class<T>): Factory<T>
