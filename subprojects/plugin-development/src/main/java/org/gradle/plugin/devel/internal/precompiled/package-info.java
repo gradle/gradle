@@ -17,4 +17,7 @@
 /**
  * Precompiled Groovy plugins plugin
  */
+@NonNullApi
 package org.gradle.plugin.devel.internal.precompiled;
+
+import org.gradle.api.NonNullApi;

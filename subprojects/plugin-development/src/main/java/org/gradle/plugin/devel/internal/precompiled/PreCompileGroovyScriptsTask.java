@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -49,7 +48,6 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
-@NonNullApi
 @CacheableTask
 class PreCompileGroovyScriptsTask extends DefaultTask {
 
