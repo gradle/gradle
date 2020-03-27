@@ -16,21 +16,7 @@
 
 package org.gradle.instantexecution.problems
 
-import org.gradle.api.Describable
 import kotlin.reflect.KClass
-
-
-// QUID?
-enum class InstantExecutionProblemCode : Describable {
-    `PIE-0001` {
-        override fun getDisplayName(): String =
-            ""
-    },
-    `PIE-0002` {
-        override fun getDisplayName(): String =
-            TODO("not implemented")
-    }
-}
 
 
 /**
