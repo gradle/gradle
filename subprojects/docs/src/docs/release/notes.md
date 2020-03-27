@@ -10,7 +10,8 @@ Include only their name, impactful features should be called out separately belo
 [Roberto Perez Alcolea](https://github.com/rpalcolea),
 [SheliakLyr](https://github.com/SheliakLyr),
 [James Baiera](https://github.com/jbaiera),
-and [Patrick Koenig](https://github.com/pkoenig10).
+[Patrick Koenig](https://github.com/pkoenig10),
+and [Matthew Duggan](https://github.com/mduggan).
 
 ## Upgrade instructions
 

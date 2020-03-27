@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.instantexecution.extensions
 
-import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.api.internal.TaskInternal
+import org.gradle.kotlin.dsl.support.serviceOf
 
-import javax.annotation.Nullable;
 
-public interface ResourceSnapshotterCacheService {
-    @Nullable
-    HashCode hashFile(RegularFileSnapshot fileSnapshot, RegularFileHasher hasher, HashCode configurationHash);
-}
+internal
+inline fun <reified T : Any> TaskInternal.serviceOf(): T =
+    project.serviceOf()

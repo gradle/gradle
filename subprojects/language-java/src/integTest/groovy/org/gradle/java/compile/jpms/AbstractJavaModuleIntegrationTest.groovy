@@ -40,7 +40,7 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
             repositories {
                 maven { url '${mavenRepo.uri}' }
             }
-            tasks.withType(JavaCompile) {
+            java {
                 modularClasspathHandling.inferModulePath.set(true)
             }
         """
