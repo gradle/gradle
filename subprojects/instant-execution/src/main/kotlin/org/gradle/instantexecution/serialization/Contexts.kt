@@ -63,6 +63,9 @@ class DefaultWriteContext(
     private
     val scopes = WriteIdentities()
 
+    private
+    val strings = WriteStrings()
+
     /**
      * Closes the given [encoder] if it is [AutoCloseable].
      */
@@ -81,6 +84,9 @@ class DefaultWriteContext(
             encode(value)
         }
     }
+
+    override fun writeString(string: CharSequence) =
+        strings.writeString(string, encoder)
 
     override fun writeClass(type: Class<*>) {
         val id = classes.getId(type)
@@ -131,10 +137,6 @@ class DefaultWriteContext(
             writeBinary(hashCode.toByteArray())
         }
     }
-
-    // TODO: consider interning strings
-    override fun writeString(string: CharSequence) =
-        encoder.writeString(string)
 
     override fun newIsolate(owner: IsolateOwner): WriteIsolate =
         DefaultWriteIsolate(owner)
@@ -192,6 +194,9 @@ class DefaultReadContext(
     val scopes = ReadIdentities()
 
     private
+    val strings = ReadStrings()
+
+    private
     lateinit var projectProvider: ProjectProvider
 
     override lateinit var classLoader: ClassLoader
@@ -211,6 +216,9 @@ class DefaultReadContext(
     override suspend fun read(): Any? = getCodec().run {
         decode()
     }
+
+    override fun readString(): String =
+        strings.readString(decoder)
 
     override val isolate: ReadIsolate
         get() = getIsolate()
