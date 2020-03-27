@@ -1,4 +1,4 @@
-# Contributing to Gradle
+# مجموعةمنصةشليله
 Thank you for considering a contribution to Gradle! This guide explains how to:
 
 * maximize the chance of your changes being accepted
