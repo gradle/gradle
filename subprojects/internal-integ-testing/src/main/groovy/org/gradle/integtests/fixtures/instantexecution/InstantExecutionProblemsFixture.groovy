@@ -203,7 +203,7 @@ final class InstantExecutionProblemsFixture {
 
     private static Matcher<String> failureDescriptionMatcherForProblems(HasInstantExecutionProblemsSpec spec) {
         return buildMatcherForProblemsFailureDescription(
-            "Problems found while caching instant execution state.\n" +
+            "Instant execution problems found in this build.\n" +
                 "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
             spec
         )

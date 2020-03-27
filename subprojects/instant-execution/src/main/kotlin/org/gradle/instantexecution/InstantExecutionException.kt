@@ -69,7 +69,7 @@ open class InstantExecutionProblemsException : InstantExecutionException {
         problems: List<PropertyProblem>,
         htmlReportFile: File
     ) : this(
-        "Problems found while caching instant execution state.\n" +
+        "Instant execution problems found in this build.\n" +
             "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
         problems,
         htmlReportFile
