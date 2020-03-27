@@ -56,23 +56,23 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''The consumer was configured to find the API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
+        failure.assertHasCause('''The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
   - Variant 'apiElements' capability test:producer:unspecified:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required compatibility with Java 6 and found incompatible Java 7
+      - Other compatible attributes:
+          - Provides a library
+          - Provides its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides an API
   - Variant 'runtimeElements' capability test:producer:unspecified:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.''')
+          - Required compatibility with Java 6 and found incompatible Java 7
+      - Other compatible attributes:
+          - Provides a library
+          - Provides its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Required an API and found a runtime''')
     }
 
     @Unroll
@@ -149,23 +149,23 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find the API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
+        failure.assertHasCause("""The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
   - Variant 'apiElements' capability test:producer:unspecified:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+          - Required compatibility with Java 6 and found incompatible Java 7
+      - Other compatible attributes:
+          - Provides a library
+          - Provides its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Provides an API
   - Variant 'runtimeElements' capability test:producer:unspecified:
       - Incompatible attribute:
-          - Required org.gradle.jvm.version '6' and found incompatible value '7'.
-      - Other attributes:
-          - Required org.gradle.category 'library' and found compatible value 'library'.
-          - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-          - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-          - Required org.gradle.usage 'java-api' and found compatible value 'java-runtime'.""")
+          - Required compatibility with Java 6 and found incompatible Java 7
+      - Other compatible attributes:
+          - Provides a library
+          - Provides its dependencies declared externally
+          - Required its elements preferably in the form of class files and found them packaged as a jar
+          - Required an API and found a runtime""")
 
         when:
         buildFile << """

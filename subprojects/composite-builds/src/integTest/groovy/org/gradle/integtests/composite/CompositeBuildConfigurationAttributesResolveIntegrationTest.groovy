@@ -621,10 +621,10 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 All of them match the consumer attributes:
   - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
       - Compatible attribute:
-          - Required flavor 'paid' and found compatible value 'blue'.
+          - Required flavor 'paid' and found value 'blue'.
   - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
       - Compatible attribute:
-          - Required flavor 'paid' and found compatible value 'red'.""")
+          - Required flavor 'paid' and found value 'red'.""")
     }
 
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")

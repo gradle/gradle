@@ -627,7 +627,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
   - Variant 'cppApiElements' capability test:hello:unspecified:
       - Incompatible attribute:
           - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found artifactType 'directory' but wasn't required.
           - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
           - Required org.gradle.native.debuggable 'true' but no value provided.

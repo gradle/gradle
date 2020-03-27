@@ -51,9 +51,33 @@ public class DescriberSelector {
         }
 
         @Override
-        public String describe(AttributeContainer attributes) {
-            String description = delegate.describe(attributes);
-            return description == null ? DefaultDescriber.INSTANCE.describe(attributes) : description;
+        public String describeConsumerAttributes(AttributeContainer attributes) {
+            String description = delegate.describeConsumerAttributes(attributes);
+            return description == null ? DefaultDescriber.INSTANCE.describeConsumerAttributes(attributes) : description;
+        }
+
+        @Override
+        public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
+            String description = delegate.describeCompatibleAttribute(attribute, consumerValue, producerValue);
+            return description == null ? DefaultDescriber.INSTANCE.describeCompatibleAttribute(attribute, consumerValue, producerValue) : description;
+        }
+
+        @Override
+        public String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
+            String description = delegate.describeIncompatibleAttribute(attribute, consumerValue, producerValue);
+            return description == null ? DefaultDescriber.INSTANCE.describeIncompatibleAttribute(attribute, consumerValue, producerValue) : description;
+        }
+
+        @Override
+        public String describeMissingAttribute(Attribute<?> attribute, Object producerValue) {
+            String description = delegate.describeMissingAttribute(attribute, producerValue);
+            return description == null ? DefaultDescriber.INSTANCE.describeMissingAttribute(attribute, producerValue) : description;
+        }
+
+        @Override
+        public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
+            String description = delegate.describeExtraAttribute(attribute, producerValue);
+            return description == null ? DefaultDescriber.INSTANCE.describeExtraAttribute(attribute, producerValue) : description;
         }
     }
 
@@ -66,15 +90,35 @@ public class DescriberSelector {
         }
 
         @Override
-        public String describe(AttributeContainer attributes) {
+        public String describeConsumerAttributes(AttributeContainer attributes) {
             StringBuilder sb = new StringBuilder();
             for (Attribute<?> attribute : attributes.keySet()) {
-                if (sb.length()>0) {
+                if (sb.length() > 0) {
                     sb.append(", ");
                 }
                 sb.append("attribute '").append(attribute.getName()).append("' with value '").append(attributes.getAttribute(attribute) + "'");
             }
             return sb.toString();
+        }
+
+        @Override
+        public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
+            return "Required " + attribute.getName() + " '" + consumerValue + "' and found value '" + producerValue + "'.";
+        }
+
+        @Override
+        public String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
+            return "Required " + attribute.getName() + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.";
+        }
+
+        @Override
+        public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
+            return "Required " + attribute.getName() + " '" + consumerValue + "' but no value provided.";
+        }
+
+        @Override
+        public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
+            return "Found " + attribute.getName() + " '" + producerValue + "' but wasn't required.";
         }
     }
 }

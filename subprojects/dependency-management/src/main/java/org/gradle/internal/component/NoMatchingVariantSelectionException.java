@@ -18,6 +18,7 @@ package org.gradle.internal.component;
 
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -26,17 +27,20 @@ import java.util.Collection;
 import static org.gradle.internal.component.AmbiguousConfigurationSelectionException.formatAttributeMatchesForIncompatibility;
 
 public class NoMatchingVariantSelectionException extends VariantSelectionException {
-    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
-        super(format(producerDisplayName, consumer, candidates, matcher));
+    public NoMatchingVariantSelectionException(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher, ConsumerAttributeDescriber describer) {
+        super(format(producerDisplayName, consumer, candidates, matcher, describer));
     }
 
-    private static String format(String producerDisplayName, AttributeContainerInternal consumer, Collection<? extends ResolvedVariant> candidates, AttributeMatcher matcher) {
+    private static String format(String producerDisplayName,
+                                 AttributeContainerInternal consumer,
+                                 Collection<? extends ResolvedVariant> candidates,
+                                 AttributeMatcher matcher, ConsumerAttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node("No variants of " + producerDisplayName + " match the consumer attributes");
         formatter.startChildren();
         for (ResolvedVariant variant : candidates) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable());
+            formatAttributeMatchesForIncompatibility(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
         }
         formatter.endChildren();
         return formatter.toString();

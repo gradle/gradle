@@ -772,20 +772,20 @@ task show {
       - Unmatched attribute:
           - Found buildType 'n/a' but wasn't required.
       - Compatible attributes:
-          - Required artifactType 'jar' and found compatible value 'jar'.
-          - Required usage 'api' and found compatible value 'api'.
+          - Required artifactType 'jar' and found value 'jar'.
+          - Required usage 'api' and found value 'api'.
   - Configuration ':lib:compile' variant debug:
       - Unmatched attribute:
           - Found buildType 'debug' but wasn't required.
       - Compatible attributes:
-          - Required artifactType 'jar' and found compatible value 'jar'.
-          - Required usage 'api' and found compatible value 'api'.
+          - Required artifactType 'jar' and found value 'jar'.
+          - Required usage 'api' and found value 'api'.
   - Configuration ':lib:compile' variant release:
       - Unmatched attribute:
           - Found buildType 'release' but wasn't required.
       - Compatible attributes:
-          - Required artifactType 'jar' and found compatible value 'jar'.
-          - Required usage 'api' and found compatible value 'api'.""")
+          - Required artifactType 'jar' and found value 'jar'.
+          - Required usage 'api' and found value 'api'.""")
     }
 
     def "returns empty result when no variants match and view attributes specified"() {
@@ -891,26 +891,26 @@ task show {
   - Configuration ':lib:compile':
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attribute:
-          - Required usage 'api' and found compatible value 'api'.
+      - Other compatible attribute:
+          - Required usage 'api' and found value 'api'.
   - Configuration ':lib:compile' variant debug:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found buildType 'debug' but wasn't required.
-          - Required usage 'api' and found compatible value 'api'.
+          - Required usage 'api' and found value 'api'.
   - Configuration ':lib:compile' variant release:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found buildType 'release' but wasn't required.
-          - Required usage 'api' and found compatible value 'api'.""")
+          - Required usage 'api' and found value 'api'.""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found org.gradle.status 'integration' but wasn't required.
           - Required usage 'api' but no value provided.""")
 
@@ -918,7 +918,8 @@ task show {
   - thing.jar:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attribute: Required usage 'api' but no value provided.""")
+      - Other compatible attribute:
+          - Required usage 'api' but no value provided.""")
 
     }
 

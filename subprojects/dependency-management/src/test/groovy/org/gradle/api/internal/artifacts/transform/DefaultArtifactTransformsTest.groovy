@@ -106,10 +106,10 @@ class DefaultArtifactTransformsTest extends Specification {
         e.message == toPlatformLineSeparators("""The consumer was configured to find attribute 'artifactType' with value 'classes'. However we cannot choose between the following variants of <component>:
   - <variant1>:
       - Compatible attribute:
-          - Required artifactType 'classes' and found compatible value 'classes'.
+          - Required artifactType 'classes' and found value 'classes'.
   - <variant2>:
       - Compatible attribute:
-          - Required artifactType 'classes' and found compatible value 'jar'.""")
+          - Required artifactType 'classes' and found value 'jar'.""")
     }
 
     private ResolvedVariant resolvedVariant() {

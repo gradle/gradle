@@ -134,7 +134,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         if (ignoreWhenNoMatches) {
             return ResolvedArtifactSet.EMPTY;
         }
-        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher);
+        throw new NoMatchingVariantSelectionException(producer.asDescribable().getDisplayName(), componentRequested, producer.getVariants(), matcher, DescriberSelector.selectDescriber(componentRequested, schema));
     }
 
     private List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> tryDisambiguate(AttributeMatcher matcher, List<Pair<ResolvedVariant, ConsumerVariantMatchResult.ConsumerVariant>> candidates, ImmutableAttributes componentRequested, AttributeMatchingExplanationBuilder explanationBuilder) {
