@@ -27,7 +27,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
             tasks.register("$SAMPLE_TASK") {}
         """
 
-    @ToBeFixedForInstantExecution
     def "adds plugin metadata to extension for all script plugins"() {
         createDir("buildSrc/src/main/groovy/plugins").file("foo.gradle").createNewFile()
         createDir("buildSrc/src/main/groovy/plugins").file("bar.gradle").createNewFile()
@@ -49,7 +48,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("bar: BarPlugin")
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply a precompiled script plugin by id"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -75,7 +73,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("foo script plugin applied")
     }
 
-    @ToBeFixedForInstantExecution
     def "multiple plugins with same namespace do not clash"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -276,7 +273,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         failureCauseContains("Only Project and Settings build scripts can contain plugins {} blocks")
     }
 
-    @ToBeFixedForInstantExecution
     def "can use kebab-case in plugin id"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/")
         enablePrecompiledPluginsInBuildSrc()
@@ -293,7 +289,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         succeeds(SAMPLE_TASK)
     }
 
-    @ToBeFixedForInstantExecution
     def "plugin without package can declare fully qualified id in file name"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/")
         enablePrecompiledPluginsInBuildSrc()
@@ -321,7 +316,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         failureCauseContains("plugin id 'foo.bar.m%y-plugin' is invalid")
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply a precompiled script plugin by id that applies another precompiled script plugin by id"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -356,7 +350,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("foo script plugin applied")
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply configuration in a precompiled script plugin to the current project"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -386,7 +379,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         file("build/classes/java/main/Foo.class").exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply and configure a plugin in a precompiled script plugin"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -419,7 +411,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         file("build/classes/java/main/Foo.class").exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can add tasks in a precompiled script plugin"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -450,7 +441,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("from main build script")
     }
 
-    @ToBeFixedForInstantExecution
     def "can use Gradle API classes directly in precompiled script plugin"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -578,7 +568,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()

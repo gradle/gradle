@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.CacheableTask;
@@ -54,6 +55,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ClassLoaderScopeRegistry classLoaderScopeRegistry;
     private final CompileOperationFactory compileOperationFactory;
+    private final FileSystemOperations fileSystemOperations;
 
     private final Set<File> pluginSourceFiles;
     private final List<PrecompiledGroovyScript> scriptPlugins;
@@ -68,11 +70,14 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
     public PrecompileGroovyScriptsTask(ScriptCompilationHandler scriptCompilationHandler,
                                        ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                        CompileOperationFactory compileOperationFactory,
+                                       FileSystemOperations fileSystemOperations,
                                        Set<File> pluginSourceFiles,
                                        List<PrecompiledGroovyScript> scriptPlugins) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.classLoaderScopeRegistry = classLoaderScopeRegistry;
         this.compileOperationFactory = compileOperationFactory;
+        this.fileSystemOperations = fileSystemOperations;
+
         this.pluginSourceFiles = pluginSourceFiles;
         this.scriptPlugins = scriptPlugins;
 
@@ -111,7 +116,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
             generateScriptPluginAdapter(scriptPlugin, pluginsBlock, buildScript);
         }
 
-        getProject().copy(copySpec -> {
+        fileSystemOperations.copy(copySpec -> {
             copySpec.from(metadataDir.getAsFile(), classesDir.getAsFileTree().getFiles());
             copySpec.into(precompiledGroovyScriptsDir);
         });
