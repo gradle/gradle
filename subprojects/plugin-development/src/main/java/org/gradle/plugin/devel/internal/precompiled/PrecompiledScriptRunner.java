@@ -40,7 +40,7 @@ import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import javax.annotation.Nullable;
 
-public class PreCompiledScriptRunner {
+public class PrecompiledScriptRunner {
 
     private final Object target;
     private final ServiceRegistry serviceRegistry;
@@ -53,21 +53,21 @@ public class PreCompiledScriptRunner {
     private final PluginManagerInternal pluginManager;
 
     @SuppressWarnings("unused")
-    public PreCompiledScriptRunner(Project project) {
+    public PrecompiledScriptRunner(Project project) {
         this(project, ((ProjectInternal) project).getServices(), ((ProjectInternal) project).getClassLoaderScope(), ((ProjectInternal) project).getPluginManager());
     }
 
     @SuppressWarnings("unused")
-    public PreCompiledScriptRunner(Settings settings) {
+    public PrecompiledScriptRunner(Settings settings) {
         this(settings, ((SettingsInternal) settings).getGradle().getServices(), ((SettingsInternal) settings).getClassLoaderScope(), null);
     }
 
     @SuppressWarnings("unused")
-    public PreCompiledScriptRunner(Gradle gradle) {
+    public PrecompiledScriptRunner(Gradle gradle) {
         this(gradle, ((GradleInternal) gradle).getServices(), ((GradleInternal) gradle).getClassLoaderScope(), null);
     }
 
-    private PreCompiledScriptRunner(Object target, ServiceRegistry serviceRegistry, ClassLoaderScope classLoaderScope, @Nullable PluginManagerInternal pluginManager) {
+    private PrecompiledScriptRunner(Object target, ServiceRegistry serviceRegistry, ClassLoaderScope classLoaderScope, @Nullable PluginManagerInternal pluginManager) {
         this.target = target;
         this.serviceRegistry = serviceRegistry;
 

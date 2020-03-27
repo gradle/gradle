@@ -23,11 +23,11 @@ import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.DefaultScript;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
-class PreCompiledScriptTarget extends DefaultScriptTarget {
+class PrecompiledScriptTarget extends DefaultScriptTarget {
 
     private final boolean supportsPluginsBlock;
 
-    PreCompiledScriptTarget(boolean supportsPluginsBlock) {
+    PrecompiledScriptTarget(boolean supportsPluginsBlock) {
         super(null);
         this.supportsPluginsBlock = supportsPluginsBlock;
     }
