@@ -18,9 +18,14 @@ package org.gradle.api.tasks.javadoc;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
@@ -36,6 +41,8 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jpms.DefaultModularClasspathHandling;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -101,8 +108,13 @@ public class Javadoc extends SourceTask {
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
+    private final ModularClasspathHandling modularClasspathHandling;
 
     private String executable;
+
+    public Javadoc() {
+        this.modularClasspathHandling = getObjectFactory().newInstance(DefaultModularClasspathHandling.class);
+    }
 
     @TaskAction
     protected void generate() {
@@ -119,7 +131,12 @@ public class Javadoc extends SourceTask {
             options.destinationDirectory(destinationDir);
         }
 
-        options.classpath(new ArrayList<File>(getClasspath().getFiles()));
+        JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
+        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
+        boolean isModule = modularClasspathHandling.getInferModulePath().get() && JavaModuleDetector.isModuleSource(sourcesRoots);
+
+        options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
+        options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
 
         if (!GUtil.isTrue(options.getWindowTitle()) && GUtil.isTrue(getTitle())) {
             options.windowTitle(getTitle());
@@ -301,6 +318,17 @@ public class Javadoc extends SourceTask {
     }
 
     /**
+     * Returns the module path handling of this javadoc task.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Nested
+    public ModularClasspathHandling getModularClasspathHandling() {
+        return modularClasspathHandling;
+    }
+
+    /**
      * Returns the Javadoc generation options.
      *
      * @return The options. Never returns null.
@@ -369,6 +397,16 @@ public class Javadoc extends SourceTask {
 
     @Inject
     protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
         throw new UnsupportedOperationException();
     }
 }

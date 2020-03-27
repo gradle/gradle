@@ -37,7 +37,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -60,9 +60,9 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.findJavaComponent
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
     private final JavaPluginConvention javaPluginConvention;
+    private final JavaPluginExtension javaPluginExtension;
     private final ConfigurationContainer configurationContainer;
     private final ObjectFactory objectFactory;
-    private final PluginManager pluginManager;
     private final SoftwareComponentContainer components;
     private final TaskContainer tasks;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
@@ -75,16 +75,16 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
                                   JavaPluginConvention javaPluginConvention,
+                                  JavaPluginExtension javaPluginExtension,
                                   ConfigurationContainer configurationContainer,
                                   ObjectFactory objectFactory,
-                                  PluginManager pluginManager,
                                   SoftwareComponentContainer components,
                                   TaskContainer tasks) {
         this.name = name;
         this.javaPluginConvention = javaPluginConvention;
+        this.javaPluginExtension = javaPluginExtension;
         this.configurationContainer = configurationContainer;
         this.objectFactory = objectFactory;
-        this.pluginManager = pluginManager;
         this.components = components;
         this.tasks = tasks;
         this.capabilities.add(defaultCapability);
@@ -160,7 +160,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
-        configureJavaDocTask(name, sourceSet, tasks);
+        configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (withJavadocJar) {
             configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), name, JAVADOC, capabilities, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component, configurationContainer, tasks, objectFactory);
         }
