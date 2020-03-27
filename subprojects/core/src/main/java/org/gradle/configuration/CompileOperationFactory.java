@@ -21,7 +21,7 @@ import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 
 public interface CompileOperationFactory {
-    CompileOperation<?> getPluginRequestsCompileOperation(ScriptTarget initialPassScriptTarget);
+    CompileOperation<?> getPluginsBlockCompileOperation(ScriptTarget initialPassScriptTarget);
 
-    CompileOperation<BuildScriptData> getBuildScriptDataCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget);
+    CompileOperation<BuildScriptData> getScriptCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget);
 }

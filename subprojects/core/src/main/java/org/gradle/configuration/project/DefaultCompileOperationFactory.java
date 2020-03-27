@@ -42,14 +42,14 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
         this.documentationRegistry = documentationRegistry;
     }
 
-    public CompileOperation<?> getPluginRequestsCompileOperation(ScriptTarget initialPassScriptTarget) {
+    public CompileOperation<?> getPluginsBlockCompileOperation(ScriptTarget initialPassScriptTarget) {
         InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
         SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
         String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
         return new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
     }
 
-    public CompileOperation<BuildScriptData> getBuildScriptDataCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget) {
+    public CompileOperation<BuildScriptData> getScriptCompileOperation(ScriptSource scriptSource, ScriptTarget scriptTarget) {
         BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
         String operationId = scriptTarget.getId();
         return new FactoryBackedCompileOperation<>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);

@@ -17,8 +17,8 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -40,7 +40,6 @@ import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Actions;
 import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifier;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.io.BufferedWriter;
 import java.io.File;
@@ -50,6 +49,7 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Set;
 
+@NonNullApi
 @CacheableTask
 class PreCompileGroovyScriptsTask extends DefaultTask {
 
@@ -65,8 +65,6 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
 
     private final DirectoryProperty precompiledGroovyScriptsDir = getProject().getObjects().directoryProperty();
     private final DirectoryProperty generatedPluginAdaptersDir = getProject().getObjects().directoryProperty();
-
-    private final CopySpec classesSpec = getProject().copySpec();
 
     @Inject
     public PreCompileGroovyScriptsTask(ScriptCompilationHandler scriptCompilationHandler,
@@ -94,13 +92,11 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
         return pluginSourceFiles;
     }
 
-    @Nonnull
     @OutputDirectory
     Provider<Directory> getPrecompiledGroovyScriptsDir() {
         return precompiledGroovyScriptsDir;
     }
 
-    @Nonnull
     @OutputDirectory
     DirectoryProperty getGeneratedPluginAdaptersDir() {
         return generatedPluginAdaptersDir;
@@ -118,43 +114,38 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
         }
 
         getProject().copy(copySpec -> {
-            copySpec.from(metadataDir.getAsFile().get());
-            copySpec.with(classesSpec);
+            copySpec.from(metadataDir.getAsFile(), classesDir.getAsFileTree().getFiles());
             copySpec.into(precompiledGroovyScriptsDir);
         });
     }
 
     private CompiledScript<? extends BasicScript, ?> compilePluginsBlock(ClassLoaderScope classLoaderScope, PreCompiledScript scriptPlugin) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
-        CompileOperation<?> pluginRequestsCompileOperation = compileOperationFactory.getPluginRequestsCompileOperation(target);
+        CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(target);
         String targetPath = scriptPlugin.getPluginsBlockClassName();
-        File pluginMetadataDir = metadataDir.dir(targetPath).get().getAsFile();
-        File pluginClassesDir = classesDir.dir(targetPath).get().getAsFile();
+        File pluginsMetadataDir = subdirectory(metadataDir, targetPath);
+        File pluginsClassesDir = subdirectory(classesDir, targetPath);
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getPluginsBlockSource(), classLoaderScope.getExportClassLoader(), pluginClassesDir, pluginMetadataDir, pluginRequestsCompileOperation,
+            scriptPlugin.getPluginsBlockSource(), classLoaderScope.getExportClassLoader(), pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation,
             target.getScriptClass(), Actions.doNothing());
 
-        classesSpec.from(pluginClassesDir);
-
         return scriptCompilationHandler.loadFromDir(scriptPlugin.getPluginsBlockSource(), scriptPlugin.getContentHash(),
-            classLoaderScope, pluginClassesDir, pluginMetadataDir, pluginRequestsCompileOperation, target.getScriptClass());
+            classLoaderScope, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation, target.getScriptClass());
     }
 
     private CompiledScript<? extends BasicScript, ?> compileBuildScript(ClassLoaderScope classLoaderScope, PreCompiledScript scriptPlugin) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
-        CompileOperation<BuildScriptData> buildScriptDataCompileOperation = compileOperationFactory.getBuildScriptDataCompileOperation(scriptPlugin.getSource(), target);
+        CompileOperation<BuildScriptData> scriptCompileOperation = compileOperationFactory.getScriptCompileOperation(scriptPlugin.getSource(), target);
         String targetPath = scriptPlugin.getClassName();
-        File buildScriptMetadataDir = metadataDir.dir(targetPath).get().getAsFile();
-        File buildScriptClassesDir = classesDir.dir(targetPath).get().getAsFile();
+        File scriptMetadataDir = subdirectory(metadataDir, targetPath);
+        File scriptClassesDir = subdirectory(classesDir, targetPath);
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getSource(), classLoaderScope.getExportClassLoader(), buildScriptClassesDir,
-            buildScriptMetadataDir, buildScriptDataCompileOperation, target.getScriptClass(),
+            scriptPlugin.getSource(), classLoaderScope.getExportClassLoader(), scriptClassesDir,
+            scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
             ClosureCreationInterceptingVerifier.INSTANCE);
 
-        classesSpec.from(buildScriptClassesDir);
-
         return scriptCompilationHandler.loadFromDir(scriptPlugin.getSource(), scriptPlugin.getContentHash(),
-            classLoaderScope, buildScriptClassesDir, buildScriptMetadataDir, buildScriptDataCompileOperation, target.getScriptClass());
+            classLoaderScope, scriptClassesDir, scriptMetadataDir, scriptCompileOperation, target.getScriptClass());
     }
 
     private void generateScriptPluginAdapter(PreCompiledScript scriptPlugin,
@@ -189,4 +180,7 @@ class PreCompileGroovyScriptsTask extends DefaultTask {
         }
     }
 
+    private static File subdirectory(DirectoryProperty root, String subdirPath) {
+        return root.dir(subdirPath).get().getAsFile();
+    }
 }
