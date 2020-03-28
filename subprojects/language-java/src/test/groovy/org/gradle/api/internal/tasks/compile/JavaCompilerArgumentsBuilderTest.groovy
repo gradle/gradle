@@ -93,6 +93,16 @@ class JavaCompilerArgumentsBuilderTest extends Specification {
         builder.build() == defaultOptions + ['--release', '7']
     }
 
+    def "removes -source and -target option if release property is set"() {
+        when:
+        spec.release = 7
+        spec.sourceCompatibility = '1.7'
+        spec.targetCompatibility = '1.7'
+
+        then:
+        builder.build() == ['--release', '7'] + defaultOptions
+    }
+
     def "generates -d option"() {
         def file = new File("/project/build")
         spec.destinationDir = file

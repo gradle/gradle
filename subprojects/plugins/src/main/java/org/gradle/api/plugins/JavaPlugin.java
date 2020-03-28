@@ -352,7 +352,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void configureJavadocTask(ProjectInternal project, JavaPluginConvention pluginConvention) {
         SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureJavaDocTask(null, main, project.getTasks());
+        configureJavaDocTask(null, main, project.getTasks(), project.getExtensions().getByType(JavaPluginExtension.class));
     }
 
     private void registerSoftwareComponents(Project project) {

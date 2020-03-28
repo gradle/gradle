@@ -29,7 +29,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -50,22 +50,27 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final JavaPluginConvention convention;
     private final ConfigurationContainer configurations;
     private final ObjectFactory objectFactory;
-    private final PluginManager pluginManager;
     private final SoftwareComponentContainer components;
     private final TaskContainer tasks;
     private final Project project;
     private final ModularClasspathHandling modularClasspathHandling;
+    private final Property<Integer> release;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project) {
         this.convention = convention;
         this.configurations = project.getConfigurations();
         this.objectFactory = project.getObjects();
-        this.pluginManager = project.getPluginManager();
         this.components = project.getComponents();
         this.tasks = project.getTasks();
         this.project = project;
         this.modularClasspathHandling = project.getObjects().newInstance(DefaultModularClasspathHandling.class);
+        this.release = project.getObjects().property(Integer.class);
+    }
+
+    @Override
+    public Property<Integer> getRelease() {
+        return release;
     }
 
     @Override
@@ -93,10 +98,9 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         Capability defaultCapability = new ProjectDerivedCapability(project, name);
         DefaultJavaFeatureSpec spec = new DefaultJavaFeatureSpec(
                 validateFeatureName(name),
-                defaultCapability, convention,
+                defaultCapability, convention, this,
                 configurations,
                 objectFactory,
-                pluginManager,
                 components,
                 tasks);
         configureAction.execute(spec);

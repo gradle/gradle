@@ -153,6 +153,33 @@ compileJava.options.compilerArgs.addAll(['--release', '8'])
 
         expect:
         succeeds 'compileJava'
+        bytecodeVersion() == 52
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile with release property set"() {
+        given:
+        goodCode()
+        buildFile << """
+compileJava.release.set(8)
+"""
+
+        expect:
+        succeeds 'compileJava'
+        bytecodeVersion() == 52
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "compile with release property set in plugin extension"() {
+        given:
+        goodCode()
+        buildFile << """
+java.release.set(8)
+"""
+
+        expect:
+        succeeds 'compileJava'
+        bytecodeVersion() == 52
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
@@ -387,6 +414,15 @@ class Main {
         then:
         fails("compileJava")
         failure.assertHasErrorOutput("package ${gradleBaseServicesClass.package.name} does not exist")
+    }
+
+    def bytecodeVersion() {
+        def classFile = javaClassFile('compile/test/Person.class').newDataInputStream()
+        classFile.readInt()
+        classFile.readUnsignedShort()
+        def majorVersion = classFile.readUnsignedShort()
+        classFile.close()
+        return majorVersion
     }
 
 }

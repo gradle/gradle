@@ -251,6 +251,7 @@ public class JavaCompile extends AbstractCompile {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
+        spec.setRelease(getRelease().getOrNull());
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
         spec.setCompileOptions(compileOptions);
