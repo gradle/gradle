@@ -30,6 +30,7 @@ import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.instantexecution.observability.BuildScanFacade
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -69,7 +70,8 @@ class DefaultInstantExecution internal constructor(
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val buildScan: BuildScanFacade
 ) : InstantExecution {
 
     interface Host {
@@ -190,6 +192,8 @@ class DefaultInstantExecution internal constructor(
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
+        writeBuildScanState(buildScan)
+
         writeGradleState(build.gradle)
 
         val scheduledNodes = build.scheduledWork
@@ -204,6 +208,8 @@ class DefaultInstantExecution internal constructor(
     suspend fun DefaultReadContext.decodeScheduledWork() {
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
+
+        readBuildScanState(buildScan)
 
         readGradleState(build.gradle)
 
@@ -345,6 +351,26 @@ class DefaultInstantExecution internal constructor(
             fileSystem = service(),
             fileFactory = service()
         )
+    }
+
+    private
+    suspend fun DefaultWriteContext.writeBuildScanState(buildScan: BuildScanFacade) {
+        writeNullableString(buildScan.enterpriseServer)
+        writeNullableString(buildScan.termsOfServiceUrl)
+        writeNullableString(buildScan.termsOfServiceAgree)
+        writeNullableString(buildScan.server)
+        writeBoolean(buildScan.isAllowUntrustedServer)
+        writeBoolean(buildScan.isCaptureTaskInputFiles)
+    }
+
+    private
+    suspend fun DefaultReadContext.readBuildScanState(buildScan: BuildScanFacade) {
+        buildScan.enterpriseServer = readNullableString()
+        buildScan.termsOfServiceUrl = readNullableString()
+        buildScan.termsOfServiceAgree = readNullableString()
+        buildScan.server = readNullableString()
+        buildScan.isAllowUntrustedServer = readBoolean()
+        buildScan.isCaptureTaskInputFiles = readBoolean()
     }
 
     private
