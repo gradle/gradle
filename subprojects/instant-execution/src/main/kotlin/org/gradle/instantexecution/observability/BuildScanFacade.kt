@@ -74,7 +74,7 @@ class DefaultBuildScanFacade(
     }
 
     override var enterpriseServer: String?
-        by stringGroovyProperty("server") { gradleEnterprise }
+        by stringGroovyProperty("server", lenient = true) { gradleEnterprise }
 
     override var termsOfServiceUrl: String?
         by stringGroovyProperty { buildScan }
@@ -108,40 +108,61 @@ class DefaultBuildScanFacade(
         (this as ExtensionAware).extensions.getByName(name)
 
     private
-    fun stringGroovyProperty(name: String? = null, delegate: () -> Any) =
-        GroovyPropertyDelegate(name, delegate) { it as? String }
+    fun stringGroovyProperty(name: String? = null, lenient: Boolean = false, owner: () -> Any) =
+        GroovyPropertyDelegate(name, lenient, owner) { it as? String }
 
     private
-    fun booleanGroovyProperty(name: String? = null, delegate: () -> Any) =
-        GroovyPropertyDelegate(name, delegate) { it as? Boolean ?: false }
+    fun booleanGroovyProperty(name: String? = null, lenient: Boolean = false, owner: () -> Any) =
+        GroovyPropertyDelegate(name, lenient, owner) { it as? Boolean ?: false }
 
     private
     fun buildScan(dynamicAction: GroovyBuilderScope.() -> Unit) =
         if (isBuildScanEnabled) buildScan.withGroovyBuilder(dynamicAction)
         else Unit
 
+    /**
+     * GroovyBuilder based Kotlin delegated property.
+     *
+     * @param name Overridden property name, or null to use the Kotlin property name
+     * @param lenient If `true`, errors accessing dynamic properties are ignored
+     * @param owner Provides the owner of the dynamic properties
+     * @param transform Transforms values going in and out
+     */
     private
     inner class GroovyPropertyDelegate<T : Any?>(
 
         private
-        val name: String? = null,
+        val name: String?,
 
         private
-        val delegate: () -> Any,
+        val lenient: Boolean,
+
+        private
+        val owner: () -> Any,
 
         private
         val transform: (Any?) -> T
     ) {
 
         operator fun getValue(thisRef: Any, property: KProperty<*>): T =
-            if (isBuildScanEnabled) delegate().withGroovyBuilder {
-                transform(getProperty(name ?: property.name))
+            if (isBuildScanEnabled) owner().withGroovyBuilder {
+                val value = try {
+                    getProperty(name ?: property.name)
+                } catch (ex: Exception) {
+                    if (lenient) null
+                    else throw ex
+                }
+                return transform(value)
             }
             else transform(null)
 
         operator fun setValue(thisRef: Any, property: KProperty<*>, value: Any?) =
-            if (isBuildScanEnabled) delegate().withGroovyBuilder {
-                setProperty(name ?: property.name, transform(value))
+            if (isBuildScanEnabled) owner().withGroovyBuilder {
+                try {
+                    setProperty(name ?: property.name, transform(value))
+                } catch (ex: Exception) {
+                    if (!lenient) throw ex
+                }
             }
             else Unit
     }
