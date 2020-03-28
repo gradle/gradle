@@ -35,6 +35,25 @@ interface BuildScanFacade {
     var isCaptureTaskInputFiles: Boolean
     // TODO not accessible // var isPublishAlways: Boolean
     // TODO not accessible // var isPublishOnFailure: Boolean
+
+    fun tag(tag: String)
+
+    fun value(key: String, value: Any?)
+
+    fun instantExecutionEnabled() =
+        value("instant-execution:enabled", true)
+
+    fun instantExecutionStoreAction() =
+        value("instant-execution:action", "store")
+
+    fun instantExecutionLoadAction() =
+        value("instant-execution:action", "load")
+
+    fun instantExecutionStateSize(size: Long) =
+        value("instant-execution:state:size", size)
+
+    fun instantExecutionFingerprintSize(size: Long) =
+        value("instant-execution:fingerprint:size", size)
 }
 
 
@@ -72,6 +91,14 @@ class DefaultBuildScanFacade(
     override var isCaptureTaskInputFiles: Boolean
         by booleanGroovyProperty("captureTaskInputFiles") { buildScan }
 
+    override fun tag(tag: String): Unit = buildScan {
+        "tag"(tag)
+    }
+
+    override fun value(key: String, value: Any?): Unit = buildScan {
+        "value"(key, value.toString())
+    }
+
     private
     val isBuildScanEnabled: Boolean
         get() = buildScanPluginApplied.isBuildScanPluginApplied
@@ -87,6 +114,11 @@ class DefaultBuildScanFacade(
     private
     fun booleanGroovyProperty(name: String? = null, delegate: () -> Any) =
         GroovyPropertyDelegate(name, delegate) { it as? Boolean ?: false }
+
+    private
+    fun buildScan(dynamicAction: GroovyBuilderScope.() -> Unit) =
+        if (isBuildScanEnabled) buildScan.withGroovyBuilder(dynamicAction)
+        else Unit
 
     private
     inner class GroovyPropertyDelegate<T : Any?>(
