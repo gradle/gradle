@@ -39,8 +39,8 @@ class BuildTypesPlugin : Plugin<Project> {
         }
 
         val invokedTaskNames = gradle.startParameter.taskNames
-        val usedTaskNames = buildType.findUsedTaskNamesWithIndexIn(invokedTaskNames).reversed()
-        usedTaskNames.forEach { (_, usedName) ->
+        val usedTaskNames = buildType.findUsedTaskNamesIn(invokedTaskNames)
+        usedTaskNames.forEach { usedName ->
             require(usedName.isNotEmpty())
             buildType.active = true
             buildType.onProjectProperties = { properties: ProjectProperties ->
@@ -58,12 +58,12 @@ class BuildTypesPlugin : Plugin<Project> {
             }
         }
 
-        val finalInvokedTaskNames = mutableListOf<String>()
+        val finalInvokedTaskNames = invokedTaskNames.minus(usedTaskNames).toMutableList()
 
         if (usedTaskNames.isNotEmpty()) {
             allprojects {
                 afterEvaluate {
-                    usedTaskNames.forEach { (_, usedName) ->
+                    usedTaskNames.forEach { usedName ->
                         val subproject = determineSubprojectName(this@allprojects, usedName)
                         insertBuildTypeTasksInto(finalInvokedTaskNames, buildTypeTask, buildType, subproject)
                         gradle.startParameter.setTaskNames(finalInvokedTaskNames)
@@ -78,13 +78,13 @@ class BuildTypesPlugin : Plugin<Project> {
     }
 
     private
-    fun BuildType.findUsedTaskNamesWithIndexIn(taskNames: List<String>): List<IndexedValue<String>> {
+    fun BuildType.findUsedTaskNamesIn(taskNames: List<String>): List<String> {
         val candidates = arrayOf(name, abbreviation)
         val nameSuffix = ":$name"
         val abbreviationSuffix = ":$abbreviation"
         return taskNames.withIndex().filter { (index, taskName) ->
             (taskName in candidates || taskName.endsWith(nameSuffix) || taskName.endsWith(abbreviationSuffix)) && !isTaskHelpInvocation(taskNames, index)
-        }
+        }.map { it.value }
     }
 
     private
