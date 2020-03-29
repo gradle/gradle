@@ -49,17 +49,30 @@ class BuildTypesPlugin : Plugin<Project> {
                 }
             }
         }
+
+        fun determineSubprojectName(currentProject: Project, taskName: String): String {
+            return if (currentProject.parent != null) {
+                currentProject.name
+            } else {
+                taskName.substringBeforeLast(":", "")
+            }
+        }
+
+        val finalInvokedTaskNames = mutableListOf<String>()
+
         if (usedTaskNames.isNotEmpty()) {
-            afterEvaluate {
-                usedTaskNames.forEach { (index, usedName) ->
-                    invokedTaskNames.removeAt(index)
-                    val subproject = usedName.substringBeforeLast(":", "")
-                    insertBuildTypeTasksInto(invokedTaskNames, buildTypeTask, index, buildType, subproject)
+            allprojects {
+                afterEvaluate {
+                    usedTaskNames.forEach { (_, usedName) ->
+                        val subproject = determineSubprojectName(this@allprojects, usedName)
+                        insertBuildTypeTasksInto(finalInvokedTaskNames, buildTypeTask, buildType, subproject)
+                        gradle.startParameter.setTaskNames(finalInvokedTaskNames)
+                    }
+
+                    if (!finalInvokedTaskNames.contains(buildType.name)) {
+                        finalInvokedTaskNames.add(buildType.name)
+                    }
                 }
-                if (!invokedTaskNames.contains(buildType.name)) {
-                    invokedTaskNames.add(buildType.name)
-                }
-                gradle.startParameter.setTaskNames(invokedTaskNames)
             }
         }
     }
@@ -93,14 +106,13 @@ internal
 fun Project.insertBuildTypeTasksInto(
     invokeTaskNames: MutableList<String>,
     buildTypeTask: TaskProvider<Task>,
-    index: Int,
     buildType: BuildType,
     subproject: String
 ) {
 
     fun insert(tasks: List<String>) = tasks.forEach { task ->
         buildTypeTask.configure { dependsOn(task) }
-        invokeTaskNames.add(index, task)
+        invokeTaskNames.add(task)
     }
 
     fun forEachBuildTypeTask(act: (String) -> Unit) =
