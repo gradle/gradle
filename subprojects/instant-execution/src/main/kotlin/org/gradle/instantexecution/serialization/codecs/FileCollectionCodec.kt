@@ -24,9 +24,11 @@ import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.FilteredFileCollection
 import org.gradle.api.internal.file.SubtractingFileCollection
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.MinimalFileSet
+import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
@@ -68,6 +70,7 @@ class FileCollectionCodec(
                         is File -> element
                         is TransformationNode -> Callable { element.transformedSubject.get().files }
                         is SubtractingFileCollectionSpec -> element.left.minus(element.right)
+                        is FilteredFileCollectionSpec -> element.collection.filter(element.filter)
                         is FileTree -> element
                         else -> throw IllegalArgumentException("Unexpected item $element in file collection contents")
                     }
@@ -88,12 +91,21 @@ SubtractingFileCollectionSpec(val left: FileCollection, val right: FileCollectio
 
 
 private
+class
+FilteredFileCollectionSpec(val collection: FileCollection, val filter: Spec<in File>)
+
+
+private
 class CollectingVisitor : FileCollectionStructureVisitor {
     val elements: MutableSet<Any> = mutableSetOf()
     override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
         if (fileCollection is SubtractingFileCollection) {
-            // TODO - when left and right are both static then we could calculate the difference here and serialize the result
+            // TODO - when left and right are both static then we should serialize the current contents of the collection
             elements.add(SubtractingFileCollectionSpec(fileCollection.left, fileCollection.right))
+            return false
+        } else if (fileCollection is FilteredFileCollection) {
+            // TODO - when the collection is static then we should serialize the current contents of the collection
+            elements.add(FilteredFileCollectionSpec(fileCollection.collection, fileCollection.filterSpec))
             return false
         } else {
             return true
