@@ -194,7 +194,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('other/c/other-one.txt').createFile()
         file('other/c/other-ignore.txt').createFile()
         buildFile << """
-            def files = fileTree(dir: 'files').plus(fileTree(dir: 'other')).matching {
+            def files = files('files', 'other').asFileTree.matching {
                 include("**/*.txt")
                 exclude("**/*ignore*")
             }
