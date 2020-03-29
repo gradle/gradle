@@ -76,7 +76,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskNotSkipped(":generate")
-        output.count("checking") == 22 // checked twice, once to snapshot and once when the task action runs
+        output.count("checking") == 22 // checked twice, once to snapshot and once when the task action runs. Should be memoized when snapshotting
         outputContains("checking a/a.txt")
         outputContains("checking d/d.txt")
         file("out.txt").text == "a.txt,c.txt,d.txt"
@@ -138,7 +138,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskNotSkipped(":generate")
-        output.count("checking") == 20 // checked twice, once for snapshots and once when the task action runs
+        output.count("checking") == 20 // checked twice, once for snapshots and once when the task action runs. Should be memoized when snapshotting
         outputContains("checking a.txt")
         outputContains("checking d/e/f.txt")
         file("out.txt").text == "a.txt,c.txt,f.txt"

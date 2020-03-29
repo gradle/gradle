@@ -15,9 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
@@ -40,14 +38,12 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -255,33 +251,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        final Predicate<File> predicate = filterSpec::isSatisfiedBy;
-        return new AbstractFileCollection(patternSetFactory) {
-            @Override
-            public String getDisplayName() {
-                return AbstractFileCollection.this.getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                AbstractFileCollection.this.visitDependencies(context);
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                return CollectionUtils.filter(AbstractFileCollection.this, new LinkedHashSet<>(), filterSpec);
-            }
-
-            @Override
-            public boolean contains(File file) {
-                return AbstractFileCollection.this.contains(file) && predicate.apply(file);
-            }
-
-            @Override
-            public Iterator<File> iterator() {
-                return Iterators.filter(AbstractFileCollection.this.iterator(), predicate);
-            }
-        };
+        return new FilteredFileCollection(this, filterSpec);
     }
 
     /**
@@ -333,4 +303,5 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             return builder.build();
         }
     }
+
 }

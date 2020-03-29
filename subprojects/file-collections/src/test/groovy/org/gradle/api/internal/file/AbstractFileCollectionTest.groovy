@@ -238,33 +238,49 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
     }
 
     void canFilterContentsOfCollectionUsingClosure() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
+        def file1 = new File("f1")
+        def file2 = new File("f2")
 
-        TestFileCollection collection = new TestFileCollection(file1, file2)
-        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"))
+        def collection = new TestFileCollection(file1, file2)
+        def filtered = collection.filter { f -> f.name == 'f1' }
 
         expect:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
+        filtered.files == toSet(file1)
     }
 
     void filteredCollectionIsLive() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        File file3 = new File("dir/f1")
-        TestFileCollection collection = new TestFileCollection(file1, file2)
+        def file1 = new File("f1")
+        def file2 = new File("f2")
+        def file3 = new File("dir/f1")
+        def collection = new TestFileCollection(file1, file2)
 
         when:
-        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"))
+        def filtered = collection.filter { f -> f.name == 'f1' }
 
         then:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
+        filtered.files == toSet(file1)
 
         when:
         collection.files.add(file3)
 
         then:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1, file3)))
+        filtered.files == toSet(file1, file3)
+    }
+
+    void "can visit filtered collection"() {
+        def file1 = new File("f1")
+        def file2 = new File("f2")
+        def collection = new TestFileCollection(file1, file2)
+        def filtered = collection.filter { f -> f.name == 'f1' }
+        def visitor = Mock(FileCollectionStructureVisitor)
+
+        when:
+        filtered.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, filtered) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, filtered)
+        0 * _
     }
 
     void hasNoDependencies() {
