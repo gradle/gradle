@@ -33,10 +33,6 @@ import java.io.File;
 public class FileTreeAdapter extends AbstractFileTree implements FileCollectionContainer {
     private final MinimalFileTree tree;
 
-    public FileTreeAdapter(MinimalFileTree tree) {
-        this.tree = tree;
-    }
-
     public FileTreeAdapter(MinimalFileTree tree, Factory<PatternSet> patternSetFactory) {
         super(patternSetFactory);
         this.tree = tree;

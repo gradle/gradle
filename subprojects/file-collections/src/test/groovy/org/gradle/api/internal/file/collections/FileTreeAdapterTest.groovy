@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Buildable
 import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
 import org.gradle.api.tasks.util.PatternSet
@@ -29,7 +30,7 @@ class FileTreeAdapterTest extends Specification {
         MinimalFileTree tree = Mock()
         _ * tree.displayName >> 'display name'
 
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         expect:
         adapter.toString() == 'display name'
@@ -37,7 +38,7 @@ class FileTreeAdapterTest extends Specification {
 
     def visitDelegatesToTargetTree() {
         MinimalFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
         FileVisitor visitor = Mock()
 
         when:
@@ -50,7 +51,7 @@ class FileTreeAdapterTest extends Specification {
 
     def resolveAddsTargetTreeToContext() {
         MinimalFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
         FileCollectionResolveContext context = Mock()
 
         when:
@@ -64,7 +65,7 @@ class FileTreeAdapterTest extends Specification {
     def visitDependenciesDelegatesToTargetTreeWhenItImplementsBuildable() {
         TestFileTree tree = Mock()
         TaskDependencyResolveContext context = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         adapter.visitDependencies(context)
@@ -76,7 +77,7 @@ class FileTreeAdapterTest extends Specification {
     def visitDependenciesDoesNotDelegateToTargetTreeWhenItDoesNotImplementBuildable() {
         MinimalFileTree tree = Mock()
         TaskDependencyResolveContext context = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         adapter.visitDependencies(context)
@@ -89,7 +90,7 @@ class FileTreeAdapterTest extends Specification {
         PatternFilterableFileTree tree = Mock()
         MinimalFileTree filtered = Mock()
         PatternFilterable filter = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         def filteredAdapter = adapter.matching(filter)
@@ -103,7 +104,7 @@ class FileTreeAdapterTest extends Specification {
     def matchingWrapsTargetTreeWhenItDoesNotImplementPatternFilterableFileTree() {
         FileSystemMirroringFileTree tree = Mock()
         PatternSet filter = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         def filteredAdapter = adapter.matching(filter)
@@ -118,7 +119,7 @@ class FileTreeAdapterTest extends Specification {
     def containsDelegatesToTargetTreeWhenItImplementsRandomAccessFileCollection() {
         TestFileTree tree = Mock()
         File f = new File('a')
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         def result = adapter.contains(f)

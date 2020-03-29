@@ -21,6 +21,7 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
@@ -62,44 +63,50 @@ public interface FileCollectionFactory {
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
+     *
+     * <p>The collection is not live. The provided array is queried on construction and discarded.
      */
     FileCollectionInternal fixed(File... files);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
+     *
+     * <p>The collection is not live. The provided {@link Collection} is queried on construction and discarded.
      */
     FileCollectionInternal fixed(Collection<File> files);
 
     /**
-     * Creates a {@link FileCollection} with the given files as content.
+     * Creates a {@link FileCollection} with the given files as content. The result is not live and does not reflect changes to the array.
+     *
+     * <p>The collection is not live. The provided array is queried on construction and discarded.
      */
     FileCollectionInternal fixed(String displayName, File... files);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
-     * The collection is not live. The provided {@link Iterable} is queried on construction and discarded.
+     * <p>The collection is not live. The provided {@link Collection} is queried on construction and discarded.
      */
     FileCollectionInternal fixed(String displayName, Collection<File> files);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
-     * The collection is live and resolves the files on each query. Tracks changes to the source list.
+     * <p>The collection is live and resolves the files on each query. Tracks changes to the source list.
      */
     FileCollectionInternal resolving(String displayName, List<?> sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
-     * The collection is live and resolves the files on each query.
+     * <p>The collection is live and resolves the files on each query.
      */
     FileCollectionInternal resolving(String displayName, Object... sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
-     * The collection is live and resolves the files on each query.
+     * <p>The collection is live and resolves the files on each query.
      */
     FileCollectionInternal resolving(Object... sources);
 
@@ -122,4 +129,13 @@ public interface FileCollectionFactory {
      * Creates a file tree containing the given generated file.
      */
     FileTreeInternal generated(Factory<File> tmpDir, String fileName, Action<File> fileGenerationListener, Action<OutputStream> contentGenerator);
+
+    /**
+     * Creates a file tree made up of the union of the given trees.
+     *
+     * <p>The tree is not live. The provided list is queried on construction and discarded.
+     */
+    FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees);
+
+    FileTreeInternal treeOf(MinimalFileTree tree);
 }
