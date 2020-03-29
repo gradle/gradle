@@ -32,6 +32,7 @@ import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
 import org.gradle.api.internal.file.collections.FileTreeAdapter;
 import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.internal.file.collections.UnpackingVisitor;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -95,8 +96,24 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
+    public FileTreeInternal treeOf(List<? extends FileTreeInternal> fileTrees) {
+        if (fileTrees.isEmpty()) {
+            return new EmptyFileTree();
+        } else if (fileTrees.size() == 1) {
+            return fileTrees.get(0);
+        } else {
+            return new DefaultCompositeFileTree(patternSetFactory, ImmutableList.copyOf(fileTrees));
+        }
+    }
+
+    @Override
+    public FileTreeInternal treeOf(MinimalFileTree tree) {
+        return new FileTreeAdapter(tree, patternSetFactory);
+    }
+
+    @Override
     public FileCollectionInternal create(final TaskDependency builtBy, MinimalFileSet contents) {
-        return new FileCollectionAdapter(contents) {
+        return new FileCollectionAdapter(contents, patternSetFactory) {
             @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 super.visitDependencies(context);
@@ -107,12 +124,12 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
 
     @Override
     public FileCollectionInternal create(MinimalFileSet contents) {
-        return new FileCollectionAdapter(contents);
+        return new FileCollectionAdapter(contents, patternSetFactory);
     }
 
     @Override
     public FileCollectionInternal resolving(String displayName, List<?> sources) {
-        return new ResolvingFileCollection(displayName, fileResolver, sources);
+        return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, sources);
     }
 
     @Override
@@ -154,7 +171,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.length == 0) {
             return new EmptyFileCollection(displayName);
         }
-        return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+        return new FixedFileCollection(displayName, patternSetFactory, ImmutableSet.copyOf(files));
     }
 
     @Override
@@ -170,7 +187,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (files.isEmpty()) {
             return new EmptyFileCollection(displayName);
         }
-        return new FixedFileCollection(displayName, ImmutableSet.copyOf(files));
+        return new FixedFileCollection(displayName, patternSetFactory, ImmutableSet.copyOf(files));
     }
 
     @Override
@@ -250,7 +267,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final String displayName;
         private final ImmutableSet<File> files;
 
-        public FixedFileCollection(String displayName, ImmutableSet<File> files) {
+        public FixedFileCollection(String displayName, Factory<PatternSet> patternSetFactory, ImmutableSet<File> files) {
+            super(patternSetFactory);
             this.displayName = displayName;
             this.files = files;
         }
@@ -271,7 +289,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         private final PathToFileResolver resolver;
         private final List<?> paths;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, List<?> paths) {
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, List<?> paths) {
+            super(patternSetFactory);
             this.displayName = displayName;
             this.resolver = resolver;
             this.paths = paths;

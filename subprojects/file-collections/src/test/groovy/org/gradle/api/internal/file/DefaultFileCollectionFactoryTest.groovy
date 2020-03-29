@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
@@ -97,21 +98,11 @@ class DefaultFileCollectionFactoryTest extends Specification {
     def "constructs an empty collection"() {
         expect:
         def collection = factory.empty()
-        collection.isEmpty()
-        collection.files.empty
-        collection.buildDependencies.getDependencies(null).empty
-        collection.visitStructure(new BrokenVisitor())
+        emptyCollection(collection)
         collection.toString() == "file collection"
 
         def tree = collection.asFileTree
-        tree.isEmpty()
-        tree.files.empty
-        tree.visit(new BrokenVisitor())
-        tree.buildDependencies.getDependencies(null).empty
-        tree.visitStructure(new BrokenVisitor())
-        tree.matching {} is tree
-        tree.matching(Stub(Action)) is tree
-        tree.matching(Stub(PatternFilterable)) is tree
+        emptyTree(tree)
         tree.toString() == "file tree"
     }
 
@@ -147,7 +138,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection2.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with empty fixed array"() {
+    def "returns empty collection when fixed collection constructed with empty fixed array"() {
         expect:
         def collection = factory.fixed()
         collection.files.empty
@@ -156,7 +147,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "file collection"
     }
 
-    def "returns empty collection when constructed with display name and a fixed empty array"() {
+    def "returns empty collection when fixed collection constructed with display name and a fixed empty array"() {
         expect:
         def collection = factory.fixed("some collection")
         collection.files.empty
@@ -165,7 +156,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with a fixed list containing nothing"() {
+    def "returns empty collection when fixed collection constructed with a fixed list containing nothing"() {
         expect:
         def collection = factory.fixed([])
         collection.files.empty
@@ -174,7 +165,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "file collection"
     }
 
-    def "returns empty collection when constructed with display name and a fixed list containing nothing"() {
+    def "returns empty collection when fixed collection constructed with display name and a fixed list containing nothing"() {
         expect:
         def collection = factory.fixed("some collection", [])
         collection.files.empty
@@ -183,7 +174,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "some collection"
     }
 
-    def "returns empty collection when constructed with empty resolving array"() {
+    def "returns empty collection when resolving collection constructed with empty resolving array"() {
         expect:
         def collection = factory.resolving()
         collection.files.empty
@@ -192,7 +183,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "file collection"
     }
 
-    def "returns empty collection when constructed with display name and empty resolving array"() {
+    def "returns empty collection when resolving collection constructed with display name and empty resolving array"() {
         expect:
         def collection = factory.resolving("some collection")
         collection.files.empty
@@ -201,7 +192,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.toString() == "some collection"
     }
 
-    def "returns live collection when constructed with display name and a resolving list containing nothing"() {
+    def "returns live resolving collection when constructed with display name and a resolving list containing nothing"() {
         def contents = []
 
         expect:
@@ -215,7 +206,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         !collection.files.empty
     }
 
-    def "returns original file collection when constructed with a single collection"() {
+    def "returns original file collection when resolving collection constructed with a single collection"() {
         def original = Stub(FileCollectionInternal)
 
         expect:
@@ -223,7 +214,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         collection.is(original)
     }
 
-    def 'resolves specified files using FileResolver'() {
+    def 'resolves specified files for resolving collection using FileResolver'() {
         def collection = factory.resolving('test files', 'abc', 'def')
 
         when:
@@ -234,7 +225,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         files == [tmpDir.file('abc'), tmpDir.file('def')] as Set
     }
 
-    def 'can use a Closure to specify a single file'() {
+    def 'can use a Closure for resolving collection to specify a single file'() {
         def collection = factory.resolving('test files', [{ 'abc' }] as Object[])
 
         when:
@@ -246,7 +237,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     }
 
     @Unroll
-    def '#description can return null'() {
+    def 'resolving collection source #description can return null'() {
         def collection = factory.resolving('test files', input)
 
         when:
@@ -275,7 +266,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
         exception == thrown
     }
 
-    def 'lazily queries contents of a FileCollection'() {
+    def 'lazily queries contents of a resolving collection'() {
         FileCollectionInternal fileCollection = Mock()
 
         when:
@@ -294,7 +285,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     }
 
     @Unroll
-    def 'can use a #description to specify the contents of the collection'() {
+    def 'can use a #description to specify the contents of a resolving collection'() {
         def collection = factory.resolving('test files', input)
 
         when:
@@ -312,6 +303,39 @@ class DefaultFileCollectionFactoryTest extends Specification {
         'Callable'         | (({ ['abc', 'def'] } as Callable<Object>) as Object[])
         'Provider'         | providerReturning(['abc', 'def'])
         'nested objects'   | ({ [{ ['abc', { ['def'] as String[] }] }] } as Object[])
+    }
+
+    def 'constructs empty tree when composite tree created with empty list'() {
+        def tree = factory.treeOf([])
+
+        expect:
+        emptyTree(tree)
+    }
+
+    def 'returns source file tree when composite tree created with single entry'() {
+        def source = Stub(FileTreeInternal)
+        def tree = factory.treeOf([source])
+
+        expect:
+        tree.is source
+    }
+
+    @Unroll
+    def 'can use a #description to specify the single content of the collection'() {
+        def collection = factory.resolving('test files', input)
+
+        when:
+        Set<File> files = collection.getFiles()
+
+        then:
+        files == [tmpDir.file('abc')] as Set
+
+        where:
+        description | input
+        'String'    | 'abc'
+        'Path'      | tmpDir.file('abc').toPath()
+        'URI'       | tmpDir.file('abc').toURI()
+        'URL'       | tmpDir.file('abc').toURI().toURL()
     }
 
     private FileCollection fileCollectionOf(final File... files) {
@@ -332,22 +356,20 @@ class DefaultFileCollectionFactoryTest extends Specification {
         return Providers.of(result)
     }
 
-    @Unroll
-    def 'can use a #description to specify the single content of the collection'() {
-        def collection = factory.resolving('test files', input)
+    private void emptyTree(FileTree tree) {
+        emptyCollection(tree)
+        tree.matching {} is tree
+        tree.matching(Stub(Action)) is tree
+        tree.matching(Stub(PatternFilterable)) is tree
+    }
 
-        when:
-        Set<File> files = collection.getFiles()
-
-        then:
-        files == [tmpDir.file('abc')] as Set
-
-        where:
-        description | input
-        'String'    | 'abc'
-        'Path'      | tmpDir.file('abc').toPath()
-        'URI'       | tmpDir.file('abc').toURI()
-        'URL'       | tmpDir.file('abc').toURI().toURL()
+    private void emptyCollection(FileCollectionInternal collection) {
+        collection.isEmpty()
+        collection.files.empty
+        collection.buildDependencies.getDependencies(null).empty
+        collection.visitStructure(new BrokenVisitor())
+        collection.filter {} is collection
+        collection.minus(Stub(FileCollection)) is collection
     }
 
     static class BrokenVisitor implements FileCollectionStructureVisitor, FileVisitor {

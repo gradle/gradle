@@ -19,8 +19,8 @@ package org.gradle.instantexecution.serialization.codecs
 import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
 import org.gradle.api.internal.file.AbstractFileCollection
-import org.gradle.api.internal.file.DefaultCompositeFileTree
 import org.gradle.api.internal.file.FileCollectionBackFileTree
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileOperations
@@ -39,20 +39,10 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
-import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.readNonNull
-import org.gradle.internal.Factory
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import java.io.File
 import java.nio.file.Files
-
-
-private
-sealed class FileTreeRootSpec
-
-
-private
-class CompositeFileTreeRootSpec(val roots: List<FileTreeSpec>) : FileTreeRootSpec()
 
 
 private
@@ -103,8 +93,9 @@ class DummyGeneratedFileTree(file: File, fileSystem: FileSystem) : GeneratedSing
 
 internal
 class FileTreeCodec(
+    private val fileCollectionFactory: FileCollectionFactory,
     private val directoryFileTreeFactory: DirectoryFileTreeFactory,
-    private val patternSetFactory: Factory<PatternSet>,
+    private val fileOperations: FileOperations,
     private val fileSystem: FileSystem
 ) : Codec<FileTreeInternal> {
 
@@ -116,31 +107,27 @@ class FileTreeCodec(
 
     override suspend fun ReadContext.decode(): FileTreeInternal? {
         return decodePreservingIdentity { id ->
-            val spec = readNonNull<FileTreeRootSpec>()
-            val tree = when (spec) {
-                is CompositeFileTreeRootSpec ->
-                    DefaultCompositeFileTree(
-                        spec.roots.map {
-                            when (it) {
-                                is WrappedFileCollectionTreeSpec -> FileCollectionBackFileTree(patternSetFactory, it.collection)
-                                is DirectoryTreeSpec -> FileTreeAdapter(directoryFileTreeFactory.create(it.file, it.patterns))
-                                is GeneratedTreeSpec -> FileTreeAdapter(DummyGeneratedFileTree(it.file, fileSystem))
-                                is ZipTreeSpec -> ownerService<FileOperations>().zipTree(it.file) as FileTreeInternal
-                                is TarTreeSpec -> ownerService<FileOperations>().tarTree(it.file) as FileTreeInternal
-                            }
-                        }
-                    )
+            val specs = readNonNull<List<FileTreeSpec>>()
+            val fileTrees = specs.map {
+                when (it) {
+                    is WrappedFileCollectionTreeSpec -> it.collection.asFileTree as FileTreeInternal
+                    is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(it.file, it.patterns))
+                    is GeneratedTreeSpec -> fileCollectionFactory.treeOf(DummyGeneratedFileTree(it.file, fileSystem))
+                    is ZipTreeSpec -> fileOperations.zipTree(it.file) as FileTreeInternal
+                    is TarTreeSpec -> fileOperations.tarTree(it.file) as FileTreeInternal
+                }
             }
+            val tree = fileCollectionFactory.treeOf(fileTrees)
             isolate.identities.putInstance(id, tree)
             tree
         }
     }
 
     private
-    fun rootSpecOf(value: FileTreeInternal): FileTreeRootSpec {
+    fun rootSpecOf(value: FileTreeInternal): List<FileTreeSpec> {
         val visitor = FileTreeVisitor()
         value.visitStructure(visitor)
-        return CompositeFileTreeRootSpec(visitor.roots)
+        return visitor.roots
     }
 
     private
