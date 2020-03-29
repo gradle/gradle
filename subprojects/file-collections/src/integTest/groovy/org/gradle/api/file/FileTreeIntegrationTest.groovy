@@ -106,7 +106,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file('files/a/three.txt').createFile()
-        file('files/other/add-three.txt').createFile()
+        file('other/add-three.txt').createFile()
         run 'copy'
 
         then:
@@ -121,7 +121,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         )
     }
 
-    def "can filter the elements of a tree using a closure"() {
+    def "can filter the elements of a tree using a closure that receives a File"() {
         given:
         file('files/one.txt').createFile()
         file('files/a/two.txt').createFile()
@@ -168,7 +168,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         file('files/a/three.txt').createFile()
-        file('files/other/add-three.txt').createFile()
+        file('other/add-three.txt').createFile()
         run 'copy'
 
         then:
@@ -181,6 +181,63 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
             'two.txt',
             'three.txt',
             'other-one.txt',
+            'add-three.txt'
+        )
+    }
+
+    def "can filter the elements of a tree using a closure that receives pattern set"() {
+        given:
+        file('files/one.txt').createFile()
+        file('files/a/two.txt').createFile()
+        file('files/b/ignore.txt').createFile()
+        file('files/b/one.bin').createFile()
+        file('other/c/other-one.txt').createFile()
+        file('other/c/other-ignore.txt').createFile()
+        buildFile << """
+            def files = fileTree(dir: 'files').plus(fileTree(dir: 'other')).matching {
+                include("**/*.txt")
+                exclude("**/*ignore*")
+            }
+            task copy(type: Copy) {
+                from files
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'a/two.txt',
+            'c/other-one.txt'
+        )
+
+        when:
+        file('files/a/more-ignore.txt').createFile() // not an input
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'a/two.txt',
+            'c/other-one.txt'
+        )
+
+        when:
+        file('files/a/three.txt').createFile()
+        file('other/add-three.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'a/two.txt',
+            'a/three.txt',
+            'c/other-one.txt',
             'add-three.txt'
         )
     }
