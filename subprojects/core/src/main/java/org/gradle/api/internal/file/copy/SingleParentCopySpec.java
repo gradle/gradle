@@ -17,28 +17,29 @@ package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 
 public class SingleParentCopySpec extends DefaultCopySpec {
 
     private final CopySpecResolver parentResolver;
 
-    public SingleParentCopySpec(FileResolver resolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, CopySpecResolver parentResolver) {
-        super(resolver, fileCollectionFactory, instantiator);
+    public SingleParentCopySpec(FileCollectionFactory fileCollectionFactory, Instantiator instantiator, Factory<PatternSet> patternSetFactory, CopySpecResolver parentResolver) {
+        super(fileCollectionFactory, instantiator, patternSetFactory);
         this.parentResolver = parentResolver;
     }
 
     @Override
     public CopySpecInternal addChild() {
-        DefaultCopySpec child = new SingleParentCopySpec(fileResolver, fileCollectionFactory, instantiator, buildResolverRelativeToParent(parentResolver));
+        DefaultCopySpec child = new SingleParentCopySpec(fileCollectionFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
         addChildSpec(child);
         return child;
     }
 
     @Override
     protected CopySpecInternal addChildAtPosition(int position) {
-        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileResolver, fileCollectionFactory, instantiator, buildResolverRelativeToParent(parentResolver));
+        DefaultCopySpec child = instantiator.newInstance(SingleParentCopySpec.class, fileCollectionFactory, instantiator, patternSetFactory, buildResolverRelativeToParent(parentResolver));
         addChildSpec(position, child);
         return child;
     }

@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Unroll
 
 class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
@@ -27,9 +29,13 @@ class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrat
     }
 
     @ToBeFixedForInstantExecution
+    @Unroll
     def 'succeeds without lock file present and does not create one'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -54,9 +60,13 @@ dependencies {
         succeeds 'dependencies'
 
         then:
-        lockfileFixture.expectMissing('unlockedConf')
+        lockfileFixture.expectLockStateMissing('unlockedConf', unique)
+
+        where:
+        unique << [true, false]
     }
 
+    @Unroll
     def "version selector combinations are resolved equally for locked and unlocked configurations"() {
         ['foo', 'foz', 'bar', 'baz'].each { artifact ->
             mavenRepo.module('org', artifact, '1.0').publish()
@@ -65,6 +75,9 @@ dependencies {
             mavenRepo.module('org', artifact, '2.0').publish()
         }
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 repositories {
     maven {
@@ -100,15 +113,22 @@ task check {
 
         expect:
         succeeds 'check'
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
+    @Unroll
     def 'writes a new lock file if update done without lockfile present'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.1').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -134,11 +154,18 @@ dependencies {
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1', 'org:bar:1.1'], unique)
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
+    @Unroll
     def 'does not write an empty lock file for an empty configuration if not requested'() {
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -158,7 +185,10 @@ configurations {
         succeeds 'dependencies'
 
         then:
-        lockfileFixture.expectMissing('lockedConf')
+        lockfileFixture.expectLockStateMissing('lockedConf', unique)
+
+        where:
+        unique << [true, false]
     }
 
     def 'attempting to change lock mode after a configuration has been resolved is invalid'() {
@@ -190,7 +220,55 @@ task doIt {
         fails 'doIt'
 
         then:
-        failureHasCause("It is illegal to modify the dependency locking mode after any dependency configuration has been resolved")
+        failureHasCause("The value for property 'lockMode' is final and cannot be changed any further.")
+    }
+
+    @ToBeFixedForInstantExecution
+    def 'can use a custom file location for reading and writing per project lock state'() {
+        given:
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '1.1').publish()
+        mavenRepo.module('org', 'bar', '1.0').publish()
+        mavenRepo.module('org', 'bar', '1.1').publish()
+
+        FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+    lockFile = file("\$projectDir/gradle/lock.file")
+}
+
+repositories {
+    maven {
+        name 'repo'
+        url '${mavenRepo.uri}'
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:[1.0,2.0)'
+    lockedConf 'org:bar:[1.0,2.0)'
+}
+"""
+        def lockFile = testDirectory.file('gradle', 'lock.file')
+        LockfileFixture.createCustomLockfile(lockFile,'lockedConf', ['org:foo:1.0', 'org:bar:1.0'])
+
+        when:
+        succeeds 'dependencies'
+
+        then:
+        outputContains('org:foo:[1.0,2.0) -> 1.0')
+        outputContains('org:bar:[1.0,2.0) -> 1.0')
+
+        when:
+        succeeds 'dependencies', '--update-locks', 'org:foo', '--refresh-dependencies'
+
+        then:
+        LockfileFixture.verifyCustomLockfile(lockFile, 'lockedConf', ['org:foo:1.1', 'org:bar:1.0'])
+
     }
 
 }

@@ -26,7 +26,7 @@ import org.gradle.util.TestPrecondition
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.GCC_COMPATIBLE
 
-@Requires([TestPrecondition.UNIX, TestPrecondition.NOT_UNKNOWN_OS])
+@Requires(TestPrecondition.UNIX)
 @RequiresInstalledToolChain(GCC_COMPATIBLE)
 class InstallExecutableIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()

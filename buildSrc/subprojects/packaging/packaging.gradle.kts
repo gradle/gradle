@@ -9,8 +9,8 @@ dependencies {
     implementation("org.ow2.asm:asm-commons:7.1")
     implementation("com.google.code.gson:gson:2.7")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.1.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.1.0")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
 }
 
 tasks.test {

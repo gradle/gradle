@@ -18,6 +18,7 @@ package org.gradle.internal.build.event
 
 import org.gradle.BuildListener
 import org.gradle.BuildResult
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.provider.Providers
 import org.gradle.initialization.BuildEventConsumer
 import org.gradle.internal.build.event.types.DefaultTaskDescriptor
@@ -44,6 +45,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     def factory = new MockBuildEventListenerFactory()
     def listenerManager = new DefaultListenerManager()
     def buildOperationListenerManager = new DefaultBuildOperationListenerManager()
+    def buildResult = new BuildResult(Mock(GradleInternal), null)
     def registry = new DefaultBuildEventsListenerRegistry([factory], listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
@@ -172,7 +174,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     }
 
     private signalBuildFinished() {
-        listenerManager.getBroadcaster(BuildListener).buildFinished(Stub(BuildResult))
+        listenerManager.getBroadcaster(BuildListener).buildFinished(buildResult)
     }
 
     private DefaultTaskFinishedProgressEvent taskFinishEvent() {

@@ -23,10 +23,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.IncrementalCppStaleCompileOutputApp
 import org.gradle.nativeplatform.fixtures.app.SourceElement
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
-@Requires(TestPrecondition.NOT_UNKNOWN_OS)
 @RequiresInstalledToolChain(ToolChainRequirement.GCC_COMPATIBLE)
 class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new IncrementalCppStaleCompileOutputApp()
@@ -38,7 +35,7 @@ class StripSymbolsIntegrationTest extends AbstractInstalledToolChainIntegrationS
             plugins {
                 id 'cpp-application'
             }
-            
+
             task stripSymbolsDebug(type: StripSymbols) { strip ->
                 project.application.binaries.get { !it.optimized }.configure {
                     def linkDebug = linkTask.get()

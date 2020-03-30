@@ -16,16 +16,20 @@
 
 package org.gradle.integtests.resolve.locking
 
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 abstract class AbstractValidatingLockingIntegrationTest extends AbstractLockingIntegrationTest {
 
     @Unroll
-    def 'fails when lock file conflicts with declared strict constraint'() {
+    def 'fails when lock file conflicts with declared strict constraint (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -50,7 +54,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
         fails 'checkDeps'
@@ -60,12 +64,19 @@ dependencies {
    Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
    Dependency path ':depLock:unspecified' --> 'org:foo:{strictly 1.1}'
    Constraint path ':depLock:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'"""
+
+        where:
+        unique << [true, false]
     }
 
-    def 'fails when lock file conflicts with declared version constraint'() {
+    @Unroll
+    def 'fails when lock file conflicts with declared version constraint (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -88,7 +99,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
         fails 'checkDeps'
@@ -98,12 +109,19 @@ dependencies {
    Dependency path ':depLock:unspecified' --> 'org:foo:1.+'
    Dependency path ':depLock:unspecified' --> 'org:foo:1.1'
    Constraint path ':depLock:unspecified' --> 'org:foo:{strictly 1.0}' because of the following reason: dependency was locked to version '1.0'"""
+
+        where:
+        unique << [true, false]
     }
 
-    def 'fails when lock file contains entry that is not in resolution result'() {
+    @Unroll
+    def 'fails when lock file contains entry that is not in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -125,7 +143,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'], unique)
 
         when:
         fails 'checkDeps'
@@ -134,12 +152,18 @@ dependencies {
         failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
         failure.assertHasCause("Did not resolve 'org:bar:1.0' which is part of the dependency lock state")
         failure.assertHasCause("Did not resolve 'org:baz:1.0' which is part of the dependency lock state")
+
+        where:
+        unique << [true, false]
     }
 
-    def 'fails when lock file does not contain entry for module in resolution result'() {
+    @Unroll
+    def 'fails when lock file does not contain entry for module in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
-
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -162,7 +186,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         fails 'checkDeps'
@@ -170,10 +194,18 @@ dependencies {
         then:
         failure.assertHasCause("Could not resolve all dependencies for configuration ':lockedConf'.")
         failure.assertHasCause("Resolved 'org:bar:1.0' which is not part of the dependency lock state")
+
+        where:
+        unique << [true, false]
     }
 
-    def 'fails when resolution result is empty and lock file contains entries'() {
+    @Unroll
+    def 'fails when resolution result is empty and lock file contains entries (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -190,7 +222,7 @@ configurations {
     lockedConf
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         fails 'checkDeps'
@@ -198,13 +230,20 @@ configurations {
         then:
         failure.assertHasCause('Could not resolve all dependencies for configuration \':lockedConf\'.')
         failure.assertHasCause('Did not resolve \'org:foo:1.0\' which is part of the dependency lock state')
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
-    def 'dependency report passes with failed dependencies using out-of-date lock file'() {
+    @Unroll
+    def 'dependency report passes with failed dependencies using out-of-date lock file (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -229,7 +268,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
         run 'dependencies'
@@ -239,14 +278,21 @@ dependencies {
 +--- org:foo:1.+ FAILED
 +--- org:foo:1.1 FAILED
 \\--- org:foo:{strictly 1.0} FAILED"""
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
-    def 'dependency report passes with FAILED dependencies for all out lock issues'() {
+    @Unroll
+    def 'dependency report passes with FAILED dependencies for all out lock issues (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -271,7 +317,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'], unique)
 
         when:
         run 'dependencies'
@@ -283,6 +329,9 @@ dependencies {
 +--- org:foo:{strictly 1.0} FAILED
 \\--- org:bar:1.0 FAILED
 """
+
+        where:
+        unique << [true, false]
     }
 
 }

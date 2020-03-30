@@ -839,7 +839,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
     @ToBeFixedForInstantExecution
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
@@ -904,7 +904,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         ! file("build/classes/java/main/com/foo").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can configure custom header output"() {
         given:
         buildFile << """
@@ -923,7 +922,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file("build/headers/java/main/Foo.h").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can connect generated headers to input of another task"() {
         given:
         buildFile << """
@@ -947,7 +945,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file('headers').assertHasDescendants("Foo.h")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:

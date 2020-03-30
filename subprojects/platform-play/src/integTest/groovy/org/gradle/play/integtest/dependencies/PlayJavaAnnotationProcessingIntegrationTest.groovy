@@ -17,14 +17,11 @@
 package org.gradle.play.integtest.dependencies
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.play.integtest.fixtures.Repositories.PLAY_REPOSITORIES
 
 @Issue("https://github.com/gradle/gradle/issues/2337")
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpec {
 
     def "can compile Java class incorporating annotation processing"() {
@@ -35,7 +32,7 @@ class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpe
             plugins {
                 id 'play'
             }
-            
+
             $PLAY_REPOSITORIES
 
             dependencies {
@@ -49,16 +46,16 @@ class PlayJavaAnnotationProcessingIntegrationTest extends AbstractIntegrationSpe
             import lombok.AccessLevel;
             import lombok.Getter;
             import lombok.Setter;
-            
+
             public class GetterSetterExample {
                 @Getter
                 @Setter
                 private int age = 10;
-                
+
                 @Setter(AccessLevel.PROTECTED)
                 private String name;
-            
-                @Override 
+
+                @Override
                 public String toString() {
                     return String.format("%s (age: %d)", name, getAge());
                 }

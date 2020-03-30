@@ -199,7 +199,7 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
         result.groupedOutput.task(":b:some").assertOutputContains("FIRST").assertOutputContains("LAST")
     }
 
-    def "warns when closure defined in Kotlin script captures state from the script"() {
+    def "problem when closure defined in Kotlin script captures state from the script"() {
         given:
         buildKotlinFile << """
             val message = "message"
@@ -211,11 +211,12 @@ class InstantExecutionScriptTaskDefinitionIntegrationTest extends AbstractInstan
         """
 
         when:
-        instantRun ":some"
+        instantFails ":some"
 
         then:
-        outputContains("instant-execution > cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with instant execution.")
-        noExceptionThrown()
+        expectInstantExecutionProblems(
+            "- field 'this${'\$'}0' from type 'Build_gradle${'\$'}1': cannot serialize object of type 'Build_gradle', a subtype of 'org.gradle.kotlin.dsl.KotlinScript', as these are not supported with instant execution."
+        )
     }
 
     def "task with type declared in Groovy script is up-to-date when no inputs have changed"() {

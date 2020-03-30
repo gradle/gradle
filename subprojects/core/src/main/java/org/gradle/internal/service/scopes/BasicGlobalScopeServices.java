@@ -59,6 +59,7 @@ import org.gradle.process.internal.ExecHandleFactory;
  */
 public class BasicGlobalScopeServices {
     void configure(ServiceRegistration serviceRegistration) {
+        serviceRegistration.add(DefaultFileLookup.class);
         serviceRegistration.addProvider(new MessagingServices());
     }
 
@@ -94,10 +95,6 @@ public class BasicGlobalScopeServices {
 
     FileResolver createFileResolver(FileLookup lookup) {
         return lookup.getFileResolver();
-    }
-
-    FileLookup createFileLookup(Factory<PatternSet> patternSetFactory) {
-        return new DefaultFileLookup(patternSetFactory);
     }
 
     DirectoryFileTreeFactory createDirectoryFileTreeFactory(Factory<PatternSet> patternSetFactory, FileSystem fileSystem) {

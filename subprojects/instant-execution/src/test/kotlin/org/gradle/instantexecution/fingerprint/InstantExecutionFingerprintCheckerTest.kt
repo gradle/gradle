@@ -23,7 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.instantexecution.runToCompletion
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.PropertyProblem
@@ -37,6 +37,8 @@ import org.gradle.instantexecution.serialization.WriteIsolate
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.Try
+import org.gradle.internal.serialize.Decoder
+import org.gradle.internal.serialize.Encoder
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.backend.common.push
@@ -61,25 +63,19 @@ class InstantExecutionFingerprintCheckerTest {
             on { value } doReturn Try.successful<Any>(42)
         }
 
-        val fingerprintCheckerHost = mock<InstantExecutionFingerprintChecker.Host> {
+        val fingerprintCheckerHost = mock<InstantExecutionCacheFingerprintChecker.Host> {
             on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
         }
 
         // when:
         val readContext = recordWritingOf {
-            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
-                encode(
-                    InstantExecutionCacheFingerprint(
-                        inputFiles = emptyList(),
-                        obtainedValues = listOf(obtainedValue)
-                    )
-                )
-            }
+            write(InstantExecutionCacheFingerprint.ValueSource(obtainedValue))
+            write(null)
         }
 
         // and:
         val invalidationReason = readContext.readToCompletion {
-            InstantExecutionFingerprintChecker(fingerprintCheckerHost).run {
+            InstantExecutionCacheFingerprintChecker(fingerprintCheckerHost).run {
                 checkFingerprint()
             }
         }
@@ -154,6 +150,9 @@ class InstantExecutionFingerprintCheckerTest {
         override fun writeNullableString(value: CharSequence?): Unit =
             undefined()
 
+        override fun writeNullableSmallInt(value: Int?): Unit =
+            undefined()
+
         override fun writeLong(value: Long): Unit =
             undefined()
 
@@ -182,6 +181,9 @@ class InstantExecutionFingerprintCheckerTest {
             undefined()
 
         override fun getOutputStream(): OutputStream =
+            undefined()
+
+        override fun encodeChunked(writeAction: Encoder.EncodeAction<Encoder>) =
             undefined()
 
         override fun writeInt(value: Int): Unit =
@@ -248,6 +250,9 @@ class InstantExecutionFingerprintCheckerTest {
         override fun readInt(): Int =
             undefined()
 
+        override fun readNullableSmallInt(): Int? =
+            undefined()
+
         override fun readNullableString(): String? =
             undefined()
 
@@ -279,6 +284,12 @@ class InstantExecutionFingerprintCheckerTest {
             undefined()
 
         override fun readBytes(buffer: ByteArray?, offset: Int, count: Int): Unit =
+            undefined()
+
+        override fun <T : Any?> decodeChunked(decodeAction: Decoder.DecodeAction<Decoder, T>): T =
+            undefined()
+
+        override fun skipChunked() =
             undefined()
     }
 }

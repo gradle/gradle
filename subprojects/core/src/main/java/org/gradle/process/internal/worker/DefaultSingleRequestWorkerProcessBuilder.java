@@ -21,7 +21,6 @@ import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.serialize.SerializerRegistry;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.worker.request.Receiver;
 import org.gradle.process.internal.worker.request.Request;
@@ -32,20 +31,15 @@ import org.gradle.process.internal.worker.request.ResponseProtocol;
 import org.gradle.process.internal.worker.request.WorkerAction;
 
 import java.io.File;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.Method;
-import java.lang.reflect.Proxy;
 import java.util.Set;
 
-class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleRequestWorkerProcessBuilder<PROTOCOL> {
-    private final Class<PROTOCOL> protocolType;
-    private final Class<? extends PROTOCOL> workerImplementation;
+class DefaultSingleRequestWorkerProcessBuilder<IN, OUT> implements SingleRequestWorkerProcessBuilder<IN, OUT> {
+    private final Class<?> workerImplementation;
     private final DefaultWorkerProcessBuilder builder;
     private final RequestArgumentSerializers argumentSerializers = new RequestArgumentSerializers();
     private final OutputEventListener outputEventListener;
 
-    public DefaultSingleRequestWorkerProcessBuilder(Class<PROTOCOL> protocolType, Class<? extends PROTOCOL> workerImplementation, DefaultWorkerProcessBuilder builder, OutputEventListener outputEventListener) {
-        this.protocolType = protocolType;
+    public DefaultSingleRequestWorkerProcessBuilder(Class<?> workerImplementation, DefaultWorkerProcessBuilder builder, OutputEventListener outputEventListener) {
         this.workerImplementation = workerImplementation;
         this.builder = builder;
         this.outputEventListener = outputEventListener;
@@ -73,6 +67,17 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
     @Override
     public Set<File> getApplicationClasspath() {
         return builder.getApplicationClasspath();
+    }
+
+    @Override
+    public WorkerProcessSettings setInferApplicationModulePath(boolean inferApplicationModulePath) {
+        builder.setInferApplicationModulePath(inferApplicationModulePath);
+        return this;
+    }
+
+    @Override
+    public boolean isInferApplicationModulePath() {
+        return builder.isInferApplicationModulePath();
     }
 
     @Override
@@ -109,15 +114,10 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
     }
 
     @Override
-    public void registerArgumentSerializer(SerializerRegistry serializerRegistry) {
-        argumentSerializers.add(serializerRegistry);
-    }
-
-    @Override
-    public PROTOCOL build() {
-        return protocolType.cast(Proxy.newProxyInstance(protocolType.getClassLoader(), new Class[]{protocolType}, new InvocationHandler() {
+    public RequestHandler<IN, OUT> build() {
+        return new RequestHandler<IN, OUT>() {
             @Override
-            public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
+            public OUT run(IN request) {
                 Receiver receiver = new Receiver(getBaseName(), outputEventListener);
                 try {
                     WorkerProcess workerProcess = builder.build();
@@ -129,7 +129,7 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
                     connection.useParameterSerializers(RequestSerializerRegistry.create(workerImplementation.getClassLoader(), argumentSerializers));
                     connection.connect();
                     // TODO(ew): inject BuildOperationIdentifierRegistry instead of static use
-                    requestProtocol.runThenStop(new Request(method.getName(), method.getParameterTypes(), args, CurrentBuildOperationRef.instance().get()));
+                    requestProtocol.runThenStop(new Request(request, CurrentBuildOperationRef.instance().get()));
                     boolean hasResult = receiver.awaitNextResult();
                     workerProcess.waitForStop();
                     if (!hasResult) {
@@ -139,9 +139,8 @@ class DefaultSingleRequestWorkerProcessBuilder<PROTOCOL> implements SingleReques
                 } catch (Exception e) {
                     throw WorkerProcessException.runFailed(getBaseName(), e);
                 }
-                return receiver.getNextResult();
+                return (OUT) receiver.getNextResult();
             }
-        }));
+        };
     }
-
 }

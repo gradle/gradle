@@ -16,14 +16,14 @@
 
 package org.gradle.process.internal;
 
-public class BrokenTestWorker implements TestProtocol {
-    @Override
-    public String convert(String param1, long param2) {
-        throw new IllegalArgumentException(String.format("Could not convert [%s, %s]", param1, param2));
-    }
+import org.gradle.process.internal.worker.RequestHandler;
 
+public class BrokenTestWorker implements RequestHandler<String, String> {
     @Override
-    public void doSomething() {
-        throw new UnsupportedOperationException("Not implemented");
+    public String run(String request) {
+        if (request.equals("ok")) {
+            return "converted";
+        }
+        throw new IllegalArgumentException(String.format("Could not convert %s", request));
     }
 }

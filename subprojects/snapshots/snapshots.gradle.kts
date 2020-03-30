@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+import accessors.java
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
@@ -62,3 +64,11 @@ gradlebuildJava {
     moduleType = ModuleType.CORE
 }
 
+afterEvaluate {
+    // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
+    // For the current project, we exclude all internal packages, since there are no tasks in there.
+    tasks.withType<ValidatePlugins>().configureEach {
+        val main by project.java.sourceSets
+        classes.setFrom(main.output.classesDirs.asFileTree.matching { exclude("**/internal/**") })
+    }
+}

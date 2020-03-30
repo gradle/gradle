@@ -17,6 +17,9 @@
 package org.gradle.api.artifacts.dsl;
 
 import org.gradle.api.Incubating;
+import org.gradle.api.provider.Property;
+
+import java.io.File;
 
 /**
  * A {@code DependencyLockingHandler} manages the behaviour and configuration of dependency locking.
@@ -53,13 +56,18 @@ public interface DependencyLockingHandler {
      * @since 6.1
      */
     @Incubating
-    LockMode getLockMode();
+    Property<LockMode> getLockMode();
 
     /**
-     * Sets the lock mode
+     * Allows to configure the file used for saving lock state
+     * <p>
+     * Make sure the lock file is unique per project and separate between the buildscript and project itself.
+     * <p>
+     * This requires opting in the support for per project single lock file.
      *
-     * @since 6.1
+     * @since 6.4
      */
     @Incubating
-    void setLockMode(LockMode mode);
+    Property<File> getLockFile();
+
 }

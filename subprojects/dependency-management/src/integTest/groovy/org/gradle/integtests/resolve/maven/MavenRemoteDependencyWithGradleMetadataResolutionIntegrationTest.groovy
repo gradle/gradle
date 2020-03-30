@@ -42,8 +42,8 @@ class MavenRemoteDependencyWithGradleMetadataResolutionIntegrationTest extends A
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 configurations { compile }
@@ -101,8 +101,8 @@ dependencies {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 configurations { compile }
@@ -186,15 +186,15 @@ dependencies {
 """
 
         given:
-         "rootProject.name = 'test'"
+        "rootProject.name = 'test'"
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 def attr = Attribute.of("buildType", String)
-configurations { 
+configurations {
     debug { attributes.attribute(attr, "debug") }
     release { attributes.attribute(attr, "release") }
 }
@@ -250,9 +250,9 @@ task checkRelease {
             "attributes": {
                 "buildType": "debug"
             },
-            "files": [ 
+            "files": [
                 { "name": "a-1.2-api.jar", "url": "a-1.2-api.jar" },
-                { "name": "a-1.2-runtime.jar", "url": "a-1.2-runtime.jar" } 
+                { "name": "a-1.2-runtime.jar", "url": "a-1.2-runtime.jar" }
             ],
             "dependencies": [ { "group": "test", "module": "b", "version": { "prefers": "2.0" } } ]
         },
@@ -270,12 +270,12 @@ task checkRelease {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 def attr = Attribute.of("buildType", String)
-configurations { 
+configurations {
     debug { attributes.attribute(attr, "debug") }
     release { attributes.attribute(attr, "release") }
 }
@@ -338,10 +338,10 @@ task checkRelease {
     "variants": [
         {
             "name": "lot-o-files",
-            "files": [ 
+            "files": [
                 { "name": "a_main.jar", "url": "a-1.2.jar" },
                 { "name": "a_extra.jar", "url": "a-1.2-extra.jar" },
-                { "name": "a.zip", "url": "a-1.2.zip" } 
+                { "name": "a.zip", "url": "a-1.2.zip" }
             ]
         }
     ]
@@ -351,11 +351,11 @@ task checkRelease {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
-configurations { 
+configurations {
     debug
 }
 dependencies {
@@ -410,12 +410,12 @@ task checkDebug {
     "variants": [
         {
             "name": "lot-o-files",
-            "files": [ 
+            "files": [
                 { "name": "file1.jar", "url": "file1.jar" },
                 { "name": "a-1.2.jar", "url": "file2.jar" },
-                { "name": "a-3.jar", "url": "../sibling/file3.jar" }, 
-                { "name": "file4.jar", "url": "child/file4.jar" }, 
-                { "name": "a_5.jar", "url": "/repo/a-1.2-5.jar" } 
+                { "name": "a-3.jar", "url": "../sibling/file3.jar" },
+                { "name": "file4.jar", "url": "child/file4.jar" },
+                { "name": "a_5.jar", "url": "/repo/a-1.2-5.jar" }
             ]
         }
     ]
@@ -425,11 +425,11 @@ task checkDebug {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
-configurations { 
+configurations {
     debug
 }
 dependencies {
@@ -533,12 +533,12 @@ task checkDebug {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 def attr = Attribute.of("buildType", String)
-configurations { 
+configurations {
     debug { attributes.attribute(attr, "debug") }
     release { attributes.attribute(attr, "release") }
 }
@@ -590,7 +590,7 @@ task checkRelease {
             "attributes": {
                 "buildType": ${encodedDebugValue}
             },
-            "files": [ 
+            "files": [
                 { "name": "a-1.2-debug.jar", "url": "a-1.2-debug.jar" }
             ]
         },
@@ -607,8 +607,8 @@ task checkRelease {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 
@@ -619,7 +619,7 @@ interface BuildType extends Named {
 }
 
 def attr = Attribute.of("buildType", ${type})
-configurations { 
+configurations {
     debug { attributes.attribute(attr, ${debugValue}) }
     release { attributes.attribute(attr, ${releaseValue}) }
 }
@@ -667,8 +667,8 @@ task checkRelease {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 configurations { compile }
@@ -715,8 +715,8 @@ Required by:
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 configurations { compile }
@@ -760,8 +760,8 @@ dependencies {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 configurations { compile }
@@ -807,7 +807,7 @@ dependencies {
     "variants": [
         {
             "name": "lot-o-files",
-            "files": [ 
+            "files": [
                 { "name": "a1.jar", "url": "file1.jar" },
                 { "name": "a2.jar", "url": "../file2.jar" },
                 { "name": "a3.jar", "url": "a-1.2-extra.jar" }
@@ -820,8 +820,8 @@ dependencies {
         given:
         buildFile << """
 repositories {
-    maven { 
-        url = '${mavenHttpRepo.uri}' 
+    maven {
+        url = '${mavenHttpRepo.uri}'
     }
 }
 configurations { compile }

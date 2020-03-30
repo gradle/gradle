@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
@@ -27,7 +28,6 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.classpath.ModuleRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec;
 import org.gradle.api.internal.tasks.testing.TestExecuter;
@@ -39,6 +39,8 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
+import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -55,9 +57,13 @@ import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.testing.junitplatform.JUnitPlatformOptions;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
+import org.gradle.internal.jpms.DefaultModularClasspathHandling;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -139,6 +145,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final JavaForkOptions forkOptions;
+    private final ModularClasspathHandling modularClasspathHandling;
 
     private FileCollection testClassesDirs;
     private PatternFilterable patternSet;
@@ -150,9 +157,15 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     private TestExecuter<JvmTestExecutionSpec> testExecuter;
 
     public Test() {
-        patternSet = getFileResolver().getPatternSetFactory().create();
+        patternSet = getPatternSetFactory().create();
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
+        modularClasspathHandling = getObjectFactory().newInstance(DefaultModularClasspathHandling.class);
+    }
+
+    @Inject
+    protected ObjectFactory getObjectFactory() {
+        throw new UnsupportedOperationException();
     }
 
     @Inject
@@ -171,7 +184,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     @Inject
-    protected FileResolver getFileResolver() {
+    protected Factory<PatternSet> getPatternSetFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -182,6 +195,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
 
     @Inject
     protected ModuleRegistry getModuleRegistry() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
         throw new UnsupportedOperationException();
     }
 
@@ -567,6 +585,17 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     }
 
     /**
+     * Returns the module path handling of this test task.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Nested
+    public ModularClasspathHandling getModularClasspathHandling() {
+        return modularClasspathHandling;
+    }
+
+    /**
      * {@inheritDoc}
      *
      * @since 4.4
@@ -575,7 +604,9 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        boolean testIsModule = getJavaModuleDetector().isModule(getTestClassesDirs());
+        boolean inferModulePath = modularClasspathHandling.getInferModulePath().get();
+        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), testIsModule && inferModulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
     }
 
     private Set<String> getPreviousFailedTestClasses() {

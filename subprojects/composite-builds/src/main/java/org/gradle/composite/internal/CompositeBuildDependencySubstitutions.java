@@ -74,12 +74,12 @@ public class CompositeBuildDependencySubstitutions implements Action<DependencyS
         ModuleIdentifier candidateId = selector.getModuleIdentifier();
         Collection<ProjectComponentIdentifier> providingProjects = replacementMap.get(candidateId);
         if (providingProjects.isEmpty()) {
-            LOGGER.debug("Found no composite build substitute for module '" + candidateId + "'.");
+            LOGGER.debug("Found no composite build substitute for module '{}'.", candidateId);
             return null;
         }
         if (providingProjects.size() == 1) {
             ProjectComponentIdentifier match = providingProjects.iterator().next();
-            LOGGER.info("Found project '" + match + "' as substitute for module '" + candidateId + "'.");
+            LOGGER.info("Found project '{}' as substitute for module '{}'.", match, candidateId);
             return match;
         }
         throw new ModuleVersionResolveException(selector, () -> {

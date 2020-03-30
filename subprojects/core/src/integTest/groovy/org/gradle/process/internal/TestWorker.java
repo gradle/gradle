@@ -16,17 +16,14 @@
 
 package org.gradle.process.internal;
 
-public class TestWorker implements TestProtocol {
+import org.gradle.process.internal.worker.RequestHandler;
+
+public class TestWorker implements RequestHandler<Long, String> {
     @Override
-    public String convert(String param1, long param2) {
-        if (param1 == null) {
+    public String run(Long request) {
+        if (request == null) {
             return null;
         }
-        return String.format("[%s %s]", param1, param2);
-    }
-
-    @Override
-    public void doSomething() {
-        System.out.println("Ok, did it");
+        return String.format("[%s]", request);
     }
 }

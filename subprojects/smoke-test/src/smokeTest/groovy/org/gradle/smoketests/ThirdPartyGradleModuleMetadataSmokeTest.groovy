@@ -116,7 +116,7 @@ class ThirdPartyGradleModuleMetadataSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult publish() {
-        runner('publish', '--parallel').withProjectDir(
+        runner('publish').withProjectDir(
             new File(testProjectDir.root, 'producer')).forwardOutput().build()
     }
 

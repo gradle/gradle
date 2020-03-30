@@ -206,6 +206,7 @@ task ivyXml(type: Upload) {
         published.assertIsCopyOf(file('someDir/a'))
     }
 
+    @ToBeFixedForInstantExecution
     def "fails gracefully if trying to publish a directory with ivy"() {
 
         given:

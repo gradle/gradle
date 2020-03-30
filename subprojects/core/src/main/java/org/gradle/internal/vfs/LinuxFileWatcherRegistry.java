@@ -17,10 +17,12 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
+import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,11 +48,18 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
         public FileWatcherRegistry startWatching(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, ChangeHandler handler) {
-            Set<Path> directories = WatchRootUtil.resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories).stream()
-                .map(Paths::get)
-                .collect(Collectors.toSet());
-            LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
-            return new LinuxFileWatcherRegistry(directories, handler);
+            try {
+                Set<Path> directories = WatchRootUtil.resolveDirectoriesToWatch(root, watchFilter, mustWatchDirectories).stream()
+                    .map(Paths::get)
+                    .collect(Collectors.toSet());
+                LOGGER.warn("Watching {} directories to track changes between builds", directories.size());
+                return new LinuxFileWatcherRegistry(directories, handler);
+            } catch (NativeException e) {
+                if (e.getMessage().contains("Already watching path: ")) {
+                    throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
+                }
+                throw e;
+            }
         }
     }
 }

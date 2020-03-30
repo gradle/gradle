@@ -19,6 +19,9 @@ package org.gradle.build.event
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
+import org.gradle.integtests.fixtures.RequiredFeature
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFailureResult
@@ -42,7 +45,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                 outputs.file("thing.txt")
                 doFirst { file("thing.txt").text = "thing" }
             }
-            task broken { 
+            task broken {
                 dependsOn notUpToDate, upToDate
                 doFirst {
                     throw new RuntimeException()
@@ -127,6 +130,82 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b:thing")
     }
 
+    @RequiredFeature(feature = "org.gradle.unsafe.instant-execution", value = "false")
+    @UnsupportedWithInstantExecution
+    def "listener receives task completion events from included builds"() {
+        settingsFile << """
+            includeBuild 'a'
+            includeBuild 'b'
+        """
+        loggingListener()
+        registeringPlugin()
+        buildFile << """
+            apply plugin: LoggingPlugin
+            task thing {
+                dependsOn gradle.includedBuilds*.task(':thing')
+            }
+        """
+        file("a/build.gradle") << """
+            task thing
+        """
+        file("b/build.gradle") << """
+            task thing
+        """
+
+        when:
+        run("thing")
+
+        then:
+        output.count("EVENT:") == 3
+        outputContains("EVENT: finish :thing")
+        outputContains("EVENT: finish :a:thing")
+        outputContains("EVENT: finish :b:thing")
+
+        when:
+        run("thing")
+
+        then:
+        output.count("EVENT:") == 3
+        outputContains("EVENT: finish :thing")
+        outputContains("EVENT: finish :a:thing")
+        outputContains("EVENT: finish :b:thing")
+    }
+
+    def "listener registered from init script can receive task completion events from buildSrc and main build"() {
+        def initScript = file("init.gradle")
+        loggingListener(initScript)
+        initScript << """
+            if (gradle.parent == null) {
+                def listener = gradle.sharedServices.registerIfAbsent("listener", LoggingListener) { }
+                services.get(${BuildEventsListenerRegistry.name}).onTaskCompletion(listener)
+            }
+        """
+        file("buildSrc/src/main/java/Thing.java") << """
+            class Thing { }
+        """
+        buildFile << """
+            task thing {
+            }
+        """
+
+        when:
+        executer.usingInitScript(initScript)
+        run("thing")
+
+        then:
+        output.count("EVENT:") == 14
+        outputContains("EVENT: finish :buildSrc:processResources SKIPPED")
+        outputContains("EVENT: finish :buildSrc:compileJava OK")
+        outputContains("EVENT: finish :thing UP-TO-DATE")
+
+        when:
+        executer.usingInitScript(initScript)
+        run("thing")
+
+        then:
+        outputContains("EVENT: finish :thing UP-TO-DATE")
+    }
+
     def "reports failure to handle event and continues with task execution"() {
         loggingListener()
         brokenListener()
@@ -137,7 +216,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
             registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
 
-            task a 
+            task a
             task b { dependsOn a }
         """
 
@@ -178,7 +257,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('broken', BrokenListener) { })
             registry.onTaskCompletion(gradle.sharedServices.registerIfAbsent('listener', LoggingListener) { })
 
-            task a 
+            task a
             task b { dependsOn a }
         """
 
@@ -211,8 +290,8 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("EVENT: finish :b")
     }
 
-    def loggingListener() {
-        buildFile << """
+    void loggingListener(TestFile file = buildFile) {
+        file << """
             import ${OperationCompletionListener.name}
             import ${FinishEvent.name}
             import ${TaskFinishEvent.name}
@@ -264,7 +343,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
                 }
                 @Override
                 void onFinish(FinishEvent event) {
-                    println("BROKEN: received event") 
+                    println("BROKEN: received event")
                 }
             }
         """
@@ -283,7 +362,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
             abstract class BrokenListener implements OperationCompletionListener, BuildService<BuildServiceParameters.None> {
                 @Override
                 void onFinish(FinishEvent event) {
-                    println("BROKEN: received event") 
+                    println("BROKEN: received event")
                     throw new RuntimeException("broken")
                 }
             }

@@ -18,7 +18,6 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
@@ -27,7 +26,6 @@ import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.reflect.Instantiator;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -86,10 +84,7 @@ public class Sync extends AbstractCopyTask {
 
     @Override
     protected CopySpecInternal createRootSpec() {
-        Instantiator instantiator = getInstantiator();
-        FileResolver fileResolver = getFileResolver();
-
-        return instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, super.createRootSpec());
+        return getProject().getObjects().newInstance(DestinationRootCopySpec.class, super.createRootSpec());
     }
 
     @Override

@@ -55,7 +55,6 @@ class JavaSourceIncrementalCompilationIntegrationTest extends AbstractSourceIncr
         'annotated types' | 'RUNTIME' | ['SomeAnnotation', 'A']
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "deletes headers when source file is deleted"() {
         given:
         def sourceFile = file("src/main/java/my/org/Foo.java")

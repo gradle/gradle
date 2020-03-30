@@ -25,9 +25,8 @@ import org.slf4j.LoggerFactory;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Optional;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
@@ -39,9 +38,7 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
-    private final AtomicInteger numberOfReceivedEvents = new AtomicInteger();
-    private final AtomicBoolean unknownEventEncountered = new AtomicBoolean();
-    private final AtomicReference<Throwable> errorWhileReceivingFileChanges = new AtomicReference<>();
+    private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
 
     public AbstractEventDrivenFileWatcherRegistry(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
         this.watcher = createWatcher(roots, watcherCreator, handler);
@@ -57,7 +54,7 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
             @Override
             public void reportError(Throwable ex) {
                 LOGGER.error("Error while receiving file changes", ex);
-                errorWhileReceivingFileChanges.compareAndSet(null, ex);
+                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(ex));
                 handler.handleLostState();
             }
         });
@@ -69,10 +66,10 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
 
     private void handleEvent(FileWatcherCallback.Type type, String path, ChangeHandler handler) {
         if (type == FileWatcherCallback.Type.UNKNOWN) {
-            unknownEventEncountered.set(true);
+            fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
             handler.handleLostState();
         } else {
-            numberOfReceivedEvents.incrementAndGet();
+            fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
             handler.handleChange(convertType(type), Paths.get(path));
         }
     }
@@ -93,8 +90,8 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
     }
 
     @Override
-    public FileWatchingStatistics getStatistics() {
-        return new FileWatchingStatistics(unknownEventEncountered.get(), numberOfReceivedEvents.get(), errorWhileReceivingFileChanges.get());
+    public FileWatchingStatistics getAndResetStatistics() {
+        return fileWatchingStatistics.getAndSet(new MutableFileWatchingStatistics());
     }
 
     @Override
@@ -104,5 +101,43 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
 
     protected interface FileWatcherCreator {
         FileWatcher createWatcher(FileWatcherCallback callback);
+    }
+
+    private static class MutableFileWatchingStatistics implements FileWatchingStatistics {
+        private boolean unknownEventEncountered;
+        private int numberOfReceivedEvents;
+        private Throwable errorWhileReceivingFileChanges;
+
+        @Override
+        public Optional<Throwable> getErrorWhileReceivingFileChanges() {
+            return Optional.ofNullable(errorWhileReceivingFileChanges);
+        }
+
+        @Override
+        public boolean isUnknownEventEncountered() {
+            return unknownEventEncountered;
+        }
+
+        @Override
+        public int getNumberOfReceivedEvents() {
+            return numberOfReceivedEvents;
+        }
+
+        public MutableFileWatchingStatistics eventReceived() {
+            numberOfReceivedEvents++;
+            return this;
+        }
+
+        public MutableFileWatchingStatistics errorWhileReceivingFileChanges(Throwable error) {
+            if (errorWhileReceivingFileChanges != null) {
+                errorWhileReceivingFileChanges = error;
+            }
+            return this;
+        }
+
+        public MutableFileWatchingStatistics unknownEventEncountered() {
+            unknownEventEncountered = true;
+            return this;
+        }
     }
 }

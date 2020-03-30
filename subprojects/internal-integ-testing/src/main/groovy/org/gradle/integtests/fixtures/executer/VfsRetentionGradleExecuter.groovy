@@ -16,14 +16,11 @@
 
 package org.gradle.integtests.fixtures.executer
 
-import com.google.common.collect.ImmutableList
 import org.gradle.integtests.fixtures.VfsRetentionHelper
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.util.GradleVersion
 
 class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
-
-    private boolean firstUse = true
 
     VfsRetentionGradleExecuter(
         GradleDistribution distribution,
@@ -39,10 +36,8 @@ class VfsRetentionGradleExecuter extends DaemonGradleExecuter {
 
     @Override
     protected List<String> getAllArgs() {
-        List<Object> conditionalArgs = firstUse ? [VfsRetentionHelper.dropVfsArgument] : ImmutableList.of()
-        firstUse = false
         super.getAllArgs() + ([
             VfsRetentionHelper.enableVfsRetentionArgument,
-        ] + conditionalArgs).collect { it.toString() }
+        ])
     }
 }

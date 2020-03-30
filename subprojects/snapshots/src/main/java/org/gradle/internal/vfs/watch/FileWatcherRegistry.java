@@ -16,7 +16,6 @@
 
 package org.gradle.internal.vfs.watch;
 
-import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -40,7 +39,7 @@ public interface FileWatcherRegistry extends Closeable {
     /**
      * Get statistics about the received changes.
      */
-    FileWatchingStatistics getStatistics();
+    FileWatchingStatistics getAndResetStatistics();
 
     /**
      * Close the watcher registry. Stops watching without handling the changes.
@@ -48,27 +47,9 @@ public interface FileWatcherRegistry extends Closeable {
     @Override
     void close() throws IOException;
 
-    class FileWatchingStatistics {
-        private final boolean unknownEventEncountered;
-        private final int numberOfReceivedEvents;
-        private final Throwable errorWhileReceivingFileChanges;
-
-        public Optional<Throwable> getErrorWhileReceivingFileChanges() {
-            return Optional.ofNullable(errorWhileReceivingFileChanges);
-        }
-
-        public FileWatchingStatistics(boolean unknownEventEncountered, int numberOfReceivedEvents, @Nullable Throwable errorWhileReceivingFileChanges) {
-            this.unknownEventEncountered = unknownEventEncountered;
-            this.numberOfReceivedEvents = numberOfReceivedEvents;
-            this.errorWhileReceivingFileChanges = errorWhileReceivingFileChanges;
-        }
-
-        public boolean isUnknownEventEncountered() {
-            return unknownEventEncountered;
-        }
-
-        public int getNumberOfReceivedEvents() {
-            return numberOfReceivedEvents;
-        }
+    interface FileWatchingStatistics {
+        Optional<Throwable> getErrorWhileReceivingFileChanges();
+        boolean isUnknownEventEncountered();
+        int getNumberOfReceivedEvents();
     }
 }

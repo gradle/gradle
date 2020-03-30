@@ -35,26 +35,29 @@ class DefaultJavaCompilerFactoryTest extends Specification {
     def "creates in-process compiler when JavaCompileSpec is provided"() {
         expect:
         def compiler = factory.create(JavaCompileSpec.class)
-        compiler instanceof AnnotationProcessorDiscoveringCompiler
-        compiler.delegate instanceof NormalizingJavaCompiler
-        compiler.delegate.delegate instanceof JdkJavaCompiler
+        compiler instanceof ModuleApplicationNameWritingCompiler
+        compiler.delegate instanceof AnnotationProcessorDiscoveringCompiler
+        compiler.delegate.delegate instanceof NormalizingJavaCompiler
+        compiler.delegate.delegate.delegate instanceof JdkJavaCompiler
     }
 
     def "creates command line compiler when CommandLineJavaCompileSpec is provided"() {
         expect:
         def compiler = factory.create(TestCommandLineJavaSpec.class)
-        compiler instanceof AnnotationProcessorDiscoveringCompiler
-        compiler.delegate instanceof NormalizingJavaCompiler
-        compiler.delegate.delegate instanceof CommandLineJavaCompiler
+        compiler instanceof ModuleApplicationNameWritingCompiler
+        compiler.delegate instanceof AnnotationProcessorDiscoveringCompiler
+        compiler.delegate.delegate instanceof NormalizingJavaCompiler
+        compiler.delegate.delegate.delegate instanceof CommandLineJavaCompiler
     }
 
     def "creates daemon compiler when ForkingJavaCompileSpec"() {
         expect:
         def compiler = factory.create(TestForkingJavaCompileSpec)
-        compiler instanceof AnnotationProcessorDiscoveringCompiler
-        compiler.delegate instanceof NormalizingJavaCompiler
-        compiler.delegate.delegate instanceof DaemonJavaCompiler
-        compiler.delegate.delegate.compilerClass == JdkJavaCompiler.class
+        compiler instanceof ModuleApplicationNameWritingCompiler
+        compiler.delegate instanceof AnnotationProcessorDiscoveringCompiler
+        compiler.delegate.delegate instanceof NormalizingJavaCompiler
+        compiler.delegate.delegate.delegate instanceof DaemonJavaCompiler
+        compiler.delegate.delegate.delegate.compilerClass == JdkJavaCompiler.class
     }
 
     private static class TestCommandLineJavaSpec extends DefaultJavaCompileSpec implements CommandLineJavaCompileSpec {

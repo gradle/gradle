@@ -147,7 +147,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
         for (FileCollectionInternal element : getSourceCollections()) {
             element.visitStructure(visitor);
         }

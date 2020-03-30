@@ -25,7 +25,7 @@ import spock.lang.Unroll
 class DefaultRepositoryContentDescriptorTest extends Specification {
 
     @Subject
-    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor()
+    DefaultRepositoryContentDescriptor descriptor = new DefaultMavenRepositoryContentDescriptor("repoName")
 
     @Unroll
     def "reasonable error message when input is incorrect (include string)"() {
@@ -362,7 +362,7 @@ class DefaultRepositoryContentDescriptorTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "Cannot mutate content repository descriptor after repository has been used"
+        ex.message == "Cannot mutate content repository descriptor 'repoName' after repository has been used"
     }
 
     def "can include and exclude at the same time"() {

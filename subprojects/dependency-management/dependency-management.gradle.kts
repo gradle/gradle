@@ -136,6 +136,16 @@ tasks.classpathManifest {
     additionalProjects.add(":runtimeApiInfo")
 }
 
+tasks.clean {
+    doFirst {
+        // On daemon crash, read-only cache tests can leave read-only files around.
+        // clean now takes care of those files as well
+        fileTree("$buildDir/tmp/test files").matching {
+            include("**/read-only-cache/**")
+        }.visit { this.file.setWritable(true) }
+    }
+}
+
 afterEvaluate {
     // This is a workaround for the validate plugins task trying to inspect classes which
     // have changed but are NOT tasks

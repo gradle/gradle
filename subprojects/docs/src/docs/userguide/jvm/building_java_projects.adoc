@@ -508,6 +508,22 @@ The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, w
 This plugin is the exception as it does not apply the Java Plugin.
 ====
 
+[[sec:feature_preview]]
+== Enabling Java preview features
+
+[WARNING]
+====
+Using a Java preview feature is very likely to make your code incompatible with that compiled without a feature preview. As a consequence, we strongly recommend you not to publish libraries compiled with preview features and restrict the use of feature previews to toy projects.
+====
+
+To enable Java link:https://openjdk.java.net/jeps/12[preview features] for compilation, test execution and runtime, you can use the following DSL snippet:
+
+.Enabling Java feature preview
+====
+include::sample[dir="snippets/userguide/java/preview/groovy",files="build.gradle[tags=enabling-feature-preview]"]
+include::sample[dir="snippets/userguide/java/preview/kotlin",files="build.gradle.kts[tags=enabling-feature-preview]"]
+====
+
 [[sec:building_jvm_lang]]
 == Building other JVM language projects
 

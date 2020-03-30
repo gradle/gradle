@@ -21,8 +21,6 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
-import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.reflect.Instantiator;
 
 import java.io.File;
 
@@ -80,10 +78,7 @@ public class Copy extends AbstractCopyTask {
 
     @Override
     protected CopySpecInternal createRootSpec() {
-        Instantiator instantiator = getInstantiator();
-        PathToFileResolver fileResolver = getFileResolver();
-
-        return instantiator.newInstance(DestinationRootCopySpec.class, fileResolver, super.createRootSpec());
+        return getProject().getObjects().newInstance(DestinationRootCopySpec.class, super.createRootSpec());
     }
 
     @Override

@@ -26,6 +26,7 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
     private BaseScalaCompileOptions options;
     private Iterable<File> scalaClasspath;
     private Iterable<File> zincClasspath;
+    private Iterable<File> scalaCompilerPlugins;
     private Map<File, File> analysisMap;
     private File analysisFile;
     private long buildStartTimestamp;
@@ -63,6 +64,16 @@ public class DefaultScalaJavaJointCompileSpec extends DefaultJavaCompileSpec imp
 
     public void setZincClasspath(Iterable<File> zincClasspath) {
         this.zincClasspath = zincClasspath;
+    }
+
+    @Override
+    public Iterable<File> getScalaCompilerPlugins() {
+        return scalaCompilerPlugins;
+    }
+
+    @Override
+    public void setScalaCompilerPlugins(Iterable<File> scalaCompilerPlugins) {
+        this.scalaCompilerPlugins = scalaCompilerPlugins;
     }
 
     @Override

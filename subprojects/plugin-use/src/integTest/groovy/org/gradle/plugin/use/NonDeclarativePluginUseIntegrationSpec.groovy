@@ -19,7 +19,6 @@ package org.gradle.plugin.use
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
-import spock.lang.Ignore
 
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.startsWith
@@ -153,7 +152,6 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
     }
 
     @ToBeFixedForInstantExecution
-    @Ignore('https://github.com/gradle/gradle-private/issues/2989')
     def "dependencies of non declarative plugins influence buildscript dependency resolution"() {
         given:
         [1, 2].each { n ->

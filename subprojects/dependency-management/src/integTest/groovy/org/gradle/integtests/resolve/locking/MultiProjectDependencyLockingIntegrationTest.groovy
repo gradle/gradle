@@ -57,7 +57,7 @@ project(':second') {
     }
 }
 """
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'])
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
 
         when:
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
@@ -99,7 +99,7 @@ project(':second') {
     }
 }
 """
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'])
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
 
         when:
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
@@ -147,6 +147,6 @@ project(':second') {
 
         then:
         outputContains('Persisted dependency lock state for configuration \':first:compileClasspath\'')
-        firstLockFileFixture.verifyLockfile('compileClasspath', ['org:foo:1.1'])
+        firstLockFileFixture.verifyLockfile('compileClasspath', ['org:foo:1.1'], false)
     }
 }

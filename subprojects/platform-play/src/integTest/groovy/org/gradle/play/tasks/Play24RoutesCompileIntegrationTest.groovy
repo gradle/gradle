@@ -16,14 +16,11 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.PlayCoverage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class Play24RoutesCompileIntegrationTest extends AbstractRoutesCompileIntegrationTest {
 
     @Override

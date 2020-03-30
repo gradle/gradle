@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -115,7 +117,11 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
+    PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
+        return new DefaultPropertyFactory(propertyHost);
+    }
+
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),
             new ConfigurableFileCollectionManagedFactory(fileCollectionFactory),
@@ -123,10 +129,10 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
             new RegularFilePropertyManagedFactory(filePropertyFactory),
             new DirectoryManagedFactory(fileFactory),
             new DirectoryPropertyManagedFactory(filePropertyFactory),
-            new SetPropertyManagedFactory(),
-            new ListPropertyManagedFactory(),
-            new MapPropertyManagedFactory(),
-            new PropertyManagedFactory(),
+            new SetPropertyManagedFactory(propertyFactory),
+            new ListPropertyManagedFactory(propertyFactory),
+            new MapPropertyManagedFactory(propertyFactory),
+            new PropertyManagedFactory(propertyFactory),
             new ProviderManagedFactory(),
             namedObjectInstantiator
         );

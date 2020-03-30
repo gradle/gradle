@@ -30,16 +30,27 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         buildFile << '\njacocoTestReport.dependsOn test'
         def htmlReportDir = file("build/reports/jacoco/test/html")
 
-        expect:
+        when:
+        withDoNotFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
+        expectInstantExecutionProblems(
+            4,
+            "- field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot serialize object of type 'org.gradle.api.tasks.testing.Test', a subtype of 'org.gradle.api.Task', as these are not supported with instant execution.",
+            "- field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPluginExtension': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.",
+            "- field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
+        )
+
+        then:
         htmlReportDir.assertIsDir()
 
         when:
         succeeds 'clean'
         htmlReportDir.assertDoesNotExist()
 
-        then:
+        and:
         instantRun 'test', 'jacocoTestReport'
+
+        then:
         htmlReportDir.assertIsDir()
     }
 }

@@ -56,6 +56,8 @@ tasks {
         additionalRootFiles.from(classpathManifest)
 
         outputFile.set(jar.get().archiveFile)
+
+        outputs.doNotCacheIfSlowInternetConnection()
     }
 
     jar {

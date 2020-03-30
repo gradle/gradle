@@ -33,6 +33,7 @@ class ScalaCompileTest extends AbstractCompileTest {
 
     private scalaCompiler = Mock(Compiler)
     private scalaClasspath = Mock(FileTreeInternal)
+    private scalaCompilerPlugins = Mock(FileTreeInternal)
 
     @Override
     AbstractCompile getCompile() {
@@ -101,6 +102,8 @@ class ScalaCompileTest extends AbstractCompileTest {
         super.setUpMocksAndAttributes(compile)
         compile.setScalaClasspath(scalaClasspath)
         compile.setZincClasspath(compile.getClasspath())
+        compile.setScalaCompilerPlugins(scalaCompilerPlugins)
+        scalaCompilerPlugins.iterator() >> Collections.emptyIterator()
         BaseScalaCompileOptions options = compile.getScalaCompileOptions()
         options.getIncrementalOptions().setAnalysisFile(new File("analysisFile"))
     }

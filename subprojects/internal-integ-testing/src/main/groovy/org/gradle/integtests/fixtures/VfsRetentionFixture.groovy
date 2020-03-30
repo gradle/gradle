@@ -28,7 +28,7 @@ trait VfsRetentionFixture {
         executer.withArgument(VfsRetentionHelper.dropVfsArgument)
     }
 
-    def withRetention() {
+    AbstractIntegrationSpec withRetention() {
         executer.withArgument(VfsRetentionHelper.enableVfsRetentionArgument)
         this
     }
@@ -40,5 +40,30 @@ trait VfsRetentionFixture {
 
     void waitForChangesToBePickedUp() {
         VfsRetentionHelper.waitForChangesToBePickedUp()
+    }
+
+    int getReceivedFileSystemEventsInCurrentBuild() {
+        def duringBuildStatusLine = result.getPostBuildOutputLineThatContains(" file system events for current build")
+        def numberMatcher = duringBuildStatusLine =~ /Received (\d+) file system events for current build/
+        return numberMatcher[0][1] as int
+    }
+
+    int getRetainedFilesInCurrentBuild() {
+        def retainedInformation = result.getPostBuildOutputLineThatContains("Virtual file system retains information about ")
+        def numberMatcher = retainedInformation =~ /Virtual file system retains information about (\d+) files, (\d+) directories and (\d+) missing files till next build/
+        return numberMatcher[0][1] as int
+
+    }
+
+    int getRetainedFilesSinceLastBuild() {
+        String retainedInformation = result.getOutputLineThatContains("Virtual file system retained information about ")
+        def numberMatcher = retainedInformation =~ /Virtual file system retained information about (\d+) files, (\d+) directories and (\d+) missing files since last build/
+        return numberMatcher[0][1] as int
+    }
+
+    int getReceivedFileSystemEventsSinceLastBuild() {
+        String eventsSinceLastBuild = result.getOutputLineThatContains("file system events since last build")
+        def numberMatcher = eventsSinceLastBuild =~ /Received (\d+) file system events since last build/
+        return numberMatcher[0][1] as int
     }
 }

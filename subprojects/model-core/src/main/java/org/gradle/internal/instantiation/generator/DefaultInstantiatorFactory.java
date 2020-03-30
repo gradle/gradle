@@ -23,6 +23,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.instantiation.ManagedTypeFactory;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
@@ -41,20 +42,22 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
     private final ServiceRegistry defaultServices;
     private final CrossBuildInMemoryCacheFactory cacheFactory;
     private final List<InjectAnnotationHandler> annotationHandlers;
+    private final PropertyRoleAnnotationHandler roleHandler;
     private final DefaultInstantiationScheme injectOnlyScheme;
     private final DefaultInstantiationScheme injectOnlyLenientScheme;
     private final DefaultInstantiationScheme decoratingScheme;
     private final DefaultInstantiationScheme decoratingLenientScheme;
     private final ManagedFactory managedFactory;
 
-    public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> annotationHandlers) {
+    public DefaultInstantiatorFactory(CrossBuildInMemoryCacheFactory cacheFactory, List<InjectAnnotationHandler> injectHandlers, PropertyRoleAnnotationHandler roleAnnotationHandler) {
         this.cacheFactory = cacheFactory;
-        this.annotationHandlers = annotationHandlers;
+        this.annotationHandlers = injectHandlers;
+        this.roleHandler = roleAnnotationHandler;
         DefaultServiceRegistry services = new DefaultServiceRegistry();
         services.add(InstantiatorFactory.class, this);
         this.defaultServices = services;
-        ClassGenerator injectOnlyGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
-        ClassGenerator decoratedGenerator = AsmBackedClassGenerator.decorateAndInject(annotationHandlers, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
+        ClassGenerator injectOnlyGenerator = AsmBackedClassGenerator.injectOnly(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
+        ClassGenerator decoratedGenerator = AsmBackedClassGenerator.decorateAndInject(injectHandlers, roleAnnotationHandler, ImmutableSet.of(), cacheFactory, MANAGED_FACTORY_ID);
         this.managedFactory = new ClassGeneratorBackedManagedFactory(injectOnlyGenerator);
         ConstructorSelector injectOnlyJsr330Selector = new Jsr330ConstructorSelector(injectOnlyGenerator, cacheFactory.newClassCache());
         ConstructorSelector decoratedJsr330Selector = new Jsr330ConstructorSelector(decoratedGenerator, cacheFactory.newClassCache());
@@ -91,7 +94,7 @@ public class DefaultInstantiatorFactory implements InstantiatorFactory {
             assertKnownAnnotation(annotation);
         }
 
-        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, ImmutableSet.copyOf(injectAnnotations), cacheFactory, MANAGED_FACTORY_ID);
+        ClassGenerator classGenerator = AsmBackedClassGenerator.injectOnly(annotationHandlers, roleHandler, ImmutableSet.copyOf(injectAnnotations), cacheFactory, MANAGED_FACTORY_ID);
         Jsr330ConstructorSelector constructorSelector = new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache());
         ImmutableSet.Builder<Class<? extends Annotation>> builder = ImmutableSet.builderWithExpectedSize(injectAnnotations.size() + 1);
         builder.addAll(injectAnnotations);

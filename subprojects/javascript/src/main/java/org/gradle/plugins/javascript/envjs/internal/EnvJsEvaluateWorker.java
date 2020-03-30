@@ -16,15 +16,16 @@
 
 package org.gradle.plugins.javascript.envjs.internal;
 
+import org.gradle.process.internal.worker.RequestHandler;
 import org.mozilla.javascript.Context;
 import org.mozilla.javascript.Scriptable;
 
 import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.DefaultScopeOperation;
 import static org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerUtils.parseRhino;
 
-public class EnvJsEvaluateWorker implements EnvJvEvaluateProtocol {
+public class EnvJsEvaluateWorker implements RequestHandler<EnvJsEvaluateSpec, String> {
     @Override
-    public String process(EnvJsEvaluateSpec spec) {
+    public String run(EnvJsEvaluateSpec spec) {
 
         final String targetUrl = spec.getUrl();
 
@@ -43,5 +44,4 @@ public class EnvJsEvaluateWorker implements EnvJvEvaluateProtocol {
             }
         });
     }
-
 }

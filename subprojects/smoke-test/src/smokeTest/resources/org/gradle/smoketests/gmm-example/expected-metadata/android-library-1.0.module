@@ -19,7 +19,6 @@
       "name": "demoDebugAllApiPublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "demoDebug",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "demo",
@@ -42,7 +41,6 @@
       "name": "demoDebugAllRuntimePublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "demoDebug",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "demo",
@@ -65,7 +63,6 @@
       "name": "fullDebugAllApiPublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "full",
@@ -88,7 +85,6 @@
       "name": "fullDebugAllRuntimePublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "debug",
-        "com.android.build.api.attributes.VariantAttr": "fullDebug",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "full",
@@ -111,7 +107,6 @@
       "name": "demoReleaseAllApiPublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "demoRelease",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "demo",
@@ -134,7 +129,6 @@
       "name": "demoReleaseAllRuntimePublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "demoRelease",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "demo",
@@ -157,7 +151,6 @@
       "name": "fullReleaseAllApiPublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "fullRelease",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "full",
@@ -180,7 +173,6 @@
       "name": "fullReleaseAllRuntimePublication",
       "attributes": {
         "com.android.build.api.attributes.BuildTypeAttr": "release",
-        "com.android.build.api.attributes.VariantAttr": "fullRelease",
         "org.gradle.category": "library",
         "org.gradle.dependency.bundling": "external",
         "org.gradle.example.my-own-flavor": "full",

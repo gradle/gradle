@@ -16,9 +16,11 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.Action
+import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileCopyDetails
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.copy.CopySpecInternal
 import org.gradle.api.internal.file.copy.DefaultCopySpec
 import org.gradle.api.tasks.util.PatternSet
@@ -28,14 +30,17 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readEnum
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.internal.Factory
+import org.gradle.instantexecution.serialization.writeEnum
 import org.gradle.internal.reflect.Instantiator
 
 
 internal
 class DefaultCopySpecCodec(
-    private val fileResolver: FileResolver,
+    private val patternSetFactory: Factory<PatternSet>,
     private val fileCollectionFactory: FileCollectionFactory,
     private val instantiator: Instantiator
 ) : Codec<DefaultCopySpec> {
@@ -45,6 +50,13 @@ class DefaultCopySpecCodec(
             write(value.destPath)
             write(value.sourceFiles)
             write(value.patterns)
+            writeEnum(value.duplicatesStrategy)
+            writeBoolean(value.includeEmptyDirs)
+            writeBoolean(value.isCaseSensitive)
+            writeString(value.filteringCharset)
+            writeNullableSmallInt(value.dirMode)
+            writeNullableSmallInt(value.fileMode)
+            writeCollection(value.copyActions)
             writeCollection(value.children)
         }
     }
@@ -54,8 +66,25 @@ class DefaultCopySpecCodec(
             val destPath = read() as String?
             val sourceFiles = read() as FileCollection
             val patterns = read() as PatternSet
+            val duplicatesStrategy = readEnum<DuplicatesStrategy>()
+            val includeEmptyDirs = readBoolean()
+            val isCaseSensitive = readBoolean()
+            val filteringCharset = readString()
+            val dirMode = readNullableSmallInt()
+            val fileMode = readNullableSmallInt()
+            val actions = readList().uncheckedCast<List<Action<FileCopyDetails>>>()
             val children = readList().uncheckedCast<List<CopySpecInternal>>()
-            val copySpec = DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator, destPath, sourceFiles, patterns, children)
+            val copySpec = DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory, destPath, sourceFiles, patterns, actions, children)
+            copySpec.duplicatesStrategy = duplicatesStrategy
+            copySpec.includeEmptyDirs = includeEmptyDirs
+            copySpec.isCaseSensitive = isCaseSensitive
+            copySpec.filteringCharset = filteringCharset
+            if (dirMode != null) {
+                copySpec.dirMode = dirMode
+            }
+            if (fileMode != null) {
+                copySpec.fileMode = fileMode
+            }
             isolate.identities.putInstance(id, copySpec)
             copySpec
         }

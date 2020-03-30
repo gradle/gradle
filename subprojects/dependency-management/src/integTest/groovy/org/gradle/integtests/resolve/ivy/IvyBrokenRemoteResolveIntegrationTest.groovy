@@ -396,7 +396,6 @@ task showBroken { doLast { println configurations.broken.files } }
         succeeds("showBroken")
     }
 
-    @ToBeFixedForInstantExecution
     public void "reports and caches missing artifact"() {
         given:
         buildFile << """

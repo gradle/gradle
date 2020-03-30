@@ -60,6 +60,14 @@ public interface Decoder {
     int readSmallInt() throws EOFException, IOException;
 
     /**
+     * Reads a nullable signed 32 bit int value.
+     *
+     * @see #readSmallInt()
+     */
+    @Nullable
+    Integer readNullableSmallInt() throws EOFException, IOException;
+
+    /**
      * Reads a boolean value. Can read any value that was written using {@link Encoder#writeBoolean(boolean)}.
      *
      * @throws EOFException when the end of the byte stream is reached before the boolean value can be fully read.
@@ -115,4 +123,18 @@ public interface Decoder {
      * Skips the given number of bytes. Can skip over any byte values that were written using one of the raw byte methods on {@link Encoder}.
      */
     void skipBytes(long count) throws EOFException, IOException;
+
+    /**
+     * Reads a byte stream written using {@link Encoder#encodeChunked(Encoder.EncodeAction)}.
+     */
+    <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception;
+
+    /**
+     * Skips over a byte stream written using {@link Encoder#encodeChunked(Encoder.EncodeAction)}, discarding its content.
+     */
+    void skipChunked() throws EOFException, IOException;
+
+    interface DecodeAction<IN, OUT> {
+        OUT read(IN source) throws Exception;
+    }
 }

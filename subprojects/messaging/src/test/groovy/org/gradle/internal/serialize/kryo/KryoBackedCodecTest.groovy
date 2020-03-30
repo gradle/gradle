@@ -34,6 +34,100 @@ class KryoBackedCodecTest extends AbstractCodecTest {
         closure.call(decoder)
     }
 
+    def "can encode and decode empty byte stream"() {
+        when:
+        def bytes = encode { Encoder encoder ->
+            encoder.encodeChunked {}
+            encoder.writeString("done")
+        }
+
+        then:
+        decode(bytes) { Decoder decoder ->
+            decoder.decodeChunked {}
+            assert decoder.readString() == "done"
+        }
+    }
+
+    def "can encode and skip empty byte stream"() {
+        when:
+        def bytes = encode { Encoder encoder ->
+            encoder.encodeChunked {}
+            encoder.writeString("done")
+        }
+
+        then:
+        decode(bytes) { Decoder decoder ->
+            decoder.skipChunked()
+            assert decoder.readString() == "done"
+        }
+    }
+
+    def "can encode and decode byte stream"() {
+        when:
+        def bytes = encode { Encoder encoder ->
+            encoder.encodeChunked { Encoder nested ->
+                nested.writeSmallInt(12)
+                nested.writeString("chunked")
+            }
+            encoder.writeString("done")
+        }
+
+        then:
+        decode(bytes) { Decoder decoder ->
+            decoder.decodeChunked { Decoder nested ->
+                assert nested.readSmallInt() == 12
+                assert nested.readString() == "chunked"
+            }
+            assert decoder.readString() == "done"
+        }
+    }
+
+    def "can encode and decode multiple byte streams"() {
+        when:
+        def bytes = encode { Encoder encoder ->
+            encoder.encodeChunked { Encoder nested ->
+                nested.writeSmallInt(1)
+                nested.writeString("chunked")
+            }
+            encoder.encodeChunked { Encoder nested ->
+            }
+            encoder.encodeChunked { Encoder nested ->
+                nested.writeSmallInt(2)
+            }
+            encoder.writeString("done")
+        }
+
+        then:
+        decode(bytes) { Decoder decoder ->
+            decoder.decodeChunked { Decoder nested ->
+                assert nested.readSmallInt() == 1
+                assert nested.readString() == "chunked"
+            }
+            decoder.decodeChunked {}
+            decoder.decodeChunked { Decoder nested ->
+                assert nested.readSmallInt() == 2
+            }
+            assert decoder.readString() == "done"
+        }
+    }
+
+    def "can encode and skip byte stream"() {
+        when:
+        def bytes = encode { Encoder encoder ->
+            encoder.encodeChunked { Encoder nested ->
+                nested.writeSmallInt(12)
+                nested.writeString("chunked")
+            }
+            encoder.writeString("done")
+        }
+
+        then:
+        decode(bytes) { Decoder decoder ->
+            decoder.skipChunked()
+            assert decoder.readString() == "done"
+        }
+    }
+
     def "can query write and read positions"() {
         def outstr = new ByteArrayOutputStream()
         def encoder = new KryoBackedEncoder(outstr)

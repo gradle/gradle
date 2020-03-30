@@ -42,7 +42,7 @@ configurations {
     lockedConf {
         resolutionStrategy.activateDependencyLocking()
     }
-    
+
     unlockedConf
 }
 
@@ -52,7 +52,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -85,7 +85,7 @@ configurations {
     lockedConf {
         resolutionStrategy.activateDependencyLocking()
     }
-    
+
     unlockedConf.extendsFrom lockedConf
 }
 
@@ -94,7 +94,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
@@ -129,7 +129,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -169,6 +169,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'lockedConf', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'], false)
     }
 }

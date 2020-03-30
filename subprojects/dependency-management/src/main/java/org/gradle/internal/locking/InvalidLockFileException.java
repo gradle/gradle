@@ -17,7 +17,7 @@
 package org.gradle.internal.locking;
 
 public class InvalidLockFileException extends RuntimeException {
-    public InvalidLockFileException(String configurationName, Exception cause) {
-        super("Invalid lock file content for configuration '" + configurationName + "'", cause);
+    public InvalidLockFileException(String name, Exception cause) {
+        super("Invalid lock state for " + name, cause);
     }
 }

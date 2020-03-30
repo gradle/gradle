@@ -32,7 +32,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolver
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ConfiguredModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser;
-import org.gradle.internal.hash.ChecksumService;
 import org.gradle.api.internal.artifacts.repositories.descriptor.MavenRepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
 import org.gradle.api.internal.artifacts.repositories.maven.MavenMetadataLoader;
@@ -61,6 +60,7 @@ import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
 import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.component.external.model.maven.MutableMavenModuleResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
+import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -277,6 +277,11 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     }
 
     @Override
+    public MetadataSources getMetadataSources() {
+        return metadataSources;
+    }
+
+    @Override
     public void mavenContent(Action<? super MavenRepositoryContentDescriptor> configureAction) {
         content(Cast.uncheckedCast(configureAction));
     }
@@ -344,7 +349,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultMavenRepositoryContentDescriptor();
+        return new DefaultMavenRepositoryContentDescriptor(getDisplayName());
     }
 
     private static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
@@ -417,6 +422,26 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
         @Override
         public void ignoreGradleMetadataRedirection() {
             ignoreGradleMetadataRedirection = true;
+        }
+
+        @Override
+        public boolean isGradleMetadataEnabled() {
+            return gradleMetadata;
+        }
+
+        @Override
+        public boolean isMavenPomEnabled() {
+            return mavenPom;
+        }
+
+        @Override
+        public boolean isArtifactEnabled() {
+            return artifact;
+        }
+
+        @Override
+        public boolean isIgnoreGradleMetadataRedirectionEnabled() {
+            return ignoreGradleMetadataRedirection;
         }
     }
 

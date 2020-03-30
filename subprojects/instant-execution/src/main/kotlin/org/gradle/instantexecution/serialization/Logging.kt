@@ -90,7 +90,6 @@ fun IsolateContext.logNotImplemented(feature: String) {
 private
 fun IsolateContext.logPropertyWarning(message: StructuredMessageBuilder) {
     val problem = PropertyProblem.Warning(trace, build(message))
-    logger.warn("instant-execution > {}", problem.message)
     logPropertyProblem("serialize", problem)
 }
 

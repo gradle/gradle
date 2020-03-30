@@ -18,6 +18,6 @@ package org.gradle.internal.locking;
 
 public class MissingLockStateException extends RuntimeException {
     public MissingLockStateException(String configurationName) {
-        super("Locking strict mode: Configuration '" + configurationName + "' is locked but does not have a lockfile.");
+        super("Locking strict mode: Configuration '" + configurationName + "' is locked but does not have lock state.");
     }
 }

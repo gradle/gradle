@@ -1,3 +1,5 @@
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/subprojects/docs/src/docs/design/gradle-module-metadata-latest-specification.md
+
 [[understanding-variant-selection]]
 = Understanding variant selection
 
