@@ -11,7 +11,8 @@ Include only their name, impactful features should be called out separately belo
 [SheliakLyr](https://github.com/SheliakLyr),
 [James Baiera](https://github.com/jbaiera),
 [Patrick Koenig](https://github.com/pkoenig10),
-and [Matthew Duggan](https://github.com/mduggan).
+[Matthew Duggan](https://github.com/mduggan),
+and [David Burström](https://github.com/davidburstrom).
 
 ## Upgrade instructions
 
