@@ -124,6 +124,14 @@ include::{samplesPath}/userguide/tasks/accessUsingPath/accessUsingPath.out[]
 ----
 ====
 
+Tasks of a specific type can also be accessed by using the `tasks.withType()` method. This enables to easily avoid duplication of code and reduce redundancy.
+
+.Accessing tasks by their type
+====
+include::sample[dir="snippets/userguide/tasks/accessUsingType/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/userguide/tasks/accessUsingType/kotlin",files="build.gradle.kts[]"]
+====
+
 Have a look at link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] for more options for locating tasks.
 
 [[sec:configuring_tasks]]
