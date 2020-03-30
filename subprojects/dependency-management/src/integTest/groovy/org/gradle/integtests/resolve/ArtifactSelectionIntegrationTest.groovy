@@ -772,20 +772,20 @@ task show {
       - Unmatched attribute:
           - Found buildType 'n/a' but wasn't required.
       - Compatible attributes:
-          - Required artifactType 'jar' and found value 'jar'.
-          - Required usage 'api' and found value 'api'.
+          - Provides artifactType 'jar'
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant debug:
       - Unmatched attribute:
           - Found buildType 'debug' but wasn't required.
       - Compatible attributes:
-          - Required artifactType 'jar' and found value 'jar'.
-          - Required usage 'api' and found value 'api'.
+          - Provides artifactType 'jar'
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant release:
       - Unmatched attribute:
           - Found buildType 'release' but wasn't required.
       - Compatible attributes:
-          - Required artifactType 'jar' and found value 'jar'.
-          - Required usage 'api' and found value 'api'.""")
+          - Provides artifactType 'jar'
+          - Provides usage 'api'""")
     }
 
     def "returns empty result when no variants match and view attributes specified"() {
@@ -891,20 +891,19 @@ task show {
   - Configuration ':lib:compile':
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other compatible attribute:
-          - Required usage 'api' and found value 'api'.
+      - Other compatible attribute: Provides usage 'api'
   - Configuration ':lib:compile' variant debug:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
       - Other compatible attributes:
           - Found buildType 'debug' but wasn't required.
-          - Required usage 'api' and found value 'api'.
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant release:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
       - Other compatible attributes:
           - Found buildType 'release' but wasn't required.
-          - Required usage 'api' and found value 'api'.""")
+          - Provides usage 'api'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:

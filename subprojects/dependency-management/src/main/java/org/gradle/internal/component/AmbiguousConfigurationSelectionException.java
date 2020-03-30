@@ -102,7 +102,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             formatter.append(" " + CapabilitiesSupport.prettifyCapabilities(targetComponent, configuration.getCapabilities().getCapabilities()));
         }
         if (ambiguous) {
-            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable());
+            formatAttributeMatchesForAmbiguity(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
         } else {
             formatAttributeMatchesForIncompatibility(formatter, consumerAttributes.asImmutable(), attributeMatcher, producerAttributes.asImmutable(), describer);
         }
@@ -142,7 +142,8 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
     static void formatAttributeMatchesForAmbiguity(TreeFormatter formatter,
                                                    ImmutableAttributes immutableConsumer,
                                                    AttributeMatcher attributeMatcher,
-                                                   ImmutableAttributes immutableProducer) {
+                                                   ImmutableAttributes immutableProducer,
+                                                   ConsumerAttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         formatter.startChildren();
         List<String> compatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
@@ -154,16 +155,16 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleValues.add("Required " + attributeName + " '" + consumerValue.get() + "' and found value '" + producerValue.get() + "'.");
+                    compatibleValues.add(describer.describeCompatibleAttribute(attribute, consumerValue.get(), producerValue.get()));
                 } else {
-                    String result = "Required " + attributeName + " '" + consumerValue.get() + "' and found incompatible value '" + producerValue.get() + "'.";
+                    String result = describer.describeIncompatibleAttribute(attribute, consumerValue.get(), producerValue.get());
                     assert false : "Incompatible attributes on ambiguity: " + result;
                     otherValues.add(result);
                 }
             } else if (consumerValue.isPresent()) {
-                otherValues.add("Required " + attributeName + " '" + consumerValue.get() + "' but no value provided.");
+                otherValues.add(describer.describeMissingAttribute(attribute, consumerValue.get()));
             } else {
-                otherValues.add("Found " + attributeName + " '" + producerValue.get() + "' but wasn't required.");
+                otherValues.add(describer.describeExtraAttribute(attribute, producerValue.get()));
             }
         }
         formatAttributeSection(formatter, "Unmatched attribute", otherValues);

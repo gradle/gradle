@@ -15,8 +15,10 @@
  */
 package org.gradle.internal.component.model;
 
+import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.internal.attributes.AbstractConsumerAttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
@@ -29,10 +31,18 @@ public class DescriberSelector {
     public static ConsumerAttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, AttributesSchemaInternal consumerSchema) {
         List<ConsumerAttributeDescriber> consumerDescribers = consumerSchema.getConsumerDescribers();
         Set<Attribute<?>> consumerAttributeSet = consumerAttributes.keySet();
+        ConsumerAttributeDescriber current = null;
+        int maxSize = 0;
         for (ConsumerAttributeDescriber consumerDescriber : consumerDescribers) {
-            if (consumerDescriber.getAttributes().equals(consumerAttributeSet)) {
-                return new FallbackDescriber(consumerDescriber);
+            int size = Sets.intersection(consumerDescriber.getAttributes(), consumerAttributeSet).size();
+            if (size > maxSize) {
+                // Select the describer which handles the maximum number of attributes
+                current = consumerDescriber;
+                maxSize = size;
             }
+        }
+        if (current != null) {
+            return new FallbackDescriber(current);
         }
         return DefaultDescriber.INSTANCE;
     }
@@ -81,7 +91,7 @@ public class DescriberSelector {
         }
     }
 
-    private static class DefaultDescriber implements ConsumerAttributeDescriber {
+    private static class DefaultDescriber extends AbstractConsumerAttributeDescriber {
         private final static DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override
@@ -103,7 +113,10 @@ public class DescriberSelector {
 
         @Override
         public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-            return "Required " + attribute.getName() + " '" + consumerValue + "' and found value '" + producerValue + "'.";
+            if (isLikelySameValue(consumerValue, producerValue)) {
+                return "Provides " + attribute.getName() + " '" + consumerValue + "'";
+            }
+            return "Required " + attribute.getName() + " '" + consumerValue + "' and found '" + producerValue + "'.";
         }
 
         @Override

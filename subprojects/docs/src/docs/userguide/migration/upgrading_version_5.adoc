@@ -682,11 +682,11 @@ However if B is built for Java 9+, then it's not binary compatible anymore, and 
 ```
 Unable to find a matching variant of project :producer:
   - Variant 'apiElements' capability test:producer:unspecified:
-      - Required org.gradle.dependency.bundling 'external' and found value 'external'.
+      - Provides org.gradle.dependency.bundling 'external'
       - Required org.gradle.jvm.version '8' and found incompatible value '9'.
       - Required org.gradle.usage 'java-api' and found value 'java-api-jars'.
   - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Required org.gradle.dependency.bundling 'external' and found value 'external'.
+      - Provides org.gradle.dependency.bundling 'external'
       - Required org.gradle.jvm.version '8' and found incompatible value '9'.
       - Required org.gradle.usage 'java-api' and found value 'java-runtime-jars'.
 ```

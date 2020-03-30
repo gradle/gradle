@@ -47,7 +47,7 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());
-            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable());
+            formatAttributeMatchesForAmbiguity(formatter, consumer.asImmutable(), matcher, variant.getAttributes().asImmutable(), describer);
         }
         formatter.endChildren();
         if (!discarded.isEmpty()) {

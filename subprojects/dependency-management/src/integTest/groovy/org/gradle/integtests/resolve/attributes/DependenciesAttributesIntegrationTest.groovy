@@ -386,23 +386,22 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'custom' with value 'c1', attribute 'org.gradle.usage' with value 'java-runtime' but no matching variant of org:test:1.0 was found.
+        failure.assertHasCause("""The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but no matching variant of org:test:1.0 was found.
   - Variant 'api' capability org:test:1.0:
-      - Incompatible attribute:
-          - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
+      - Incompatible attribute: Required a runtime and found an API
       - Other compatible attributes:
-          - Required custom 'c1' and found value 'c1'.
-          - Found org.gradle.category 'library' but wasn't required.
-          - Found org.gradle.libraryelements 'jar' but wasn't required.
-          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
+          - Provides custom 'c1'
+          - Provides a library but the consumer didn't ask for it
+          - Provides its elements packaged as a jar but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value '${defaultStatus()}' but the consumer didn't ask for it
   - Variant 'runtime' capability org:test:1.0:
       - Incompatible attribute:
           - Required custom 'c1' and found incompatible value 'c2'.
       - Other compatible attributes:
-          - Found org.gradle.category 'library' but wasn't required.
-          - Found org.gradle.libraryelements 'jar' but wasn't required.
-          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-          - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.""")
+          - Provides a library but the consumer didn't ask for it
+          - Provides its elements packaged as a jar but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value '${defaultStatus()}' but the consumer didn't ask for it
+          - Provides a runtime""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -552,23 +551,22 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
         fails 'checkDeps'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find attribute 'custom' with value 'c1', attribute 'org.gradle.usage' with value 'java-runtime' but no matching variant of org:test:1.0 was found.
+        failure.assertHasCause("""The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but no matching variant of org:test:1.0 was found.
   - Variant 'api' capability org:test:1.0:
-      - Incompatible attribute:
-          - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
+      - Incompatible attribute: Required a runtime and found an API
       - Other compatible attributes:
-          - Required custom 'c1' and found value 'c1'.
-          - Found org.gradle.category 'library' but wasn't required.
-          - Found org.gradle.libraryelements 'jar' but wasn't required.
-          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
+          - Provides custom 'c1'
+          - Provides a library but the consumer didn't ask for it
+          - Provides its elements packaged as a jar but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value '${defaultStatus()}' but the consumer didn't ask for it
   - Variant 'runtime' capability org:test:1.0:
       - Incompatible attribute:
           - Required custom 'c1' and found incompatible value 'c2'.
       - Other compatible attributes:
-          - Found org.gradle.category 'library' but wasn't required.
-          - Found org.gradle.libraryelements 'jar' but wasn't required.
-          - Found org.gradle.status '${defaultStatus()}' but wasn't required.
-          - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.""")
+          - Provides a library but the consumer didn't ask for it
+          - Provides its elements packaged as a jar but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value '${defaultStatus()}' but the consumer didn't ask for it
+          - Provides a runtime""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
