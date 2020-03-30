@@ -27,11 +27,13 @@ import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeStrings
+import org.gradle.internal.Factory
 
 
-object PatternSetCodec : Codec<PatternSet> {
+class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Codec<PatternSet> {
 
     override suspend fun WriteContext.encode(value: PatternSet) {
+        writeBoolean(value.isCaseSensitive)
         writeStrings(value.includes)
         writeStrings(value.excludes)
         writeCollection(value.includeSpecs)
@@ -39,7 +41,8 @@ object PatternSetCodec : Codec<PatternSet> {
     }
 
     override suspend fun ReadContext.decode() =
-        PatternSet().apply {
+        patternSetFactory.create()!!.apply {
+            isCaseSensitive = readBoolean()
             setIncludes(readStrings())
             setExcludes(readStrings())
             readCollection {

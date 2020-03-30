@@ -189,8 +189,10 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         given:
         file('files/one.txt').createFile()
         file('files/a/two.txt').createFile()
+        file('files/a/IGNORE.txt').createFile()
         file('files/b/ignore.txt').createFile()
         file('files/b/one.bin').createFile()
+        file('files/b/wrong case.TXT').createFile()
         file('other/c/other-one.txt').createFile()
         file('other/c/other-ignore.txt').createFile()
         buildFile << """
@@ -201,6 +203,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
             task copy(type: Copy) {
                 from files
                 into 'dest'
+                includeEmptyDirs = false
             }
         """
 
@@ -211,11 +214,13 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants(
             'one.txt',
             'a/two.txt',
+            'a/IGNORE.txt', // exclude patterns are case sensitive by default
             'c/other-one.txt'
         )
 
         when:
         file('files/a/more-ignore.txt').createFile() // not an input
+        file('files/a/more.TXT').createFile() // not an input
         run 'copy'
 
         then:
@@ -223,6 +228,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants(
             'one.txt',
             'a/two.txt',
+            'a/IGNORE.txt',
             'c/other-one.txt'
         )
 
@@ -236,6 +242,7 @@ class FileTreeIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants(
             'one.txt',
             'a/two.txt',
+            'a/IGNORE.txt',
             'a/three.txt',
             'c/other-one.txt',
             'add-three.txt'

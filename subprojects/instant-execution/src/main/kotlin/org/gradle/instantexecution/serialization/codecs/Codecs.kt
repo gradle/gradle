@@ -116,7 +116,7 @@ class Codecs(
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
 
         bind(ApiTextResourceAdapterCodec)
 
@@ -170,7 +170,7 @@ class Codecs(
         baseTypes()
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
@@ -211,7 +211,7 @@ class Codecs(
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileSystem: FileSystem, fileFactory: FileFactory) {
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileSystem: FileSystem, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
         bind(DirectoryCodec(fileFactory))
         bind(RegularFileCodec(fileFactory))
         bind(ConfigurableFileTreeCodec(fileCollectionFactory))
@@ -220,7 +220,7 @@ class Codecs(
         bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
         bind(fileCollectionCodec)
         bind(IntersectPatternSetCodec)
-        bind(PatternSetCodec)
+        bind(PatternSetCodec(patternSetFactory))
     }
 
     private
