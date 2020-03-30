@@ -19,6 +19,7 @@ package org.gradle.api.plugins;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -353,12 +354,18 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 conventionMapping.map("sourceCompatibility", new Callable<Object>() {
                     @Override
                     public Object call() {
+                        if (compile.getRelease().isPresent()) {
+                            return JavaVersion.toVersion(compile.getRelease().get()).toString();
+                        }
                         return javaConvention.getSourceCompatibility().toString();
                     }
                 });
                 conventionMapping.map("targetCompatibility", new Callable<Object>() {
                     @Override
                     public Object call() {
+                        if (compile.getRelease().isPresent()) {
+                            return JavaVersion.toVersion(compile.getRelease().get()).toString();
+                        }
                         return javaConvention.getTargetCompatibility().toString();
                     }
                 });

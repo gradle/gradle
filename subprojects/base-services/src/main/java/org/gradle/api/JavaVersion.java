@@ -115,6 +115,9 @@ public enum JavaVersion {
         if (value instanceof JavaVersion) {
             return (JavaVersion) value;
         }
+        if (value instanceof Integer) {
+            return getVersionForMajor((Integer) value);
+        }
 
         String name = value.toString();
 

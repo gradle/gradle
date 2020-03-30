@@ -22,6 +22,7 @@ import org.gradle.api.reporting.ReportingExtension
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.tasks.compile.AbstractCompile
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
@@ -557,5 +558,22 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
 
         then:
         task.taskDependencies.getDependencies(task)*.path as Set == [':middle:build', ':app:buildDependents'] as Set
+    }
+
+    void "source and target compatibility of compile tasks default to release if set"() {
+        given:
+        project.pluginManager.apply(JavaPlugin)
+        def compileJava = project.tasks.named("compileJava", AbstractCompile).get()
+        def testCompileJava = project.tasks.named("compileTestJava", AbstractCompile).get()
+
+        when:
+        compileJava.release.set(8)
+        testCompileJava.release.set(9)
+
+        then:
+        compileJava.targetCompatibility == "1.8"
+        compileJava.sourceCompatibility == "1.8"
+        testCompileJava.targetCompatibility == "1.9"
+        testCompileJava.sourceCompatibility == "1.9"
     }
 }
