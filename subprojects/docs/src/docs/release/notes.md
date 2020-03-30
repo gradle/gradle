@@ -12,7 +12,8 @@ Include only their name, impactful features should be called out separately belo
 [James Baiera](https://github.com/jbaiera),
 [Patrick Koenig](https://github.com/pkoenig10),
 [Matthew Duggan](https://github.com/mduggan),
-and [David Burström](https://github.com/davidburstrom).
+[David Burström](https://github.com/davidburstrom),
+and [Lars Kaulen](https://github.com/LarsKaulen).
 
 ## Upgrade instructions
 
