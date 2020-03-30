@@ -27,7 +27,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory;
 import org.gradle.internal.Cast;
@@ -100,7 +100,7 @@ class AttributeMatchingVariantSelector implements VariantSelector {
         if (matches.size() > 1) {
             if (explanationBuilder instanceof TraceDiscardedVariants) {
                 Set<ResolvedVariant> discarded = Cast.uncheckedCast(((TraceDiscardedVariants) explanationBuilder).discarded);
-                ConsumerAttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
+                AttributeDescriber describer = DescriberSelector.selectDescriber(componentRequested, schema);
                 throw new AmbiguousVariantSelectionException(describer, producer.asDescribable().getDisplayName(), componentRequested, matches, matcher, discarded);
             } else {
                 // because we're going to fail, we can afford a second run with details

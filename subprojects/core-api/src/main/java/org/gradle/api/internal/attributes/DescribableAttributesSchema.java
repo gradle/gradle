@@ -21,8 +21,8 @@ import java.util.List;
 
 public interface DescribableAttributesSchema extends AttributesSchema {
 
-    List<ConsumerAttributeDescriber> getConsumerDescribers();
+    List<AttributeDescriber> getConsumerDescribers();
 
-    void addConsumerDescriber(ConsumerAttributeDescriber describer);
+    void addConsumerDescriber(AttributeDescriber describer);
 
 }

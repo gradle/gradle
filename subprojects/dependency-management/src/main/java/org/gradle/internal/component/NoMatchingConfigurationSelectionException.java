@@ -19,7 +19,7 @@ package org.gradle.internal.component;
 import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.component.model.ConfigurationMetadata;
@@ -32,7 +32,7 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 
 public class NoMatchingConfigurationSelectionException extends RuntimeException {
     public NoMatchingConfigurationSelectionException(
-        ConsumerAttributeDescriber describer,
+        AttributeDescriber describer,
         AttributeContainerInternal fromConfigurationAttributes,
         AttributeMatcher attributeMatcher,
         ComponentResolveMetadata targetComponent,
@@ -40,7 +40,7 @@ public class NoMatchingConfigurationSelectionException extends RuntimeException 
         super(generateMessage(describer, fromConfigurationAttributes, attributeMatcher, targetComponent, variantAware));
     }
 
-    private static String generateMessage(ConsumerAttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, final ComponentResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> configurations = new TreeMap<String, ConfigurationMetadata>();
         Optional<ImmutableList<? extends ConfigurationMetadata>> variantsForGraphTraversal = targetComponent.getVariantsForGraphTraversal();
         ImmutableList<? extends ConfigurationMetadata> variantsParticipatingInSelection = variantsForGraphTraversal.or(new LegacyConfigurationsSupplier(targetComponent));

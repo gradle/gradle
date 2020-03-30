@@ -18,22 +18,22 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.attributes.AbstractConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AbstractAttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
 public class DescriberSelector {
-    public static ConsumerAttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, AttributesSchemaInternal consumerSchema) {
-        List<ConsumerAttributeDescriber> consumerDescribers = consumerSchema.getConsumerDescribers();
+    public static AttributeDescriber selectDescriber(AttributeContainerInternal consumerAttributes, AttributesSchemaInternal consumerSchema) {
+        List<AttributeDescriber> consumerDescribers = consumerSchema.getConsumerDescribers();
         Set<Attribute<?>> consumerAttributeSet = consumerAttributes.keySet();
-        ConsumerAttributeDescriber current = null;
+        AttributeDescriber current = null;
         int maxSize = 0;
-        for (ConsumerAttributeDescriber consumerDescriber : consumerDescribers) {
+        for (AttributeDescriber consumerDescriber : consumerDescribers) {
             int size = Sets.intersection(consumerDescriber.getAttributes(), consumerAttributeSet).size();
             if (size > maxSize) {
                 // Select the describer which handles the maximum number of attributes
@@ -47,10 +47,10 @@ public class DescriberSelector {
         return DefaultDescriber.INSTANCE;
     }
 
-    private static class FallbackDescriber implements ConsumerAttributeDescriber {
-        private final ConsumerAttributeDescriber delegate;
+    private static class FallbackDescriber implements AttributeDescriber {
+        private final AttributeDescriber delegate;
 
-        private FallbackDescriber(ConsumerAttributeDescriber delegate) {
+        private FallbackDescriber(AttributeDescriber delegate) {
             this.delegate = delegate;
         }
 
@@ -91,7 +91,7 @@ public class DescriberSelector {
         }
     }
 
-    private static class DefaultDescriber extends AbstractConsumerAttributeDescriber {
+    private static class DefaultDescriber extends AbstractAttributeDescriber {
         private final static DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override

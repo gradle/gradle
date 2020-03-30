@@ -45,12 +45,12 @@ public class EmptySchema implements AttributesSchemaInternal {
     }
 
     @Override
-    public List<ConsumerAttributeDescriber> getConsumerDescribers() {
+    public List<AttributeDescriber> getConsumerDescribers() {
         return Collections.emptyList();
     }
 
     @Override
-    public void addConsumerDescriber(ConsumerAttributeDescriber describer) {
+    public void addConsumerDescriber(AttributeDescriber describer) {
         throw new UnsupportedOperationException();
     }
 

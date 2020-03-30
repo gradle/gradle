@@ -21,7 +21,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
 import org.gradle.internal.logging.text.TreeFormatter;
 
@@ -33,11 +33,11 @@ import static org.gradle.internal.component.AmbiguousConfigurationSelectionExcep
 
 public class AmbiguousVariantSelectionException extends VariantSelectionException {
 
-    public AmbiguousVariantSelectionException(ConsumerAttributeDescriber describer, String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
+    public AmbiguousVariantSelectionException(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal requested, List<? extends ResolvedVariant> matches, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
         super(format(describer, producerDisplayName, requested, matches, matcher, discarded));
     }
 
-    private static String format(ConsumerAttributeDescriber describer, String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
+    private static String format(AttributeDescriber describer, String producerDisplayName, AttributeContainerInternal consumer, List<? extends ResolvedVariant> variants, AttributeMatcher matcher, Set<ResolvedVariant> discarded) {
         TreeFormatter formatter = new TreeFormatter();
         if (consumer.getAttributes().isEmpty()) {
             formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");

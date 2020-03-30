@@ -19,7 +19,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
-import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.model.AttributeMatcher;
@@ -34,7 +34,7 @@ import java.util.Set;
 import java.util.TreeMap;
 
 public class AmbiguousConfigurationSelectionException extends RuntimeException {
-    public AmbiguousConfigurationSelectionException(ConsumerAttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
+    public AmbiguousConfigurationSelectionException(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes,
                                                     AttributeMatcher attributeMatcher,
                                                     List<? extends ConfigurationMetadata> matches,
                                                     ComponentResolveMetadata targetComponent,
@@ -43,7 +43,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
         super(generateMessage(describer, fromConfigurationAttributes, attributeMatcher, matches, discarded, targetComponent, variantAware));
     }
 
-    private static String generateMessage(ConsumerAttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentResolveMetadata targetComponent, boolean variantAware) {
+    private static String generateMessage(AttributeDescriber describer, AttributeContainerInternal fromConfigurationAttributes, AttributeMatcher attributeMatcher, List<? extends ConfigurationMetadata> matches, Set<ConfigurationMetadata> discarded, ComponentResolveMetadata targetComponent, boolean variantAware) {
         Map<String, ConfigurationMetadata> ambiguousConfigurations = new TreeMap<String, ConfigurationMetadata>();
         for (ConfigurationMetadata match : matches) {
             ambiguousConfigurations.put(match.getName(), match);
@@ -89,7 +89,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
                                     AttributeMatcher attributeMatcher,
                                     ConfigurationMetadata configuration,
                                     boolean variantAware,
-                                    boolean ambiguous, ConsumerAttributeDescriber describer) {
+                                    boolean ambiguous, AttributeDescriber describer) {
         AttributeContainerInternal producerAttributes = configuration.getAttributes();
         if (variantAware) {
             formatter.node("Variant '");
@@ -112,7 +112,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
                                                          ImmutableAttributes immutableConsumer,
                                                          AttributeMatcher attributeMatcher,
                                                          ImmutableAttributes immutableProducer,
-                                                         ConsumerAttributeDescriber describer) {
+                                                         AttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         formatter.startChildren();
         List<String> incompatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
@@ -143,7 +143,7 @@ public class AmbiguousConfigurationSelectionException extends RuntimeException {
                                                    ImmutableAttributes immutableConsumer,
                                                    AttributeMatcher attributeMatcher,
                                                    ImmutableAttributes immutableProducer,
-                                                   ConsumerAttributeDescriber describer) {
+                                                   AttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
         formatter.startChildren();
         List<String> compatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
