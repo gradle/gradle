@@ -100,38 +100,6 @@ buildTypes {
         tasks("vfsRetentionIntegTest")
     }
 
-    create("performanceTests") {
-        tasks(":performance:performanceTest")
-    }
-
-    create("performanceExperiments") {
-        tasks(":performance:performanceExperiments")
-    }
-
-    create("fullPerformanceTests") {
-        tasks(":performance:fullPerformanceTest")
-    }
-
-    create("distributedPerformanceTests") {
-        tasks(":performance:distributedPerformanceTest")
-    }
-
-    create("distributedSlowPerformanceTests") {
-        tasks(":performance:distributedSlowPerformanceTest")
-    }
-
-    create("distributedPerformanceExperiments") {
-        tasks(":performance:distributedPerformanceExperiment")
-    }
-
-    create("distributedHistoricalPerformanceTests") {
-        tasks(":performance:distributedHistoricalPerformanceTest")
-    }
-
-    create("distributedFlakinessDetections") {
-        tasks(":performance:distributedFlakinessDetection")
-    }
-
     // Used for cross version tests on CI
     create("allVersionsCrossVersionTest") {
         tasks("allVersionsCrossVersionTests")
