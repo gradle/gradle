@@ -72,6 +72,112 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
+    def "task input property can consume the flat mapped output of another task"() {
+        taskTypeWithInputFileProperty()
+        taskTypeWithIntInputProperty()
+
+        buildFile << """
+            def producer = tasks.register('producer', InputFileTask) {
+                inFile = file("in.txt")
+                outFile = layout.buildDirectory.file("out.txt")
+            }
+            task transformer(type: InputTask) {
+                inValue = producer.flatMap { t -> t.outFile.map { f -> f.asFile.text as Integer } }.map { i -> i + 2 }
+                outFile = file("out.txt")
+            }
+        """
+        def input = file("in.txt")
+        def output = file("out.txt")
+        def instantExecution = newInstantExecutionFixture()
+
+        when:
+        input.text = "12"
+        instantRun(":transformer")
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "24"
+
+        when:
+        input.text = "4"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "16"
+
+        when:
+        input.text = "10"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "22"
+
+        when:
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    def "task input property can consume the mapped output of another task connected via project property"() {
+        taskTypeWithInputFileProperty()
+        taskTypeWithIntInputProperty()
+
+        buildFile << """
+            def output = objects.property(Integer)
+            task producer(type: InputFileTask) {
+                inFile = file("in.txt")
+                outFile = layout.buildDirectory.file("out.txt")
+            }
+            output.set(producer.outFile.map { f -> f.asFile.text as Integer }.map { i -> i + 2 })
+            task transformer(type: InputTask) {
+                inValue = output
+                outFile = file("out.txt")
+            }
+        """
+        def input = file("in.txt")
+        def output = file("out.txt")
+        def instantExecution = newInstantExecutionFixture()
+
+        when:
+        input.text = "12"
+        instantRun(":transformer")
+
+        then:
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "24"
+
+        when:
+        input.text = "4"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "16"
+
+        when:
+        input.text = "10"
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksExecutedAndNotSkipped(":producer", ":transformer")
+        output.text == "22"
+
+        when:
+        instantRun(":transformer")
+
+        then:
+        instantExecution.assertStateLoaded()
+        result.assertTasksSkipped(":producer", ":transformer")
+    }
+
     def "task input collection property can consume the mapped output of another task"() {
         taskTypeWithInputFileProperty()
         taskTypeWithInputListProperty()

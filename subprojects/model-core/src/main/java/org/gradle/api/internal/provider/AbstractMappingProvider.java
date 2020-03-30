@@ -68,8 +68,11 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
 
     protected abstract OUT mapValue(IN v);
 
+    // Included in toString() output
+    protected abstract String getMapDescription();
+
     @Override
     public String toString() {
-        return "map(" + provider + ")";
+        return getMapDescription() + "(" + provider + ")";
     }
 }

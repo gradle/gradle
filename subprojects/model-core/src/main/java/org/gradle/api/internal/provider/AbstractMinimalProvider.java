@@ -28,6 +28,8 @@ import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue()}.
@@ -132,6 +134,12 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public void visitProducerTasks(Action<? super Task> visitor) {
+    }
+
+    protected List<Task> getProducerTasks() {
+        List<Task> producers = new ArrayList<>();
+        visitProducerTasks(producers::add);
+        return producers;
     }
 
     @Override
