@@ -180,7 +180,7 @@ public class InstallExecutable extends DefaultTask {
      */
     @Internal("covered by getInstallDirectory")
     public Provider<RegularFile> getRunScriptFile() {
-        return installDirectory.file(executable.map(executableFile -> OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
+        return installDirectory.file(executable.getLocationOnly().map(executableFile -> OperatingSystem.forName(targetPlatform.get().getOperatingSystem().getName()).getScriptName(executableFile.getAsFile().getName())));
     }
 
     @Inject

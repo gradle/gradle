@@ -116,7 +116,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         beanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
 
         // Does not assign display name to mutable property
-        mutableBean.someValue.toString() == "property(class java.lang.String, undefined)"
+        mutableBean.someValue.toString() == "property(java.lang.String, undefined)"
     }
 
     def "assigns display name to read only non-final nested property that is not managed"() {

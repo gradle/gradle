@@ -66,6 +66,11 @@ class AbstractMappingProviderTest extends ProviderSpec<String> {
         }
 
         @Override
+        protected String getMapDescription() {
+            return "thing"
+        }
+
+        @Override
         protected String mapValue(String v) {
             return "{$v}"
         }

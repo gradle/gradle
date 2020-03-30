@@ -207,8 +207,6 @@ class Codecs(
         bind(DirectoryPropertyCodec(filePropertyFactory, nestedCodec))
         bind(RegularFilePropertyCodec(filePropertyFactory, nestedCodec))
         bind(PropertyCodec(propertyFactory, nestedCodec))
-        bind(BuildServiceProviderCodec(buildServiceRegistry))
-        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
         bind(ProviderCodec(nestedCodec))
     }
 

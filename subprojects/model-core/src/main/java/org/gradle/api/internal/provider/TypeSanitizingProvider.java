@@ -32,6 +32,11 @@ class TypeSanitizingProvider<T> extends AbstractMappingProvider<T, T> {
     }
 
     @Override
+    protected String getMapDescription() {
+        return "check-type";
+    }
+
+    @Override
     protected T mapValue(T v) {
         v = Cast.uncheckedCast(sanitizer.sanitize(v));
         if (targetType.isInstance(v)) {
