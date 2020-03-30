@@ -48,9 +48,9 @@ class DefaultCopySpecCodec(
     override suspend fun WriteContext.encode(value: DefaultCopySpec) {
         encodePreservingIdentityOf(value) {
             write(value.destPath)
-            write(value.sourceFiles)
+            write(value.sourceRootsForThisSpec)
             write(value.patterns)
-            writeEnum(value.duplicatesStrategy)
+            writeEnum(value.duplicatesStrategyForThisSpec)
             writeBoolean(value.includeEmptyDirs)
             writeBoolean(value.isCaseSensitive)
             writeString(value.filteringCharset)

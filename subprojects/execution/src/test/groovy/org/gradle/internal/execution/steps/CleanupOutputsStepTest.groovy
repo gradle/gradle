@@ -63,7 +63,7 @@ class CleanupOutputsStepTest extends StepSpec<InputChangesContext> implements Fi
         0 * _
 
         !outputs.file.exists()
-        outputs.dir.assertHasDescendants("some/notOutput1.txt")
+        outputs.dir.assertHasDescendants("some/notOutput1.txt", "some/notOutput2")
         !outputs.dir.file("some/dir").exists()
         !outputs.dir.file("some/lonelyDir").exists()
         !outputs.dir.file("some/another").exists()

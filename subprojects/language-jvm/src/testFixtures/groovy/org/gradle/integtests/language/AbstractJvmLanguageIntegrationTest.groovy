@@ -178,8 +178,8 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         succeeds "assemble"
 
         then:
-        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath as String[])
-        file("build/resources/myLib/jar").assertHasDescendants(app.resources*.fullPath as String[])
+        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath)
+        file("build/resources/myLib/jar").assertHasDescendants(app.resources*.fullPath, true)
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
