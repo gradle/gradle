@@ -15,16 +15,11 @@
  */
 package org.gradle.api.internal.attributes;
 
-import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
-
-import java.util.Set;
-
-public interface ConsumerAttributeDescriber {
-    Set<Attribute<?>> getAttributes();
-    String describeConsumerAttributes(AttributeContainer attributes);
-    String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
-    String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
-    String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);
-    String describeExtraAttribute(Attribute<?> attribute, Object producerValue);
+public abstract class AbstractAttributeDescriber implements AttributeDescriber {
+    /*
+     * Compares attributes value in a very lenient way, just for debugging (two equal strings are considered same attribute value)
+     */
+    protected static <T> boolean isLikelySameValue(T consumerValue, T producerValue) {
+        return producerValue.equals(consumerValue) || String.valueOf(consumerValue).equals(String.valueOf(producerValue));
+    }
 }

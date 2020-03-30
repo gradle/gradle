@@ -30,7 +30,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeValue;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
-import org.gradle.api.internal.attributes.ConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.Cast;
 import org.gradle.internal.component.AmbiguousConfigurationSelectionException;
@@ -99,7 +99,7 @@ public abstract class AttributeConfigurationSelector {
         if (matches.size() == 1) {
             return singleVariant(variantsForGraphTraversal, matches);
         } else if (!matches.isEmpty()) {
-            ConsumerAttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             if (explanationBuilder instanceof TraceDiscardedConfigurations) {
                 Set<ConfigurationMetadata> discarded = Cast.uncheckedCast(((TraceDiscardedConfigurations) explanationBuilder).discarded);
                 throw new AmbiguousConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, matches, targetComponent, variantsForGraphTraversal.isPresent(), discarded);
@@ -108,7 +108,7 @@ public abstract class AttributeConfigurationSelector {
                 return selectConfigurationUsingAttributeMatching(consumerAttributes, explicitRequestedCapabilities, targetComponent, consumerSchema, requestedArtifacts, new TraceDiscardedConfigurations());
             }
         } else {
-            ConsumerAttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
+            AttributeDescriber describer = DescriberSelector.selectDescriber(consumerAttributes, consumerSchema);
             throw new NoMatchingConfigurationSelectionException(describer, consumerAttributes, attributeMatcher, targetComponent, variantsForGraphTraversal.isPresent());
         }
     }

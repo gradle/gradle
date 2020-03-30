@@ -24,13 +24,13 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
-import org.gradle.api.internal.attributes.AbstractConsumerAttributeDescriber;
+import org.gradle.api.internal.attributes.AbstractAttributeDescriber;
 
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
 
-class JavaEcosystemAttributesDescriber extends AbstractConsumerAttributeDescriber {
+class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
     private final static Set<Attribute<?>> ATTRIBUTES = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,

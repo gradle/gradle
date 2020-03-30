@@ -52,7 +52,7 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     private final DefaultAttributeMatcher matcher;
     private final IsolatableFactory isolatableFactory;
     private final Map<ExtraAttributesEntry, Attribute<?>[]> extraAttributesCache = Maps.newHashMap();
-    private final List<ConsumerAttributeDescriber> consumerAttributeDescribers = Lists.newArrayList();
+    private final List<AttributeDescriber> consumerAttributeDescribers = Lists.newArrayList();
 
     public DefaultAttributesSchema(ComponentAttributeMatcher componentAttributeMatcher, InstantiatorFactory instantiatorFactory, IsolatableFactory isolatableFactory) {
         this.componentAttributeMatcher = componentAttributeMatcher;
@@ -132,12 +132,12 @@ public class DefaultAttributesSchema implements AttributesSchemaInternal, Attrib
     }
 
     @Override
-    public List<ConsumerAttributeDescriber> getConsumerDescribers() {
+    public List<AttributeDescriber> getConsumerDescribers() {
         return consumerAttributeDescribers;
     }
 
     @Override
-    public void addConsumerDescriber(ConsumerAttributeDescriber describer) {
+    public void addConsumerDescriber(AttributeDescriber describer) {
         consumerAttributeDescribers.add(describer);
     }
 
