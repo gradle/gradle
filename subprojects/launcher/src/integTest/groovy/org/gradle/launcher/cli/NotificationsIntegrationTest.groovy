@@ -100,6 +100,28 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
         markerFile.exists()
     }
 
+    def "when debug logging is enabled, debug warning is logged first"() {
+        given:
+        def expectedWarning = """
+###################################################################################
+#                                SECURITY WARNING!                                #
+#                                                                                 #
+#    Enabling the debug level logger can leak security sensitive information!     #
+#         We DO NOT advise enabling the debug logger in CI/CD environments.       #
+#    Doing so in public CI/CD (eg. Travis, CircleCI, GitHub Actions) can expose   #
+#         security sensitive information & secrets to malicious actors.           #
+#                                                                                 #
+###################################################################################
+"""
+        withDebugLogging()
+
+        when:
+        succeeds()
+
+        then:
+        outputContains(expectedWarning)
+    }
+
     static String readReleaseFeatures() {
         InputStream inputStream = NotificationsIntegrationTest.class.getClassLoader().getResourceAsStream('release-features.txt')
         StringWriter writer = new StringWriter()

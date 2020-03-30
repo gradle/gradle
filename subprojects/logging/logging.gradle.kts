@@ -36,6 +36,7 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     testFixturesImplementation(project(":baseServices"))
+    testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(library("slf4j_api"))
 }
 
