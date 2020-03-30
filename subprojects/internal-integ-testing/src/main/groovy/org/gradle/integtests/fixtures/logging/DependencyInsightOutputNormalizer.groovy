@@ -28,5 +28,7 @@ class DependencyInsightOutputNormalizer implements OutputNormalizer {
         output.replaceAll("org\\.gradle\\.jvm\\.version[ ]+= [0-9]+", "org.gradle.jvm.version = 11")
             .replaceAll("org\\.gradle\\.jvm\\.version[ ]'[0-9]+'", "org.gradle.jvm.version '11'")
             .replaceAll("'org\\.gradle\\.jvm\\.version' with value '[0-9]+'", "'org.gradle.jvm.version' with value '11'")
+            .replaceAll("compatib(le|ility) with Java [0-9]+", "compatib\$1 with Java 11")
+
     }
 }

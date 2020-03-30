@@ -3,124 +3,123 @@ Execution failed for task ':failRuntimeClasspathResolve'.
    > Could not resolve org.lwjgl:lwjgl:3.2.3.
      Required by:
          project :
-      > The consumer was configured to find attribute 'org.gradle.usage' with value 'java-runtime', attribute 'org.gradle.category' with value 'library', attribute 'org.gradle.libraryelements' with value 'jar', attribute 'org.gradle.dependency.bundling' with value 'external', attribute 'org.gradle.native.operatingSystem' with value 'windows', attribute 'org.gradle.jvm.version' with value '11'. However we cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
+      > The consumer was configured to find a runtime of a library compatible with Java 11, packaged as a jar, and its dependencies declared externally, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'. However we cannot choose between the following variants of org.lwjgl:lwjgl:3.2.3:
           - natives-windows-runtime
           - natives-windows-x86-runtime
         All of them match the consumer attributes:
           - Variant 'natives-windows-runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Unmatched attributes:
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Found org.gradle.native.architecture 'x86-64' but wasn't required.
-                  - Found org.gradle.status 'release' but wasn't required.
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides attribute 'org.gradle.native.architecture' with value 'x86-64' but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
               - Compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Required org.gradle.native.operatingSystem 'windows' and found value 'windows'.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Provides a library
+                  - Provides its elements packaged as a jar
+                  - Provides org.gradle.native.operatingSystem 'windows'
+                  - Provides a runtime
           - Variant 'natives-windows-x86-runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Unmatched attributes:
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Found org.gradle.native.architecture 'x86' but wasn't required.
-                  - Found org.gradle.status 'release' but wasn't required.
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides attribute 'org.gradle.native.architecture' with value 'x86' but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
               - Compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Required org.gradle.native.operatingSystem 'windows' and found value 'windows'.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Provides a library
+                  - Provides its elements packaged as a jar
+                  - Provides org.gradle.native.operatingSystem 'windows'
+                  - Provides a runtime
         The following variants were also considered but didn't match the requested attributes:
           - Variant 'compile' capability org.lwjgl:lwjgl:3.2.3:
-              - Incompatible attribute:
-                  - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
+              - Incompatible attribute: Required a runtime and found an API
               - Other compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Required org.gradle.native.operatingSystem 'windows' but no value provided.
-                  - Found org.gradle.status 'release' but wasn't required.
+                  - Provides a library
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides its elements packaged as a jar
+                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
           - Variant 'enforced-platform-compile' capability org.lwjgl:lwjgl-derived-enforced-platform:3.2.3:
               - Incompatible attributes:
-                  - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
-                  - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
+                  - Required a library and found an enforced platform
+                  - Required a runtime and found an API
               - Other compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' but no value provided.
-                  - Required org.gradle.native.operatingSystem 'windows' but no value provided.
-                  - Found org.gradle.status 'release' but wasn't required.
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
           - Variant 'enforced-platform-runtime' capability org.lwjgl:lwjgl-derived-enforced-platform:3.2.3:
               - Incompatible attribute:
-                  - Required org.gradle.category 'library' and found incompatible value 'enforced-platform'.
+                  - Required a library and found an enforced platform
               - Other compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' but no value provided.
-                  - Required org.gradle.native.operatingSystem 'windows' but no value provided.
-                  - Found org.gradle.status 'release' but wasn't required.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+                  - Provides a runtime
           - Variant 'natives-linux-arm32-runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Incompatible attribute:
                   - Required org.gradle.native.operatingSystem 'windows' and found incompatible value 'linux'.
               - Other compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Found org.gradle.native.architecture 'arm32' but wasn't required.
-                  - Found org.gradle.status 'release' but wasn't required.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Provides a library
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides its elements packaged as a jar
+                  - Provides attribute 'org.gradle.native.architecture' with value 'arm32' but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+                  - Provides a runtime
           - Variant 'natives-linux-arm64-runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Incompatible attribute:
                   - Required org.gradle.native.operatingSystem 'windows' and found incompatible value 'linux'.
               - Other compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Found org.gradle.native.architecture 'arm64' but wasn't required.
-                  - Found org.gradle.status 'release' but wasn't required.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Provides a library
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides its elements packaged as a jar
+                  - Provides attribute 'org.gradle.native.architecture' with value 'arm64' but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+                  - Provides a runtime
           - Variant 'natives-macos-runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Incompatible attribute:
                   - Required org.gradle.native.operatingSystem 'windows' and found incompatible value 'macos'.
               - Other compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Found org.gradle.native.architecture 'x86-64' but wasn't required.
-                  - Found org.gradle.status 'release' but wasn't required.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Provides a library
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides its elements packaged as a jar
+                  - Provides attribute 'org.gradle.native.architecture' with value 'x86-64' but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+                  - Provides a runtime
           - Variant 'platform-compile' capability org.lwjgl:lwjgl-derived-platform:3.2.3:
               - Incompatible attributes:
-                  - Required org.gradle.category 'library' and found incompatible value 'platform'.
-                  - Required org.gradle.usage 'java-runtime' and found incompatible value 'java-api'.
+                  - Required a library and found a platform
+                  - Required a runtime and found an API
               - Other compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' but no value provided.
-                  - Required org.gradle.native.operatingSystem 'windows' but no value provided.
-                  - Found org.gradle.status 'release' but wasn't required.
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
           - Variant 'platform-runtime' capability org.lwjgl:lwjgl-derived-platform:3.2.3:
               - Incompatible attribute:
-                  - Required org.gradle.category 'library' and found incompatible value 'platform'.
+                  - Required a library and found a platform
               - Other compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' but no value provided.
-                  - Required org.gradle.native.operatingSystem 'windows' but no value provided.
-                  - Found org.gradle.status 'release' but wasn't required.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Doesn't say anything about its elements (required them packaged as a jar)
+                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+                  - Provides a runtime
           - Variant 'runtime' capability org.lwjgl:lwjgl:3.2.3:
               - Incompatible attribute:
                   - Required org.gradle.native.operatingSystem 'windows' and found incompatible value 'none'.
               - Other compatible attributes:
-                  - Required org.gradle.category 'library' and found value 'library'.
-                  - Required org.gradle.dependency.bundling 'external' but no value provided.
-                  - Required org.gradle.jvm.version '11' but no value provided.
-                  - Required org.gradle.libraryelements 'jar' and found value 'jar'.
-                  - Found org.gradle.native.architecture 'none' but wasn't required.
-                  - Found org.gradle.status 'release' but wasn't required.
-                  - Required org.gradle.usage 'java-runtime' and found value 'java-runtime'.
+                  - Provides a library
+                  - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
+                  - Doesn't say anything about its target Java version (required compatibility with Java 11)
+                  - Provides its elements packaged as a jar
+                  - Provides attribute 'org.gradle.native.architecture' with value 'none' but the consumer didn't ask for it
+                  - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+                  - Provides a runtime

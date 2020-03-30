@@ -105,11 +105,10 @@ class DefaultArtifactTransformsTest extends Specification {
         def e = thrown(AmbiguousVariantSelectionException)
         e.message == toPlatformLineSeparators("""The consumer was configured to find attribute 'artifactType' with value 'classes'. However we cannot choose between the following variants of <component>:
   - <variant1>:
-      - Compatible attribute:
-          - Required artifactType 'classes' and found value 'classes'.
+      - Compatible attribute: Provides artifactType 'classes'
   - <variant2>:
       - Compatible attribute:
-          - Required artifactType 'classes' and found value 'jar'.""")
+          - Required artifactType 'classes' and found 'jar'.""")
     }
 
     private ResolvedVariant resolvedVariant() {

@@ -104,55 +104,55 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
       - Incompatible attribute:
           - Required compatibility with Java 5 and found incompatible Java 6
       - Other compatible attributes:
-          - Required a library and found a library
-          - Required its dependencies declared externally and found its dependencies declared externally
+          - Provides a library
+          - Provides its dependencies declared externally
           - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides  but the consumer didn't ask for it
-          - Required an API and found an API
+          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+          - Provides an API
   - Variant 'apiElementsJdk7' capability org:producer:1.0:
       - Incompatible attribute:
           - Required compatibility with Java 5 and found incompatible Java 7
       - Other compatible attributes:
-          - Required a library and found a library
-          - Required its dependencies declared externally and found its dependencies declared externally
+          - Provides a library
+          - Provides its dependencies declared externally
           - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides  but the consumer didn't ask for it
-          - Required an API and found an API
+          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+          - Provides an API
   - Variant 'apiElementsJdk9' capability org:producer:1.0:
       - Incompatible attribute:
           - Required compatibility with Java 5 and found incompatible Java 9
       - Other compatible attributes:
-          - Required a library and found a library
-          - Required its dependencies declared externally and found its dependencies declared externally
+          - Provides a library
+          - Provides its dependencies declared externally
           - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides  but the consumer didn't ask for it
-          - Required an API and found an API
+          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
+          - Provides an API
   - Variant 'runtimeElementsJdk6' capability org:producer:1.0:
       - Incompatible attribute:
           - Required compatibility with Java 5 and found incompatible Java 6
       - Other compatible attributes:
-          - Required a library and found a library
-          - Required its dependencies declared externally and found its dependencies declared externally
+          - Provides a library
+          - Provides its dependencies declared externally
           - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides  but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
           - Required an API and found a runtime
   - Variant 'runtimeElementsJdk7' capability org:producer:1.0:
       - Incompatible attribute:
           - Required compatibility with Java 5 and found incompatible Java 7
       - Other compatible attributes:
-          - Required a library and found a library
-          - Required its dependencies declared externally and found its dependencies declared externally
+          - Provides a library
+          - Provides its dependencies declared externally
           - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides  but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
           - Required an API and found a runtime
   - Variant 'runtimeElementsJdk9' capability org:producer:1.0:
       - Incompatible attribute:
           - Required compatibility with Java 5 and found incompatible Java 9
       - Other compatible attributes:
-          - Required a library and found a library
-          - Required its dependencies declared externally and found its dependencies declared externally
+          - Provides a library
+          - Provides its dependencies declared externally
           - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides  but the consumer didn't ask for it
+          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
           - Required an API and found a runtime''')
     }
 

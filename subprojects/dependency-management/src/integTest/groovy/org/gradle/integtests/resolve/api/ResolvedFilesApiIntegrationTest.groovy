@@ -297,14 +297,12 @@ task show {
       - Unmatched attributes:
           - Found artifactType 'jar' but wasn't required.
           - Found flavor 'free' but wasn't required.
-      - Compatible attribute:
-          - Required usage 'compile' and found value 'compile'.
+      - Compatible attribute: Provides usage 'compile'
   - Configuration ':a:compile' variant paid:
       - Unmatched attributes:
           - Found artifactType 'jar' but wasn't required.
           - Found flavor 'paid' but wasn't required.
-      - Compatible attribute:
-          - Required usage 'compile' and found value 'compile'.""")
+      - Compatible attribute: Provides usage 'compile'""")
 
         where:
         expression                                                                                         | _
@@ -372,14 +370,12 @@ task show {
       - Incompatible attributes:
           - Required artifactType 'dll' and found incompatible value 'jar'.
           - Required flavor 'preview' and found incompatible value 'free'.
-      - Other compatible attribute:
-          - Required usage 'compile' and found value 'compile'.
+      - Other compatible attribute: Provides usage 'compile'
   - Configuration ':a:compile' variant paid:
       - Incompatible attributes:
           - Required artifactType 'dll' and found incompatible value 'jar'.
           - Required flavor 'preview' and found incompatible value 'paid'.
-      - Other compatible attribute:
-          - Required usage 'compile' and found value 'compile'.""")
+      - Other compatible attribute: Provides usage 'compile'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:

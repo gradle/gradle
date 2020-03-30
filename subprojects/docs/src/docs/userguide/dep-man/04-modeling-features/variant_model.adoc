@@ -252,18 +252,18 @@ An ambiguous variant selection looks somewhat like the following:
               - Unmatched attribute:
                   - Found org.gradle.category 'library' but wasn't required.
               - Compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' and found value 'external'.
-                  - Required org.gradle.jvm.version '11' and found value '11'.
+                  - Provides org.gradle.dependency.bundling 'external'
+                  - Provides org.gradle.jvm.version '11'
                   - Required org.gradle.libraryelements 'classes' and found value 'jar'.
-                  - Required org.gradle.usage 'java-api' and found value 'java-api'.
+                  - Provides 'java-api'
           - Variant 'feature2ApiElements' capability org.test:test-capability:1.0:
               - Unmatched attribute:
                   - Found org.gradle.category 'library' but wasn't required.
               - Compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' and found value 'external'.
-                  - Required org.gradle.jvm.version '11' and found value '11'.
+                  - Provides org.gradle.dependency.bundling 'external'
+                  - Provides org.gradle.jvm.version '11'
                   - Required org.gradle.libraryelements 'classes' and found value 'jar'.
-                  - Required org.gradle.usage 'java-api' and found value 'java-api'.
+                  - Provides org.gradle.usage 'java-api'
 ----
 
 As can be seen, all _compatible_ candidate variants are displayed, with their attributes.
@@ -291,19 +291,19 @@ A no matching variant error looks somewhat like the following:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
       - Other compatible attribute:
-          - Required usage 'api' and found value 'api'.
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant debug:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
       - Other compatible attributes:
           - Found buildType 'debug' but wasn't required.
-          - Required usage 'api' and found value 'api'.
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant release:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
       - Other compatible attributes:
           - Found buildType 'release' but wasn't required.
-          - Required usage 'api' and found value 'api'.
+          - Provides usage 'api'
 ----
 
 As can be seen, _all_ candidate variants are displayed, with their attributes.
