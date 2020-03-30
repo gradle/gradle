@@ -32,9 +32,7 @@ import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.kotlin.dsl.concurrent.AsyncIOScopeFactory
 import org.gradle.kotlin.dsl.concurrent.IOScope
 import org.gradle.util.GFileUtils
-import java.io.ByteArrayOutputStream
 import java.io.File
-import java.io.OutputStream
 
 
 /**
@@ -53,14 +51,11 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private
     open class WritingState {
 
-        open fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState =
+        open fun start(writeContext: DefaultWriteContext): WritingState =
             illegalStateFor("start")
 
         open fun stop(): WritingState =
             illegalStateFor("stop")
-
-        open fun commit(fingerprintFile: File): WritingState =
-            illegalStateFor("commit")
 
         private
         fun illegalStateFor(operation: String): Nothing = throw IllegalStateException(
@@ -70,37 +65,23 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     inner class Idle : WritingState() {
-        override fun start(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext): WritingState {
-            val outputStream = ByteArrayOutputStream()
+        override fun start(writeContext: DefaultWriteContext): WritingState {
             val fingerprintWriter = InstantExecutionCacheFingerprintWriter(
                 CacheFingerprintComponentHost(),
-                writeContextForOutputStream(outputStream)
+                writeContext
             )
             addListener(fingerprintWriter)
-            return Writing(fingerprintWriter, outputStream)
+            return Writing(fingerprintWriter)
         }
     }
 
     private
     inner class Writing(
-        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter,
-        private val outputStream: ByteArrayOutputStream
+        private val fingerprintWriter: InstantExecutionCacheFingerprintWriter
     ) : WritingState() {
         override fun stop(): WritingState {
             removeListener(fingerprintWriter)
             fingerprintWriter.close()
-            return Written(outputStream)
-        }
-    }
-
-    private
-    inner class Written(
-        private val outputStream: ByteArrayOutputStream
-    ) : WritingState() {
-        override fun commit(fingerprintFile: File): WritingState {
-            fingerprintFile
-                .outputStream()
-                .use(outputStream::writeTo)
             return Idle()
         }
     }
@@ -108,16 +89,12 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private
     var writingState: WritingState = Idle()
 
-    fun startCollectingFingerprint(writeContextForOutputStream: (OutputStream) -> DefaultWriteContext) {
-        writingState = writingState.start(writeContextForOutputStream)
+    fun startCollectingFingerprint(writeContext: DefaultWriteContext) {
+        writingState = writingState.start(writeContext)
     }
 
     fun stopCollectingFingerprint() {
         writingState = writingState.stop()
-    }
-
-    fun commitFingerprintTo(fingerprintFile: File) {
-        writingState = writingState.commit(fingerprintFile)
     }
 
     suspend fun ReadContext.checkFingerprint(): InvalidationReason? =

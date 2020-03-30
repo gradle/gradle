@@ -150,8 +150,6 @@ class DefaultInstantExecution internal constructor(
 
             try {
 
-                instantExecutionStateFile.createParentDirectories()
-
                 service<ProjectStateRegistry>().withLenientState {
                     withWriteContextFor(instantExecutionStateFile) {
                         encodeScheduledWork()
@@ -224,8 +222,11 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun startCollectingCacheFingerprint() {
-        cacheFingerprintController.startCollectingFingerprint {
-            cacheFingerprintWriteContextFor(it)
+        instantExecutionTemporaryFingerprintFile.run {
+            createParentDirectories()
+            cacheFingerprintController.startCollectingFingerprint(
+                cacheFingerprintWriteContextFor(outputStream())
+            )
         }
     }
 
@@ -236,7 +237,7 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeInstantExecutionCacheFingerprint() {
-        cacheFingerprintController.commitFingerprintTo(
+        instantExecutionTemporaryFingerprintFile.renameTo(
             instantExecutionFingerprintFile
         )
     }
@@ -446,6 +447,13 @@ class DefaultInstantExecution internal constructor(
     private
     fun File.createParentDirectories() {
         Files.createDirectories(parentFile.toPath())
+    }
+
+    private
+    val instantExecutionTemporaryFingerprintFile by unsafeLazy {
+        instantExecutionFingerprintFile.run {
+            resolveSibling("$name.temp")
+        }
     }
 
     private
