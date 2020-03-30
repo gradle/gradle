@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.initialization.InstantExecutionProjectAccessListener
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
@@ -42,6 +43,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
 
     override fun registerGradleServices(registration: ServiceRegistration) {
         registration.run {
+            add(InstantExecutionCacheFingerprintController::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)
         }

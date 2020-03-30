@@ -29,6 +29,10 @@
                 <td><literal>project.pmd.ignoreFailures</literal></td>
             </tr>
             <tr>
+                <td>maxFailures</td>
+                <td><literal>project.pmd.maxFailures</literal></td>
+            </tr>
+            <tr>
                 <td>rulePriority</td>
                 <td><literal>project.pmd.rulePriority</literal></td>
             </tr>

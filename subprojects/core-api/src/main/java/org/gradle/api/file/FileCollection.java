@@ -103,7 +103,8 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      * <p>Restricts the contents of this collection to those files which match the given criteria. The filtered
      * collection is live, so that it reflects any changes to this collection.</p>
      *
-     * <p>The given closure is passed the File as a parameter, and should return a boolean value.</p>
+     * <p>The given closure is passed the @{link File} as a parameter, and should return a boolean value. The closure should return {@code true}
+     * to include the file in the result and {@code false} to exclude the file from the result.</p>
      *
      * @param filterClosure The closure to use to select the contents of the filtered collection.
      * @return The filtered collection.

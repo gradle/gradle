@@ -31,7 +31,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
-    def "single source with include and exclude"() {
+    def "single source with include and exclude pattern"() {
         given:
         file("files/sub/a.txt").createFile()
         file("files/sub/dir/b.txt").createFile()
@@ -136,6 +136,112 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
             'dir/a.a',
             'dir/a.c'
         )
+    }
+
+    def "can expand tokens when copying"() {
+        file('files/a.txt').text = "\$one,\${two}"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: '1', two: 2)
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1,2"
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest/a.txt').text == "1,2"
+
+        when:
+        file('files/a.txt').text = "\${one} + \${two}"
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest/a.txt').text == "1 + 2"
+    }
+
+    def "can filter content using a filtering Reader when copying"() {
+        file('files/a.txt').text = "one"
+        file('files/b.txt').text = "two"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                filter(SubstitutingFilter)
+            }
+
+            class SubstitutingFilter extends FilterReader {
+                SubstitutingFilter(Reader reader) {
+                    super(new StringReader(reader.text.replaceAll("one", "1").replaceAll("two", "2")))
+                }
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1"
+        file('dest/b.txt').text == "2"
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest/a.txt').text == "1"
+
+        when:
+        file('files/a.txt').text = "one + two"
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest/a.txt').text == "1 + 2"
+    }
+
+    def "can filter content using a closure when copying"() {
+        file('files/a.txt').text = "one"
+        file('files/b.txt').text = "two"
+        buildScript """
+            task copy(type: Copy) {
+                from 'files'
+                into 'dest'
+                filter { return it.replaceAll("one", "1").replaceAll("two", "2") }
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/a.txt').text == "1"
+        file('dest/b.txt').text == "2"
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest/a.txt').text == "1"
+
+        when:
+        file('files/a.txt').text = "one + two"
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest/a.txt').text == "1 + 2"
     }
 
     def "useful help message when property cannot be expanded"() {

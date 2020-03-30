@@ -56,11 +56,11 @@ class CompositeFileTreeRootSpec(val roots: List<FileTreeSpec>) : FileTreeRootSpe
 
 
 private
-class WrappedFileCollectionTreeRootSpec(val collection: AbstractFileCollection) : FileTreeRootSpec()
+sealed class FileTreeSpec
 
 
 private
-sealed class FileTreeSpec
+class WrappedFileCollectionTreeSpec(val collection: AbstractFileCollection) : FileTreeSpec()
 
 
 private
@@ -122,6 +122,7 @@ class FileTreeCodec(
                     DefaultCompositeFileTree(
                         spec.roots.map {
                             when (it) {
+                                is WrappedFileCollectionTreeSpec -> FileCollectionBackFileTree(patternSetFactory, it.collection)
                                 is DirectoryTreeSpec -> FileTreeAdapter(directoryFileTreeFactory.create(it.file, it.patterns))
                                 is GeneratedTreeSpec -> FileTreeAdapter(DummyGeneratedFileTree(it.file, fileSystem))
                                 is ZipTreeSpec -> ownerService<FileOperations>().zipTree(it.file) as FileTreeInternal
@@ -129,7 +130,6 @@ class FileTreeCodec(
                             }
                         }
                     )
-                is WrappedFileCollectionTreeRootSpec -> FileCollectionBackFileTree(patternSetFactory, spec.collection)
             }
             isolate.identities.putInstance(id, tree)
             tree
@@ -138,19 +138,6 @@ class FileTreeCodec(
 
     private
     fun rootSpecOf(value: FileTreeInternal): FileTreeRootSpec {
-        // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used, eg in SourceTask and in CopySpec
-        // TODO - it would be better to apply this while visiting the tree structure, so that the same short circuiting is applied everywhere
-        //   Would need some rework of the visiting interfaces
-        val effectiveTree = if (value is FilteredFileTree && value.patterns.isEmpty) {
-            // No filters are applied, so discard the filtering tree
-            value.tree
-        } else {
-            value
-        }
-        if (effectiveTree is FileCollectionBackFileTree) {
-            return WrappedFileCollectionTreeRootSpec(effectiveTree.collection)
-        }
-
         val visitor = FileTreeVisitor()
         value.visitStructure(visitor)
         return CompositeFileTreeRootSpec(visitor.roots)
@@ -158,8 +145,21 @@ class FileTreeCodec(
 
     private
     class FileTreeVisitor : FileCollectionStructureVisitor {
-
         var roots = mutableListOf<FileTreeSpec>()
+
+        override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
+            if (fileCollection is FileCollectionBackFileTree) {
+                roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
+                return false
+            } else if (fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty) {
+                // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used, eg in SourceTask and in CopySpec
+                // Skip applying the filters to the tree
+                fileCollection.tree.visitStructure(this)
+                return false
+            } else {
+                return true
+            }
+        }
 
         override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
 

@@ -76,7 +76,7 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskNotSkipped(":generate")
-        output.count("checking") == 22 // checked twice, once to snapshot and once when the task action runs
+        output.count("checking") == 22 // checked twice, once to snapshot and once when the task action runs. Should be memoized when snapshotting
         outputContains("checking a/a.txt")
         outputContains("checking d/d.txt")
         file("out.txt").text == "a.txt,c.txt,d.txt"
@@ -138,9 +138,61 @@ class ConfigurableFileTreeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.assertTaskNotSkipped(":generate")
-        output.count("checking") == 20 // checked twice, once for snapshots and once when the task action runs
+        output.count("checking") == 20 // checked twice, once for snapshots and once when the task action runs. Should be memoized when snapshotting
         outputContains("checking a.txt")
         outputContains("checking d/e/f.txt")
         file("out.txt").text == "a.txt,c.txt,f.txt"
+    }
+
+    def "can filter the elements of a tree using a closure that receives pattern set"() {
+        given:
+        file('files/one.txt').createFile()
+        file('files/a/one.txt').createFile()
+        file('files/b/ignore.txt').createFile()
+        file('files/b/one.ignore').createFile()
+        buildFile << """
+            def files = fileTree(dir: 'files')
+            files.include('**/*one*')
+            def filtered = files.matching {
+                include('**/*.txt')
+                exclude('**/*ignore*')
+            }
+            task copy(type: Copy) {
+                from filtered
+                into 'dest'
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'a/one.txt'
+        )
+
+        when:
+        file('files/a/more-ignore.txt').createFile() // not an input
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'a/one.txt'
+        )
+
+        when:
+        file('files/c/more-one.txt').createFile()
+        run 'copy'
+
+        then:
+        result.assertTaskNotSkipped(':copy')
+        file('dest').assertHasDescendants(
+            'one.txt',
+            'a/one.txt',
+            'c/more-one.txt'
+        )
     }
 }

@@ -20,6 +20,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionSpec
+import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.provider.PropertyHost
@@ -406,6 +407,28 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         dependencies == [task] as Set<? extends Task>
         fileTreeDependencies == [task] as Set<? extends Task>
         filteredFileTreeDependencies == [task] as Set<? extends Task>
+    }
+
+    def "can visit contents when collection contains paths"() {
+        def visitor = Mock(FileCollectionStructureVisitor)
+        def one = testDir.file('one')
+        def two = testDir.file('two')
+
+        given:
+        collection.from("a", "b")
+
+        when:
+        collection.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> true
+        1 * fileResolver.resolve('a') >> one
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, {it as List == [one]}) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, {it as List == [one]})
+        1 * fileResolver.resolve('b') >> two
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, {it as List == [two]}) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, {it as List == [two]})
+        0 * _
     }
 
     def resolvesPathToFileWhenFinalized() {

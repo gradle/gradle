@@ -352,7 +352,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
     private void configureJavadocTask(ProjectInternal project, JavaPluginConvention pluginConvention) {
         SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureJavaDocTask(null, main, project.getTasks());
+        configureJavaDocTask(null, main, project.getTasks(), project.getExtensions().getByType(JavaPluginExtension.class));
     }
 
     private void registerSoftwareComponents(Project project) {
@@ -426,6 +426,8 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
+                JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
+                test.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
             }
         });
 

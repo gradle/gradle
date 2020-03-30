@@ -31,7 +31,7 @@ typealias InvalidationReason = String
 
 
 internal
-class InstantExecutionFingerprintChecker(private val host: Host) {
+class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
         fun fingerprintOf(fileCollection: FileCollectionInternal): CurrentFileCollectionFingerprint
@@ -48,8 +48,8 @@ class InstantExecutionFingerprintChecker(private val host: Host) {
                 is InstantExecutionCacheFingerprint.TaskInputs -> input.run {
                     val currentFingerprint = host.fingerprintOf(fileSystemInputs)
                     if (currentFingerprint.hash != fileSystemInputsFingerprint.hash) {
-                        // TODO: summarize what has changed
-                        return "an input to '$taskPath' has changed"
+                        // TODO: summarize what has changed (see https://github.com/gradle/instant-execution/issues/282)
+                        return "an input to task '$taskPath' has changed"
                     }
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {

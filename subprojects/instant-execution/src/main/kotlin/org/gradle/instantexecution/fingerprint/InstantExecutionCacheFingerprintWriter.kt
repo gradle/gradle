@@ -29,44 +29,25 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
-import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.vfs.VirtualFileSystem
-import org.gradle.kotlin.dsl.support.serviceOf
-import java.io.ByteArrayOutputStream
 import java.io.File
 
 
 internal
-sealed class InstantExecutionCacheFingerprint {
-
-    data class TaskInputs(
-        val taskPath: String,
-        val fileSystemInputs: FileCollectionInternal,
-        val fileSystemInputsFingerprint: CurrentFileCollectionFingerprint
-    ) : InstantExecutionCacheFingerprint()
-
-    data class InputFile(
-        val file: File,
-        val hash: HashCode?
-    ) : InstantExecutionCacheFingerprint()
-
-    data class ValueSource(
-        val obtainedValue: ObtainedValue
-    ) : InstantExecutionCacheFingerprint()
-}
-
-
-internal
-typealias ObtainedValue = ValueSourceProviderFactory.Listener.ObtainedValue<Any, ValueSourceParameters>
-
-
-internal
 class InstantExecutionCacheFingerprintWriter(
-    private val virtualFileSystem: VirtualFileSystem,
-    private val writeContext: DefaultWriteContext,
-    val outputStream: ByteArrayOutputStream
+    private val host: Host,
+    private val writeContext: DefaultWriteContext
 ) : ValueSourceProviderFactory.Listener, TaskInputsListener {
+
+    interface Host {
+
+        fun hashCodeOf(file: File): HashCode?
+
+        fun fingerprintOf(
+            fileCollection: FileCollectionInternal,
+            owner: TaskInternal
+        ): CurrentFileCollectionFingerprint
+    }
 
     /**
      * Finishes writing to the given [writeContext] and closes it.
@@ -88,7 +69,7 @@ class InstantExecutionCacheFingerprintWriter(
                     write(
                         InputFile(
                             file,
-                            virtualFileSystem.hashCodeOf(file)
+                            host.hashCodeOf(file)
                         )
                     )
                 }
@@ -115,7 +96,7 @@ class InstantExecutionCacheFingerprintWriter(
             InstantExecutionCacheFingerprint.TaskInputs(
                 task.identityPath.path,
                 fileSystemInputs,
-                fileCollectionFingerprinterFor(task).fingerprint(fileSystemInputs)
+                host.fingerprintOf(fileSystemInputs, task)
             )
         )
     }
@@ -132,19 +113,4 @@ class InstantExecutionCacheFingerprintWriter(
     private
     fun isBuildSrcTask(task: TaskInternal) =
         task.taskIdentity.buildPath.path == BUILD_SRC_PROJECT_PATH
-
-    private
-    fun fileCollectionFingerprinterFor(task: TaskInternal) =
-        task.serviceOf<AbsolutePathFileCollectionFingerprinter>()
 }
-
-
-private
-inline fun <reified T : Any> TaskInternal.serviceOf(): T =
-    project.serviceOf()
-
-
-internal
-fun VirtualFileSystem.hashCodeOf(file: File): HashCode? =
-    readRegularFileContentHash(file.path) { hashCode -> hashCode }
-        .orElse(null)
