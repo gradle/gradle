@@ -36,6 +36,19 @@ details of 2
 ## n
 -->
 
+## Security Improvements
+
+During our investigation of a recent security vulnerability in the [Plugin Portal Publish Plugin](https://blog.gradle.org/plugin-portal-update) we became aware of how much potentially sensitive information is logged when Gradle is executed at `--debug` level.
+This information can be publicly exposed when Gradle builds are executed on public CI like Travis CI, CircleCI, & GitHub Actions where build logs are publicly visible.
+This information may include sensitive credentials and authentication tokens.
+Much of this sensitive information logging occurs deep in components of the JVM and other libraries outside the control of Gradle.
+While debugging, this information may be inherently useful for build maintainers.
+
+To strike a balance between the security risks of logging sensitive information and the needs of build maintainers who may find this information useful,
+this version of Gradle now warns users about the risks of using `--debug` at the beginning and end of the log on every build.
+
+We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at `--debug` level and no higher.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
