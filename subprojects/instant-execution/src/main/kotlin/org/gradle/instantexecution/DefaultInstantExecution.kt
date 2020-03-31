@@ -237,8 +237,9 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeInstantExecutionCacheFingerprint() {
-        instantExecutionTemporaryFingerprintFile.renameTo(
-            instantExecutionFingerprintFile
+        Files.move(
+            instantExecutionTemporaryFingerprintFile.toPath(),
+            instantExecutionFingerprintFile.toPath()
         )
     }
 
