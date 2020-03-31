@@ -22,7 +22,6 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
@@ -35,10 +34,8 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
-import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaPluginExtension;
@@ -50,14 +47,12 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.component.external.model.JavaEcosystemVariantDerivationStrategy;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
-import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
@@ -179,24 +174,17 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
+                configureLibraryElements(compileTask, sourceSet, configurations, project.getObjects());
                 configureTargetPlatform(compileTask, sourceSet, configurations, pluginConvention);
 
-                // If we are potentially compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                if (JavaModuleDetector.isModuleSource(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
-                    Configuration compileClasspathConfiguration = configurations.getByName(sourceSet.getCompileClasspathConfigurationName());
-                    // Ideally, the attribute would be configured lazily taking 'JavaCompile.modularClasspathHandling' into account after the task is realized and configured.
-                    // For that we need: https://github.com/gradle/gradle/issues/11139
-                    compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
-                }
-
-                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
-                    @Override
-                    public CompileOptions transform(JavaCompile javaCompile) {
-                        return javaCompile.getOptions();
-                    }
-                }));
+                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(JavaCompile::getOptions));
             }
         });
+    }
+
+    private void configureLibraryElements(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+        Action<ConfigurationInternal> configureLibraryElements = JvmPluginsHelper.configureLibraryElementsAttributeForCompileClasspath(javaClasspathPackaging, sourceSet, compileTaskProvider, objectFactory);
+        ((ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName())).beforeLocking(configureLibraryElements);
     }
 
     private void configureTargetPlatform(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, JavaPluginConvention pluginConvention) {
@@ -309,14 +297,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
-        JvmPluginsHelper.configureAttributesForCompileClasspath(compileClasspathConfiguration, convention, objectFactory, javaClasspathPackaging);
+        JvmPluginsHelper.configureAttributesForCompileClasspath(compileClasspathConfiguration, objectFactory);
 
         ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeResolved(true);
-        JvmPluginsHelper.configureAttributesForRuntimeClasspath(annotationProcessorConfiguration, convention, objectFactory);
+        JvmPluginsHelper.configureAttributesForRuntimeClasspath(annotationProcessorConfiguration, objectFactory);
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
@@ -330,7 +318,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
-        JvmPluginsHelper.configureAttributesForRuntimeClasspath(runtimeClasspathConfiguration, convention, objectFactory);
+        JvmPluginsHelper.configureAttributesForRuntimeClasspath(runtimeClasspathConfiguration, objectFactory);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));

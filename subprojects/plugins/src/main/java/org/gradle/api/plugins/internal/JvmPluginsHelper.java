@@ -42,8 +42,11 @@ import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
@@ -61,6 +64,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
@@ -225,18 +229,33 @@ public class JvmPluginsHelper {
         return null;
     }
 
-    public static void configureAttributesForCompileClasspath(ConfigurationInternal configuration, JavaPluginConvention javaPluginConvention, ObjectFactory objectFactory, boolean javaClasspathPackaging) {
+    public static void configureAttributesForCompileClasspath(ConfigurationInternal configuration, ObjectFactory objectFactory) {
         configuration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
-        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
         configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
     }
 
-    public static void configureAttributesForRuntimeClasspath(ConfigurationInternal configuration, JavaPluginConvention javaPluginConvention, ObjectFactory objectFactory) {
+    public static void configureAttributesForRuntimeClasspath(ConfigurationInternal configuration, ObjectFactory objectFactory) {
         configuration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
         configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
         configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
         configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+    }
+
+    public static Action<ConfigurationInternal> configureLibraryElementsAttributeForCompileClasspath(boolean javaClasspathPackaging, SourceSet sourceSet, TaskProvider<JavaCompile> compileTaskProvider, ObjectFactory objectFactory) {
+        return conf -> {
+            AttributeContainerInternal attributes = conf.getAttributes();
+            if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
+                String libraryElements;
+                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
+                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularClasspathHandling().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
+                   libraryElements = LibraryElements.JAR;
+                } else {
+                    libraryElements = LibraryElements.CLASSES;
+                }
+                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
+            }
+        };
     }
 
     public static Action<ConfigurationInternal> configureDefaultTargetPlatform(JavaPluginConvention convention, boolean alwaysEnabled, TaskProvider<JavaCompile> compileTaskProvider) {
