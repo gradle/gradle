@@ -133,7 +133,7 @@ public class Javadoc extends SourceTask {
 
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
-        boolean isModule = modularClasspathHandling.getInferModulePath().get() && JavaModuleDetector.isModuleSource(sourcesRoots);
+        boolean isModule = JavaModuleDetector.isModuleSource(modularClasspathHandling.getInferModulePath().get(), sourcesRoots);
 
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));

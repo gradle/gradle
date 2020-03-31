@@ -80,13 +80,23 @@ public class JavaModuleDetector {
         return classpath.filter(modulePathFilter);
     }
 
-    public boolean isModule(FileCollection files) {
+    public boolean isModule(boolean inferModulePath, FileCollection files) {
+        if (!inferModulePath) {
+            return false;
+        }
         for(File file : files.getFiles()) {
-            if (cache.get(file)) {
+            if (isModule(file)) {
                 return true;
             }
         }
         return false;
+    }
+
+    public boolean isModule(boolean inferModulePath, File file) {
+        if (!inferModulePath) {
+            return false;
+        }
+        return isModule(file);
     }
 
     private boolean isModule(File file) {
@@ -103,7 +113,10 @@ public class JavaModuleDetector {
         return !isModule(file);
     }
 
-    public static boolean isModuleSource(Iterable<File> sourcesRoots) {
+    public static boolean isModuleSource(boolean inferModulePath, Iterable<File> sourcesRoots) {
+        if (!inferModulePath) {
+            return false;
+        }
         for (File srcFolder : sourcesRoots) {
             if (isModuleSourceFolder(srcFolder)) {
                 return true;
