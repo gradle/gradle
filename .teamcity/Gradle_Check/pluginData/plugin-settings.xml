@@ -29,7 +29,7 @@
         <state type="buildInterrupted" enabled="true" />
         <state type="buildFailed" enabled="true" />
       </states>
-      <build-types enabled-for-all="false" enabled-for-subprojects="false">
+      <build-types enabled-for-all="false" enabled-for-subprojects="true">
         <build-type id="bt7848" />
         <build-type id="bt7847" />
         <build-type id="bt7886" />
