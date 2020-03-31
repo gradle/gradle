@@ -79,12 +79,8 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
     }
 
     private void processExtraAttributes(AttributeContainer attributes, StringBuilder sb) {
-        Set<Attribute<?>> remaining = Sets.newHashSet(attributes.keySet());
-        remaining.remove(Category.CATEGORY_ATTRIBUTE);
-        remaining.remove(Usage.USAGE_ATTRIBUTE);
-        remaining.remove(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        remaining.remove(Bundling.BUNDLING_ATTRIBUTE);
-        remaining.remove(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        Set<Attribute<?>> remaining = Sets.newLinkedHashSet(attributes.keySet());
+        remaining.removeAll(ATTRIBUTES);
         if (!remaining.isEmpty()) {
             sb.append(", as well as ");
             boolean comma = false;
