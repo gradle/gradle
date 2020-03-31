@@ -145,7 +145,7 @@ class DefaultInstantExecution internal constructor(
 
         stopCollectingCacheFingerprint()
 
-        buildScan.instantExecutionStoreAction()
+        buildScan.onInstantExecutionStoreAction()
 
         buildOperationExecutor.withStoreOperation {
 
@@ -161,7 +161,7 @@ class DefaultInstantExecution internal constructor(
 
                 writeInstantExecutionCacheFingerprint()
 
-                buildScan.instantExecutionStateSize(
+                buildScan.onInstantExecutionStats(
                     instantExecutionStateFile.length(),
                     instantExecutionFingerprintFile.length()
                 )
@@ -218,8 +218,8 @@ class DefaultInstantExecution internal constructor(
 
         readBuildScanState(buildScan)
 
-        buildScan.instantExecutionLoadAction()
-        buildScan.instantExecutionStateSize(
+        buildScan.onInstantExecutionLoadAction()
+        buildScan.onInstantExecutionStats(
             instantExecutionStateFile.length(),
             instantExecutionFingerprintFile.length()
         )

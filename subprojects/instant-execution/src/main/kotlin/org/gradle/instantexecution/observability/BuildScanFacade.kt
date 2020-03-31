@@ -40,17 +40,17 @@ interface BuildScanFacade {
 
     fun value(key: String, value: Any?)
 
-    fun instantExecutionStoreAction() {
+    fun onInstantExecutionStoreAction() {
         value("instant-execution:enabled", true)
         value("instant-execution:action", "store")
     }
 
-    fun instantExecutionLoadAction() {
+    fun onInstantExecutionLoadAction() {
         value("instant-execution:enabled", true)
         value("instant-execution:action", "load")
     }
 
-    fun instantExecutionStateSize(stateSize: Long, fingerprintSize: Long) {
+    fun onInstantExecutionStats(stateSize: Long, fingerprintSize: Long) {
         value("instant-execution:state:size", stateSize)
         value("instant-execution:fingerprint:size", fingerprintSize)
     }
@@ -109,11 +109,11 @@ class DefaultBuildScanFacade(
 
     private
     fun stringGroovyProperty(name: String? = null, lenient: Boolean = false, owner: () -> Any) =
-        GroovyPropertyDelegate(name, lenient, owner) { it as? String }
+        GroovyPropertyDelegate(name, lenient, owner) { it as String? }
 
     private
     fun booleanGroovyProperty(name: String? = null, lenient: Boolean = false, owner: () -> Any) =
-        GroovyPropertyDelegate(name, lenient, owner) { it as? Boolean ?: false }
+        GroovyPropertyDelegate(name, lenient, owner) { it as Boolean? ?: false }
 
     private
     fun buildScan(dynamicAction: GroovyBuilderScope.() -> Unit) =
@@ -145,16 +145,16 @@ class DefaultBuildScanFacade(
     ) {
 
         operator fun getValue(thisRef: Any, property: KProperty<*>): T =
-            if (isBuildScanEnabled) owner().withGroovyBuilder {
-                val value = try {
-                    getProperty(name ?: property.name)
-                } catch (ex: Exception) {
-                    if (lenient) null
-                    else throw ex
-                }
-                return transform(value)
-            }
-            else transform(null)
+            transform(
+                if (isBuildScanEnabled) owner().withGroovyBuilder {
+                    try {
+                        getProperty(name ?: property.name)
+                    } catch (ex: Exception) {
+                        if (lenient) null
+                        else throw ex
+                    }
+                } else null
+            )
 
         operator fun setValue(thisRef: Any, property: KProperty<*>, value: Any?) =
             if (isBuildScanEnabled) owner().withGroovyBuilder {
