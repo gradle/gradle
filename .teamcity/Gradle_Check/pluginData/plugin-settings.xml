@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <settings>
   <webhooks enabled="true">
-    <webhook url="http://dev6.gradle.org:3003" enabled="true" format="tailoredjson">
+    <webhook url="http://dev6.gradle.org:3003/teamcity" enabled="true" format="tailoredjson">
       <states>
         <state type="buildStarted" enabled="false" />
         <state type="responsibilityChanged" enabled="false" />
