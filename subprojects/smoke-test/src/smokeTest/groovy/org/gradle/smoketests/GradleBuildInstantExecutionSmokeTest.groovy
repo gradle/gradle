@@ -89,7 +89,11 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
     }
 
     private void instantRun(String... tasks) {
-        result = run("-Dorg.gradle.unsafe.instant-execution=true", *tasks)
+        result = run(
+            "-Dorg.gradle.unsafe.instant-execution=true",
+            "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false", // TODO remove
+            *tasks
+        )
     }
 
     BuildResult run(String... tasks) {

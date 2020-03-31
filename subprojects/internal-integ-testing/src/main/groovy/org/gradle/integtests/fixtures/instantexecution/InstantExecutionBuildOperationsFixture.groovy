@@ -33,13 +33,31 @@ class InstantExecutionBuildOperationsFixture {
     }
 
     void assertStateLoaded() {
-        assertThat(loadOperation(), notNullValue())
+        def load = loadOperation()
+        assertThat(load, notNullValue())
+        assertThat(load.failure, nullValue())
+        assertThat(storeOperation(), nullValue())
+    }
+
+    void assertStateLoadFailed() {
+        def load = loadOperation()
+        assertThat(load, notNullValue())
+        assertThat(load.failure, notNullValue())
         assertThat(storeOperation(), nullValue())
     }
 
     void assertStateStored() {
         assertThat(loadOperation(), nullValue())
-        assertThat(storeOperation(), notNullValue())
+        def store = storeOperation()
+        assertThat(store, notNullValue())
+        assertThat(store.failure, nullValue())
+    }
+
+    void assertStateStoreFailed() {
+        assertThat(loadOperation(), nullValue())
+        def store = storeOperation()
+        assertThat(store, notNullValue())
+        assertThat(store.failure, notNullValue())
     }
 
     void assertNoInstantExecution() {

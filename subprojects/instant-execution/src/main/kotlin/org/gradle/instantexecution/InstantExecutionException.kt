@@ -16,25 +16,73 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.api.GradleException
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.buildConsoleSummary
 
+import org.gradle.internal.exceptions.Contextual
+import org.gradle.internal.exceptions.DefaultMultiCauseException
 
-abstract class InstantExecutionException(message: String) : GradleException(message)
+import java.io.File
 
 
 /**
- * Instant execution state could not be cached.
+ * Marker interface for exception handling.
  */
-class InstantExecutionErrorsException : InstantExecutionException(
-    "Instant execution state could not be cached."
-)
+internal
+interface InstantExecutionThrowable
 
 
-class TooManyInstantExecutionProblemsException : InstantExecutionException(
-    "Maximum number of instant execution problems has been reached. This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>."
-)
+/**
+ * State might be corrupted and should be discarded.
+ */
+@Contextual
+class InstantExecutionError internal constructor(
+    error: String,
+    cause: Throwable? = null
+) : Exception(
+    "Instant execution state could not be cached: $error",
+    cause
+), InstantExecutionThrowable
 
 
-class InstantExecutionProblemsException : InstantExecutionException(
-    "Problems found while caching instant execution state. Failing because -D${SystemProperties.failOnProblems} is 'true'."
+@Contextual
+sealed class InstantExecutionException private constructor(
+    message: () -> String,
+    causes: Iterable<Throwable>
+) : DefaultMultiCauseException(message, causes), InstantExecutionThrowable
+
+
+open class InstantExecutionProblemsException : InstantExecutionException {
+
+    protected
+    constructor(
+        message: String,
+        problems: List<PropertyProblem>,
+        htmlReportFile: File
+    ) : super(
+        { "$message\n${buildConsoleSummary(problems, htmlReportFile)}" },
+        problems.mapNotNull(PropertyProblem::exception)
+    )
+
+    internal
+    constructor(
+        problems: List<PropertyProblem>,
+        htmlReportFile: File
+    ) : this(
+        "Instant execution problems found in this build.\n" +
+            "Failing because -D${SystemProperties.failOnProblems} is 'true'.",
+        problems,
+        htmlReportFile
+    )
+}
+
+
+class TooManyInstantExecutionProblemsException internal constructor(
+    problems: List<PropertyProblem>,
+    htmlReportFile: File
+) : InstantExecutionProblemsException(
+    "Maximum number of instant execution problems has been reached.\n" +
+        "This behavior can be adjusted via -D${SystemProperties.maxProblems}=<integer>.",
+    problems,
+    htmlReportFile
 )
