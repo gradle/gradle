@@ -16,8 +16,6 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 
@@ -47,37 +45,6 @@ class InstantExecutionBuildScanIntegrationTest extends AbstractInstantExecutionI
 
         then:
         postBuildOutputContains("Build scan written to")
-    }
-
-    @Requires(TestPrecondition.ONLINE)
-    def "can publish build scans using --scan"() {
-
-        given:
-        def instant = newInstantExecutionFixture()
-        settingsKotlinFile << '''
-            plugins {
-                `gradle-enterprise`
-            }
-
-            gradleEnterprise.buildScan {
-                termsOfServiceUrl = "https://gradle.com/terms-of-service"
-                termsOfServiceAgree = "yes"
-            }
-        '''
-
-        when:
-        instantRun "help", "--scan"
-
-        then:
-        instant.assertStateStored()
-        postBuildOutputContains("Publishing build scan...")
-
-        when:
-        instantRun "help", "--scan"
-
-        then:
-        instant.assertStateLoaded()
-        postBuildOutputContains("Publishing build scan...")
     }
 
     @Unroll
