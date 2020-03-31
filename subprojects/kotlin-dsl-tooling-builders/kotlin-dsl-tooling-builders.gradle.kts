@@ -44,6 +44,7 @@ dependencies {
 
     testImplementation(project(":kotlinDslTestFixtures"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
+    integTestImplementation(project(":internalTesting"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
