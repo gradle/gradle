@@ -30,7 +30,7 @@ import org.gradle.instantexecution.extensions.unsafeLazy
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.fingerprint.InvalidationReason
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
-import org.gradle.instantexecution.observability.BuildScanFacade
+import org.gradle.instantexecution.observability.InstantExecutionBuildScan
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
@@ -71,7 +71,7 @@ class DefaultInstantExecution internal constructor(
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val buildScan: BuildScanFacade
+    private val buildScan: InstantExecutionBuildScan
 ) : InstantExecution {
 
     interface Host {
@@ -387,7 +387,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    suspend fun DefaultWriteContext.writeBuildScanState(buildScan: BuildScanFacade) {
+    suspend fun DefaultWriteContext.writeBuildScanState(buildScan: InstantExecutionBuildScan) {
         writeNullableString(buildScan.enterpriseServer)
         writeNullableString(buildScan.termsOfServiceUrl)
         writeNullableString(buildScan.termsOfServiceAgree)
@@ -397,7 +397,7 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    suspend fun DefaultReadContext.readBuildScanState(buildScan: BuildScanFacade) {
+    suspend fun DefaultReadContext.readBuildScanState(buildScan: InstantExecutionBuildScan) {
         buildScan.enterpriseServer = readNullableString()
         buildScan.termsOfServiceUrl = readNullableString()
         buildScan.termsOfServiceAgree = readNullableString()

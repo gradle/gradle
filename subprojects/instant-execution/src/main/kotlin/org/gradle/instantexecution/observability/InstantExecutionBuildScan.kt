@@ -25,7 +25,7 @@ import kotlin.reflect.KProperty
 
 
 internal
-interface BuildScanFacade {
+interface InstantExecutionBuildScan {
 
     var enterpriseServer: String?
     var termsOfServiceUrl: String?
@@ -58,10 +58,10 @@ interface BuildScanFacade {
 
 
 internal
-class DefaultBuildScanFacade(
+class DefaultInstantExecutionBuildScan(
     private val host: InstantExecutionHost,
     private val buildScanPluginApplied: BuildScanPluginApplied
-) : BuildScanFacade {
+) : InstantExecutionBuildScan {
 
     private
     val gradleEnterprise: Any by unsafeLazy {
