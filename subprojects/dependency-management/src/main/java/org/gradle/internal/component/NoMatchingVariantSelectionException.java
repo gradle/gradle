@@ -20,6 +20,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.Collection;
@@ -36,7 +37,7 @@ public class NoMatchingVariantSelectionException extends VariantSelectionExcepti
                                  Collection<? extends ResolvedVariant> candidates,
                                  AttributeMatcher matcher, AttributeDescriber describer) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("No variants of " + producerDisplayName + " match the consumer attributes");
+        formatter.node("No variants of " + style(StyledTextOutput.Style.Info, producerDisplayName) + " match the consumer attributes");
         formatter.startChildren();
         for (ResolvedVariant variant : candidates) {
             formatter.node(variant.asDescribable().getCapitalizedDisplayName());

@@ -366,30 +366,21 @@ task show {
         expect:
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
-  - Configuration ':a:compile' variant free:
-      - Incompatible attributes:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-          - Required flavor 'preview' and found incompatible value 'free'.
-      - Other compatible attribute: Provides usage 'compile'
-  - Configuration ':a:compile' variant paid:
-      - Incompatible attributes:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-          - Required flavor 'preview' and found incompatible value 'paid'.
-      - Other compatible attribute: Provides usage 'compile'""")
+  - Configuration ':a:compile' variant free is attribute 'usage' with value 'compile':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
+  - Configuration ':a:compile' variant paid is attribute 'usage' with value 'compile':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attributes:
           - Required flavor 'preview' but no value provided.
-          - Found org.gradle.status 'release' but wasn't required.
           - Required usage 'compile' but no value provided.""")
 
         failure.assertHasCause("""No variants of things.jar match the consumer attributes:
   - things.jar:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attributes:
           - Required flavor 'preview' but no value provided.
           - Required usage 'compile' but no value provided.""")

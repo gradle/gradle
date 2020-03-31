@@ -16,13 +16,13 @@
 package org.gradle.api.internal.attributes;
 
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 
+import java.util.Map;
 import java.util.Set;
 
 public interface AttributeDescriber {
     Set<Attribute<?>> getAttributes();
-    String describeConsumerAttributes(AttributeContainer attributes);
+    String describeAttributeSet(Map<Attribute<?>, ?> attributes);
     String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
     String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
     String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);

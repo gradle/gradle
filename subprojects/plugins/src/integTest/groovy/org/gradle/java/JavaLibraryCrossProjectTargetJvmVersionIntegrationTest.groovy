@@ -56,23 +56,11 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
-  - Variant 'apiElements' capability test:producer:unspecified:
-      - Incompatible attribute:
-          - Required compatibility with Java 6 and found incompatible Java 7
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides an API
-  - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Incompatible attribute:
-          - Required compatibility with Java 6 and found incompatible Java 7
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Required an API and found a runtime''')
+        failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but:
+  - Variant 'apiElements' capability test:producer:unspecified is an API of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+  - Variant 'runtimeElements' capability test:producer:unspecified is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6''')
     }
 
     @Unroll
@@ -149,23 +137,11 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :producer was found.
-  - Variant 'apiElements' capability test:producer:unspecified:
-      - Incompatible attribute:
-          - Required compatibility with Java 6 and found incompatible Java 7
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides an API
-  - Variant 'runtimeElements' capability test:producer:unspecified:
-      - Incompatible attribute:
-          - Required compatibility with Java 6 and found incompatible Java 7
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Required an API and found a runtime""")
+        failure.assertHasCause("""No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but:
+  - Variant 'apiElements' capability test:producer:unspecified is an API of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
+  - Variant 'runtimeElements' capability test:producer:unspecified is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6""")
 
         when:
         buildFile << """

@@ -42,7 +42,7 @@ public class AmbiguousVariantSelectionException extends VariantSelectionExceptio
         if (consumer.getAttributes().isEmpty()) {
             formatter.node("More than one variant of " + producerDisplayName + " matches the consumer attributes");
         } else {
-            formatter.node("The consumer was configured to find " + describer.describeConsumerAttributes(consumer) + ". However we cannot choose between the following variants of " + producerDisplayName);
+            formatter.node("The consumer was configured to find " + describer.describeAttributeSet(consumer.asMap()) + ". However we cannot choose between the following variants of " + producerDisplayName);
         }
         formatter.startChildren();
         for (ResolvedVariant variant : variants) {

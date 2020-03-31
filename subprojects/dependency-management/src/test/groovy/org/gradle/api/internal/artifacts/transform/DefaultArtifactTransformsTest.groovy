@@ -277,13 +277,11 @@ Found the following transforms:
 
         then:
         def e = thrown(NoMatchingVariantSelectionException)
-        e.message == toPlatformLineSeparators("""No variants of <component> match the consumer attributes:
+        e.message == toPlatformLineSeparators("""No variants of  match the consumer attributes:
   - <variant1>:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
   - <variant2>:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'classes'.""")
+      - Incompatible because this component declares attribute 'artifactType' with value 'classes' and the consumer needed attribute 'artifactType' with value 'dll'""")
     }
 
     def visit(ResolvedArtifactSet set) {

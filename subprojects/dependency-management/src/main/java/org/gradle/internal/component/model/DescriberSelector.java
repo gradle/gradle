@@ -17,14 +17,14 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.internal.attributes.AbstractAttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
-import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class DescriberSelector {
@@ -61,9 +61,9 @@ public class DescriberSelector {
         }
 
         @Override
-        public String describeConsumerAttributes(AttributeContainer attributes) {
-            String description = delegate.describeConsumerAttributes(attributes);
-            return description == null ? DefaultDescriber.INSTANCE.describeConsumerAttributes(attributes) : description;
+        public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
+            String description = delegate.describeAttributeSet(attributes);
+            return description == null ? DefaultDescriber.INSTANCE.describeAttributeSet(attributes) : description;
         }
 
         @Override
@@ -100,13 +100,14 @@ public class DescriberSelector {
         }
 
         @Override
-        public String describeConsumerAttributes(AttributeContainer attributes) {
+        public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
             StringBuilder sb = new StringBuilder();
-            for (Attribute<?> attribute : attributes.keySet()) {
+            for (Map.Entry<Attribute<?>, ?> entry : attributes.entrySet()) {
+                Attribute<?> attribute = entry.getKey();
                 if (sb.length() > 0) {
                     sb.append(", ");
                 }
-                sb.append("attribute '").append(attribute.getName()).append("' with value '").append(attributes.getAttribute(attribute) + "'");
+                sb.append("attribute '").append(attribute.getName()).append("' with value '").append(entry.getValue()).append("'");
             }
             return sb.toString();
         }

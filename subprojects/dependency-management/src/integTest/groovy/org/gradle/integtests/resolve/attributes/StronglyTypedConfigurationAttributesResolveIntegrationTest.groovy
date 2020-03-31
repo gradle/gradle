@@ -404,11 +404,8 @@ All of them match the consumer attributes:
           - Provides buildType 'debug'
           - Required flavor 'free' and found 'ONE'.
 The following variants were also considered but didn't match the requested attributes:
-  - Variant 'bar' capability test:b:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'debug' and found incompatible value 'release'.
-      - Other compatible attribute:
-          - Required flavor 'free' and found 'ONE'."""
+  - Variant 'bar' capability test:b:unspecified is attribute 'flavor' with value 'ONE':
+      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
     }
 
     def "can select best compatible match when single best matches are found on individual attributes"() {

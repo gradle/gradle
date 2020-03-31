@@ -26,6 +26,7 @@ import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.exceptions.ContextAwareException;
 import org.gradle.internal.exceptions.ExceptionContextVisitor;
 import org.gradle.internal.exceptions.FailureResolutionAware;
+import org.gradle.internal.exceptions.StyledException;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.text.BufferingStyledTextOutput;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
@@ -137,7 +138,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         if (failure instanceof ContextAwareException) {
             ((ContextAwareException) failure).accept(new ExceptionFormattingVisitor(details));
         } else {
-            details.details.text(getMessage(failure));
+            details.renderDetails();
         }
     }
 
@@ -153,7 +154,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         protected void visitCause(Throwable cause) {
             failureDetails.failure = cause;
-            failureDetails.details.text(getMessage(cause));
+            failureDetails.renderDetails();
         }
 
         @Override
@@ -164,7 +165,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
         @Override
         public void node(Throwable node) {
             LinePrefixingStyledTextOutput output = getLinePrefixingStyledTextOutput(failureDetails);
-            output.text(getMessage(node));
+            renderStyledError(node, output);
         }
 
         @Override
@@ -288,6 +289,18 @@ public class BuildExceptionReporter implements Action<Throwable> {
 
         public FailureDetails(Throwable failure) {
             this.failure = failure;
+        }
+
+        void renderDetails() {
+            renderStyledError(failure, details);
+        }
+    }
+
+    static void renderStyledError(Throwable failure, StyledTextOutput details) {
+        if (failure instanceof StyledException) {
+            ((StyledException) failure).render(details);
+        } else {
+            details.text(getMessage(failure));
         }
     }
 }

@@ -66,8 +66,8 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("The consumer was configured to find attribute 'quality' with value 'canary' but no matching variant of org.test:module:1.0 was found.")
-            failure.assertThatCause(containsNormalizedString("Required quality '$requested' and found incompatible value 'qa'"))
+            failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'canary' but:")
+            failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'qa' and the consumer needed attribute 'quality' with value '$requested'"))
         }
 
         where:

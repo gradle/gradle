@@ -93,9 +93,11 @@ class AttributeConfigurationSelectorTest extends Specification {
   - api2
 All of them match the consumer attributes:
   - Variant 'api1' capability org:lib:1.0:
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'
   - Variant 'api2' capability org:lib:1.0:
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'''')
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'''')
     }
 
     def "fails to select a variant when there no matching candidates"() {
@@ -113,13 +115,11 @@ All of them match the consumer attributes:
 
         then:
         NoMatchingConfigurationSelectionException e = thrown()
-        failsWith(e, '''The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but no matching variant of org:lib:1.0 was found.
+        failsWith(e, '''No matching variant of org:lib:1.0 was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'cplusplus-headers' but:
   - Variant 'api' capability org:lib:1.0:
-      - Incompatible attribute:
-          - Required org.gradle.usage 'cplusplus-headers' and found incompatible value 'java-api'.
+      - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-api' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'
   - Variant 'runtime' capability org:lib:1.0:
-      - Incompatible attribute:
-          - Required org.gradle.usage 'cplusplus-headers' and found incompatible value 'java-runtime'.''')
+      - Incompatible because this component declares attribute 'org.gradle.usage' with value 'java-runtime' and the consumer needed attribute 'org.gradle.usage' with value 'cplusplus-headers\'''')
     }
 
     @Unroll
@@ -199,11 +199,14 @@ All of them match the consumer attributes:
   - api3
 All of them match the consumer attributes:
   - Variant 'api1' capability org:lib:1.0:
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'
   - Variant 'api2' capability org:lib:1.0:
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'
   - Variant 'api3' capabilities org:lib:1.0 and org:second:1.0:
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'''')
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'''')
         /*
         There were multiple variants of `org:lib:1.0` which provided what this configuration was looking for:
         All api1, api2 and api3 are compatible with what this configuration is looking for (a Java API).
@@ -336,10 +339,12 @@ All of them match the consumer attributes:
 All of them match the consumer attributes:
   - Variant 'first' capability org:lib:1.0:
       - Unmatched attribute: Found extra 'v1' but wasn't required.
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'
   - Variant 'second' capability org:lib:1.0:
       - Unmatched attribute: Found other 'true' but wasn't required.
-      - Compatible attribute: Provides org.gradle.usage 'java-api\'''')
+      - Compatible attribute:
+          - Provides org.gradle.usage 'java-api\'''')
 
     }
 

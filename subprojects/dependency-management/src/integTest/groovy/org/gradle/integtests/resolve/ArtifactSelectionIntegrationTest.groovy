@@ -888,35 +888,22 @@ task show {
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:
-  - Configuration ':lib:compile':
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other compatible attribute: Provides usage 'api'
-  - Configuration ':lib:compile' variant debug:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other compatible attributes:
-          - Found buildType 'debug' but wasn't required.
-          - Provides usage 'api'
-  - Configuration ':lib:compile' variant release:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other compatible attributes:
-          - Found buildType 'release' but wasn't required.
-          - Provides usage 'api'""")
+  - Configuration ':lib:compile' is attribute 'usage' with value 'api':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+  - Configuration ':lib:compile' variant debug is attribute 'usage' with value 'api':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+  - Configuration ':lib:compile' variant release is attribute 'usage' with value 'api':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other compatible attributes:
-          - Found org.gradle.status 'integration' but wasn't required.
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+      - Other compatible attribute:
           - Required usage 'api' but no value provided.""")
 
         failure.assertHasCause("""No variants of thing.jar match the consumer attributes:
   - thing.jar:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attribute:
           - Required usage 'api' but no value provided.""")
 
