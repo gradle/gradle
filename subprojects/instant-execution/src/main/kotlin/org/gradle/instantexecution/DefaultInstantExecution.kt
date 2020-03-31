@@ -143,9 +143,9 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        buildScan.instantExecutionStoreAction()
-
         stopCollectingCacheFingerprint()
+
+        buildScan.instantExecutionStoreAction()
 
         buildOperationExecutor.withStoreOperation {
 
