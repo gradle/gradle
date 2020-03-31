@@ -162,11 +162,14 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
             writer.write("import " + targetClass + ";\n");
+            writer.write("import org.gradle.util.GradleVersion;\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
             writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
+            writer.write("  private static final String MIN_SUPPORTED_GRADLE_VERSION = \"6.4\";\n");
             writer.write("  public void apply(" + targetClass + " target) {\n");
+            writer.write("      assertSupportedByCurrentGradleVersion();\n");
             writer.write("      try {\n");
             writer.write("          Class<?> pluginsBlockClass = " + pluginsBlockClass + ";\n");
             writer.write("          Class<?> precompiledScriptClass = " + buildScriptClass + ";\n");
@@ -175,7 +178,14 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
             writer.write("                  pluginsBlockClass,\n");
             writer.write("                  precompiledScriptClass\n");
             writer.write("              );\n");
-            writer.write("      } catch (Exception e) { throw new RuntimeException(e); }\n");
+            writer.write("      } catch (Exception e) {\n");
+            writer.write("          throw new RuntimeException(e);\n");
+            writer.write("      }\n");
+            writer.write("  }\n");
+            writer.write("  private static void assertSupportedByCurrentGradleVersion() {\n");
+            writer.write("      if (GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version(MIN_SUPPORTED_GRADLE_VERSION)) < 0) {\n");
+            writer.write("          throw new RuntimeException(\"Precompiled Groovy script plugins require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");\n");
+            writer.write("      }\n");
             writer.write("  }\n");
             writer.write("}\n");
         } catch (IOException e) {

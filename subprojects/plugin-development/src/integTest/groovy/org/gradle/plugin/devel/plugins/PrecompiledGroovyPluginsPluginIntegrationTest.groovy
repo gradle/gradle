@@ -568,6 +568,37 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         }
     }
 
+    @ToBeFixedForInstantExecution
+    def "can not use a precompiled script plugin with Gradle earlier than 6.4"() {
+        given:
+        def pluginJar = packagePrecompiledPlugin("foo.gradle", "println 'foo plugin applied'")
+
+        when:
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath(files("$pluginJar"))
+                }
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo'
+            }
+        """
+
+        def distribution = buildContext.distribution('6.3')
+
+        then:
+        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").runWithFailure()
+        result.assertHasDescription("An exception occurred applying plugin request [id: 'foo']")
+        result.assertHasCause("Failed to apply plugin [id 'foo']")
+        result.assertHasCause('Precompiled Groovy script plugins require Gradle 6.4 or higher')
+        !result.error.contains('java.lang.NoClassDefFoundError')
+        !result.output.contains('foo plugin applied')
+    }
+
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
