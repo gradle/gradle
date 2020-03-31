@@ -99,61 +99,19 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause('''The consumer was configured to find an API of a library compatible with Java 5, preferably in the form of class files, and its dependencies declared externally but no matching variant of org:producer:1.0 was found.
-  - Variant 'apiElementsJdk6' capability org:producer:1.0:
-      - Incompatible attribute:
-          - Required compatibility with Java 5 and found incompatible Java 6
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-          - Provides an API
-  - Variant 'apiElementsJdk7' capability org:producer:1.0:
-      - Incompatible attribute:
-          - Required compatibility with Java 5 and found incompatible Java 7
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-          - Provides an API
-  - Variant 'apiElementsJdk9' capability org:producer:1.0:
-      - Incompatible attribute:
-          - Required compatibility with Java 5 and found incompatible Java 9
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-          - Provides an API
-  - Variant 'runtimeElementsJdk6' capability org:producer:1.0:
-      - Incompatible attribute:
-          - Required compatibility with Java 5 and found incompatible Java 6
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-          - Required an API and found a runtime
-  - Variant 'runtimeElementsJdk7' capability org:producer:1.0:
-      - Incompatible attribute:
-          - Required compatibility with Java 5 and found incompatible Java 7
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-          - Required an API and found a runtime
-  - Variant 'runtimeElementsJdk9' capability org:producer:1.0:
-      - Incompatible attribute:
-          - Required compatibility with Java 5 and found incompatible Java 9
-      - Other compatible attributes:
-          - Provides a library
-          - Provides its dependencies declared externally
-          - Required its elements preferably in the form of class files and found them packaged as a jar
-          - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-          - Required an API and found a runtime''')
+        failure.assertHasCause('''No matching variant of org:producer:1.0 was found. The consumer was configured to find an API of a library compatible with Java 5, preferably in the form of class files, and its dependencies declared externally but:
+  - Variant 'apiElementsJdk6' capability org:producer:1.0 is an API of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 6 and the consumer needed a component compatible with Java 5
+  - Variant 'apiElementsJdk7' capability org:producer:1.0 is an API of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 5
+  - Variant 'apiElementsJdk9' capability org:producer:1.0 is an API of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 9 and the consumer needed a component compatible with Java 5
+  - Variant 'runtimeElementsJdk6' capability org:producer:1.0 is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 6 and the consumer needed a component compatible with Java 5
+  - Variant 'runtimeElementsJdk7' capability org:producer:1.0 is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 5
+  - Variant 'runtimeElementsJdk9' capability org:producer:1.0 is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 9 and the consumer needed a component compatible with Java 5''')
     }
 
     @Unroll

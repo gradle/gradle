@@ -602,13 +602,11 @@ class CompositeBuildConfigurationAttributesResolveIntegrationTest extends Abstra
 
         then:
         failure.assertHasCause("Could not resolve com.acme.external:external:1.0.")
-        failure.assertHasCause("""The consumer was configured to find attribute 'flavor' with value 'free' but no matching variant of project :includedBuild was found.
+        failure.assertHasCause("""No matching variant of project :includedBuild was found. The consumer was configured to find attribute 'flavor' with value 'free' but:
   - Variant 'bar' capability com.acme.external:external:2.0-SNAPSHOT:
-      - Incompatible attribute:
-          - Required flavor 'free' and found incompatible value 'blue'.
+      - Incompatible because this component declares attribute 'flavor' with value 'blue' and the consumer needed attribute 'flavor' with value 'free'
   - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
-      - Incompatible attribute:
-          - Required flavor 'free' and found incompatible value 'red'.""")
+      - Incompatible because this component declares attribute 'flavor' with value 'red' and the consumer needed attribute 'flavor' with value 'free'""")
 
         when:
         fails ':a:checkPaid'
@@ -623,7 +621,8 @@ All of them match the consumer attributes:
       - Compatible attribute:
           - Required flavor 'paid' and found 'blue'.
   - Variant 'foo' capability com.acme.external:external:2.0-SNAPSHOT:
-      - Compatible attribute: Required flavor 'paid' and found 'red'.""")
+      - Compatible attribute:
+          - Required flavor 'paid' and found 'red'.""")
     }
 
     @Unroll("context travels down to transitive dependencies with typed attributes using plugin [#v1, #v2, pluginsDSL=#usePluginsDSL]")

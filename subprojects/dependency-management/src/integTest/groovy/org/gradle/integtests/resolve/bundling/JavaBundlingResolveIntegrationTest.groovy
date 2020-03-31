@@ -165,7 +165,7 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
 
         then:
         if (shouldFail) {
-            failure.assertHasCause("The consumer was configured to find an API of a component, and its dependencies repackaged (shadow jar) but no matching variant of org:producer:1.0 was found.")
+            failure.assertHasCause("No matching variant of org:producer:1.0 was found. The consumer was configured to find an API of a component, and its dependencies repackaged (shadow jar) but:")
         } else {
             resolve.expectGraph {
                 root(":", ":test:") {

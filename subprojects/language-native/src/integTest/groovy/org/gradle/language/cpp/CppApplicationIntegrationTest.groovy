@@ -477,7 +477,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but no matching variant of project :greeter was found.")
+        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
@@ -511,7 +511,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
+        failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.native.architecture' with value 'foo', attribute 'org.gradle.usage' with value 'native-link' and the consumer needed attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.usage' with value 'native-runtime'")
     }
 
     @ToBeFixedForInstantExecution
@@ -623,12 +623,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but no matching variant of project :hello was found.
+        failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:
   - Variant 'cppApiElements' capability test:hello:unspecified:
-      - Incompatible attribute:
-          - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'.
+      - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
       - Other compatible attributes:
-          - Found artifactType 'directory' but wasn't required.
           - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
           - Required org.gradle.native.debuggable 'true' but no value provided.
           - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.

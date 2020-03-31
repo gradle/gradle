@@ -727,7 +727,7 @@ afterEvaluate {
         checkDependenciesFails()
 
         then:
-        failure.assertHasCause("The consumer was configured to find a runtime of a library compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally but no matching configuration of project :buildC was found.\n" +
+        failure.assertHasCause("No matching configuration of project :buildC was found. The consumer was configured to find a runtime of a library compatible with Java ${JavaVersion.current().majorVersion}, packaged as a jar, and its dependencies declared externally but:\n" +
             "  - None of the consumable configurations have attributes.")
     }
 

@@ -158,39 +158,31 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
         fails ":checkDeps"
 
         then:
-        failure.assertHasCause('''The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but no matching variant of project :platform was found.
-  - Variant 'apiElements' capability org.test:platform:1.9:
-      - Incompatible attribute:
-          - Required a library and found a platform
+        failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but:
+  - Variant 'apiElements' capability org.test:platform:1.9 is an API of a component:
+      - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Provides an API
-  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9:
-      - Incompatible attribute:
-          - Required a library and found an enforced platform
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 is an API of a component:
+      - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Provides an API
-  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9:
-      - Incompatible attribute:
-          - Required a library and found an enforced platform
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 is a runtime of a component:
+      - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Required an API and found a runtime
-  - Variant 'runtimeElements' capability org.test:platform:1.9:
-      - Incompatible attribute:
-          - Required a library and found a platform
+  - Variant 'runtimeElements' capability org.test:platform:1.9 is a runtime of a component:
+      - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
-          - Doesn't say anything about its elements (required them preferably in the form of class files)
-          - Required an API and found a runtime''')
+          - Doesn't say anything about its elements (required them preferably in the form of class files)''')
     }
 
     def "can enforce a local platform dependency"() {

@@ -20,6 +20,7 @@ import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 
 import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 
 public class ImmutableAttributeContainerWithErrorMessage implements AttributeContainerInternal {
@@ -39,6 +40,11 @@ public class ImmutableAttributeContainerWithErrorMessage implements AttributeCon
     @Override
     public ImmutableAttributes asImmutable() {
         return delegate.asImmutable();
+    }
+
+    @Override
+    public Map<Attribute<?>, ?> asMap() {
+        return delegate.asMap();
     }
 
     @Override

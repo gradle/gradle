@@ -397,10 +397,8 @@ include 'a', 'b'
 
         then:
         failure.assertHasCause """Variant 'bar' in project :b does not match the consumer attributes
-Variant 'bar' capability test:b:unspecified:
-  - Incompatible attribute:
-      - Required buildType 'debug' and found incompatible value 'release'.
-  - Other compatible attribute: Provides flavor 'free'"""
+Variant 'bar' capability test:b:unspecified is attribute 'flavor' with value 'free':
+  - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
         when:
         run ':a:checkRelease'
@@ -533,16 +531,13 @@ Variant 'bar' capability test:b:unspecified:
         failure.assertHasDescription("Could not determine the dependencies of task ':a:checkDebug'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':a:_compileFreeDebug'.")
         failure.assertHasCause("Could not resolve project :b.")
-        failure.assertHasCause("""The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but no matching variant of project :b was found.
+        failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but:
   - Variant 'bar' capability test:b:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'debug' and found incompatible value 'release'.
+      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'
       - Other compatible attribute:
           - Required flavor 'free' but no value provided.
-  - Variant 'foo' capability test:b:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'debug' and found incompatible value 'release'.
-      - Other compatible attribute: Provides flavor 'free'""")
+  - Variant 'foo' capability test:b:unspecified is attribute 'flavor' with value 'free':
+      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'""")
     }
 
     def "does not select default configuration when consumer has no attributes and configurations with attributes"() {
@@ -630,7 +625,7 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but no matching configuration of project :b was found.
+        failure.assertHasCause """No matching configuration of project :b was found. The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but:
   - Configuration 'archives':
       - Other compatible attributes:
           - Required buildType 'debug' but no value provided.
@@ -721,15 +716,11 @@ All of them match the consumer attributes:
         fails ':a:checkDebug'
 
         then:
-        failure.assertHasCause """The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but no matching variant of project :b was found.
+        failure.assertHasCause """No matching variant of project :b was found. The consumer was configured to find attribute 'flavor' with value 'free', attribute 'buildType' with value 'debug' but:
   - Variant 'bar' capability test:b:unspecified:
-      - Incompatible attributes:
-          - Required buildType 'debug' and found incompatible value 'release'.
-          - Required flavor 'free' and found incompatible value 'paid'.
-  - Variant 'foo' capability test:b:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'debug' and found incompatible value 'release'.
-      - Other compatible attribute: Provides flavor 'free'"""
+      - Incompatible because this component declares attribute 'buildType' with value 'release', attribute 'flavor' with value 'paid' and the consumer needed attribute 'buildType' with value 'debug', attribute 'flavor' with value 'free'
+  - Variant 'foo' capability test:b:unspecified is attribute 'flavor' with value 'free':
+      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
     }
 
@@ -854,11 +845,13 @@ All of them match the consumer attributes:
   - Variant 'bar' capability test:b:unspecified:
       - Unmatched attribute:
           - Required buildType 'debug' but no value provided.
-      - Compatible attribute: Provides flavor 'free'
+      - Compatible attribute:
+          - Provides flavor 'free'
   - Variant 'foo' capability test:b:unspecified:
       - Unmatched attribute:
           - Required flavor 'free' but no value provided.
-      - Compatible attribute: Provides buildType 'debug'""")
+      - Compatible attribute:
+          - Provides buildType 'debug'""")
     }
 
     def "selects configuration when it has more attributes than the resolved configuration"() {
@@ -946,9 +939,11 @@ All of them match the consumer attributes:
   - foo
 All of them match the consumer attributes:
   - Variant 'bar' capability test:b:unspecified:
-      - Compatible attribute: Provides buildType 'debug'
+      - Compatible attribute:
+          - Provides buildType 'debug'
   - Variant 'foo' capability test:b:unspecified:
-      - Compatible attribute: Provides buildType 'debug'"""
+      - Compatible attribute:
+          - Provides buildType 'debug'"""
     }
 
     def "fails when multiple configurations match but have more attributes than requested"() {
@@ -1081,11 +1076,13 @@ All of them match the consumer attributes:
   - Variant 'compile' capability test:b:unspecified:
       - Unmatched attribute:
           - Required buildType 'debug' but no value provided.
-      - Compatible attribute: Provides flavor 'free'
+      - Compatible attribute:
+          - Provides flavor 'free'
   - Variant 'debug' capability test:b:unspecified:
       - Unmatched attribute:
           - Required flavor 'free' but no value provided.
-      - Compatible attribute: Provides buildType 'debug'"""
+      - Compatible attribute:
+          - Provides buildType 'debug'"""
     }
 
     def "transitive dependencies of selected configuration are included"() {
@@ -1419,18 +1416,10 @@ All of them match the consumer attributes:
           - Provides buildType 'debug'
           - Provides flavor 'free'
 The following variants were also considered but didn't match the requested attributes:
-  - Variant 'bar' capability test:c:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'debug' and found incompatible value 'release'.
-      - Other compatible attributes:
-          - Found extra 'extra' but wasn't required.
-          - Provides flavor 'free'
-  - Variant 'bar2' capability test:c:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'debug' and found incompatible value 'release'.
-      - Other compatible attributes:
-          - Found extra 'extra 2' but wasn't required.
-          - Provides flavor 'free'"""
+  - Variant 'bar' capability test:c:unspecified is attribute 'flavor' with value 'free':
+      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'
+  - Variant 'bar2' capability test:c:unspecified is attribute 'flavor' with value 'free':
+      - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
 
         when:
         fails ':a:checkRelease'
@@ -1452,18 +1441,10 @@ All of them match the consumer attributes:
           - Provides buildType 'release'
           - Provides flavor 'free'
 The following variants were also considered but didn't match the requested attributes:
-  - Variant 'foo' capability test:c:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'release' and found incompatible value 'debug'.
-      - Other compatible attributes:
-          - Found extra 'extra' but wasn't required.
-          - Provides flavor 'free'
-  - Variant 'foo2' capability test:c:unspecified:
-      - Incompatible attribute:
-          - Required buildType 'release' and found incompatible value 'debug'.
-      - Other compatible attributes:
-          - Found extra 'extra 2' but wasn't required.
-          - Provides flavor 'free'"""
+  - Variant 'foo' capability test:c:unspecified is attribute 'flavor' with value 'free':
+      - Incompatible because this component declares attribute 'buildType' with value 'debug' and the consumer needed attribute 'buildType' with value 'release'
+  - Variant 'foo2' capability test:c:unspecified is attribute 'flavor' with value 'free':
+      - Incompatible because this component declares attribute 'buildType' with value 'debug' and the consumer needed attribute 'buildType' with value 'release'"""
 
     }
 

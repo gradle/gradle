@@ -18,14 +18,16 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AbstractAttributeDescriber;
+import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.BiConsumer;
@@ -44,13 +46,14 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
         return ATTRIBUTES;
     }
 
+    @SuppressWarnings("ConstantConditions")
     @Override
-    public String describeConsumerAttributes(AttributeContainer attributes) {
-        Category category = attributes.getAttribute(Category.CATEGORY_ATTRIBUTE);
-        Usage usage = attributes.getAttribute(Usage.USAGE_ATTRIBUTE);
-        LibraryElements le = attributes.getAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
-        Bundling bundling = attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE);
-        Integer targetJvm = attributes.getAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+    public String describeAttributeSet(Map<Attribute<?>, ?> attributes) {
+        Object category = attr(attributes, Category.CATEGORY_ATTRIBUTE);
+        Object usage = attr(attributes, Usage.USAGE_ATTRIBUTE);
+        Object le = attr(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
+        Object bundling = attr(attributes, Bundling.BUNDLING_ATTRIBUTE);
+        Object targetJvm = attr(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
         if (usage != null) {
@@ -78,7 +81,12 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
         return sb.toString();
     }
 
-    private void processExtraAttributes(AttributeContainer attributes, StringBuilder sb) {
+    @Nullable
+    private static <T> T attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
+        return Cast.uncheckedCast(attributes.get(attribute));
+    }
+
+    private void processExtraAttributes(Map<Attribute<?>, ?> attributes, StringBuilder sb) {
         Set<Attribute<?>> remaining = Sets.newLinkedHashSet(attributes.keySet());
         remaining.removeAll(ATTRIBUTES);
         if (!remaining.isEmpty()) {
@@ -88,7 +96,7 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
                 if (comma) {
                     sb.append(", ");
                 }
-                describeGenericAttribute(sb, attribute, attributes.getAttribute(attribute));
+                describeGenericAttribute(sb, attribute, attr(attributes, attribute));
                 comma = true;
             }
         }
