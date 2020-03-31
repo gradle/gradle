@@ -23,8 +23,6 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final Transformer<? extends OUT, ? super IN> transformer;
@@ -86,12 +84,6 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
                 break; // Only report one producer
             }
         }
-    }
-
-    private List<Task> getProducerTasks() {
-        List<Task> producers = new ArrayList<>();
-        provider.visitProducerTasks(producers::add);
-        return producers;
     }
 
     @Override

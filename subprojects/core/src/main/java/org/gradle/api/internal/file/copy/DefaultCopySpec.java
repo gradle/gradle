@@ -33,18 +33,17 @@ import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.file.DefaultCompositeFileTree;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.pattern.PatternMatcher;
 import org.gradle.api.internal.file.pattern.PatternMatcherFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ClosureBackedAction;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
 
 import javax.annotation.Nullable;
@@ -65,21 +64,19 @@ public class DefaultCopySpec implements CopySpecInternal {
     private static final NotationParser<Object, String> PATH_NOTATION_PARSER = PathNotationConverter.parser();
     protected final Factory<PatternSet> patternSetFactory;
     protected final FileCollectionFactory fileCollectionFactory;
+    protected final Instantiator instantiator;
     private final ConfigurableFileCollection sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
     private final List<CopySpecInternal> childSpecs = new LinkedList<>();
     private final List<CopySpecInternal> childSpecsInAdditionOrder = new LinkedList<>();
-    protected final Instantiator instantiator;
     private final List<Action<? super FileCopyDetails>> copyActions = new LinkedList<>();
     private boolean hasCustomActions;
     private Integer dirMode;
     private Integer fileMode;
     private Boolean caseSensitive;
     private Boolean includeEmptyDirs;
-
     private DuplicatesStrategy duplicatesStrategy = DuplicatesStrategy.INHERIT;
-
     private String filteringCharset;
     private final List<CopySpecListener> listeners = Lists.newLinkedList();
 
@@ -616,10 +613,9 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public FileTree getAllSource() {
-            final ImmutableList.Builder<FileTree> builder = ImmutableList.builder();
-            walk(copySpecResolver -> builder.add(copySpecResolver.getSource()));
-
-            return new DefaultCompositeFileTree(CollectionUtils.checkedCast(FileTreeInternal.class, builder.build()));
+            final ImmutableList.Builder<FileTreeInternal> builder = ImmutableList.builder();
+            walk(copySpecResolver -> builder.add(Cast.<FileTreeInternal>uncheckedCast(copySpecResolver.getSource())));
+            return fileCollectionFactory.treeOf(builder.build());
         }
 
         @Override

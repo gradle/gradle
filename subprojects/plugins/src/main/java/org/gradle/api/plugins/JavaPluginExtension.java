@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.provider.Property;
 import org.gradle.api.jpms.ModularClasspathHandling;
 
 /**
@@ -28,6 +29,18 @@ import org.gradle.api.jpms.ModularClasspathHandling;
  * @since 4.10
  */
 public interface JavaPluginExtension {
+
+    /**
+     * Configure the minimal Java release version for compiling Java sources (--release compiler flag).
+     *
+     * If set, it will take precedences over the {@link #getSourceCompatibility()} and {@link #getTargetCompatibility()} settings,
+     * which will have no effect in that case.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    Property<Integer> getRelease();
+
     /**
      * Returns the source compatibility used for compiling Java sources.
      */

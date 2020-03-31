@@ -71,12 +71,14 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
+    private Property<Integer> maxFailures;
     private Property<Boolean> incrementalAnalysis;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
         reports = objects.newInstance(PmdReportsImpl.class, this);
         this.incrementalAnalysis = objects.property(Boolean.class);
+        this.maxFailures = objects.property(Integer.class);
     }
 
     @Inject
@@ -290,6 +292,21 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     }
 
     /**
+     * The maximum number of failures to allow before stopping the build.
+     *
+     * Defaults to 0, which will stop the build on any failure.  Values 0 and
+     * above are valid.  If <pre>ignoreFailures</pre> is set, this is ignored
+     * and the build will continue (infinite failures allowed).
+     *
+     * @since 6.4
+     */
+    @Input
+    @Incubating
+    public Property<Integer> getMaxFailures() {
+        return maxFailures;
+    }
+
+    /**
      * Specifies the rule priority threshold.
      *
      * @since 2.8
@@ -308,7 +325,6 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     public void setRulePriority(int intValue) {
         validate(intValue);
         rulePriority = intValue;
-
     }
 
     /**

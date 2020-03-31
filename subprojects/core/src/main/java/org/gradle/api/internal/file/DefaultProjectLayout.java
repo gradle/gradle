@@ -81,6 +81,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     public Provider<RegularFile> file(Provider<File> provider) {
         return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, Providers.internal(provider)) {
             @Override
+            protected String getMapDescription() {
+                return "resolve-file";
+            }
+
+            @Override
             protected RegularFile mapValue(File file) {
                 return fileFactory.file(fileResolver.resolve(file));
             }
@@ -90,6 +95,11 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     @Override
     public Provider<Directory> dir(Provider<File> provider) {
         return new AbstractMappingProvider<Directory, File>(Directory.class, Providers.internal(provider)) {
+            @Override
+            protected String getMapDescription() {
+                return "resolve-dir";
+            }
+
             @Override
             protected Directory mapValue(File file) {
                 return fileFactory.dir(fileResolver.resolve(file));

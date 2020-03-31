@@ -88,6 +88,39 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
     }
 
     @ToBeFixedForInstantExecution
+    void "can set max failures"() {
+        badCode()
+        buildFile << """
+            pmd {
+                maxFailures = 2
+            }
+        """
+
+        expect:
+        succeeds("check")
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+        output.contains("2 PMD rule violations were found. See the report at:")
+    }
+
+    @ToBeFixedForInstantExecution
+    void "does not ignore more than max failures"() {
+        badCode()
+        buildFile << """
+            pmd {
+                maxFailures = 1
+            }
+        """
+
+        expect:
+        fails("check")
+        failure.assertHasDescription("Execution failed for task ':pmdTest'.")
+        failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
+        file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
+        file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
+    }
+
+    @ToBeFixedForInstantExecution
     void "can configure priority level threshold"() {
         badCode()
         buildFile << """

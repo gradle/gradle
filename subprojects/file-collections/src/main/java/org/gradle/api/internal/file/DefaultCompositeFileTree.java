@@ -17,13 +17,17 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.util.Collection;
+import java.util.List;
 
 public class DefaultCompositeFileTree extends CompositeFileTree {
     private final Collection<? extends FileTreeInternal> fileTrees;
 
-    public DefaultCompositeFileTree(Collection<? extends FileTreeInternal> fileTrees) {
+    public DefaultCompositeFileTree(Factory<PatternSet> patternSetFactory, List<? extends FileTreeInternal> fileTrees) {
+        super(patternSetFactory);
         this.fileTrees = fileTrees;
     }
 
