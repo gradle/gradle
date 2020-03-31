@@ -24,6 +24,7 @@ import org.gradle.gradlebuild.UpdateAgpVersions
 import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
+import org.gradle.plugins.buildtypes.projectProperty
 import org.gradle.plugins.install.Install
 
 plugins {
@@ -49,96 +50,106 @@ defaultTasks("assemble")
 
 base.archivesBaseName = "gradle"
 
-buildTypes {
-    create("compileAllBuild") {
-        tasks(":createBuildReceipt", "compileAll")
-        projectProperties("ignoreIncomingBuildReceipt" to true)
-    }
+// Basic compile and check lifecycle tasks
+subprojects {
+    if (project in javaProjects) {
+        tasks.register("compileAllBuild") {
+            description = "Initialize CI Pipeline by priming the cache before fanning out"
+            dependsOn(":createBuildReceipt", "compileAll")
+            projectProperty("ignoreIncomingBuildReceipt" to true)
+        }
 
-    create("sanityCheck") {
-        tasks(
-            "classes", ":docs:checkstyleApi", "codeQuality", ":allIncubationReportsZip",
-            ":distributions:checkBinaryCompatibility", ":docs:javadocAll",
-            ":architectureTest:test", ":toolingApi:toolingApiShadedJar")
+        tasks.register("sanityCheck") {
+            description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
+            dependsOn(
+                "compileAll", ":docs:checkstyleApi", "codeQuality", ":allIncubationReportsZip",
+                ":distributions:checkBinaryCompatibility", ":docs:javadocAll",
+                ":architectureTest:test", ":toolingApi:toolingApiShadedJar")
+        }
     }
+}
 
-    // Used by the first phase of the build pipeline, running only last version on multiversion - tests
-    create("quickTest") {
-        tasks("test", "integTest", "crossVersionTest")
+// Test lifecycle tasks that correspond to CIBuildModel.TestType (see .teamcity/Gradle_Check/model/CIBuildModel.kt)
+subprojects {
+    if (project in javaProjects) {
+        tasks.register("quickTest") {
+            description = "Run all unit, integration and cross-version (against latest release) tests in embedded execution mode"
+            dependsOn("test", "integTest", "crossVersionTest")
+        }
+
+        tasks.register("platformTest") {
+            description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
+            dependsOn("test", "forkingIntegTest", "forkingCrossVersionTest")
+            projectProperty("testVersions" to "partial")
+        }
+
+        tasks.register("quickFeedbackCrossVersionTest") {
+            description = "Run cross-version tests against a limited set of versions"
+            dependsOn("quickFeedbackCrossVersionTests")
+            projectProperty("useAllDistribution" to true)
+        }
+
+        tasks.register("allVersionsCrossVersionTest") {
+            description = "Run cross-version tests against all released versions (latest patch release of each)"
+            dependsOn("allVersionsCrossVersionTests")
+            projectProperty("testVersions" to "all")
+            projectProperty("useAllDistribution" to true)
+        }
+
+        tasks.register("allVersionsIntegMultiVersionTest") {
+            description = "Run all multi-version integration tests with all version to cover"
+            dependsOn("integMultiVersionTest")
+            projectProperty("testVersions" to "all")
+            projectProperty("useAllDistribution" to true)
+        }
+
+        tasks.register("parallelTest") {
+            description = "Run all integration tests in parallel execution mode: each Gradle execution started in a test run with --parallel"
+            dependsOn("parallelIntegTest")
+        }
+
+        tasks.register("noDaemonTest") {
+            description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
+            dependsOn("noDaemonIntegTest")
+            projectProperty("useAllDistribution" to true)
+        }
+
+        tasks.register("instantTest") {
+            description = "Run all integration tests with instant execution"
+            dependsOn("instantIntegTest")
+        }
+
+        tasks.register("vfsRetentionTest") {
+            description = "Run all integration tests with vfs retention enabled"
+            dependsOn("vfsRetentionIntegTest")
+        }
+
+        tasks.register("soakTest") {
+            description = "Run all soak tests defined in the :soak subproject"
+            dependsOn(":soak:soakIntegTest")
+            projectProperty("testVersions" to "all")
+        }
+
+        tasks.register("forceRealizeDependencyManagementTest") {
+            description = "Runs all integration tests with the dependency management engine in 'force component realization' mode"
+            dependsOn("integForceRealizeTest")
+        }
     }
+}
 
-    // Used for builds to run all tests
-    create("fullTest") {
-        tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testVersions" to "all")
-    }
+tasks.register("packageBuild") {
+    description = "Build production distros and smoke test them"
+    dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+        ":distributions:integTest", ":docs:check", ":docs:checkSamples")
+}
 
-    // Used for builds to test the code on certain platforms
-    create("platformTest") {
-        tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testVersions" to "partial")
-    }
-
-    // Tests not using the daemon mode
-    create("noDaemonTest") {
-        tasks("noDaemonIntegTest")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    // Run the integration tests using the parallel executer
-    create("parallelTest") {
-        tasks("parallelIntegTest")
-    }
-
-    // Run the integration tests using instant execution
-    create("instantTest") {
-        tasks("instantIntegTest")
-    }
-
-    // Run the integration tests with vfs retention enabled
-    create("vfsRetentionTest") {
-        tasks("vfsRetentionIntegTest")
-    }
-
-    // Used for cross version tests on CI
-    create("allVersionsCrossVersionTest") {
-        tasks("allVersionsCrossVersionTests")
-        projectProperties("testVersions" to "all")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    create("allVersionsIntegMultiVersionTest") {
-        tasks("integMultiVersionTest")
-        projectProperties("testVersions" to "all")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    create("quickFeedbackCrossVersionTest") {
-        tasks("quickFeedbackCrossVersionTests")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    // Used to build production distros and smoke test them
-    create("packageBuild") {
-        tasks("verifyIsProductionBuildEnvironment", "clean", "buildDists",
-            ":distributions:integTest", ":docs:checkSamples", ":docs:check")
-    }
-
-    // Used to build production distros and smoke test them
-    create("promotionBuild") {
-        tasks(
-            "verifyIsProductionBuildEnvironment", "clean", ":docs:check",
-            "buildDists", ":distributions:integTest", "publish")
-    }
-
-    create("soakTest") {
-        tasks(":soak:soakIntegTest")
-        projectProperties("testVersions" to "all")
-    }
-
-    // Used to run the dependency management engine in "force component realization" mode
-    create("forceRealizeDependencyManagementTest") {
-        tasks("integForceRealizeTest")
+subprojects {
+    plugins.withId("gradlebuild.publish-public-libraries") {
+        tasks.register("promotionBuild") {
+            description = "Build production distros, smoke test them and publish"
+            dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+                ":distributions:integTest", ":docs:check", "publish")
+        }
     }
 }
 

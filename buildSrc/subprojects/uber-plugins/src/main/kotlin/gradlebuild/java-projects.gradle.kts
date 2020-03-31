@@ -21,13 +21,10 @@ apply(plugin = "gradlebuild.distribution-testing")
 apply(plugin = "gradlebuild.int-test-image")
 apply(plugin = "gradlebuild.incubation-report")
 
-if (file("src/integTest").isDirectory) {
-    apply(plugin = "gradlebuild.integration-tests")
-}
+apply(plugin = "gradlebuild.integration-tests")
 
-if (file("src/crossVersionTest").isDirectory) {
-    apply(plugin = "gradlebuild.cross-version-tests")
-}
+apply(plugin = "gradlebuild.cross-version-tests")
+
 
 if (file("src/performanceTest").isDirectory) {
     apply(plugin = "gradlebuild.performance-test")

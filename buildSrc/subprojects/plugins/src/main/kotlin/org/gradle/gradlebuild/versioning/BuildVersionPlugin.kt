@@ -16,10 +16,8 @@
 
 package org.gradle.gradlebuild.versioning
 
-import org.gradle.StartParameter
 import org.gradle.api.Describable
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.FileContents
@@ -34,7 +32,6 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
 import org.gradle.internal.Cast
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.buildtypes.BuildType
 import java.text.SimpleDateFormat
 import java.util.Date
 
@@ -49,12 +46,6 @@ class BuildVersionPlugin : Plugin<Project> {
 
 private
 fun Project.setBuildVersion() {
-
-    val isPromotionBuild = isPromotionBuild()
-    if (isPromotionBuild) {
-        logger.logStartParameter(gradle.startParameter)
-    }
-
     val finalRelease = gradleProperty("finalRelease").orNull
     val rcNumber = gradleProperty("rcNumber").orNull
     val milestoneNumber = gradleProperty("milestoneNumber").orNull
@@ -95,7 +86,7 @@ fun Project.setBuildVersion() {
 
     registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 
-    if (isPromotionBuild) {
+    if (!isSnapshot) {
         logger.logBuildVersion(versionNumber, baseVersion, isSnapshot, buildTimestamp.get())
     }
 
@@ -126,15 +117,6 @@ fun Project.registerBuildReceiptTask(
             this.destinationDir = rootProject.buildDir
         }
     }
-}
-
-
-private
-fun Logger.logStartParameter(startParameter: StartParameter) {
-    lifecycle(
-        "Invocation tasks: ${startParameter.taskNames}\n" +
-            "Invocation properties: ${startParameter.projectProperties}"
-    )
 }
 
 
@@ -305,16 +287,6 @@ private
 fun Date.withoutTime(): Date = SimpleDateFormat("yyyy-MM-dd").run {
     parse(format(this@withoutTime))
 }
-
-
-private
-fun Project.isPromotionBuild(): Boolean =
-    buildTypes["promotionBuild"].active
-
-
-private
-val Project.buildTypes
-    get() = extensions.getByName<NamedDomainObjectContainer<BuildType>>("buildTypes")
 
 
 private
