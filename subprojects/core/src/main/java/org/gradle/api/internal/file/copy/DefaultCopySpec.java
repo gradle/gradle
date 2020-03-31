@@ -274,6 +274,10 @@ public class DefaultCopySpec implements CopySpecInternal {
         this.includeEmptyDirs = includeEmptyDirs;
     }
 
+    public DuplicatesStrategy getDuplicatesStrategyForThisSpec() {
+        return duplicatesStrategy;
+    }
+
     @Override
     public DuplicatesStrategy getDuplicatesStrategy() {
         return buildRootResolver().getDuplicatesStrategy();
@@ -504,7 +508,7 @@ public class DefaultCopySpec implements CopySpecInternal {
         return this.new DefaultCopySpecResolver(null);
     }
 
-    public FileCollection getSourceFiles() {
+    public FileCollection getSourceRootsForThisSpec() {
         return sourcePaths;
     }
 
@@ -608,7 +612,7 @@ public class DefaultCopySpec implements CopySpecInternal {
 
         @Override
         public FileTree getSource() {
-            return getSourceFiles().getAsFileTree().matching(this.getPatternSet());
+            return getSourceRootsForThisSpec().getAsFileTree().matching(this.getPatternSet());
         }
 
         @Override

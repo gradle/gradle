@@ -34,7 +34,7 @@ fun IsolateContext.logPropertyProblem(action: String, exception: Throwable? = nu
 
 
 fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
-    logger.info("instant-execution > {}d {} with value {}", action, trace, value)
+    logger.debug("instant-execution > {}d {} with value {}", action, trace, value)
 }
 
 
