@@ -281,7 +281,7 @@ dependencies {
 
 tasks.register("compileClasspathArtifacts") {
     doLast {
-        configurations["compileClasspath"].forEach { println(it.name) }
+        configurations["compileClasspath"].filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }
 }
 tasks.register("failRuntimeClasspathResolve") {
@@ -294,6 +294,6 @@ tasks.register("runtimeClasspathArtifacts") {
         configurations["runtimeClasspath"].attributes {
             attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, getObjects().named("x86"))
         }
-        configurations["runtimeClasspath"].forEach { println(it.name) }
+        configurations["runtimeClasspath"].filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }
 }
