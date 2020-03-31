@@ -371,6 +371,41 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'some-plugin' is an implementation dependency of project ':buildSrc'")
     }
 
+    def "can use classes from project sources"() {
+        given:
+        file("buildSrc/src/main/java/foo/bar/JavaClass.java") << """
+            package foo.bar;
+            public class JavaClass {}
+        """
+        file("buildSrc/src/main/groovy/fizz/buzz/GroovyClass.groovy") << """
+            package fizz.buzz;
+            class GroovyClass {}
+        """
+
+        when:
+        def pluginDir = createDir("buildSrc/src/main/groovy")
+        enablePrecompiledPluginsInBuildSrc()
+
+        pluginDir.file("foo.gradle") << """
+            import foo.bar.JavaClass
+            import fizz.buzz.GroovyClass
+            println JavaClass
+            println GroovyClass
+            $REGISTER_SAMPLE_TASK
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo'
+            }
+        """
+
+        then:
+        succeeds(SAMPLE_TASK)
+        outputContains('class foo.bar.JavaClass')
+        outputContains('class fizz.buzz.GroovyClass')
+    }
+
     @ToBeFixedForInstantExecution
     def "can use classes from project dependencies"() {
         given:
@@ -397,7 +432,8 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         """
 
         pluginDir.file("foo.gradle") << """
-            println foo.bar.Test
+            import foo.bar.Test
+            println Test
             $REGISTER_SAMPLE_TASK
         """
 
@@ -600,8 +636,9 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         firstDir.copyTo(secondDir)
 
         def cachedTasks = [
-            ":compileGroovyPlugins",
-            ":compileJava"
+            ":compileGroovyPlugins"
+            // TODO make this one cacheable
+            //":compilePluginAdapters"
         ]
 
         def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
@@ -725,7 +762,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
             }
         """
         file("$artifact/settings.gradle") << "rootProject.name='$artifact'"
-        file ("$artifact/$sourcePath") << sourceContent
+        file("$artifact/$sourcePath") << sourceContent
 
         executer.inDirectory(file(artifact)).withTasks("publish").run()
         mavenRepo.module(group, artifact, version).assertPublished()
