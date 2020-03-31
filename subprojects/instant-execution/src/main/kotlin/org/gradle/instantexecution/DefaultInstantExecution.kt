@@ -199,8 +199,6 @@ class DefaultInstantExecution internal constructor(
         val build = host.currentBuild
         writeString(build.rootProject.name)
 
-        writeBuildScanState(buildScan)
-
         writeGradleState(build.gradle)
 
         val scheduledNodes = build.scheduledWork
@@ -216,15 +214,13 @@ class DefaultInstantExecution internal constructor(
         val rootProjectName = readString()
         val build = host.createBuild(rootProjectName)
 
-        readBuildScanState(buildScan)
+        readGradleState(build.gradle)
 
         buildScan.onInstantExecutionLoadAction()
         buildScan.onInstantExecutionStats(
             instantExecutionStateFile.length(),
             instantExecutionFingerprintFile.length()
         )
-
-        readGradleState(build.gradle)
 
         readRelevantProjects(build)
 
@@ -367,6 +363,30 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
+    suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
+        withGradleIsolate(gradle) {
+            writeBuildScanState(buildScan)
+            if (gradle.includedBuilds.isNotEmpty()) {
+                logNotImplemented("included builds")
+            }
+            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
+            writeCollection(eventListenerRegistry.subscriptions)
+        }
+    }
+
+    private
+    suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
+        withGradleIsolate(gradle) {
+            readBuildScanState(buildScan)
+            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
+            readCollection {
+                val provider = readNonNull<Provider<OperationCompletionListener>>()
+                eventListenerRegistry.subscribe(provider)
+            }
+        }
+    }
+
+    private
     suspend fun DefaultWriteContext.writeBuildScanState(buildScan: BuildScanFacade) {
         writeNullableString(buildScan.enterpriseServer)
         writeNullableString(buildScan.termsOfServiceUrl)
@@ -384,28 +404,6 @@ class DefaultInstantExecution internal constructor(
         buildScan.server = readNullableString()
         buildScan.isAllowUntrustedServer = readBoolean()
         buildScan.isCaptureTaskInputFiles = readBoolean()
-    }
-
-    private
-    suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
-        withGradleIsolate(gradle) {
-            if (gradle.includedBuilds.isNotEmpty()) {
-                logNotImplemented("included builds")
-            }
-            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
-            writeCollection(eventListenerRegistry.subscriptions)
-        }
-    }
-
-    private
-    suspend fun DefaultReadContext.readGradleState(gradle: Gradle) {
-        withGradleIsolate(gradle) {
-            val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
-            readCollection {
-                val provider = readNonNull<Provider<OperationCompletionListener>>()
-                eventListenerRegistry.subscribe(provider)
-            }
-        }
     }
 
     private
