@@ -68,7 +68,7 @@ public class GeneratedSingletonFileTreeTest {
         };
         GeneratedSingletonFileTree tree = tree("file.txt", fileAction);
 
-        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree);
+        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree, TestFiles.getPatternSetFactory());
         File file = rootDir.file("file.txt");
 
         assertTrue(fileTreeAdapter.contains(file));

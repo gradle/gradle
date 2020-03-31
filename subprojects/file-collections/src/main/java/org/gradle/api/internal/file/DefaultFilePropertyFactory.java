@@ -171,6 +171,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
+        protected String getMapDescription() {
+            return "resolve-path-to-file";
+        }
+
+        @Override
         protected RegularFile mapValue(CharSequence path) {
             return new FixedFile(resolver.resolve(path));
         }
@@ -300,6 +305,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         }
 
         @Override
+        protected String getMapDescription() {
+            return "resolve-path-to-dir";
+        }
+
+        @Override
         protected Directory mapValue(CharSequence path) {
             File dir = resolver.resolve(path);
             FileResolver dirResolver = this.resolver.newResolver(dir);
@@ -343,6 +353,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         public Provider<Directory> dir(final String path) {
             return new AbstractMappingProvider<Directory, Directory>(Directory.class, this) {
                 @Override
+                protected String getMapDescription() {
+                    return "descendant-dir";
+                }
+
+                @Override
                 protected Directory mapValue(Directory dir) {
                     return dir.dir(path);
                 }
@@ -362,6 +377,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
         @Override
         public Provider<RegularFile> file(final String path) {
             return new AbstractMappingProvider<RegularFile, Directory>(RegularFile.class, this) {
+                @Override
+                protected String getMapDescription() {
+                    return "descendant-file";
+                }
+
                 @Override
                 protected RegularFile mapValue(Directory dir) {
                     return dir.file(path);
@@ -388,6 +408,11 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
     static class ToFileProvider extends AbstractMappingProvider<File, FileSystemLocation> {
         ToFileProvider(ProviderInternal<? extends FileSystemLocation> provider) {
             super(File.class, provider);
+        }
+
+        @Override
+        protected String getMapDescription() {
+            return "as-file";
         }
 
         @Override
