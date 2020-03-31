@@ -59,7 +59,8 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
         declarePluginMetadata(pluginExtension, scriptPlugins);
 
         TaskProvider<PrecompileGroovyScriptsTask> precompileTask = project.getTasks().register(
-            "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPluginFiles.getFiles(), scriptPlugins);
+            "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPluginFiles.getFiles(), scriptPlugins,
+            pluginSourceSet.getCompileClasspath());
 
         pluginSourceSet.getOutput().dir(precompileTask.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsDir));
         pluginSourceSet.getJava().srcDir(precompileTask.flatMap(PrecompileGroovyScriptsTask::getGeneratedPluginAdaptersDir));

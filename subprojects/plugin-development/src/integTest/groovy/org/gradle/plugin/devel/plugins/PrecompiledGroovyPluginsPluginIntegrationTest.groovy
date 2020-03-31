@@ -350,6 +350,68 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         outputContains("foo script plugin applied")
     }
 
+    def "fails the build with help message for plugin spec with version"() {
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+        enablePrecompiledPluginsInBuildSrc()
+
+        pluginDir.file("foo.gradle") << """
+            plugins {
+                id 'some-plugin' version '42.0'
+            }
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo'
+            }
+        """
+
+        expect:
+        fails("help")
+        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'some-plugin' is an implementation dependency of project ':buildSrc'")
+    }
+
+    @ToBeFixedForInstantExecution
+    def "can use classes from project dependencies"() {
+        given:
+        publishedLibraryWithClass('com.example', 'lib', '42.0', 'src/main/java/foo/bar/Test.java', """
+            package foo.bar;
+            public class Test {}
+        """)
+
+        when:
+        def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
+        file("buildSrc/build.gradle") << """
+            plugins {
+                id 'precompiled-groovy-plugin'
+            }
+            repositories {
+                maven {
+                    url '${mavenRepo.uri}'
+                }
+            }
+
+            dependencies {
+                implementation("com.example:lib:42.0")
+            }
+        """
+
+        pluginDir.file("foo.gradle") << """
+            println foo.bar.Test
+            $REGISTER_SAMPLE_TASK
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo'
+            }
+        """
+
+        then:
+        succeeds(SAMPLE_TASK)
+        outputContains('class foo.bar.Test')
+    }
+
     def "can apply configuration in a precompiled script plugin to the current project"() {
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         enablePrecompiledPluginsInBuildSrc()
@@ -595,8 +657,8 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         result.assertHasDescription("An exception occurred applying plugin request [id: 'foo']")
         result.assertHasCause("Failed to apply plugin [id 'foo']")
         result.assertHasCause('Precompiled Groovy script plugins require Gradle 6.4 or higher')
+        result.assertNotOutput('foo plugin applied')
         !result.error.contains('java.lang.NoClassDefFoundError')
-        !result.output.contains('foo plugin applied')
     }
 
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
@@ -641,6 +703,35 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         return movedJar.name
     }
 
+    private void publishedLibraryWithClass(String group, String artifact, String version, String sourcePath, String sourceContent) {
+        file("$artifact/build.gradle") << """
+            plugins {
+                id 'java-library'
+                id 'maven-publish'
+            }
+            group = '$group'
+            version = '$version'
+            publishing {
+                publications {
+                    library(MavenPublication) {
+                        from components.java
+                    }
+                }
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
+            }
+        """
+        file("$artifact/settings.gradle") << "rootProject.name='$artifact'"
+        file ("$artifact/$sourcePath") << sourceContent
+
+        executer.inDirectory(file(artifact)).withTasks("publish").run()
+        mavenRepo.module(group, artifact, version).assertPublished()
+        file(artifact).forceDeleteDir()
+    }
+
     private void enablePrecompiledPluginsInBuildSrc() {
         file("buildSrc/build.gradle") << """
             plugins {
@@ -656,4 +747,5 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
     private static void pluginScript(TestFile pluginDir, String pluginFile, String content) {
         pluginDir.file(pluginFile) << content
     }
+
 }
