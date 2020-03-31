@@ -45,7 +45,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
-    private final boolean inferModulePath;
+    private final Iterable<File> modulePath;
     private final List<String> testWorkerImplementationModules;
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private final ModuleRegistry moduleRegistry;
@@ -58,14 +58,14 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private boolean stoppedNow;
 
     public ForkingTestClassProcessor(WorkerLeaseRegistry.WorkerLease parentWorkerLease, WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options,
-                                     Iterable<File> classPath, boolean inferModulePath, List<String> testWorkerImplementationModules,
+                                     Iterable<File> classPath, Iterable<File> modulePath, List<String> testWorkerImplementationModules,
                                      Action<WorkerProcessBuilder> buildConfigAction, ModuleRegistry moduleRegistry, DocumentationRegistry documentationRegistry) {
         this.currentWorkerLease = parentWorkerLease;
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
         this.classPath = classPath;
-        this.inferModulePath = inferModulePath;
+        this.modulePath = modulePath;
         this.testWorkerImplementationModules = testWorkerImplementationModules;
         this.buildConfigAction = buildConfigAction;
         this.moduleRegistry = moduleRegistry;
@@ -108,8 +108,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         builder.setImplementationClasspath(getTestWorkerImplementationClasspath());
         builder.setImplementationModulePath(getTestWorkerImplementationModulePath());
         builder.applicationClasspath(classPath);
-        builder.setInferApplicationModulePath(inferModulePath);
+        builder.applicationModulePath(modulePath);
         options.copyTo(builder.getJavaCommand());
+        builder.getJavaCommand().getModularClasspathHandling().getInferModulePath().set(modulePath.iterator().hasNext());
         builder.getJavaCommand().jvmArgs("-Dorg.gradle.native=false");
         buildConfigAction.execute(builder);
 

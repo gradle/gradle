@@ -604,8 +604,11 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
     protected JvmTestExecutionSpec createTestExecutionSpec() {
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
-        boolean testIsModule = getJavaModuleDetector().isModule(modularClasspathHandling.getInferModulePath().get(), getTestClassesDirs());
-        return new JvmTestExecutionSpec(getTestFramework(), getClasspath(), testIsModule, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
+        JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
+        boolean testIsModule = javaModuleDetector.isModule(modularClasspathHandling.getInferModulePath().get(), getTestClassesDirs());
+        FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, getClasspath());
+        FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, getClasspath());
+        return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());
     }
 
     private Set<String> getPreviousFailedTestClasses() {
