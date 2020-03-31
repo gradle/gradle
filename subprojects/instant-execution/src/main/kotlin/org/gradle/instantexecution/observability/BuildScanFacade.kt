@@ -40,20 +40,20 @@ interface BuildScanFacade {
 
     fun value(key: String, value: Any?)
 
-    fun instantExecutionEnabled() =
+    fun instantExecutionStoreAction() {
         value("instant-execution:enabled", true)
-
-    fun instantExecutionStoreAction() =
         value("instant-execution:action", "store")
+    }
 
-    fun instantExecutionLoadAction() =
+    fun instantExecutionLoadAction() {
+        value("instant-execution:enabled", true)
         value("instant-execution:action", "load")
+    }
 
-    fun instantExecutionStateSize(size: Long) =
-        value("instant-execution:state:size", size)
-
-    fun instantExecutionFingerprintSize(size: Long) =
-        value("instant-execution:fingerprint:size", size)
+    fun instantExecutionStateSize(stateSize: Long, fingerprintSize: Long) {
+        value("instant-execution:state:size", stateSize)
+        value("instant-execution:fingerprint:size", fingerprintSize)
+    }
 }
 
 

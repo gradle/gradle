@@ -143,7 +143,6 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        buildScan.instantExecutionEnabled()
         buildScan.instantExecutionStoreAction()
 
         stopCollectingCacheFingerprint()
@@ -162,8 +161,10 @@ class DefaultInstantExecution internal constructor(
 
                 writeInstantExecutionCacheFingerprint()
 
-                buildScan.instantExecutionStateSize(instantExecutionStateFile.length())
-                buildScan.instantExecutionFingerprintSize(instantExecutionFingerprintFile.length())
+                buildScan.instantExecutionStateSize(
+                    instantExecutionStateFile.length(),
+                    instantExecutionFingerprintFile.length()
+                )
             } catch (error: InstantExecutionError) {
                 // Invalidate unusable state on errors
                 invalidateInstantExecutionState()
@@ -217,10 +218,11 @@ class DefaultInstantExecution internal constructor(
 
         readBuildScanState(buildScan)
 
-        buildScan.instantExecutionEnabled()
         buildScan.instantExecutionLoadAction()
-        buildScan.instantExecutionStateSize(instantExecutionStateFile.length())
-        buildScan.instantExecutionFingerprintSize(instantExecutionFingerprintFile.length())
+        buildScan.instantExecutionStateSize(
+            instantExecutionStateFile.length(),
+            instantExecutionFingerprintFile.length()
+        )
 
         readGradleState(build.gradle)
 
