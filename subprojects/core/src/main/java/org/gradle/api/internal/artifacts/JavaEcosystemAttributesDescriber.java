@@ -23,16 +23,14 @@ import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
-import org.gradle.api.internal.attributes.AbstractAttributeDescriber;
+import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.BiConsumer;
 
-class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
+class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     private final static Set<Attribute<?>> ATTRIBUTES = ImmutableSet.of(
         Usage.USAGE_ATTRIBUTE,
         Category.CATEGORY_ATTRIBUTE,
@@ -103,36 +101,8 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
     }
 
     @Override
-    public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-        return describeCompatibility(attribute, consumerValue, producerValue, true);
-    }
-
-    private static String describeCompatibility(Attribute<?> attribute, Object consumerValue, Object producerValue, boolean compatible) {
-        if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
-            return describeExpected(consumerValue, producerValue, (o, sb) -> describeUsage(o, sb));
-        }
-        if (TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE.equals(attribute)) {
-            return describeCompatibleTargetJvm(consumerValue, producerValue, compatible);
-        }
-        if (Category.CATEGORY_ATTRIBUTE.equals(attribute)) {
-            return describeExpected(consumerValue, producerValue, (o, sb) -> describeCategory(o, sb));
-        }
-        if (Bundling.BUNDLING_ATTRIBUTE.equals(attribute)) {
-            return describeExpected(consumerValue, producerValue, (o, sb) -> describeBundling(o, sb));
-        }
-        if (LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE.equals(attribute)) {
-            AtomicBoolean first = new AtomicBoolean(true);
-            return describeExpected(consumerValue, producerValue, (o, sb) -> {
-                sb.append(first.getAndSet(false) ? "its elements " : "them ");
-                describeLibraryElements(o, sb);
-            });
-        }
-        return null;
-    }
-
-    @Override
     public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
-        StringBuilder sb = new StringBuilder("Doesn't say anything about ");
+        StringBuilder sb = new StringBuilder();
         if (Usage.USAGE_ATTRIBUTE.equals(attribute)) {
             sb.append("its usage (required ");
             describeUsage(consumerValue, sb);
@@ -154,7 +124,7 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
             describeLibraryElements(consumerValue, sb);
             sb.append(")");
         } else {
-            describeGenericAttribute(sb, attribute, consumerValue);
+            return null;
         }
         return sb.toString();
     }
@@ -165,7 +135,7 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
 
     @Override
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
-        StringBuilder sb = new StringBuilder("Provides ");
+        StringBuilder sb = new StringBuilder();
         if (sameAttribute(Usage.USAGE_ATTRIBUTE, attribute)) {
             describeUsage(producerValue, sb);
         } else if (sameAttribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, attribute)) {
@@ -181,51 +151,12 @@ class JavaEcosystemAttributesDescriber extends AbstractAttributeDescriber {
         } else {
             describeGenericAttribute(sb, attribute, producerValue);
         }
-        sb.append(" but the consumer didn't ask for it");
         return sb.toString();
     }
 
     // A type independent comparator, because of desugaring
     private static boolean sameAttribute(Attribute<?> first, Attribute<?> second) {
         return first.equals(second) || first.getName().equals(second.getName());
-    }
-
-    @Override
-    public String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-        return describeCompatibility(attribute, consumerValue, producerValue, false);
-    }
-
-    private static <T> String describeExpected(T consumerValue, T producerValue, BiConsumer<T, StringBuilder> describer) {
-        StringBuilder sb = new StringBuilder();
-        boolean sameValue = isLikelySameValue(consumerValue, producerValue);
-        if (!sameValue) {
-            sb.append("Required ");
-        } else {
-            sb.append("Provides ");
-        }
-        describer.accept(consumerValue, sb);
-        if (!sameValue) {
-            sb.append(" and found ");
-            describer.accept(producerValue, sb);
-        }
-        return sb.toString();
-    }
-
-    private static String describeCompatibleTargetJvm(Object consumerValue, Object producerValue, boolean compatible) {
-        StringBuilder sb = new StringBuilder();
-        boolean sameValue = isLikelySameValue(consumerValue, producerValue);
-        if (!sameValue) {
-            sb.append("Required compatibility with ");
-        } else {
-            sb.append("Is compatible with ");
-        }
-        describeTargetJvm(consumerValue, sb);
-        if (!sameValue) {
-            sb.append(" and found ");
-            sb.append(compatible ? " compatible " : "incompatible ");
-            describeTargetJvm(producerValue, sb);
-        }
-        return sb.toString();
     }
 
     private static void describeBundling(Object bundling, StringBuilder sb) {

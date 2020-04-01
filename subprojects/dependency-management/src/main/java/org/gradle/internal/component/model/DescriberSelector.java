@@ -17,7 +17,6 @@ package org.gradle.internal.component.model;
 
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.attributes.AbstractAttributeDescriber;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.AttributeDescriber;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
@@ -67,18 +66,6 @@ public class DescriberSelector {
         }
 
         @Override
-        public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-            String description = delegate.describeCompatibleAttribute(attribute, consumerValue, producerValue);
-            return description == null ? DefaultDescriber.INSTANCE.describeCompatibleAttribute(attribute, consumerValue, producerValue) : description;
-        }
-
-        @Override
-        public String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-            String description = delegate.describeIncompatibleAttribute(attribute, consumerValue, producerValue);
-            return description == null ? DefaultDescriber.INSTANCE.describeIncompatibleAttribute(attribute, consumerValue, producerValue) : description;
-        }
-
-        @Override
         public String describeMissingAttribute(Attribute<?> attribute, Object producerValue) {
             String description = delegate.describeMissingAttribute(attribute, producerValue);
             return description == null ? DefaultDescriber.INSTANCE.describeMissingAttribute(attribute, producerValue) : description;
@@ -91,7 +78,7 @@ public class DescriberSelector {
         }
     }
 
-    private static class DefaultDescriber extends AbstractAttributeDescriber {
+    private static class DefaultDescriber implements AttributeDescriber {
         private final static DefaultDescriber INSTANCE = new DefaultDescriber();
 
         @Override
@@ -113,26 +100,13 @@ public class DescriberSelector {
         }
 
         @Override
-        public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-            if (isLikelySameValue(consumerValue, producerValue)) {
-                return "Provides " + attribute.getName() + " '" + consumerValue + "'";
-            }
-            return "Required " + attribute.getName() + " '" + consumerValue + "' and found '" + producerValue + "'.";
-        }
-
-        @Override
-        public String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-            return "Required " + attribute.getName() + " '" + consumerValue + "' and found incompatible value '" + producerValue + "'.";
-        }
-
-        @Override
         public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
-            return "Required " + attribute.getName() + " '" + consumerValue + "' but no value provided.";
+            return attribute.getName() + " (required '" + consumerValue + "')";
         }
 
         @Override
         public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
-            return "Found " + attribute.getName() + " '" + producerValue + "' but wasn't required.";
+            return attribute.getName() + " '" + producerValue + "'";
         }
     }
 }

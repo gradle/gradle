@@ -395,16 +395,10 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
   - foo2
   - foo3
 All of them match the consumer attributes:
-  - Variant 'foo2' capability test:b:unspecified:
-      - Compatible attributes:
-          - Provides buildType 'debug'
-          - Required flavor 'free' and found 'ONE'.
-  - Variant 'foo3' capability test:b:unspecified:
-      - Compatible attributes:
-          - Provides buildType 'debug'
-          - Required flavor 'free' and found 'ONE'.
+  - Variant 'foo2' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
+  - Variant 'foo3' capability test:b:unspecified declares attribute 'buildType' with value 'debug', attribute 'flavor' with value 'ONE'
 The following variants were also considered but didn't match the requested attributes:
-  - Variant 'bar' capability test:b:unspecified is attribute 'flavor' with value 'ONE':
+  - Variant 'bar' capability test:b:unspecified declares attribute 'flavor' with value 'ONE':
       - Incompatible because this component declares attribute 'buildType' with value 'release' and the consumer needed attribute 'buildType' with value 'debug'"""
     }
 

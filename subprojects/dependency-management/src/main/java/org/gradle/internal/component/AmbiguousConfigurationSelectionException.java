@@ -118,7 +118,6 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
                                                          ImmutableAttributes immutableProducer,
                                                          AttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        List<String> incompatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
         Map<Attribute<?>, ?> incompatibleAttrs = Maps.newLinkedHashMap();
@@ -134,14 +133,13 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
                 } else {
                     incompatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
                     incompatibleConsumerAttrs.put(attribute, Cast.uncheckedCast(consumerValue.get()));
-                    incompatibleValues.add(describer.describeIncompatibleAttribute(attribute, consumerValue.get(), producerValue.get()));
                 }
             } else if (consumerValue.isPresent()) {
-                otherValues.add(describer.describeMissingAttribute(attribute, consumerValue.get()));
+                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
             }
         }
         if (!compatibleAttrs.isEmpty()) {
-            formatter.append(" is ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
+            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
         }
         formatter.startChildren();
         if (!incompatibleAttrs.isEmpty()) {
@@ -157,8 +155,7 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
                                                    ImmutableAttributes immutableProducer,
                                                    AttributeDescriber describer) {
         Map<String, Attribute<?>> allAttributes = collectAttributes(immutableConsumer, immutableProducer);
-        formatter.startChildren();
-        List<String> compatibleValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
+        Map<Attribute<?>, ?> compatibleAttrs = Maps.newLinkedHashMap();
         List<String> otherValues = Lists.newArrayListWithExpectedSize(allAttributes.size());
         for (Attribute<?> attribute : allAttributes.values()) {
             Attribute<Object> untyped = Cast.uncheckedCast(attribute);
@@ -167,20 +164,19 @@ public class AmbiguousConfigurationSelectionException extends StyledException {
             AttributeValue<?> producerValue = immutableProducer.findEntry(attributeName);
             if (consumerValue.isPresent() && producerValue.isPresent()) {
                 if (attributeMatcher.isMatching(untyped, producerValue.coerce(attribute), consumerValue.coerce(attribute))) {
-                    compatibleValues.add(describer.describeCompatibleAttribute(attribute, consumerValue.get(), producerValue.get()));
-                } else {
-                    String result = describer.describeIncompatibleAttribute(attribute, consumerValue.get(), producerValue.get());
-                    assert false : "Incompatible attributes on ambiguity: " + result;
-                    otherValues.add(result);
+                    compatibleAttrs.put(attribute, Cast.uncheckedCast(producerValue.get()));
                 }
             } else if (consumerValue.isPresent()) {
-                otherValues.add(describer.describeMissingAttribute(attribute, consumerValue.get()));
+                otherValues.add("Doesn't say anything about " + describer.describeMissingAttribute(attribute, consumerValue.get()));
             } else {
-                otherValues.add(describer.describeExtraAttribute(attribute, producerValue.get()));
+                otherValues.add("Provides " + describer.describeExtraAttribute(attribute, producerValue.get()) + " but the consumer didn't ask for it");
             }
         }
+        if (!compatibleAttrs.isEmpty()) {
+            formatter.append(" declares ").append(style(StyledTextOutput.Style.SuccessHeader, describer.describeAttributeSet(compatibleAttrs)));
+        }
+        formatter.startChildren();
         formatAttributeSection(formatter, "Unmatched attribute", otherValues);
-        formatAttributeSection(formatter, "Compatible attribute", compatibleValues);
         formatter.endChildren();
     }
 

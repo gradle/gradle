@@ -42,23 +42,13 @@ class StyledDescriber implements AttributeDescriber {
     }
 
     @Override
-    public String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-        return StyledException.style(StyledTextOutput.Style.SuccessHeader, delegate.describeCompatibleAttribute(attribute, consumerValue, producerValue));
-    }
-
-    @Override
-    public String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue) {
-        return StyledException.style(StyledTextOutput.Style.FailureHeader, delegate.describeIncompatibleAttribute(attribute, consumerValue, producerValue));
-    }
-
-    @Override
     public String describeMissingAttribute(Attribute<?> attribute, Object consumerValue) {
-        return StyledException.style(StyledTextOutput.Style.Header, delegate.describeMissingAttribute(attribute, consumerValue));
+        return StyledException.style(StyledTextOutput.Style.Info, delegate.describeMissingAttribute(attribute, consumerValue));
     }
 
     @Override
     public String describeExtraAttribute(Attribute<?> attribute, Object producerValue) {
-        return delegate.describeExtraAttribute(attribute, producerValue);
+        return StyledException.style(StyledTextOutput.Style.Info, delegate.describeExtraAttribute(attribute, producerValue));
     }
 
 }

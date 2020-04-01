@@ -100,17 +100,17 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
 
         then:
         failure.assertHasCause('''No matching variant of org:producer:1.0 was found. The consumer was configured to find an API of a library compatible with Java 5, preferably in the form of class files, and its dependencies declared externally but:
-  - Variant 'apiElementsJdk6' capability org:producer:1.0 is an API of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'apiElementsJdk6' capability org:producer:1.0 declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 6 and the consumer needed a component compatible with Java 5
-  - Variant 'apiElementsJdk7' capability org:producer:1.0 is an API of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'apiElementsJdk7' capability org:producer:1.0 declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 5
-  - Variant 'apiElementsJdk9' capability org:producer:1.0 is an API of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'apiElementsJdk9' capability org:producer:1.0 declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 9 and the consumer needed a component compatible with Java 5
-  - Variant 'runtimeElementsJdk6' capability org:producer:1.0 is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'runtimeElementsJdk6' capability org:producer:1.0 declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 6 and the consumer needed a component compatible with Java 5
-  - Variant 'runtimeElementsJdk7' capability org:producer:1.0 is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'runtimeElementsJdk7' capability org:producer:1.0 declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 5
-  - Variant 'runtimeElementsJdk9' capability org:producer:1.0 is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'runtimeElementsJdk9' capability org:producer:1.0 declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 9 and the consumer needed a component compatible with Java 5''')
     }
 

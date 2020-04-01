@@ -159,25 +159,25 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
 
         then:
         failure.assertHasCause('''No matching variant of project :platform was found. The consumer was configured to find an API of a library compatible with Java 8, preferably in the form of class files, and its dependencies declared externally but:
-  - Variant 'apiElements' capability org.test:platform:1.9 is an API of a component:
+  - Variant 'apiElements' capability org.test:platform:1.9 declares an API of a component:
       - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 is an API of a component:
+  - Variant 'enforcedApiElements' capability org.test:platform-derived-enforced-platform:1.9 declares an API of a component:
       - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 is a runtime of a component:
+  - Variant 'enforcedRuntimeElements' capability org.test:platform-derived-enforced-platform:1.9 declares a runtime of a component:
       - Incompatible because this component declares an enforced platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
           - Doesn't say anything about its target Java version (required compatibility with Java 8)
           - Doesn't say anything about its elements (required them preferably in the form of class files)
-  - Variant 'runtimeElements' capability org.test:platform:1.9 is a runtime of a component:
+  - Variant 'runtimeElements' capability org.test:platform:1.9 declares a runtime of a component:
       - Incompatible because this component declares a platform and the consumer needed a library
       - Other compatible attributes:
           - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
