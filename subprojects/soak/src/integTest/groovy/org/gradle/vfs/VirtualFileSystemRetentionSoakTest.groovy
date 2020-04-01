@@ -29,7 +29,6 @@ import org.junit.experimental.categories.Category
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
     private static final int NUMBER_OF_SUBPROJECTS = 50
-    private static final int MAX_FILE_CHANGES_WITHOUT_OVERFLOW = 1000
     private static final int NUMBER_OF_SOURCES_PER_SUBPROJECT = 100
     private static final double LOST_EVENTS_RATIO_MAC_OS = 0.6
     private static final double LOST_EVENTS_RATIO_WINDOWS = 0.1
@@ -65,7 +64,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     }
 
     def "file watching works with multiple builds on the same daemon"() {
-        def numberOfChangesBetweenBuilds = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangesBetweenBuilds = maxFileChangesWithoutOverflow
 
         when:
         succeeds("assemble")
@@ -101,7 +100,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
     def "file watching works with many changes between two builds"() {
         // Use 40 minutes idle timeout since the test may be running longer with an idle daemon
         executer.withDaemonIdleTimeoutSecs(2400)
-        def numberOfChangedSourcesFilesPerBatch = MAX_FILE_CHANGES_WITHOUT_OVERFLOW
+        def numberOfChangedSourcesFilesPerBatch = maxFileChangesWithoutOverflow
         def numberOfChangeBatches = 500
 
         when:
@@ -126,6 +125,12 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         assertWatchingSucceeded()
         receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangedSourcesFilesPerBatch, numberOfChangeBatches)
         retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+    }
+
+    private static getMaxFileChangesWithoutOverflow() {
+        OperatingSystem.current().windows
+            ? 500
+            : 1000
     }
 
     private static boolean detectOverflow(DaemonFixture daemon) {
