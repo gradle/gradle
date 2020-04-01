@@ -446,6 +446,9 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         then:
         succeeds(SAMPLE_TASK)
         outputContains('class foo.bar.Test')
+
+        cleanup:
+        mavenRepo.getRootDir().forceDeleteDir()
     }
 
     def "can apply configuration in a precompiled script plugin to the current project"() {
