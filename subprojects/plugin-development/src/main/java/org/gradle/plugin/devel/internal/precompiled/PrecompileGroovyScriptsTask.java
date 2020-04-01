@@ -63,6 +63,7 @@ import java.nio.file.Paths;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @CacheableTask
 class PrecompileGroovyScriptsTask extends DefaultTask {
@@ -77,7 +78,6 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
 
     private final ClassLoaderScope classLoaderScope;
 
-    private final Set<File> pluginSourceFiles;
     private final List<PrecompiledGroovyScript> scriptPlugins;
 
     private final Provider<Directory> intermediatePluginClassesDir;
@@ -97,7 +97,8 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
                                        ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                        CompileOperationFactory compileOperationFactory,
                                        FileSystemOperations fileSystemOperations,
-                                       ScriptRunnerFactory scriptRunnerFactory, ServiceRegistry serviceRegistry, Set<File> pluginSourceFiles,
+                                       ScriptRunnerFactory scriptRunnerFactory,
+                                       ServiceRegistry serviceRegistry,
                                        List<PrecompiledGroovyScript> scriptPlugins,
                                        FileCollection classpath,
                                        Provider<Directory> javaSourceDependencyClasses,
@@ -110,7 +111,6 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
 
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
 
-        this.pluginSourceFiles = pluginSourceFiles;
         this.scriptPlugins = scriptPlugins;
         this.classpath = classpath;
 
@@ -129,7 +129,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     Set<File> getScriptFiles() {
-        return pluginSourceFiles;
+        return scriptPlugins.stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet());
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)

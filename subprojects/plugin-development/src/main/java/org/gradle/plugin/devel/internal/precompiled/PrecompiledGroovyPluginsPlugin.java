@@ -68,23 +68,21 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
         Provider<Directory> javaClasses = tasks.named("compileJava", AbstractCompile.class).flatMap(AbstractCompile::getDestinationDirectory);
         Provider<Directory> groovyClasses = tasks.named("compileGroovy", AbstractCompile.class).flatMap(AbstractCompile::getDestinationDirectory);
 
-        TaskProvider<PrecompileGroovyScriptsTask> precompileTask = tasks.register(
-            "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPluginFiles.getFiles(), scriptPlugins,
-            pluginSourceSet.getCompileClasspath(),
-            javaClasses,
-            groovyClasses
+        TaskProvider<PrecompileGroovyScriptsTask> precompilePlugins = tasks.register(
+            "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPlugins,
+            pluginSourceSet.getCompileClasspath(), javaClasses, groovyClasses
         );
 
         TaskProvider<JavaCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", JavaCompile.class, t -> {
-            t.dependsOn(precompileTask);
-            t.setSource(precompileTask.flatMap(PrecompileGroovyScriptsTask::getPluginAdapterSourcesOutputDir));
-            t.setDestinationDir(precompileTask.flatMap(PrecompileGroovyScriptsTask::getAdapterClassesOutputDir));
+            t.dependsOn(precompilePlugins);
+            t.setSource(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getPluginAdapterSourcesOutputDir));
+            t.setDestinationDir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getAdapterClassesOutputDir));
             t.setClasspath(pluginSourceSet.getCompileClasspath());
         });
 
         tasks.named("pluginDescriptors").configure(t -> t.dependsOn(compilePluginAdapters));
 
-        pluginSourceSet.getOutput().dir(precompileTask.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsOutputDir));
+        pluginSourceSet.getOutput().dir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsOutputDir));
         pluginSourceSet.getOutput().dir(compilePluginAdapters.flatMap(JavaCompile::getDestinationDirectory));
     }
 }
