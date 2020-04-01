@@ -80,8 +80,6 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
             t.setClasspath(pluginSourceSet.getCompileClasspath());
         });
 
-        tasks.named("pluginDescriptors").configure(t -> t.dependsOn(compilePluginAdapters));
-
         pluginSourceSet.getOutput().dir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsOutputDir));
         pluginSourceSet.getOutput().dir(compilePluginAdapters.flatMap(JavaCompile::getDestinationDirectory));
     }
