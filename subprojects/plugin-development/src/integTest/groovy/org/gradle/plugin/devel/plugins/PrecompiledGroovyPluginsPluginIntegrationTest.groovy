@@ -408,32 +408,23 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
 
     @ToBeFixedForInstantExecution
     def "can use classes from project dependencies"() {
-        given:
-        publishedLibraryWithClass('com.example', 'lib', '42.0', 'src/main/java/foo/bar/Test.java', """
-            package foo.bar;
-            public class Test {}
-        """)
-
         when:
         def pluginDir = createDir("buildSrc/src/main/groovy/plugins")
         file("buildSrc/build.gradle") << """
             plugins {
                 id 'precompiled-groovy-plugin'
             }
-            repositories {
-                maven {
-                    url '${mavenRepo.uri}'
-                }
-            }
+            ${jcenterRepository()}
 
             dependencies {
-                implementation("com.example:lib:42.0")
+                implementation("org.apache.commons:commons-lang3:3.4")
             }
         """
 
         pluginDir.file("foo.gradle") << """
-            import foo.bar.Test
-            println Test
+            import org.apache.commons.lang3.StringUtils
+            println StringUtils
+            println StringUtils.capitalize('test')
             $REGISTER_SAMPLE_TASK
         """
 
@@ -445,10 +436,8 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
 
         then:
         succeeds(SAMPLE_TASK)
-        outputContains('class foo.bar.Test')
-
-        cleanup:
-        mavenRepo.getRootDir().forceDeleteDir()
+        outputContains('class org.apache.commons.lang3.StringUtils')
+        outputContains('Test')
     }
 
     def "can apply configuration in a precompiled script plugin to the current project"() {
@@ -740,35 +729,6 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         pluginJar.renameTo(movedJar)
         file('plugins').forceDeleteDir()
         return movedJar.name
-    }
-
-    private void publishedLibraryWithClass(String group, String artifact, String version, String sourcePath, String sourceContent) {
-        file("$artifact/build.gradle") << """
-            plugins {
-                id 'java-library'
-                id 'maven-publish'
-            }
-            group = '$group'
-            version = '$version'
-            publishing {
-                publications {
-                    library(MavenPublication) {
-                        from components.java
-                    }
-                }
-                repositories {
-                    maven {
-                        url '${mavenRepo.uri}'
-                    }
-                }
-            }
-        """
-        file("$artifact/settings.gradle") << "rootProject.name='$artifact'"
-        file("$artifact/$sourcePath") << sourceContent
-
-        executer.inDirectory(file(artifact)).withTasks("publish").run()
-        mavenRepo.module(group, artifact, version).assertPublished()
-        file(artifact).forceDeleteDir()
     }
 
     private void enablePrecompiledPluginsInBuildSrc() {
