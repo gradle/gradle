@@ -85,8 +85,9 @@ fun WriteContext.reportFieldProblems(fieldName: String, fieldType: Class<*>, fie
 
 
 /**
- * Returns whether the given property could be written. A property can only be written when there's
- * a suitable [Codec] for its [value].
+ * Writes a bean property.
+ *
+ * A property can only be written when there's a suitable [Codec] for its [value].
  */
 suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
     withPropertyTrace(kind, name) {
