@@ -658,7 +658,7 @@ A proxy for S3 can be configured using the following system properties:
 * `https.proxyPort`
 * `https.proxyUser`
 * `https.proxyPassword`
-* `http.nonProxyHosts`
+* `https.nonProxyHosts`
 
 If the `org.gradle.s3.endpoint` property has been specified with a HTTP (not HTTPS) URI the following system proxy settings can be used:
 
