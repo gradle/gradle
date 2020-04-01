@@ -11,9 +11,8 @@ dependencies {
 
 // tag::iteration-task[]
 tasks.register("iterateResolvedArtifacts") {
-    val scm = configurations["scm"]
+    val scm: FileCollection = configurations["scm"]
     dependsOn(scm)
-
     doLast {
         scm.forEach {
             logger.quiet(it.absolutePath)

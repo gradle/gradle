@@ -12,18 +12,19 @@ dependencies {
 
 // tag::walk-task[]
 tasks.register<DependencyGraphWalk>("walkDependencyGraph") {
-    dependencies.set(configurations["scm"].incoming)
+    resolvedComponentResult.set(provider {
+        configurations["scm"].incoming.resolutionResult.root
+    })
 }
 
 abstract class DependencyGraphWalk: DefaultTask() {
 
     @get:Input
-    abstract val dependencies: Property<ResolvableDependencies>
+    abstract val resolvedComponentResult: Property<ResolvedComponentResult>
 
     @TaskAction
     fun walk() {
-        val resolutionResult: ResolutionResult = dependencies.get().resolutionResult
-        val root: ResolvedComponentResult = resolutionResult.root
+        val root: ResolvedComponentResult = resolvedComponentResult.get()
         traverseDependencies(0, root.dependencies)
     }
 

@@ -16,13 +16,15 @@ dependencies {
 tasks.register("printGuavaMetadata") {
     dependsOn(configurations.compileClasspath)
 
-    doLast {
-        val query: ArtifactResolutionQuery = dependencies.createArtifactResolutionQuery()
+    val result = provider {
+        dependencies.createArtifactResolutionQuery()
             .forModule("com.google.guava", "guava", "18.0")
             .withArtifacts(MavenModule::class, MavenPomArtifact::class)
-        val result: ArtifactResolutionResult = query.execute()
+            .execute()
+    }
 
-        result.resolvedComponents.forEach { component ->
+    doLast {
+        result.get().resolvedComponents.forEach { component ->
             val mavenPomArtifacts: Set<ArtifactResult> = component.getArtifacts(MavenPomArtifact::class)
             val guavaPomArtifact =
                 mavenPomArtifacts.find { it is ResolvedArtifactResult && it.file.name == "guava-18.0.pom" } as ResolvedArtifactResult
