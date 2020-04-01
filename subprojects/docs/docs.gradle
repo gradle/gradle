@@ -134,16 +134,16 @@ samples {
         groovySpockTestForApplication {
             target = "application"
         }
-        javaJunit4TestForApplication {
+        javaJunit5TestForApplication {
             target = "application"
         }
-        javaJunit4TestForListLibrary {
+        javaJunit5TestForListLibrary {
             target = "list"
         }
-        javaJunit4IntegrationTestForApplication {
+        javaJunit5IntegrationTestForApplication {
             target = "application"
         }
-        javaJunit4IntegrationTestForUtilitiesLibrary {
+        javaJunit5IntegrationTestForUtilitiesLibrary {
             target = "utilities"
         }
 
@@ -191,12 +191,12 @@ samples {
 
             common {
                 from(templates.javaApplicationAsSubproject)
-                from(templates.javaJunit4TestForApplication)
-                from(templates.javaJunit4IntegrationTestForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
 
                 from(templates.javaListLibraryAsSubproject)
-                from(templates.javaJunit4TestForListLibrary)
-                from(templates.javaJunit4IntegrationTestForUtilitiesLibrary)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
 
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
@@ -245,17 +245,17 @@ samples {
                 from(templates.groovySpockTestForListLibrary)
             }
         }
-        javaComponentsWithJUnit4Tests {
-            sampleDirectory = samplesRoot.dir("java/components-with-junit-4-tests")
-            displayName = "Testing with JUnit4"
-            description = "Test a Java application and library with link:https://junit.org/junit4/[JUnit4]."
+        javaComponentsWithJUnit5Tests {
+            sampleDirectory = samplesRoot.dir("java/components-with-junit-5-tests")
+            displayName = "Testing with JUnit5"
+            description = "Test a Java application and library with link:https://junit.org/junit5[JUnit5]."
             category = "Java"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaJunit4TestForApplication)
-                from(templates.javaJunit4TestForListLibrary)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
             }
         }
         javaLibraryPublishing {
