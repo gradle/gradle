@@ -170,7 +170,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
         ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(compileClasspath).getAsURLArray(), classLoaderScope.getLocalClassLoader());
 
         for (PrecompiledGroovyScript scriptPlugin : scriptPlugins) {
-            CompiledScript<? extends BasicScript, ?> pluginsBlock = compilePluginsBlock(scriptPlugin, compileClassLoader);
+            CompiledScript<PluginsAwareScript, ?> pluginsBlock = compilePluginsBlock(scriptPlugin, compileClassLoader);
             validatePluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
             CompiledScript<? extends BasicScript, ?> buildScript = compileBuildScript(scriptPlugin, compileClassLoader);
             generateScriptPluginAdapter(scriptPlugin, pluginsBlock, buildScript);
@@ -182,7 +182,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
         });
     }
 
-    private void validatePluginRequests(CompiledScript<? extends BasicScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
+    private void validatePluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
         if (pluginsBlock.getRunDoesSomething()) {
             PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
             Set<String> validationErrors = new HashSet<>();
@@ -203,30 +203,26 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
         }
     }
 
-    private PluginRequests extractPluginRequests(CompiledScript<? extends BasicScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
-        ScriptRunner<? extends BasicScript, ?> runner = scriptRunnerFactory.create(pluginsBlock, scriptPlugin.getPluginsBlockSource(), compileClassLoader);
+    private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
+        ScriptRunner<PluginsAwareScript, ?> runner = scriptRunnerFactory.create(pluginsBlock, scriptPlugin.getPluginsBlockSource(), compileClassLoader);
 
         Project target = ProjectBuilder.builder().withParent(project).build();
         runner.run(target, serviceRegistry);
 
-        if (runner.getScript() instanceof PluginsAwareScript) {
-            return ((PluginsAwareScript) runner.getScript()).getPluginRequests();
-        }
-        return PluginRequests.EMPTY;
+        return runner.getScript().getPluginRequests();
     }
 
-    private CompiledScript<? extends BasicScript, ?> compilePluginsBlock(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
-        ScriptTarget target = scriptPlugin.getScriptTarget();
-        CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(target);
+    private CompiledScript<PluginsAwareScript, ?> compilePluginsBlock(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
+        CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
         String targetPath = scriptPlugin.getPluginsBlockClassName();
         File pluginsMetadataDir = subdirectory(intermediatePluginMetadataDir, targetPath);
         File pluginsClassesDir = subdirectory(intermediatePluginClassesDir, targetPath);
         scriptCompilationHandler.compileToDir(
             scriptPlugin.getPluginsBlockSource(), compileClassLoader, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation,
-            target.getScriptClass(), Actions.doNothing());
+            PluginsAwareScript.class, Actions.doNothing());
 
         return scriptCompilationHandler.loadFromDir(scriptPlugin.getPluginsBlockSource(), scriptPlugin.getContentHash(),
-            classLoaderScope, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation, target.getScriptClass());
+            classLoaderScope, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
     private CompiledScript<? extends BasicScript, ?> compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {

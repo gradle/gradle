@@ -21,7 +21,6 @@ import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.configuration.DefaultScriptTarget;
 import org.gradle.groovy.scripts.BasicScript;
 import org.gradle.groovy.scripts.DefaultScript;
-import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 class PrecompiledScriptTarget extends DefaultScriptTarget {
 
@@ -34,7 +33,7 @@ class PrecompiledScriptTarget extends DefaultScriptTarget {
 
     @Override
     public Class<? extends BasicScript> getScriptClass() {
-        return supportsPluginsBlock ? PluginsAwareScript.class : DefaultScript.class;
+        return DefaultScript.class;
     }
 
     @Override
