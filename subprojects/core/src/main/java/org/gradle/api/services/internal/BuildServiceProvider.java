@@ -84,12 +84,6 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         throw new UnsupportedOperationException("Build services cannot be serialized.");
     }
 
-    // TODO - rename this method
-    @Override
-    public boolean isValueProducedByTask() {
-        return true;
-    }
-
     @Override
     protected Value<? extends T> calculateOwnValue() {
         synchronized (this) {
@@ -107,6 +101,11 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
             }
             return Value.of(instance.get());
         }
+    }
+
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return ExecutionTimeValue.changingValue(this);
     }
 
     public void maybeStop() {

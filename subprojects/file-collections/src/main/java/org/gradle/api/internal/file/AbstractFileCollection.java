@@ -287,7 +287,16 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
 
         @Override
-        public boolean isValueProducedByTask() {
+        public ExecutionTimeValue<Set<FileSystemLocation>> calculateExecutionTimeValue() {
+            ExecutionTimeValue<Set<FileSystemLocation>> value = ExecutionTimeValue.fixedValue(get());
+            if (contentsAreBuiltByTask()) {
+                return value.withChangingContent();
+            } else {
+                return value;
+            }
+        }
+
+        private boolean contentsAreBuiltByTask() {
             return !collection.getBuildDependencies().getDependencies(null).isEmpty();
         }
 

@@ -117,6 +117,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue() {
+        // Discard this property from a provider chain, as it does not contribute anything to the calculation.
+        return getSupplier().calculateExecutionTimeValue();
+    }
+
+    @Override
     protected Value<? extends T> calculateOwnValue(ProviderInternal<? extends T> value) {
         return value.calculateValue();
     }
