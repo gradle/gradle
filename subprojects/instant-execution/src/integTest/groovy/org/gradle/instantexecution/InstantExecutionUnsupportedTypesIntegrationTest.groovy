@@ -60,7 +60,6 @@ import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationRe
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
-import org.gradle.api.internal.artifacts.result.DefaultResolutionResult
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
