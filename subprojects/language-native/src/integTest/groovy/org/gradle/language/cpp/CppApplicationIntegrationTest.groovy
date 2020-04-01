@@ -627,10 +627,10 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
   - Variant 'cppApiElements' capability test:hello:unspecified:
       - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
       - Other compatible attributes:
-          - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
-          - Required org.gradle.native.debuggable 'true' but no value provided.
-          - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
-          - Required org.gradle.native.optimized 'false' but no value provided."""
+          - Doesn't say anything about org.gradle.native.architecture (required '${currentArchitecture}')
+          - Doesn't say anything about org.gradle.native.debuggable (required 'true')
+          - Doesn't say anything about org.gradle.native.operatingSystem (required '${currentOsFamilyName}')
+          - Doesn't say anything about org.gradle.native.optimized (required 'false')"""
     }
 
     @ToBeFixedForInstantExecution

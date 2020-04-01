@@ -293,16 +293,14 @@ task show {
         expect:
         fails("show")
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
-  - Configuration ':a:compile' variant free:
+  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found flavor 'free' but wasn't required.
-      - Compatible attribute: Provides usage 'compile'
-  - Configuration ':a:compile' variant paid:
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides flavor 'free' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found flavor 'paid' but wasn't required.
-      - Compatible attribute: Provides usage 'compile'""")
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides flavor 'paid' but the consumer didn't ask for it""")
 
         where:
         expression                                                                                         | _
@@ -366,24 +364,24 @@ task show {
         expect:
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
-  - Configuration ':a:compile' variant free is attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
-  - Configuration ':a:compile' variant paid is attribute 'usage' with value 'compile':
+  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attributes:
-          - Required flavor 'preview' but no value provided.
-          - Required usage 'compile' but no value provided.""")
+          - Doesn't say anything about flavor (required 'preview')
+          - Doesn't say anything about usage (required 'compile')""")
 
         failure.assertHasCause("""No variants of things.jar match the consumer attributes:
   - things.jar:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attributes:
-          - Required flavor 'preview' but no value provided.
-          - Required usage 'compile' but no value provided.""")
+          - Doesn't say anything about flavor (required 'preview')
+          - Doesn't say anything about usage (required 'compile')""")
 
         where:
         expression                                                                                         | _

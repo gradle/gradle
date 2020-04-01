@@ -7,60 +7,50 @@ Execution failed for task ':failRuntimeClasspathResolve'.
           - natives-windows-runtime
           - natives-windows-x86-runtime
         All of them match the consumer attributes:
-          - Variant 'natives-windows-runtime' capability org.lwjgl:lwjgl:3.2.3:
+          - Variant 'natives-windows-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows':
               - Unmatched attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Provides attribute 'org.gradle.native.architecture' with value 'x86-64' but the consumer didn't ask for it
                   - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-              - Compatible attributes:
-                  - Provides a library
-                  - Provides its elements packaged as a jar
-                  - Provides org.gradle.native.operatingSystem 'windows'
-                  - Provides a runtime
-          - Variant 'natives-windows-x86-runtime' capability org.lwjgl:lwjgl:3.2.3:
+          - Variant 'natives-windows-x86-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows':
               - Unmatched attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Provides attribute 'org.gradle.native.architecture' with value 'x86' but the consumer didn't ask for it
                   - Provides attribute 'org.gradle.status' with value 'release' but the consumer didn't ask for it
-              - Compatible attributes:
-                  - Provides a library
-                  - Provides its elements packaged as a jar
-                  - Provides org.gradle.native.operatingSystem 'windows'
-                  - Provides a runtime
         The following variants were also considered but didn't match the requested attributes:
-          - Variant 'compile' capability org.lwjgl:lwjgl:3.2.3 is a library, packaged as a jar:
+          - Variant 'compile' capability org.lwjgl:lwjgl:3.2.3 declares a library, packaged as a jar:
               - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
-                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
           - Variant 'enforced-platform-compile' capability org.lwjgl:lwjgl-derived-enforced-platform:3.2.3:
               - Incompatible because this component declares an API of an enforced platform and the consumer needed a runtime of a library
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Doesn't say anything about its elements (required them packaged as a jar)
-                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
-          - Variant 'enforced-platform-runtime' capability org.lwjgl:lwjgl-derived-enforced-platform:3.2.3 is a runtime of a component:
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
+          - Variant 'enforced-platform-runtime' capability org.lwjgl:lwjgl-derived-enforced-platform:3.2.3 declares a runtime of a component:
               - Incompatible because this component declares an enforced platform and the consumer needed a library
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Doesn't say anything about its elements (required them packaged as a jar)
-                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
-          - Variant 'natives-linux-arm32-runtime' capability org.lwjgl:lwjgl:3.2.3 is a runtime of a library, packaged as a jar:
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
+          - Variant 'natives-linux-arm32-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar:
               - Incompatible because this component declares a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'linux' and the consumer needed a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
-          - Variant 'natives-linux-arm64-runtime' capability org.lwjgl:lwjgl:3.2.3 is a runtime of a library, packaged as a jar:
+          - Variant 'natives-linux-arm64-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar:
               - Incompatible because this component declares a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'linux' and the consumer needed a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
-          - Variant 'natives-macos-runtime' capability org.lwjgl:lwjgl:3.2.3 is a runtime of a library, packaged as a jar:
+          - Variant 'natives-macos-runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar:
               - Incompatible because this component declares a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'macos' and the consumer needed a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
@@ -71,15 +61,15 @@ Execution failed for task ':failRuntimeClasspathResolve'.
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Doesn't say anything about its elements (required them packaged as a jar)
-                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
-          - Variant 'platform-runtime' capability org.lwjgl:lwjgl-derived-platform:3.2.3 is a runtime of a component:
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
+          - Variant 'platform-runtime' capability org.lwjgl:lwjgl-derived-platform:3.2.3 declares a runtime of a component:
               - Incompatible because this component declares a platform and the consumer needed a library
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)
                   - Doesn't say anything about its target Java version (required compatibility with Java 11)
                   - Doesn't say anything about its elements (required them packaged as a jar)
-                  - Doesn't say anything about attribute 'org.gradle.native.operatingSystem' with value 'windows'
-          - Variant 'runtime' capability org.lwjgl:lwjgl:3.2.3 is a runtime of a library, packaged as a jar:
+                  - Doesn't say anything about org.gradle.native.operatingSystem (required 'windows')
+          - Variant 'runtime' capability org.lwjgl:lwjgl:3.2.3 declares a runtime of a library, packaged as a jar:
               - Incompatible because this component declares a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'none' and the consumer needed a component, as well as attribute 'org.gradle.native.operatingSystem' with value 'windows'
               - Other compatible attributes:
                   - Doesn't say anything about how its dependencies are found (required its dependencies declared externally)

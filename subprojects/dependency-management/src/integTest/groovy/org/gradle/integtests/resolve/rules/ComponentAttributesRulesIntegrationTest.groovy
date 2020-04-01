@@ -155,8 +155,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         } else {
             fails ':checkDeps'
             failure.assertHasCause("Cannot choose between the following variants of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
-            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
+            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownApiVariant' but the consumer didn't ask for it"))
+            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownRuntimeVariant' but the consumer didn't ask for it"))
         }
 
         where:

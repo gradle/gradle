@@ -768,24 +768,15 @@ task show {
         failure.assertHasDescription("Could not determine the dependencies of task ':app:resolveView'.")
         failure.assertHasCause("Could not resolve all task dependencies for configuration ':app:compile'.")
         failure.assertHasCause("""The consumer was configured to find attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api'. However we cannot choose between the following variants of project :lib:
-  - Configuration ':lib:compile':
+  - Configuration ':lib:compile' declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
-          - Found buildType 'n/a' but wasn't required.
-      - Compatible attributes:
-          - Provides artifactType 'jar'
-          - Provides usage 'api'
-  - Configuration ':lib:compile' variant debug:
+          - Provides buildType 'n/a' but the consumer didn't ask for it
+  - Configuration ':lib:compile' variant debug declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
-          - Found buildType 'debug' but wasn't required.
-      - Compatible attributes:
-          - Provides artifactType 'jar'
-          - Provides usage 'api'
-  - Configuration ':lib:compile' variant release:
+          - Provides buildType 'debug' but the consumer didn't ask for it
+  - Configuration ':lib:compile' variant release declares attribute 'artifactType' with value 'jar', attribute 'usage' with value 'api':
       - Unmatched attribute:
-          - Found buildType 'release' but wasn't required.
-      - Compatible attributes:
-          - Provides artifactType 'jar'
-          - Provides usage 'api'""")
+          - Provides buildType 'release' but the consumer didn't ask for it""")
     }
 
     def "returns empty result when no variants match and view attributes specified"() {
@@ -888,24 +879,24 @@ task show {
         failure.assertHasCause("Could not resolve all files for configuration ':app:compile'.")
 
         failure.assertHasCause("""No variants of project :lib match the consumer attributes:
-  - Configuration ':lib:compile' is attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
-  - Configuration ':lib:compile' variant debug is attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' variant debug declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
-  - Configuration ':lib:compile' variant release is attribute 'usage' with value 'api':
+  - Configuration ':lib:compile' variant release declares attribute 'usage' with value 'api':
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attribute:
-          - Required usage 'api' but no value provided.""")
+          - Doesn't say anything about usage (required 'api')""")
 
         failure.assertHasCause("""No variants of thing.jar match the consumer attributes:
   - thing.jar:
       - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
       - Other compatible attribute:
-          - Required usage 'api' but no value provided.""")
+          - Doesn't say anything about usage (required 'api')""")
 
     }
 

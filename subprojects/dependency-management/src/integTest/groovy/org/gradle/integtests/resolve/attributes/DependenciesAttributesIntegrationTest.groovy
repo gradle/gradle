@@ -387,9 +387,9 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but:
-  - Variant 'api' capability org:test:1.0 is a component, as well as attribute 'custom' with value 'c1':
+  - Variant 'api' capability org:test:1.0 declares a component, as well as attribute 'custom' with value 'c1':
       - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
-  - Variant 'runtime' capability org:test:1.0 is a runtime of a component:
+  - Variant 'runtime' capability org:test:1.0 declares a runtime of a component:
       - Incompatible because this component declares a component, as well as attribute 'custom' with value 'c2' and the consumer needed a component, as well as attribute 'custom' with value 'c1'""")
     }
 
@@ -541,9 +541,9 @@ class DependenciesAttributesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         failure.assertHasCause("""No matching variant of org:test:1.0 was found. The consumer was configured to find a runtime of a component, as well as attribute 'custom' with value 'c1' but:
-  - Variant 'api' capability org:test:1.0 is a component, as well as attribute 'custom' with value 'c1':
+  - Variant 'api' capability org:test:1.0 declares a component, as well as attribute 'custom' with value 'c1':
       - Incompatible because this component declares an API of a component and the consumer needed a runtime of a component
-  - Variant 'runtime' capability org:test:1.0 is a runtime of a component:
+  - Variant 'runtime' capability org:test:1.0 declares a runtime of a component:
       - Incompatible because this component declares a component, as well as attribute 'custom' with value 'c2' and the consumer needed a component, as well as attribute 'custom' with value 'c1'""")
     }
 

@@ -57,9 +57,9 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
 
         then:
         failure.assertHasCause('''No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but:
-  - Variant 'apiElements' capability test:producer:unspecified is an API of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'apiElements' capability test:producer:unspecified declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
-  - Variant 'runtimeElements' capability test:producer:unspecified is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6''')
     }
 
@@ -138,9 +138,9 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
 
         then:
         failure.assertHasCause("""No matching variant of project :producer was found. The consumer was configured to find an API of a library compatible with Java 6, preferably in the form of class files, and its dependencies declared externally but:
-  - Variant 'apiElements' capability test:producer:unspecified is an API of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'apiElements' capability test:producer:unspecified declares an API of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6
-  - Variant 'runtimeElements' capability test:producer:unspecified is a runtime of a library, packaged as a jar, and its dependencies declared externally:
+  - Variant 'runtimeElements' capability test:producer:unspecified declares a runtime of a library, packaged as a jar, and its dependencies declared externally:
       - Incompatible because this component declares a component compatible with Java 7 and the consumer needed a component compatible with Java 6""")
 
         when:

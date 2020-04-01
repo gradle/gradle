@@ -474,18 +474,16 @@ task show {
 
         then:
         failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
-  - Configuration ':a:compile' variant var1:
+  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found buildType 'debug' but wasn't required.
-          - Found flavor 'one' but wasn't required.
-      - Compatible attribute: Provides usage 'compile'
-  - Configuration ':a:compile' variant var2:
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides buildType 'debug' but the consumer didn't ask for it
+          - Provides flavor 'one' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant var2 declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found buildType 'debug' but wasn't required.
-          - Found flavor 'two' but wasn't required.
-      - Compatible attribute: Provides usage 'compile'""")
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides buildType 'debug' but the consumer didn't ask for it
+          - Provides flavor 'two' but the consumer didn't ask for it""")
 
         where:
         expression                                                    | _
@@ -906,10 +904,10 @@ Searched in the following locations:
         outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:default' variant v1:
       - Unmatched attribute:
-          - Required usage 'compile' but no value provided.
+          - Doesn't say anything about usage (required 'compile')
   - Configuration ':a:default' variant v2:
       - Unmatched attribute:
-          - Required usage 'compile' but no value provided.""")
+          - Doesn't say anything about usage (required 'compile')""")
     }
 
     @ToBeFixedForInstantExecution(because = "broken file collection")

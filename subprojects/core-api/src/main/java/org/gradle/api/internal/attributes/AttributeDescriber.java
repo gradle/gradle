@@ -23,8 +23,6 @@ import java.util.Set;
 public interface AttributeDescriber {
     Set<Attribute<?>> getAttributes();
     String describeAttributeSet(Map<Attribute<?>, ?> attributes);
-    String describeCompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
-    String describeIncompatibleAttribute(Attribute<?> attribute, Object consumerValue, Object producerValue);
     String describeMissingAttribute(Attribute<?> attribute, Object consumerValue);
     String describeExtraAttribute(Attribute<?> attribute, Object producerValue);
 }
