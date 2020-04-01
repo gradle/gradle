@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.GradleException
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
@@ -37,12 +36,12 @@ import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
@@ -66,12 +65,8 @@ class TaskNodeCodec(
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
         val task = value.task
-        try {
-            runToCompletionWithMutableStateOf(task.project) {
-                writeTask(task)
-            }
-        } catch (e: Exception) {
-            throw GradleException("Could not save state of $task.", e)
+        runToCompletionWithMutableStateOf(task.project) {
+            writeTask(task)
         }
     }
 
@@ -210,15 +205,15 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     propertyWriter: BeanPropertyWriter
 ) = propertyWriter.run {
 
-    suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind): Boolean {
+    suspend fun writeProperty(propertyName: String, propertyValue: Any?, kind: PropertyKind) {
         writeString(propertyName)
-        return writeNextProperty(propertyName, propertyValue, kind)
+        writeNextProperty(propertyName, propertyValue, kind)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?): Boolean =
+    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
 
-    suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?): Boolean =
+    suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
 
     val inputProperties = collectRegisteredInputsOf(task)
@@ -227,20 +222,18 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
             when (this) {
                 is RegisteredProperty.InputFile -> {
                     val finalValue = DeferredUtil.unpack(propertyValue)
-                    if (writeInputProperty(propertyName, finalValue)) {
-                        writeBoolean(optional)
-                        writeBoolean(true)
-                        writeEnum(filePropertyType)
-                        writeBoolean(skipWhenEmpty)
-                        writeClass(fileNormalizer!!)
-                    }
+                    writeInputProperty(propertyName, finalValue)
+                    writeBoolean(optional)
+                    writeBoolean(true)
+                    writeEnum(filePropertyType)
+                    writeBoolean(skipWhenEmpty)
+                    writeClass(fileNormalizer!!)
                 }
                 is RegisteredProperty.Input -> {
                     val finalValue = InputParameterUtils.prepareInputParameterValue(propertyValue)
-                    if (writeInputProperty(propertyName, finalValue)) {
-                        writeBoolean(optional)
-                        writeBoolean(false)
-                    }
+                    writeInputProperty(propertyName, finalValue)
+                    writeBoolean(optional)
+                    writeBoolean(false)
                 }
             }
         }
@@ -250,10 +243,9 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(
     writeCollection(outputProperties) { property ->
         property.run {
             val finalValue = DeferredUtil.unpack(propertyValue)
-            if (writeOutputProperty(propertyName, finalValue)) {
-                writeBoolean(optional)
-                writeEnum(filePropertyType)
-            }
+            writeOutputProperty(propertyName, finalValue)
+            writeBoolean(optional)
+            writeEnum(filePropertyType)
         }
     }
 }

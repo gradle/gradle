@@ -92,6 +92,32 @@ class DefaultMultiCauseExceptionTest extends Specification {
         outstr.toString().contains("Caused by: ${RuntimeException.name}: cause1")
     }
 
+    def printStacktraceWithNestedMultipleCauses() {
+        RuntimeException causeA = new RuntimeException('causeA')
+        RuntimeException causeB = new RuntimeException('causeB')
+        RuntimeException cause1 = new TestMultiCauseException('cause1', [causeA, causeB])
+        RuntimeException causeC = new RuntimeException('causeC')
+        RuntimeException causeD = new RuntimeException('causeD')
+        RuntimeException cause2 = new TestMultiCauseException('cause2', [causeC, causeD])
+        def failure = new TestMultiCauseException("BOOM", [new TestMultiCauseException('message', [cause1, cause2])])
+        def outstr = new StringWriter()
+
+        when:
+        outstr.withPrintWriter { writer ->
+            failure.printStackTrace(writer)
+        }
+
+        then:
+        outstr.toString().contains("${TestMultiCauseException.name}: BOOM")
+        outstr.toString().contains("Caused by: ${TestMultiCauseException.name}: message")
+        outstr.toString().contains("Cause 1: ${TestMultiCauseException.name}: cause1")
+        outstr.toString().contains("Cause 1: ${RuntimeException.name}: causeA")
+        outstr.toString().contains("Cause 2: ${RuntimeException.name}: causeB")
+        outstr.toString().contains("Cause 2: ${TestMultiCauseException.name}: cause2")
+        outstr.toString().contains("Cause 1: ${RuntimeException.name}: causeC")
+        outstr.toString().contains("Cause 2: ${RuntimeException.name}: causeD")
+    }
+
     def canSerializeAndDeserializeException() {
         def cause1 = new RuntimeException("cause1")
         def cause2 = new RuntimeException("cause2")

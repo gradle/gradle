@@ -26,13 +26,26 @@ class InstantExecutionCompositeBuildsIntegrationTest extends AbstractInstantExec
         settingsFile << """includeBuild("included")"""
         file("included/settings.gradle") << ""
 
+        and:
+        def expectedProblem = "Gradle runtime: support for included builds is not yet implemented with instant execution."
+
         when:
-        withDoNotFailOnProblems()
+        instantFails("help")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblem)
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
         instantRun("help")
 
         then:
         instantExecution.assertStateStored()
-        expectInstantExecutionProblems("- Gradle runtime: support for included builds is not yet implemented with instant execution.")
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(expectedProblem)
+        }
 
         when:
         instantRun("help")

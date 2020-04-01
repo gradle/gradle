@@ -24,10 +24,10 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.coroutines.runToCompletion
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.IsolateOwner
-import org.gradle.instantexecution.serialization.PropertyProblem
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.ReadIdentities
 import org.gradle.instantexecution.serialization.ReadIsolate

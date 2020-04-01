@@ -37,9 +37,12 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         """
         buildFile << """
             class SlowTask extends DefaultTask {
+
+                private final String projectName = project.name
+
                 @TaskAction
                 def go() {
-                    ${server.callFromBuildUsingExpression("project.name")}
+                    ${server.callFromBuildUsingExpression("projectName")}
                 }
             }
 

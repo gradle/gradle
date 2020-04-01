@@ -18,12 +18,12 @@ package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
 import org.gradle.instantexecution.extensions.unsafeLazy
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.IsolateContext
-import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
-import org.gradle.instantexecution.serialization.logPropertyWarning
+import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.instantiation.InstantiationScheme
@@ -88,7 +88,7 @@ class BeanPropertyReader(
             if (isAssignableTo(type, value)) {
                 field.set(bean, value)
             } else if (value != null) {
-                logPropertyWarning("deserialize") {
+                logPropertyProblem("deserialize") {
                     text("value ")
                     reference(value.toString())
                     text(" is not assignable to ")
