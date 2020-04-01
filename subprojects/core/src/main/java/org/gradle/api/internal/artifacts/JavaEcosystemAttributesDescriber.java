@@ -17,13 +17,16 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import org.gradle.api.Named;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
+import org.gradle.api.attributes.DocsType;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.internal.attributes.AttributeDescriber;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
@@ -36,7 +39,9 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         Category.CATEGORY_ATTRIBUTE,
         LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE,
         Bundling.BUNDLING_ATTRIBUTE,
-        TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE
+        TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE,
+        DocsType.DOCS_TYPE_ATTRIBUTE,
+        ProjectInternal.STATUS_ATTRIBUTE
     );
 
     @Override
@@ -52,6 +57,8 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         Object le = attr(attributes, LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE);
         Object bundling = attr(attributes, Bundling.BUNDLING_ATTRIBUTE);
         Object targetJvm = attr(attributes, TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
+        Object docsType = attr(attributes, DocsType.DOCS_TYPE_ATTRIBUTE);
+        Object status = attr(attributes, ProjectInternal.STATUS_ATTRIBUTE);
 
         StringBuilder sb = new StringBuilder();
         if (usage != null) {
@@ -59,9 +66,17 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             sb.append(" of ");
         }
         if (category != null) {
-            describeCategory(category, sb);
+            if (docsType != null && toName(category).equals(Category.DOCUMENTATION)) {
+                describeDocsType(docsType, sb);
+            } else {
+                describeCategory(category, sb);
+            }
         } else {
             sb.append("a component");
+        }
+        if (status != null) {
+            sb.append("with a ");
+            describeStatus(status, sb);
         }
         if (targetJvm != null) {
             sb.append(" compatible with ");
@@ -77,6 +92,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
         }
         processExtraAttributes(attributes, sb);
         return sb.toString();
+    }
+
+    private static void describeStatus(Object status, StringBuilder sb) {
+        sb.append(toName(status)).append(" status");
     }
 
     @Nullable
@@ -123,7 +142,15 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             sb.append("its elements (required them ");
             describeLibraryElements(consumerValue, sb);
             sb.append(")");
-        } else {
+        } else if (DocsType.DOCS_TYPE_ATTRIBUTE.equals(attribute)) {
+            sb.append("the documentation type (required ");
+            describeDocsType(consumerValue, sb);
+            sb.append(")");
+        } else if (ProjectInternal.STATUS_ATTRIBUTE.equals(attribute)) {
+            sb.append("its status (required ");
+            describeStatus(consumerValue, sb);
+            sb.append(")");
+        }else {
             return null;
         }
         return sb.toString();
@@ -143,6 +170,10 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             describeTargetJvm(producerValue, sb);
         } else if (sameAttribute(Category.CATEGORY_ATTRIBUTE, attribute)) {
             describeCategory(producerValue, sb);
+        } else if (sameAttribute(DocsType.DOCS_TYPE_ATTRIBUTE, attribute)) {
+            describeDocsType(producerValue, sb);
+        } else if (sameAttribute(ProjectInternal.STATUS_ATTRIBUTE, attribute)) {
+            describeStatus(producerValue, sb);
         } else if (sameAttribute(Bundling.BUNDLING_ATTRIBUTE, attribute)) {
             describeBundling(producerValue, sb);
         } else if (sameAttribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, attribute)) {
@@ -160,7 +191,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     private static void describeBundling(Object bundling, StringBuilder sb) {
-        String name = bundling instanceof Bundling ? ((Bundling) bundling).getName() : String.valueOf(bundling);
+        String name = toName(bundling);
         switch (name) {
             case Bundling.EXTERNAL:
                 sb.append("its dependencies declared externally");
@@ -177,7 +208,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     private static void describeLibraryElements(Object le, StringBuilder sb) {
-        String name = le instanceof LibraryElements ? ((LibraryElements) le).getName() : String.valueOf(le);
+        String name = toName(le);
         switch (name) {
             case LibraryElements.JAR:
                 sb.append("packaged as a jar");
@@ -198,7 +229,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
 
     @SuppressWarnings("deprecation")
     private static void describeUsage(Object usage, StringBuilder sb) {
-        String str = usage instanceof Usage ? ((Usage) usage).getName() : String.valueOf(usage);
+        String str = toName(usage);
         switch (str) {
             case Usage.JAVA_API:
             case Usage.JAVA_API_CLASSES:
@@ -220,7 +251,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     private static void describeCategory(Object category, StringBuilder sb) {
-        String name = category instanceof Category ? ((Category) category).getName() : String.valueOf(category);
+        String name = toName(category);
         switch (name) {
             case Category.LIBRARY:
                 sb.append("a library");
@@ -231,8 +262,38 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
             case Category.ENFORCED_PLATFORM:
                 sb.append("an enforced platform");
                 break;
+            case Category.DOCUMENTATION:
+                sb.append("documentation");
+                break;
             default:
                 sb.append("a component of category '").append(name).append("'");
         }
+    }
+
+    private static void describeDocsType(Object docsType, StringBuilder sb) {
+        String name = toName(docsType);
+        switch (name) {
+            case DocsType.JAVADOC:
+                sb.append("javadocs");
+                break;
+            case DocsType.SOURCES:
+                sb.append("sources");
+                break;
+            case DocsType.USER_MANUAL:
+                sb.append("a user manual");
+                break;
+            case DocsType.SAMPLES:
+                sb.append("samples");
+                break;
+            case DocsType.DOXYGEN:
+                sb.append("doxygen documentation");
+                break;
+            default:
+                sb.append("documentation of type '").append(name).append("'");
+        }
+    }
+
+    private static String toName(Object category) {
+        return category instanceof Category ? ((Named) category).getName() : String.valueOf(category);
     }
 }
