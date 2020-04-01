@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolutionStrategy
+import org.gradle.api.artifacts.ResolvableDependencies
 import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
@@ -33,6 +34,7 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.result.ResolutionResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -87,6 +89,8 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ResolutionStrategy>())
     bind(unsupported<ResolvedConfiguration>())
     bind(unsupported<LenientConfiguration>())
+    bind(unsupported<ResolvableDependencies>())
+    bind(unsupported<ResolutionResult>())
     bind(unsupported<DependencyConstraintSet>())
     bind(unsupported<RepositoryHandler>())
     bind(unsupported<ArtifactRepository>())
