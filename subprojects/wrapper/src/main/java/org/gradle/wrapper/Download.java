@@ -35,6 +35,8 @@ public class Download implements IDownload {
 
     private static final int BUFFER_SIZE = 10 * 1024;
     private static final int PROGRESS_CHUNK = 1024 * 1024;
+    private static final int CONNECTION_TIMEOUT_SECONDS = 60;
+    private static final int READ_TIMEOUT_SECONDS = 60;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
@@ -75,6 +77,8 @@ public class Download implements IDownload {
             addBasicAuthentication(address, conn);
             final String userAgentValue = calculateUserAgent();
             conn.setRequestProperty("User-Agent", userAgentValue);
+            conn.setConnectTimeout(CONNECTION_TIMEOUT_SECONDS);
+            conn.setReadTimeout(READ_TIMEOUT_SECONDS);
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
