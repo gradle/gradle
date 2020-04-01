@@ -30,7 +30,6 @@ import org.gradle.api.tasks.Optional
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.CI_ENVIRONMENT_VARIABLE
-import org.gradle.internal.Cast
 import org.gradle.kotlin.dsl.*
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -302,8 +301,3 @@ fun Project.gradleProperty(propertyName: String): Provider<String> =
 private
 fun <T> Provider<T>.presence(): Provider<Boolean> =
     map { true }.orElse(false)
-
-
-private
-fun <T> Any.uncheckedCast(): T =
-    Cast.uncheckedNonnullCast(this)

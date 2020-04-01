@@ -25,7 +25,8 @@ import org.gradle.kotlin.dsl.*
 
 class LifecyclePlugin : Plugin<Project> {
 
-    private val ciGroup = "CI Lifecycle"
+    private
+    val ciGroup = "CI Lifecycle"
 
     override fun apply(project: Project): Unit = project.run {
         subprojects {
