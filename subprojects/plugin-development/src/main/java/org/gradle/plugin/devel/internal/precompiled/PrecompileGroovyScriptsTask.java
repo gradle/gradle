@@ -129,6 +129,18 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
         return pluginSourceFiles;
     }
 
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    Provider<Directory> getJavaSourceDependencyClasses() {
+        return javaSourceDependencyClasses;
+    }
+
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @InputFiles
+    Provider<Directory> getGroovySourceDependencyClasses() {
+        return groovySourceDependencyClasses;
+    }
+
     @Classpath
     public FileCollection getClasspath() {
         return classpath;
