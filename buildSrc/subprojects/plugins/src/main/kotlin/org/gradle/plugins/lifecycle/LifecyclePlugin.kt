@@ -171,7 +171,7 @@ class LifecyclePlugin : Plugin<Project> {
         if (isActive()) {
             if (project.rootProject.hasProperty(propertyName)) {
                 val otherValue = project.rootProject.property(propertyName)
-                if (value != otherValue) {
+                if (value.toString() != otherValue.toString()) {
                     throw RuntimeException("Attempting to set global property $propertyName to two different values ($value vs $otherValue)")
                 }
             }
