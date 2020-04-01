@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,8 +34,8 @@ public class ProviderTestUtil {
         return new TestProvider<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
     }
 
-    public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer) {
-        return new TestProvider<>(type, Collections.emptyList(), producer);
+    public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer, T... values) {
+        return new TestProvider<>(type, Arrays.asList(values), producer);
     }
 
     private static class TestProvider<T> extends AbstractMinimalProvider<T> {
@@ -69,6 +68,16 @@ public class ProviderTestUtil {
                 return true;
             } else {
                 return false;
+            }
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            ExecutionTimeValue<? extends T> value = super.calculateExecutionTimeValue();
+            if (producer != null) {
+                return value.withChangingContent();
+            } else {
+                return value;
             }
         }
 

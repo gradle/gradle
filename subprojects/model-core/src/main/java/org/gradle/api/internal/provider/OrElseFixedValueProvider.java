@@ -17,22 +17,23 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
 class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
-    private final ProviderInternal<T> provider;
-    private final T value;
+    private final ProviderInternal<? extends T> provider;
+    private final T fallbackValue;
 
-    public OrElseFixedValueProvider(ProviderInternal<T> provider, T value) {
+    public OrElseFixedValueProvider(ProviderInternal<? extends T> provider, T fallbackValue) {
         this.provider = provider;
-        this.value = value;
+        this.fallbackValue = fallbackValue;
     }
 
     @Nullable
     @Override
     public Class<T> getType() {
-        return provider.getType();
+        return Cast.uncheckedCast(provider.getType());
     }
 
     @Override
@@ -47,13 +48,23 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        return provider.isValueProducedByTask();
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
+        if (value.isMissing()) {
+            // Use fallback value
+            return ExecutionTimeValue.fixedValue(fallbackValue);
+        } else if (value.isFixedValue()) {
+            // Result is fixed value, use it
+            return value;
+        } else {
+            // Value is changing, so keep the logic
+            return ExecutionTimeValue.changingValue(new OrElseFixedValueProvider<>(value.getChangingValue(), fallbackValue));
+        }
     }
 
     @Override
     public T get() {
         T value = provider.getOrNull();
-        return value != null ? value : this.value;
+        return value != null ? value : fallbackValue;
     }
 }

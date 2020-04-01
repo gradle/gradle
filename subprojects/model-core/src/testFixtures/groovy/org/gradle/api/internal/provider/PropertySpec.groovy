@@ -1971,39 +1971,57 @@ The value of this provider is derived from:
         !property.valueProducedByTask
     }
 
-    def "mapped value has value producer when producer task attached to original property"() {
+    def "mapped value has changing execution time value when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
+        property.set(someValue())
         def mapped = property.map { it }
 
         expect:
         assertContentIsNotProducedByTask(mapped)
-        !mapped.valueProducedByTask
+        mapped.calculateExecutionTimeValue().isFixedValue()
 
         property.attachProducer(owner(task))
 
         assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        mapped.calculateExecutionTimeValue().isChangingValue()
+    }
+
+    def "mapped value has no execution time value when producer task attached to original property with no value"() {
+        def task = Mock(Task)
+        def property = propertyWithDefaultValue()
+        setToNull(property)
+        def mapped = property.map { it }
+
+        expect:
+        assertContentIsNotProducedByTask(mapped)
+        mapped.calculateExecutionTimeValue().isMissing()
+
+        property.attachProducer(owner(task))
+
+        assertContentIsProducedByTask(mapped, task)
+        mapped.calculateExecutionTimeValue().isMissing()
     }
 
     def "chain of mapped value has value producer when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
+        property.set(someValue())
         def mapped = property.map { it }.map { it }.map { it }
 
         expect:
         assertContentIsNotProducedByTask(mapped)
-        !mapped.valueProducedByTask
+        mapped.calculateExecutionTimeValue().isFixedValue()
 
         property.attachProducer(owner(task))
 
         assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        mapped.calculateExecutionTimeValue().isChangingValue()
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
         def task = Mock(Task)
-        def provider = supplierWithProducer(task)
+        def provider = supplierWithProducer(task, someValue())
 
         def property = propertyWithNoValue()
         property.set(provider)
@@ -2011,7 +2029,7 @@ The value of this provider is derived from:
 
         expect:
         assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        mapped.calculateExecutionTimeValue().isChangingValue()
     }
 
     def "fails when property has multiple producers attached"() {
@@ -2137,8 +2155,8 @@ The value of this provider is derived from:
         return ProviderTestUtil.withValues(values)
     }
 
-    ProviderInternal<T> supplierWithProducer(Task producer) {
-        return ProviderTestUtil.withProducer(type(), producer)
+    ProviderInternal<T> supplierWithProducer(Task producer, T... values) {
+        return ProviderTestUtil.withProducer(type(), producer, values)
     }
 
     class NoValueProvider<T> extends AbstractMinimalProvider<T> {

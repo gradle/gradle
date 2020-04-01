@@ -16,29 +16,29 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Transformer;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
-class TypeSanitizingProvider<T> extends AbstractMappingProvider<T, T> {
+class TypeSanitizingTransformer<T> implements Transformer<T, T> {
     private final DisplayName owner;
     private final ValueSanitizer<? super T> sanitizer;
     private final Class<? super T> targetType;
 
-    public TypeSanitizingProvider(DisplayName owner, ValueSanitizer<? super T> sanitizer, Class<? super T> targetType, ProviderInternal<? extends T> delegate) {
-        super(Cast.uncheckedNonnullCast(targetType), delegate);
+    public TypeSanitizingTransformer(DisplayName owner, ValueSanitizer<? super T> sanitizer, Class<? super T> targetType) {
         this.owner = owner;
         this.sanitizer = sanitizer;
         this.targetType = targetType;
     }
 
     @Override
-    protected String getMapDescription() {
-        return "check-type";
+    public String toString() {
+        return "check-type()";
     }
 
     @Override
-    protected T mapValue(T v) {
-        v = Cast.uncheckedCast(sanitizer.sanitize(v));
+    public T transform(T t) {
+        T v = Cast.uncheckedCast(sanitizer.sanitize(t));
         if (targetType.isInstance(v)) {
             return v;
         }

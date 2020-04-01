@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -55,15 +56,25 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
-        return provider.isValueProducedByTask() || !getProducerTasks().isEmpty();
+    public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
+        ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
+        if (value.hasChangingContent()) {
+            // Need the value contents in order to transform it to produce the value of this provider, so if the value or its contents are built by tasks, the value of this provider is also built by tasks
+            return ExecutionTimeValue.changingValue(new TransformBackedProvider<OUT, IN>(transformer, value.toProvider()));
+        } else {
+            return ExecutionTimeValue.value(mapValue(value.toValue()));
+        }
     }
 
     @Override
     protected Value<? extends OUT> calculateOwnValue() {
         beforeRead();
         Value<? extends IN> value = provider.calculateValue();
+        return mapValue(value);
+    }
+
+    @NotNull
+    private Value<? extends OUT> mapValue(Value<? extends IN> value) {
         if (value.isMissing()) {
             return value.asType();
         }

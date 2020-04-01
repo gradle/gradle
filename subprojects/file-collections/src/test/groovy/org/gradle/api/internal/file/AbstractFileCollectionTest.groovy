@@ -328,7 +328,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         def task = Mock(TaskInternal)
         _ * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(task) }
 
-        ProviderInternal elements = collection.elements
+        def elements = collection.elements
 
         when:
         def visited = elements.maybeVisitBuildDependencies(context)
@@ -339,7 +339,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         0 * context._
 
         expect:
-        elements.valueProducedByTask
+        elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
     void "visits self when listener requests contents"() {

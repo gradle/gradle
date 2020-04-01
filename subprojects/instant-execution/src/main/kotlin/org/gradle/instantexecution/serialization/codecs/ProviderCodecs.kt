@@ -27,7 +27,6 @@ import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
-import org.gradle.api.internal.provider.FlatMapProvider
 import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.provider.Providers
@@ -44,6 +43,7 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
+import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
@@ -62,56 +62,47 @@ class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourcePr
     }
 
     override suspend fun WriteContext.encode(value: ProviderInternal<*>) {
-        if (value is FlatMapProvider<*, *>) {
-            // Replace the provider with its backing provider
-            encode(value.backingProvider())
-        } else if (value.isValueProducedByTask) {
-            // Cannot write a fixed value, so write the provider itself
-            writeBoolean(true)
-            providerWithChangingValueCodec.run { encode(sourceOf(value)) }
-        } else {
+        val state = try {
+            value.calculateExecutionTimeValue()
+        } catch (e: Exception) {
+            logPropertyProblem("serialize", e) {
+                text("value ")
+                reference(value.toString())
+                text(" failed to unpack provider")
+            }
+            writeByte(0)
+            write(BrokenValue(e))
+            return
+        }
+        if (state.isMissing) {
             // Can serialize a fixed value and discard the provider
-            writeBoolean(false)
-            write(unpack(value))
+            // TODO - should preserve information about the source, for diagnostics at execution time
+            writeByte(1)
+        } else if (state.isFixedValue) {
+            // Can serialize a fixed value and discard the provider
+            // TODO - should preserve information about the source, for diagnostics at execution time
+            writeByte(2)
+            write(state.fixedValue)
+        } else {
+            // Cannot write a fixed value, so write the provider itself
+            writeByte(3)
+            providerWithChangingValueCodec.run { encode(state.changingValue) }
         }
     }
 
     override suspend fun ReadContext.decode(): ProviderInternal<*>? {
-        return if (readBoolean()) {
-            providerWithChangingValueCodec.run { decode() }!!.uncheckedCast()
-        } else {
-            when (val value = read()) {
-                is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
-                else -> Providers.ofNullable(value)
+        return when (readByte()) {
+            0.toByte() -> {
+                val value = read() as BrokenValue
+                DefaultProvider { value.rethrow() }
             }
+            1.toByte() -> Providers.notDefined<Any>()
+            2.toByte() -> Providers.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
+            3.toByte() -> providerWithChangingValueCodec.run { decode() }!!.uncheckedCast()
+            else -> throw IllegalStateException("Unexpected provider value")
         }
     }
 }
-
-
-private
-fun sourceOf(value: Provider<*>): Provider<*> {
-    // Don't serialize simple property instances in a chain of providers, instead replace them with their source provider.
-    return if (value is DefaultProperty<*>) {
-        sourceOf(value.provider)
-    } else {
-        value
-    }
-}
-
-
-private
-fun WriteContext.unpack(value: Provider<*>): Any? =
-    try {
-        value.orNull
-    } catch (ex: Exception) {
-        logPropertyProblem("serialize", ex) {
-            text("value ")
-            reference(value.toString())
-            text(" failed to unpack provider")
-        }
-        BrokenValue(ex)
-    }
 
 
 /**

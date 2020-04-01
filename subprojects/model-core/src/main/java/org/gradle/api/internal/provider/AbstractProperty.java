@@ -115,6 +115,20 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected abstract Value<? extends T> calculateOwnValue(S value);
 
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue();
+        if (getProducerTasks().isEmpty()) {
+            return value;
+        } else {
+            return value.withChangingContent();
+        }
+    }
+
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue() {
+        return super.calculateExecutionTimeValue();
+    }
+
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
      */
@@ -138,11 +152,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         } else {
             getSupplier().visitProducerTasks(visitor);
         }
-    }
-
-    @Override
-    public boolean isValueProducedByTask() {
-        return getSupplier().isValueProducedByTask();
     }
 
     @Override

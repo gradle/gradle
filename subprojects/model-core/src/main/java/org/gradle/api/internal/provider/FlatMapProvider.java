@@ -75,14 +75,13 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
-        return backingProvider().isValueProducedByTask() || !getProducerTasks().isEmpty();
+    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        return backingProvider().maybeVisitBuildDependencies(context);
     }
 
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return backingProvider().maybeVisitBuildDependencies(context);
+    public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
+        return backingProvider().calculateExecutionTimeValue();
     }
 
     @Override

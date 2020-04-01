@@ -18,17 +18,23 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
+/**
+ * A mapping provider that uses a transform that 1. does not use the value contents and 2. always produces a value.
+ */
+public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     private final Class<OUT> type;
     private final ProviderInternal<? extends IN> provider;
+    private final Transformer<? extends OUT, ? super IN> transformer;
 
-    public AbstractMappingProvider(Class<OUT> type, ProviderInternal<? extends IN> provider) {
+    public MappingProvider(Class<OUT> type, ProviderInternal<? extends IN> provider, Transformer<? extends OUT, ? super IN> transformer) {
         this.type = type;
         this.provider = provider;
+        this.transformer = transformer;
     }
 
     @Nullable
@@ -63,16 +69,23 @@ public abstract class AbstractMappingProvider<OUT, IN> extends AbstractMinimalPr
         if (value.isMissing()) {
             return value.asType();
         }
-        return Value.of(mapValue(value.get()));
+        return Value.of(transformer.transform(value.get()));
     }
 
-    protected abstract OUT mapValue(IN v);
-
-    // Included in toString() output
-    protected abstract String getMapDescription();
+    @Override
+    public ExecutionTimeValue<? extends OUT> calculateExecutionTimeValue() {
+        ExecutionTimeValue<? extends IN> value = provider.calculateExecutionTimeValue();
+        if (value.isChangingValue()) {
+            return ExecutionTimeValue.changingValue(new MappingProvider<OUT, IN>(type, value.getChangingValue(), transformer));
+        } else if (value.isMissing()) {
+            return ExecutionTimeValue.missing();
+        } else {
+            return ExecutionTimeValue.fixedValue(transformer.transform(value.getFixedValue()));
+        }
+    }
 
     @Override
     public String toString() {
-        return getMapDescription() + "(" + provider + ")";
+        return "map(" + type.getName() + " " + provider + " " + transformer + ")";
     }
 }
