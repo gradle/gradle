@@ -60,6 +60,7 @@ import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 import java.nio.file.Files
+import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 import java.util.ArrayList
 
 
@@ -239,7 +240,8 @@ class DefaultInstantExecution internal constructor(
     fun writeInstantExecutionCacheFingerprint() {
         Files.move(
             instantExecutionTemporaryFingerprintFile.toPath(),
-            instantExecutionFingerprintFile.toPath()
+            instantExecutionFingerprintFile.toPath(),
+            REPLACE_EXISTING
         )
     }
 
