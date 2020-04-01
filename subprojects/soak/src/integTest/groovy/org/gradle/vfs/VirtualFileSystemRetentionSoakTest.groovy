@@ -129,7 +129,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
     private static getMaxFileChangesWithoutOverflow() {
         OperatingSystem.current().windows
-            ? 500
+            ? 200
             : 1000
     }
 
