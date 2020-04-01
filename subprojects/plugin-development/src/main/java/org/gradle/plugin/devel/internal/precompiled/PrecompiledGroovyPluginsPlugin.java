@@ -73,16 +73,16 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
             compileGroovy.flatMap(AbstractCompile::getDestinationDirectory)
         );
 
-        // TODO make this one cacheable
         TaskProvider<JavaCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", JavaCompile.class, t -> {
             t.dependsOn(precompileTask);
             t.setSource(precompileTask.flatMap(PrecompileGroovyScriptsTask::getGeneratedPluginAdaptersDir));
-            t.setDestinationDir(precompileTask.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsDir));
+            t.setDestinationDir(project.getLayout().getBuildDirectory().dir("compiled-scripts/groovy-dsl-plugins/adapters").get().getAsFile());
             t.setClasspath(pluginSourceSet.getCompileClasspath());
         });
 
         tasks.named("pluginDescriptors").configure(t -> t.dependsOn(compilePluginAdapters));
 
         pluginSourceSet.getOutput().dir(precompileTask.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsDir));
+        pluginSourceSet.getOutput().dir(compilePluginAdapters.flatMap(JavaCompile::getDestinationDirectory));
     }
 }

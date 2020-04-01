@@ -636,9 +636,8 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         firstDir.copyTo(secondDir)
 
         def cachedTasks = [
-            ":compileGroovyPlugins"
-            // TODO make this one cacheable
-            //":compilePluginAdapters"
+            ":compileGroovyPlugins",
+            ":compilePluginAdapters"
         ]
 
         def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
