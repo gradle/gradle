@@ -35,7 +35,6 @@ import java.util.TreeSet;
 
 public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
 
-    private final Map<String, Collection<String>> mapping = new HashMap<>();
     private final File mappingFile;
     private final CompilationSourceDirs compilationSourceDirs;
     private final JavaCompiler.CompilationTask delegate;
@@ -64,24 +63,30 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
     @Override
     public Boolean call() {
         if (delegate instanceof JavacTask) {
-            TaskListener collector = new ClassNameCollector();
+            ClassNameCollector collector = new ClassNameCollector(compilationSourceDirs);
             ((JavacTask) delegate).addTaskListener(collector);
+            try {
+                return delegate.call();
+            } finally {
+                persistMappingFile(collector.getMapping());
+            }
         } else {
             throw new UnsupportedOperationException("Unexpected Java compile task : " + delegate.getClass().getName());
         }
-        try {
-            return delegate.call();
-        } finally {
-            persistMappingFile();
-        }
     }
 
-    void persistMappingFile() {
+    void persistMappingFile(Map<String, Collection<String>> mapping) {
         SourceClassesMappingFileAccessor.writeSourceClassesMappingFile(mappingFile, mapping);
     }
 
-    private class ClassNameCollector implements TaskListener {
+    private static class ClassNameCollector implements TaskListener {
         private final Map<File, Optional<String>> relativePaths = new HashMap<>();
+        private final Map<String, Collection<String>> mapping = new HashMap<>();
+        private final CompilationSourceDirs compilationSourceDirs;
+
+        private ClassNameCollector(CompilationSourceDirs compilationSourceDirs) {
+            this.compilationSourceDirs = compilationSourceDirs;
+        }
 
         @Override
         public void started(TaskEvent e) {
@@ -144,6 +149,10 @@ public class IncrementalCompileTask implements JavaCompiler.CompilationTask {
                 mapping.put(key, symbols);
             }
             symbols.add(symbol);
+        }
+
+        private Map<String, Collection<String>> getMapping() {
+            return mapping;
         }
     }
 }
