@@ -44,6 +44,7 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
+import org.gradle.instantexecution.serialization.logPropertyProblem
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 
@@ -100,11 +101,16 @@ fun sourceOf(value: Provider<*>): Provider<*> {
 
 
 private
-fun unpack(value: Provider<*>): Any? =
+fun WriteContext.unpack(value: Provider<*>): Any? =
     try {
         value.orNull
-    } catch (e: Exception) {
-        BrokenValue(e)
+    } catch (ex: Exception) {
+        logPropertyProblem("serialize", ex) {
+            text("value ")
+            reference(value.toString())
+            text(" failed to unpack provider")
+        }
+        BrokenValue(ex)
     }
 
 

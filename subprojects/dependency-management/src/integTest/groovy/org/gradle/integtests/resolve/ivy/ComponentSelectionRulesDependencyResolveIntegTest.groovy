@@ -16,8 +16,8 @@
 
 package org.gradle.integtests.resolve.ivy
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -117,7 +117,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "uses '#rule' rule to reject all candidates for dynamic version #selector"() {
         given:
         Assume.assumeTrue isWellBehaved(mavenCompatible)
@@ -190,7 +189,6 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
         "latest.milestone"   | "select 1.1"               | '["2.0"]'               | ['2.1', '2.0']        | false
     }
 
-    @ToBeFixedForInstantExecution
     def "reports all candidates rejected by rule"() {
         buildFile << """
 

@@ -187,7 +187,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         'file on repository' | [testA: [1, 2, 3]]
     }
 
-    @ToBeFixedForInstantExecution
     void "can recover from broken lister"() {
         withBrokenLister()
         given:
@@ -223,7 +222,6 @@ class CustomVersionListerIntegrationTest extends AbstractModuleDependencyResolve
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForInstantExecution
     def "can recover from --offline mode"() {
         withLister(['testA': [1, 2, 3]])
 

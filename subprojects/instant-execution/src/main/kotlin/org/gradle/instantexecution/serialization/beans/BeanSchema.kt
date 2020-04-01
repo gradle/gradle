@@ -22,6 +22,8 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
 
+import org.gradle.instantexecution.serialization.Workarounds
+
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 
@@ -67,6 +69,7 @@ val Class<*>.relevantFields: List<Field>
         .filterNot { field ->
             Modifier.isStatic(field.modifiers)
                 || Modifier.isTransient(field.modifiers)
+                || Workarounds.isIgnoredBeanField(field)
         }
         .filter { field ->
             field.declaringClass != AbstractTask::class.java || field.name == "actions"

@@ -439,7 +439,6 @@ Searched in the following locations:
     ${module.jar.uri}""")
     }
 
-    @ToBeFixedForInstantExecution
     public void "reports and recovers from failed artifact download"() {
         given:
         buildFile << """

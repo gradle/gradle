@@ -222,7 +222,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "can collect multiple errors in a single dependency graph (terse output=#terse)"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -274,7 +273,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "displays repository information (terse output=#terse)"() {
         createMetadataFile {
             noMetadataVerification()
@@ -322,8 +320,14 @@ This can indicate that a dependency has been compromised. Please carefully verif
         terse << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
     @Unroll
+    @ToBeFixedForInstantExecution(
+        because = "broken file collection",
+        iterationMatchers = [
+            ".*artifactView \\{ componentFilter.*",
+            ".*using query.*"
+        ]
+    )
     def "fails on the first access to an artifact (not at the end of the build) using #firstResolution"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "sha1", "invalid")
@@ -414,7 +418,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails if any of the checksums (#wrong) declared in the metadata file is wrong"() {
         createMetadataFile {
             addChecksum("org:foo:1.0", "md5", md5)
@@ -515,7 +518,6 @@ This can indicate that a dependency has been compromised. Please carefully verif
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "breaks the IE assumption that visiting a file collection multiple times will always throw the same exception")
     def "fails if a dependency doesn't have an associated checksum (terse output=#terse)"() {
         createMetadataFile {
             // nothing in it

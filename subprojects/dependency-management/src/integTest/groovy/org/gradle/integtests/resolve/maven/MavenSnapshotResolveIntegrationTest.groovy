@@ -690,7 +690,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.0-SNAPSHOT.jar', 'projectB-2.0.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "reports and recovers from missing snapshot"() {
         given:
         def projectA = createModule('group', 'projectA', "1.0-SNAPSHOT")
@@ -773,7 +772,6 @@ Searched in the following locations:
     ${projectA.artifact.uri}""")
     }
 
-    @ToBeFixedForInstantExecution
     def "reports and recovers from broken maven-metadata.xml"() {
         given:
         def projectA = publishModule('group', 'projectA', "1.0-SNAPSHOT")
