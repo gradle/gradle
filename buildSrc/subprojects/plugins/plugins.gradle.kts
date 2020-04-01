@@ -20,10 +20,6 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        register("globalState") {
-            id = "gradlebuild.global-build-state"
-            implementationClass = "org.gradle.plugins.lifecycle.GlobalBuildStatePlugin"
-        }
         register("lifecycle") {
             id = "gradlebuild.lifecycle"
             implementationClass = "org.gradle.plugins.lifecycle.LifecyclePlugin"

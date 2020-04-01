@@ -27,7 +27,7 @@ import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 import org.gradle.plugins.install.Install
 
 plugins {
-    gradlebuild.`global-build-state` // this needs to be applied first
+    gradlebuild.lifecycle // this needs to be applied first
     `java-base`
     gradlebuild.`ci-reporting`
     gradlebuild.security
