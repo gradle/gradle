@@ -12,3 +12,7 @@ dependencies {
 application {
     mainClassName = 'org.gradle.sample.Main'
 }
+
+test {
+    useJUnitPlatform()
+}

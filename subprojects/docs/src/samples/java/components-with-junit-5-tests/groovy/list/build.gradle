@@ -6,3 +6,7 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
     testRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 }
+
+test {
+    useJUnitPlatform()
+}
