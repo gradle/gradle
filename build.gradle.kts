@@ -27,11 +27,22 @@ import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 import org.gradle.plugins.install.Install
 
 plugins {
+    gradlebuild.`global-build-state` // this needs to be applied first
     `java-base`
-    gradlebuild.lifecycle
     gradlebuild.`ci-reporting`
     gradlebuild.security
     gradlebuild.install
+    gradlebuild.cleanup
+    gradlebuild.buildscan
+    gradlebuild.`build-version`
+    gradlebuild.minify
+    gradlebuild.wrapper
+    gradlebuild.ide
+    gradlebuild.`quick-check`
+    gradlebuild.`update-versions`
+    gradlebuild.`dependency-vulnerabilities`
+    gradlebuild.`add-verify-production-environment-task`
+    gradlebuild.`generate-subprojects-info`
 }
 
 buildscript {
@@ -42,6 +53,31 @@ buildscript {
                 because("Maven Central and JCenter disagree on version 2.9.1 metadata")
             }
         }
+    }
+}
+
+apply(from = "gradle/dependencies.gradle")
+apply(from = "gradle/test-dependencies.gradle")
+apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
+
+allprojects {
+    apply(plugin = "gradlebuild.dependencies-metadata-rules")
+}
+subprojects {
+    version = rootProject.version
+
+    if (project in javaProjects) {
+        apply(plugin = "gradlebuild.java-projects")
+    }
+
+    if (project in publicJavaProjects) {
+        apply(plugin = "gradlebuild.public-java-projects")
+    }
+
+    apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
+
+    if (project !in kotlinJsProjects) {
+        apply(plugin = "gradlebuild.task-properties-validation")
     }
 }
 
@@ -76,45 +112,6 @@ allprojects {
         runtimeClasspath {
             ignore("org/gradle/build-receipt.properties")
         }
-    }
-}
-
-apply(plugin = "gradlebuild.cleanup")
-apply(plugin = "gradlebuild.buildscan")
-apply(plugin = "gradlebuild.build-version")
-apply(from = "gradle/dependencies.gradle")
-apply(plugin = "gradlebuild.minify")
-apply(from = "gradle/test-dependencies.gradle")
-apply(plugin = "gradlebuild.wrapper")
-apply(plugin = "gradlebuild.ide")
-apply(plugin = "gradlebuild.quick-check")
-apply(plugin = "gradlebuild.update-versions")
-apply(plugin = "gradlebuild.dependency-vulnerabilities")
-apply(plugin = "gradlebuild.add-verify-production-environment-task")
-apply(plugin = "gradlebuild.generate-subprojects-info")
-
-// https://github.com/gradle/gradle-private/issues/2463
-apply(from = "gradle/remove-teamcity-temp-property.gradle")
-
-allprojects {
-    apply(plugin = "gradlebuild.dependencies-metadata-rules")
-}
-
-subprojects {
-    version = rootProject.version
-
-    if (project in javaProjects) {
-        apply(plugin = "gradlebuild.java-projects")
-    }
-
-    if (project in publicJavaProjects) {
-        apply(plugin = "gradlebuild.public-java-projects")
-    }
-
-    apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-
-    if (project !in kotlinJsProjects) {
-        apply(plugin = "gradlebuild.task-properties-validation")
     }
 }
 
@@ -263,6 +260,24 @@ tasks.register<Install>("installAll") {
     description = "Installs the full distribution"
     group = "build"
     with(distributionImage("allDistImage"))
+}
+
+tasks.register("packageBuild") {
+    description = "Build production distros and smoke test them"
+    group =  "build"
+    dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+        ":distributions:integTest", ":docs:check", ":docs:checkSamples")
+}
+
+subprojects {
+    plugins.withId("gradlebuild.publish-public-libraries") {
+        tasks.register("promotionBuild") {
+            description = "Build production distros, smoke test them and publish"
+            group = "publishing"
+            dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+                ":distributions:integTest", ":docs:check", "publish")
+        }
+    }
 }
 
 tasks.register<UpdateBranchStatus>("updateBranchStatus")

@@ -18,24 +18,20 @@ package org.gradle.plugins.lifecycle
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.tasks.TaskContainer
-import org.gradle.kotlin.dsl.*
 
 
+/**
+ * Lifecycle tasks used to to fan out the build into multiple builds in a CI pipeline.
+ */
 class LifecyclePlugin : Plugin<Project> {
 
     private
     val ciGroup = "CI Lifecycle"
 
     override fun apply(project: Project): Unit = project.run {
-        subprojects {
-            plugins.withId("gradlebuild.java-projects") {
-                tasks.registerEarlyFeedbackLifecycleTasks()
-                tasks.registerCITestDistributionLifecycleTasks()
-            }
-        }
-        registerPackageAndPublishLifecylceTask()
+        tasks.registerEarlyFeedbackLifecycleTasks()
+        tasks.registerCITestDistributionLifecycleTasks()
     }
 
     /**
@@ -47,7 +43,6 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Initialize CI Pipeline by priming the cache before fanning out"
             group = ciGroup
             dependsOn(":createBuildReceipt", "compileAll")
-            globalProperty("ignoreIncomingBuildReceipt" to true)
         }
 
         register("sanityCheck") {
@@ -75,30 +70,24 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Run all unit, integration and cross-version (against latest release) tests in forking execution mode"
             group = ciGroup
             dependsOn("test", "forkingIntegTest", "forkingCrossVersionTest")
-            globalProperty("testVersions" to "partial")
         }
 
         register("quickFeedbackCrossVersionTest") {
             description = "Run cross-version tests against a limited set of versions"
             group = ciGroup
             dependsOn("quickFeedbackCrossVersionTests")
-            globalProperty("useAllDistribution" to true)
         }
 
         register("allVersionsCrossVersionTest") {
             description = "Run cross-version tests against all released versions (latest patch release of each)"
             group = ciGroup
             dependsOn("allVersionsCrossVersionTests")
-            globalProperty("testVersions" to "all")
-            globalProperty("useAllDistribution" to true)
         }
 
         register("allVersionsIntegMultiVersionTest") {
             description = "Run all multi-version integration tests with all version to cover"
             group = ciGroup
             dependsOn("integMultiVersionTest")
-            globalProperty("testVersions" to "all")
-            globalProperty("useAllDistribution" to true)
         }
 
         register("parallelTest") {
@@ -111,7 +100,6 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Run all integration tests in no-daemon execution mode: each Gradle execution started in a test forks a new daemon"
             group = ciGroup
             dependsOn("noDaemonIntegTest")
-            globalProperty("useAllDistribution" to true)
         }
 
         register("instantTest") {
@@ -130,7 +118,6 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Run all soak tests defined in the :soak subproject"
             group = ciGroup
             dependsOn(":soak:soakIntegTest")
-            globalProperty("testVersions" to "all")
         }
 
         register("forceRealizeDependencyManagementTest") {
@@ -139,46 +126,4 @@ class LifecyclePlugin : Plugin<Project> {
             dependsOn("integForceRealizeTest")
         }
     }
-
-    /**
-     * Tasks for building, testing and publishing the distribution and libraries as the Tooling API.
-     */
-    private
-    fun Project.registerPackageAndPublishLifecylceTask() {
-        tasks.register("packageBuild") {
-            description = "Build production distros and smoke test them"
-            group = ciGroup
-            dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                ":distributions:integTest", ":docs:check", ":docs:checkSamples")
-        }
-
-        subprojects {
-            plugins.withId("gradlebuild.publish-public-libraries") {
-                tasks.register("promotionBuild") {
-                    description = "Build production distros, smoke test them and publish"
-                    group = ciGroup
-                    dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
-                        ":distributions:integTest", ":docs:check", "publish")
-                }
-            }
-        }
-    }
-
-    private
-    fun Task.globalProperty(pair: Pair<String, Any>) {
-        val propertyName = pair.first
-        val value = pair.second
-        if (isActive()) {
-            if (project.rootProject.hasProperty(propertyName)) {
-                val otherValue = project.rootProject.property(propertyName)
-                if (value.toString() != otherValue.toString()) {
-                    throw RuntimeException("Attempting to set global property $propertyName to two different values ($value vs $otherValue)")
-                }
-            }
-            project.rootProject.extra.set(propertyName, value)
-        }
-    }
-
-    private
-    fun Task.isActive() = project.gradle.startParameter.taskNames.contains(name)
 }

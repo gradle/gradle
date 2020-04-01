@@ -15,6 +15,7 @@
  */
 package gradlebuild
 
+apply(plugin = "gradlebuild.lifecycle")
 apply(plugin = "gradlebuild.unittest-and-compile")
 apply(plugin = "gradlebuild.test-fixtures")
 apply(plugin = "gradlebuild.distribution-testing")
