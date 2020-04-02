@@ -1,5 +1,3 @@
-// NOTE: Precompiled script plugins are only be written in Kotlin at the moment.
-
 plugins {
     `kotlin-dsl`
 }

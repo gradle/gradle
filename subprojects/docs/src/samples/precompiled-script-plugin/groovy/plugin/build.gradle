@@ -1,0 +1,6 @@
+plugins {
+    id 'precompiled-groovy-plugin'
+}
+
+group = "org.gradle.sample"
+version = "1.0"
