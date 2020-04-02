@@ -184,7 +184,7 @@ samples {
             }
         }
 
-        jvmComponentsWithAdditionalTestTypes {
+        jvmMultiProjectWithAdditionalTestTypes {
             displayName = "Additional test types"
             description = "Add an additional test type (e.g. integration tests) to a project."
             category = "JVM"
@@ -232,8 +232,8 @@ samples {
                 from(templates.javaUtilitiesLibrary)
             }
         }
-        javaComponentsWithSpockTests {
-            sampleDirectory = samplesRoot.dir("java/components-with-spock-tests")
+        javaMultiProjectWithSpockTests {
+            sampleDirectory = samplesRoot.dir("java/multi-project-with-spock-tests")
             displayName = "Testing with Spock"
             description = "Test a Java application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Java"
@@ -245,8 +245,8 @@ samples {
                 from(templates.groovySpockTestForListLibrary)
             }
         }
-        javaComponentsWithJUnit5Tests {
-            sampleDirectory = samplesRoot.dir("java/components-with-junit-5-tests")
+        javaMultiProjectWithJUnit5Tests {
+            sampleDirectory = samplesRoot.dir("java/multi-project-with-junit-5-tests")
             displayName = "Testing with JUnit5"
             description = "Test a Java application and library with link:https://junit.org/junit5[JUnit5]."
             category = "Java"
@@ -307,8 +307,8 @@ samples {
                 from(templates.groovyUtilitiesLibrary)
             }
         }
-        groovyComponentsWithSpockTests {
-            sampleDirectory = samplesRoot.dir("groovy/components-with-spock-tests")
+        groovyMultiProjectWithSpockTests {
+            sampleDirectory = samplesRoot.dir("groovy/multi-project-with-spock-tests")
             displayName = "Testing with Spock"
             description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Groovy"
