@@ -25,13 +25,20 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
 
         given:
         buildFile << """
-            class MyTask extends DefaultTask {
+            abstract class MyTask extends DefaultTask {
+
+                @Input abstract Property<String> getMessage()
+
                 @TaskAction def action() {
-                    println("foo")
+                    println(message.get())
                 }
             }
-            tasks.register("myTask", MyTask)
+            tasks.register("myTask", MyTask) {
+                // use an undeclared input so we can test --refresh-dependencies
+                message.set(new File("message").text)
+            }
         """
+        file("message") << "foo"
 
         when:
         instantRun "myTask"
@@ -48,7 +55,7 @@ class InstantExecutionSkipCacheIntegrationTest extends AbstractInstantExecutionI
         instantExecution.assertStateLoaded()
 
         when:
-        buildFile.text = buildFile.text.replace("foo", "bar")
+        file("message").text = "bar"
 
         and:
         instantRun "myTask"
