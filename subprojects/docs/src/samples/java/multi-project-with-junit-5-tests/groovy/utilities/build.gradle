@@ -3,5 +3,5 @@ plugins {
 }
 
 dependencies {
-    implementation project(':list')
+    api project(':list')
 }
