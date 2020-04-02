@@ -37,7 +37,6 @@ import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentFactory;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.ArtifactAttributes;
-import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.component.BuildableJavaComponent;
@@ -49,8 +48,10 @@ import org.gradle.api.plugins.internal.JavaConfigurationVariantMapping;
 import org.gradle.api.plugins.internal.JvmPluginsHelper;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
@@ -294,15 +295,16 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
 
         project.getPluginManager().apply(JavaBasePlugin.class);
 
+        JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
         JavaPluginConvention javaConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
         project.getServices().get(ComponentRegistry.class).setMainComponent(new BuildableJavaComponentImpl(javaConvention));
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
 
         configureSourceSets(javaConvention, buildOutputCleanupRegistry);
-        configureConfigurations(project, javaConvention);
+        configureConfigurations(project, javaPluginExtension, javaConvention);
 
-        configureTest(project, javaConvention);
-        configureJavadocTask(project, javaConvention);
+        configureTest(project, javaPluginExtension, javaConvention);
+        configureJavadocTask(project, javaPluginExtension, javaConvention);
         configureArchivesAndComponent(project, javaConvention);
         configureBuild(project);
     }
@@ -350,9 +352,9 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         registerSoftwareComponents(project);
     }
 
-    private void configureJavadocTask(ProjectInternal project, JavaPluginConvention pluginConvention) {
+    private void configureJavadocTask(ProjectInternal project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
         SourceSet main = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-        configureJavaDocTask(null, main, project.getTasks(), project.getExtensions().getByType(JavaPluginExtension.class));
+        configureJavaDocTask(null, main, project.getTasks(), javaPluginExtension);
     }
 
     private void registerSoftwareComponents(Project project) {
@@ -410,7 +412,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
+    private void configureTest(Project project, JavaPluginExtension javaPluginExtension, JavaPluginConvention pluginConvention) {
         project.getTasks().withType(Test.class).configureEach(new Action<Test>() {
             @Override
             public void execute(final Test test) {
@@ -426,7 +428,6 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
-                JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
                 test.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
             }
         });
@@ -446,7 +447,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         });
     }
 
-    private void configureConfigurations(Project project, final JavaPluginConvention convention) {
+    private void configureConfigurations(Project project, JavaPluginExtension extension, JavaPluginConvention convention) {
         ConfigurationContainer configurations = project.getConfigurations();
 
         Configuration defaultConfiguration = configurations.getByName(Dependency.DEFAULT_CONFIGURATION);
@@ -491,20 +492,15 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
         apiElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME);
         runtimeElementsConfiguration.deprecateForDeclaration(IMPLEMENTATION_CONFIGURATION_NAME, COMPILE_ONLY_CONFIGURATION_NAME, RUNTIME_ONLY_CONFIGURATION_NAME);
 
-        configureTargetPlatform(apiElementsConfiguration, convention);
-        configureTargetPlatform(runtimeElementsConfiguration, convention);
+        configureTargetPlatform(apiElementsConfiguration, convention, project.getTasks());
+        configureTargetPlatform(runtimeElementsConfiguration, convention, project.getTasks());
     }
 
     /**
      * Configures the target platform for an outgoing configuration.
      */
-    private void configureTargetPlatform(Configuration outgoing, final JavaPluginConvention convention) {
-        ((ConfigurationInternal)outgoing).beforeLocking(new Action<ConfigurationInternal>() {
-            @Override
-            public void execute(ConfigurationInternal configuration) {
-                JavaEcosystemSupport.configureDefaultTargetPlatform(configuration, convention.getTargetCompatibility());
-            }
-        });
+    private void configureTargetPlatform(Configuration configuration, JavaPluginConvention convention, TaskContainer tasks) {
+        ((ConfigurationInternal) configuration).beforeLocking(JvmPluginsHelper.configureDefaultTargetPlatform(convention, true, tasks.named(COMPILE_JAVA_TASK_NAME, JavaCompile.class)));
     }
 
     /**

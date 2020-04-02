@@ -835,6 +835,7 @@ task show {
         result.assertTasksExecuted(":app:resolveView")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "fails when no variants match and no view attributes specified"() {
         ivyHttpRepo.module("test","test", "1.2").publish().allowAll()
 

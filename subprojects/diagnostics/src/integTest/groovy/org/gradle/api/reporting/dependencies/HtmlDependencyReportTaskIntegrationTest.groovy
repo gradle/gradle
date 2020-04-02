@@ -241,7 +241,7 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         file("build/reports/project/dependencies/images/d.gif").assertExists()
         file("build/reports/project/dependencies/images/d.png").assertExists()
         file("build/reports/project/dependencies/js/jquery.jstree.js").assertExists()
-        file("build/reports/project/dependencies/js/jquery.min-1.11.0.js").assertExists()
+        file("build/reports/project/dependencies/js/jquery.min-3.4.1.js").assertExists()
         file("build/reports/project/dependencies/js/script.js").assertExists()
         file("build/reports/project/dependencies/css/style.css").assertExists()
         file("build/reports/project/dependencies/images/throbber.gif").assertExists()

@@ -76,6 +76,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/walkGraph")
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "can walk the dependency graph of a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
