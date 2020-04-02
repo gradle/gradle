@@ -246,45 +246,37 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
                                              PluginRequests pluginRequests,
                                              CompiledScript<? extends BasicScript, ?> buildScript) {
         String targetClass = scriptPlugin.getTargetClassName();
-        File outputFile = pluginAdapterSourcesOutputDir.file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
+        File outputFile = pluginAdapterSourcesOutputDir.file(scriptPlugin.getGeneratedPluginClassName() + ".groovy").get().getAsFile();
 
-        StringBuilder pluginImports = new StringBuilder();
         StringBuilder applyPlugins = new StringBuilder();
-        if (!pluginRequests.isEmpty()) {
-            pluginImports.append("import java.util.Map;\n").append("import java.util.HashMap;\n");
-            applyPlugins.append("Map<String, String> plugins = new HashMap<>(); ");
-            for (PluginRequest pluginRequest : pluginRequests) {
-                applyPlugins.append("plugins.put(\"plugin\", \"").append(pluginRequest.getId().getId()).append("\"); ");
-            }
-            applyPlugins.append("target.apply(plugins);");
+        for (PluginRequest pluginRequest : pluginRequests) {
+            String pluginId = pluginRequest.getId().getId();
+            applyPlugins.append("target.apply(['plugin': '").append(pluginId).append("']); ");
         }
 
-        String buildScriptClass = buildScript.getRunDoesSomething() ? "Class.forName(\"" + scriptPlugin.getClassName() + "\")" : null;
-
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
-            writer.write("import " + targetClass + ";\n");
-            writer.write("import org.gradle.util.GradleVersion;\n");
-            writer.write(pluginImports + "\n");
+            writer.write("import " + targetClass + "\n");
+            writer.write("import org.gradle.groovy.scripts.BasicScript\n");
+            writer.write("import org.gradle.groovy.scripts.ScriptSource\n");
+            writer.write("import org.gradle.groovy.scripts.TextResourceScriptSource\n");
+            writer.write("import org.gradle.internal.resource.StringTextResource\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
-            writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
-            writer.write("  private static final String MIN_SUPPORTED_GRADLE_VERSION = \"6.4\";\n");
-            writer.write("  public void apply(" + targetClass + " target) {\n");
-            writer.write("      assertSupportedByCurrentGradleVersion();\n");
+            writer.write("class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
+            writer.write("  private static final String MIN_SUPPORTED_GRADLE_VERSION = \"6.4\"\n");
+            writer.write("  void apply(" + targetClass + " target) {\n");
             writer.write("      " + applyPlugins + "\n");
-            writer.write("      try {\n");
-            writer.write("          Class<?> precompiledScriptClass = " + buildScriptClass + ";\n");
-            writer.write("          new " + PrecompiledScriptRunner.class.getName() + "(target)\n");
-            writer.write("              .run(precompiledScriptClass);\n");
-            writer.write("      } catch (Exception e) {\n");
-            writer.write("          throw new RuntimeException(e);\n");
-            writer.write("      }\n");
+            if (buildScript.getRunDoesSomething()) {
+                writer.write("      Class<? extends BasicScript> precompiledScriptClass = Class.forName('" + scriptPlugin.getClassName() + "')\n ");
+                writer.write("      BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance()\n");
+                writer.write("      script.setScriptSource(scriptSource(precompiledScriptClass))\n");
+                writer.write("      script.init(target, target.getServices())\n");
+                writer.write("      script.run()\n");
+            }
             writer.write("  }\n");
-            writer.write("  private static void assertSupportedByCurrentGradleVersion() {\n");
-            writer.write("      if (GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version(MIN_SUPPORTED_GRADLE_VERSION)) < 0) {\n");
-            writer.write("          throw new RuntimeException(\"Precompiled Groovy script plugins require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");\n");
-            writer.write("      }\n");
+            writer.write("  private static ScriptSource scriptSource(Class<?> scriptClass) {\n");
+            writer.write("      return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), ''))\n");
             writer.write("  }\n");
             writer.write("}\n");
         } catch (IOException e) {

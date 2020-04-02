@@ -26,7 +26,7 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.api.tasks.compile.JavaCompile;
+import org.gradle.api.tasks.compile.GroovyCompile;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
 
@@ -73,7 +73,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
             pluginSourceSet.getCompileClasspath(), javaClasses, groovyClasses
         );
 
-        TaskProvider<JavaCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", JavaCompile.class, t -> {
+        TaskProvider<GroovyCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", GroovyCompile.class, t -> {
             t.dependsOn(precompilePlugins);
             t.setSource(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getPluginAdapterSourcesOutputDir));
             t.setDestinationDir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getAdapterClassesOutputDir));
@@ -81,6 +81,6 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
         });
 
         pluginSourceSet.getOutput().dir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getPrecompiledGroovyScriptsOutputDir));
-        pluginSourceSet.getOutput().dir(compilePluginAdapters.flatMap(JavaCompile::getDestinationDirectory));
+        pluginSourceSet.getOutput().dir(compilePluginAdapters.flatMap(GroovyCompile::getDestinationDirectory));
     }
 }
