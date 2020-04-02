@@ -38,12 +38,12 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         buildKotlinFile << script
     }
 
-    void instantRun(String... args) {
-        run(INSTANT_EXECUTION_PROPERTY, *args)
+    void instantRun(String... tasks) {
+        run(INSTANT_EXECUTION_PROPERTY, *tasks)
     }
 
-    void instantFails(String... args) {
-        fails(INSTANT_EXECUTION_PROPERTY, *args)
+    void instantFails(String... tasks) {
+        fails(INSTANT_EXECUTION_PROPERTY, *tasks)
     }
 
     public static final String INSTANT_EXECUTION_PROPERTY = "-D${SystemProperties.isEnabled}=true"
