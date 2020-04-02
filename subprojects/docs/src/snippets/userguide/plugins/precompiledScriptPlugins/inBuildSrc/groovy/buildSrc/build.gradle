@@ -1,5 +1,5 @@
 // tag::apply[]
 plugins {
-    id 'precompiled-groovy-plugin'
+    id 'groovy-gradle-plugin'
 }
 // end::apply[]

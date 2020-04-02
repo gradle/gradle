@@ -271,7 +271,7 @@ Likewise, `src/main/kotlin/my/java-library-convention.gradle.kts` would result i
 To demonstrate how you can implement and use a precompiled script plugin, let's walk through an example based on a `buildSrc` project.
 
 [.multi-language-text.lang-groovy]
-First, you need a `buildSrc/build.gradle` file that applies the `precompiled-groovy-plugin` plugin:
+First, you need a `buildSrc/build.gradle` file that applies the `groovy-gradle-plugin` plugin:
 
 [.multi-language-text.lang-kotlin]
 First, you need a `buildSrc/build.gradle.kts` file that applies the `kotlin-dsl` plugin:
