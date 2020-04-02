@@ -37,11 +37,20 @@ class DefaultInstantExecutionProblemsListener internal constructor(
 ) : InstantExecutionProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, invocationSource: Any) {
+        onExecutionTimeAccessProblem(invocationDescription, invocationSource)
+    }
+
+    override fun onTaskDependenciesAccess(invocationDescription: String, invocationSource: Any) {
+        onExecutionTimeAccessProblem(invocationDescription, invocationSource)
+    }
+
+    private
+    fun onExecutionTimeAccessProblem(invocationDescription: String, invocationSource: Any) {
         if (startParameter.isEnabled) {
             val exception = InvalidUserCodeException(
                 "Invocation of '$invocationDescription' by $invocationSource at execution time is unsupported."
             )
-            problems.onProblem(projectAccessProblem(
+            problems.onProblem(executionTimeAccessProblem(
                 traceFor(invocationSource),
                 invocationDescription,
                 exception
@@ -50,15 +59,7 @@ class DefaultInstantExecutionProblemsListener internal constructor(
     }
 
     private
-    fun traceFor(invocationSource: Any) =
-        if (invocationSource is Task) PropertyTrace.Task(
-            GeneratedSubclasses.unpackType(invocationSource),
-            invocationSource.path
-        )
-        else PropertyTrace.Unknown
-
-    private
-    fun projectAccessProblem(trace: PropertyTrace, invocationDescription: String, exception: InvalidUserCodeException) =
+    fun executionTimeAccessProblem(trace: PropertyTrace, invocationDescription: String, exception: InvalidUserCodeException) =
         PropertyProblem(
             trace,
             StructuredMessage.build {
@@ -68,4 +69,12 @@ class DefaultInstantExecutionProblemsListener internal constructor(
             },
             exception
         )
+
+    private
+    fun traceFor(invocationSource: Any) =
+        if (invocationSource is Task) PropertyTrace.Task(
+            GeneratedSubclasses.unpackType(invocationSource),
+            invocationSource.path
+        )
+        else PropertyTrace.Unknown
 }

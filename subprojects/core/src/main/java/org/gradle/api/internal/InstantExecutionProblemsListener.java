@@ -26,4 +26,9 @@ public interface InstantExecutionProblemsListener {
      * Called when accessing the project.
      */
     void onProjectAccess(String invocationDescription, Object invocationSource);
+
+    /**
+     * Called when accessing task dependencies.
+     */
+    void onTaskDependenciesAccess(String invocationDescription, Object invocationSource);
 }

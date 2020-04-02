@@ -208,7 +208,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         ]
     }
 
-    def "reports project access during execution"() {
+    @Unroll
+    def "reports #invocation access during execution"() {
 
         def instantExecution = newInstantExecutionFixture()
 
@@ -218,7 +219,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             abstract class MyTask extends DefaultTask {
                 @TaskAction
                 def action() {
-                    println("project:${'$'}{project.name}")
+                    println($code)
                 }
             }
 
@@ -228,8 +229,8 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         and:
         def expectedProblems = [
-            "task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.",
-            "task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported."
+            "task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.",
+            "task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported."
         ]
 
         when:
@@ -247,7 +248,6 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         instantRun "a", "b"
 
         then:
-        output.count("project:root") == 2
         instantExecution.assertStateLoaded()
 
         and:
@@ -255,6 +255,12 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             withUniqueProblems(expectedProblems)
             withProblemsWithStackTraceCount(2)
         }
+
+        where:
+        invocation              | code
+        'Task.project'          | 'project.name'
+        'Task.dependsOn'        | 'dependsOn'
+        'Task.taskDependencies' | 'taskDependencies'
     }
 
     def "summarizes unsupported properties"() {
