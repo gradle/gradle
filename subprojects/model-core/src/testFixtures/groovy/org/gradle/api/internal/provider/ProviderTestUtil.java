@@ -16,9 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -55,19 +53,11 @@ public class ProviderTestUtil {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
+        public ValueProducer getProducer() {
             if (producer != null) {
-                visitor.execute(producer);
-            }
-        }
-
-        @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            if (producer != null) {
-                context.add(producer);
-                return true;
+                return ValueProducer.task(producer);
             } else {
-                return false;
+                return ValueProducer.unknown();
             }
         }
 

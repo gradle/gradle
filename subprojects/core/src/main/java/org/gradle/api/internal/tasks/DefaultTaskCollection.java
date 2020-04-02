@@ -23,8 +23,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
-import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultNamedDomainObjectSet;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.plugins.DslObject;
@@ -203,9 +203,8 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            context.add(get());
-            return true;
+        public ValueProducer getProducer() {
+            return ValueProducer.taskState(get());
         }
     }
 }

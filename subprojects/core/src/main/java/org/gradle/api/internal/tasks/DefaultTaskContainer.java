@@ -671,9 +671,8 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            context.add(get());
-            return true;
+        public ValueProducer getProducer() {
+            return ValueProducer.taskState(get());
         }
 
         @Override

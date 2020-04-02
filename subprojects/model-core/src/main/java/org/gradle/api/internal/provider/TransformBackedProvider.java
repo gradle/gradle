@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.jetbrains.annotations.NotNull;
 
@@ -46,13 +43,8 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-        provider.visitProducerTasks(visitor);
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return provider.maybeVisitBuildDependencies(context);
+    public ValueProducer getProducer() {
+        return provider.getProducer();
     }
 
     @Override
@@ -86,15 +78,14 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     private void beforeRead() {
-        for (Task producer : getProducerTasks()) {
+        provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
                 DeprecationLogger.deprecateAction(String.format("Querying the mapped value of %s before %s has completed", provider, producer))
                     .willBecomeAnErrorInGradle7()
                     .withUpgradeGuideSection(6, "querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
                     .nagUser();
-                break; // Only report one producer
             }
-        }
+        });
     }
 
     @Override

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.Managed
@@ -450,4 +451,21 @@ abstract class ProviderSpec<T> extends Specification {
         }
     }
 
+    void assertHasNoProducer(ProviderInternal<?> provider) {
+        def producer = provider.producer
+        assert !producer.known
+        producer.visitProducerTasks { assert false }
+        producer.visitContentProducerTasks { assert false }
+    }
+
+    void assertHasProducer(ProviderInternal<?> provider, Task task) {
+        def producer = provider.producer
+        assert producer.known
+        def tasks = []
+        producer.visitProducerTasks { tasks.add(it) }
+        assert tasks == [task]
+        tasks.clear()
+        producer.visitContentProducerTasks { tasks.add(it) }
+        assert tasks == [task]
+    }
 }

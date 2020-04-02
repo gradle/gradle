@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
@@ -37,13 +36,13 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (provider.isValueProducedByTask() || provider.isPresent()) {
-            // either the provider value will be used, or we don't know yet
-            return provider.maybeVisitBuildDependencies(context);
+    public ValueProducer getProducer() {
+        ValueProducer producer = provider.getProducer();
+        if (producer.isProducesDifferentValueOverTime() || provider.isPresent()) {
+            // Value is not available yet or is present
+            return provider.getProducer();
         } else {
-            // provider value will not be used, so there are no dependencies
-            return true;
+            return ValueProducer.unknown();
         }
     }
 

@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.internal.state.ModelObject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -273,16 +273,21 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def context = Mock(TaskDependencyResolveContext)
+        def action = Mock(Action)
 
         when:
         var.attachProducer(owner)
-        def visited = var.maybeVisitBuildDependencies(context)
+        def producer = var.producer
 
         then:
-        visited
-        1 * context.add(task)
-        0 * context._
+        producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     def "can discard the producer task for a directory"() {
@@ -290,15 +295,20 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def context = Mock(TaskDependencyResolveContext)
+        def action = Mock(Action)
 
         when:
         var.attachProducer(owner)
-        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+        def producer = var.locationOnly.producer
 
         then:
-        !visited
-        0 * context._
+        !producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        0 * action._
     }
 
     def "can specify the producer task for a regular file"() {
@@ -306,16 +316,21 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def context = Mock(TaskDependencyResolveContext)
+        def action = Mock(Action)
 
         when:
         var.attachProducer(owner)
-        def visited = var.maybeVisitBuildDependencies(context)
+        def producer = var.producer
 
         then:
-        visited
-        1 * context.add(task)
-        0 * context._
+        producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     def "can discard the producer task for a regular file"() {
@@ -323,14 +338,19 @@ class DefaultFilePropertyFactoryTest extends Specification {
         def task = Stub(Task)
         def owner = Stub(ModelObject)
         owner.taskThatOwnsThisObject >> task
-        def context = Mock(TaskDependencyResolveContext)
+        def action = Mock(Action)
 
         when:
         var.attachProducer(owner)
-        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+        def producer = var.locationOnly.producer
 
         then:
-        !visited
-        0 * context._
+        !producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        0 * action._
     }
 }

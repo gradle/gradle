@@ -19,7 +19,6 @@ package org.gradle.api.internal.provider;
 import org.gradle.api.Action;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
@@ -175,14 +174,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        public ValueProducer getProducer() {
             // For now, assume value is never calculated from a task output
-            return true;
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return value == null;
+            if (value != null) {
+                return ValueProducer.unknown();
+            } else {
+                return ValueProducer.externalValue();
+            }
         }
 
         @Override
@@ -218,7 +216,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         @Override
         public ExecutionTimeValue<T> calculateExecutionTimeValue() {
             if (value != null) {
-                return ExecutionTimeValue.fixedValue(value.get());
+                return ExecutionTimeValue.ofNullable(value.get());
             } else {
                 return ExecutionTimeValue.changingValue(this);
             }
