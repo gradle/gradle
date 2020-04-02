@@ -3,5 +3,6 @@ plugins {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.12")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }

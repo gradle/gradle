@@ -19,7 +19,8 @@ configurations {
 }
 
 dependencies {
-    integrationTestImplementation 'junit:junit:4.12'
+    integrationTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
+    integrationTestRuntimeOnly 'org.junit.vintage:junit-vintage-engine'
 }
 
 def integrationTest = tasks.register('integrationTest', Test) {

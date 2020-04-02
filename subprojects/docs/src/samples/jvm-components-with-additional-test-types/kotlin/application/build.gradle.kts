@@ -5,7 +5,8 @@ plugins {
 dependencies {
     implementation(project(":list"))
     implementation(project(":utilities"))
-    testImplementation("junit:junit:4.12")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
+    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 
 application {
@@ -26,7 +27,8 @@ val integrationTestImplementation by configurations.getting {
 configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 dependencies {
-    integrationTestImplementation("junit:junit:4.12")
+    integrationTestImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
+    "integrationTestRuntimeOnly"("org.junit.vintage:junit-vintage-engine")
 }
 
 val integrationTest = tasks.register<Test>("integrationTest") {
