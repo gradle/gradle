@@ -30,11 +30,6 @@ public class ConfigurationOnDemandProjectAccessListener implements ProjectAccess
         evaluateProjectAndDiscoverTasks(targetProject);
     }
 
-    @Override
-    public void onProjectAccess(String invocationDescription, Object invocationSource) {
-        // NOOP
-    }
-
     private synchronized void evaluateProjectAndDiscoverTasks(final ProjectInternal targetProject) {
         targetProject.evaluate();
         targetProject.getTasks().discoverTasks();

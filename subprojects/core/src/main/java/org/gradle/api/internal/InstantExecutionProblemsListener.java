@@ -14,10 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal;
 
 
-public interface ProjectAccessNotifier {
+/**
+ * Listen for instant execution problems.
+ */
+public interface InstantExecutionProblemsListener {
 
-    ProjectAccessListener getListener();
+    /**
+     * Called when accessing the project.
+     */
+    void onProjectAccess(String invocationDescription, Object invocationSource);
 }

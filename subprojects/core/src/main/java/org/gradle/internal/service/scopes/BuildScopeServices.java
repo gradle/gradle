@@ -50,7 +50,6 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ConfigurationOnDemandProjectAccessListener;
-import org.gradle.api.internal.project.DefaultProjectAccessNotifier;
 import org.gradle.api.internal.project.DefaultProjectRegistry;
 import org.gradle.api.internal.project.DefaultProjectTaskLister;
 import org.gradle.api.internal.project.IProjectFactory;
@@ -131,7 +130,6 @@ import org.gradle.initialization.InstantiatingBuildLoader;
 import org.gradle.initialization.ModelConfigurationListener;
 import org.gradle.initialization.NotifyingBuildLoader;
 import org.gradle.initialization.ProjectAccessListener;
-import org.gradle.initialization.ProjectAccessNotifier;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectPropertySettingBuildLoader;
 import org.gradle.initialization.RootBuildCacheControllerSettingsProcessor;
@@ -501,10 +499,6 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ProjectAccessListener createProjectAccessListener() {
         return new ConfigurationOnDemandProjectAccessListener();
-    }
-
-    protected ProjectAccessNotifier createProjectAccessNotifier(List<ProjectAccessListener> listeners) {
-        return new DefaultProjectAccessNotifier(listeners);
     }
 
     protected PluginRegistry createPluginRegistry(ClassLoaderScopeRegistry scopeRegistry, PluginInspector pluginInspector) {

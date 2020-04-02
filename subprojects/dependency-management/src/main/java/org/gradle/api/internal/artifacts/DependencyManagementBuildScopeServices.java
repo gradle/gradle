@@ -124,7 +124,7 @@ import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
 import org.gradle.initialization.InternalBuildFinishedListener;
-import org.gradle.initialization.ProjectAccessNotifier;
+import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.initialization.layout.BuildLayoutConfiguration;
 import org.gradle.initialization.layout.BuildLayoutFactory;
@@ -190,7 +190,7 @@ class DependencyManagementBuildScopeServices {
 
     DependencyFactory createDependencyFactory(
         Instantiator instantiator,
-        ProjectAccessNotifier projectAccessNotifier,
+        ProjectAccessListener projectAccessListener,
         StartParameter startParameter,
         ClassPathRegistry classPathRegistry,
         CurrentGradleInstallation currentGradleInstallation,
@@ -200,7 +200,7 @@ class DependencyManagementBuildScopeServices {
         SimpleMapInterner stringInterner) {
         NotationParser<Object, Capability> capabilityNotationParser = new CapabilityNotationParserFactory(false).create();
         DefaultProjectDependencyFactory factory = new DefaultProjectDependencyFactory(
-            projectAccessNotifier.getListener(), instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
+            projectAccessListener, instantiator, startParameter.isBuildProjectDependencies(), capabilityNotationParser, attributesFactory);
         ProjectDependencyFactory projectDependencyFactory = new ProjectDependencyFactory(factory);
 
         return new DefaultDependencyFactory(

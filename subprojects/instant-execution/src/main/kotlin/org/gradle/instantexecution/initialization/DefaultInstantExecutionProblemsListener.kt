@@ -19,15 +19,14 @@ package org.gradle.instantexecution.initialization
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.ProjectAccessListener
+import org.gradle.api.internal.InstantExecutionProblemsListener
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
 
 
-class InstantExecutionProjectAccessListener internal constructor(
+class DefaultInstantExecutionProblemsListener internal constructor(
 
     private
     val startParameter: InstantExecutionStartParameter,
@@ -35,11 +34,7 @@ class InstantExecutionProjectAccessListener internal constructor(
     private
     val problems: InstantExecutionProblems
 
-) : ProjectAccessListener {
-
-    override fun beforeRequestingTaskByPath(targetProject: ProjectInternal) = Unit
-
-    override fun beforeResolvingProjectDependency(dependencyProject: ProjectInternal) = Unit
+) : InstantExecutionProblemsListener {
 
     override fun onProjectAccess(invocationDescription: String, invocationSource: Any) {
         if (startParameter.isEnabled) {
