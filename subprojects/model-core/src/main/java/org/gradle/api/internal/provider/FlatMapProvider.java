@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -70,13 +67,8 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-        backingProvider().visitProducerTasks(visitor);
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return backingProvider().maybeVisitBuildDependencies(context);
+    public ValueProducer getProducer() {
+        return backingProvider().getProducer();
     }
 
     @Override

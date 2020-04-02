@@ -73,7 +73,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         return file(path)
     }
 
-    @ToBeFixedForInstantExecution
     def "supports recursive types"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -102,7 +101,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def "task cannot have property with annotation @#annotation.simpleName"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -182,7 +180,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
-    @ToBeFixedForInstantExecution
     def "can validate task classes using external types"() {
         buildFile << """
             ${jcenterRepository()}
@@ -215,7 +212,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
-    @ToBeFixedForInstantExecution
     def "can validate task classes using types from other projects"() {
         settingsFile << """
             include 'lib'
@@ -270,7 +266,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         assertValidationSucceeds()
     }
 
-    @ToBeFixedForInstantExecution
     def "can validate properties of an artifact transform action"() {
         file("src/main/java/MyTransformAction.java") << """
             import org.gradle.api.*;
@@ -329,7 +324,6 @@ class ValidatePluginsIntegrationTest extends AbstractPluginValidationIntegration
         )
     }
 
-    @ToBeFixedForInstantExecution
     def "can validate properties of an artifact transform parameters object"() {
         file("src/main/java/MyTransformParameters.java") << """
             import org.gradle.api.*;

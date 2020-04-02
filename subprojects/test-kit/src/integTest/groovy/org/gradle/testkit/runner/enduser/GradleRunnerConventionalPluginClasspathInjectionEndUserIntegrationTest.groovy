@@ -16,7 +16,7 @@
 
 package org.gradle.testkit.runner.enduser
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
 
 class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest extends BaseTestKitEndUserIntegrationTest {
@@ -70,14 +70,12 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "can test plugin and custom task as external files by using default conventions from Java Gradle plugin development plugin"() {
         expect:
         succeeds 'test'
         executedAndNotSkipped ':test'
     }
 
-    @ToBeFixedForInstantExecution
     def "can override plugin metadata location"() {
         when:
         buildFile << """
@@ -91,7 +89,6 @@ class GradleRunnerConventionalPluginClasspathInjectionEndUserIntegrationTest ext
         executedAndNotSkipped ':test'
     }
 
-    @ToBeFixedForInstantExecution
     def "can use custom source set"() {
         when:
         file("src/test/groovy/Test.groovy").moveToDirectory(file("src/functionalTest/groovy"))

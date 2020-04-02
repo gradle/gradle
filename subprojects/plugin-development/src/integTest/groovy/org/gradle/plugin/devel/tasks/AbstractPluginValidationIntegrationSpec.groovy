@@ -37,7 +37,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -49,7 +48,6 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -136,7 +134,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "task can have property with annotation @#annotation.simpleName"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -183,7 +180,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects optional primitive type #type"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -211,7 +207,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         double  | 1
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "validates task caching annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -245,7 +240,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects missing annotation on Groovy properties"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -284,7 +278,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "no problems with Copy task"() {
         file("input.txt").text = "input"
 
@@ -301,7 +294,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "does not report missing properties for Provider types"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -371,7 +363,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
@@ -411,7 +402,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -483,7 +473,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects problems on nested collections"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -596,7 +585,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects annotations on private getter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -639,7 +627,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects annotations on non-property methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -676,7 +663,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -731,7 +717,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "reports conflicting types when property is replaced"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -767,8 +752,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-
-    @ToBeFixedForInstantExecution(bottomSpecs = "ValidatePluginsIntegrationTest")
     def "reports both input and output annotation applied to the same property"() {
         javaTaskSource << """
             import java.io.File;
