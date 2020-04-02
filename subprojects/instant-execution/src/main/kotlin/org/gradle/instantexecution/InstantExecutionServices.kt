@@ -17,7 +17,7 @@
 package org.gradle.instantexecution
 
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
-import org.gradle.instantexecution.initialization.DefaultInstantExecutionProblemsListener
+import org.gradle.instantexecution.initialization.InstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
@@ -39,7 +39,7 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
             add(InstantExecutionReport::class.java)
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
-            add(DefaultInstantExecutionProblemsListener::class.java)
+            add(InstantExecutionProblemsListener::class.java)
         }
     }
 

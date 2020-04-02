@@ -14,23 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.api.internal.tasks.execution;
 
 import org.gradle.api.Task;
 
 
-/**
- * Listen for instant execution problems.
- */
-public interface InstantExecutionProblemsListener {
+public interface TaskExecutionAccessListener {
 
     /**
-     * Called when accessing the project.
+     * Called when accessing the project during task execution.
      */
-    void onTaskActionProjectAccess(String invocationDescription, Task task);
+    void onProjectAccess(String invocationDescription, Task task);
 
     /**
-     * Called when accessing task dependencies.
+     * Called when accessing task dependencies during task execution.
      */
-    void onTaskDependenciesAccess(String invocationDescription, Object invocationSource);
+    void onTaskDependenciesAccess(String invocationDescription, Task task);
 }

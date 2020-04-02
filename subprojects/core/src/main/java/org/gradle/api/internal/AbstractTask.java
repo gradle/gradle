@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -215,8 +216,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void notifyProjectAccess() {
         if (state.getExecuting()) {
-            services.get(InstantExecutionProblemsListener.class)
-                .onTaskActionProjectAccess("Task.project", this);
+            services.get(TaskExecutionAccessListener.class)
+                .onProjectAccess("Task.project", this);
         }
     }
 
@@ -284,8 +285,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private void notifyTaskDependenciesAccess(String invocationDescription) {
         if (state.getExecuting()) {
-            services.get(InstantExecutionProblemsListener.class)
-                .onTaskActionTaskDependenciesAccess(invocationDescription, this);
+            services.get(TaskExecutionAccessListener.class)
+                .onTaskDependenciesAccess(invocationDescription, this);
         }
     }
 
