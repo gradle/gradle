@@ -1,0 +1,78 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+}
+
+allprojects {
+    version = '1.0.2'
+    group = 'org.gradle.sample'
+
+    repositories {
+        jcenter()
+    }
+}
+
+// tag::applyToSubprojects[]
+// You can configure all subprojects at once with the JaCoCo plugin
+// This ensure that the jacoco plugin enriches the `test` task to generate code coverage
+// subprojects {
+//     apply plugin: 'java'
+//     apply plugin: 'jacoco'
+//     dependencies {
+//         testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
+//         testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+//     }
+//     test {
+//         useJUnitPlatform()
+//     }
+// }
+
+// If you want to apply the plugins individually in the subprojects, you must be careful.
+// Due to the evaluation order, the jacoco plugin in subprojects might not be applied
+// when the coverage report is generated, thus ignoring the subprojects. Ensure
+// this does not happen by letting gradle know about the dependency on subprojects.
+evaluationDependsOnChildren()
+// end::applyToSubprojects[]
+
+// tag::coverageTask[]
+// task to gather code coverage from multiple subprojects
+tasks.register("codeCoverageReport", JacocoReport) {
+    // consider all test tests from subprojects to gather code coverage
+    subprojects.each { subproject ->
+        if (subproject.name != "utilities") { // exclude project without tests
+            // Wiring the source set makes it easy to automatically setup both source and class files that are required for a report
+            sourceSets subproject.sourceSets.main
+
+            // Next up, we want to gather code coverage from all `test` tasks of those subprojects
+            subproject.tasks.withType(Test).all { testTask ->
+                // executionData(..) accepts files or tasks
+                // passing the task instead of files helps us with 2 aspects
+                // a) the report task is properly scheduled to run *after* the test tasks if it is scheduled to run
+                // b) the outputFile property is respected in case a subproject changes the defaults
+                executionData(testTask)
+
+                // NOTE: the report task does *not* depend on the `test` task by default. Meaning you have to ensure
+                // that `test` (or other tasks generating code coverage) run before generating the report.
+                // You can achieve this by calling the `check` lifecycle task manually
+                // $ ./gradlew check codeCoverageReport
+
+                // Alternativly you can declare a dependency so that the `codeCoverageReport` depends on the `test` tasks.
+                // This inevitably enforces that running the `codeCoverageTask` runs the test tasks as well.
+                // This may be your intendned behaviour.
+                tasks.codeCoverageReport.dependsOn(testTask)
+            }
+        }
+    }
+
+    // enable the different report types (html, xml, csv)
+    reports {
+        // xml is usually used to integrate code coverage with
+        // other tools like SonarQube, Coveralls or Codecov
+        xml.enabled true
+
+        // HTML reports can be used to see code coverage
+        // without any external tools
+        html.enabled true
+    }
+}
+// end::coverageTask[]
