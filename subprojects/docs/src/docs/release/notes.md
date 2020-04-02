@@ -42,6 +42,17 @@ It is however stable and expected to become the default format in Gradle 7.0.
 
 Take a look at [the documentation](userguide/dependency_locking.html#single_lock_file_per_project) for more information and how to enable the feature.
 
+## Precompiled Groovy script plugins
+
+Gradle now allows precompiled script plugins to be written in Groovy in addition to already present Kotlin DSL support.
+
+Precompiled script plugins are binary plugins that are written in one of Gradle's DSLs.
+They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
+
+For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin'}`.
+
+Precompiled script plugins are covered in more depth in the [user guide](userguide/custom_plugins.html#sec:precompiled_plugins).
+
 <!-- 
 Add release features here!
 ## 1
