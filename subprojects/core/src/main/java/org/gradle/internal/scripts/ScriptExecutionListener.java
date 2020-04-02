@@ -13,8 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
+package org.gradle.internal.scripts;
+
+import org.gradle.groovy.scripts.Script;
+import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptExecutionListener {
-    void scriptClassLoaded(ScriptSource source, Class<? extends Script> scriptClass);
+    void onScriptClassLoaded(ScriptSource source, Class<? extends Script> scriptClass);
 }
