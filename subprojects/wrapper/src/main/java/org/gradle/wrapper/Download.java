@@ -35,8 +35,8 @@ public class Download implements IDownload {
 
     private static final int BUFFER_SIZE = 10 * 1024;
     private static final int PROGRESS_CHUNK = 1024 * 1024;
-    private static final int CONNECTION_TIMEOUT_SECONDS = 60;
-    private static final int READ_TIMEOUT_SECONDS = 60;
+    private static final int CONNECTION_TIMEOUT_SECONDS = 60 * 1000;
+    private static final int READ_TIMEOUT_SECONDS = 60 * 1000;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
