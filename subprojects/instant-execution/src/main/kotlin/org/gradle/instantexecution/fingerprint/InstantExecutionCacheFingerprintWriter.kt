@@ -28,7 +28,6 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.ValueSource
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import java.io.File
 
@@ -46,7 +45,7 @@ class InstantExecutionCacheFingerprintWriter(
         fun fingerprintOf(
             fileCollection: FileCollectionInternal,
             owner: TaskInternal
-        ): CurrentFileCollectionFingerprint
+        ): HashCode
     }
 
     /**
