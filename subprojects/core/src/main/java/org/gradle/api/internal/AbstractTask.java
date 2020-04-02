@@ -216,7 +216,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private void notifyProjectAccess() {
         if (state.getExecuting()) {
             services.get(InstantExecutionProblemsListener.class)
-                .onProjectAccess("Task.project", this);
+                .onTaskActionProjectAccess("Task.project", this);
         }
     }
 
@@ -285,7 +285,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private void notifyTaskDependenciesAccess(String invocationDescription) {
         if (state.getExecuting()) {
             services.get(InstantExecutionProblemsListener.class)
-                .onTaskDependenciesAccess(invocationDescription, this);
+                .onTaskActionTaskDependenciesAccess(invocationDescription, this);
         }
     }
 

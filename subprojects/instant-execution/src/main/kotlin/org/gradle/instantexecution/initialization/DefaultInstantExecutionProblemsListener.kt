@@ -36,22 +36,22 @@ class DefaultInstantExecutionProblemsListener internal constructor(
 
 ) : InstantExecutionProblemsListener {
 
-    override fun onProjectAccess(invocationDescription: String, invocationSource: Any) {
-        onExecutionTimeAccessProblem(invocationDescription, invocationSource)
+    override fun onTaskActionProjectAccess(invocationDescription: String, task: Task) {
+        onExecutionTimeAccessProblem(invocationDescription, task)
     }
 
-    override fun onTaskDependenciesAccess(invocationDescription: String, invocationSource: Any) {
-        onExecutionTimeAccessProblem(invocationDescription, invocationSource)
+    override fun onTaskActionTaskDependenciesAccess(invocationDescription: String, task: Task) {
+        onExecutionTimeAccessProblem(invocationDescription, task)
     }
 
     private
-    fun onExecutionTimeAccessProblem(invocationDescription: String, invocationSource: Any) {
+    fun onExecutionTimeAccessProblem(invocationDescription: String, task: Task) {
         if (startParameter.isEnabled) {
             val exception = InvalidUserCodeException(
-                "Invocation of '$invocationDescription' by $invocationSource at execution time is unsupported."
+                "Invocation of '$invocationDescription' by $task at execution time is unsupported."
             )
             problems.onProblem(executionTimeAccessProblem(
-                traceFor(invocationSource),
+                traceFor(task),
                 invocationDescription,
                 exception
             ))
