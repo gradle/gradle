@@ -38,6 +38,18 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+==== PMD plugin requires PMD 6.0.0 or higher by default
+
+Gradle 6.4 enabled incremental analysis by default.
+Incremental analysis is only available in PMD 6.0.0 or higher.
+If you want to use an older PMD version, you need to disable incremental analysis:
+
+```
+pmd {
+    incrementalAnalysis = false
+}
+```
+
 ==== Changes in dependency locking
 
 With Gradle 6.4, the incubating API for <<dependency_locking#fine_tuning_dependency_locking_behaviour_with_lock_mode, dependency locking `LockMode`>> has changed.

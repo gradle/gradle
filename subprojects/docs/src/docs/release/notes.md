@@ -60,14 +60,17 @@ details of 2
 ## Improvements to code quality plugins
 
 The PMD plugin now supports a new property `maxFailures`. If set, the build will not fail if the number of failures is below the defined treshold.
-This can help to introduce PMD into existing projects that may initially have a large number of warnings.
+This can help to introduce PMD into existing projects that may initially have too many warnings.
 
 ```
 pmd {
     maxFailures = 150
 }
 ```
+
 This was contributed by [Matthew Duggan](https://github.com/mduggan).
+
+As of Gradle 6.4, PMD also enabled [incremental analysis](dsl/org.gradle.api.plugins.quality.Pmd.html#org.gradle.api.plugins.quality.Pmd:incrementalAnalysis) by default.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
