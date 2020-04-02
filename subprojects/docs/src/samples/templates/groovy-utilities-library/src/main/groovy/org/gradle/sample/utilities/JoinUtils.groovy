@@ -1,6 +1,7 @@
-package org.gradle.sample
+package org.gradle.sample.utilities
 
 import groovy.transform.PackageScope
+import org.gradle.sample.list.LinkedList
 
 @PackageScope
 class JoinUtils {

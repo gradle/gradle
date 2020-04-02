@@ -1,4 +1,6 @@
-package org.gradle.sample;
+package org.gradle.sample.utilities;
+
+import org.gradle.sample.list.LinkedList;
 
 public class StringUtils {
     public static String join(LinkedList source) {

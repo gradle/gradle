@@ -1,4 +1,4 @@
-package org.gradle.sample;
+package org.gradle.sample.list;
 
 import org.junit.jupiter.api.Test;
 

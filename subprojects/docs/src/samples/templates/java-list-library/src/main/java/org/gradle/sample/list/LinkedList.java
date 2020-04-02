@@ -1,4 +1,4 @@
-package org.gradle.sample;
+package org.gradle.sample.list;
 
 public class LinkedList {
     private Node head;

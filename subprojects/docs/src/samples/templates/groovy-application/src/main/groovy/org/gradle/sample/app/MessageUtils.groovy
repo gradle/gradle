@@ -1,4 +1,4 @@
-package org.gradle.sample
+package org.gradle.sample.app
 
 import groovy.transform.PackageScope
 

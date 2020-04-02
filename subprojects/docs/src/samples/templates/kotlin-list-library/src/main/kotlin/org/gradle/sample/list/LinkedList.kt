@@ -1,4 +1,4 @@
-package org.gradle.sample
+package org.gradle.sample.list
 
 class LinkedList {
     private var head: Node? = null

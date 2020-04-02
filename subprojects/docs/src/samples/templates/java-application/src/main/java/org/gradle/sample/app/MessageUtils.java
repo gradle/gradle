@@ -1,4 +1,4 @@
-package org.gradle.sample;
+package org.gradle.sample.app;
 
 class MessageUtils {
     public static String getMessage() {
