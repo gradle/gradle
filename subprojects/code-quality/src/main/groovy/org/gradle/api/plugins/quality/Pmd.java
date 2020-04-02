@@ -71,8 +71,8 @@ public class Pmd extends SourceTask implements VerificationTask, Reporting<PmdRe
     private int rulePriority;
     private boolean consoleOutput;
     private FileCollection classpath;
-    private Property<Integer> maxFailures;
-    private Property<Boolean> incrementalAnalysis;
+    private final Property<Integer> maxFailures;
+    private final Property<Boolean> incrementalAnalysis;
 
     public Pmd() {
         ObjectFactory objects = getObjectFactory();
