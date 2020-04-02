@@ -80,6 +80,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
 
     private final List<PrecompiledGroovyScript> scriptPlugins;
 
+    private final Provider<Directory> intermediatePluginBlockClassesDir;
     private final Provider<Directory> intermediatePluginClassesDir;
     private final Provider<Directory> intermediatePluginMetadataDir;
 
@@ -115,6 +116,7 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
         this.classpath = classpath;
 
         DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
+        this.intermediatePluginBlockClassesDir = buildDir.dir("groovy-dsl-plugins/plugin-blocks");
         this.intermediatePluginClassesDir = buildDir.dir("groovy-dsl-plugins/work/classes");
         this.intermediatePluginMetadataDir = buildDir.dir("groovy-dsl-plugins/work/metadata");
 
@@ -171,40 +173,42 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
 
         for (PrecompiledGroovyScript scriptPlugin : scriptPlugins) {
             CompiledScript<PluginsAwareScript, ?> pluginsBlock = compilePluginsBlock(scriptPlugin, compileClassLoader);
-            validatePluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
+            PluginRequests pluginRequests = getValidPluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
             CompiledScript<? extends BasicScript, ?> buildScript = compileBuildScript(scriptPlugin, compileClassLoader);
-            generateScriptPluginAdapter(scriptPlugin, pluginsBlock, buildScript);
+            generateScriptPluginAdapter(scriptPlugin, pluginRequests, buildScript);
         }
 
         fileSystemOperations.copy(copySpec -> {
-            copySpec.from(intermediatePluginMetadataDir.get(), intermediatePluginClassesDir.get().getAsFileTree().getFiles());
+            copySpec.from(intermediatePluginClassesDir.get().getAsFileTree().getFiles());
             copySpec.into(precompiledGroovyScriptsOutputDir);
         });
     }
 
-    private void validatePluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
-        if (pluginsBlock.getRunDoesSomething()) {
-            PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
-            Set<String> validationErrors = new HashSet<>();
-            for (PluginRequest pluginRequest : pluginRequests) {
-                if (pluginRequest.getVersion() != null) {
-                    validationErrors.add(String.format("Invalid plugin request %s. " +
-                            "Plugin requests from precompiled scripts must not include a version number. " +
-                            "Please remove the version from the offending request and make sure the module containing the " +
-                            "requested plugin '%s' is an implementation dependency of %s",
-                        pluginRequest, pluginRequest.getId(), project));
-                }
-            }
-            if (!validationErrors.isEmpty()) {
-                throw new LocationAwareException(new IllegalArgumentException(String.join("\n", validationErrors)),
-                    scriptPlugin.getSource().getResource().getLocation().getDisplayName(),
-                    pluginRequests.iterator().next().getLineNumber());
+    private PluginRequests getValidPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
+        if (!pluginsBlock.getRunDoesSomething()) {
+            return PluginRequests.EMPTY;
+        }
+        PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
+        Set<String> validationErrors = new HashSet<>();
+        for (PluginRequest pluginRequest : pluginRequests) {
+            if (pluginRequest.getVersion() != null) {
+                validationErrors.add(String.format("Invalid plugin request %s. " +
+                        "Plugin requests from precompiled scripts must not include a version number. " +
+                        "Please remove the version from the offending request and make sure the module containing the " +
+                        "requested plugin '%s' is an implementation dependency of %s",
+                    pluginRequest, pluginRequest.getId(), project));
             }
         }
+        if (!validationErrors.isEmpty()) {
+            throw new LocationAwareException(new IllegalArgumentException(String.join("\n", validationErrors)),
+                scriptPlugin.getSource().getResource().getLocation().getDisplayName(),
+                pluginRequests.iterator().next().getLineNumber());
+        }
+        return pluginRequests;
     }
 
     private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
-        ScriptRunner<PluginsAwareScript, ?> runner = scriptRunnerFactory.create(pluginsBlock, scriptPlugin.getPluginsBlockSource(), compileClassLoader);
+        ScriptRunner<PluginsAwareScript, ?> runner = scriptRunnerFactory.create(pluginsBlock, scriptPlugin.getSource(), compileClassLoader);
 
         Project target = ProjectBuilder.builder().withParent(project).build();
         runner.run(target, serviceRegistry);
@@ -214,15 +218,13 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
 
     private CompiledScript<PluginsAwareScript, ?> compilePluginsBlock(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
-        String targetPath = scriptPlugin.getPluginsBlockClassName();
-        File pluginsMetadataDir = subdirectory(intermediatePluginMetadataDir, targetPath);
-        File pluginsClassesDir = subdirectory(intermediatePluginClassesDir, targetPath);
+        File outputDir = intermediatePluginBlockClassesDir.get().getAsFile();
         scriptCompilationHandler.compileToDir(
-            scriptPlugin.getPluginsBlockSource(), compileClassLoader, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation,
+            scriptPlugin.getSource(), compileClassLoader, outputDir, outputDir, pluginsCompileOperation,
             PluginsAwareScript.class, Actions.doNothing());
 
-        return scriptCompilationHandler.loadFromDir(scriptPlugin.getPluginsBlockSource(), scriptPlugin.getContentHash(),
-            classLoaderScope, pluginsClassesDir, pluginsMetadataDir, pluginsCompileOperation, PluginsAwareScript.class);
+        return scriptCompilationHandler.loadFromDir(scriptPlugin.getSource(), scriptPlugin.getContentHash(),
+            classLoaderScope, outputDir, outputDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
     private CompiledScript<? extends BasicScript, ?> compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
@@ -241,17 +243,28 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
     }
 
     private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin,
-                                             CompiledScript<? extends BasicScript, ?> pluginsBlock,
+                                             PluginRequests pluginRequests,
                                              CompiledScript<? extends BasicScript, ?> buildScript) {
         String targetClass = scriptPlugin.getTargetClassName();
         File outputFile = pluginAdapterSourcesOutputDir.file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
 
-        String pluginsBlockClass = pluginsBlock.getRunDoesSomething() ? "Class.forName(\"" + scriptPlugin.getPluginsBlockClassName() + "\")" : null;
+        StringBuilder pluginImports = new StringBuilder();
+        StringBuilder applyPlugins = new StringBuilder();
+        if (!pluginRequests.isEmpty()) {
+            pluginImports.append("import java.util.Map;\n").append("import java.util.HashMap;\n");
+            applyPlugins.append("Map<String, String> plugins = new HashMap<>(); ");
+            for (PluginRequest pluginRequest : pluginRequests) {
+                applyPlugins.append("plugins.put(\"plugin\", \"").append(pluginRequest.getId().getId()).append("\"); ");
+            }
+            applyPlugins.append("target.apply(plugins);");
+        }
+
         String buildScriptClass = buildScript.getRunDoesSomething() ? "Class.forName(\"" + scriptPlugin.getClassName() + "\")" : null;
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
             writer.write("import " + targetClass + ";\n");
             writer.write("import org.gradle.util.GradleVersion;\n");
+            writer.write(pluginImports + "\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
@@ -259,14 +272,11 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
             writer.write("  private static final String MIN_SUPPORTED_GRADLE_VERSION = \"6.4\";\n");
             writer.write("  public void apply(" + targetClass + " target) {\n");
             writer.write("      assertSupportedByCurrentGradleVersion();\n");
+            writer.write("      " + applyPlugins + "\n");
             writer.write("      try {\n");
-            writer.write("          Class<?> pluginsBlockClass = " + pluginsBlockClass + ";\n");
             writer.write("          Class<?> precompiledScriptClass = " + buildScriptClass + ";\n");
             writer.write("          new " + PrecompiledScriptRunner.class.getName() + "(target)\n");
-            writer.write("              .run(\n");
-            writer.write("                  pluginsBlockClass,\n");
-            writer.write("                  precompiledScriptClass\n");
-            writer.write("              );\n");
+            writer.write("              .run(precompiledScriptClass);\n");
             writer.write("      } catch (Exception e) {\n");
             writer.write("          throw new RuntimeException(e);\n");
             writer.write("      }\n");
