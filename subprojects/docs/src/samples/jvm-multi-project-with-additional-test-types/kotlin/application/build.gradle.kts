@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":list"))
     implementation(project(":utilities"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
-    testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
 }
 
 application {
@@ -28,7 +28,7 @@ configurations["integrationTestRuntimeOnly"].extendsFrom(configurations.runtimeO
 
 dependencies {
     integrationTestImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
-    "integrationTestRuntimeOnly"("org.junit.vintage:junit-vintage-engine")
+    "integrationTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
 }
 
 val integrationTest = tasks.register<Test>("integrationTest") {
