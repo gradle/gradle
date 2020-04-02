@@ -19,7 +19,7 @@ package org.gradle.plugin.devel.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
-class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationSpec {
+class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
     private static final String SAMPLE_TASK = "sampleTask"
     private static final String REGISTER_SAMPLE_TASK = """
@@ -155,7 +155,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         pluginWithSampleTask("plugin/src/main/groovy/plugins/foo.bar.my-plugin.gradle")
         file("plugin/build.gradle") << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
                 id 'maven-publish'
             }
             group = 'com.example'
@@ -407,7 +407,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         given:
         file("buildSrc/build.gradle") << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
             }
             ${jcenterRepository()}
 
@@ -581,7 +581,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
             }
             repositories { mavenCentral() }
             dependencies {
@@ -612,7 +612,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         """
         file("$firstDir.name/build.gradle") << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
             }
         """
         pluginWithSampleTask("$firstDir.name/src/main/groovy/my-plugin.gradle")
@@ -676,7 +676,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
 
         buildFile << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
             }
         """
 
@@ -750,7 +750,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
         }
         file("plugins/build.gradle") << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
             }
         """
 
@@ -766,7 +766,7 @@ class PrecompiledGroovyPluginsPluginIntegrationTest extends AbstractIntegrationS
     private void enablePrecompiledPluginsInBuildSrc() {
         file("buildSrc/build.gradle") << """
             plugins {
-                id 'precompiled-groovy-plugin'
+                id 'groovy-gradle-plugin'
             }
         """
     }

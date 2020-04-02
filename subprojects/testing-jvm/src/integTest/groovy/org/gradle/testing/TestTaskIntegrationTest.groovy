@@ -32,6 +32,7 @@ import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_VINTAGE_JUPITER
 class TestTaskIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("GRADLE-2702")
+    @ToBeFixedForInstantExecution
     def "should not resolve configuration results when there are no tests"() {
         buildFile << """
             apply plugin: 'java'

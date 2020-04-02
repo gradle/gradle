@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -180,7 +179,6 @@ class DependencyUnresolvedModuleIntegrationTest extends AbstractHttpDependencyRe
         output.contains "Resolved: [a-1.0.jar] [] []"
     }
 
-    @ToBeFixedForInstantExecution
     def "repository is blacklisted only for the current build execution"() {
         given:
 

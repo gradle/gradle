@@ -13,6 +13,7 @@ Include only their name, impactful features should be called out separately belo
 [Patrick Koenig](https://github.com/pkoenig10),
 [Matthew Duggan](https://github.com/mduggan),
 [David Burström](https://github.com/davidburstrom),
+[Nelson Osacky](https://github.com/runningcode),
 and [Lars Kaulen](https://github.com/LarsKaulen).
 
 ## Upgrade instructions

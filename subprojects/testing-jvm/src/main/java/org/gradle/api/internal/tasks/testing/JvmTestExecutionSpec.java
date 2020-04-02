@@ -22,12 +22,13 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Path;
 
 import java.io.File;
+import java.util.Collections;
 import java.util.Set;
 
 public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final TestFramework testFramework;
     private final Iterable<? extends File> classpath;
-    private final boolean inferModulePath;
+    private final Iterable<? extends File> modulePath;
     private final FileTree candidateClassFiles;
     private final boolean scanForTestClasses;
     private final FileCollection testClassesDirs;
@@ -42,13 +43,13 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
      * Required by test-retry-gradle-plugin <= 1.1.3
      */
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
-        this(testFramework, classpath, false, candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
+        this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
     }
 
-    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, boolean inferModulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
+    public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, Iterable<? extends File>  modulePath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
         this.testFramework = testFramework;
         this.classpath = classpath;
-        this.inferModulePath = inferModulePath;
+        this.modulePath = modulePath;
         this.candidateClassFiles = candidateClassFiles;
         this.scanForTestClasses = scanForTestClasses;
         this.testClassesDirs = testClassesDirs;
@@ -68,8 +69,8 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
         return classpath;
     }
 
-    public boolean isInferModulePath() {
-        return inferModulePath;
+    public Iterable<? extends File> getModulePath() {
+        return modulePath;
     }
 
     public FileTree getCandidateClassFiles() {

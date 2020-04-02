@@ -68,7 +68,7 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 
-    jquery "jquery:jquery.min:1.8.0@js"
+    jquery "jquery:jquery.min:3.4.1@js"
     jquery "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
     testImplementation project(":baseServices")

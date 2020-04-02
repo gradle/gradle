@@ -218,7 +218,6 @@ task someTask
         succeeds("install")
     }
 
-    @ToBeFixedForInstantExecution
     def "forcing an incompatible version of Scala fails with a clear error message"() {
         settingsFile << """
             rootProject.name = "scala"

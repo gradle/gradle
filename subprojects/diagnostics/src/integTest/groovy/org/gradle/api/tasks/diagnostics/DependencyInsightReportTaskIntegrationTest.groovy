@@ -299,6 +299,7 @@ org:leaf:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "displays information about conflicting modules when failOnVersionConflict is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -369,6 +370,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "displays information about conflicting modules when failOnVersionConflict is used and afterResolve is used"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -443,6 +445,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "displays a dependency insight report even if locks are out of date"() {
         def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -489,6 +492,7 @@ org:foo:1.+ -> 1.1
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "displays a dependency insight report even if locks are out of date because of new constraint"() {
         def lockfileFixture = new LockfileFixture(testDirectory: testDirectory)
         mavenRepo.module('org', 'foo', '1.0').publish()
@@ -1351,6 +1355,7 @@ org:leaf:1.4 -> 2.0
         outputContains("No dependencies matching given input were found")
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "marks modules that can't be resolved as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOnModules("middle").publish()
@@ -1382,6 +1387,7 @@ org:middle:1.0 FAILED
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "marks modules that can't be resolved after forcing a different version as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
@@ -1424,6 +1430,7 @@ org:middle:1.0 -> 2.0 FAILED
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "marks modules that can't be resolved after conflict resolution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
@@ -1460,6 +1467,7 @@ org:middle:1.0 -> 2.0 FAILED
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "marks modules that can't be resolved after substitution as 'FAILED'"() {
         given:
         mavenRepo.module("org", "top").dependsOn("org", "middle", "1.0").publish()
@@ -1550,6 +1558,7 @@ org:leaf:[1.5,1.9] -> 1.5
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows multiple failed outgoing dependencies"() {
         given:
         ivyRepo.module("org", "top", "1.0")
@@ -1610,6 +1619,7 @@ org:leaf:[1.5,2.0] FAILED
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     void "marks project dependencies that cannot be resolved as 'FAILED'"() {
         given:
         file("settings.gradle") << "include 'A', 'B', 'C'; rootProject.name='root'"

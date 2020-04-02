@@ -122,6 +122,7 @@ org.test:leaf:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "Asking for variant details of 'FAILED' modules doesn't break the report"() {
         given:
         mavenRepo.module("org", "top").dependsOnModules("middle").publish()

@@ -115,6 +115,7 @@ dependencies {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def 'fails when lock file contains entry that is not in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -158,6 +159,7 @@ dependencies {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def 'fails when lock file does not contain entry for module in resolution result (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
@@ -200,6 +202,7 @@ dependencies {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def 'fails when resolution result is empty and lock file contains entries (unique: #unique)'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
 

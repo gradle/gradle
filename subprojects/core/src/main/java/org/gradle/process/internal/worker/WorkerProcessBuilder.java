@@ -37,7 +37,7 @@ public interface WorkerProcessBuilder extends WorkerProcessSettings {
     WorkerProcessBuilder applicationClasspath(Iterable<File> files);
 
     @Override
-    WorkerProcessBuilder setInferApplicationModulePath(boolean inferApplicationModulePath);
+    WorkerProcessBuilder applicationModulePath(Iterable<File> files);
 
     @Override
     WorkerProcessBuilder setBaseName(String baseName);

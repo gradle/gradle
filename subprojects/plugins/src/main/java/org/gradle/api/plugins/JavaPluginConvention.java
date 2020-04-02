@@ -171,7 +171,7 @@ public abstract class JavaPluginConvention {
     public abstract void disableAutoTargetJvm();
 
     /**
-     * Tells if automatic JVM targetting is enabled. When disabled, Gradle
+     * Tells if automatic JVM targeting is enabled. When disabled, Gradle
      * will not automatically try to get dependencies corresponding to the
      * same (or compatible) level as the target compatibility of this module.
      *

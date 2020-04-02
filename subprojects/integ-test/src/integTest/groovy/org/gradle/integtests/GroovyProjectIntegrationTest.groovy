@@ -16,9 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
-    
+
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def handlesJavaSourceOnly() {
         given:
         buildFile << "apply plugin: 'groovy'"
@@ -26,7 +28,7 @@ class GroovyProjectIntegrationTest extends AbstractIntegrationSpec {
         and:
         file("src/main/java/somepackage/SomeClass.java") << "public class SomeClass { }"
         file("settings.gradle") << "rootProject.name='javaOnly'"
-        
+
         when:
         run "build"
 

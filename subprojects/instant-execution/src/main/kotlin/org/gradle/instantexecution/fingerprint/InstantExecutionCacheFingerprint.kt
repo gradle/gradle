@@ -19,7 +19,6 @@ package org.gradle.instantexecution.fingerprint
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import java.io.File
 
@@ -30,7 +29,7 @@ sealed class InstantExecutionCacheFingerprint {
     data class TaskInputs(
         val taskPath: String,
         val fileSystemInputs: FileCollectionInternal,
-        val fileSystemInputsFingerprint: CurrentFileCollectionFingerprint
+        val fileSystemInputsFingerprint: HashCode
     ) : InstantExecutionCacheFingerprint()
 
     data class InputFile(

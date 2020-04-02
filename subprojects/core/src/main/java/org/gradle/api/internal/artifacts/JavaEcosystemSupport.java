@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Ordering;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
-import org.gradle.api.JavaVersion;
 import org.gradle.api.attributes.AttributeCompatibilityRule;
 import org.gradle.api.attributes.AttributeDisambiguationRule;
 import org.gradle.api.attributes.AttributeMatchingStrategy;
@@ -47,19 +46,18 @@ public abstract class JavaEcosystemSupport {
         configureTargetPlatform(attributesSchema);
     }
 
-    public static void configureDefaultTargetPlatform(HasAttributes configuration, JavaVersion version) {
-        String majorVersion = version.getMajorVersion();
+    public static void configureDefaultTargetPlatform(HasAttributes configuration, int majorVersion) {
         AttributeContainerInternal attributes = (AttributeContainerInternal) configuration.getAttributes();
         // If nobody said anything about this variant's target platform, use whatever the convention says
         if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
-            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(majorVersion));
+            attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, majorVersion);
         }
     }
 
     private static void configureTargetPlatform(AttributesSchema attributesSchema) {
         AttributeMatchingStrategy<Integer> targetPlatformSchema = attributesSchema.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE);
         targetPlatformSchema.getCompatibilityRules().ordered(Ordering.natural());
-        targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.<Integer>natural());
+        targetPlatformSchema.getDisambiguationRules().pickLast(Ordering.natural());
     }
 
     private static void configureBundling(AttributesSchema attributesSchema) {

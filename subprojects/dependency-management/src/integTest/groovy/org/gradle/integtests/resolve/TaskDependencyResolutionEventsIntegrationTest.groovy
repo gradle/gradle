@@ -16,8 +16,11 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class TaskDependencyResolutionEventsIntegrationTest extends AbstractIntegrationSpec {
+
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "does not generate events when task dependencies are calculated for configuration that is used as a task input"() {
         given:
         buildFile << """
