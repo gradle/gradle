@@ -53,6 +53,8 @@ For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can 
 
 Precompiled script plugins are covered in more depth in the [user guide](userguide/custom_plugins.html#sec:precompiled_plugins).
 
+There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
+
 <!-- 
 Add release features here!
 ## 1
