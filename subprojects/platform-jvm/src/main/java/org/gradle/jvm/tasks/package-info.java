@@ -17,5 +17,4 @@
 /**
  * Tasks that add support for JVM runtime.
  */
-@org.gradle.api.Incubating
 package org.gradle.jvm.tasks;
