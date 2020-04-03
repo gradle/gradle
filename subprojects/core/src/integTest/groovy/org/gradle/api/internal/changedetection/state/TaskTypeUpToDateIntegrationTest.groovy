@@ -80,7 +80,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then: skipped":copy"
     }
 
-    @ToBeFixedForInstantExecution
     def "task with action declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
         buildFile << """
