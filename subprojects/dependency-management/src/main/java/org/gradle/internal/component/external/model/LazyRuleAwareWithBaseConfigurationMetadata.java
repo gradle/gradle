@@ -120,7 +120,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public ImmutableSet<String> getHierarchy() {
-        return ImmutableSet.of();
+        return ImmutableSet.of(name);
     }
 
     @Override
