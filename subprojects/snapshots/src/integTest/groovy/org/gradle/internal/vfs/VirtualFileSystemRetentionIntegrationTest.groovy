@@ -115,7 +115,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from modified task!"
     }
 
-    @ToBeFixedForInstantExecution
     def "Groovy build script changes get recognized"() {
         when:
         buildFile.text = """
@@ -153,7 +152,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from the modified build!"
     }
 
-    @ToBeFixedForInstantExecution
     def "settings script changes get recognized"() {
         when:
         settingsFile.text = """
