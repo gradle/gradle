@@ -234,15 +234,18 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             println("my-init-plugin applied!")
         """)
 
-        when:
-        settingsFile << """
-            buildscript {
+        def initScript = file('init-script.gradle') << """
+            initscript {
                 dependencies {
                     classpath(files("$pluginJar"))
                 }
             }
-            apply(plugin: MyInitPluginPlugin, to: gradle)
+
+            apply plugin: MyInitPluginPlugin
         """
+
+        when:
+        executer.usingInitScript(initScript)
 
         then:
         succeeds("help")
