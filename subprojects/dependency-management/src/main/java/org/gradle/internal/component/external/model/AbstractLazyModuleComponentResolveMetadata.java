@@ -189,16 +189,6 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         }
     }
 
-/*    private ImmutableSet<String> constructVariantHierarchy(ConfigurationMetadata base, AdditionalVariant additionalVariant) {
-        if(base == null) {
-            return ImmutableSet.of(additionalVariant.getName());
-        }
-        ImmutableSet.Builder<String> hierarchyBuilder = ImmutableSet.builder();
-        base.getHierarchy().forEach(hierarchyBuilder::add);
-        hierarchyBuilder.add(additionalVariant.getName());
-        return hierarchyBuilder.build();
-    }*/
-
     private ImmutableList<ExcludeMetadata> constructVariantExcludes(ConfigurationMetadata base) {
         if(base == null) {
             return ImmutableList.of();
