@@ -95,7 +95,7 @@ project(':consumer') {
 
     @ToBeFixedForInstantExecution(
         bottomSpecs = [
-            "JavaProjectOutgoingVariantsGradleMetadataIntegrationTest "
+            "JavaProjectOutgoingVariantsPomMetadataIntegrationTest"
         ]
     )
     def "provides runtime JAR as default variant"() {
