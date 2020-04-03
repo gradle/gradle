@@ -452,7 +452,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached artifacts that match multiple dynamic versions"() {
         given:
         useRepository ivyHttpRepo
