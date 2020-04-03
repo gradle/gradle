@@ -18,6 +18,7 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -28,21 +29,21 @@ import java.util.Objects;
 
 final class DebugLoggerWarningAction implements Action<ExecutionListener> {
 
+    static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     static final String WARNING_MESSAGE_BODY;
 
     static {
         @SuppressWarnings("StringBufferReplaceableByString") // Readability is better this way.
         final StringBuilder sb = new StringBuilder();
-        sb.append("###################################################################################\n");
-        sb.append("#                                SECURITY WARNING!                                #\n");
-        sb.append("#                                                                                 #\n");
-        sb.append("#    Enabling the debug level logger can leak security sensitive information!     #\n");
-        sb.append("#         We DO NOT advise enabling the debug logger in CI/CD environments.       #\n");
-        sb.append("#    Doing so in public CI/CD (eg. Travis, CircleCI, GitHub Actions) can expose   #\n");
-        sb.append("#         security sensitive information & secrets to malicious actors.           #\n");
-        sb.append("#                                                                                 #\n");
-        sb.append("###################################################################################\n");
-        WARNING_MESSAGE_BODY = sb.toString();
+        sb.append('\n');
+        sb.append("#############################################################################\n");
+        sb.append("   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING\n");
+        sb.append('\n');
+        sb.append("   Debug level logging will leak security sensitive information!\n");
+        sb.append('\n');
+        sb.append("   %s\n");
+        sb.append("#############################################################################\n");
+        WARNING_MESSAGE_BODY = String.format(sb.toString(), DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "debug_security"));
     }
 
 
@@ -70,7 +71,7 @@ final class DebugLoggerWarningAction implements Action<ExecutionListener> {
 
     private void logWarningIfEnabled() {
         if (LogLevel.DEBUG.equals(loggingConfiguration.getLogLevel())) {
-            logger.lifecycle("\n" + WARNING_MESSAGE_BODY);
+            logger.lifecycle(WARNING_MESSAGE_BODY);
         }
     }
 

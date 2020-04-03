@@ -25,8 +25,6 @@ import org.gradle.internal.logging.ToStringLogger
 import org.gradle.launcher.bootstrap.ExecutionListener
 import spock.lang.Specification
 
-import java.util.regex.Pattern
-
 class DebugLoggerWarningActionTest extends Specification {
 
     ToStringLogger log
@@ -47,14 +45,7 @@ class DebugLoggerWarningActionTest extends Specification {
 
     private void assertDoublePrintInOutput(String output) {
         // This should exist twice
-        assert output.contains(DebugLoggerWarningAction.WARNING_MESSAGE_BODY)
-        // Now we've confirmed it exists 1 time, remove the first one
-        def outputFirstRemoved = output.replaceFirst(
-            Pattern.quote(DebugLoggerWarningAction.WARNING_MESSAGE_BODY),
-            ""
-        )
-        // Should still exist again.
-        assert outputFirstRemoved.contains(DebugLoggerWarningAction.WARNING_MESSAGE_BODY)
+        assert output.count(DebugLoggerWarningAction.WARNING_MESSAGE_BODY) == 2
     }
 
     def "prints twice when debugging is enabled"() {

@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli
 
 import org.apache.commons.io.IOUtils
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.util.GradleVersion
@@ -24,6 +25,8 @@ import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 
 class NotificationsIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def customGradleUserHomeDir = testDirectoryProvider.getTestDirectory().file('user-home')
     def markerFile
@@ -103,15 +106,13 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
     def "when debug logging is enabled, debug warning is logged first"() {
         given:
         def expectedWarning = """
-###################################################################################
-#                                SECURITY WARNING!                                #
-#                                                                                 #
-#    Enabling the debug level logger can leak security sensitive information!     #
-#         We DO NOT advise enabling the debug logger in CI/CD environments.       #
-#    Doing so in public CI/CD (eg. Travis, CircleCI, GitHub Actions) can expose   #
-#         security sensitive information & secrets to malicious actors.           #
-#                                                                                 #
-###################################################################################
+#############################################################################
+   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+
+   Debug level logging will leak security sensitive information!
+
+   ${DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "debug_security")}
+#############################################################################
 """
         withDebugLogging()
 
