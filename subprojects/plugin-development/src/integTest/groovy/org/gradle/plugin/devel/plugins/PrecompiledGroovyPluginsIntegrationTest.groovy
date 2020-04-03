@@ -27,7 +27,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         """
 
     def "adds plugin metadata to extension for all script plugins"() {
-        given:
+        when:
         def pluginsDir = createDir("buildSrc/src/main/groovy/plugins")
         pluginsDir.file("foo.gradle").createNewFile()
         pluginsDir.file("bar.gradle").createNewFile()
@@ -35,18 +35,13 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/build.gradle") << """
             afterEvaluate {
-                gradlePlugin.plugins.all {
-                    println it.id + ": " + it.implementationClass
-                }
+                assert gradlePlugin.plugins.foo.implementationClass == 'FooPlugin'
+                assert gradlePlugin.plugins.bar.implementationClass == 'BarPlugin'
             }
         """
 
-        when:
-        succeeds("help")
-
         then:
-        outputContains("foo: FooPlugin")
-        outputContains("bar: BarPlugin")
+        succeeds("help")
     }
 
     def "can apply a precompiled script plugin by id"() {
@@ -216,20 +211,40 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("my-settings-plugin applied!")
     }
 
-    def "precompiled settings plugin can not use plugins block"() {
-        given:
-        enablePrecompiledPluginsInBuildSrc()
-        file("buildSrc/src/main/groovy/plugins/my-settings-plugin.settings.gradle") << """
-            plugins {
-                id 'base'
+    @ToBeFixedForInstantExecution
+    def "precompiled settings plugin can use plugins block"() {
+        when:
+        def pluginJar = packagePrecompiledPlugin("base-settings-plugin.settings.gradle", """
+            println('base-settings-plugin applied!')
+        """)
+        def baseSettingsPluginJar = file('baseSettingsPlugin.jar')
+        file(pluginJar).renameTo(baseSettingsPluginJar)
+
+        pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+            buildscript {
+                dependencies {
+                    classpath(files('$baseSettingsPluginJar'))
+                }
             }
+            plugins {
+                id 'base-settings-plugin'
+            }
+            println('my-settings-plugin applied!')
+        """)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath(files('$pluginJar', '$baseSettingsPluginJar'))
+                }
+            }
+            apply plugin: 'my-settings-plugin'
         """
 
-        when:
-        fails("build")
-
         then:
-        failureCauseContains("Only Project and Settings build scripts can contain plugins {} blocks")
+        succeeds('help')
+        outputContains('base-settings-plugin applied!')
+        outputContains('my-settings-plugin applied!')
     }
 
     @ToBeFixedForInstantExecution
@@ -239,15 +254,18 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             println("my-init-plugin applied!")
         """)
 
-        when:
-        settingsFile << """
-            buildscript {
+        def initScript = file('init-script.gradle') << """
+            initscript {
                 dependencies {
                     classpath(files("$pluginJar"))
                 }
             }
-            apply(plugin: MyInitPluginPlugin, to: gradle)
+
+            apply plugin: MyInitPluginPlugin
         """
+
+        when:
+        executer.usingInitScript(initScript)
 
         then:
         succeeds("help")
@@ -602,7 +620,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         def cacheDir = createDir("cache-dir")
         def firstDir = createDir("first-location")
 
-        file("$firstDir.name/settings.gradle") << """
+        firstDir.file("settings.gradle") << """
             rootProject.name = "test"
             buildCache {
                 local {
@@ -610,7 +628,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        file("$firstDir.name/build.gradle") << """
+        firstDir.file("build.gradle") << """
             plugins {
                 id 'groovy-gradle-plugin'
             }

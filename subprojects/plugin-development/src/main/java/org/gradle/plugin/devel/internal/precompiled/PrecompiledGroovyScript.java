@@ -75,7 +75,7 @@ class PrecompiledGroovyScript {
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
-        this.scriptTarget = new PrecompiledScriptTarget(type == Type.PROJECT);
+        this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT);
     }
 
     static void filterPluginFiles(PatternFilterable patternFilterable) {
