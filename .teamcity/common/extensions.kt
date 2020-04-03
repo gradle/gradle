@@ -59,15 +59,17 @@ fun VcsSettings.filterDefaultBranch() {
 }
 
 fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot: String = "Gradle_Branches_GradlePersonalBranches") {
-    artifactRules = """
-        build/report-* => .
-        buildSrc/build/report-* => .
-        subprojects/*/build/tmp/test files/** => test-files
-        subprojects/*/build/tmp/test files/** => test-files
-        build/errorLogs/** => errorLogs
-        build/reports/incubation/** => incubation-reports
-        build/reports/dependency-verification/** => dependency-verification-reports
-    """.trimIndent()
+// https://github.com/gradle/gradle-private/issues/3035
+
+//    artifactRules = """
+//        build/report-* => .
+//        buildSrc/build/report-* => .
+//        subprojects/*/build/tmp/test files/** => test-files
+//        subprojects/*/build/tmp/test files/** => test-files
+//        build/errorLogs/** => errorLogs
+//        build/reports/incubation/** => incubation-reports
+//        build/reports/dependency-verification/** => dependency-verification-reports
+//    """.trimIndent()
 
     vcs {
         root(AbsoluteId(vcsRoot))

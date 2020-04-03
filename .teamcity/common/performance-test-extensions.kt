@@ -22,9 +22,10 @@ import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 fun BuildType.applyPerformanceTestSettings(os: Os = Os.linux, timeout: Int = 30) {
     applyDefaultSettings(os = os, timeout = timeout)
-    artifactRules = """
-        build/report-*-performance-tests.zip => .
-    """.trimIndent()
+    // https://github.com/gradle/gradle-private/issues/3035
+//    artifactRules = """
+//        build/report-*-performance-tests.zip => .
+//    """.trimIndent()
     detectHangingBuilds = false
     requirements {
         doesNotContain("teamcity.agent.name", "ec2")
@@ -50,8 +51,9 @@ fun distributedPerformanceTestParameters(workerId: String = "Gradle_Check_Indivi
         "-Porg.gradle.performance.buildTypeId=$workerId -Porg.gradle.performance.workerTestTaskName=fullPerformanceTest -Porg.gradle.performance.coordinatorBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token%"
 )
 
-val individualPerformanceTestArtifactRules = """
-        subprojects/*/build/test-results-*.zip => results
-        subprojects/*/build/tmp/**/log.txt => failure-logs
-        subprojects/*/build/tmp/**/profile.log => failure-logs
-    """.trimIndent()
+// https://github.com/gradle/gradle-private/issues/3035
+// val individualPerformanceTestArtifactRules = """
+//        subprojects/*/build/test-results-*.zip => results
+//        subprojects/*/build/tmp/**/log.txt => failure-logs
+//        subprojects/*/build/tmp/**/profile.log => failure-logs
+//    """.trimIndent()

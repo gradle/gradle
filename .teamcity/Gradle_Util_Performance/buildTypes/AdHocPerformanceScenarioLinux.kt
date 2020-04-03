@@ -6,7 +6,6 @@ import common.buildToolGradleParameters
 import common.builtInRemoteBuildCacheNode
 import common.checkCleanM2
 import common.gradleWrapper
-import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
 import configurations.individualPerformanceTestJavaHome
 import configurations.killAllGradleProcesses
@@ -21,7 +20,8 @@ object AdHocPerformanceScenarioLinux : BuildType({
     id("Gradle_Util_Performance_AdHocPerformanceScenarioLinux")
 
     applyPerformanceTestSettings(timeout = 420)
-    artifactRules = individualPerformanceTestArtifactRules
+    // https://github.com/gradle/gradle-private/issues/3035
+//    artifactRules = individualPerformanceTestArtifactRules
 
     params {
         text("baselines", "defaults", display = ParameterDisplay.PROMPT, allowEmpty = false)
