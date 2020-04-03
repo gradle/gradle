@@ -50,8 +50,7 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
     @Inject
     public ExtractPluginRequestsTask(ScriptCompilationHandler scriptCompilationHandler,
                                      ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                     CompileOperationFactory compileOperationFactory,
-                                     List<PrecompiledGroovyScript> scriptPlugins) {
+                                     CompileOperationFactory compileOperationFactory) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
