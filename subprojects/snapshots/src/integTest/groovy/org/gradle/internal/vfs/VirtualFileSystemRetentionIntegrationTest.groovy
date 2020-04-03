@@ -220,6 +220,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped ":compileJava", ":classes", ":run"
     }
 
+    @ToBeFixedForInstantExecution
     def "detects input file change just before the task is executed"() {
         executer.requireDaemon()
         server.start()
@@ -265,6 +266,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         retainedFilesInCurrentBuild == 2
     }
 
+    @ToBeFixedForInstantExecution
     def "detects input file change after the task has been executed"() {
         executer.requireDaemon()
         server.start()
