@@ -64,6 +64,7 @@ import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Factory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -214,13 +215,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return project;
     }
 
-    private void notifyProjectAccess() {
-        if (state.getExecuting()) {
-            services.get(TaskExecutionAccessListener.class)
-                .onProjectAccess("Task.project", this);
-        }
-    }
-
     @Override
     public String getName() {
         return identity.name;
@@ -281,13 +275,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     public Set<Object> getDependsOn() {
         notifyTaskDependenciesAccess("Task.dependsOn");
         return dependencies.getMutableValues();
-    }
-
-    private void notifyTaskDependenciesAccess(String invocationDescription) {
-        if (state.getExecuting()) {
-            services.get(TaskExecutionAccessListener.class)
-                .onTaskDependenciesAccess(invocationDescription, this);
-        }
     }
 
     @Override
@@ -987,5 +974,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
         }
         return locks.build();
+    }
+
+    private void notifyProjectAccess() {
+        if (state.getExecuting()) {
+            getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);
+        }
+    }
+
+    private void notifyTaskDependenciesAccess(String invocationDescription) {
+        if (state.getExecuting()) {
+            getTaskExecutionAccessBroadcaster().onTaskDependenciesAccess(invocationDescription, this);
+        }
+    }
+
+    private TaskExecutionAccessListener getTaskExecutionAccessBroadcaster() {
+        return services.get(ListenerManager.class).getBroadcaster(TaskExecutionAccessListener.class);
     }
 }
