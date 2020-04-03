@@ -118,6 +118,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `sources and javadoc of all embedded kotlin dependencies are resolvable`() {
 
         withBuildScript("""
