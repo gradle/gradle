@@ -898,7 +898,6 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         """
     }
 
-    @ToBeFixedForInstantExecution
     def "implementation of nested closure in decorated bean is tracked"() {
         taskWithNestedBeanWithAction()
         buildFile << """
