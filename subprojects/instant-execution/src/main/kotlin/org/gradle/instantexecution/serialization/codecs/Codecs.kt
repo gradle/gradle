@@ -60,12 +60,12 @@ import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.process.ExecOperations
@@ -110,7 +110,7 @@ class Codecs(
 
         baseTypes()
 
-        bind(HashCodeSerializer())
+        bind(HASHCODE_SERIALIZER)
         bind(BrokenValueCodec)
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
