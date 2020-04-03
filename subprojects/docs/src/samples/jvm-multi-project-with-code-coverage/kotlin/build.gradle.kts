@@ -32,7 +32,7 @@ tasks.register<JacocoReport>("codeCoverageReport") {
                 // Alternatively you can declare a dependency so that the `codeCoverageReport` depends on the `test` tasks.
                 // This inevitably enforces that running the `codeCoverageTask` runs the test tasks as well.
                 // This may be your intended behavior.
-                rootProject.tasks.findByName("codeCoverageReport")!!.dependsOn(testTask)
+                rootProject.tasks["codeCoverageReport"].dependsOn(testTask)
             }
         }
     }
