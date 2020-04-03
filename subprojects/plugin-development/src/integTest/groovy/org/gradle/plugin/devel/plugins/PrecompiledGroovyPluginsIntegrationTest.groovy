@@ -641,7 +641,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         def cachedTasks = [
             ":extractPluginRequests",
             ":generatePluginAdapters",
-            ":compileGroovy",
+            ":compileJava",
             ":compileGroovyPlugins"
         ]
 

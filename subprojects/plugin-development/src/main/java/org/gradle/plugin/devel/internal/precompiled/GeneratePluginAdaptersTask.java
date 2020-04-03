@@ -131,37 +131,47 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             classLoaderScope, compiledPluginRequestsDir, compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
-    private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin,
-                                             PluginRequests pluginRequests) {
+    private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         String targetClass = scriptPlugin.getTargetClassName();
-        File outputFile = getPluginAdapterSourcesOutputDir().file(scriptPlugin.getGeneratedPluginClassName() + ".groovy").get().getAsFile();
+        File outputFile = getPluginAdapterSourcesOutputDir().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
 
+        StringBuilder pluginImports = new StringBuilder();
         StringBuilder applyPlugins = new StringBuilder();
-        for (PluginRequest pluginRequest : pluginRequests) {
-            String pluginId = pluginRequest.getId().getId();
-            applyPlugins.append("target.apply(['plugin': '").append(pluginId).append("']); ");
+        if (!pluginRequests.isEmpty()) {
+            pluginImports.append("import java.util.Map;\n").append("import java.util.HashMap;\n");
+            applyPlugins.append("Map<String, String> plugins = new HashMap<>(); ");
+            for (PluginRequest pluginRequest : pluginRequests) {
+                applyPlugins.append("plugins.put(\"plugin\", \"").append(pluginRequest.getId().getId()).append("\"); ");
+            }
+            applyPlugins.append("target.apply(plugins);");
         }
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
-            writer.write("import " + targetClass + "\n");
-            writer.write("import org.gradle.groovy.scripts.BasicScript\n");
-            writer.write("import org.gradle.groovy.scripts.ScriptSource\n");
-            writer.write("import org.gradle.groovy.scripts.TextResourceScriptSource\n");
-            writer.write("import org.gradle.internal.resource.StringTextResource\n");
+            writer.write("import " + targetClass + ";\n");
+            writer.write("import org.gradle.groovy.scripts.BasicScript;\n");
+            writer.write("import org.gradle.groovy.scripts.ScriptSource;\n");
+            writer.write("import org.gradle.groovy.scripts.TextResourceScriptSource;\n");
+            writer.write("import org.gradle.internal.resource.StringTextResource;\n");
+            writer.write("import org.gradle.internal.service.ServiceRegistry;\n");
+            writer.write(pluginImports + "\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
-            writer.write("class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
-            writer.write("  void apply(" + targetClass + " target) {\n");
+            writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
+            writer.write("  public void apply(" + targetClass + " target) {\n");
             writer.write("      " + applyPlugins + "\n");
-            writer.write("      Class<? extends BasicScript> precompiledScriptClass = Class.forName('" + scriptPlugin.getClassName() + "')\n ");
-            writer.write("      BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance()\n");
-            writer.write("      script.setScriptSource(scriptSource(precompiledScriptClass))\n");
-            writer.write("      script.init(target, target.getServices())\n");
-            writer.write("      script.run()\n");
+            writer.write("      try {\n");
+            writer.write("          Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\").asSubclass(BasicScript.class);\n");
+            writer.write("          BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();\n");
+            writer.write("          script.setScriptSource(scriptSource(precompiledScriptClass));\n");
+            writer.write("          script.init(target, " + scriptPlugin.serviceRegistryAccessCode() + ");\n");
+            writer.write("          script.run();\n");
+            writer.write("      } catch (Exception e) {\n");
+            writer.write("          throw new RuntimeException(e);\n");
+            writer.write("      }\n");
             writer.write("  }\n");
             writer.write("  private static ScriptSource scriptSource(Class<?> scriptClass) {\n");
-            writer.write("      return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), ''))\n");
+            writer.write("      return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), \"\"));\n");
             writer.write("  }\n");
             writer.write("}\n");
         } catch (IOException e) {

@@ -36,7 +36,6 @@ import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
