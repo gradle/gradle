@@ -117,7 +117,6 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)
-    @ToBeFixedForInstantExecution
     def "recompiles when upstream module-info changes"() {
         file("api/src/main/${language.name}/a/A.${language.name}").text = "package a; public class A {}"
         file("impl/src/main/${language.name}/b/B.${language.name}").text = "package b; import a.A; class B extends A {}"
