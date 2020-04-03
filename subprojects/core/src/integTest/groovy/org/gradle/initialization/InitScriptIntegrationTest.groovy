@@ -63,8 +63,8 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'hello'
 
         then:
-        output.contains("Task hello executed")
-        output.contains("Task helloFromBuildSrc executed")
+        output.contains("Task :hello executed")
+        output.contains("Task :buildSrc:helloFromBuildSrc executed")
     }
 
     def 'init scripts passed in the Gradle user home are applied to buildSrc'() {
@@ -77,8 +77,8 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'hello'
 
         then:
-        output.contains("Task hello executed")
-        output.contains("Task helloFromBuildSrc executed")
+        output.contains("Task :hello executed")
+        output.contains("Task :buildSrc:helloFromBuildSrc executed")
     }
 
     def 'init script can contribute to settings - before and after'() {
@@ -197,11 +197,17 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     private static String initScript() {
         """
-            gradle.addListener(new TaskExecutionAdapter() {
-                public void afterExecute(Task task, TaskState state) {
-                    println "Task \${task.name} executed"
+            import org.gradle.api.services.*
+            import org.gradle.tooling.events.*
+            import org.gradle.tooling.events.task.*
+
+            abstract class TaskFinishedListener implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+                void onFinish(FinishEvent event) {
+                    println "Task \${event.descriptor.taskPath} executed"
                 }
-            })
+            }
+            def provider = sharedServices.registerIfAbsent("myListener", TaskFinishedListener) {}
+            services.get(BuildEventsListenerRegistry).onTaskCompletion(provider)
         """
     }
 }
