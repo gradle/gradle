@@ -719,7 +719,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeFixedForInstantExecution
-    def "can use a precompiled script plugin with Gradle earlier than 6.4"() {
+    def "can use a precompiled script plugin with Gradle 6.0"() {
         given:
         def pluginJar = packagePrecompiledPlugin("foo.gradle", "println 'foo plugin applied'")
 
@@ -738,7 +738,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        def distribution = buildContext.distribution('6.3')
+        def distribution = buildContext.distribution('6.0')
 
         then:
         def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").run()
