@@ -37,12 +37,10 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.BasicScript;
-import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.CompiledScript;
 import org.gradle.groovy.scripts.internal.ScriptCompilationHandler;
-import org.gradle.groovy.scripts.internal.ScriptRunnerFactory;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.internal.Actions;
 import org.gradle.internal.classpath.DefaultClassPath;
@@ -52,7 +50,6 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 import org.gradle.plugin.management.PluginRequest;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
-import org.gradle.testfixtures.ProjectBuilder;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -74,7 +71,6 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CompileOperationFactory compileOperationFactory;
     private final FileSystemOperations fileSystemOperations;
-    private final ScriptRunnerFactory scriptRunnerFactory;
     private final ServiceRegistry serviceRegistry;
 
     private final ClassLoaderScope classLoaderScope;
@@ -90,13 +86,11 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
                                        ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                        CompileOperationFactory compileOperationFactory,
                                        FileSystemOperations fileSystemOperations,
-                                       ScriptRunnerFactory scriptRunnerFactory,
                                        ServiceRegistry serviceRegistry,
                                        List<PrecompiledGroovyScript> scriptPlugins) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.fileSystemOperations = fileSystemOperations;
-        this.scriptRunnerFactory = scriptRunnerFactory;
         this.serviceRegistry = serviceRegistry;
 
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
@@ -122,7 +116,7 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
     abstract DirectoryProperty getPrecompiledGroovyScriptsOutputDir();
 
     @OutputDirectory
-    abstract  DirectoryProperty getPluginAdapterSourcesOutputDir();
+    abstract DirectoryProperty getPluginAdapterSourcesOutputDir();
 
     @Internal
     abstract DirectoryProperty getAdapterClassesOutputDir();
@@ -134,7 +128,7 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
 
         for (PrecompiledGroovyScript scriptPlugin : scriptPlugins) {
             CompiledScript<PluginsAwareScript, ?> pluginsBlock = compilePluginsBlock(scriptPlugin, compileClassLoader);
-            PluginRequests pluginRequests = getValidPluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
+            PluginRequests pluginRequests = getValidPluginRequests(pluginsBlock, scriptPlugin);
             CompiledScript<? extends BasicScript, ?> buildScript = compileBuildScript(scriptPlugin, compileClassLoader);
             generateScriptPluginAdapter(scriptPlugin, pluginRequests, buildScript);
         }
@@ -145,11 +139,11 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
         });
     }
 
-    private PluginRequests getValidPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
+    private PluginRequests getValidPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
         if (!pluginsBlock.getRunDoesSomething()) {
             return PluginRequests.EMPTY;
         }
-        PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin, compileClassLoader);
+        PluginRequests pluginRequests = extractPluginRequests(pluginsBlock, scriptPlugin);
         Set<String> validationErrors = new HashSet<>();
         for (PluginRequest pluginRequest : pluginRequests) {
             if (pluginRequest.getVersion() != null) {
@@ -168,13 +162,16 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
         return pluginRequests;
     }
 
-    private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
-        ScriptRunner<PluginsAwareScript, ?> runner = scriptRunnerFactory.create(pluginsBlock, scriptPlugin.getSource(), compileClassLoader);
-
-        Project target = ProjectBuilder.builder().withParent(project).build();
-        runner.run(target, serviceRegistry);
-
-        return runner.getScript().getPluginRequests();
+    private PluginRequests extractPluginRequests(CompiledScript<PluginsAwareScript, ?> pluginsBlock, PrecompiledGroovyScript scriptPlugin) {
+        try {
+            PluginsAwareScript pluginsAwareScript = pluginsBlock.loadClass().getDeclaredConstructor().newInstance();
+            pluginsAwareScript.setScriptSource(scriptPlugin.getSource());
+            pluginsAwareScript.init("dummy", serviceRegistry);
+            pluginsAwareScript.run();
+            return pluginsAwareScript.getPluginRequests();
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not execute plugins block", e);
+        }
     }
 
     private CompiledScript<PluginsAwareScript, ?> compilePluginsBlock(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
