@@ -129,7 +129,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
                 }
             }
             if (baseName == null || base instanceof ModuleConfigurationMetadata) {
-                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules, constructVariantHierarchy(base, additionalVariant), constructVariantExcludes(base));
+                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules, constructVariantExcludes(base));
                 builder.add(configurationMetadata);
             }
         }
@@ -189,7 +189,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         }
     }
 
-    private ImmutableSet<String> constructVariantHierarchy(ConfigurationMetadata base, AdditionalVariant additionalVariant) {
+/*    private ImmutableSet<String> constructVariantHierarchy(ConfigurationMetadata base, AdditionalVariant additionalVariant) {
         if(base == null) {
             return ImmutableSet.of(additionalVariant.getName());
         }
@@ -197,7 +197,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         base.getHierarchy().forEach(hierarchyBuilder::add);
         hierarchyBuilder.add(additionalVariant.getName());
         return hierarchyBuilder.build();
-    }
+    }*/
 
     private ImmutableList<ExcludeMetadata> constructVariantExcludes(ConfigurationMetadata base) {
         if(base == null) {

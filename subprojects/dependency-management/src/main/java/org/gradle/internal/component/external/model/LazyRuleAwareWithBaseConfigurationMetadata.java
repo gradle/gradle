@@ -44,7 +44,6 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private final ModuleConfigurationMetadata base;
     private final ModuleComponentIdentifier componentId;
     private final VariantMetadataRules variantMetadataRules;
-    private final ImmutableSet<String> hierarchy;
     private final ImmutableList<ExcludeMetadata> excludes;
 
     private List<? extends ModuleDependencyMetadata> computedDependencies;
@@ -53,13 +52,12 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
     private ImmutableAttributes componentLevelAttributes;
 
-    LazyRuleAwareWithBaseConfigurationMetadata(String name, @Nullable ModuleConfigurationMetadata base, ModuleComponentIdentifier componentId, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules, ImmutableSet<String> hierarchy, ImmutableList<ExcludeMetadata> excludes) {
+    LazyRuleAwareWithBaseConfigurationMetadata(String name, @Nullable ModuleConfigurationMetadata base, ModuleComponentIdentifier componentId, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules, ImmutableList<ExcludeMetadata> excludes) {
         this.name = name;
         this.base = base;
         this.componentId = componentId;
         this.variantMetadataRules = variantMetadataRules;
         this.componentLevelAttributes = componentLevelAttributes;
-        this.hierarchy = hierarchy;
         this.excludes = excludes;
     }
 
@@ -122,7 +120,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public ImmutableSet<String> getHierarchy() {
-        return hierarchy;
+        return ImmutableSet.of();
     }
 
     @Override

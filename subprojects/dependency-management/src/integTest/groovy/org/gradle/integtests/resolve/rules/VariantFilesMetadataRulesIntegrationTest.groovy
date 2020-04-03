@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve.rules
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
@@ -430,10 +429,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         failure.assertHasCause("Cannot add file moduleA-1.0-extraFeature.jar (url: ../somewhere/some.jar) because it is already defined (url: moduleA-1.0-extraFeature.jar)")
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     @Unroll
     def "can add variants for ivy - #usageAttribute"() {
         // through this, we opt-into variant aware dependency management for a pure ivy module
@@ -510,10 +507,8 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         'java-runtime' | 'runtimeElements'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     @Unroll
     def "can add variants for ivy - #usageAttribute - honors conf based excludes "() {
         // through this, we opt-into variant aware dependency management for a pure ivy module
@@ -521,13 +516,16 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         repository {
             'org.test:moduleA:1.0' {
                 dependsOn 'org.test:moduleB:1.0'
-                excludeFromConfig 'org.test:moduleC', 'compile'
-                excludeFromConfig 'org.test:moduleC', 'runtime'
+                excludeFromConfig 'org.test:moduleD', 'compile'
+                excludeFromConfig 'org.test:moduleD', 'runtime'
             }
             'org.test:moduleB:1.0' {
-                dependsOn 'org.test:moduleC:1.0'
+                dependsOn 'org.test:moduleD:1.0'
             }
-            'org.test:moduleC:1.0'()
+            'org.test:moduleC:1.0' {
+                dependsOn 'org.test:moduleD:1.0'
+            }
+            'org.test:moduleD:1.0'()
         }
 
         when:
@@ -560,6 +558,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             }
             dependencies {
                 conf 'org.test:moduleA:1.0'
+                conf 'org.test:moduleC:1.0'
                 components {
                     withModule('org.test:moduleA', IvyVariantDerivation)
                     withModule('org.test:moduleB', IvyVariantDerivation)
@@ -575,6 +574,12 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             'org.test:moduleB:1.0' {
                 expectResolve()
             }
+            'org.test:moduleC:1.0' {
+                expectResolve()
+            }
+            'org.test:moduleD:1.0' {
+                expectResolve()
+            }
         }
 
         then:
@@ -585,6 +590,12 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                 module('org.test:moduleA:1.0') {
                     variant(varianName, expectedVariantAttributes)
                     module('org.test:moduleB:1.0') {
+                        variant(varianName, expectedVariantAttributes)
+                    }
+                }
+                module('org.test:moduleC:1.0') {
+                    variant(varianName, expectedVariantAttributes)
+                    module('org.test:moduleD:1.0') {
                         variant(varianName, expectedVariantAttributes)
                     }
                 }
