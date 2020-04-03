@@ -264,7 +264,28 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
     }
 
     @Unroll
-    def "report listener registration on #registrationPoint"() {
+    def "report build listener registration on #registrationPoint"() {
+
+        given:
+        buildFile << code
+
+        when:
+        instantFails 'help'
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        where:
+        registrationPoint         | code
+        "Gradle.addBuildListener" | "gradle.addBuildListener(new BuildAdapter())"
+        "Gradle.addListener"      | "gradle.addListener(new BuildAdapter())"
+    }
+
+    @Unroll
+    def "does not report problems on configuration listener registration on #registrationPoint"() {
 
         given:
         buildFile << """
@@ -277,20 +298,19 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             $code
         """
 
-        when:
-        instantFails 'help'
-
-        then:
-        problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
-            withProblemsWithStackTraceCount(1)
-        }
+        expect:
+        instantRun 'help'
 
         where:
         registrationPoint                     | code
-        "Gradle.addBuildListener"             | "gradle.addBuildListener(new BuildAdapter())"
-        "Gradle.addListener"                  | "gradle.addListener(new BuildAdapter())"
         "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener"                  | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.beforeSettings"               | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"            | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"               | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                | "gradle.beforeProject {}"
+        "Gradle.afterProject"                 | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"            | "gradle.projectsEvaluated {}"
     }
 
     def "summarizes unsupported properties"() {

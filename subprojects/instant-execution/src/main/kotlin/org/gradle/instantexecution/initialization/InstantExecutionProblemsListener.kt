@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.initialization
 
 import org.gradle.api.InvalidUserCodeException
+import org.gradle.api.ProjectEvaluationListener
 import org.gradle.api.Task
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener
 import org.gradle.api.internal.GeneratedSubclasses
@@ -73,7 +74,7 @@ class InstantExecutionProblemsListener internal constructor(
         )
 
     override fun onBuildScopeListenerRegistration(listener: Any, invocationDescription: String, invocationSource: Any) {
-        if (startParameter.isEnabled && listener !is InternalListener) {
+        if (startParameter.isEnabled && listener !is InternalListener && listener !is ProjectEvaluationListener) {
             val exception = InvalidUserCodeException(
                 "Listener registration '$invocationDescription' by $invocationSource is unsupported."
             )
