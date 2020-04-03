@@ -46,8 +46,6 @@ dependencies {
     implementation(project(":workers"))
     implementation(project(":modelGroovy"))
     implementation(project(":resources"))
-    implementation(project(":languageGroovy"))
-    implementation(project(":languageJvm"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))

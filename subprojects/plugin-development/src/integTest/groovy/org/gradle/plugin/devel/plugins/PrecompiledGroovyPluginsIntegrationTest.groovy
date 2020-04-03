@@ -223,7 +223,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
             buildscript {
                 dependencies {
-                    classpath(files('$baseSettingsPluginJar'))
+                    classpath(files('$baseSettingsPluginJar.name'))
                 }
             }
             plugins {
@@ -235,7 +235,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """
             buildscript {
                 dependencies {
-                    classpath(files('$pluginJar', '$baseSettingsPluginJar'))
+                    classpath(files('$pluginJar', '$baseSettingsPluginJar.name'))
                 }
             }
             apply plugin: 'my-settings-plugin'
@@ -639,8 +639,10 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         firstDir.copyTo(secondDir)
 
         def cachedTasks = [
-            ":compileGroovyPlugins",
-            ":compilePluginAdapters"
+            ":extractPluginRequests",
+            ":generatePluginAdapters",
+            ":compileGroovy",
+            ":compileGroovyPlugins"
         ]
 
         def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
@@ -659,7 +661,13 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         }
 
         // changing content should invalidate cache
-        file("$secondDir.name/src/main/groovy/my-plugin.gradle") << "println 'changed content'"
+        file("$secondDir.name/src/main/groovy/my-plugin.gradle").delete()
+        file("$secondDir.name/src/main/groovy/my-plugin.gradle") << """
+            plugins {
+                id 'base'
+            }
+            println 'changed content'
+        """
 
         result = executer.inDirectory(secondDir).withTasks("classes").withArgument("--build-cache").run()
         cachedTasks.forEach {
