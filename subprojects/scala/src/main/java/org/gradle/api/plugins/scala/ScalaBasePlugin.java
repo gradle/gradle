@@ -117,7 +117,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         ConfigurationInternal plugins = (ConfigurationInternal) project.getConfigurations().create(SCALA_COMPILER_PLUGINS_CONFIGURATION_NAME);
         plugins.setTransitive(false);
         plugins.setCanBeConsumed(false);
-        JvmPluginsHelper.configureAttributesForRuntimeClasspath(plugins, project.getConvention().getPlugin(JavaPluginConvention.class), objectFactory);
+        JvmPluginsHelper.configureAttributesForRuntimeClasspath(plugins, objectFactory);
 
         Configuration zinc = project.getConfigurations().create(ZINC_CONFIGURATION_NAME);
         zinc.setVisible(false);

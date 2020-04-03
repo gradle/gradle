@@ -121,6 +121,7 @@ task ivyXml(type: Upload) {
 
     // This test represents the state of the art, not the expected behavior (which remains to be spec'ed out)
     @Unroll
+    @ToBeFixedForInstantExecution(because = ":uploadArchives")
     def "Generated ivy.xml file is not influenced by configuration attributes"() {
         given:
         buildFile << """

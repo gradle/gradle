@@ -46,6 +46,7 @@ import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskLocalStateInternal;
 import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener;
 import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -62,8 +63,8 @@ import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.api.tasks.TaskLocalState;
-import org.gradle.initialization.ProjectAccessNotifier;
 import org.gradle.internal.Factory;
+import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.history.changes.InputChangesInternal;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -210,15 +211,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public Project getProject() {
-        if (state.getExecuting()) {
-            notifyProjectAccess();
-        }
+        notifyProjectAccess();
         return project;
-    }
-
-    private void notifyProjectAccess() {
-        services.get(ProjectAccessNotifier.class).getListener()
-            .onProjectAccess("Task.project", this);
     }
 
     @Override
@@ -273,11 +267,13 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     @Override
     public TaskDependencyInternal getTaskDependencies() {
+        notifyTaskDependenciesAccess("Task.taskDependencies");
         return dependencies;
     }
 
     @Override
     public Set<Object> getDependsOn() {
+        notifyTaskDependenciesAccess("Task.dependsOn");
         return dependencies.getMutableValues();
     }
 
@@ -978,5 +974,21 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
         }
         return locks.build();
+    }
+
+    private void notifyProjectAccess() {
+        if (state.getExecuting()) {
+            getTaskExecutionAccessBroadcaster().onProjectAccess("Task.project", this);
+        }
+    }
+
+    private void notifyTaskDependenciesAccess(String invocationDescription) {
+        if (state.getExecuting()) {
+            getTaskExecutionAccessBroadcaster().onTaskDependenciesAccess(invocationDescription, this);
+        }
+    }
+
+    private TaskExecutionAccessListener getTaskExecutionAccessBroadcaster() {
+        return services.get(ListenerManager.class).getBroadcaster(TaskExecutionAccessListener.class);
     }
 }

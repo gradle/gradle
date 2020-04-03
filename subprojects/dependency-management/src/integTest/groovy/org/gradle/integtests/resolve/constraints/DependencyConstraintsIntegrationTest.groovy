@@ -724,6 +724,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     void 'dependency constraint on failed variant resolution needs to be in the right state'() {
         mavenRepo.module('org', 'bar', '1.0').publish()
         writeSpec {

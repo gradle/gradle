@@ -64,7 +64,7 @@ public abstract class HtmlPageGenerator<T> extends ReportRenderer<T, Writer> {
             .href(rootDir + "css/style.css")
             .end();
         html.script()
-            .src(rootDir + "js/jquery.min-1.11.0.js")
+            .src(rootDir + "js/jquery.min-3.4.1.js")
             .end();
         html.script()
             .src(rootDir + "js/flot-0.8.1-min.js")

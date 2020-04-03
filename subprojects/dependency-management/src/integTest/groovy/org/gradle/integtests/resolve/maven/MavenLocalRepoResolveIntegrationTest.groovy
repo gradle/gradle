@@ -16,7 +16,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenModule
 import spock.lang.Issue
 
@@ -166,7 +165,6 @@ class MavenLocalRepoResolveIntegrationTest extends AbstractDependencyResolutionT
         failure.assertHasCause('Could not find group:projectA:1.2')
     }
 
-    @ToBeFixedForInstantExecution
     def "mavenLocal reports and recovers from missing module"() {
         def module = m2.mavenRepo().module('group', 'projectA', '1.2')
 

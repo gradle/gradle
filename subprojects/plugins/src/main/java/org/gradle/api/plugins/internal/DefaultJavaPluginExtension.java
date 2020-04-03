@@ -66,6 +66,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.project = project;
         this.modularClasspathHandling = project.getObjects().newInstance(DefaultModularClasspathHandling.class);
         this.release = project.getObjects().property(Integer.class);
+        ((DefaultJavaPluginConvention) convention).internalReleaseFlagProperty(release);
     }
 
     @Override

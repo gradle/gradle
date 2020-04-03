@@ -13,6 +13,8 @@ Include only their name, impactful features should be called out separately belo
 [Patrick Koenig](https://github.com/pkoenig10),
 [Matthew Duggan](https://github.com/mduggan),
 [David Burström](https://github.com/davidburstrom),
+[Nelson Osacky](https://github.com/runningcode),
+[Sebastian Schuberth](https://github.com/sschuberth),
 and [Lars Kaulen](https://github.com/LarsKaulen).
 
 ## Upgrade instructions
@@ -54,6 +56,18 @@ details of 2
 
 ## n
 -->
+
+## Improvements to code quality plugins
+
+The PMD plugin now supports a new property `maxFailures`. If set, the build will not fail if the number of failures is below the defined treshold.
+This can help to introduce PMD into existing projects that may initially have a large number of warnings.
+
+```
+pmd {
+    maxFailures = 150
+}
+```
+This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

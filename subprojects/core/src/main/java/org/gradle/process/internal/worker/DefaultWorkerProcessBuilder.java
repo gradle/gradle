@@ -56,7 +56,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<>();
     private final Set<File> applicationClasspath = new LinkedHashSet<>();
-    private boolean inferApplicationModulePath = false;
+    private final Set<File> applicationModulePath = new LinkedHashSet<>();
 
     private final MemoryManager memoryManager;
     private Action<? super WorkerProcessContext> action;
@@ -103,18 +103,20 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         return this;
     }
 
-    public boolean isInferApplicationModulePath() {
-        return inferApplicationModulePath;
+    @Override
+    public Set<File> getApplicationClasspath() {
+        return applicationClasspath;
     }
 
-    public WorkerProcessBuilder setInferApplicationModulePath(boolean inferApplicationModulePath) {
-        this.inferApplicationModulePath = inferApplicationModulePath;
+    @Override
+    public WorkerProcessBuilder applicationModulePath(Iterable<File> files) {
+        GUtil.addToCollection(applicationModulePath, files);
         return this;
     }
 
     @Override
-    public Set<File> getApplicationClasspath() {
-        return applicationClasspath;
+    public Set<File> getApplicationModulePath() {
+        return applicationModulePath;
     }
 
     @Override
@@ -213,6 +215,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
 
         LOGGER.debug("Creating {}", displayName);
         LOGGER.debug("Using application classpath {}", applicationClasspath);
+        LOGGER.debug("Using application module path {}", applicationModulePath);
         LOGGER.debug("Using implementation classpath {}", implementationClassPath);
         LOGGER.debug("Using implementation module path {}", implementationModulePath);
 

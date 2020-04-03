@@ -52,6 +52,15 @@ dependencyLocking {
 
 Users of the Groovy DSL should not be impacted as the notation `lockMode = LockMode.STRICT` remains valid.
 
+==== Java versions in published metadata
+
+If a Java library is published with Gradle Module Metadata, the information which Java version it supports is encoded in the `org.gradle.jvm.version` attribute.
+By default, this attribute was set to what you configured in `java.targetCompatibility`.
+If that was not configured, it was set to the current Java version running Gradle.
+Changing the version of a particular compile task, e.g. `javaCompile.targetCompatibility` had no effect on that attribute, leading to wrong information if the attribute was not adjusted manually.
+This is now fixed and the attribute defaults to the setting of the compile task that is associated with the sources from which the published jar is built.
+In addition, there is a new `release` property (`java.release.set(...)` or `javaCompile.release.set(...)`) which can be used for Java versions 9+ and takes precedence over the `targetCompatibility` setting.
+
 ==== Ivy repositories with custom layouts
 
 Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.

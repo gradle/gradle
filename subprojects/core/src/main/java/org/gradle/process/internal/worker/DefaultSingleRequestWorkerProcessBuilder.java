@@ -70,14 +70,14 @@ class DefaultSingleRequestWorkerProcessBuilder<IN, OUT> implements SingleRequest
     }
 
     @Override
-    public WorkerProcessSettings setInferApplicationModulePath(boolean inferApplicationModulePath) {
-        builder.setInferApplicationModulePath(inferApplicationModulePath);
+    public WorkerProcessSettings applicationModulePath(Iterable<File> files) {
+        builder.applicationModulePath(files);
         return this;
     }
 
     @Override
-    public boolean isInferApplicationModulePath() {
-        return builder.isInferApplicationModulePath();
+    public Set<File> getApplicationModulePath() {
+        return builder.getApplicationModulePath();
     }
 
     @Override

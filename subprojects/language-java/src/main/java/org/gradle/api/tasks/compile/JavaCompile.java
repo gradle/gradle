@@ -239,7 +239,7 @@ public class JavaCompile extends AbstractCompile {
     private DefaultJavaCompileSpec createSpec() {
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean isModule = modularClasspathHandling.getInferModulePath().get() && JavaModuleDetector.isModuleSource(sourcesRoots);
+        boolean isModule = JavaModuleDetector.isModuleSource(modularClasspathHandling.getInferModulePath().get(), sourcesRoots);
 
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
@@ -251,9 +251,12 @@ public class JavaCompile extends AbstractCompile {
             compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
         }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
-        spec.setRelease(getRelease().getOrNull());
-        spec.setTargetCompatibility(getTargetCompatibility());
-        spec.setSourceCompatibility(getSourceCompatibility());
+        if (getRelease().isPresent()) {
+            spec.setRelease(getRelease().get());
+        } else {
+            spec.setTargetCompatibility(getTargetCompatibility());
+            spec.setSourceCompatibility(getSourceCompatibility());
+        }
         spec.setCompileOptions(compileOptions);
         spec.setSourcesRoots(sourcesRoots);
         if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {

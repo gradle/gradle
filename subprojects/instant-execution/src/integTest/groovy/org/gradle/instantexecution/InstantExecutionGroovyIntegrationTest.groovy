@@ -99,10 +99,18 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantRun "build"
 
         then:
         instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
+            )
+            withTotalProblemsCount(2)
+            withProblemsWithStackTraceCount(2)
+        }
 
         when:
         instantRun "clean"
@@ -125,10 +133,19 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantFails "assemble"
 
         then:
         instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
+            )
+            withProblemsWithStackTraceCount(1)
+        }
+
+        and:
         result.assertTaskExecuted(":compileGroovy")
         failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")

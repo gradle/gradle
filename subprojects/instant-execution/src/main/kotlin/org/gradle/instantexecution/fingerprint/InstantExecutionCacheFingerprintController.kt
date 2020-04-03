@@ -27,8 +27,8 @@ import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.internal.event.ListenerManager
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.vfs.VirtualFileSystem
 import org.gradle.util.GFileUtils
 import java.io.ByteArrayOutputStream
@@ -148,13 +148,13 @@ class InstantExecutionCacheFingerprintController internal constructor(
         override fun fingerprintOf(
             fileCollection: FileCollectionInternal,
             owner: TaskInternal
-        ): CurrentFileCollectionFingerprint =
-            fileCollectionFingerprinterFor(owner).fingerprint(fileCollection)
+        ): HashCode =
+            fileCollectionFingerprinterFor(owner).fingerprint(fileCollection).hash
 
         override fun fingerprintOf(
             fileCollection: FileCollectionInternal
-        ): CurrentFileCollectionFingerprint =
-            fileCollectionFingerprinter.fingerprint(fileCollection)
+        ): HashCode =
+            fileCollectionFingerprinter.fingerprint(fileCollection).hash
 
         override fun displayNameOf(fileOrDirectory: File): String =
             GFileUtils.relativePathOf(fileOrDirectory, rootDirectory)
