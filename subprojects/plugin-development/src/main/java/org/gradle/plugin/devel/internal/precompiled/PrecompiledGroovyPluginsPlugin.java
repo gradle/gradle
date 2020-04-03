@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.internal.precompiled;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.provider.Provider;
@@ -70,13 +71,22 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
 
         TaskProvider<PrecompileGroovyScriptsTask> precompilePlugins = tasks.register(
             "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPlugins,
-            pluginSourceSet.getCompileClasspath(), javaClasses, groovyClasses
+            /*pluginSourceSet.getCompileClasspath(), */javaClasses, groovyClasses
         );
+
+        DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
+        precompilePlugins.configure(t -> {
+            t.getPrecompiledGroovyScriptsOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
+            t.getPluginAdapterSourcesOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/adapter-src"));
+            t.getAdapterClassesOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/adapter-classes"));
+
+            t.getClasspath().from(pluginSourceSet.getCompileClasspath());
+        });
 
         TaskProvider<JavaCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", JavaCompile.class, t -> {
             t.dependsOn(precompilePlugins);
             t.setSource(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getPluginAdapterSourcesOutputDir));
-            t.setDestinationDir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getAdapterClassesOutputDir));
+            t.setDestinationDir(precompilePlugins.flatMap(PrecompileGroovyScriptsTask::getAdapterClassesOutputDir).map(Directory::getAsFile));
             t.setClasspath(pluginSourceSet.getCompileClasspath());
         });
 
