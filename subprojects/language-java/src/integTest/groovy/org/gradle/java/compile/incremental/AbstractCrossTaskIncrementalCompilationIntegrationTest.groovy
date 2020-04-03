@@ -596,6 +596,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
