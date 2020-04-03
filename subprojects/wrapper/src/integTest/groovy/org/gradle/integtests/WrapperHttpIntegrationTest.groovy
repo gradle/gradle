@@ -94,6 +94,21 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         noExceptionThrown()
     }
 
+    @Issue('https://github.com/gradle/gradle-private/issues/3032')
+    def "download with timeout"() {
+        given:
+        prepareWrapper("http://localhost:${server.port}")
+        server.expectAndBlock(server.get("/gradlew/dist"))
+
+        when:
+        wrapperExecuter.withStackTraceChecksDisabled()
+        def failure = wrapperExecuter.runWithFailure()
+
+        then:
+        failure.assertHasErrorOutput('Read timed out')
+        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout")
+    }
+
     def "downloads wrapper via proxy"() {
         given:
         proxyServer.start()
