@@ -5,6 +5,7 @@ import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
 import common.checkCleanM2
 import common.gradleWrapper
+import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
 import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
@@ -17,8 +18,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linu
     name = "Individual Performance Scenario Workers - ${os.name.capitalize()}"
 
     applyPerformanceTestSettings(os = os, timeout = 420)
-    // https://github.com/gradle/gradle-private/issues/3035
-//    artifactRules = individualPerformanceTestArtifactRules
+    artifactRules = individualPerformanceTestArtifactRules
 
     params {
         param("baselines", "defaults")
