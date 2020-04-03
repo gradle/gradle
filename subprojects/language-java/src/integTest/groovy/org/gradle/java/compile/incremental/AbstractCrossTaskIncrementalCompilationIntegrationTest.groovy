@@ -20,7 +20,6 @@ package org.gradle.java.compile.incremental
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -485,7 +484,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
@@ -605,7 +603,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("A")
     }
 
-    @ToBeFixedForInstantExecution
     def "deletion of a jar with duplicate class causes recompilation"() {
         file("api/src/main/${language.name}/org/junit/Assert.${language.name}") << "package org.junit; public class Assert {}"
         source impl: ["class A extends org.junit.Assert {}"]
