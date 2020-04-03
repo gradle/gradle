@@ -234,7 +234,6 @@ class SigningTasksIntegrationSpec extends SigningIntegrationSpec {
         skipped(":signCustomFile")
     }
 
-    @ToBeFixedForInstantExecution
     def "up-to-date when order of signed files changes"() {
         given:
         def inputFile1 = file("input1.txt") << "foo"
