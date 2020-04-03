@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -66,7 +67,7 @@ public class Download implements IDownload {
     }
 
     private void downloadInternal(URI address, File destination)
-            throws Exception {
+        throws Exception {
         OutputStream out = null;
         URLConnection conn;
         InputStream in = null;
@@ -101,6 +102,8 @@ public class Download implements IDownload {
 
                 out.write(buffer, 0, numRead);
             }
+        } catch (SocketTimeoutException e) {
+            throw new IOException("Downloading from " + address + " failed: timeout", e);
         } finally {
             logger.log("");
             if (in != null) {
@@ -188,8 +191,8 @@ public class Download implements IDownload {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(
-                    System.getProperty("http.proxyUser"), System.getProperty(
-                    "http.proxyPassword", "").toCharArray());
+                System.getProperty("http.proxyUser"), System.getProperty(
+                "http.proxyPassword", "").toCharArray());
         }
     }
 

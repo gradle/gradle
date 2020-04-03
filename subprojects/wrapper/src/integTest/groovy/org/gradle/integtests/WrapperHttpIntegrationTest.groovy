@@ -106,6 +106,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
 
         then:
         failure.assertHasErrorOutput('Read timed out')
+        failure.assertHasErrorOutput("Downloading from http://localhost:${server.port}/gradlew/dist failed: timeout")
     }
 
     def "downloads wrapper via proxy"() {
