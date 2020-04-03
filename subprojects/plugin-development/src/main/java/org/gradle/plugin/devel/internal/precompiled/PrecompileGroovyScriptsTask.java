@@ -150,7 +150,7 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
     @TaskAction
     void compileScripts() {
         FileCollection compileClasspath = getClasspath().plus(project.files(javaSourceDependencyClasses, groovySourceDependencyClasses));
-        ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(compileClasspath).getAsURLArray(), classLoaderScope.getLocalClassLoader());
+        ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(compileClasspath).getAsURLArray());
 
         for (PrecompiledGroovyScript scriptPlugin : scriptPlugins) {
             CompiledScript<PluginsAwareScript, ?> pluginsBlock = compilePluginsBlock(scriptPlugin, compileClassLoader);
