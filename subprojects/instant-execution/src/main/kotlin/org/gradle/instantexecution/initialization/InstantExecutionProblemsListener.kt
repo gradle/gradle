@@ -19,15 +19,14 @@ package org.gradle.instantexecution.initialization
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.GeneratedSubclasses
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.initialization.ProjectAccessListener
+import org.gradle.api.internal.tasks.execution.TaskExecutionAccessListener
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
 
 
-class InstantExecutionProjectAccessListener internal constructor(
+class InstantExecutionProblemsListener internal constructor(
 
     private
     val startParameter: InstantExecutionStartParameter,
@@ -35,19 +34,24 @@ class InstantExecutionProjectAccessListener internal constructor(
     private
     val problems: InstantExecutionProblems
 
-) : ProjectAccessListener {
+) : TaskExecutionAccessListener {
 
-    override fun beforeRequestingTaskByPath(targetProject: ProjectInternal) = Unit
+    override fun onProjectAccess(invocationDescription: String, task: Task) {
+        onTaskExecutionAccessProblem(invocationDescription, task)
+    }
 
-    override fun beforeResolvingProjectDependency(dependencyProject: ProjectInternal) = Unit
+    override fun onTaskDependenciesAccess(invocationDescription: String, task: Task) {
+        onTaskExecutionAccessProblem(invocationDescription, task)
+    }
 
-    override fun onProjectAccess(invocationDescription: String, invocationSource: Any) {
+    private
+    fun onTaskExecutionAccessProblem(invocationDescription: String, task: Task) {
         if (startParameter.isEnabled) {
             val exception = InvalidUserCodeException(
-                "Invocation of '$invocationDescription' by $invocationSource at execution time is unsupported."
+                "Invocation of '$invocationDescription' by $task at execution time is unsupported."
             )
-            problems.onProblem(projectAccessProblem(
-                traceFor(invocationSource),
+            problems.onProblem(taskExecutionAccessProblem(
+                PropertyTrace.Task(GeneratedSubclasses.unpackType(task), task.path),
                 invocationDescription,
                 exception
             ))
@@ -55,15 +59,7 @@ class InstantExecutionProjectAccessListener internal constructor(
     }
 
     private
-    fun traceFor(invocationSource: Any) =
-        if (invocationSource is Task) PropertyTrace.Task(
-            GeneratedSubclasses.unpackType(invocationSource),
-            invocationSource.path
-        )
-        else PropertyTrace.Unknown
-
-    private
-    fun projectAccessProblem(trace: PropertyTrace, invocationDescription: String, exception: InvalidUserCodeException) =
+    fun taskExecutionAccessProblem(trace: PropertyTrace, invocationDescription: String, exception: InvalidUserCodeException) =
         PropertyProblem(
             trace,
             StructuredMessage.build {

@@ -14,10 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.api.internal.tasks.execution;
+
+import org.gradle.api.Task;
 
 
-public interface ProjectAccessNotifier {
+public interface TaskExecutionAccessListener {
 
-    ProjectAccessListener getListener();
+    /**
+     * Called when accessing the project during task execution.
+     */
+    void onProjectAccess(String invocationDescription, Task task);
+
+    /**
+     * Called when accessing task dependencies during task execution.
+     */
+    void onTaskDependenciesAccess(String invocationDescription, Task task);
 }
