@@ -18,7 +18,6 @@ package org.gradle.testing.junit
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.hamcrest.CoreMatchers
 import spock.lang.Unroll
 
@@ -64,7 +63,6 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
     def 'subsequent execution runs failed test first'() {
         given:
         letTestFail(indexOfTestToFail)
