@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
@@ -51,6 +52,7 @@ public class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
+    private String maxMemory;
 
     @Inject
     protected IsolatedAntBuilder getAntBuilder() {
@@ -133,6 +135,28 @@ public class ScalaDoc extends SourceTask {
         this.title = title;
     }
 
+    /**
+     * Returns the amount of memory allocated to this task.
+     *
+     * @since 6.4
+     */
+    @Internal
+    @Nullable
+    public String getMaxMemory() {
+        return maxMemory;
+    }
+
+    /**
+     * Sets the amount of memory allocated to this task.
+     *
+     * @param maxMemory The amount of memory
+     *
+     * @since 6.4
+     */
+    public void setMaxMemory(String maxMemory) {
+        this.maxMemory = maxMemory;
+    }
+
     @TaskAction
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();
@@ -142,6 +166,10 @@ public class ScalaDoc extends SourceTask {
 
         WorkQueue queue = getWorkerExecutor().processIsolation(worker -> {
             worker.getClasspath().from(getScalaClasspath());
+            String maxMemory = getMaxMemory();
+            if(maxMemory != null) {
+                worker.forkOptions(forkOptions -> forkOptions.setMaxHeapSize(maxMemory));
+            }
         });
         queue.submit(GenerateScaladoc.class, parameters -> {
             parameters.getClasspath().from(getClasspath());
