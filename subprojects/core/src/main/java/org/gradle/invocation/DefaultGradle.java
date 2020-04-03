@@ -29,6 +29,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.SettingsInternal;
@@ -379,7 +380,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void addListener(String registrationPoint, Object listener) {
+        notifyListenerRegistration(registrationPoint, listener);
         getListenerManager().addListener(getListenerBuildOperationDecorator().decorateUnknownListener(registrationPoint, listener));
+    }
+
+    private void notifyListenerRegistration(String registrationPoint, Object listener) {
+        getListenerManager().getBroadcaster(BuildScopeListenerRegistrationListener.class)
+            .onBuildScopeListenerRegistration(listener, registrationPoint, this);
     }
 
     @Override

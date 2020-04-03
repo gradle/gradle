@@ -263,6 +263,36 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         'Task.taskDependencies' | 'taskDependencies'
     }
 
+    @Unroll
+    def "report listener registration on #registrationPoint"() {
+
+        given:
+        buildFile << """
+
+            class ProjectEvaluationAdapter implements ProjectEvaluationListener {
+                void beforeEvaluate(Project project) {}
+                void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            $code
+        """
+
+        when:
+        instantFails 'help'
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        where:
+        registrationPoint                     | code
+        "Gradle.addBuildListener"             | "gradle.addBuildListener(new BuildAdapter())"
+        "Gradle.addListener"                  | "gradle.addListener(new BuildAdapter())"
+        "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+    }
+
     def "summarizes unsupported properties"() {
         given:
         buildFile << """
