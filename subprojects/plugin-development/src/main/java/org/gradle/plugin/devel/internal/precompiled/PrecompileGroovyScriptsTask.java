@@ -85,9 +85,6 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
     private final Provider<Directory> intermediatePluginClassesDir;
     private final Provider<Directory> intermediatePluginMetadataDir;
 
-    private final Provider<Directory> javaSourceDependencyClasses;
-    private final Provider<Directory> groovySourceDependencyClasses;
-
     @Inject
     public PrecompileGroovyScriptsTask(ScriptCompilationHandler scriptCompilationHandler,
                                        ClassLoaderScopeRegistry classLoaderScopeRegistry,
@@ -95,9 +92,7 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
                                        FileSystemOperations fileSystemOperations,
                                        ScriptRunnerFactory scriptRunnerFactory,
                                        ServiceRegistry serviceRegistry,
-                                       List<PrecompiledGroovyScript> scriptPlugins,
-                                       Provider<Directory> javaSourceDependencyClasses,
-                                       Provider<Directory> groovySourceDependencyClasses) {
+                                       List<PrecompiledGroovyScript> scriptPlugins) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.fileSystemOperations = fileSystemOperations;
@@ -112,27 +107,12 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
         this.intermediatePluginBlockClassesDir = buildDir.dir("groovy-dsl-plugins/plugin-blocks");
         this.intermediatePluginClassesDir = buildDir.dir("groovy-dsl-plugins/work/classes");
         this.intermediatePluginMetadataDir = buildDir.dir("groovy-dsl-plugins/work/metadata");
-
-        this.javaSourceDependencyClasses = javaSourceDependencyClasses;
-        this.groovySourceDependencyClasses = groovySourceDependencyClasses;
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
     Set<File> getScriptFiles() {
         return scriptPlugins.stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet());
-    }
-
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    Provider<Directory> getJavaSourceDependencyClasses() {
-        return javaSourceDependencyClasses;
-    }
-
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputFiles
-    Provider<Directory> getGroovySourceDependencyClasses() {
-        return groovySourceDependencyClasses;
     }
 
     @Classpath
@@ -149,7 +129,7 @@ abstract class PrecompileGroovyScriptsTask extends DefaultTask {
 
     @TaskAction
     void compileScripts() {
-        FileCollection compileClasspath = getClasspath().plus(project.files(javaSourceDependencyClasses, groovySourceDependencyClasses));
+        FileCollection compileClasspath = getClasspath();
         ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(compileClasspath).getAsURLArray());
 
         for (PrecompiledGroovyScript scriptPlugin : scriptPlugins) {

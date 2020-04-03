@@ -70,8 +70,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
         Provider<Directory> groovyClasses = tasks.named("compileGroovy", AbstractCompile.class).flatMap(AbstractCompile::getDestinationDirectory);
 
         TaskProvider<PrecompileGroovyScriptsTask> precompilePlugins = tasks.register(
-            "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPlugins,
-            /*pluginSourceSet.getCompileClasspath(), */javaClasses, groovyClasses
+            "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPlugins
         );
 
         DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
@@ -80,7 +79,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
             t.getPluginAdapterSourcesOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/adapter-src"));
             t.getAdapterClassesOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/adapter-classes"));
 
-            t.getClasspath().from(pluginSourceSet.getCompileClasspath());
+            t.getClasspath().from(pluginSourceSet.getCompileClasspath(), project.files(javaClasses, groovyClasses));
         });
 
         TaskProvider<JavaCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", JavaCompile.class, t -> {
