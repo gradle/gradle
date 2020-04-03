@@ -94,7 +94,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         noExceptionThrown()
     }
 
-    @Issue('https://github.com/gradle/gradle-private/issues/issues')
+    @Issue('https://github.com/gradle/gradle-private/issues/3032')
     def "download with timeout"() {
         given:
         prepareWrapper("http://localhost:${server.port}")
