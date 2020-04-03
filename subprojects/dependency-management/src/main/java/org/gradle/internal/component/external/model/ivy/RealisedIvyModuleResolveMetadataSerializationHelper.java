@@ -47,6 +47,7 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.Exclude;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
@@ -58,9 +59,6 @@ import java.util.Map;
 import java.util.Set;
 
 public class RealisedIvyModuleResolveMetadataSerializationHelper extends AbstractRealisedModuleResolveMetadataSerializationHelper {
-
-    private static final ImmutableSet<String> API_ELEMENTS_HIERARCHY = ImmutableSet.of("compile", "apiElements");
-    private static final ImmutableSet<String> RUNTIME_ELEMENTS_HIERARCHY = ImmutableSet.of("default", "runtime", "runtimeElements");
 
     public RealisedIvyModuleResolveMetadataSerializationHelper(AttributeContainerSerializer attributeContainerSerializer, ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         super(attributeContainerSerializer, moduleIdentifierFactory);
@@ -107,21 +105,28 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
            int configurationsCount = decoder.readSmallInt();
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(configurationsCount);
+        Map<String, ImmutableSet<String>> configurationsHierarchies = Maps.newHashMap();
+
         for (int i = 0; i < configurationsCount; i++) {
             String configurationName = decoder.readString();
             boolean transitive = true;
             boolean visible = true;
             ImmutableSet<String> hierarchy = ImmutableSet.of(configurationName);
+            ImmutableList<ExcludeMetadata> excludes = null;
 
             Configuration configuration = configurationDefinitions.get(configurationName);
             if (configuration != null) { // if the configuration represents a variant added by a rule, it is not in the definition list
                 transitive = configuration.isTransitive();
                 visible = configuration.isVisible();
                 hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
+                configurationsHierarchies.put(configurationName, hierarchy);
+                excludes = configurationHelper.filterExcludes(hierarchy);
             } else if(isApiElements(configurationName, configurationDefinitions.values())) {
-                hierarchy = API_ELEMENTS_HIERARCHY;
+                excludes = configurationHelper.filterExcludes(configurationsHierarchies.get("compile"));
             } else if(isRuntimeElements(configurationName, configurationDefinitions.values())) {
-                hierarchy = RUNTIME_ELEMENTS_HIERARCHY;
+                excludes = configurationHelper.filterExcludes(configurationsHierarchies.get("default"));
+            } else {
+                excludes = ImmutableList.of();
             }
 
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
@@ -129,7 +134,7 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, transitive, visible,
-                hierarchy, artifacts, configurationHelper.filterExcludes(hierarchy), attributes, capabilities, false, false);
+                hierarchy, artifacts, excludes, attributes, capabilities, false, false);
 
             ImmutableList.Builder<ModuleDependencyMetadata> builder = ImmutableList.builder();
             int dependenciesCount = decoder.readSmallInt();
