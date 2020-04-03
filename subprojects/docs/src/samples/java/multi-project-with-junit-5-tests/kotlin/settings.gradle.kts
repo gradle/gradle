@@ -1,0 +1,2 @@
+rootProject.name = "multi-project-with-junit-5-tests"
+include("application", "list", "utilities")

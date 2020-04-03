@@ -3,15 +3,11 @@ plugins {
     application
 }
 
-version = "1.0.2"
-group = "org.gradle.sample"
-
-repositories {
-    jcenter()
-}
-
 dependencies {
+    implementation(project(":list"))
+    implementation(project(":utilities"))
     implementation("org.codehaus.groovy:groovy-all:2.5.7")
+    testImplementation("org.spockframework:spock-core:1.3-groovy-2.5")
 }
 
 application {
