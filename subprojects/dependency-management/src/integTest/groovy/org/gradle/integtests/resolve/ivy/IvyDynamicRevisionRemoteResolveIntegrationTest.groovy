@@ -242,6 +242,7 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
     }
 
+    @ToBeFixedForInstantExecution
     def "reuses cached meta-data when resolving latest.status"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
@@ -550,7 +551,6 @@ task resolveStaleThenFresh {
         outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached version lists unless no matches"() {
         given:
         useRepository ivyHttpRepo
@@ -780,7 +780,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.0"
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached artifacts across repository types"() {
         def ivyRepo = ivyHttpRepo('repo1')
         def mavenRepo = mavenHttpRepo('repo2')
