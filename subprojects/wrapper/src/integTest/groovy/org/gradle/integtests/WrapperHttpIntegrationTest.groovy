@@ -105,7 +105,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = wrapperExecuter.runWithFailure()
 
         then:
-        failure.error.contains('Read timed out')
+        failure.assertHasErrorOutput('Read timed out')
     }
 
     def "downloads wrapper via proxy"() {
