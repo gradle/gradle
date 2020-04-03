@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -42,6 +44,8 @@ public class BaseSerializerFactory {
     public static final Serializer<Map<String, String>> NO_NULL_STRING_MAP_SERIALIZER = new StringMapSerializer();
     public static final Serializer<Throwable> THROWABLE_SERIALIZER = new ThrowableSerializer();
     public static final Serializer<HashCode> HASHCODE_SERIALIZER = new HashCodeSerializer();
+    public static final Serializer<BigInteger> BIG_INTEGER_SERIALIZER = new BigIntegerSerializer();
+    public static final Serializer<BigDecimal> BIG_DECIMAL_SERIALIZER = new BigDecimalSerializer();
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
@@ -275,6 +279,33 @@ public class BaseSerializerFactory {
         public void write(Encoder encoder, Double value) throws Exception {
             byte[] b = ByteBuffer.allocate(8).putDouble(value).array();
             encoder.writeBytes(b);
+        }
+    }
+
+    private static class BigIntegerSerializer extends AbstractSerializer<BigInteger> {
+        @Override
+        public BigInteger read(Decoder decoder) throws Exception {
+            return new BigInteger(decoder.readBinary());
+        }
+
+        @Override
+        public void write(Encoder encoder, BigInteger value) throws Exception {
+            encoder.writeBinary(value.toByteArray());
+        }
+    }
+
+    private static class BigDecimalSerializer extends AbstractSerializer<BigDecimal> {
+        @Override
+        public BigDecimal read(Decoder decoder) throws Exception {
+            BigInteger unscaledVal = BIG_INTEGER_SERIALIZER.read(decoder);
+            int scale = decoder.readSmallInt();
+            return new BigDecimal(unscaledVal, scale);
+        }
+
+        @Override
+        public void write(Encoder encoder, BigDecimal value) throws Exception {
+            BIG_INTEGER_SERIALIZER.write(encoder, value.unscaledValue());
+            encoder.writeSmallInt(value.scale());
         }
     }
 

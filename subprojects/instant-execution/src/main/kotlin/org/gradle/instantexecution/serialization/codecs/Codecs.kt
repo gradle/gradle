@@ -52,6 +52,8 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
@@ -236,6 +238,8 @@ class Codecs(
         bind(DOUBLE_SERIALIZER)
         bind(FILE_SERIALIZER)
         bind(PATH_SERIALIZER)
+        bind(BIG_INTEGER_SERIALIZER)
+        bind(BIG_DECIMAL_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
 
