@@ -19,6 +19,7 @@ package org.gradle.integtests.samples
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
 import org.junit.Before
@@ -35,6 +36,7 @@ class SamplesJavaTestListenerIntegrationTest extends  AbstractIntegrationTest {
     }
 
     @Test
+    @UnsupportedWithInstantExecution
     void runsBuildAndShowsFailedTests() {
         TestFile javaprojectDir = sample.dir
 

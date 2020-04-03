@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
@@ -118,6 +119,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         workTaskDoesNotCompleteFirst()
     }
 
+    @UnsupportedWithInstantExecution
     def "worker-based task with task action listener does not complete while another task is executing in parallel"() {
         when:
         buildFile << """
@@ -137,6 +139,7 @@ class WorkerExecutorParallelBuildOperationsIntegrationTest extends AbstractWorke
         workTaskDoesNotCompleteFirst()
     }
 
+    @UnsupportedWithInstantExecution
     def "worker-based task with task execution listener does not complete while another task is executing in parallel"() {
         when:
         buildFile << """
