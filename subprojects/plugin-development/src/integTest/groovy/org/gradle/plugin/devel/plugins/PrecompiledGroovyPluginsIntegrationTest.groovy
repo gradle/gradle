@@ -211,20 +211,39 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("my-settings-plugin applied!")
     }
 
-    def "precompiled settings plugin can not use plugins block"() {
-        given:
-        enablePrecompiledPluginsInBuildSrc()
-        file("buildSrc/src/main/groovy/plugins/my-settings-plugin.settings.gradle") << """
-            plugins {
-                id 'base'
+    def "precompiled settings plugin can use plugins block"() {
+        when:
+        def pluginJar = packagePrecompiledPlugin("base-settings-plugin.settings.gradle", """
+            println('base-settings-plugin applied!')
+        """)
+        def baseSettingsPluginJar = file('baseSettingsPlugin.jar')
+        file(pluginJar).renameTo(baseSettingsPluginJar)
+
+        pluginJar = packagePrecompiledPlugin("my-settings-plugin.settings.gradle", """
+            buildscript {
+                dependencies {
+                    classpath(files('$baseSettingsPluginJar'))
+                }
             }
+            plugins {
+                id 'base-settings-plugin'
+            }
+            println('my-settings-plugin applied!')
+        """)
+
+        settingsFile << """
+            buildscript {
+                dependencies {
+                    classpath(files('$pluginJar', '$baseSettingsPluginJar'))
+                }
+            }
+            apply plugin: 'my-settings-plugin'
         """
 
-        when:
-        fails("build")
-
         then:
-        failureCauseContains("Only Project and Settings build scripts can contain plugins {} blocks")
+        succeeds('help')
+        outputContains('base-settings-plugin applied!')
+        outputContains('my-settings-plugin applied!')
     }
 
     @ToBeFixedForInstantExecution
