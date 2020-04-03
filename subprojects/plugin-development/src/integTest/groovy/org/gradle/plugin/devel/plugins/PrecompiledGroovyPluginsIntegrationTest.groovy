@@ -27,7 +27,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         """
 
     def "adds plugin metadata to extension for all script plugins"() {
-        given:
+        when:
         def pluginsDir = createDir("buildSrc/src/main/groovy/plugins")
         pluginsDir.file("foo.gradle").createNewFile()
         pluginsDir.file("bar.gradle").createNewFile()
@@ -35,18 +35,13 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         file("buildSrc/build.gradle") << """
             afterEvaluate {
-                gradlePlugin.plugins.all {
-                    println it.id + ": " + it.implementationClass
-                }
+                assert gradlePlugin.plugins.foo.implementationClass == 'FooPlugin'
+                assert gradlePlugin.plugins.bar.implementationClass == 'BarPlugin'
             }
         """
 
-        when:
-        succeeds("help")
-
         then:
-        outputContains("foo: FooPlugin")
-        outputContains("bar: BarPlugin")
+        succeeds("help")
     }
 
     def "can apply a precompiled script plugin by id"() {
@@ -602,7 +597,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         def cacheDir = createDir("cache-dir")
         def firstDir = createDir("first-location")
 
-        file("$firstDir.name/settings.gradle") << """
+        firstDir.file("settings.gradle") << """
             rootProject.name = "test"
             buildCache {
                 local {
@@ -610,7 +605,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        file("$firstDir.name/build.gradle") << """
+        firstDir.file("build.gradle") << """
             plugins {
                 id 'groovy-gradle-plugin'
             }
