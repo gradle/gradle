@@ -37,9 +37,7 @@ public class PrecompiledScriptRunner {
 
     private final Object target;
     private final ServiceRegistry serviceRegistry;
-
     private final ScriptRunnerFactory scriptRunnerFactory;
-
     private final ClassLoaderScope classLoaderScope;
 
     @SuppressWarnings("unused")
@@ -60,23 +58,14 @@ public class PrecompiledScriptRunner {
     private PrecompiledScriptRunner(Object target, ServiceRegistry serviceRegistry, ClassLoaderScope classLoaderScope) {
         this.target = target;
         this.serviceRegistry = serviceRegistry;
-
         this.scriptRunnerFactory = serviceRegistry.get(ScriptRunnerFactory.class);
-
         this.classLoaderScope = classLoaderScope.createChild("pre-compiled-script").lock();
     }
 
-    public void run(@Nullable Class<?> scriptClass) {
-        if (scriptClass != null) {
-            executeScript(scriptClass);
-        }
-    }
-
-    private void executeScript(Class<?> scriptClass) {
+    public void run(Class<?> scriptClass) {
         scriptRunnerFactory.create(new CompiledGroovyPlugin(scriptClass), scriptSource(scriptClass), classLoaderScope.getExportClassLoader())
             .run(target, serviceRegistry);
     }
-
 
     private static ScriptSource scriptSource(Class<?> scriptClass) {
         return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), ""));
