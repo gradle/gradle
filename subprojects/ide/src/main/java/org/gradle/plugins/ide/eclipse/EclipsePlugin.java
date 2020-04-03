@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
-import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Plugin;
@@ -32,7 +31,6 @@ import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.PropertiesTransformer;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
@@ -267,31 +265,21 @@ public class EclipsePlugin extends IdePlugin {
                 model.getClasspath().containers("org.scala-ide.sdt.launching.SCALA_CONTAINER");
 
                 // exclude the dependencies already provided by SCALA_CONTAINER; prevents problems with Eclipse Scala plugin
-                project.getGradle().addBuildListener(new BuildAdapter() {
-                    @Override
-                    public void projectsEvaluated(Gradle gradle) {
-                        final List<String> provided = Lists.newArrayList("scala-library", "scala-swing", "scala-dbc");
-                        Predicate<Dependency> dependencyInProvided = new Predicate<Dependency>() {
-                            @Override
-                            public boolean apply(Dependency dependency) {
-                                return provided.contains(dependency.getName());
-                            }
-
-                        };
-                        List<Dependency> dependencies = Lists.newArrayList(Iterables.filter(Iterables.concat(Iterables.transform(model.getClasspath().getPlusConfigurations(), new Function<Configuration, Iterable<Dependency>>() {
-                            @Override
-                            public Iterable<Dependency> apply(Configuration config) {
-                                return config.getAllDependencies();
-                            }
-
-                        })), dependencyInProvided));
-                        if (!dependencies.isEmpty()) {
-                            model.getClasspath().getMinusConfigurations().add(project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0])));
+                project.getGradle().projectsEvaluated(gradle -> {
+                    final List<String> provided = Lists.newArrayList("scala-library", "scala-swing", "scala-dbc");
+                    Predicate<Dependency> dependencyInProvided = dependency -> provided.contains(dependency.getName());
+                    List<Dependency> dependencies = Lists.newArrayList(Iterables.filter(Iterables.concat(Iterables.transform(model.getClasspath().getPlusConfigurations(), new Function<Configuration, Iterable<Dependency>>() {
+                        @Override
+                        public Iterable<Dependency> apply(Configuration config) {
+                            return config.getAllDependencies();
                         }
+
+                    })), dependencyInProvided));
+                    if (!dependencies.isEmpty()) {
+                        model.getClasspath().getMinusConfigurations().add(project.getConfigurations().detachedConfiguration(dependencies.toArray(new Dependency[0])));
                     }
                 });
             }
-
         });
     }
 
