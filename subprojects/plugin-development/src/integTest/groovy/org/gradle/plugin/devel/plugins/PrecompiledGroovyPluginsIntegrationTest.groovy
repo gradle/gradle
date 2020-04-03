@@ -18,6 +18,8 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -718,6 +720,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains(':compileGroovyPlugins FAILED')
     }
 
+    @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @ToBeFixedForInstantExecution
     def "can use a precompiled script plugin with Gradle 6.0"() {
         given:
