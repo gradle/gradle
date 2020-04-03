@@ -9,9 +9,6 @@ dependencies {
 }
 
 application {
-    mainClassName = "org.gradle.sample.app.Main"
-}
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
+    mainModule.set("org.gradle.sample.app")
+    mainClass.set("org.gradle.sample.app.Main")
 }
