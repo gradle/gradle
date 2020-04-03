@@ -264,7 +264,6 @@ class PrecompileGroovyScriptsTask extends DefaultTask {
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
             writer.write("class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
-            writer.write("  private static final String MIN_SUPPORTED_GRADLE_VERSION = \"6.4\"\n");
             writer.write("  void apply(" + targetClass + " target) {\n");
             writer.write("      " + applyPlugins + "\n");
             if (buildScript.getRunDoesSomething()) {
