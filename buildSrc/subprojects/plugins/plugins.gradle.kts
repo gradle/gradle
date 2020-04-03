@@ -20,9 +20,9 @@ dependencies {
 
 gradlePlugin {
     plugins {
-        register("buildTypes") {
-            id = "gradlebuild.build-types"
-            implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
+        register("lifecycle") {
+            id = "gradlebuild.lifecycle"
+            implementationClass = "org.gradle.plugins.lifecycle.LifecyclePlugin"
         }
         register("buildVersion") {
             id = "gradlebuild.build-version"

@@ -88,7 +88,7 @@ class PerformanceTestBuildTypeTest {
         )
 
         assertEquals(
-                (listOf("clean", "distributedPerformanceTests") + expectedRunnerParams).joinToString(" "),
+                (listOf("clean", ":performance:distributedPerformanceTest") + expectedRunnerParams).joinToString(" "),
                 performanceTest.getGradleStep("GRADLE_RUNNER").gradleParams!!.trim()
         )
         assertEquals(BuildStep.ExecutionMode.DEFAULT, performanceTest.getGradleStep("GRADLE_RUNNER").executionMode)

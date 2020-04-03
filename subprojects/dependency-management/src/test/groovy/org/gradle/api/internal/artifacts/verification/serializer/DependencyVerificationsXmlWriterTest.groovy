@@ -20,10 +20,10 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
-import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 

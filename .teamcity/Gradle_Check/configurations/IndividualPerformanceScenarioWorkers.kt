@@ -44,7 +44,7 @@ class IndividualPerformanceScenarioWorkers(model: CIBuildModel, os: Os = Os.linu
             tasks = ""
             gradleParams = (
                 performanceTestCommandLine(
-                    "clean %templates% fullPerformanceTests",
+                    "clean %templates% :performance:fullPerformanceTest",
                     "%baselines%",
                     """--scenarios "%scenario%" --warmups %warmups% --runs %runs% --checks %checks% --channel %channel%""",
                     individualPerformanceTestJavaHome(os)
