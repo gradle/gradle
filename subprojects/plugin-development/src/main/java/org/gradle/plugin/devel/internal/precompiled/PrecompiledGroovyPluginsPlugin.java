@@ -21,12 +21,13 @@ import org.gradle.api.Project;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.SourceDirectorySet;
+import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.plugins.GroovyBasePlugin;
-import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
-import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.plugins.JavaGradlePluginPlugin;
@@ -66,20 +67,19 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
 
         TaskContainer tasks = project.getTasks();
 
-        Provider<Directory> javaClasses = tasks.named("compileJava", AbstractCompile.class).flatMap(AbstractCompile::getDestinationDirectory);
-        Provider<Directory> groovyClasses = tasks.named("compileGroovy", AbstractCompile.class).flatMap(AbstractCompile::getDestinationDirectory);
-
         TaskProvider<PrecompileGroovyScriptsTask> precompilePlugins = tasks.register(
             "compileGroovyPlugins", PrecompileGroovyScriptsTask.class, scriptPlugins
         );
 
-        DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
         precompilePlugins.configure(t -> {
+            DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
             t.getPrecompiledGroovyScriptsOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
             t.getPluginAdapterSourcesOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/adapter-src"));
             t.getAdapterClassesOutputDir().set(buildDir.dir("groovy-dsl-plugins/output/adapter-classes"));
 
-            t.getClasspath().from(pluginSourceSet.getCompileClasspath(), project.files(javaClasses, groovyClasses));
+            SourceDirectorySet javaSource = pluginSourceSet.getJava();
+            SourceDirectorySet groovySource = new DslObject(pluginSourceSet).getConvention().getPlugin(GroovySourceSet.class).getGroovy();
+            t.getClasspath().from(pluginSourceSet.getCompileClasspath(), javaSource.getClassesDirectory(), groovySource.getClassesDirectory());
         });
 
         TaskProvider<JavaCompile> compilePluginAdapters = tasks.register("compilePluginAdapters", JavaCompile.class, t -> {
