@@ -53,7 +53,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped":copy"
     }
 
-    @ToBeFixedForInstantExecution
     def "task with type declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
 
@@ -221,7 +220,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private static String declareSimpleCopyTaskType(boolean modification  = false) {
+    private static String declareSimpleCopyTaskType(boolean modification = false) {
         """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
