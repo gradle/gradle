@@ -123,13 +123,10 @@ assert 'value' == doStuff.someProp
     void canExecuteExternalScriptFromInitScript() {
         TestFile initScript = testFile('init.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << '''
-addListener(new ListenerImpl())
-class ListenerImpl extends BuildAdapter {
-    public void projectsEvaluated(Gradle gradle) {
-        gradle.rootProject.task('doStuff')
-    }
-}
-'''
+            projectsEvaluated {
+                gradle.rootProject.task('doStuff')
+            }
+        '''
         inTestDirectory().usingInitScript(initScript).withTasks('doStuff').run()
     }
 
