@@ -17,7 +17,7 @@ allprojects {
 tasks.register("codeCoverageReport", JacocoReport) {
     // If a subproject applies the 'jacoco' plugin, add the result it to the report
     subprojects { subproject ->
-        plugins.withType(JacocoPlugin).configureEach {
+        subproject.plugins.withType(JacocoPlugin).configureEach {
             subproject.tasks.matching({ t -> t.extensions.findByType(JacocoTaskExtension) }).configureEach { testTask ->
                 sourceSets subproject.sourceSets.main
                 executionData(testTask)
