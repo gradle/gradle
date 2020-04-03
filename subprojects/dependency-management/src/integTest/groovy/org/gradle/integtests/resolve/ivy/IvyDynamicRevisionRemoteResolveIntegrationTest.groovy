@@ -242,7 +242,6 @@ dependencies {
         checkResolve "group:projectA:latest.milestone": ["group:projectA:2.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached meta-data when resolving latest.status"() {
         def repo1 = ivyHttpRepo("repo1")
         def repo2 = ivyHttpRepo("repo2")
