@@ -54,6 +54,7 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
     @Issue(['GRADLE-1457', 'GRADLE-3197'])
     def 'init scripts passed on the command line are applied to buildSrc'() {
         given:
+        settingsFile << "rootProject.name = 'hello'"
         createProject()
         file("init.gradle") << initScript()
 
@@ -63,12 +64,13 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'hello'
 
         then:
-        output.contains("Task :hello executed")
-        output.contains("Task :buildSrc:helloFromBuildSrc executed")
+        output.contains("Project buildSrc evaluated")
+        output.contains("Project hello evaluated")
     }
 
     def 'init scripts passed in the Gradle user home are applied to buildSrc'() {
         given:
+        settingsFile << "rootProject.name = 'hello'"
         createProject()
         executer.requireOwnGradleUserHomeDir()
         new TestFile(executer.gradleUserHomeDir, "init.gradle") << initScript()
@@ -77,8 +79,8 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
         succeeds 'hello'
 
         then:
-        output.contains("Task :hello executed")
-        output.contains("Task :buildSrc:helloFromBuildSrc executed")
+        output.contains("Project buildSrc evaluated")
+        output.contains("Project hello evaluated")
     }
 
     def 'init script can contribute to settings - before and after'() {
@@ -197,17 +199,9 @@ class InitScriptIntegrationTest extends AbstractIntegrationSpec {
 
     private static String initScript() {
         """
-            import org.gradle.api.services.*
-            import org.gradle.tooling.events.*
-            import org.gradle.tooling.events.task.*
-
-            abstract class TaskFinishedListener implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
-                void onFinish(FinishEvent event) {
-                    println "Task \${event.descriptor.taskPath} executed"
-                }
+            gradle.afterProject { p ->
+                println "Project \${p.name} evaluated"
             }
-            def provider = sharedServices.registerIfAbsent("myListener", TaskFinishedListener) {}
-            services.get(BuildEventsListenerRegistry).onTaskCompletion(provider)
         """
     }
 }
