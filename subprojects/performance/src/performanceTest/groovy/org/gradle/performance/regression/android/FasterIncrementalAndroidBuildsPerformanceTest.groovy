@@ -111,7 +111,12 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     protected void defaultSpec(BuildExperimentSpec.Builder builder) {
         if (builder instanceof GradleBuildExperimentSpec.GradleBuilder) {
             builder.invocation.args(AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK)
-            builder.invocation.args("-Dorg.gradle.workers.max=8", "--no-build-cache", "--no-scan")
+            builder.invocation.args(
+                "-Dorg.gradle.workers.max=8",
+                "--no-build-cache",
+                "--no-scan",
+                "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false" // TODO remove
+            )
             builder.invocation.useToolingApi()
             builder.warmUpCount(1)
             builder.invocationCount(60)
