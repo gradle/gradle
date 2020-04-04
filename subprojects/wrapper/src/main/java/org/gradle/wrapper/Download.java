@@ -25,6 +25,7 @@ import java.io.OutputStream;
 import java.lang.reflect.Method;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.net.SocketTimeoutException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -35,6 +36,8 @@ public class Download implements IDownload {
 
     private static final int BUFFER_SIZE = 10 * 1024;
     private static final int PROGRESS_CHUNK = 1024 * 1024;
+    private static final int CONNECTION_TIMEOUT_MILLISECONDS = 10 * 1000;
+    private static final int READ_TIMEOUT_MILLISECONDS = 10 * 1000;
     private final Logger logger;
     private final String appName;
     private final String appVersion;
@@ -64,17 +67,19 @@ public class Download implements IDownload {
     }
 
     private void downloadInternal(URI address, File destination)
-            throws Exception {
+        throws Exception {
         OutputStream out = null;
         URLConnection conn;
         InputStream in = null;
+        URL safeUrl = safeUri(address).toURL();
         try {
-            URL url = safeUri(address).toURL();
             out = new BufferedOutputStream(new FileOutputStream(destination));
-            conn = url.openConnection();
+            conn = safeUrl.openConnection();
             addBasicAuthentication(address, conn);
             final String userAgentValue = calculateUserAgent();
             conn.setRequestProperty("User-Agent", userAgentValue);
+            conn.setConnectTimeout(CONNECTION_TIMEOUT_MILLISECONDS);
+            conn.setReadTimeout(READ_TIMEOUT_MILLISECONDS);
             in = conn.getInputStream();
             byte[] buffer = new byte[BUFFER_SIZE];
             int numRead;
@@ -97,6 +102,8 @@ public class Download implements IDownload {
 
                 out.write(buffer, 0, numRead);
             }
+        } catch (SocketTimeoutException e) {
+            throw new IOException("Downloading from " + safeUrl + " failed: timeout", e);
         } finally {
             logger.log("");
             if (in != null) {
@@ -184,8 +191,8 @@ public class Download implements IDownload {
         @Override
         protected PasswordAuthentication getPasswordAuthentication() {
             return new PasswordAuthentication(
-                    System.getProperty("http.proxyUser"), System.getProperty(
-                    "http.proxyPassword", "").toCharArray());
+                System.getProperty("http.proxyUser"), System.getProperty(
+                "http.proxyPassword", "").toCharArray());
         }
     }
 
