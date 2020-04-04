@@ -43,7 +43,6 @@ class TwirlVersionIntegrationTest extends AbstractIntegrationSpec {
         settingsFile << """ rootProject.name = 'twirl-play-app' """
     }
 
-    @ToBeFixedForInstantExecution
     def "changing between twirl-incompatible versions of play causes Twirl to recompile" () {
         withPlayVersion(DefaultPlayPlatform.DEFAULT_PLAY_VERSION)
         withTemplateSource(file("app", "views", "index.scala.html"))
