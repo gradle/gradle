@@ -560,7 +560,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1358")
-    @ToBeFixedForInstantExecution
     def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
         buildFile << '''
             apply plugin: 'java'
@@ -575,7 +574,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             }
 
             compileJava.dependsOn(fooJar)
-
 
         '''
         file('foo.class') << 'this is clearly not a well formed class file'
