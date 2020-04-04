@@ -270,6 +270,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         buildFile << code
 
         when:
+        executer.noDeprecationChecks()
         instantFails 'help'
 
         then:
@@ -282,6 +283,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         registrationPoint         | code
         "Gradle.addBuildListener" | "gradle.addBuildListener(new BuildAdapter())"
         "Gradle.addListener"      | "gradle.addListener(new BuildAdapter())"
+        "Gradle.buildStarted"     | "gradle.buildStarted {}"
     }
 
     @Unroll

@@ -305,6 +305,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
             .nagUser();
+        notifyListenerRegistration("Gradle.buildStarted", closure);
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
@@ -314,6 +315,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
             .nagUser();
+        notifyListenerRegistration("Gradle.buildStarted", action);
         buildListenerBroadcast.add("buildStarted", action);
     }
 
