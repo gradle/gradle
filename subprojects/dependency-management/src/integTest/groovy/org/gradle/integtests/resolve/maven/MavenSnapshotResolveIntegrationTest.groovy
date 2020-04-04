@@ -884,7 +884,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants("projectA-${projectA.publishArtifactVersion}.jar")
     }
 
-    @ToBeFixedForInstantExecution
     def "applies conflict resolution when unique snapshot is referenced by timestamp"() {
         given:
         def projectA = publishModule("group", "projectA", "1.0-SNAPSHOT")

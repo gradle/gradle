@@ -53,7 +53,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def result = new StringBuilder()
 
         given:
-        reporter.scriptClassLoaded(scriptSource, Script)
+        reporter.onScriptClassLoaded(scriptSource, Script)
 
         when:
         reporter.reportLocation(usage, result)
@@ -78,7 +78,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def result = new StringBuilder()
 
         given:
-        reporter.scriptClassLoaded(scriptSource, Script)
+        reporter.onScriptClassLoaded(scriptSource, Script)
 
         when:
         reporter.reportLocation(usage, result)
@@ -103,7 +103,7 @@ class ScriptUsageLocationReporterTest extends Specification {
         def result = new StringBuilder()
 
         given:
-        reporter.scriptClassLoaded(scriptSource, Script)
+        reporter.onScriptClassLoaded(scriptSource, Script)
 
         when:
         reporter.reportLocation(usage, result)

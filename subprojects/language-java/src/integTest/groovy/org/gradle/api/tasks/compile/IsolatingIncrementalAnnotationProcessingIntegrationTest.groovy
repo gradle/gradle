@@ -20,7 +20,6 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.HelperProcessorFixture
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
@@ -150,7 +149,6 @@ class IsolatingIncrementalAnnotationProcessingIntegrationTest extends AbstractIn
         !file("build/generated/sources/annotationProcessor/java/main/AHelperResource.txt").exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "generated files and classes are deleted when processor is removed"() {
         given:
         withProcessor(writingResourcesTo(StandardLocation.SOURCE_OUTPUT.toString()))

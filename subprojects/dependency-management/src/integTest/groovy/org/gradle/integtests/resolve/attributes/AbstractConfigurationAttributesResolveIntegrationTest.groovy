@@ -18,7 +18,6 @@
 package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
@@ -102,7 +101,6 @@ abstract class AbstractConfigurationAttributesResolveIntegrationTest extends Abs
         result.assertTasksExecuted(':b:barJar', ':a:checkRelease')
     }
 
-    @ToBeFixedForInstantExecution
     def "selects configuration in target project which matches the configuration attributes when dependency is set on a parent configuration"() {
         def resolveRelease = new ResolveTestFixture(buildFile, '_compileFreeRelease')
         def resolveDebug = new ResolveTestFixture(buildFile, '_compileFreeDebug')

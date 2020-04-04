@@ -86,7 +86,6 @@ abstract class BasicJavaCompilerIntegrationSpec extends AbstractIntegrationSpec 
         file('encoded.out').getText("utf-8") == "\u03b1\u03b2\u03b3"
     }
 
-    @ToBeFixedForInstantExecution
     def compilesWithSpecifiedDebugSettings() {
         given:
         goodCode()
