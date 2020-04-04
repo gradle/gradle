@@ -23,6 +23,7 @@ import java.util.Arrays;
 import java.util.List;
 
 public class PerformanceDatabase {
+    private static final int LOGIN_TIMEOUT_SECONDS = 60;
     private final String databaseName;
     private final List<ConnectionAction<Void>> databaseInitializers;
     private Connection connection;
@@ -46,6 +47,7 @@ public class PerformanceDatabase {
 
     public <T> T withConnection(ConnectionAction<T> action) throws SQLException {
         if (connection == null) {
+            DriverManager.setLoginTimeout(LOGIN_TIMEOUT_SECONDS);
             connection = DriverManager.getConnection(getUrl(), getUserName(), getPassword());
             for (ConnectionAction<Void> initializer : databaseInitializers) {
                 try {

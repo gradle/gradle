@@ -19,9 +19,11 @@ import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.util.GUtil
 import org.gradle.util.TestUtil
 
@@ -34,7 +36,7 @@ import static org.hamcrest.core.IsInstanceOf.instanceOf
 import static org.junit.Assert.assertThat
 
 class AbstractFileCollectionTest extends FileCollectionSpec {
-    final TaskDependency dependency = Mock(TaskDependency.class)
+    final TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class)
 
     @Override
     AbstractFileCollection containing(File... files) {
@@ -153,35 +155,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         sum.getFiles() == toLinkedSet(file1, file2, file3)
     }
 
-    void canSubtractCollections() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        File file3 = new File("f3")
-        TestFileCollection collection1 = new TestFileCollection(file1, file2)
-        TestFileCollection collection2 = new TestFileCollection(file2, file3)
-
-        when:
-        FileCollection difference = collection1.minus(collection2)
-
-        then:
-        assertThat(difference.getFiles(), equalTo(toLinkedSet(file1)))
-    }
-
-    def "can subtract a collection using - operator"() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        File file3 = new File("f3")
-        TestFileCollection collection1 = new TestFileCollection(file1, file2)
-        TestFileCollection collection2 = new TestFileCollection(file2, file3)
-
-        when:
-        FileCollection difference = collection1 - collection2
-
-        then:
-        difference.files == toLinkedSet(file1)
-    }
-
-    def "can subtract a list of collection"() {
+    def "can subtract a collection"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         File file3 = new File("f3")
@@ -195,7 +169,7 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         difference.files == toLinkedSet(file1)
     }
 
-    def "can subtract a list of collections using - operator"() {
+    def "can subtract a collections using - operator"() {
         File file1 = new File("f1")
         File file2 = new File("f2")
         File file3 = new File("f3")
@@ -207,6 +181,24 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
 
         then:
         difference.files == toLinkedSet(file1)
+    }
+
+    def "can visit the result of subtracting a collection"() {
+        def visitor = Mock(FileCollectionStructureVisitor)
+        File file1 = new File("f1")
+        File file2 = new File("f2")
+        File file3 = new File("f3")
+        def collection1 = new TestFileCollection(file1, file2)
+        def collection2 = new TestFileCollection(file2, file3)
+        def difference = collection1.minus(collection2)
+
+        when:
+        difference.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, difference) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, difference)
+        0 * visitor._
     }
 
     void canConvertToCollectionTypes() {
@@ -246,33 +238,49 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
     }
 
     void canFilterContentsOfCollectionUsingClosure() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
+        def file1 = new File("f1")
+        def file2 = new File("f2")
 
-        TestFileCollection collection = new TestFileCollection(file1, file2)
-        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"))
+        def collection = new TestFileCollection(file1, file2)
+        def filtered = collection.filter { f -> f.name == 'f1' }
 
         expect:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
+        filtered.files == toSet(file1)
     }
 
     void filteredCollectionIsLive() {
-        File file1 = new File("f1")
-        File file2 = new File("f2")
-        File file3 = new File("dir/f1")
-        TestFileCollection collection = new TestFileCollection(file1, file2)
+        def file1 = new File("f1")
+        def file2 = new File("f2")
+        def file3 = new File("dir/f1")
+        def collection = new TestFileCollection(file1, file2)
 
         when:
-        FileCollection filtered = collection.filter(TestUtil.toClosure("{f -> f.name == 'f1'}"))
+        def filtered = collection.filter { f -> f.name == 'f1' }
 
         then:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1)))
+        filtered.files == toSet(file1)
 
         when:
         collection.files.add(file3)
 
         then:
-        assertThat(filtered.getFiles(), equalTo(toSet(file1, file3)))
+        filtered.files == toSet(file1, file3)
+    }
+
+    void "can visit filtered collection"() {
+        def file1 = new File("f1")
+        def file2 = new File("f2")
+        def collection = new TestFileCollection(file1, file2)
+        def filtered = collection.filter { f -> f.name == 'f1' }
+        def visitor = Mock(FileCollectionStructureVisitor)
+
+        when:
+        filtered.visitStructure(visitor)
+
+        then:
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, filtered) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, filtered)
+        0 * _
     }
 
     void hasNoDependencies() {
@@ -296,7 +304,45 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")))
     }
 
-    void visitsSelfAsLeafCollection() {
+    void elementsProviderHasNoDependenciesWhenThisHasNoDependencies() {
+        def collection = new TestFileCollection()
+        def context = Mock(TaskDependencyResolveContext)
+
+        ProviderInternal elements = collection.elements
+
+        when:
+        def visited = elements.maybeVisitBuildDependencies(context)
+
+        then:
+        visited
+        1 * context.add(collection)
+        0 * context._
+
+        expect:
+        !elements.valueProducedByTask
+    }
+
+    void elementsProviderHasSameDependenciesAsThis() {
+        def collection = new TestFileCollectionWithDependency()
+        def context = Mock(TaskDependencyResolveContext)
+        def task = Mock(TaskInternal)
+        _ * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(task) }
+
+        ProviderInternal elements = collection.elements
+
+        when:
+        def visited = elements.maybeVisitBuildDependencies(context)
+
+        then:
+        visited
+        1 * context.add(collection)
+        0 * context._
+
+        expect:
+        elements.valueProducedByTask
+    }
+
+    void "visits self when listener requests contents"() {
         def collection = new TestFileCollection()
         def visitor = Mock(FileCollectionStructureVisitor)
 
@@ -304,12 +350,12 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection.visitStructure(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> true
         1 * visitor.visitCollection(FileCollectionInternal.OTHER, collection)
         0 * visitor._
     }
 
-    void doesNotVisitSelfWhenVisitorIsNotInterested() {
+    void "does not visit self when listener does not want contents"() {
         def collection = new TestFileCollection()
         def visitor = Mock(FileCollectionStructureVisitor)
 
@@ -317,14 +363,15 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         collection.visitStructure(visitor)
 
         then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> false
         0 * visitor._
     }
 
     private void assertHasSameDependencies(FileCollection tree) {
         final Task task = Mock(Task.class)
         final Task depTask = Mock(Task.class)
-        1 * dependency.getDependencies(task) >> { [ depTask ] }
+        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(depTask) }
+        0 * dependency._
 
         assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)))
     }

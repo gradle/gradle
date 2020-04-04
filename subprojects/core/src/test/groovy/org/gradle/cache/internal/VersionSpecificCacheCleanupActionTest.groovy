@@ -34,7 +34,7 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 
 class VersionSpecificCacheCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def currentCacheDir = createVersionSpecificCacheDir(currentVersion, NOT_USED_WITHIN_30_DAYS)

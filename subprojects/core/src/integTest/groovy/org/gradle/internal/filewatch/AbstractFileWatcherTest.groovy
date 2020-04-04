@@ -41,7 +41,7 @@ abstract class AbstractFileWatcherTest extends Specification {
     })
 
     @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     // We default to 10 seconds polling on some OS / JVM versions
     // Since this code is going to be replaced with native file watching soon, this fix is fine for now
     long waitForEventsMillis = 11000L

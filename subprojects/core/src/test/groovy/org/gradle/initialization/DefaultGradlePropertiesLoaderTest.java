@@ -47,7 +47,7 @@ public class DefaultGradlePropertiesLoaderTest {
     private Map<String, String> envProperties = new HashMap<>();
     private StartParameterInternal startParameter = new StartParameterInternal();
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     @Rule
     public SetSystemProperties sysProp = new SetSystemProperties();
 

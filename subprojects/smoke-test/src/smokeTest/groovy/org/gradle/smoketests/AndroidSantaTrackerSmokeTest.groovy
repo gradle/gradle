@@ -32,7 +32,7 @@ import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
+    @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "check deprecation warnings produced by building Santa Tracker Java (agp=#agpVersion)"() {
 
         given:
@@ -59,7 +59,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     }
 
     @Unroll
-    @UnsupportedWithInstantExecution(iterationMatchers = AGP_3_ITERATION_MATCHER)
+    @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "incremental Java compilation works for Santa Tracker Java (agp=#agpVersion)"() {
 
         given:

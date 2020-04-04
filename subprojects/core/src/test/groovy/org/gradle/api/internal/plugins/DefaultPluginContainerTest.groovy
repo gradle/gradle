@@ -43,7 +43,7 @@ class DefaultPluginContainerTest extends Specification {
     def container = pluginManager.pluginContainer
 
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     private Class<?> plugin1Class = classLoader.parseClass("""
         import org.gradle.api.Plugin
         import org.gradle.api.Project

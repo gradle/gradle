@@ -27,7 +27,7 @@ import spock.lang.Specification
 class LayoutToPropertiesConverterTest extends Specification {
 
     @Rule SetSystemProperties sysProperties = new SetSystemProperties()
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     def converter = new LayoutToPropertiesConverter(new BuildLayoutFactory())
     BuildLayoutParameters layout
     Map<String, String> props = new HashMap<String, String>()

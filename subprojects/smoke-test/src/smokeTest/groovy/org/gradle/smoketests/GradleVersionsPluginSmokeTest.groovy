@@ -16,9 +16,13 @@
 
 package org.gradle.smoketests
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class GradleVersionsPluginSmokeTest extends AbstractSmokeTest {
+
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def 'can check for updated versions'() {
         given:
         buildFile << """

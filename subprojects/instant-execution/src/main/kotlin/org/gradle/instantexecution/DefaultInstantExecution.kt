@@ -18,21 +18,19 @@ package org.gradle.instantexecution
 
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectStateRegistry
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
-import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.Node
+import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
-import org.gradle.instantexecution.fingerprint.InstantExecutionCacheInputs
-import org.gradle.instantexecution.fingerprint.InstantExecutionFingerprintChecker
+import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
 import org.gradle.instantexecution.fingerprint.InvalidationReason
-import org.gradle.instantexecution.fingerprint.ObtainedValue
-import org.gradle.instantexecution.fingerprint.hashCodeOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
@@ -40,38 +38,38 @@ import org.gradle.instantexecution.serialization.MutableIsolateContext
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.codecs.Codecs
 import org.gradle.instantexecution.serialization.codecs.WorkNodeCodec
+import org.gradle.instantexecution.serialization.logNotImplemented
 import org.gradle.instantexecution.serialization.readCollection
 import org.gradle.instantexecution.serialization.readFile
 import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
+import org.gradle.internal.Factory
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
-import org.gradle.internal.hash.HashUtil.createCompactMD5
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
-import org.gradle.internal.vfs.VirtualFileSystem
+import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.tooling.events.OperationCompletionListener
-import org.gradle.util.GFileUtils.relativePathOf
 import org.gradle.util.GradleVersion
 import java.io.File
+import java.io.OutputStream
 import java.nio.file.Files
 import java.util.ArrayList
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.EmptyCoroutineContext
-import kotlin.coroutines.startCoroutine
 
 
 class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val startParameter: InstantExecutionStartParameter,
+    private val problems: InstantExecutionProblems,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+    private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
-    private val valueSourceProviderFactory: ValueSourceProviderFactory,
-    private val virtualFileSystem: VirtualFileSystem
+    private val gradlePropertiesController: GradlePropertiesController
 ) : InstantExecution {
 
     interface Host {
@@ -81,13 +79,15 @@ class DefaultInstantExecution internal constructor(
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
         fun <T> getService(serviceType: Class<T>): T
+
+        fun <T> factory(serviceType: Class<T>): Factory<T>
     }
 
     override fun canExecuteInstantaneously(): Boolean = when {
         !isInstantExecutionEnabled -> {
             false
         }
-        systemPropertyFlag(SystemProperties.recreateCache) -> {
+        startParameter.recreateCache -> {
             log("Recreating instant execution cache")
             false
         }
@@ -129,7 +129,7 @@ class DefaultInstantExecution internal constructor(
 
         if (!isInstantExecutionEnabled) return
 
-        attachBuildLogicInputsCollector()
+        startCollectingCacheFingerprint()
     }
 
     override fun saveScheduledWork() {
@@ -141,29 +141,31 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        detachBuildLogicInputsCollector()
+        stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
 
-            val report = instantExecutionReport()
-            val instantExecutionException = report.withExceptionHandling {
+            try {
 
                 instantExecutionStateFile.createParentDirectories()
 
                 service<ProjectStateRegistry>().withLenientState {
-                    withWriteContextFor(instantExecutionStateFile, report) {
+                    withWriteContextFor(instantExecutionStateFile) {
                         encodeScheduledWork()
                     }
                 }
-                withWriteContextFor(instantExecutionFingerprintFile, report) {
-                    encodeFingerprint()
-                }
-            }
 
-            // Discard the state file on errors
-            if (instantExecutionException != null) {
-                discardInstantExecutionState()
-                throw instantExecutionException
+                writeInstantExecutionCacheFingerprint()
+            } catch (error: InstantExecutionError) {
+                // Invalidate unusable state on errors
+                invalidateInstantExecutionState()
+                problems.requestConsoleSummary()
+                throw error
+            } finally {
+                if (startParameter.failOnProblems) {
+                    // Invalidate state on problems that fail the build
+                    problems.runIfProblems { invalidateInstantExecutionState() }
+                }
             }
         }
     }
@@ -218,66 +220,68 @@ class DefaultInstantExecution internal constructor(
     }
 
     private
-    suspend fun DefaultWriteContext.encodeFingerprint() {
-        withHostIsolate {
-            InstantExecutionFingerprintChecker.FingerprintEncoder.run {
-                encode(instantExecutionInputs!!.fingerprint)
-            }
+    fun startCollectingCacheFingerprint() {
+        cacheFingerprintController.startCollectingFingerprint {
+            cacheFingerprintWriterContextFor(it)
         }
     }
 
     private
-    fun checkFingerprint(): InvalidationReason? =
+    fun stopCollectingCacheFingerprint() {
+        cacheFingerprintController.stopCollectingFingerprint()
+    }
+
+    private
+    fun writeInstantExecutionCacheFingerprint() {
+        cacheFingerprintController.commitFingerprintTo(
+            instantExecutionFingerprintFile
+        )
+    }
+
+    private
+    fun cacheFingerprintWriterContextFor(outputStream: OutputStream) =
+        writerContextFor(outputStream).apply {
+            push(IsolateOwner.OwnerHost(host), codecs.userTypesCodec)
+        }
+
+    private
+    fun checkFingerprint(): InvalidationReason? {
+        loadGradleProperties()
+        return checkInstantExecutionFingerprintFile()
+    }
+
+    private
+    fun checkInstantExecutionFingerprintFile(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
-                instantExecutionFingerprintChecker().run {
+                cacheFingerprintController.run {
                     checkFingerprint()
                 }
             }
         }
 
     private
-    fun attachBuildLogicInputsCollector() {
-        InstantExecutionCacheInputs(virtualFileSystem).also {
-            instantExecutionInputs = it
-            valueSourceProviderFactory.addListener(it)
-        }
+    fun loadGradleProperties() {
+        gradlePropertiesController.loadGradlePropertiesFrom(
+            startParameter.settingsDirectory
+        )
     }
 
     private
-    fun detachBuildLogicInputsCollector() {
-        instantExecutionInputs.let {
-            require(it != null)
-            valueSourceProviderFactory.removeListener(it)
-        }
-    }
-
-    private
-    var instantExecutionInputs: InstantExecutionCacheInputs? = null
-
-    private
-    fun instantExecutionReport() = InstantExecutionReport(
-        reportOutputDir,
-        logger,
-        maxProblems(),
-        failOnProblems()
-    )
-
-    private
-    fun discardInstantExecutionState() {
+    fun invalidateInstantExecutionState() {
         instantExecutionFingerprintFile.delete()
     }
 
     private
-    fun withWriteContextFor(file: File, report: InstantExecutionReport, writeOperation: suspend DefaultWriteContext.() -> Unit) {
-        KryoBackedEncoder(file.outputStream()).use { encoder ->
-            writeContextFor(encoder, report).run {
-                runToCompletion {
-                    writeOperation()
-                }
-            }
+    fun withWriteContextFor(file: File, writeOperation: suspend DefaultWriteContext.() -> Unit) {
+        writerContextFor(file.outputStream()).useToRun {
+            runWriteOperation(writeOperation)
         }
     }
+
+    private
+    fun writerContextFor(outputStream: OutputStream) =
+        writeContextFor(KryoBackedEncoder(outputStream))
 
     private
     fun <R> withReadContextFor(file: File, readOperation: suspend DefaultReadContext.() -> R): R =
@@ -292,14 +296,13 @@ class DefaultInstantExecution internal constructor(
 
     private
     fun writeContextFor(
-        encoder: Encoder,
-        report: InstantExecutionReport
+        encoder: Encoder
     ) = DefaultWriteContext(
         codecs.userTypesCodec,
         encoder,
         scopeRegistryListener,
         logger,
-        report::add
+        problems::onProblem
     )
 
     private
@@ -317,6 +320,7 @@ class DefaultInstantExecution internal constructor(
             directoryFileTreeFactory = service(),
             fileCollectionFactory = service(),
             fileLookup = service(),
+            propertyFactory = service(),
             filePropertyFactory = service(),
             fileResolver = service(),
             instantiator = service(),
@@ -336,14 +340,19 @@ class DefaultInstantExecution internal constructor(
             attributesFactory = service(),
             transformListener = service(),
             valueSourceProviderFactory = service(),
-            patternSetFactory = service(),
-            fileSystem = service()
+            patternSetFactory = factory(),
+            fileOperations = service(),
+            fileSystem = service(),
+            fileFactory = service()
         )
     }
 
     private
     suspend fun DefaultWriteContext.writeGradleState(gradle: Gradle) {
         withGradleIsolate(gradle) {
+            if (gradle.includedBuilds.isNotEmpty()) {
+                logNotImplemented("included builds")
+            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             writeCollection(eventListenerRegistry.subscriptions)
         }
@@ -410,6 +419,10 @@ class DefaultInstantExecution internal constructor(
         host.service<T>()
 
     private
+    inline fun <reified T> factory() =
+        host.factory(T::class.java)
+
+    private
     fun File.createParentDirectories() {
         Files.createDirectories(parentFile.toPath())
     }
@@ -424,43 +437,10 @@ class DefaultInstantExecution internal constructor(
     private
     val instantExecutionStateFile by unsafeLazy {
         val cacheDir = absoluteFile(".instant-execution-state/${currentGradleVersion()}")
-        val baseName = createCompactMD5(instantExecutionCacheKey())
+        val baseName = startParameter.instantExecutionCacheKey
         val cacheFileName = "$baseName.bin"
         File(cacheDir, cacheFileName)
     }
-
-    private
-    fun instantExecutionCacheKey() = startParameter.run {
-        // The following characters are not valid in task names
-        // and can be used as separators: /, \, :, <, >, ", ?, *, |
-        // except we also accept qualified task names with :, so colon is out.
-        val cacheKey = StringBuilder()
-        requestedTaskNames.joinTo(cacheKey, separator = "/")
-        if (excludedTaskNames.isNotEmpty()) {
-            excludedTaskNames.joinTo(cacheKey, prefix = "<", separator = "/")
-        }
-        val taskNames = requestedTaskNames.asSequence() + excludedTaskNames.asSequence()
-        val hasRelativeTaskName = taskNames.any { !it.startsWith(':') }
-        if (hasRelativeTaskName) {
-            // Because unqualified task names are resolved relative to the enclosing
-            // sub-project according to `invocationDirectory`,
-            // the relative invocation directory information must be part of the key.
-            relativeChildPathOrNull(invocationDirectory, rootDirectory)?.let { relativeSubDir ->
-                cacheKey.append('*')
-                cacheKey.append(relativeSubDir)
-            }
-        }
-        cacheKey.toString()
-    }
-
-    /**
-     * Returns the path of [target] relative to [base] if
-     * [target] is a child of [base] or `null` otherwise.
-     */
-    private
-    fun relativeChildPathOrNull(target: File, base: File): String? =
-        relativePathOf(target, base)
-            .takeIf { !it.startsWith('.') }
 
     private
     fun currentGradleVersion(): String =
@@ -470,65 +450,18 @@ class DefaultInstantExecution internal constructor(
     fun absoluteFile(path: String) =
         File(rootDirectory, path).absoluteFile
 
-    private
-    val reportOutputDir by unsafeLazy {
-        instantExecutionStateFile.run {
-            resolveSibling(nameWithoutExtension)
-        }
-    }
-
     // Skip instant execution for buildSrc for now. Should instead collect up the inputs of its tasks and treat as task graph cache inputs
     private
     val isInstantExecutionEnabled: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.isEnabled)
-            && !host.currentBuild.buildSrc
+        startParameter.isEnabled && !host.currentBuild.buildSrc
     }
 
     private
     val instantExecutionLogLevel: LogLevel
-        get() = when (systemPropertyFlag(SystemProperties.isQuiet)) {
+        get() = when (startParameter.isQuiet) {
             true -> LogLevel.INFO
             else -> LogLevel.LIFECYCLE
         }
-
-    private
-    fun maxProblems(): Int =
-        systemProperty(SystemProperties.maxProblems)
-            ?.let(Integer::valueOf)
-            ?: 512
-
-    private
-    fun failOnProblems() =
-        systemPropertyFlag(SystemProperties.failOnProblems)
-
-    private
-    fun systemPropertyFlag(propertyName: String): Boolean =
-        systemProperty(propertyName)?.toBoolean() ?: false
-
-    private
-    fun systemProperty(propertyName: String) =
-        System.getProperty(propertyName)
-
-    private
-    fun instantExecutionFingerprintChecker() =
-        InstantExecutionFingerprintChecker(InstantExecutionFingerprintCheckerHost())
-
-    private
-    inner class InstantExecutionFingerprintCheckerHost : InstantExecutionFingerprintChecker.Host {
-
-        override fun hashCodeOf(inputFile: File) =
-            virtualFileSystem.hashCodeOf(inputFile)
-
-        override fun displayNameOf(inputFile: File): String =
-            relativePathOf(inputFile, rootDirectory)
-
-        override fun instantiateValueSourceOf(obtainedValue: ObtainedValue) =
-            (valueSourceProviderFactory as DefaultValueSourceProviderFactory).instantiateValueSource(
-                obtainedValue.valueSourceType,
-                obtainedValue.valueSourceParametersType,
-                obtainedValue.valueSourceParameters
-            )
-    }
 
     private
     val rootDirectory
@@ -562,22 +495,3 @@ fun fillTheGapsOf(projects: Collection<Project>): List<Project> {
 
 private
 val logger = Logging.getLogger(DefaultInstantExecution::class.java)
-
-
-/**
- * [Starts][startCoroutine] the suspending [block], asserts it runs
- * to completion and returns its result.
- */
-internal
-fun <R> runToCompletion(block: suspend () -> R): R {
-    var completion: Result<R>? = null
-    block.startCoroutine(Continuation(EmptyCoroutineContext) {
-        completion = it
-    })
-    return completion.let {
-        require(it != null) {
-            "Coroutine didn't run to completion."
-        }
-        it.getOrThrow()
-    }
-}

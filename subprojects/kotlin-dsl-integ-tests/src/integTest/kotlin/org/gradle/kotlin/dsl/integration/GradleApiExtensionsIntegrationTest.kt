@@ -134,6 +134,7 @@ class GradleApiExtensionsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can use Gradle API generated extensions in buildSrc`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

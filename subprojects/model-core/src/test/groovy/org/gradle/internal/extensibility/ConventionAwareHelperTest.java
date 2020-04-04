@@ -44,7 +44,7 @@ public class ConventionAwareHelperTest {
     TestTask testTask;
 
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
     @Before public void setUp() {
         testTask = TestUtil.create(temporaryFolder).task(TestTask.class);

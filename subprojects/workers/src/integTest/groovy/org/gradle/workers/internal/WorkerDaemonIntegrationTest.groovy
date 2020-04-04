@@ -88,7 +88,8 @@ class WorkerDaemonIntegrationTest extends AbstractWorkerExecutorIntegrationTest 
             task runInWorker(type: WorkerTask) {
                 isolationMode = IsolationMode.PROCESS
                 workActionClass = ${workActionThatPrintsWorkingDirectory.name}.class
-                additionalForkOptions = { it.workingDir = project.file("unsupported") }
+                def workDirPath = project.file("unsupported")
+                additionalForkOptions = { it.workingDir = workDirPath }
             }
         """
 

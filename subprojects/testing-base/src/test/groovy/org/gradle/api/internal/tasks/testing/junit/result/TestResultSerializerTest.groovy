@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class TestResultSerializerTest extends Specification {
     @Rule
-    private TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    private TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     def "can write and read results"() {
         def class1 = new TestClassResult(1, 'Class1', 1234)

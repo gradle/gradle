@@ -16,13 +16,13 @@
 
 package org.gradle.launcher.daemon.server.health.gc
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
-import org.gradle.util.TestPrecondition
 import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 
@@ -31,7 +31,7 @@ import static org.gradle.launcher.daemon.server.DaemonStateCoordinator.DAEMON_WI
 
 @Category(ContextualMultiVersionTest.class)
 @RunWith(MultiVersionSpecRunner)
-@TargetCoverage({garbageCollectors})
+@TargetCoverage({ garbageCollectors })
 class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     static def version
     GarbageCollectorUnderTest garbageCollector = version
@@ -160,10 +160,10 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         def events = eventsFor(initial, max, leakRate, gcRate)
         buildFile << """
             ${injectionImports}
-            
+
             task injectEvents {
                 doLast {
-                    ${eventInjectionConfiguration(type, events, initial, max)}                   
+                    ${eventInjectionConfiguration(type, events, initial, max)}
                 }
             }
         """
@@ -205,12 +205,12 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
                     latch.countDown()
                 }
             })
-            
-            injectEvents.doLast { 
+
+            injectEvents.doLast {
                 // Wait for a daemon expiration event to occur
                 latch.await(6, TimeUnit.SECONDS)
                 // Give the monitor a chance to stop the daemon abruptly
-                sleep 6000 
+                sleep 6000
             }
         """
     }
@@ -256,13 +256,16 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
     }
 
     static List<GarbageCollectorUnderTest> getGarbageCollectors() {
-        if (TestPrecondition.JDK_IBM.fulfilled) {
-            return [ new GarbageCollectorUnderTest(JavaGarbageCollector.IBM_ALL, GarbageCollectorMonitoringStrategy.IBM_ALL) ]
+        if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+            return [
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
+            ]
         } else {
             return [
-                    new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS),
-                    new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
-                    new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_PARALLEL_CMS, GarbageCollectorMonitoringStrategy.ORACLE_PARALLEL_CMS),
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_SERIAL9, GarbageCollectorMonitoringStrategy.ORACLE_SERIAL),
+                new GarbageCollectorUnderTest(JavaGarbageCollector.ORACLE_G1, GarbageCollectorMonitoringStrategy.ORACLE_G1)
             ]
         }
     }
@@ -278,7 +281,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
 
 
         @Override
-        public String toString() {
+        String toString() {
             return configuration.name()
         }
     }

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize;
 
+import javax.annotation.Nullable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,6 +55,16 @@ public abstract class AbstractDecoder implements Decoder {
         return readLong();
     }
 
+    @Nullable
+    @Override
+    public Integer readNullableSmallInt() throws IOException {
+        if (readBoolean()) {
+            return readSmallInt();
+        } else {
+            return null;
+        }
+    }
+
     @Override
     public String readNullableString() throws EOFException, IOException {
         if (readBoolean()) {
@@ -76,6 +87,16 @@ public abstract class AbstractDecoder implements Decoder {
         if (remaining > 0) {
             throw new EOFException();
         }
+    }
+
+    @Override
+    public <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void skipChunked() throws EOFException, IOException {
+        throw new UnsupportedOperationException();
     }
 
     protected abstract int maybeReadBytes(byte[] buffer, int offset, int count) throws IOException;

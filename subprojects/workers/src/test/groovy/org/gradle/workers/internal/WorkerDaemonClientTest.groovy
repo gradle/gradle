@@ -17,13 +17,14 @@
 package org.gradle.workers.internal
 
 import org.gradle.api.logging.LogLevel
+import org.gradle.process.internal.worker.MultiRequestClient
 import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import spock.lang.Specification
 
 class WorkerDaemonClientTest extends Specification {
     def "underlying worker is executed when client is executed"() {
-        def workerDaemonProcess = Mock(WorkerDaemonProcess)
+        def workerDaemonProcess = Mock(MultiRequestClient)
 
         given:
         def client = client(workerDaemonProcess)
@@ -32,7 +33,7 @@ class WorkerDaemonClientTest extends Specification {
         client.execute(spec())
 
         then:
-        1 * workerDaemonProcess.execute(_)
+        1 * workerDaemonProcess.run(_)
     }
 
     def "use count is incremented when client is executed"() {
@@ -48,10 +49,10 @@ class WorkerDaemonClientTest extends Specification {
     }
 
     WorkerDaemonClient client() {
-        return client(Mock(WorkerDaemonProcess))
+        return client(Mock(MultiRequestClient))
     }
 
-    WorkerDaemonClient client(WorkerDaemonProcess workerDaemonProcess) {
+    WorkerDaemonClient client(MultiRequestClient workerDaemonProcess) {
         def daemonForkOptions = Mock(DaemonForkOptions)
         def actionExecutionSpecFactory = Stub(ActionExecutionSpecFactory) {
             newTransportableSpec(_) >> { Mock(TransportableActionExecutionSpec) }

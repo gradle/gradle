@@ -33,7 +33,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 class DefaultPersistentDirectoryStoreConcurrencyTest extends ConcurrentSpec {
 
     @Rule
-    def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    def TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = tmpDir.file("dir")
     def metaDataProvider = new DefaultProcessMetaDataProvider(NativeServicesTestFixture.getInstance().get(ProcessEnvironment));
     def lockManager = new DefaultFileLockManager(metaDataProvider, new NoOpFileLockContentionHandler())

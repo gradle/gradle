@@ -19,12 +19,13 @@ package org.gradle.execution;
 import org.gradle.StartParameter;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.execution.CatchExceptionTaskExecuter;
@@ -97,13 +98,13 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
-        TaskInputsListener taskInputsListener
+        TaskInputsListeners taskInputsListeners
     ) {
         return new DefaultEmptySourceTaskSkipper(
             buildOutputCleanupRegistry,
             deleter,
             outputChangeListener,
-            taskInputsListener
+            taskInputsListeners
         );
     }
 
@@ -119,6 +120,7 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         FileCollectionFingerprinterRegistry fingerprinterRegistry,
+        FileOperations fileOperations,
         ListenerManager listenerManager,
         OutputChangeListener outputChangeListener,
         OutputFilesRepository outputFilesRepository,
@@ -165,7 +167,8 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             listenerManager,
             reservedFileSystemLocationRegistry,
             emptySourceTaskSkipper,
-            fileCollectionFactory
+            fileCollectionFactory,
+            fileOperations
         );
         executer = new CleanupStaleOutputsExecuter(
             buildOperationExecutor,

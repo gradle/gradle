@@ -19,8 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.internal.component.BuildableJavaComponent
 import org.gradle.api.internal.component.ComponentRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class JavaPluginIntegrationTest extends AbstractIntegrationSpec {
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def appliesBasePluginsAndAddsConventionObject() {
         given:
         buildFile << """

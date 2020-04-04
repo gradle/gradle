@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class DefaultCppBinaryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     def implementation = Stub(ConfigurationInternal)
     def headerDirs = Stub(FileCollection)

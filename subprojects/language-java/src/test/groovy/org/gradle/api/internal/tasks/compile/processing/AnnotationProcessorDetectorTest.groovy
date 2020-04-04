@@ -31,7 +31,7 @@ import static org.gradle.api.internal.tasks.compile.processing.AnnotationProcess
 
 class AnnotationProcessorDetectorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     Logger logger = Mock(Logger) {
         0 * _

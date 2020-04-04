@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.file
 
-
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.internal.Factory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -29,13 +30,13 @@ import static org.gradle.util.Matchers.strictlyEquals
 
 class DefaultProjectLayoutTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile projectDir
     DefaultProjectLayout layout
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskDependencyFactory), TestFiles.fileCollectionFactory(projectDir))
+        layout = new DefaultProjectLayout(projectDir, TestFiles.resolver(projectDir), Stub(TaskDependencyFactory), Stub(Factory), Stub(PropertyHost), TestFiles.fileCollectionFactory(projectDir), TestFiles.filePropertyFactory(projectDir), TestFiles.fileFactory())
     }
 
     def "can query the project directory"() {

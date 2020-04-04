@@ -40,7 +40,7 @@ import static org.gradle.api.tasks.AntBuilderAwareUtil.assertSetContainsForAllTy
 class DefaultConfigurableFileTreeTest extends AbstractTestForPatternSet {
     TaskDependencyFactory taskDependencyFactory = DefaultTaskDependencyFactory.withNoAssociatedProject()
     DefaultConfigurableFileTree fileSet
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     File testDir = tmpDir.testDirectory
     FileResolver fileResolverStub = resolver(testDir)
 

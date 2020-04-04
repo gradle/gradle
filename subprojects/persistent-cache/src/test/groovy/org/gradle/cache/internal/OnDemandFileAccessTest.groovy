@@ -30,7 +30,7 @@ class OnDemandFileAccessTest extends Specification {
     final FileLockManager manager = Mock()
     final FileLock targetLock = Mock()
 
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
     OnDemandFileAccess lock
     File file
 

@@ -24,7 +24,6 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 
-@Requires(TestPrecondition.SET_ENV_VARIABLE)
 class NativePlatformConsoleDetectorTest extends Specification {
     private Terminals terminals = Mock()
     private NativePlatformConsoleDetector detector = new NativePlatformConsoleDetector(terminals)

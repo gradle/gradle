@@ -83,7 +83,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
-    @ToBeFixedForInstantExecution
     def "changing custom Groovy task implementation in buildSrc invalidates its cached result"() {
         configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
@@ -230,23 +229,24 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build/output2.txt").text == "data2"
     }
 
-    @ToBeFixedForInstantExecution
     def "cacheable task with multiple outputs with not matching cardinality don't get cached"() {
         buildFile << """
             task customTask {
                 outputs.cacheIf { true }
                 def fileList
-                if (project.hasProperty("changedCardinality")) {
+                if (System.getProperty("changedCardinality")) {
                     fileList = ["build/output1.txt"]
                 } else {
                     fileList = ["build/output1.txt", "build/output2.txt"]
                 }
                 outputs.files files(fileList) withPropertyName("out")
+                def output1 = project.file("build/output1.txt")
+                def output2 = project.file("build/output2.txt")
                 doLast {
-                    file("build").mkdirs()
-                    file("build/output1.txt") << "data"
-                    if (!project.hasProperty("changedCardinality")) {
-                        file("build/output2.txt") << "data"
+                    output1.parentFile.mkdirs()
+                    output1 << "data"
+                    if (!System.getProperty("changedCardinality")) {
+                        output2 << "data"
                     }
                 }
             }
@@ -259,7 +259,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        withBuildCache().run "customTask", "-PchangedCardinality"
+        withBuildCache().run "customTask", "-DchangedCardinality=yes"
         then:
         executedAndNotSkipped ":customTask"
     }
@@ -273,7 +273,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFile outputFile
 
                 @TaskAction copy() {
-                    project.mkdir outputFile.parentFile
+                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                 }
             }
@@ -324,7 +324,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             inputs.file(file("input.txt"))
             outputs.file(outputFile)
             doLast {
-                project.mkdir outputFile.parentFile
+                outputFile.parentFile.mkdirs()
                 outputFile.text = file("input.txt").text
             }
         }
@@ -527,8 +527,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("input.txt") << "data"
 
         buildFile << """
+            import javax.inject.Inject
+
             @CacheableTask
-            class CustomTask extends DefaultTask {
+            abstract class CustomTask extends DefaultTask {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)
                 File inputFile = project.file("input.txt")
@@ -539,9 +541,12 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputFile
                 File output = project.file("build/output.txt")
 
+                @Inject
+                abstract FileSystemOperations getFs()
+
                 @TaskAction void doSomething() {
                     output.text = inputFile.text
-                    project.delete(missing)
+                    fs.delete { delete(missing) }
                 }
             }
 
@@ -872,7 +877,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
 
         when:
         cleanBuildDir()
-        succeeds "customTask", "-PassertLocalState"
+        succeeds "customTask", "-DassertLocalState=yes"
         then:
         executedAndNotSkipped ":customTask"
 
@@ -931,9 +936,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
             import org.gradle.api.*
             import org.gradle.api.tasks.*
+            import javax.inject.Inject
 
             @CacheableTask
-            class ProducerTask extends DefaultTask {
+            abstract class ProducerTask extends DefaultTask {
                 @InputFile @PathSensitive(PathSensitivity.NONE) File input
                 @Optional @OutputFile nullFile
                 @Optional @OutputDirectory nullDir
@@ -943,13 +949,16 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 @OutputDirectory File emptyDir
                 @OutputDirectory File singleFileInDir
                 @OutputDirectory File manyFilesInDir
+                @Inject abstract FileSystemOperations getFs()
                 @TaskAction action() {
-                    project.delete(missingFile)
-                    project.delete(missingDir)
+                    fs.delete {
+                        delete(missingFile)
+                        delete(missingDir)
+                    }
                     regularFile.text = "regular file"
-                    project.file("\$singleFileInDir/file.txt").text = "single file in dir"
-                    project.file("\$manyFilesInDir/file-1.txt").text = "file #1 in dir"
-                    project.file("\$manyFilesInDir/file-2.txt").text = "file #2 in dir"
+                    new File(singleFileInDir, "file.txt").text = "single file in dir"
+                    new File(manyFilesInDir, "file-1.txt").text = "file #1 in dir"
+                    new File(manyFilesInDir, "file-2.txt").text = "file #2 in dir"
                 }
             }
 

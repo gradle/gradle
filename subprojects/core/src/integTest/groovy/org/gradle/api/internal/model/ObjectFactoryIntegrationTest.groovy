@@ -359,8 +359,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         class Thing {}
         
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Thing, 'bogus') 
+                objects.newInstance(Thing, 'bogus')
             }
         }
 """
@@ -379,8 +380,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         interface Thing {}
         
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Thing, 'bogus') 
+                objects.newInstance(Thing, 'bogus')
             }
         }
 """
@@ -402,8 +404,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         }
 
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Things.Thing, 'bogus') 
+                objects.newInstance(Things.Thing, 'bogus')
             }
         }
 """
@@ -427,8 +430,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         }
         
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Thing) 
+                objects.newInstance(Thing)
             }
         }
 """
@@ -449,8 +453,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         }
         
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Thing) 
+                objects.newInstance(Thing)
             }
         }
 """
@@ -471,8 +476,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         }
         
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Thing) 
+                objects.newInstance(Thing)
             }
         }
 """
@@ -494,8 +500,9 @@ class ObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
         }
         
         task fail {
+            def objects = project.objects
             doLast {
-                project.objects.newInstance(Thing) 
+                objects.newInstance(Thing)
             }
         }
 """

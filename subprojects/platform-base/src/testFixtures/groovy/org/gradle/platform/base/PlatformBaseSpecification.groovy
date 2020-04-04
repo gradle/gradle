@@ -34,7 +34,7 @@ import spock.lang.Specification
 
 abstract class PlatformBaseSpecification extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     final def project = TestUtil.create(testDir).rootProject()
     @Rule SetRuleContext setContext = new SetRuleContext()

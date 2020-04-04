@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks.scala;
 import com.google.common.collect.Lists;
 import org.gradle.language.scala.tasks.BaseScalaCompileOptions;
 
+import java.io.File;
 import java.util.List;
 
 public class ZincScalaCompilerArgumentsGenerator {
@@ -40,6 +41,11 @@ public class ZincScalaCompilerArgumentsGenerator {
         }
         if (options.getAdditionalParameters() != null) {
             result.addAll(options.getAdditionalParameters());
+        }
+        if (spec.getScalaCompilerPlugins() != null) {
+            for (File plugin : spec.getScalaCompilerPlugins()) {
+                result.add("-Xplugin:" + plugin.getPath());
+            }
         }
 
         return result;

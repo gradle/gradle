@@ -67,6 +67,7 @@ class JavaApplicationInitIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "creates sample source using spock instead of junit with #scriptDsl build scripts"() {
         when:
         run('init', '--type', 'java-application', '--test-framework', 'spock', '--dsl', scriptDsl.id)

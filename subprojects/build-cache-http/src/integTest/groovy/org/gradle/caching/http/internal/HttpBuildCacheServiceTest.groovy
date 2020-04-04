@@ -52,7 +52,7 @@ class HttpBuildCacheServiceTest extends Specification {
     @Rule
     HttpServer server = new HttpServer()
     @Rule
-    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
 
     BuildCacheService cache
     BuildCacheServiceFactory.Describer buildCacheDescriber

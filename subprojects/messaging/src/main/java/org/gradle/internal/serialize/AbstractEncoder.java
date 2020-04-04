@@ -48,6 +48,11 @@ public abstract class AbstractEncoder implements Encoder {
     }
 
     @Override
+    public void encodeChunked(EncodeAction<Encoder> writeAction) throws Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void writeSmallInt(int value) throws IOException {
         writeInt(value);
     }
@@ -55,6 +60,16 @@ public abstract class AbstractEncoder implements Encoder {
     @Override
     public void writeSmallLong(long value) throws IOException {
         writeLong(value);
+    }
+
+    @Override
+    public void writeNullableSmallInt(@Nullable Integer value) throws IOException {
+        if (value == null) {
+            writeBoolean(false);
+        } else {
+            writeBoolean(true);
+            writeSmallInt(value);
+        }
     }
 
     @Override
@@ -80,7 +95,7 @@ public abstract class AbstractEncoder implements Encoder {
 
         @Override
         public void write(int b) throws IOException {
-            writeByte((byte)b);
+            writeByte((byte) b);
         }
     }
 }

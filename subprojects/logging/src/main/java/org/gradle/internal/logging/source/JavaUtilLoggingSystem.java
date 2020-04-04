@@ -40,16 +40,11 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     // SLF4JBridgeHandler which is installed by this logging system.
     static {
         LOG_LEVEL_MAPPING.put(LogLevel.DEBUG, Level.FINE);
-        LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.FINE);
-        LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.FINE);
-        LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.FINE);
-        LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.FINE);
-        LOG_LEVEL_MAPPING.put(LogLevel.ERROR, Level.FINE);
-        //LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.CONFIG);
-        //LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.WARNING);
-        //LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.WARNING);
-        //LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.SEVERE);
-        //LOG_LEVEL_MAPPING.put(LogLevel.ERROR, Level.SEVERE);
+        LOG_LEVEL_MAPPING.put(LogLevel.INFO, Level.CONFIG);
+        LOG_LEVEL_MAPPING.put(LogLevel.LIFECYCLE, Level.WARNING);
+        LOG_LEVEL_MAPPING.put(LogLevel.WARN, Level.WARNING);
+        LOG_LEVEL_MAPPING.put(LogLevel.QUIET, Level.SEVERE);
+        LOG_LEVEL_MAPPING.put(LogLevel.ERROR, Level.SEVERE);
     }
 
     private final Logger logger;
@@ -106,14 +101,13 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     private void install(Level level) {
-        if (installed) {
-            return;
+        if (!installed) {
+            LogManager.getLogManager().reset();
+            SLF4JBridgeHandler.install();
+            installed = true;
         }
 
-        LogManager.getLogManager().reset();
-        SLF4JBridgeHandler.install();
         logger.setLevel(level);
-        installed = true;
     }
 
     private static class SnapshotImpl implements Snapshot {

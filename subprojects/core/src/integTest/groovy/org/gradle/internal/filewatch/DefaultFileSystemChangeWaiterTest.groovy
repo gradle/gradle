@@ -29,7 +29,7 @@ import org.junit.Rule
 import java.util.concurrent.atomic.AtomicReference
 
 class DefaultFileSystemChangeWaiterTest extends ConcurrentSpec {
-    @Rule TestNameTestDirectoryProvider testDirectory
+    @Rule TestNameTestDirectoryProvider testDirectory = new TestNameTestDirectoryProvider(getClass())
     FileWatcherEventListener reporter = new LoggingFileWatchEventListener()
     def fileSystem = Stub(FileSystem)
     def pendingChangesListener = Mock(PendingChangesListener)

@@ -115,7 +115,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
-    @ToBeFixedForInstantExecution
     def "task declared in buildSrc is not up-to-date after its source is changed"() {
         file("input.txt") << "input"
 
@@ -191,11 +190,11 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class IncrementalTask extends DefaultTask {
                 @InputFile File input
-             
+
                 @TaskAction execute(${incrementalChangesType} inputChanges) {
                 }
-            }   
-            
+            }
+
             task noOutput(type: IncrementalTask) {
                 input = file('${input.name}')
             }

@@ -29,7 +29,7 @@ import javax.tools.ToolProvider
 
 class MixInLegacyTypesClassLoaderTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def classesDir = tmpDir.file("classes")
     def srcDir = tmpDir.file("source")
 

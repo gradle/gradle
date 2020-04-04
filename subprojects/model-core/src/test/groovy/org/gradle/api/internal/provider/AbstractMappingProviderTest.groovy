@@ -31,6 +31,11 @@ class AbstractMappingProviderTest extends ProviderSpec<String> {
     }
 
     @Override
+    Class<String> type() {
+        return String
+    }
+
+    @Override
     String someValue() {
         "{s1}"
     }
@@ -58,6 +63,11 @@ class AbstractMappingProviderTest extends ProviderSpec<String> {
     class TestProvider extends AbstractMappingProvider<String, String> {
         TestProvider(ProviderInternal<? extends String> provider) {
             super(String, provider)
+        }
+
+        @Override
+        protected String getMapDescription() {
+            return "thing"
         }
 
         @Override

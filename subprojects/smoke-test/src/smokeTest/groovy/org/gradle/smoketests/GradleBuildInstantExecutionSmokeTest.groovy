@@ -24,14 +24,24 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.jvm.JvmInstallation
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
+import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+import java.text.SimpleDateFormat
 
 @Requires(value = TestPrecondition.JDK9_OR_LATER, adhoc = {
     GradleContextualExecuter.isNotInstant() && GradleBuildJvmSpec.isAvailable()
 })
 class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
+    private BuildResult result
+
+    BuildResult getResult() {
+        if (result == null) {
+            throw new IllegalStateException("Need to run a build before result is availble.")
+        }
+        return result
+    }
 
     def "can build gradle with instant execution enabled"() {
 
@@ -49,48 +59,61 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
         ]
 
         when:
-        def result = instantRun(*supportedTasks)
+        instantRun(*supportedTasks)
 
         then:
         result.output.count("Calculating task graph as no instant execution cache is available") == 1
 
         when:
+        instantRun(*supportedTasks)
+
+        then:
+        result.output.count("Reusing instant execution cache") == 1
+        result.task(":distributions:binZip").outcome == TaskOutcome.UP_TO_DATE
+        result.task(":core:integTest").outcome == TaskOutcome.UP_TO_DATE
+
+        when:
         run("clean")
 
         and:
-        result = instantRun(*supportedTasks)
+        instantRun(*supportedTasks)
 
         then:
         result.output.count("Reusing instant execution cache") == 1
 
         and:
         file("build/distributions").allDescendants().count { it ==~ /gradle-.*-bin.zip/ } == 1
+        result.task(":core:integTest").outcome == TaskOutcome.SUCCESS
         new DefaultTestExecutionResult(file("subprojects/core"), "build", "", "", "integTest")
             .assertTestClassesExecuted("org.gradle.NameValidationIntegrationTest")
     }
 
-    private BuildResult instantRun(String... tasks) {
-        return run("-Dorg.gradle.unsafe.instant-execution=true", *tasks)
+    private void instantRun(String... tasks) {
+        result = run(
+            "-Dorg.gradle.unsafe.instant-execution=true",
+            "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false", // TODO remove
+            *tasks
+        )
     }
 
     BuildResult run(String... tasks) {
-        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS))
-            .withEnvironment(
-                // Run the test build without the CI environment variable
-                // so `buildTimestamp` doesn't change between invocations
-                // (which would invalidate the instant execution cache).
-                // See BuildVersionPlugin in buildSrc.
-                new HashMap(System.getenv()).tap {
-                    remove("CI")
-                }
-            )
-            .build()
+        result = null
+        return runner(*(tasks + GRADLE_BUILD_TEST_ARGS)).build()
     }
 
     private static final String[] GRADLE_BUILD_TEST_ARGS = [
-        "--dependency-verification=off", // TODO:instant-execution remove once handled
-        "-Dorg.gradle.unsafe.kotlin-eap=true" // TODO:instant-execution kotlin 1.3.61 doesn't support instant execution
+        "-PbuildTimestamp=" + newTimestamp()
     ]
+
+    private static String newTimestamp() {
+        newTimestampDateFormat().format(new Date())
+    }
+
+    static SimpleDateFormat newTimestampDateFormat() {
+        new SimpleDateFormat('yyyyMMddHHmmssZ').tap {
+            setTimeZone(TimeZone.getTimeZone("UTC"))
+        }
+    }
 }
 
 

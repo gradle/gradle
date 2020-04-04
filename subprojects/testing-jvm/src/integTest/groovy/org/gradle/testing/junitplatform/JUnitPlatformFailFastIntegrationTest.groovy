@@ -17,12 +17,9 @@
 package org.gradle.testing.junitplatform
 
 import org.gradle.testing.fixture.AbstractJvmFailFastIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.test.fixtures.junitplatform.JUnitPlatformTestRewriter.LATEST_JUPITER_VERSION
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class JUnitPlatformFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     @Override
     String testAnnotationClass() {

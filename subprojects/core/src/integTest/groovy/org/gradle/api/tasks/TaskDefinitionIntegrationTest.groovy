@@ -17,10 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.Requires
 import spock.lang.Unroll
-
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
     private static final String CUSTOM_TASK_WITH_CONSTRUCTOR_ARGS = """
@@ -312,6 +309,29 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         'Object[]'  | "(['hello', 42] as Object[])"
     }
 
+    def "task constructor can use identity properties of task"() {
+        given:
+        buildFile << """
+            class LoggingTask extends DefaultTask {
+                LoggingTask() {
+                    println("name = " + name)
+                    println("path = " + path)
+                    println("toString() = " + this)
+                }
+            }
+
+            task one(type: LoggingTask)
+        """
+
+        when:
+        run("one")
+
+        then:
+        outputContains("name = one")
+        outputContains("path = :one")
+        outputContains("toString() = task ':one'")
+    }
+
     @Unroll
     def "fails to create custom task using #description if constructor arguments are missing"() {
         given:
@@ -420,12 +440,12 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             class MyPlugin implements Plugin<Project> {
                 class MyTask extends DefaultTask {
                 }
-                
+
                 void apply(Project p) {
                     p.tasks.register("myTask", MyTask)
                 }
             }
-            
+
             apply plugin: MyPlugin
         """
 
@@ -438,7 +458,6 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Class MyPlugin.MyTask is a non-static inner class.")
     }
 
-    @Requires(KOTLIN_SCRIPT)
     def 'can run custom task with constructor arguments via Kotlin friendly DSL'() {
         given:
         settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
@@ -465,20 +484,20 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             Task foo = tasks.create("foo")
-            
+
             tasks.add(new Bar("bar", foo))
-            
+
             class Bar implements Task {
                 String name
-                
+
                 @Delegate
                 Task delegate
-                
+
                 Bar(String name, Task delegate) {
                     this.name = name
                     this.delegate = delegate
                 }
-                
+
                 String getName() {
                     return name
                 }
@@ -496,7 +515,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         given:
         buildFile << """
             Task foo = tasks.create("foo")
-            
+
             tasks.addLater(provider { foo })
         """
 
@@ -519,31 +538,31 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
             tasks.register("defaultTask") {
                 assert false : "This should not be realized"
             }
-             
+
             def schema = tasks.collectionSchema.elements.collectEntries { e ->
                 [ e.name, e.publicType.simpleName ]
             }
             assert schema.size() == 18
-            
+
             assert schema["help"] == "Help"
-            
+
             assert schema["projects"] == "ProjectReportTask"
             assert schema["tasks"] == "TaskReportTask"
             assert schema["properties"] == "PropertyReportTask"
-            
+
             assert schema["dependencyInsight"] == "DependencyInsightReportTask"
             assert schema["dependencies"] == "DependencyReportTask"
             assert schema["buildEnvironment"] == "BuildEnvironmentReportTask"
-            
+
             assert schema["components"] == "ComponentReport"
             assert schema["model"] == "ModelReport"
             assert schema["dependentComponents"] == "DependentComponentsReport"
-            
+
             assert schema["init"] == "InitBuild"
             assert schema["wrapper"] == "Wrapper"
 
             assert schema["prepareKotlinBuildScriptModel"] == "DefaultTask"
-            
+
             assert schema["foo"] == "Foo"
             assert schema["bar"] == "Foo"
             assert schema["builtInTask"] == "Copy"
@@ -558,7 +577,7 @@ class TaskDefinitionIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             Task foo = tasks.create("foo")
             Task bar = tasks.create("bar")
-            
+
             tasks.addAllLater(provider { [foo, bar] })
         """
 

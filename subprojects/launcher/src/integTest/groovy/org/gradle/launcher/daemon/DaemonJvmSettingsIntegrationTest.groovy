@@ -18,11 +18,8 @@ package org.gradle.launcher.daemon
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
-@Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
     def "uses current JVM and default JVM args when none specified"() {
         file('build.gradle') << """
@@ -66,7 +63,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         buildScript """
             import java.lang.management.ManagementFactory
             import java.lang.management.MemoryMXBean
-            
+
             println "GRADLE_VERSION: " + gradle.gradleVersion
 
             task verify {
@@ -74,7 +71,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
                     MemoryMXBean memBean = ManagementFactory.getMemoryMXBean()
                     println "Initial Heap: " + memBean.heapMemoryUsage.init
                     assert memBean.heapMemoryUsage.init == 256 * 1024 * 1024
-                    println "    Max Heap: " + memBean.heapMemoryUsage.max 
+                    println "    Max Heap: " + memBean.heapMemoryUsage.max
 
                     // Java 8 does not report max heap size exactly matching the command line setting
                     if ($java9orAbove) {

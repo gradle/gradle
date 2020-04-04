@@ -19,7 +19,7 @@ Gradle supports two types of task. One such type is the simple task, where you d
 
 The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some properties which you can use to configure the behaviour. We have seen these in <<more_about_tasks.adoc#more_about_tasks,Authoring Tasks>>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need to implement the task behaviour as you do with simple tasks. You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly across different builds.
 
-The behaviour and properties of an enhanced task is defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
+The behaviour and properties of an enhanced task are defined by the task's class. When you declare an enhanced task, you specify the type, or class of the task.
 
 Implementing your own custom task class in Gradle is easy. You can implement a custom task class in pretty much any language you like, provided it ends up compiled to JVM bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a task class, as the Gradle API has been designed to work well with these languages. In general, a task implemented using Java or Kotlin, which are statically typed, will perform better than the same task implemented using Groovy.
 
@@ -89,11 +89,10 @@ Now we will move our task to a standalone project, so we can publish it and shar
 
 .A build for a custom task
 ====
-include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
+include::sample[dir="snippets/customExternalTask/kotlin/task",files="build.gradle.kts[tags=external-task-build]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
 
 We just follow the convention for where the source for the task class should go.
 
@@ -102,7 +101,7 @@ We just follow the convention for where the source for the task class should go.
 [source.multi-language-sample,groovy]
 .src/main/groovy/org/gradle/GreetingTask.groovy
 ----
-include::{samplesPath}/customPlugin/groovy/plugin/src/main/groovy/org/gradle/GreetingTask.groovy[]
+include::{samplesPath}/customExternalTask/groovy/task/src/main/groovy/org/gradle/GreetingTask.groovy[]
 ----
 
 [[sec:using_your_task_class_in_another_project]]
@@ -112,8 +111,8 @@ To use a task class in a build script, you need to add the class to the build sc
 
 .Using a custom task in another project
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="build.gradle[tags=use-task]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
+include::sample[dir="snippets/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
+include::sample[dir="snippets/customExternalTask/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
 ====
 
 [[sec:writing_tests_for_your_task_class]]
@@ -126,7 +125,7 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingTaskTest.groovy
 ----
-include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
+include::{samplesPath}/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
 ----
 
 [[incremental_tasks]]
@@ -185,7 +184,6 @@ include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="bui
 include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/tasks/incrementalTask`** in the ‘-all’ distribution of Gradle.
 
 If for some reason the task is executed non-incrementally, for example by running with `--rerun-tasks`, all files are reported as `ADDED`, irrespective of the previous state.
 In this case, Gradle automatically removes the previous outputs, so the incremental task only needs to process the given files.

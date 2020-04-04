@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.runner.RunWith
 import spock.lang.Issue
 
@@ -25,6 +26,7 @@ import spock.lang.Issue
 class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2889")
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "detached configurations may have separate dependencies"() {
         settingsFile << "include 'a', 'b'"
         mavenRepo.module("org", "foo").publish()

@@ -31,7 +31,7 @@ import java.util.function.Function
 class RoutingVirtualFileSystemTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     VirtualFileSystem gradleUserHomeVirtualFileSystem = Mock(VirtualFileSystem)
     VirtualFileSystem buildSessionScopedVirtualFileSystem = Mock(VirtualFileSystem)

@@ -36,8 +36,9 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
         buildFile << """
             allprojects {
                 task ping {
+                    def projectName = project.name
                     doLast {
-                        ${blockingServer.callFromBuildUsingExpression("project.name")}
+                        ${blockingServer.callFromBuildUsingExpression("projectName")}
                     }
                 }
             }
@@ -50,7 +51,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
 
         buildFile << """
             def service = gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {}
-            
+
             allprojects {
                 ping.usesService(service)
             }
@@ -75,7 +76,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
             def service = gradle.sharedServices.registerIfAbsent("exclusive", BuildService) {
                 maxParallelUsages = 1
             }
-            
+
             allprojects {
                 ping.usesService(service)
             }
@@ -101,7 +102,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
             def service = gradle.sharedServices.registerIfAbsent("service", BuildService) {
                 maxParallelUsages = 2
             }
-            
+
             allprojects {
                 ping.usesService(service)
             }
@@ -125,7 +126,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
             def service = gradle.sharedServices.registerIfAbsent("service", BuildService) {
                 maxParallelUsages = 2
             }
-            
+
             allprojects {
                 ping.usesService(service)
             }
@@ -154,7 +155,7 @@ class BuildServiceParallelExecutionIntegrationTest extends AbstractIntegrationSp
             def service2 = gradle.sharedServices.registerIfAbsent("service2", BuildService) {
                 maxParallelUsages = 1
             }
-            
+
             project(':a') {
                 ping.usesService(service1)
                 ping.usesService(service2)

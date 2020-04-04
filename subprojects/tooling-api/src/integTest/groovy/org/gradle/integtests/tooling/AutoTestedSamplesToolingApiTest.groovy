@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 public class AutoTestedSamplesToolingApiTest extends Specification {
 
-    @Rule public final TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule public final TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     void runSamples() {
         expect:

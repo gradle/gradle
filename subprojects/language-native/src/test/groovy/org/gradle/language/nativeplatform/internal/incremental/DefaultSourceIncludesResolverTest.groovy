@@ -26,7 +26,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultSourceIncludesResolverTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def testDirectory = temporaryFolder.testDirectory
     def sourceDirectory = testDirectory.createDir("sources")

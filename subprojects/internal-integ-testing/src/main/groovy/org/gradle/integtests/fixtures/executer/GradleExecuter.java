@@ -333,6 +333,11 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter noDeprecationChecks();
 
     /**
+     * Disable crash daemon checks
+     */
+    GradleExecuter noDaemonCrashChecks();
+
+    /**
      * Disables asserting that class loaders were not eagerly created, potentially leading to performance problems.
      */
     GradleExecuter withEagerClassLoaderCreationCheckDisabled();

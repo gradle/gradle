@@ -31,7 +31,7 @@ import spock.lang.Unroll
 @UsesNativeServices
 class FileCollectionSymlinkTest extends Specification {
     @Shared Project project = ProjectBuilder.builder().build()
-    @Shared @ClassRule TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    @Shared @ClassRule TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     @Shared TestFile baseDir = temporaryFolder.createDir('baseDir')
     @Shared TestFile file = baseDir.file("file")
     @Shared TestFile symlink = baseDir.file("symlink")

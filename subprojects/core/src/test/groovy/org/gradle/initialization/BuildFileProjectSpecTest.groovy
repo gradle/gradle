@@ -26,7 +26,7 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class BuildFileProjectSpecTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private File file
     private File otherFile
     private BuildFileProjectSpec spec

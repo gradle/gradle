@@ -26,6 +26,9 @@ import org.gradle.internal.DisplayName;
 import javax.annotation.Nullable;
 import java.util.List;
 
+/**
+ * Encapsulates the production of some value.
+ */
 public interface ValueSupplier {
     /**
      * Visits the build dependencies of this supplier, if possible.

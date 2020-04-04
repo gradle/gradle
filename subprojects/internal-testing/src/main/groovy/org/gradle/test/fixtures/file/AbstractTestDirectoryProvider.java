@@ -32,17 +32,23 @@ import java.util.regex.Pattern;
  * A JUnit rule which provides a unique temporary folder for the test.
  */
 abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryProvider {
-    protected TestFile root;
+    protected final TestFile root;
+    private final String className;
 
     private static final Random RANDOM = new Random();
     private static final int ALL_DIGITS_AND_LETTERS_RADIX = 36;
     private static final int MAX_RANDOM_PART_VALUE = Integer.valueOf("zzzzz", ALL_DIGITS_AND_LETTERS_RADIX);
     private static final Pattern WINDOWS_RESERVED_NAMES = Pattern.compile("(con)|(prn)|(aux)|(nul)|(com\\d)|(lpt\\d)", Pattern.CASE_INSENSITIVE);
 
-    private TestFile dir;
     private String prefix;
+    private TestFile dir;
     private boolean cleanup = true;
     private boolean suppressCleanupErrors = false;
+
+    protected AbstractTestDirectoryProvider(TestFile root, Class<?> testClass) {
+        this.root = root;
+        this.className = testClass.getSimpleName();
+    }
 
     @Override
     public void suppressCleanup() {
@@ -71,7 +77,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
 
     @Override
     public Statement apply(final Statement base, Description description) {
-        init(description.getMethodName(), description.getTestClass().getSimpleName());
+        init(description.getMethodName());
 
         return new TestDirectoryCleaningStatement(base, description);
     }
@@ -122,7 +128,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         }
     }
 
-    protected void init(String methodName, String className) {
+    protected void init(String methodName) {
         if (methodName == null) {
             // must be a @ClassRule; use the rule's class name instead
             methodName = getClass().getSimpleName();
@@ -139,7 +145,7 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
     @Override
     public TestFile getTestDirectory() {
         if (dir == null) {
-           dir = createUniqueTestDirectory();
+            dir = createUniqueTestDirectory();
         }
         return dir;
     }
@@ -162,20 +168,20 @@ abstract class AbstractTestDirectoryProvider implements TestRule, TestDirectoryP
         if (prefix == null) {
             // This can happen if this is used in a constructor or a @Before method. It also happens when using
             // @RunWith(SomeRunner) when the runner does not support rules.
-            prefix = "unknown-test-class";
+            prefix = className;
         }
         return prefix;
     }
 
     public TestFile file(Object... path) {
-        return getTestDirectory().file((Object[]) path);
+        return getTestDirectory().file(path);
     }
 
     public TestFile createFile(Object... path) {
-        return file((Object[]) path).createFile();
+        return file(path).createFile();
     }
 
     public TestFile createDir(Object... path) {
-        return file((Object[]) path).createDir();
+        return file(path).createDir();
     }
 }

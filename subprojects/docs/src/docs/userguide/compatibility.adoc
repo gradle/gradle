@@ -17,17 +17,17 @@
 The sections below describe Gradle's compatibility with several integrations. Other versions not listed here may or may not work.
 
 == Java
-A Java version between 8 and 13 is required to execute Gradle. Java 14 and later versions are not yet supported.
+A Java version between 8 and 14 is required to execute Gradle. Java 15 and later versions are not yet supported.
 
 Java 6 and 7 can still be used for <<building_java_projects.adoc#sec:java_cross_compilation,compilation and forked test execution>>.
 
 Any supported version of Java can be used for compile or test.
 
 == Kotlin
-Gradle is tested with Kotlin 1.3.21 through 1.3.61.
+Gradle is tested with Kotlin 1.3.21 through 1.3.71.
 
 == Groovy
-Gradle is tested with Groovy 1.5.8 through 2.5.8.
+Gradle is tested with Groovy 1.5.8 through 2.5.10.
 
 == Android
 Gradle is tested with Android Gradle Plugin 3.4, 3.5 and 3.6.

@@ -26,10 +26,7 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.gradle.test.fixtures.server.http.RepositoryHttpServer
 import org.gradle.tooling.ProjectConnection
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
 import org.junit.Rule
-
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @IntegrationTestTimeout(300)
 @TargetGradleVersion('>=4.0 <5.1')
@@ -50,13 +47,13 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
             import java.net.URLClassLoader
             import java.net.URL
             import org.gradle.internal.classloader.ClasspathUtil
-            
+
             class TestRunnable implements Runnable {
                 @Override public void run() {
                     // Do nothing
                 }
             }
-            
+
             // Set up a simpler classloader that only contains what TestRunnable needs.
             // This can be removed when the issues with long classpaths have been resolved.
             // See https://github.com/gradle/gradle-private/issues/1486
@@ -65,9 +62,9 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
                     ["scripts-remapped", "groovy-all"].any { url.toString().contains(it) }
                 } as URL[]
             )
-            
+
             def testRunnable = cl.loadClass("TestRunnable")
-            
+
             task runInProcess {
                 doLast {
                     def workerExecutor = services.get(WorkerExecutor)
@@ -244,7 +241,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
             repositories {
                maven { url '${mavenHttpRepo.uri}' }
             }
-            
+
             dependencies {
                 implementation project(':a')
                 implementation "group:projectB:1.0"
@@ -345,8 +342,6 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
         resolveCompileA.child("Configure project :b")
     }
 
-
-    @Requires([KOTLIN_SCRIPT])
     def "generates events for nested script plugin applications of different types"() {
         given:
         def scriptPluginGroovy1 = file('scriptPluginGroovy1.gradle')

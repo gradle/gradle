@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
 import spock.lang.Issue
@@ -333,8 +334,11 @@ allprojects {
 }
 
 project(":a") {
-    configurations { 'default' {} }
-    dependencies { 'default' 'group:externalA:1.5' }
+    configurations {
+        deps
+        'default' { extendsFrom deps }
+    }
+    dependencies { deps 'group:externalA:1.5' }
     task xJar(type: Jar) { archiveBaseName='x' }
     task yJar(type: Jar) { archiveBaseName='y' }
     artifacts { 'default' xJar, yJar }
@@ -437,8 +441,11 @@ project(':b') {
 subprojects {
     apply plugin: 'base'
     configurations {
-        'default'
+        first
         other
+        'default' {
+            extendsFrom first
+        }
     }
     task jar(type: Jar)
     artifacts {
@@ -448,25 +455,25 @@ subprojects {
 
 project('a') {
     dependencies {
-        'default' project(':b')
+        first project(':b')
         other project(':b')
     }
     task listJars {
-        dependsOn configurations.default
+        dependsOn configurations.first
         dependsOn configurations.other
         doFirst {
-            def jars = configurations.default.collect { it.name } as Set
+            def jars = configurations.first.collect { it.name } as Set
             assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
 
             jars = configurations.other.collect { it.name } as Set
             assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
 
             // Check type of root component
-            def defaultResult = configurations.default.incoming.resolutionResult
+            def defaultResult = configurations.first.incoming.resolutionResult
             def defaultRootId = defaultResult.root.id
             assert defaultRootId instanceof ProjectComponentIdentifier
 
-            def otherResult = configurations.default.incoming.resolutionResult
+            def otherResult = configurations.other.incoming.resolutionResult
             def otherRootId = otherResult.root.id
             assert otherRootId instanceof ProjectComponentIdentifier
         }
@@ -475,13 +482,13 @@ project('a') {
 
 project('b') {
     dependencies {
-        'default' project(':c')
+        first project(':c')
     }
 }
 
 project('c') {
     dependencies {
-        'default' project(':a')
+        first project(':a')
     }
 }
 """
@@ -579,6 +586,7 @@ project('c') {
         file("b/build/copied/a-1.0.zip").exists()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "resolving configuration with project dependency marks dependency's configuration as observed"() {
         settingsFile << "include 'api'; include 'impl'"
 

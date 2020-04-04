@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class AbstractArchiveFileTreeTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "visits structure when backing file is known"() {
         def owner = Stub(FileTreeInternal)

@@ -40,13 +40,8 @@ public class TaskPropertyUtils {
      */
     public static void visitProperties(PropertyWalker propertyWalker, TaskInternal task, TypeValidationContext validationContext, PropertyVisitor visitor) {
         propertyWalker.visitProperties(task, validationContext, visitor);
-        if (!visitor.visitOutputFilePropertiesOnly()) {
-            task.getInputs().visitRegisteredProperties(visitor);
-        }
+        task.getInputs().visitRegisteredProperties(visitor);
         task.getOutputs().visitRegisteredProperties(visitor);
-        if (visitor.visitOutputFilePropertiesOnly()) {
-            return;
-        }
         for (Object path : ((TaskDestroyablesInternal) task.getDestroyables()).getRegisteredPaths()) {
             visitor.visitDestroyableProperty(path);
         }

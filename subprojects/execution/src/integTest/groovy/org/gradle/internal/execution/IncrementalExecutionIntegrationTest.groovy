@@ -78,7 +78,7 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.ERROR
 class IncrementalExecutionIntegrationTest extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def snapshotter = new DefaultFileCollectionSnapshotter(virtualFileSystem, TestFiles.genericFileTreeSnapshotter(), TestFiles.fileSystem())

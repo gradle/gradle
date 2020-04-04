@@ -43,7 +43,7 @@ class DefaultClassLoaderCacheTest extends Specification {
     }
 
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     TestFile file(String path) {
         def f = testDirectoryProvider.testDirectory.file(path)

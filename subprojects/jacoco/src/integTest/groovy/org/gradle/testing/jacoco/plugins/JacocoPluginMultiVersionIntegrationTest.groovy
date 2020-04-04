@@ -24,7 +24,7 @@ import org.gradle.testing.jacoco.plugins.fixtures.JacocoCoverage
 import org.gradle.testing.jacoco.plugins.fixtures.JacocoReportFixture
 import spock.lang.Issue
 
-@TargetCoverage({ JacocoCoverage.DEFAULT_COVERAGE })
+@TargetCoverage({ JacocoCoverage.supportedVersionsByJdk })
 class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrationTest {
 
     private static final String REPORTING_BASE = "${Project.DEFAULT_BUILD_DIR_NAME}/${ReportingExtension.DEFAULT_REPORTS_DIR_NAME}"
@@ -150,7 +150,7 @@ class JacocoPluginMultiVersionIntegrationTest extends JacocoMultiVersionIntegrat
 public class Thing {
     Thing() { printMessage("hi"); }
     Thing(String msg) { printMessage(msg); }
-    
+
     private void printMessage(String msg) {
         System.out.println(msg);
     }

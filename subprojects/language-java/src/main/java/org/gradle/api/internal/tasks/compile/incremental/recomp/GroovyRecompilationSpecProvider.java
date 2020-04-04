@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
@@ -81,9 +80,8 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
             return false;
         }
 
-        Factory<PatternSet> patternSetFactory = fileOperations.getFileResolver().getPatternSetFactory();
-        PatternSet classesToDelete = patternSetFactory.create();
-        PatternSet filesToRecompile = patternSetFactory.create();
+        PatternSet classesToDelete = fileOperations.patternSet();
+        PatternSet filesToRecompile = fileOperations.patternSet();
 
         prepareFilePatterns(recompilationSpec.getRelativeSourcePathsToCompile(), classesToDelete, filesToRecompile);
 

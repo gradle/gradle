@@ -26,6 +26,8 @@ import org.gradle.util.GradleVersion
  *
  * <p>A test class can be annotated with {@link TargetVersions} to specify the set of versions the test is compatible with, and {@link IgnoreVersions} to specify the set of versions the
  * test should not be run for.
+ * <p>
+ * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
  */
 class CrossVersionTestRunner extends AbstractCompatibilityTestRunner {
     CrossVersionTestRunner(Class<? extends CrossVersionIntegrationSpec> target) {

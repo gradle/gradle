@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.List;
@@ -49,11 +50,7 @@ public interface ClassDetails {
     Collection<Method> getInstanceMethods();
 
     /**
-     * The ordered super types of this type.
-     *
-     * Entries are ordered by their “distance” from the target type, nearest to furthest.
-     * Superclasses are considered nearer than implemented interfaces.
-     * Interfaces are ordered by declaration order.
+     * Returns all instance fields of this class. Includes inherited fields.
      */
-    Set<Class<?>> getSuperTypes();
+    Collection<Field> getInstanceFields();
 }

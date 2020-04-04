@@ -22,6 +22,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.FileLookup;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.tasks.Input;
@@ -169,7 +170,7 @@ public class Wrapper extends DefaultTask {
      */
     @OutputFile
     public File getScriptFile() {
-        return getProject().file(scriptFile);
+        return getServices().get(FileOperations.class).file(scriptFile);
     }
 
     /**
@@ -202,7 +203,7 @@ public class Wrapper extends DefaultTask {
      */
     @OutputFile
     public File getJarFile() {
-        return getProject().file(jarFile);
+        return getServices().get(FileOperations.class).file(jarFile);
     }
 
     /**

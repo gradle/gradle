@@ -36,7 +36,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class ZipFileTreeTest {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     @Rule public final Resources resources = new Resources();
     private final TestFile zipFile = tmpDir.getTestDirectory().file("test.zip");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");

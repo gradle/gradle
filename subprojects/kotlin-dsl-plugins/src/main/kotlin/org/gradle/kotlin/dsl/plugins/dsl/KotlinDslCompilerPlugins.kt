@@ -59,7 +59,8 @@ class KotlinDslCompilerPlugins : Plugin<Project> {
                             KotlinCompilerArguments.javaParameters,
                             KotlinCompilerArguments.jsr305Strict,
                             KotlinCompilerArguments.newInference,
-                            KotlinCompilerArguments.samConversionForKotlinFunctions
+                            KotlinCompilerArguments.samConversionForKotlinFunctions,
+                            KotlinCompilerArguments.referencesToSyntheticJavaProperties
                         )
                     }
                     it.applyExperimentalWarning(experimentalWarning.get())
@@ -84,6 +85,7 @@ object KotlinCompilerArguments {
     const val jsr305Strict = "-Xjsr305=strict"
     const val newInference = "-XXLanguage:+NewInference"
     const val samConversionForKotlinFunctions = "-XXLanguage:+SamConversionForKotlinFunctions"
+    const val referencesToSyntheticJavaProperties = "-XXLanguage:+ReferencesToSyntheticJavaProperties"
 }
 
 

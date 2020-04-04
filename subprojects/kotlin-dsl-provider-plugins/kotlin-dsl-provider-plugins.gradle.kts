@@ -47,6 +47,7 @@ dependencies {
     }
 
     implementation(library("slf4j_api"))
+    implementation(library("inject"))
 
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(testLibrary("mockito_kotlin2"))

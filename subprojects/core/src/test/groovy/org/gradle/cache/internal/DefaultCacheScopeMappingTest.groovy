@@ -26,7 +26,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class DefaultCacheScopeMappingTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def userHome = tmpDir.createDir("user-home")
     def gradleVersion = Stub(GradleVersion) {
         getVersion() >> "version"

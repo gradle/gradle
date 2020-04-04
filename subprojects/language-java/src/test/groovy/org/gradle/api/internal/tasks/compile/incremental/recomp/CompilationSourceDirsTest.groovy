@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class CompilationSourceDirsTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def compilationSourceDirs = new CompilationSourceDirs(["src/main/java", "src/main/java2"].collect { temp.file(it) })
 

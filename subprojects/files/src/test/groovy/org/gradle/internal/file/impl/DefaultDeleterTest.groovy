@@ -31,7 +31,7 @@ import static org.junit.Assume.assumeTrue
 
 class DefaultDeleterTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     DefaultDeleter deleter = new DefaultDeleter(
         { System.currentTimeMillis() },
         { File file -> Files.isSymbolicLink(file.toPath()) },

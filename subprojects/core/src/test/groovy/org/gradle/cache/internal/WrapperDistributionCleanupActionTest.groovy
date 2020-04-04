@@ -27,7 +27,7 @@ import spock.lang.Subject
 
 class WrapperDistributionCleanupActionTest extends Specification implements GradleUserHomeCleanupFixture {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def usedGradleVersions = Mock(UsedGradleVersions) {

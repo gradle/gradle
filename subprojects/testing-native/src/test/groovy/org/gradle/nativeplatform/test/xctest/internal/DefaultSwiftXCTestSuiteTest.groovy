@@ -31,7 +31,7 @@ import spock.lang.Specification
 
 class DefaultSwiftXCTestSuiteTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     def testSuite = project.objects.newInstance(DefaultSwiftXCTestSuite, "test")
 

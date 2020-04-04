@@ -365,8 +365,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ivyRepoFile("ivy-${version}.xml.asc").assertExists()
         ivyRepoFile("$artifactId-${version}-source.jar").assertExists()
         ivyRepoFile("$artifactId-${version}-source.jar.asc").assertExists()
-        ivyRepoFile("$artifactId-${version}.module").assertExists()
-        ivyRepoFile("$artifactId-${version}.module.asc").assertExists()
+        ivyRepoFile("$artifactId-${version}.module").assertDoesNotExist()
+        ivyRepoFile("$artifactId-${version}.module.asc").assertDoesNotExist()
+
+        and:
+        outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
     }
 
     @ToBeFixedForInstantExecution

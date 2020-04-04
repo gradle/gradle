@@ -48,6 +48,7 @@ import org.gradle.internal.InternalListener;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.internal.hash.HashUtil;
@@ -74,7 +75,6 @@ import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderRegi
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.SerializeMap;
 import org.gradle.util.CollectionUtils;
-import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.GUtil;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.IncubationLogger;
@@ -191,9 +191,7 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         File gradleProperties = new File(getWorkingDir(), "gradle.properties");
         if (gradleProperties.isFile()) {
             Properties properties = GUtil.loadProperties(gradleProperties);
-            if (properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null) {
-                return true;
-            }
+            return properties.getProperty("org.gradle.java.home") != null || properties.getProperty("org.gradle.jvmargs") != null;
         }
         return false;
     }
@@ -568,6 +566,11 @@ public class InProcessGradleExecuter extends DaemonGradleExecuter {
         @Override
         public String getOutputLineThatContains(String text) {
             return outputResult.getOutputLineThatContains(text);
+        }
+
+        @Override
+        public String getPostBuildOutputLineThatContains(String text) {
+            return outputResult.getPostBuildOutputLineThatContains(text);
         }
 
         @Override

@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class MavenLocalModuleTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile testFile
     MavenModule mavenLocalModule
     MavenModule snapshotMavenLocalModule

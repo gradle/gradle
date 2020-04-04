@@ -47,7 +47,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler implements Prop
 
     @Override
     public boolean shouldVisit(PropertyVisitor visitor) {
-        return !visitor.visitOutputFilePropertiesOnly();
+        return true;
     }
 
     @Override

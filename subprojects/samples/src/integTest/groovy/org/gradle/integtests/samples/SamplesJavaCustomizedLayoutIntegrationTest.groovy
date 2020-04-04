@@ -21,13 +21,9 @@ import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
@@ -39,11 +35,11 @@ class SamplesJavaCustomizedLayoutIntegrationTest extends AbstractSampleIntegrati
 
     @Unroll
     @UsesSample('java/customizedLayout')
-    def "can build and upload jar with #dsl dsl"() {
+    def "can build jar with #dsl dsl"() {
         TestFile javaprojectDir = sample.dir.file(dsl)
 
         // Build and test projects
-        executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
+        executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
         def result = new DefaultTestExecutionResult(javaprojectDir)

@@ -41,7 +41,7 @@ class WorkerDaemonExpirationTest extends Specification {
     def threeGbOptions = daemonForkOptions('3g', '3g', ['three-gb-options'])
     def reportsMemoryUsage = true
     def daemonStarter = Mock(WorkerDaemonStarter) {
-        startDaemon(_, _, _) >> { Class<? extends WorkerProtocol> impl, DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction ->
+        startDaemon(_, _) >> { DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction ->
             Mock(WorkerDaemonClient) {
                 getForkOptions() >> forkOptions
                 isCompatibleWith(_) >> { DaemonForkOptions otherForkOptions ->
@@ -196,7 +196,7 @@ class WorkerDaemonExpirationTest extends Specification {
     }
 
     private WorkerDaemonClient reserveNewClient(DaemonForkOptions forkOptions) {
-        return clientsManager.reserveNewClient(WorkerDaemonServer, forkOptions)
+        return clientsManager.reserveNewClient(forkOptions)
     }
 
     private WorkerDaemonClient reserveIdleClient(DaemonForkOptions forkOptions) {

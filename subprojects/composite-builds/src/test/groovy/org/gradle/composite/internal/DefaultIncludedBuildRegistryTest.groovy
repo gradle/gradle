@@ -41,7 +41,7 @@ import spock.lang.Specification
 
 class DefaultIncludedBuildRegistryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def includedBuildFactory = Stub(IncludedBuildFactory)
     def registry = new DefaultIncludedBuildRegistry(includedBuildFactory, Stub(IncludedBuildDependencySubstitutionsBuilder), Stub(GradleLauncherFactory), Stub(ListenerManager), Stub(BuildTreeScopeServices))
 

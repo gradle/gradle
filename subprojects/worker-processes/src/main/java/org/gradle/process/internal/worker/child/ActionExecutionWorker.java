@@ -19,65 +19,28 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.api.Action;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.remote.ObjectConnection;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.process.internal.worker.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.Serializable;
-
 /**
  * <p>The final stage of worker start-up. Takes care of executing the worker action.</p>
  *
- * <p>It is instantiated in the implementation ClassLoader and called from {@link SystemApplicationClassLoaderWorker}.<p>
+ * <p>It is instantiated and called from {@link SystemApplicationClassLoaderWorker}.<p>
  */
-public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
+public class ActionExecutionWorker implements Action<WorkerProcessContext> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);
     private final Action<? super WorkerProcessContext> action;
-    private final Object workerId;
-    private final String displayName;
 
-    public ActionExecutionWorker(Action<? super WorkerProcessContext> action, Object workerId, String displayName) {
+    public ActionExecutionWorker(Action<? super WorkerProcessContext> action) {
         this.action = action;
-        this.workerId = workerId;
-        this.displayName = displayName;
     }
 
     @Override
-    public void execute(final WorkerContext workerContext) {
-        final ObjectConnection clientConnection = workerContext.getServerConnection();
-        final ServiceRegistry serviceRegistry = workerContext.getServiceRegistry();
-        LOGGER.debug("Starting {}.", displayName);
-        WorkerProcessContext context = new WorkerProcessContext() {
-            @Override
-            public ObjectConnection getServerConnection() {
-                return clientConnection;
-            }
+    public void execute(final WorkerProcessContext workerContext) {
+        LOGGER.debug("Starting {}.", workerContext.getDisplayName());
 
-            @Override
-            public ClassLoader getApplicationClassLoader() {
-                return workerContext.getApplicationClassLoader();
-            }
-
-            @Override
-            public Object getWorkerId() {
-                return workerId;
-            }
-
-            @Override
-            public String getDisplayName() {
-                return displayName;
-            }
-
-            @Override
-            public ServiceRegistry getServiceRegistry() {
-                return serviceRegistry;
-            }
-        };
-
-        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
-
+        ObjectConnection clientConnection = workerContext.getServerConnection();
         clientConnection.addUnrecoverableErrorHandler(new Action<Throwable>() {
             @Override
             public void execute(Throwable throwable) {
@@ -87,11 +50,14 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
             }
         });
 
+        ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
         try {
-            action.execute(context);
+            action.execute(workerContext);
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
-        LOGGER.debug("Completed {}.", displayName);
+
+        LOGGER.debug("Completed {}.", workerContext.getDisplayName());
     }
 }

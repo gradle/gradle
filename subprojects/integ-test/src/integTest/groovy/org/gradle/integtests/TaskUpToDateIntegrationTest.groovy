@@ -236,14 +236,19 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     def "task stays up-to-date when filtered-out output is changed"() {
         file("build").mkdirs()
         buildFile << """
-            class CustomTask extends DefaultTask {
+            import javax.inject.Inject
+
+            abstract class CustomTask extends DefaultTask {
                 @OutputFiles
                 FileTree outputFiles
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void doAction() {
-                    project.file("build/output.txt").text = "Hello"
-                    project.file("build/build.log") << "Produced at \${new Date()}\\n"
+                    layout.buildDirectory.file("output.txt").get().asFile.text = "Hello"
+                    layout.buildDirectory.file("build.log").get().asFile << "Produced at \${new Date()}\\n"
                 }
             }
 
@@ -312,16 +317,20 @@ class TaskUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can register multiple file trees within a single output property"() {
-        buildFile << """import org.gradle.api.tasks.OutputFiles
-import org.gradle.api.tasks.TaskAction
+        buildFile << """
+            import javax.inject.Inject
+
             abstract class MyTask extends DefaultTask {
                 @OutputFiles
                 abstract ConfigurableFileCollection getOutputFiles()
 
+                @Inject
+                abstract ProjectLayout getLayout()
+
                 @TaskAction
                 void doStuff() {
-                    project.file('build/dir1/output1.txt').text = "first"
-                    project.file('build/dir2/output2.txt').text = "second"
+                    layout.buildDirectory.file("dir1/output1.txt").get().asFile.text = "first"
+                    layout.buildDirectory.file("dir2/output2.txt").get().asFile.text = "second"
                 }
             }
 

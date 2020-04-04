@@ -26,7 +26,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class UniquePathKeyFileStoreTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
     Action<File> action = Mock()
 
     UniquePathKeyFileStore uniquePathKeyFileStore

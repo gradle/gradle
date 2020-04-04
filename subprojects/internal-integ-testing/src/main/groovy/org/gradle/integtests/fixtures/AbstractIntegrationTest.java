@@ -35,7 +35,7 @@ import java.io.File;
 
 public abstract class AbstractIntegrationTest {
     @Rule
-    public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass());
 
     @Rule
     public final UnsupportedWithInstantExecutionRule unsupportedWithInstantExecution = new UnsupportedWithInstantExecutionRule();

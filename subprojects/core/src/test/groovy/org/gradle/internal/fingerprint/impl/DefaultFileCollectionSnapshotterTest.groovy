@@ -41,7 +41,7 @@ import javax.annotation.Nullable
 
 class DefaultFileCollectionSnapshotterTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def snapshotter = TestFiles.fileCollectionSnapshotter()
     def noopGenerationListener = {} as Action
 

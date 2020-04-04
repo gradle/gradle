@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junitplatform;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -35,6 +36,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import javax.annotation.Nonnull;
 import java.io.Serializable;
 import java.lang.reflect.Constructor;
+import java.util.List;
 
 public class JUnitPlatformTestFramework implements TestFramework {
     private final JUnitPlatformOptions options;
@@ -63,6 +65,11 @@ public class JUnitPlatformTestFramework implements TestFramework {
                 workerProcessBuilder.sharedPackages("org.junit");
             }
         };
+    }
+
+    @Override
+    public List<String> getTestWorkerImplementationModules() {
+        return ImmutableList.of("junit-platform-engine", "junit-platform-launcher", "junit-platform-commons");
     }
 
     @Override

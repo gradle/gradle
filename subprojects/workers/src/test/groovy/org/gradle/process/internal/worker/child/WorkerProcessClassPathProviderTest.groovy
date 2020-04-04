@@ -25,7 +25,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class WorkerProcessClassPathProviderTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final CacheRepository cacheRepository = Mock()
     final ModuleRegistry moduleRegistry = Mock()
     final WorkerProcessClassPathProvider provider = new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry)

@@ -4,9 +4,10 @@ plugins {
 }
 
 task showPlugins {
+    def pluginClasses = project.plugins.collect { it.class }
     doLast {
-        project.plugins.each {
-            println it.getClass().name
+        pluginClasses.each {
+            println(it.name)
         }
     }
 }

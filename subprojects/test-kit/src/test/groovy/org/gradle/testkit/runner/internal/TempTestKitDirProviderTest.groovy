@@ -24,7 +24,7 @@ import spock.lang.Specification
 class TempTestKitDirProviderTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def "can create temporary directory"() {
         def systemProperties = Mock(SystemProperties) {

@@ -42,7 +42,7 @@ import static org.gradle.util.TestUtil.objectFactory
 
 class IvyDescriptorFileGeneratorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     VersionMappingStrategyInternal versionMappingStrategy = Mock() {
         findStrategyForVariant(_) >> Mock(VariantVersionMappingStrategyInternal)

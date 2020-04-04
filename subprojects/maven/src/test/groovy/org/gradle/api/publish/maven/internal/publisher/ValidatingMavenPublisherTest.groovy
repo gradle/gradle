@@ -38,7 +38,7 @@ import static org.gradle.util.CollectionUtils.toSet
 
 class ValidatingMavenPublisherTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     def delegate = Mock(MavenPublisher)
     def publisher = new ValidatingMavenPublisher(delegate)

@@ -37,13 +37,15 @@ class InstantExecutionClassLoaderCachingIntegrationTest extends PersistentBuildP
 
                     private static final AtomicInteger value = new AtomicInteger(0);
 
+                    private final String projectName = getProject().getName();
+
                     @TaskAction
                     void printValue() {
                         // When ClassLoaders are reused
                         // the 1st run should print `<project name>.value = 1`
                         // the 2nd run should print `<project name>.value = 2`
                         // and so on.
-                        System.out.println(getProject().getName() + ".value = " + value.incrementAndGet());
+                        System.out.println(projectName + ".value = " + value.incrementAndGet());
                     }
                 }
             """

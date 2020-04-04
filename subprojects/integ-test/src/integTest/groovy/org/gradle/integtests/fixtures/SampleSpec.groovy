@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class SampleSpec extends Specification {
 
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     Sample sample = new Sample(testDirectoryProvider, 'java/multiproject')
     @Rule TestRule rule = RuleChain.outerRule(testDirectoryProvider).around(sample)
 

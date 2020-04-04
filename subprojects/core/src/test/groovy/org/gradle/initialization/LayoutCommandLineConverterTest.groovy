@@ -29,7 +29,7 @@ import static org.gradle.internal.FileUtils.canonicalize
 class LayoutCommandLineConverterTest extends Specification {
 
     def converter = new LayoutCommandLineConverter()
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def convert(String... args) {
         converter.convert(Arrays.asList(args), new BuildLayoutParameters())

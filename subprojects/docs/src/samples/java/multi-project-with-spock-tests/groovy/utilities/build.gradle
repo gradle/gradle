@@ -1,0 +1,8 @@
+plugins {
+    id 'java-library'
+    id 'groovy-base'
+}
+
+dependencies {
+    api project(':list')
+}

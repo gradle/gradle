@@ -30,7 +30,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class CompositeFileCollectionTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def file1 = new File("1")
     def file2 = new File("2")
     def file3 = new File("3")
@@ -123,10 +123,10 @@ class CompositeFileCollectionTest extends Specification {
         trees[0].dir == dir1
         trees[1].dir == dir2
 
-        1 * source1.visitStructure(_) >> { FileCollectionStructureVisitor visitor ->
+        1 * source1.visitContents(_) >> { FileCollectionStructureVisitor visitor ->
             visitor.visitFileTree(dir1, Stub(PatternSet), source1)
         }
-        1 * source2.visitStructure(_) >> { FileCollectionStructureVisitor visitor ->
+        1 * source2.visitContents(_) >> { FileCollectionStructureVisitor visitor ->
             visitor.visitFileTree(dir2, Stub(PatternSet), source2)
         }
         0 * _

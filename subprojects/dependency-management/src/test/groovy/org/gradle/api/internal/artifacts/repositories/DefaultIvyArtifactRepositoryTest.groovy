@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.artifacts.repositories.IvyArtifactRepository
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager
@@ -362,6 +364,33 @@ class DefaultIvyArtifactRepositoryTest extends Specification {
         then:
         lister.rules.configurableRules[0].ruleClass == CustomVersionListerWithParams
         lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1,2,3]] as Object[]
+    }
+
+    def "can retrieve metadataSources"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        fileResolver.resolveUri('http://host') >> new URI('http://host/')
+        standardMockHttpTransport()
+
+        given:
+        repository.metadataSources(new Action<IvyArtifactRepository.MetadataSources>() {
+            @Override
+            void execute(IvyArtifactRepository.MetadataSources metadataSources) {
+                metadataSources.ivyDescriptor()
+                metadataSources.artifact()
+                metadataSources.gradleMetadata()
+                metadataSources.ignoreGradleMetadataRedirection()
+            }
+        })
+
+        when:
+        IvyArtifactRepository.MetadataSources metadataSources = repository.getMetadataSources()
+
+        then:
+        metadataSources.isIvyDescriptorEnabled()
+        metadataSources.isArtifactEnabled()
+        metadataSources.isGradleMetadataEnabled()
+        metadataSources.isIgnoreGradleMetadataRedirectionEnabled()
     }
 
     private void standardMockFileTransport() {

@@ -38,12 +38,12 @@ class BaseDirFileResolverTest {
     File testDir
 
     BaseDirFileResolver baseDirConverter
-    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider()
+    @Rule public TestNameTestDirectoryProvider rootDir = new TestNameTestDirectoryProvider(getClass())
     @Rule public PreconditionVerifier preconditions = new PreconditionVerifier()
 
     @Before public void setUp() {
         baseDir = rootDir.testDirectory
-        baseDirConverter = new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
+        baseDirConverter = new BaseDirFileResolver(baseDir)
         testFile = new File(baseDir, 'testfile')
         testDir = new File(baseDir, 'testdir')
     }

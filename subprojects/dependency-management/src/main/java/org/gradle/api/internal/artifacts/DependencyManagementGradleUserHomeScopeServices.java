@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
+import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultArtifactCaches;
@@ -56,8 +57,9 @@ public class DependencyManagementGradleUserHomeScopeServices {
     ArtifactCachesProvider createArtifactCaches(CacheScopeMapping cacheScopeMapping,
                                                 CacheRepository cacheRepository,
                                                 ServiceRegistry registry,
-                                                ListenerManager listenerManager) {
-        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, () -> registry.get(DefaultArtifactCaches.WritableArtifactCacheLockingParameters.class));
+                                                ListenerManager listenerManager,
+                                                DocumentationRegistry documentationRegistry) {
+        DefaultArtifactCaches artifactCachesProvider = new DefaultArtifactCaches(cacheScopeMapping, cacheRepository, () -> registry.get(DefaultArtifactCaches.WritableArtifactCacheLockingParameters.class), documentationRegistry);
         listenerManager.addListener(new BuildAdapter() {
             @Override
             public void buildFinished(BuildResult result) {

@@ -55,8 +55,8 @@ dependencies {
         fails 'dependencies'
 
         then:
-        failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have a lockfile.")
-        lockfileFixture.expectMissing('unlockedConf')
+        failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have lock state.")
+        lockfileFixture.expectLockStateMissing('unlockedConf', false)
     }
 
     @ToBeFixedForInstantExecution
@@ -92,8 +92,8 @@ dependencies {
         fails 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have a lockfile.")
-        lockfileFixture.expectMissing('unlockedConf')
+        failureHasCause("Locking strict mode: Configuration ':lockedConf' is locked but does not have lock state.")
+        lockfileFixture.expectLockStateMissing('unlockedConf', false)
     }
 
     @ToBeFixedForInstantExecution

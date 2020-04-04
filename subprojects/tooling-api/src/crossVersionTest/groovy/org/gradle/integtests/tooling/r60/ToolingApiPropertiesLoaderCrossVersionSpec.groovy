@@ -97,9 +97,9 @@ abstract class AbstractToolingApiPropertiesLoaderCrossVersionSpec extends Toolin
         output.contains('system_property_available in included settings.gradle: true')
     }
 
+    abstract boolean projectPropertyAvailableInBuildSrc();
+
     abstract boolean projectPropertyAvailableInIncludedRoot();
 
     abstract boolean projectPropertyAvailableInIncludedBuildSrc();
-
-    abstract boolean projectPropertyAvailableInBuildSrc();
 }

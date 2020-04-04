@@ -94,9 +94,9 @@ class AbstractDependencyVerificationIntegTest extends AbstractHttpDependencyReso
         new DocumentationRegistry().getDocumentationFor("dependency_verification", "sec:troubleshooting-verification")
     }
 
-    protected void terseConsoleOutput(boolean terse) {
+    protected void terseConsoleOutput(boolean terse, String gradlePropertiesDir = ".") {
         if (!terse) {
-            file("gradle.properties") << """${DependencyVerificationReportWriter.VERBOSE_CONSOLE}=${DependencyVerificationReportWriter.VERBOSE_VALUE}
+            file("$gradlePropertiesDir/gradle.properties") << """${DependencyVerificationReportWriter.VERBOSE_CONSOLE}=${DependencyVerificationReportWriter.VERBOSE_VALUE}
 """
         }
     }

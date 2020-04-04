@@ -20,6 +20,9 @@ import groovy.lang.Closure;
 
 import java.lang.annotation.*;
 
+/**
+ * @see CrossVersionTestRunner
+ */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
 @Inherited

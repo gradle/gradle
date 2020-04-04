@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class ProjectPropertySettingBuildLoaderTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final BuildLoader target = Mock()
     final GradleInternal gradle = Mock()
     final SettingsInternal settings = Mock()

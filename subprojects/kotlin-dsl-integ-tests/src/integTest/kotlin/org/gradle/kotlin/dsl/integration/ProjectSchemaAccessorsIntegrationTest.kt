@@ -40,6 +40,7 @@ import java.io.File
 class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can access sub-project specific task`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -156,6 +157,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can access extension of default package type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -196,6 +198,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can access task of default package type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -233,6 +236,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can access extension of nested type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -620,6 +624,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can add artifacts using generated accessors for configurations`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -754,6 +759,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `given extension with erased generic type parameters, its accessor is typed Any`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -809,6 +815,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can access nested extensions and conventions registered by declared plugins via jit accessors`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -1089,6 +1096,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `accessors to extensions of the dependency handler`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -1179,6 +1187,7 @@ class ProjectSchemaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `accessors to kotlin internal task types are typed with the first kotlin public parent type`() {
 
         requireGradleDistributionOnEmbeddedExecuter()

@@ -27,7 +27,7 @@ import static org.gradle.model.internal.type.ModelTypes.modelMap
 
 class CUnitTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     final def project = TestUtil.create(testDir).rootProject();
 
     def "creates a test suite for each library under test"() {

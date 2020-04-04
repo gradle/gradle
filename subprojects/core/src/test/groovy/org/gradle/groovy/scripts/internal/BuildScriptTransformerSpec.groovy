@@ -32,7 +32,7 @@ import spock.lang.Unroll
 class BuildScriptTransformerSpec extends Specification {
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def importsReader = Mock(ImportsReader) {
         getImportPackages() >> ([] as String[])

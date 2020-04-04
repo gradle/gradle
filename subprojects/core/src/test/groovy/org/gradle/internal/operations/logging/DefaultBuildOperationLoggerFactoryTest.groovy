@@ -24,7 +24,7 @@ import spock.lang.Unroll
 
 class DefaultBuildOperationLoggerFactoryTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     Logger logger = Mock()
     def outputDir = tmpDirProvider.testDirectory.file("logs")

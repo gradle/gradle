@@ -21,8 +21,13 @@ import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r60.AbstractToolingApiPropertiesLoaderCrossVersionSpec
 
 @ToolingApiVersion('>=3.0')
-@TargetGradleVersion('>=6.2')
+@TargetGradleVersion('>=6.2 <6.2.2')
 class ToolingApiPropertiesLoaderCrossVersionSpec extends AbstractToolingApiPropertiesLoaderCrossVersionSpec {
+
+    @Override
+    boolean projectPropertyAvailableInBuildSrc() {
+        true
+    }
 
     @Override
     boolean projectPropertyAvailableInIncludedRoot() {
@@ -31,11 +36,6 @@ class ToolingApiPropertiesLoaderCrossVersionSpec extends AbstractToolingApiPrope
 
     @Override
     boolean projectPropertyAvailableInIncludedBuildSrc() {
-        true
-    }
-
-    @Override
-    boolean projectPropertyAvailableInBuildSrc() {
         true
     }
 }

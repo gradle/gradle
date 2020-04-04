@@ -52,27 +52,6 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
-    def "file permissions can be modified with eachFile closure"() {
-        given:
-        def testSourceFile = file("reference.txt") << 'test file"'
-        testSourceFile.mode = 0746
-        and:
-        buildFile << """
-            task copy(type: Copy) {
-                from "reference.txt"
-                eachFile {
-		            it.setMode(0755)
-	            }
-                into ("build/tmp")
-            }
-            """
-        when:
-        run "copy"
-        then:
-        file("build/tmp/reference.txt").mode == 0755
-    }
-
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
     def "directory permissions are preserved in copy action"() {
         given:
         TestFile parent = getTestDirectory().createDir("testparent")
@@ -116,8 +95,57 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         then:
         file("build/tmp/reference.txt").mode == mode
 
+        when:
+        run "copy"
+
+        then:
+        skipped(":copy")
+        file("build/tmp/reference.txt").mode == mode
+
+        when:
+        file("reference.txt").text = "new"
+        run "copy"
+
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/tmp/reference.txt").mode == mode
+
         where:
         mode << [0755, 0776]
+    }
+
+    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    def "file permissions can be modified with eachFile closure"() {
+        given:
+        def testSourceFile = file("reference.txt") << 'test file"'
+        testSourceFile.mode = 0746
+        and:
+        buildFile << """
+            task copy(type: Copy) {
+                from "reference.txt"
+                eachFile {
+		            it.setMode(0755)
+	            }
+                into ("build/tmp")
+            }
+            """
+        when:
+        run "copy"
+        then:
+        file("build/tmp/reference.txt").mode == 0755
+
+        when:
+        run "copy"
+        then:
+        skipped(":copy")
+        file("build/tmp/reference.txt").mode == 0755
+
+        when:
+        testSourceFile.text = "new"
+        run "copy"
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/tmp/reference.txt").mode == 0755
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -170,6 +198,20 @@ class CopyPermissionsIntegrationTest extends AbstractIntegrationSpec {
         run "copy"
         then:
         file("build/tmp/testchild").mode == mode
+
+        when:
+        run "copy"
+        then:
+        skipped(":copy")
+        file("build/tmp/testchild").mode == mode
+
+        when:
+        parent.file("other/file.txt") << "test file"
+        run "copy"
+        then:
+        executedAndNotSkipped(":copy")
+        file("build/tmp/other").mode == mode
+
         where:
         mode << [0755, 0776]
     }

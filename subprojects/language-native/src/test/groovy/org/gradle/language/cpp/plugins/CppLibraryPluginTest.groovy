@@ -34,7 +34,7 @@ import spock.lang.Specification
 
 class CppLibraryPluginTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def projectDir = tmpDir.createDir("project")
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testLib").build()
 
@@ -261,7 +261,7 @@ class CppLibraryPluginTest extends Specification {
         then:
         def e = thrown(ProjectConfigurationException)
         e.cause instanceof IllegalStateException
-        e.cause.message == "The value for C++ library 'main' property 'linkage' is final and cannot be changed any further."
+        e.cause.message == "The value for property 'linkage' is final and cannot be changed any further."
     }
 
     def "output locations are calculated using base name defined on extension"() {

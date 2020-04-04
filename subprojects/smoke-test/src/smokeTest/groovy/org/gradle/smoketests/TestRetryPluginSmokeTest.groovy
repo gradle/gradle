@@ -16,14 +16,13 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.TaskOutcome
 import spock.lang.Issue
 
 class TestRetryPluginSmokeTest extends AbstractSmokeTest {
 
-    @ToBeFixedForInstantExecution
     @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
     def 'test retry plugin'() {
         when:

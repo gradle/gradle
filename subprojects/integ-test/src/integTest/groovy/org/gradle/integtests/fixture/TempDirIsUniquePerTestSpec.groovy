@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class TempDirIsUniquePerTestSpec extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider();
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass());
     static tests = new HashSet()
     static tmpDirs = new HashSet()
 
@@ -31,12 +31,12 @@ class TempDirIsUniquePerTestSpec extends Specification {
         //it's very important we try to access the test dir in the setup()
         tmp.testDirectory
     }
-    
+
     def "testOne"() {
         when:
         tests << "testOne"
         tmpDirs << tmp.testDirectory
-        
+
         then:
         tests.size() == tmpDirs.size()
     }

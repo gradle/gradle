@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.execution.internal.TaskInputsListener;
+import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -41,54 +41,74 @@ public class DefaultEmptySourceTaskSkipper implements EmptySourceTaskSkipper {
     private final BuildOutputCleanupRegistry buildOutputCleanupRegistry;
     private final Deleter deleter;
     private final OutputChangeListener outputChangeListener;
-    private final TaskInputsListener taskInputsListener;
+    private final TaskInputsListeners taskInputsListeners;
 
     public DefaultEmptySourceTaskSkipper(
         BuildOutputCleanupRegistry buildOutputCleanupRegistry,
         Deleter deleter,
         OutputChangeListener outputChangeListener,
-        TaskInputsListener taskInputsListener
+        TaskInputsListeners taskInputsListeners
     ) {
         this.buildOutputCleanupRegistry = buildOutputCleanupRegistry;
         this.deleter = deleter;
         this.outputChangeListener = outputChangeListener;
-        this.taskInputsListener = taskInputsListener;
+        this.taskInputsListeners = taskInputsListeners;
     }
 
     @Override
-    public Optional<ExecutionOutcome> skipIfEmptySources(TaskInternal task, boolean hasSourceFiles, FileCollection inputFiles, FileCollection sourceFiles, Map<String, FileCollectionFingerprint> outputFileSnapshots) {
+    public Optional<ExecutionOutcome> skipIfEmptySources(
+        TaskInternal task,
+        boolean hasSourceFiles,
+        FileCollection inputFiles,
+        FileCollection sourceFiles,
+        Map<String, FileCollectionFingerprint> outputFileSnapshots
+    ) {
         if (hasSourceFiles && sourceFiles.isEmpty()) {
-            ExecutionOutcome skipOutcome;
-            if (outputFileSnapshots.isEmpty()) {
-                LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
-                skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
-            } else {
-                OutputsCleaner outputsCleaner = new OutputsCleaner(
-                    deleter,
-                    buildOutputCleanupRegistry::isOutputOwnedByBuild,
-                    buildOutputCleanupRegistry::isOutputOwnedByBuild
-                );
-                for (FileCollectionFingerprint outputFingerprints : outputFileSnapshots.values()) {
-                    try {
-                        outputChangeListener.beforeOutputChange(outputFingerprints.getRootPaths());
-                        outputsCleaner.cleanupOutputs(outputFingerprints);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
-                }
-                if (outputsCleaner.getDidWork()) {
-                    LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
-                    skipOutcome = ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
-                } else {
-                    skipOutcome = ExecutionOutcome.SHORT_CIRCUITED;
-                }
-            }
-            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, sourceFiles));
+            ExecutionOutcome skipOutcome = skipOutcomeFor(task, outputFileSnapshots);
+            broadcastFileSystemInputsOf(task, sourceFiles);
             return Optional.of(skipOutcome);
         } else {
-            taskInputsListener.onExecute(task, Cast.cast(FileCollectionInternal.class, inputFiles));
+            broadcastFileSystemInputsOf(task, inputFiles);
             return Optional.empty();
         }
     }
 
+    private ExecutionOutcome skipOutcomeFor(TaskInternal task, Map<String, FileCollectionFingerprint> outputFileSnapshots) {
+        if (outputFileSnapshots.isEmpty()) {
+            LOGGER.info("Skipping {} as it has no source files and no previous output files.", task);
+            return ExecutionOutcome.SHORT_CIRCUITED;
+        }
+
+        boolean didWork = cleanPreviousTaskOutputs(outputFileSnapshots);
+        if (didWork) {
+            LOGGER.info("Cleaned previous output of {} as it has no source files.", task);
+            return ExecutionOutcome.EXECUTED_NON_INCREMENTALLY;
+        }
+
+        return ExecutionOutcome.SHORT_CIRCUITED;
+    }
+
+    private boolean cleanPreviousTaskOutputs(Map<String, FileCollectionFingerprint> outputFileSnapshots) {
+        OutputsCleaner outputsCleaner = new OutputsCleaner(
+            deleter,
+            buildOutputCleanupRegistry::isOutputOwnedByBuild,
+            buildOutputCleanupRegistry::isOutputOwnedByBuild
+        );
+        for (FileCollectionFingerprint outputFingerprints : outputFileSnapshots.values()) {
+            try {
+                outputChangeListener.beforeOutputChange(outputFingerprints.getRootPaths());
+                outputsCleaner.cleanupOutputs(outputFingerprints);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return outputsCleaner.getDidWork();
+    }
+
+    private void broadcastFileSystemInputsOf(TaskInternal task, FileCollection fileSystemInputs) {
+        taskInputsListeners.broadcastFileSystemInputsOf(
+            task,
+            Cast.cast(FileCollectionInternal.class, fileSystemInputs)
+        );
+    }
 }

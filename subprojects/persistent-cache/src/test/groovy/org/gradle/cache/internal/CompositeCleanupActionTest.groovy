@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class CompositeCleanupActionTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cleanableStore = Stub(CleanableStore) {
         getBaseDir() >> temporaryFolder.getTestDirectory()
         getDisplayName() >> "My Cache"

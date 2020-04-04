@@ -39,7 +39,7 @@ class OutputFilterUtilTest extends Specification {
     private static final FileCollectionFingerprint EMPTY_OUTPUT_FINGERPRINT = AbsolutePathFingerprintingStrategy.IGNORE_MISSING.emptyFingerprint
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def virtualFileSystem = TestFiles.virtualFileSystem()
 

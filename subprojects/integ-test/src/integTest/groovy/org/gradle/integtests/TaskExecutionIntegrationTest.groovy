@@ -65,6 +65,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksExecuted(":b", ":a")
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         buildFile << """
     gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); ext.graphReady = true }

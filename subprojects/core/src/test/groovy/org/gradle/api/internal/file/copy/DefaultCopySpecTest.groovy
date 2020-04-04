@@ -24,12 +24,9 @@ import org.gradle.api.Transformer
 import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.RelativePath
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.internal.Actions
-import org.gradle.internal.reflect.Instantiator
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
@@ -40,11 +37,10 @@ import java.nio.charset.Charset
 
 class DefaultCopySpecTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider();
-    private FileCollectionFactory fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
-    private FileResolver fileResolver = TestFiles.resolver(testDir.testDirectory)
-    private Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final DefaultCopySpec spec = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass());
+    private fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
+    private instantiator = TestUtil.instantiatorFactory().decorateLenient()
+    private final DefaultCopySpec spec = new DefaultCopySpec(fileCollectionFactory, instantiator, TestFiles.patternSetFactory)
 
     private List<String> getTestSourceFileNames() {
         ['first', 'second']
@@ -437,7 +433,7 @@ class DefaultCopySpecTest extends Specification {
     }
 
     def 'can add spec hierarchy as child'() {
-        CopySpec otherSpec = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        CopySpec otherSpec = new DefaultCopySpec(fileCollectionFactory, instantiator, TestFiles.patternSetFactory)
         otherSpec.addChild()
         def added = []
 

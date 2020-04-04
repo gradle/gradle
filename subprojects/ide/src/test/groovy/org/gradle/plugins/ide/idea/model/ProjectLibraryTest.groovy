@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectLibraryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider testDirProvider
+    @Rule TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     def "has friendly defaults"() {
         def library = new ProjectLibrary()

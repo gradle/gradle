@@ -13,7 +13,7 @@ abstract class FolderBasedTest {
 
     @JvmField
     @Rule
-    val tempFolder = TestNameTestDirectoryProvider()
+    val tempFolder = TestNameTestDirectoryProvider(javaClass)
 
     val root: File
         get() = tempFolder.testDirectory

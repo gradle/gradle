@@ -45,7 +45,7 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     // Naming the field "temporaryFolder" since that is the default field intercepted by the
     // @CleanupTestDirectory annotation.
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     @Rule SetSystemProperties systemProperties
 

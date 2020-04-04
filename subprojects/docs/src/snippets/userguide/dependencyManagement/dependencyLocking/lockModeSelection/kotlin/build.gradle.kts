@@ -8,7 +8,7 @@ repositories {
 
 // tag::lock-mode[]
 dependencyLocking {
-    lockMode = LockMode.STRICT
+    lockMode.set(LockMode.STRICT)
 }
 // end::lock-mode[]
 

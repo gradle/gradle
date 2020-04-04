@@ -24,17 +24,6 @@ import javax.annotation.Nullable;
  * Visits properties of beans which are inputs, outputs, destroyables or local state.
  */
 public interface PropertyVisitor {
-    /**
-     * Should only output file properties be visited?
-     *
-     * This is here as a temporary work around to allow a listener avoid broken `@Nested` properties whose getters fail when called just after the bean has been created.
-     *
-     * It is also here to avoid the cost of visiting input and other properties on creation when these are not used at this point.
-     *
-     * Later, these issues can be improved and this method removed.
-     */
-    boolean visitOutputFilePropertiesOnly();
-
     void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType);
 
     void visitInputProperty(String propertyName, PropertyValue value, boolean optional);
@@ -46,11 +35,6 @@ public interface PropertyVisitor {
     void visitLocalStateProperty(Object value);
 
     class Adapter implements PropertyVisitor {
-        @Override
-        public boolean visitOutputFilePropertiesOnly() {
-            return false;
-        }
-
         @Override
         public void visitInputFileProperty(String propertyName, boolean optional, boolean skipWhenEmpty, boolean incremental, @Nullable Class<? extends FileNormalizer> fileNormalizer, PropertyValue value, InputFilePropertyType filePropertyType) {
         }

@@ -219,6 +219,7 @@ GET     /newroute                          ${controllers()}.Application.index()
         jar("build/playBinary/lib/routes-play-app.jar").containsDescendants("controllers/other/routes.class")
     }
 
+    @ToBeFixedForInstantExecution(because = ":components")
     def "extra route sources appear in the components report"() {
         withExtraSourceSets()
 

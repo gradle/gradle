@@ -32,6 +32,11 @@ class ProvidersTest extends ProviderSpec<Integer> {
     }
 
     @Override
+    Class<Integer> type() {
+        return Integer
+    }
+
+    @Override
     Integer someValue() {
         return 12
     }

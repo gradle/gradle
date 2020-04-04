@@ -30,16 +30,45 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         buildFile << '\njacocoTestReport.dependsOn test'
         def htmlReportDir = file("build/reports/jacoco/test/html")
 
-        expect:
+        and:
+        def instantExecution = newInstantExecutionFixture()
+        def expectedProblemCount = 4
+        def expectedProblems = [
+            "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot serialize object of type 'org.gradle.api.tasks.testing.Test', a subtype of 'org.gradle.api.Task', as these are not supported with instant execution.",
+            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPluginExtension': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.",
+            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
+        ]
+
+        when:
+        instantFails 'test', 'jacocoTestReport'
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblems)
+            withTotalProblemsCount(expectedProblemCount)
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
+
+        then:
+        instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(expectedProblemCount)
+            withUniqueProblems(expectedProblems)
+        }
         htmlReportDir.assertIsDir()
 
         when:
         succeeds 'clean'
         htmlReportDir.assertDoesNotExist()
 
-        then:
+        and:
         instantRun 'test', 'jacocoTestReport'
+
+        then:
+        instantExecution.assertStateLoaded()
         htmlReportDir.assertIsDir()
     }
 }

@@ -46,13 +46,41 @@ class ApplicationPluginIntegrationTest extends WellBehavedPluginTest {
         unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
         unixStartScriptContent.contains('APP_NAME="sample"')
         unixStartScriptContent.contains('CLASSPATH=\$APP_HOME/lib/sample.jar')
+        !unixStartScriptContent.contains('MODULE_PATH=')
         unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
         File windowsStartScript = assertGeneratedWindowsStartScript()
         String windowsStartScriptContentText = windowsStartScript.text
         windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
         windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
         windowsStartScriptContentText.contains('set CLASSPATH=%APP_HOME%\\lib\\sample.jar')
+        !windowsStartScriptContentText.contains('set MODULE_PATH=')
         windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    def "can generate start scripts with module path"() {
+        given:
+        configureMainModule()
+
+        when:
+        succeeds('startScripts')
+
+        then:
+        File unixStartScript = assertGeneratedUnixStartScript()
+        String unixStartScriptContent = unixStartScript.text
+        unixStartScriptContent.contains('##  sample start up script for UN*X')
+        unixStartScriptContent.contains('DEFAULT_JVM_OPTS=""')
+        unixStartScriptContent.contains('APP_NAME="sample"')
+        unixStartScriptContent.contains('CLASSPATH="\\\\\\"\\\\\\""')
+        unixStartScriptContent.contains('MODULE_PATH=\$APP_HOME/lib/sample.jar')
+        unixStartScriptContent.contains('exec "\$JAVACMD" "\$@"')
+        File windowsStartScript = assertGeneratedWindowsStartScript()
+        String windowsStartScriptContentText = windowsStartScript.text
+        windowsStartScriptContentText.contains('@rem  sample startup script for Windows')
+        windowsStartScriptContentText.contains('set DEFAULT_JVM_OPTS=')
+        windowsStartScriptContentText.contains('set CLASSPATH=')
+        windowsStartScriptContentText.contains('set MODULE_PATH=%APP_HOME%\\lib\\sample.jar')
+        windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %SAMPLE_OPTS%  -classpath "%CLASSPATH%" --module-path "%MODULE_PATH%" --module org.gradle.test.main/org.gradle.test.Main %CMD_LINE_ARGS%')
     }
 
     def "can generate starts script generation with custom user configuration"() {
@@ -81,7 +109,6 @@ applicationDefaultJvmArgs = ["-Dgreeting.language=en", "-DappId=\${project.name 
         windowsStartScriptContentText.contains('"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %MY_APP_OPTS%  -classpath "%CLASSPATH%" org.gradle.test.Main %CMD_LINE_ARGS%')
     }
 
-    @ToBeFixedForInstantExecution
     def "can change template file for default start script generators"() {
         given:
         file('customUnixStartScript.txt') << '${applicationName} start up script for UN*X'
@@ -529,6 +556,21 @@ mainClassName = 'org.gradle.test.Main'
 """
     }
 
+    private void configureMainModule() {
+        file("src/main/java/module-info.java") << "module org.gradle.test.main { requires java.management; }"
+        buildFile << """
+application {
+    mainModule.set('org.gradle.test.main')
+}
+compileJava {
+    modularClasspathHandling.inferModulePath.set(true)
+}
+startScripts {
+    modularClasspathHandling.inferModulePath.set(true)
+}
+"""
+    }
+
     private void populateSettingsFile() {
         settingsFile << """
 rootProject.name = 'sample'
@@ -579,16 +621,12 @@ rootProject.name = 'sample'
         skipped(":startScripts")
     }
 
-    def "up-to-date if only the content change"() {
-        given:
-        succeeds("startScripts")
-
+    def "start script generation depends on jar creation"() {
         when:
-        generateMainClass """System.out.println("Goodbye World!");"""
-        succeeds("startScripts")
+        succeeds('startScripts')
 
         then:
-        skipped(":startScripts")
+        executed ":processResources", ":classes", ":jar"
     }
 
     @Issue("https://github.com/gradle/gradle/issues/4627")

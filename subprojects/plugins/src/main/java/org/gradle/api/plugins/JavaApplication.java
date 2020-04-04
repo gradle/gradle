@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.provider.Property;
 
 /**
  * Configuration for a Java application, defining how to assemble the application.
@@ -44,6 +46,22 @@ public interface JavaApplication {
      * The name of the application.
      */
     void setApplicationName(String applicationName);
+
+    /**
+     * The name of the application's Java module if it should run as a module.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    Property<String> getMainModule();
+
+    /**
+     * The name of the application's Java module if it should run as a module.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    Property<String> getMainClass();
 
     /**
      * The fully qualified name of the application's main class.

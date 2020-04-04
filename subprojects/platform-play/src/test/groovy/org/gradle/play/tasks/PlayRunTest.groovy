@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class PlayRunTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     PlayApplication runnerToken = Mock(PlayApplication)
     PlayToolProvider playToolProvider = Mock(PlayToolProvider)

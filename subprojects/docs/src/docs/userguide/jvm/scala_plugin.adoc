@@ -175,6 +175,17 @@ You can diagnose problems with the version of the Zinc compiler selected by runn
 
 |===
 
+[[sec:scala_compiler_plugins]]
+== Adding plugins to the Scala compiler
+
+The Scala plugin adds a configuration named `scalaCompilerPlugins` which is used to declare and resolve optional compiler plugins.
+
+.Adding a dependency on a Scala compiler plugin
+====
+include::sample[dir="snippets/scala/compilerPlugin/groovy",files="build.gradle[tags=compiler-plugin]"]
+include::sample[dir="snippets/scala/compilerPlugin/kotlin",files="build.gradle.kts[tags=compiler-plugin]"]
+====
+
 [[sec:scala_convention_properties]]
 == Convention properties
 
@@ -276,5 +287,4 @@ When the IDEA plugin encounters a Scala project, it adds additional configuratio
 include::sample[dir="snippets/userguide/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
 include::sample[dir="snippets/userguide/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
 ====
-
 

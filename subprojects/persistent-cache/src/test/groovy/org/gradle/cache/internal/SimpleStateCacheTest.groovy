@@ -30,7 +30,7 @@ import static org.gradle.cache.internal.DefaultFileLockManagerTestHelper.unlockU
 
 class SimpleStateCacheTest extends Specification {
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final FileAccess fileAccess = Mock()
     final Chmod chmod = Mock()
     final File file = tmpDir.file("state.bin")

@@ -215,7 +215,7 @@ class MultipleCandidateMatcher<T extends HasAttributes> {
             BitSet any = new BitSet(candidateCount);
             for (int c = 0; c < candidateCount; c++) {
                 ImmutableAttributes candidateAttributeSet = candidateAttributeSets[c];
-                if (candidateAttributeSet.getAttributes().contains(extraAttribute)) {
+                if (candidateAttributeSet.findEntry(extraAttribute.getName()).isPresent()) {
                     any.set(c);
                 }
             }

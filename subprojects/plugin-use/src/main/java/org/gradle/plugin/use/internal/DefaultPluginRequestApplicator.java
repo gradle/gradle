@@ -16,10 +16,7 @@
 
 package org.gradle.plugin.use.internal;
 
-import com.google.common.collect.Iterables;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
@@ -85,14 +82,10 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
 
         final PluginResolver effectivePluginResolver = wrapInAlreadyInClasspathResolver(classLoaderScope);
-
-        List<Result> results = collect(requests, new Transformer<Result, PluginRequestInternal>() {
-            @Override
-            public Result transform(PluginRequestInternal request) {
-                PluginRequestInternal configuredRequest = pluginResolutionStrategy.applyTo(request);
-                return resolveToFoundResult(effectivePluginResolver, configuredRequest);
-            }
-        });
+        if (!requests.isEmpty()) {
+            addPluginArtifactRepositories(scriptHandler.getRepositories());
+        }
+        List<Result> results = resolvePluginRequests(requests, effectivePluginResolver);
 
         // Could be different to ids in the requests as they may be unqualified
         final Map<Result, PluginId> legacyActualPluginIds = newLinkedHashMap();
@@ -101,9 +94,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
         if (!results.isEmpty()) {
             final RepositoryHandler repositories = scriptHandler.getRepositories();
-
-            addPluginArtifactRepositories(repositories);
-
             final Set<String> repoUrls = newLinkedHashSet();
 
             for (final Result result : results) {
@@ -130,6 +120,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
                             @Override
                             public void addFromDifferentLoader(PluginImplementation<?> plugin) {
+                                pluginImpls.put(result, plugin);
                                 pluginImplsFromOtherLoaders.put(result, plugin);
                             }
                         });
@@ -141,34 +132,34 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         }
 
         defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplsFromOtherLoaders.values());
+        applyLegacyPlugins(target, legacyActualPluginIds);
+        applyPlugins(target, pluginImpls);
+    }
 
-        // We're making an assumption here that the target's plugin registry is backed classLoaderScope.
-        // Because we are only build.gradle files right now, this holds.
-        // It won't for arbitrary scripts though.
-        for (final Map.Entry<Result, PluginId> entry : legacyActualPluginIds.entrySet()) {
-            final PluginRequestInternal request = entry.getKey().request;
-            final PluginId id = entry.getValue();
-            applyPlugin(request, id, new Runnable() {
-                @Override
-                public void run() {
-                    if (request.isApply()) {
-                        target.apply(id.toString());
-                    }
-                }
-            });
-        }
+    private void applyPlugins(PluginManagerInternal target, Map<Result, PluginImplementation<?>> regularPlugins) {
+        regularPlugins.forEach((result, impl) -> applyPlugin(result.request, result.found.getPluginId(), () -> {
+            if (result.request.isApply()) {
+                target.apply(impl);
+            }
+        }));
+    }
 
-        for (final Map.Entry<Result, PluginImplementation<?>> entry : Iterables.concat(pluginImpls.entrySet(), pluginImplsFromOtherLoaders.entrySet())) {
-            final Result result = entry.getKey();
-            applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
-                @Override
-                public void run() {
-                    if (result.request.isApply()) {
-                        target.apply(entry.getValue());
-                    }
-                }
-            });
-        }
+    // We're making an assumption here that the target's plugin registry is backed classLoaderScope.
+    // Because we are only build.gradle files right now, this holds.
+    // It won't for arbitrary scripts though.
+    private void applyLegacyPlugins(@Nullable PluginManagerInternal target, Map<Result, PluginId> legacyActualPluginIds) {
+        legacyActualPluginIds.forEach((result, id) -> applyPlugin(result.request, id, () -> {
+            if (result.request.isApply()) {
+                target.apply(id.toString());
+            }
+        }));
+    }
+
+    private List<Result> resolvePluginRequests(PluginRequests requests, PluginResolver effectivePluginResolver) {
+        return collect(requests, request -> {
+            PluginRequestInternal configuredRequest = pluginResolutionStrategy.applyTo(request);
+            return resolveToFoundResult(effectivePluginResolver, configuredRequest);
+        });
     }
 
     private void addPluginArtifactRepositories(RepositoryHandler repositories) {
@@ -182,18 +173,9 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final Set<String> existingMavenUrls = existingMavenUrls(repositories);
         for (final String repoUrl : repoUrls) {
             if (!existingMavenUrls.contains(repoUrl)) {
-                maven(repositories, repoUrl);
+                repositories.maven(repository -> repository.setUrl(repoUrl));
             }
         }
-    }
-
-    private void maven(RepositoryHandler repositories, final String m2RepoUrl) {
-        repositories.maven(new Action<MavenArtifactRepository>() {
-            @Override
-            public void execute(MavenArtifactRepository mavenArtifactRepository) {
-                mavenArtifactRepository.setUrl(m2RepoUrl);
-            }
-        });
     }
 
     private Set<String> existingMavenUrls(RepositoryHandler repositories) {

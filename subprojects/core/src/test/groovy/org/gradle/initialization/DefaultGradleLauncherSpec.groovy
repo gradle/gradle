@@ -53,7 +53,7 @@ class DefaultGradleLauncherSpec extends Specification {
     def otherService = Mock(Stoppable)
     def includedBuildControllers = Mock(IncludedBuildControllers)
     def instantExecution = Mock(InstantExecution)
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
     def transformedException = new RuntimeException("transformed")

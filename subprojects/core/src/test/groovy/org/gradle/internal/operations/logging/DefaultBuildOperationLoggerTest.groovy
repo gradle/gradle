@@ -27,7 +27,7 @@ import static org.gradle.api.logging.LogLevel.*
 
 @CleanupTestDirectory
 class DefaultBuildOperationLoggerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     Logger logger = Mock()
 
     def outputFile = temporaryFolder.file("test-output.txt")

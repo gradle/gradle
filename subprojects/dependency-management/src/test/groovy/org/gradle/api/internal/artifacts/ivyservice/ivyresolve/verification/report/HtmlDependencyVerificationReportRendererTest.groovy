@@ -51,7 +51,7 @@ class HtmlDependencyVerificationReportRendererTest extends Specification {
     static private File dummyFileSig = new File("dummy.asc")
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     File verificationFile = temporaryFolder.createFile("verification-metadata.xml")
     File reportsDir = temporaryFolder.testDirectory

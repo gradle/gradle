@@ -283,12 +283,22 @@ However, modifying attributes or capabilities on Ivy configurations has no effec
 
 For very Ivy specific use cases, the component metadata rules API also offers access to other details only found in Ivy metadata.
 These are available through the link:{javadocPath}/org/gradle/api/artifacts/ivy/IvyModuleDescriptor.html[IvyModuleDescriptor] interface and can be accessed using `getDescriptor(IvyModuleDescriptor)` on the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext].
-(Note that for other types of metadata this method returns null.)
 
 .Ivy component metadata rule
 ====
 include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=ivy-component-metadata-rule]"]
 include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=ivy-component-metadata-rule]"]
+====
+
+== Filter using Maven metadata  ==
+
+For Maven specific use cases, the component metadata rules API also offers access to other details only found in POM metadata.
+These are available through the link:{javadocPath}/org/gradle/api/artifacts/maven/PomModuleDescriptor.html[PomModuleDescriptor] interface and can be accessed using `getDescriptor(PomModuleDescriptor)` on the link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadataContext.html[ComponentMetadataContext].
+
+.Access pom packaging type in component metadata rule
+====
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=maven-packaging-component-metadata-rule]"]
+include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=maven-packaging-component-metadata-rule]"]
 ====
 
 == Modifying metadata on the component level for alignment

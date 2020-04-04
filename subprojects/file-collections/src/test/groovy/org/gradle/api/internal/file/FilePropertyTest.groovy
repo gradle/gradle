@@ -57,12 +57,7 @@ class FilePropertyTest extends FileSystemPropertySpec<RegularFile> {
     }
 
     @Override
-    PropertyInternal<RegularFile> providerWithValue(RegularFile value) {
-        return factory.newFileProperty().value(value)
-    }
-
-    @Override
     ManagedFactory managedFactory() {
-        new ManagedFactories.RegularFilePropertyManagedFactory(resolver)
+        new ManagedFactories.RegularFilePropertyManagedFactory(factory)
     }
 }

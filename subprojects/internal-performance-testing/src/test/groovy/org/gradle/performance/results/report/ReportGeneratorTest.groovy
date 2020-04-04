@@ -25,7 +25,7 @@ import org.junit.Rule
 
 class ReportGeneratorTest extends ResultSpecification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
     final dbFile = tmpDir.file("results")

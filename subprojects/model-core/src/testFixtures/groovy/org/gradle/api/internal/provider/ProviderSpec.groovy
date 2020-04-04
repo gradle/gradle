@@ -35,6 +35,8 @@ abstract class ProviderSpec<T> extends Specification {
 
     abstract T someOtherValue3()
 
+    abstract Class<T> type()
+
     abstract ManagedFactory managedFactory()
 
     boolean isNoValueProviderImmutable() {
@@ -428,10 +430,17 @@ abstract class ProviderSpec<T> extends Specification {
      * A test provider that always fails.
      */
     ProviderInternal<T> brokenSupplier() {
-        return new AbstractMinimalProvider<T>() {
+        return brokenSupplier(type())
+    }
+
+    /**
+     * A test provider that always fails.
+     */
+    ProviderInternal brokenSupplier(Class type) {
+        return new AbstractMinimalProvider() {
             @Override
             Class<T> getType() {
-                return ProviderSpec.this.type()
+                return type
             }
 
             @Override

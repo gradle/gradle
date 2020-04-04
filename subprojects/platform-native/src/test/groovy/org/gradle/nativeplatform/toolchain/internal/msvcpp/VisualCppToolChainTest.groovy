@@ -37,7 +37,7 @@ import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class VisualCppToolChainTest extends Specification {
-    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
     final FileResolver fileResolver = Mock(FileResolver)
     final ExecActionFactory execActionFactory = Mock(ExecActionFactory)
     final CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = Mock(CompilerOutputFileNamingSchemeFactory)

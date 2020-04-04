@@ -34,7 +34,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 class DefaultGeneratedGradleJarCacheTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def cacheRepository = Mock(CacheRepository)
     def gradleVersion = GradleVersion.current().version

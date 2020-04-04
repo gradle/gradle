@@ -37,7 +37,7 @@ import spock.lang.Unroll
 
 class Binary2JUnitXmlReportGeneratorSpec extends Specification {
 
-    @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule private TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     private resultsProvider = Mock(TestResultsProvider)
     BuildOperationExecutor buildOperationExecutor
     Binary2JUnitXmlReportGenerator generator

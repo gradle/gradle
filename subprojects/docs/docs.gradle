@@ -22,7 +22,7 @@ plugins {
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
-    id 'org.gradle.samples' version "0.16.1"
+    id 'org.gradle.samples' version "0.16.3"
 }
 
 repositories { handler ->
@@ -68,7 +68,7 @@ dependencies {
 
     userGuideStyleSheets 'docbook:docbook-xsl:1.75.2@zip'
 
-    jquery "jquery:jquery.min:1.8.0@js"
+    jquery "jquery:jquery.min:3.4.1@js"
     jquery "com.drewwilson.code:jquery.tipTip:1.3:minified@js"
 
     testImplementation project(":baseServices")
@@ -134,17 +134,17 @@ samples {
         groovySpockTestForApplication {
             target = "application"
         }
-        javaJunit4TestForApplication {
+        javaJunit5TestForApplication {
             target = "application"
         }
-        javaJunit4TestForListLibrary {
+        javaJunit5TestForListLibrary {
             target = "list"
         }
-        javaJunit4IntegrationTestForApplication {
+        javaJunit5IntegrationTestForApplication {
             target = "application"
         }
-        javaJunit4IntegrationTestForListLibrary {
-            target = "list"
+        javaJunit5IntegrationTestForUtilitiesLibrary {
+            target = "utilities"
         }
 
         groovyApplication
@@ -184,19 +184,19 @@ samples {
             }
         }
 
-        jvmComponentsWithAdditionalTestTypes {
+        jvmMultiProjectWithAdditionalTestTypes {
             displayName = "Additional test types"
             description = "Add an additional test type (e.g. integration tests) to a project."
             category = "JVM"
 
             common {
                 from(templates.javaApplicationAsSubproject)
-                from(templates.javaJunit4TestForApplication)
-                from(templates.javaJunit4IntegrationTestForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5IntegrationTestForApplication)
 
                 from(templates.javaListLibraryAsSubproject)
-                from(templates.javaJunit4TestForListLibrary)
-                from(templates.javaJunit4IntegrationTestForListLibrary)
+                from(templates.javaJunit5TestForListLibrary)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
 
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
@@ -232,8 +232,8 @@ samples {
                 from(templates.javaUtilitiesLibrary)
             }
         }
-        javaComponentsWithSpockTests {
-            sampleDirectory = samplesRoot.dir("java/components-with-spock-tests")
+        javaMultiProjectWithSpockTests {
+            sampleDirectory = samplesRoot.dir("java/multi-project-with-spock-tests")
             displayName = "Testing with Spock"
             description = "Test a Java application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Java"
@@ -245,17 +245,17 @@ samples {
                 from(templates.groovySpockTestForListLibrary)
             }
         }
-        javaComponentsWithJUnit4Tests {
-            sampleDirectory = samplesRoot.dir("java/components-with-junit-4-tests")
-            displayName = "Testing with JUnit4"
-            description = "Test a Java application and library with link:https://junit.org/junit4/[JUnit4]."
+        javaMultiProjectWithJUnit5Tests {
+            sampleDirectory = samplesRoot.dir("java/multi-project-with-junit-5-tests")
+            displayName = "Testing with JUnit5"
+            description = "Test a Java application and library with link:https://junit.org/junit5[JUnit5]."
             category = "Java"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
                 from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaJunit4TestForApplication)
-                from(templates.javaJunit4TestForListLibrary)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
             }
         }
         javaLibraryPublishing {
@@ -307,8 +307,8 @@ samples {
                 from(templates.groovyUtilitiesLibrary)
             }
         }
-        groovyComponentsWithSpockTests {
-            sampleDirectory = samplesRoot.dir("groovy/components-with-spock-tests")
+        groovyMultiProjectWithSpockTests {
+            sampleDirectory = samplesRoot.dir("groovy/multi-project-with-spock-tests")
             displayName = "Testing with Spock"
             description = "Test a Groovy application and library with link:https://github.com/spockframework/spock[Spock]."
             category = "Groovy"

@@ -26,11 +26,9 @@ import org.gradle.instantexecution.serialization.WriteContext
 
 internal
 class ConfigurableFileCollectionCodec(
+    private val codec: Codec<FileCollectionInternal>,
     private val fileCollectionFactory: FileCollectionFactory
 ) : Codec<ConfigurableFileCollection> {
-    private
-    val codec = FileCollectionCodec(fileCollectionFactory)
-
     override suspend fun WriteContext.encode(value: ConfigurableFileCollection) =
         codec.run { encode(value as FileCollectionInternal) }
 

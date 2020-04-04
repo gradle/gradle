@@ -25,6 +25,7 @@ import spock.lang.Unroll
 class NebulaPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-recommender')
+    @ToBeFixedForInstantExecution
     def 'nebula recommender plugin'() {
         when:
         buildFile << """
@@ -118,6 +119,7 @@ testCompile('junit:junit:4.7')""")
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.dependency-lock')
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
     def 'nebula dependency lock plugin'() {
         when:
         buildFile << """

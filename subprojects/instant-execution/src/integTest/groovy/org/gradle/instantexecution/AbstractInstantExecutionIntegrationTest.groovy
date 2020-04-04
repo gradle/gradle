@@ -19,11 +19,20 @@ package org.gradle.instantexecution
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+
 import org.gradle.integtests.fixtures.instantexecution.InstantExecutionBuildOperationsFixture
+import org.gradle.integtests.fixtures.instantexecution.InstantExecutionProblemsFixture
+
 import org.intellij.lang.annotations.Language
 
 
 class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
+
+    protected InstantExecutionProblemsFixture problems
+
+    def setup() {
+        problems = new InstantExecutionProblemsFixture(executer, testDirectory)
+    }
 
     void buildKotlinFile(@Language("kotlin") String script) {
         buildKotlinFile << script
@@ -37,7 +46,7 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
         fails(INSTANT_EXECUTION_PROPERTY, *args)
     }
 
-    public static final String INSTANT_EXECUTION_PROPERTY = "-Dorg.gradle.unsafe.instant-execution=true"
+    public static final String INSTANT_EXECUTION_PROPERTY = "-D${SystemProperties.isEnabled}=true"
 
     protected InstantExecutionBuildOperationsFixture newInstantExecutionFixture() {
         return new InstantExecutionBuildOperationsFixture(new BuildOperationsFixture(executer, temporaryFolder))

@@ -22,7 +22,7 @@ import spock.lang.Specification
 
 class WrapperExecutorTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final Install install = Mock()
     final BootstrapMainStarter start = Mock()
     TestFile projectDir;

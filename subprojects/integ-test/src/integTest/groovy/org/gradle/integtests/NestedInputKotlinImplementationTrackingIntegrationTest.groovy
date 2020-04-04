@@ -22,11 +22,8 @@ import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
-@Requires([TestPrecondition.KOTLIN_SCRIPT])
 @LeaksFileHandles
 class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPluginIntegrationTest implements DirectoryBuildCacheFixture {
 
@@ -104,6 +101,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractPlu
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11703")
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     def "nested bean from closure can be used with the build cache"() {
         def project1 = file("project1").createDir()
         def project2 = file("project2").createDir()

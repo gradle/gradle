@@ -25,8 +25,8 @@ import javax.annotation.Nullable;
 import java.util.Set;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
-    public DefaultSetProperty(Class<T> elementType) {
-        super(Set.class, elementType);
+    public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
+        super(host, Set.class, elementType);
     }
 
     @Override

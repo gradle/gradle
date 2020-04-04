@@ -38,7 +38,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             class CustomTask extends DefaultTask {
                 @Optional @$annotation.simpleName input
                 @TaskAction void doSomething() {
-                    def fileCollectionFactory = project.services.get(FileCollectionFactory)
+                    def fileCollectionFactory = services.get(FileCollectionFactory)
                     GetInputFilesVisitor visitor = new GetInputFilesVisitor("ownerName", fileCollectionFactory)
                     def walker = services.get(PropertyWalker)
                     TaskPropertyUtils.visitProperties(walker, this, visitor)

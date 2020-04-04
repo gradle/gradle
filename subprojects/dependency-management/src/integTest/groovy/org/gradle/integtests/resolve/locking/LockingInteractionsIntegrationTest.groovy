@@ -55,7 +55,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0'], false)
 
         when:
         succeeds 'dependencies'
@@ -94,7 +94,7 @@ dependencies {
 
         then:
         outputContains('my-dep-1.0')
-        lockfileFixture.verifyLockfile('lockedConf', [])
+        lockfileFixture.verifyLockfile('lockedConf', [], false)
     }
 
     @Unroll
@@ -128,7 +128,7 @@ dependencies {
         if (level == 'integration') {
             version += '-SNAPSHOT'
         }
-        lockfileFixture.createLockfile('lockedConf', ["org:bar:$version".toString()])
+        lockfileFixture.createLockfile('lockedConf', ["org:bar:$version".toString()], false)
 
         when:
         succeeds 'dependencies'
@@ -180,7 +180,7 @@ dependencies {
         outputContains("org:bar:$version -> $expectedVersion")
 
         and:
-        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:$expectedVersion"])
+        lockfileFixture.verifyLockfile('lockedConf', ["org:bar:$expectedVersion"], false)
 
         where:
         version              | expectedVersion
@@ -222,7 +222,7 @@ dependencies {
         succeeds 'dependencies', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0-SNAPSHOT'], false)
         outputContains('Dependency lock state for configuration \':lockedConf\' contains changing modules: [org:bar:1.0-SNAPSHOT]. This means that dependencies content may still change over time.')
 
         when:
@@ -263,13 +263,13 @@ dependencies {
     lockedConf 'org:foo:$version'
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', 'org:foo:1.0'], false)
 
         when:
         succeeds 'dependencies', '--update-locks', 'org:foo'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', "org:foo:$expectedVersion"])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:bar:1.0', 'org:baz:1.0', "org:foo:$expectedVersion"], false)
 
         where:
         version              | expectedVersion
@@ -313,7 +313,7 @@ task copyFiles(type: Copy) {
         succeeds 'copyFiles', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.0'], false)
 
         and:
         succeeds 'copyFiles'
@@ -325,7 +325,7 @@ task copyFiles(type: Copy) {
         mavenRepo.module('org', 'test', '1.0').publish()
         mavenRepo.module('org', 'test', '1.1').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'])
+        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'], false)
 
         buildFile << """
 dependencyLocking {
@@ -369,7 +369,7 @@ task resolve {
         mavenRepo.module('org', 'test', '1.0').publish()
         mavenRepo.module('org', 'test', '1.1').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'])
+        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'], false)
 
         buildFile << """
 dependencyLocking {
@@ -413,7 +413,7 @@ task resolve {
         mavenRepo.module('org', 'test', '1.0').publish()
         mavenRepo.module('org', 'test', '1.1').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'])
+        lockfileFixture.createLockfile('lockedConf', ['org:test:1.1'], false)
 
         buildFile << """
 dependencyLocking {
@@ -454,9 +454,10 @@ task resolve {
         failureHasCause("Did not resolve 'org:test:1.1' which has been forced / substituted to a different version: '1.0'")
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "ignores the lock entry that matches a composite"() {
         given:
-        lockfileFixture.createLockfile('lockedConf', ['org:composite:1.1'])
+        lockfileFixture.createLockfile('lockedConf', ['org:composite:1.1'], false)
 
         file("composite/settings.gradle") << """
 rootProject.name = 'composite'
@@ -504,7 +505,7 @@ task resolve {
         mavenHttpRepo.module('org', 'foo', '2.0').publish()
         def bar10 = mavenHttpRepo.module('org', 'bar', '1.0').dependsOn('org', 'foo', '[1.0,2.0)').publish()
 
-        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0'], false)
 
         buildFile << """
 dependencyLocking {

@@ -15,9 +15,12 @@
 [[custom_plugins]]
 = Developing Custom Gradle Plugins
 
-A Gradle plugin packages up reusable pieces of build logic, which can be used across many different projects and builds. Gradle allows you to implement your own plugins, so you can reuse your build logic, and share it with others.
+A Gradle plugin packages up reusable pieces of build logic, which can be used across many different projects and builds.
+Gradle allows you to implement your own plugins, so you can reuse your build logic, and share it with others.
 
-You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as JVM bytecode. In our examples, we are going to use Groovy as the implementation language. Groovy, Java or Kotlin are all good choices as the language to use to implement a plugin, as the Gradle API has been designed to work well with these languages. In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
+You can implement a Gradle plugin in any language you like, provided the implementation ends up compiled as JVM bytecode.
+In our examples, we are going to use Java as the implementation language for standalone plugin project and Groovy or Kotlin in the buildscript plugin examples.
+In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
 
 
 [[sec:packaging_a_plugin]]
@@ -26,16 +29,21 @@ You can implement a Gradle plugin in any language you like, provided the impleme
 There are several places where you can put the source for the plugin.
 
 Build script::
-You can include the source for the plugin directly in the build script. This has the benefit that the plugin is automatically compiled and included in the classpath of the build script without you having to do anything. However, the plugin is not visible outside the build script, and so you cannot reuse the plugin outside the build script it is defined in.
+You can include the source for the plugin directly in the build script.
+This has the benefit that the plugin is automatically compiled and included in the classpath of the build script without you having to do anything.
+However, the plugin is not visible outside the build script, and so you cannot reuse the plugin outside the build script it is defined in.
 
 `buildSrc` project::
-You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/groovy` directory
-(or `__rootProjectDir__/buildSrc/src/main/java` or `__rootProjectDir__/buildSrc/src/main/kotlin` depending on which language you prefer). Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script. The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
+You can put the source for the plugin in the `__rootProjectDir__/buildSrc/src/main/java` directory
+(or `__rootProjectDir__/buildSrc/src/main/groovy` or `__rootProjectDir__/buildSrc/src/main/kotlin` depending on which language you prefer).
+Gradle will take care of compiling and testing the plugin and making it available on the classpath of the build script.
+The plugin is visible to every build script used by the build. However, it is not visible outside the build, and so you cannot reuse the plugin outside the build it is defined in.
 +
 See <<organizing_gradle_projects.adoc#organizing_gradle_projects,Organizing Gradle Projects>> for more details about the `buildSrc` project.
 
 Standalone project::
-You can create a separate project for your plugin. This project produces and publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR might include some plugins, or bundle several related task classes into a single library. Or some combination of the two.
+You can create a separate project for your plugin. This project produces and publishes a JAR which you can then use in multiple builds and share with others.
+Generally, this JAR might include some plugins, or bundle several related task classes into a single library. Or some combination of the two.
 
 
 In our examples, we will start with the plugin in the build script, to keep things simple. Then we will look at creating a standalone project.
@@ -43,7 +51,10 @@ In our examples, we will start with the plugin in the build script, to keep thin
 [[sec:writing_a_simple_plugin]]
 == Writing a simple plugin
 
-To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface. When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()] method. The project object is passed as a parameter, which the plugin can use to configure the project however it needs to. The following sample contains a greeting plugin, which adds a `hello` task to the project.
+To create a Gradle plugin, you need to write a class that implements the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface.
+When the plugin is applied to a project, Gradle creates an instance of the plugin class and calls the instance's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply()] method.
+The project object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+The following sample contains a greeting plugin, which adds a `hello` task to the project.
 
 .A custom plugin
 ====
@@ -57,13 +68,17 @@ include::sample[dir="snippets/userguide/customPlugins/customPlugin/kotlin",files
 include::{samplesPath}/userguide/customPlugins/customPlugin/customPlugin.out[]
 ----
 
-One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] class is a generic type. This example has it receiving the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter. A plugin can instead receive a parameter of type link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings], in which case the plugin can be applied in a settings script, or a parameter of type link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle], in which case the plugin can be applied in an initialization script.
+One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] class is a generic type.
+This example has it receiving the link:{groovyDslPath}/org.gradle.api.Project.html[Project] type as a type parameter.
+A plugin can instead receive a parameter of type link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings], in which case the plugin can be applied in a settings script,
+or a parameter of type link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle], in which case the plugin can be applied in an initialization script.
 
 [[sec:getting_input_from_the_build]]
 == Making the plugin configurable
 
 Most plugins offer some configuration options for build scripts and other plugins to use to customize how the plugin works. Plugins do this using _extension objects_.
-The Gradle link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object that contains all the settings and properties for the plugins that have been applied to the project.
+The Gradle link:{groovyDslPath}/org.gradle.api.Project.html[Project] has an associated link:{javadocPath}/org/gradle/api/plugins/ExtensionContainer.html[ExtensionContainer] object
+that contains all the settings and properties for the plugins that have been applied to the project.
 You can provide configuration for your plugin by adding an extension object to this container.
 An extension object is simply an object with Java Bean properties that represent the configuration.
 
@@ -81,9 +96,11 @@ include::sample[dir="snippets/userguide/customPlugins/customPluginWithConvention
 include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/customPluginWithConvention.out[]
 ----
 
-In this example, `GreetingPluginExtension` is a object with a property called `message`. The extension object is added to the project with the name `greeting`. This object then becomes available as a project property with the same name as the extension object.
+In this example, `GreetingPluginExtension` is an object with a property called `message`. The extension object is added to the project with the name `greeting`.
+This object then becomes available as a project property with the same name as the extension object.
 
-Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block for each extension object, so you can group settings together. The following example shows you how this works.
+Oftentimes, you have several related properties you need to specify on a single plugin. Gradle adds a configuration block for each extension object, so you can group settings together.
+The following example shows you how this works.
 
 .A custom plugin with configuration block
 ====
@@ -98,10 +115,13 @@ include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConventio
 ----
 
 [.multi-language-text.lang-groovy]
-In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name. Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
+In this example, several settings can be grouped together within the `greeting` closure. The name of the closure block in the build script (`greeting`) needs to match the extension object name.
+Then, when the closure is executed, the fields on the extension object will be mapped to the variables within the closure based on the standard Groovy closure delegate feature.
 
 [.multi-language-text.lang-kotlin]
-In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block. The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type. Then, when the block is executed, the receiver of the block is the extension.
+In this example, several settings can be grouped together within the `configure<GreetingPluginExtension>` block.
+The type used on the `configure` function in the build script (`GreetingPluginExtension`) needs to match the extension type.
+Then, when the block is executed, the receiver of the block is the extension.
 
 In this way, using an extension object _extends_ the Gradle DSL to add a project property and DSL block for the plugin.
 And because an extension object is simply a regular object, you can provide your own DSL nested inside the plugin block by adding properties and methods to the extension object.
@@ -113,7 +133,8 @@ You can find out more about implementing project extensions in <<custom_gradle_t
 [[sec:working_with_files_in_custom_tasks_and_plugins]]
 == Working with files in custom tasks and plugins
 
-When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations. To do this, you can leverage the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to resolve values to files as late as possible.
+When developing custom tasks and plugins, it's a good idea to be very flexible when accepting input configuration for file locations.
+To do this, you can leverage the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to resolve values to files as late as possible.
 
 .Evaluating file properties lazily
 ====
@@ -127,47 +148,42 @@ include::sample[dir="snippets/userguide/tasks/customTaskWithFileProperty/kotlin"
 include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/lazyFileProperties.out[]
 ----
 
-In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure/provider into a `File` object at the last minute. You will notice that in the example above we specify the `greetingFile` property value after we have configured to use it for the task. This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
+In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with
+the link:{groovyDslPath}/org.gradle.api.Project.html#org.gradle.api.Project:file(java.lang.Object)[Project.file(java.lang.Object)] method to turn the return value of the closure/provider
+into a `File` object at the last minute. You will notice that in the example above we specify the `greetingFile` property value after we have configured to use it for the task.
+This kind of lazy evaluation is a key benefit of accepting any value when setting a file property, then resolving that value when reading the property.
 
 [[sec:mapping_extension_properties_to_task_properties]]
 == Mapping extension properties to task properties
 
-Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is a useful pattern. The build script author interacts only with the DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
+Capturing user input from the build script through an extension and mapping it to input/output properties of a custom task is a useful pattern.
+The build script author interacts only with the DSL defined by the extension. The imperative logic is hidden in the plugin implementation.
 
 Gradle provides some types that you can use in task implementations and extensions to help you with this. Refer to <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>> for more information.
 
 [[sec:custom_plugins_standalone_project]]
 == A standalone project
 
-Now we will move our plugin to a standalone project, so we can publish it and share it with others. This project is simply a Groovy project that produces a JAR containing the plugin classes. Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API as a compile-time dependency.
+Now we will move our plugin to a standalone project so that we can publish it and share it with others. This project is simply a Java project that produces a JAR containing the plugin classes.
+The easiest and the recommended way to package and publish a plugin is to use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
+This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the implementation configuration,
+generate the required plugin descriptors in the resulting JAR file and configure the <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>> to be used when publishing.
+Here is a simple build script for the project.
 
 .A build for a custom plugin
 ====
-include::sample[dir="snippets/customPlugin/groovy/plugin",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/plugin",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
 ====
-
-NOTE: The code for this example can be found at **`samples/customPlugin`** in the ‘-all’ distribution of Gradle.
-
-So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation? The answer is you need to provide a properties file in the jar's `META-INF/gradle-plugins` directory that matches the id of your plugin.
-
-=== Example: Wiring for a custom plugin
-
-[source,properties]
-.src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties
-----
-include::{samplesPath}/customPlugin/groovy/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
-----
-
-Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation class.
-
 
 [[sec:creating_a_plugin_id]]
 === Creating a plugin id
 
 Plugin ids are fully qualified in a manner similar to Java packages (i.e. a reverse domain name). This helps to avoid collisions and provides a way to group plugins with similar ownership.
 
-Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides. For example if you had a Github account named "foo" and your plugin was named "bar", a suitable plugin id might be `com.github.foo.bar`. Similarly, if the plugin was developed at the baz organization, the plugin id might be `org.baz.bar`.
+Your plugin id should be a combination of components that reflect namespace (a reasonable pointer to you or your organization) and the name of the plugin it provides.
+For example if you had a Github account named "foo" and your plugin was named "bar", a suitable plugin id might be `com.github.foo.bar`.
+Similarly, if the plugin was developed at the baz organization, the plugin id might be `org.baz.bar`.
 
 Plugin ids should conform to the following:
 
@@ -179,32 +195,40 @@ Plugin ids should conform to the following:
 * Cannot start or end with a '.' character.
 * Cannot contain consecutive '.' characters (i.e. '..').
 
-Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is necessary for a plugin id. For instance, it might seem reasonable to add "gradle" as a component of your plugin id, but since plugin ids are only used for Gradle plugins, this would be superfluous. Generally, a namespace that identifies ownership and a name are all that are needed for a good plugin id.
+Although there are conventional similarities between plugin ids and package names, package names are generally more detailed than is necessary for a plugin id.
+For instance, it might seem reasonable to add "gradle" as a component of your plugin id, but since plugin ids are only used for Gradle plugins, this would be superfluous.
+Generally, a namespace that identifies ownership and a name are all that are needed for a good plugin id.
 
 [[sec:publishing_your_plugin]]
 === Publishing your plugin
 
-If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact. See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#publishing_maven,Maven>> chapters on publishing artifacts.
+If you are publishing your plugin internally for use within your organization, you can publish it like any other code artifact.
+See the <<publishing_ivy.adoc#publishing_ivy,Ivy>> and <<publishing_maven.adoc#publishing_maven,Maven>> chapters on publishing artifacts.
 
-If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal]. This site provides the ability to search for and gather information about plugins contributed by the Gradle community. Please refer to the corresponding https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/[guide] on how to make your plugin available on this site.
+If you are interested in publishing your plugin to be used by the wider Gradle community, you can publish it to the http://plugins.gradle.org[Gradle Plugin Portal].
+This site provides the ability to search for and gather information about plugins contributed by the Gradle community.
+Please refer to the corresponding https://guides.gradle.org/publishing-plugins-to-gradle-plugin-portal/[guide] on how to make your plugin available on this site.
 
 [[sec:using_your_plugin_in_another_project]]
 === Using your plugin in another project
 
-To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To do this, you use a "`buildscript { }`" block, as described in see <<plugins.adoc#sec:applying_plugins_buildscript,Applying plugins using the buildscript block>>. The following example shows how you might do this when the JAR containing the plugin has been published to a local repository:
+To use a plugin in a build script, you need to configure the repository in `pluginManagement {}` block of the project's settings file.
+The following example shows how you might do this when the plugin has been published to a local repository:
 
 .Using a custom plugin in another project
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-plugin];build.gradle.kts[tags=use-plugin]"]
 ====
 
-Alternatively, you can use the plugins DSL (see <<plugins.adoc#sec:plugins_block,Applying plugins using the plugins DSL>>) to apply the plugin:
+==== Note for plugins published without `java-gradle-plugin`
+If your plugin was published without using the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>, the publication will be lacking <<plugins.adoc#sec:plugin_markers,Plugin Marker Artifact>>, which is needed for <<plugins.adoc#sec:plugins_block,plugins DSL>> to locate the plugin.
+In this case, the recommended way to resolve the plugin in another project is to add a `resolutionStrategy` section to the `pluginManagement {}` block of the project's settings file as shown below.
 
-.Applying a community plugin with the plugins DSL
+.Resolution strategy for plugins without Plugin Marker Artifact
 ====
-include::sample[dir="snippets/plugins/dsl/groovy",files="build.gradle[tags=use-community-plugin]"]
-include::sample[dir="snippets/plugins/dsl/kotlin",files="build.gradle.kts[tags=use-community-plugin]"]
+include::sample[dir="snippets/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
 ====
 
 [[sec:writing_tests_for_your_plugin]]
@@ -214,29 +238,30 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 
 === Example: Testing a custom plugin
 
-[source.multi-language-sample,groovy]
-.src/test/groovy/org/gradle/GreetingPluginTest.groovy
+[source.multi-language-sample,java]
+.src/test/java/org/gradle/GreetingPluginTest.java
 ----
-include::{samplesPath}/customPlugin/groovy/plugin/src/test/groovy/org/gradle/GreetingPluginTest.groovy[tag=test-plugin]
+include::{samplesPath}/customPlugin/groovy/plugin/src/test/java/org/gradle/GreetingPluginTest.java[tag=test-plugin]
 ----
-
-
-[[sec:using_the_java_gradle_plugin_development_plugin]]
-=== Using the Java Gradle Plugin Development Plugin
-
-You can use the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> to eliminate some of the boilerplate declarations in your build script and provide some basic validations of plugin metadata. This plugin will automatically apply the <<java_plugin.adoc#java_plugin,Java Plugin>>, add the `gradleApi()` dependency to the compile configuration, and perform plugin metadata validations as part of the `jar` task execution, and generate plugin descriptors in the resulting JAR's `META-INF` directory.
-
-.Using the Java Gradle Plugin Development plugin
-====
-include::sample[dir="snippets/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
-====
-
-When publishing plugins to custom plugin repositories using the <<publishing_ivy.adoc#publishing_ivy,Ivy>> or <<publishing_maven.adoc#publishing_maven,Maven>> publish plugins, the <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>> will also generate plugin marker artifacts named based on the plugin id which depend on the plugin's implementation artifact.
-
 
 == More details
 
 Plugins often also provide custom task types. Please see <<custom_tasks.adoc#custom_tasks,Developing Custom Gradle Task Types>> for more details.
 
 Gradle provides a number of features that are helpful when developing Gradle types, including plugins. Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.
+
+
+== Behind the scenes
+
+So how does Gradle find the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation?
+The answer is you need to provide a properties file in the JAR's `META-INF/gradle-plugins` directory that matches the id of your plugin, which is handled by <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development Plugin>>.
+
+=== Example: Wiring for a custom plugin
+
+[source,properties]
+.src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties
+----
+include::{samplesPath}/customPlugin/groovy/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
+----
+
+Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation class.

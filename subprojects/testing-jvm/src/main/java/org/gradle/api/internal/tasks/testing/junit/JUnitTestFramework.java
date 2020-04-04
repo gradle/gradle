@@ -17,6 +17,8 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import java.io.Serializable;
+import java.util.Collections;
+import java.util.List;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
@@ -61,6 +63,11 @@ public class JUnitTestFramework implements TestFramework {
                 workerProcessBuilder.sharedPackages("org.junit");
             }
         };
+    }
+
+    @Override
+    public List<String> getTestWorkerImplementationModules() {
+        return Collections.emptyList();
     }
 
     @Override

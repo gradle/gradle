@@ -32,7 +32,7 @@ class DownloadedUriTextResourceTest extends Specification {
     private TextResource underTest
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     def setup() {
         testDir = tmpDir.createDir('dir')

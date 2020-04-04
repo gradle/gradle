@@ -80,7 +80,7 @@ abstract class AbstractToolingApiCrossVersionPerformanceTest extends Specificati
     protected final static GradleDistribution CURRENT = new UnderDevelopmentGradleDistribution()
 
     static def resultStore = new CrossVersionResultsStore()
-    final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     protected ToolingApiExperiment experiment
 

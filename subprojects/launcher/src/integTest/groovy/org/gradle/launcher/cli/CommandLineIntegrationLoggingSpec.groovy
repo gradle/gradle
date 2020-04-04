@@ -26,8 +26,9 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {
+                def logLevel = project.gradle.startParameter.logLevel
                 doLast {
-                    assert LogLevel.${logLevel.toUpperCase()} == project.gradle.startParameter.logLevel
+                    assert LogLevel.${logLevel.toUpperCase()} == logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') { // check that there is a next level (there isn't in DEBUG)
@@ -58,9 +59,10 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {
+                def logLevel = project.gradle.startParameter.logLevel
                 doLast {
                     assert System.getProperty("org.gradle.logging.level") == "${logLevel}"
-                    assert LogLevel.${logLevel.toUpperCase()} == project.gradle.startParameter.logLevel
+                    assert LogLevel.${logLevel.toUpperCase()} == logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') {
@@ -92,8 +94,9 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         def message = 'Expected message in the output'
         buildFile << """
             task assertLogging {
+                def logLevel = project.gradle.startParameter.logLevel
                 doLast {
-                    assert LogLevel.${logLevel.toUpperCase()} == project.gradle.startParameter.logLevel
+                    assert LogLevel.${logLevel.toUpperCase()} == logLevel
                     logger.${logLevel} '${message}'
                     assert logger.${logLevel}Enabled
                     if ('${nextLevel}') { // check that there is a next level (there isn't in DEBUG)

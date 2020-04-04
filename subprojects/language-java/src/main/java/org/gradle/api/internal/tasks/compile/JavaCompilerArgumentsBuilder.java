@@ -75,7 +75,7 @@ public class JavaCompilerArgumentsBuilder {
     }
 
     public List<String> build() {
-        args = new ArrayList<String>();
+        args = new ArrayList<>();
         // Take a deep copy of the compilerArgs because the following methods mutate it.
         List<String> compArgs = Lists.newArrayList(spec.getCompileOptions().getCompilerArgs());
 
@@ -130,9 +130,13 @@ public class JavaCompilerArgumentsBuilder {
         if (!includeMainOptions) {
             return;
         }
-
+        Integer release = spec.getRelease();
         final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
-        if (!releaseOptionIsSet(compilerArgs)) {
+
+        if (release != null) {
+            args.add("--release");
+            args.add(release.toString());
+        } else if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
             if (sourceCompatibility != null) {
                 args.add("-source");
@@ -255,8 +259,21 @@ public class JavaCompilerArgumentsBuilder {
         }
 
         List<File> classpath = spec.getCompileClasspath();
-        args.add("-classpath");
-        args.add(classpath == null ? "" : Joiner.on(File.pathSeparatorChar).join(classpath));
+        List<File> modulePath = spec.getModulePath();
+        String moduleVersion = spec.getCompileOptions().getJavaModuleVersion();
+
+        if (!classpath.isEmpty()) {
+            args.add("-classpath");
+            args.add(Joiner.on(File.pathSeparatorChar).join(classpath));
+        }
+        if (!modulePath.isEmpty()) {
+            if (moduleVersion != null) {
+                args.add("--module-version");
+                args.add(moduleVersion);
+            }
+            args.add("--module-path");
+            args.add(Joiner.on(File.pathSeparatorChar).join(modulePath));
+        }
     }
 
     private void addSourceFiles() {

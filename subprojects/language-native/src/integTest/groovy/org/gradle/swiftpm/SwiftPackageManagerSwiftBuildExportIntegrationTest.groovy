@@ -16,6 +16,7 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SwiftAppWithLibraries
@@ -23,6 +24,7 @@ import org.gradle.nativeplatform.fixtures.app.SwiftLib
 
 class SwiftPackageManagerSwiftBuildExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for single project Swift library that defines only the production targets"() {
         given:
         buildFile << """
@@ -67,6 +69,7 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for multi-project Swift build"() {
         given:
         settingsFile << "include 'hello', 'log'"
@@ -143,6 +146,7 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for Swift library with shared and static linkage"() {
         given:
         buildFile << """
@@ -191,6 +195,7 @@ let package = Package(
 
     // See https://github.com/gradle/gradle-native/issues/1007
     @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC_4_OR_OLDER)
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for Swift component with declared Swift language version"() {
         given:
         buildFile << """
@@ -235,6 +240,7 @@ let package = Package(
         swiftPmBuildSucceeds()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "honors customizations to Swift module name"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"

@@ -30,7 +30,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 
 class DefaultNativeToolChainRegistryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     def project = TestUtil.create(testDir).rootProject()
 

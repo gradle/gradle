@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultPluginRegistryTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     def classLoader = Mock(ClassLoader)
     def classLoaderScope = Stub(ClassLoaderScope) {
         getLocalClassLoader() >> classLoader

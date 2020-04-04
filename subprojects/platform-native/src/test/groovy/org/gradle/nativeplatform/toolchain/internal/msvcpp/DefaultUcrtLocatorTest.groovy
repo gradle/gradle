@@ -28,7 +28,7 @@ import spock.lang.Specification
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.AbstractWindowsKitComponentLocator.PLATFORMS
 
 class DefaultUcrtLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final WindowsRegistry windowsRegistry = Stub(WindowsRegistry)
     final WindowsComponentLocator ucrtLocator = new DefaultUcrtLocator(windowsRegistry)
 

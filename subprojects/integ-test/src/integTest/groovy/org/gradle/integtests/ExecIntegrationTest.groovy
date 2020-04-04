@@ -66,16 +66,17 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             ${
             injectedTaskActionTask('javaexecInjectedTaskAction', '''
-                File testFile = project.file("${project.buildDir}/$name")
+                File testFile = layout.buildDirectory.file(name).get().asFile
                 execOperations.javaexec {
                     assert !(it instanceof ExtensionAware)
-                    it.classpath(project.sourceSets['main'].output.classesDirs)
+                    it.classpath(execClasspath)
                     it.main 'org.gradle.TestMain'
-                    it.args project.projectDir, testFile
+                    it.args layout.projectDirectory.asFile, testFile
                 }
                 assert testFile.exists()
             ''')
         }
+            javaexecInjectedTaskAction.execClasspath.from(project.sourceSets['main'].output.classesDirs)
         """.stripIndent()
 
         expect:
@@ -123,15 +124,16 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
             ${
             injectedTaskActionTask('execInjectedTaskAction', '''
-                File testFile = project.file("${project.buildDir}/$name")
+                File testFile = layout.buildDirectory.file(name).get().asFile
                 execOperations.exec {
                     assert !(it instanceof ExtensionAware)
                     it.executable Jvm.current().getJavaExecutable()
-                    it.args '-cp', project.sourceSets['main'].runtimeClasspath.asPath, 'org.gradle.TestMain', project.projectDir, testFile
+                    it.args '-cp', execClasspath.asPath, 'org.gradle.TestMain', layout.projectDirectory.asFile, testFile
                 }
                 assert testFile.exists()
             ''')
         }
+            execInjectedTaskAction.execClasspath.from(project.sourceSets['main'].runtimeClasspath)
         """.stripIndent()
 
         expect:
@@ -143,13 +145,16 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
     private static String injectedTaskActionTask(String taskName, String taskActionBody) {
         return """
-            class InjectedServiceTask extends DefaultTask {
+            abstract class InjectedServiceTask extends DefaultTask {
 
-                @Internal
-                final ExecOperations execOperations
+                @Classpath
+                abstract ConfigurableFileCollection getExecClasspath()
 
                 @Inject
-                InjectedServiceTask(ExecOperations execOperations) { this.execOperations = execOperations }
+                abstract ProjectLayout getLayout()
+
+                @Inject
+                abstract ExecOperations getExecOperations()
 
                 @TaskAction
                 void myAction() {

@@ -36,7 +36,7 @@ class BuildInvocationDetailsIntegTest extends AbstractIntegrationSpec {
                 
                 @TaskAction
                 def checkTime() {
-                    def internalTimer = project.services.get($BuildStartedTime.name)
+                    def internalTimer = services.get($BuildStartedTime.name)
                     assert invocationDetails.buildStartedTime != 0
                     assert invocationDetails.buildStartedTime == internalTimer.startTime
                     

@@ -22,7 +22,7 @@ import org.junit.Rule
 
 class SystemPropertiesIntegrationTest extends ConcurrentSpec {
     @Rule SetSystemProperties properties = new SetSystemProperties()
-    @Rule TestNameTestDirectoryProvider temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "sets a system property for the duration of a Factory operation"() {
         final int threadCount = 100

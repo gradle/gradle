@@ -31,21 +31,19 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(DarwinFileWatcherRegistry.class);
 
     public DarwinFileWatcherRegistry(Set<Path> watchRoots, ChangeHandler handler) {
         super(
-            callback -> Native.get(OsxFileEventFunctions.class).startWatching(
-                watchRoots.stream()
-                    .map(Path::toString)
-                    .collect(Collectors.toList()),
-                // TODO Figure out a good value for this
-                300, TimeUnit.MICROSECONDS,
-                callback
-            ),
+            watchRoots,
+            callback -> Native.get(OsxFileEventFunctions.class)
+                .startWatcher(
+                    // TODO Figure out a good value for this
+                    20, TimeUnit.MICROSECONDS,
+                    callback
+                ),
             handler
         );
     }

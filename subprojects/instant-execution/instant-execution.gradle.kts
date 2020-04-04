@@ -28,6 +28,14 @@ tasks {
     }
 }
 
+afterEvaluate {
+    // This is a workaround for the validate plugins task trying to inspect classes which have changed but are NOT tasks.
+    // For the current project, we simply disable it since there are no tasks in there.
+    tasks.withType<ValidatePlugins>().configureEach {
+        enabled = false
+    }
+}
+
 dependencies {
     implementation(project(":baseServices"))
     implementation(project(":baseServicesGroovy"))
@@ -35,11 +43,13 @@ dependencies {
     implementation(project(":logging"))
     implementation(project(":coreApi"))
     implementation(project(":core"))
+    implementation(project(":resources"))
     implementation(project(":snapshots"))
     implementation(project(":modelCore"))
     implementation(project(":fileCollections"))
     implementation(project(":dependencyManagement"))
     implementation(project(":persistentCache"))
+    implementation(project(":plugins"))
     implementation(project(":kotlinDsl"))
     // TODO - move the isolatable serializer to model-core to live with the isolatable infrastructure
     implementation(project(":workers"))

@@ -149,7 +149,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         ${groovyWithJavaLib ? "apply plugin: 'java-library'" : ''}
                         apply plugin: 'groovy'
                         dependencies {
-                            implementation 'org.codehaus.groovy:groovy:2.5.4'
+                            implementation 'org.codehaus.groovy:groovy:2.5.10'
                         }
                 """
             }
@@ -166,9 +166,9 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
 
         buildFile << """
             subprojects {
-                
+
                 ${mavenCentralRepository()}
-                
+
                 afterEvaluate {
                     configurations.runtimeClasspath.attributes {
                         // make sure we explicitly require the "classes" variant
@@ -195,7 +195,7 @@ class GroovyJavaLibraryInteractionIntegrationTest extends AbstractDependencyReso
                         'org.gradle.usage': 'java-runtime',
                         'org.gradle.libraryelements': 'jar'])
 
-                    module('org.codehaus.groovy:groovy:2.5.4')
+                    module('org.codehaus.groovy:groovy:2.5.10')
                     // first one is "main" from Java sources
                     artifact(name: 'main', noType: true)
                     // second one is "main" from Groovy sources

@@ -23,6 +23,7 @@ import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.coffeescript.CoffeeScriptCompiler;
 import org.gradle.plugins.javascript.coffeescript.compile.internal.SerializableCoffeeScriptCompileSpec;
 import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
+import org.gradle.process.internal.worker.RequestHandler;
 
 import java.io.File;
 
@@ -42,9 +43,9 @@ public class RhinoCoffeeScriptCompiler implements CoffeeScriptCompiler {
 
     @Override
     public WorkResult compile(CoffeeScriptCompileSpec spec) {
-        CoffeeScriptCompilerProtocol compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerProtocol.class, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
+        RequestHandler<SerializableCoffeeScriptCompileSpec, Void> compiler = rhinoWorkerHandleFactory.create(rhinoClasspath, CoffeeScriptCompilerWorker.class, logLevel, workingDir);
 
-        compiler.process(new SerializableCoffeeScriptCompileSpec(spec));
+        compiler.run(new SerializableCoffeeScriptCompileSpec(spec));
 
         return WorkResults.didWork(true);
     }

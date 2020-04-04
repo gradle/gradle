@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
+import org.gradle.util.GradleVersion
 
 class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
 
@@ -39,13 +40,14 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         given:
         def localGradleCache = file('.gradle')
         localGradleCache.touch()
+        def versionsCacheDir = localGradleCache.file(GradleVersion.current().version)
 
         when:
         fails 'hello'
 
         then:
         localGradleCache.isFile()
-        assertHasStartupFailure(failure, "Failed to create directory '${localGradleCache.file("checksums")}'")
+        assertHasStartupFailure(failure, "Cannot create parent directory '${versionsCacheDir}'")
     }
 
     def "Error message due to unwritable gradle user home directory is not scary"() {

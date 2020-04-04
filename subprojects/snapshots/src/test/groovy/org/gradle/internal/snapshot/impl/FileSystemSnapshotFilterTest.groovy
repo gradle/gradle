@@ -38,7 +38,7 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class FileSystemSnapshotFilterTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     VirtualFileSystem virtualFileSystem = TestFiles.virtualFileSystem()
     FileSystem fileSystem = TestFiles.fileSystem()

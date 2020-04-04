@@ -35,7 +35,7 @@ import spock.lang.Specification
 
 class DefaultNativeExecutableBinarySpecTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     final testUtil = TestUtil.create(tmpDir)
     def namingScheme = DefaultBinaryNamingScheme.component("bigOne").withBinaryType("executable")

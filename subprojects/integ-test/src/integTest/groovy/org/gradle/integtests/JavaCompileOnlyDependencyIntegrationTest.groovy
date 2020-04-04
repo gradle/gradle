@@ -17,6 +17,7 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
@@ -165,6 +166,7 @@ task checkCompileClasspath{
         succeeds('checkImplementation', 'checkCompileOnly', 'checkCompileClasspath')
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "compile only dependencies from project dependency are non transitive"() {
         given:
         mavenRepo.module('org.gradle.test', 'compileOnly', '1.0').publish()
@@ -204,6 +206,7 @@ project(':projectB') {
         succeeds('checkClasspath')
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "correct configurations for compile only project dependency"() {
         given:
         settingsFile << "include 'projectA', 'projectB'"

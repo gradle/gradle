@@ -16,12 +16,15 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import spock.lang.Issue
 import spock.lang.Unroll
 
-class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest {
+class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
 
     def "can generate an empty verification file"() {
         when:
@@ -626,6 +629,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 """
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "included build dependencies are used when generating the verification file"() {
         given:
         javaLibrary()
@@ -1276,6 +1280,50 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         then:
         outputContains "Dependency verification has been disabled for configuration runtimeClasspath"
         hasModules(["org:foo"])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12260")
+    @Unroll
+    def "doesn't fail writing verification file if a #artifact file is missing from local store"() {
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        run ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        version.eachFileRecurse {
+            if (it.name.endsWith(".${artifact}")) {
+                it.delete()
+            }
+        }
+
+        writeVerificationMetadata()
+        run ":help", "--offline"
+
+        then:
+        hasModules(["org:foo"])
+
+        and:
+        if (artifact == 'pom') {
+            // there's a technical limitation due to the code path used for regular artifacts
+            // which makes it that we don't even try to snapshot if the file is missing so we can't
+            // provide an error message
+            outputContains("Cannot compute checksum for")
+        }
+        where:
+        artifact << ['jar', 'pom']
     }
 
 }

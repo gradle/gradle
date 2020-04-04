@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transfer
 
 import org.gradle.api.Transformer
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManagerStub
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultExternalResourceCachePolicy
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.cache.internal.ProducerGuard
@@ -42,7 +43,7 @@ import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
     final repository = Mock(ExternalResourceRepository)
     final progressLoggingRepo = Mock(ExternalResourceRepository)
     final index = Mock(CachedExternalResourceIndex)
@@ -52,6 +53,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
     final temporaryFileProvider = Stub(TemporaryFileProvider) {
         createTemporaryFile(_, _, _) >> tempFile
     }
+    final cacheLockingManager = new ArtifactCacheLockingManagerStub()
     final fileRepository = Mock(FileResourceRepository)
     final cachePolicy = new DefaultExternalResourceCachePolicy()
     final ProducerGuard<URI> producerGuard = Stub() {
@@ -60,7 +62,7 @@ class DefaultCacheAwareExternalResourceAccessorTest extends Specification {
             supplier.get()
         }
     }
-    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService)
+    final cache = new DefaultCacheAwareExternalResourceAccessor(repository, index, timeProvider, temporaryFileProvider, cacheLockingManager, cachePolicy, producerGuard, fileRepository, TestUtil.checksumService)
 
     def "returns null when the request resource is not cached and does not exist in the remote repository"() {
         def location = new ExternalResourceName("thing")

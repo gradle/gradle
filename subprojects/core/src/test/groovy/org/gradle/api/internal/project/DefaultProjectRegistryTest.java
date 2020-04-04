@@ -42,7 +42,7 @@ public class DefaultProjectRegistryTest {
     private DefaultProjectRegistry<ProjectInternal> projectRegistry;
 
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
     @Before
     public void setUp() {

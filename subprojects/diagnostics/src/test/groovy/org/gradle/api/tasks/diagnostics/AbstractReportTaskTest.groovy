@@ -33,7 +33,7 @@ class AbstractReportTaskTest extends Specification {
     private TestReportTask task
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = TestNameTestDirectoryProvider.newInstance()
+    public TestNameTestDirectoryProvider tmpDir = TestNameTestDirectoryProvider.newInstance(getClass())
     private ProjectInternal project = TestUtil.create(tmpDir).rootProject()
 
     def setup() throws Exception {

@@ -30,7 +30,7 @@ import spock.lang.Specification
 
 class DefaultSwiftApplicationTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     def app = project.objects.newInstance(DefaultSwiftApplication, "main")
 
@@ -73,7 +73,7 @@ class DefaultSwiftApplicationTest extends Specification {
 
         then:
         def ex = thrown(IllegalStateException)
-        ex.message == "Cannot query the value of Swift application 'main' property 'developmentBinary' because it has no value available."
+        ex.message == "Cannot query the value of property 'developmentBinary' because it has no value available."
     }
 
     private NativeVariantIdentity getIdentity() {

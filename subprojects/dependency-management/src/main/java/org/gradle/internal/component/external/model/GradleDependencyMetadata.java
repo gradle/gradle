@@ -128,7 +128,8 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
 
     @Override
     public boolean isTransitive() {
-        return true;
+        // Constraints are _never_ transitive
+        return !isConstraint();
     }
 
     @Override
@@ -174,11 +175,12 @@ public class GradleDependencyMetadata implements ModuleDependencyMetadata, Forci
             force == that.force &&
             Objects.equal(selector, that.selector) &&
             Objects.equal(excludes, that.excludes) &&
-            Objects.equal(reason, that.reason);
+            Objects.equal(reason, that.reason) &&
+            Objects.equal(artifacts, that.artifacts);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(selector, excludes, constraint, reason, force);
+        return Objects.hashCode(selector, excludes, constraint, reason, force, artifacts);
     }
 }

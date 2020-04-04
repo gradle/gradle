@@ -42,7 +42,7 @@ import spock.lang.Specification
 
 abstract class AbstractExecutionPlanSpec extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     private def backing = TestUtil.createRootProject(temporaryFolder.testDirectory)
     private def locks = new ArrayList<MockLock>()
     private def acquired = new HashSet<MockLock>()

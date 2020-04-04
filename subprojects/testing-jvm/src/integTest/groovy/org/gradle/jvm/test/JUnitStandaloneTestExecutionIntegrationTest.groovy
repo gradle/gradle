@@ -18,11 +18,12 @@ package org.gradle.jvm.test
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.hamcrest.CoreMatchers
 import spock.lang.Ignore
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecutionIntegrationSpec {
 
     def "creates a JUnit test suite binary"() {
@@ -43,7 +44,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         outputContains "build using task: :myTestBinary"
     }
 
-    @ToBeFixedForInstantExecution
     def "fails with a reasonable error when no repository is declared"() {
         given:
         applyJUnitPluginAndDoNotDeclareRepo()
@@ -117,7 +117,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Executes a passing test suite with a JUnit component and #sourceconfig.description")
-    @ToBeFixedForInstantExecution
     def "executes a passing test suite"() {
         given:
         applyJUnitPlugin()
@@ -162,7 +161,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Executes a failing test suite with a JUnit component and #sourceconfig.description")
-    @ToBeFixedForInstantExecution
     def "executes a failing test suite"() {
         given:
         applyJUnitPlugin()
@@ -210,7 +208,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Can have multiple JUnit test suites in a single project under #container")
-    @ToBeFixedForInstantExecution
     def "can have multiple JUnit test suites in a single project"() {
         given:
         applyJUnitPlugin()
@@ -259,7 +256,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         result.assertTasksExecuted ':assemble' // only
     }
 
-    @ToBeFixedForInstantExecution
     def "check executes the test suite"() {
         given:
         applyJUnitPlugin()
@@ -374,7 +370,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasCause "Project ':' doesn't define any library."
     }
 
-    @ToBeFixedForInstantExecution
     def "should not allow a test suite to use a non-exported class from a dependency"() {
         given:
         applyJUnitPlugin()
@@ -405,7 +400,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         failure.assertHasErrorOutput 'package utils.internal does not exist'
     }
 
-    @ToBeFixedForInstantExecution
     def "test should access test resources"() {
         given:
         applyJUnitPlugin()
@@ -433,7 +427,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
         noExceptionThrown()
     }
 
-    @ToBeFixedForInstantExecution
     def "test should access processed test resources in a non conventional place"() {
         given:
         applyJUnitPlugin()
@@ -473,7 +466,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
     }
 
     @Unroll("Test should execute test suite with dependency on local library #library")
-    @ToBeFixedForInstantExecution
     def "test should execute with transitive dependencies of local libraries"() {
         given:
         applyJUnitPlugin()
@@ -492,7 +484,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
-    @ToBeFixedForInstantExecution
     def "test should execute with transitive dependencies of a binary specific source set"() {
         given:
         applyJUnitPlugin()
@@ -555,7 +546,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
-    @ToBeFixedForInstantExecution
     def "test should execute with transitive dependencies of a dependency binary specific source set"() {
         given:
         applyJUnitPlugin()
@@ -618,7 +608,6 @@ class JUnitStandaloneTestExecutionIntegrationTest extends AbstractJUnitTestExecu
 
     }
 
-    @ToBeFixedForInstantExecution
     def "runtime transitive dependencies should not be on compile classpath of test suite"() {
         given:
         applyJUnitPlugin()

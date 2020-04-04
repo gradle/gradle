@@ -38,7 +38,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 class DefaultPersistentDirectoryStoreTest extends Specification {
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     def cacheDir = tmpDir.file("dir")
     def cleanupAction = Mock(CleanupAction)

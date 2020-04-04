@@ -30,7 +30,7 @@ import static org.gradle.util.WindowsSymbolicLinkUtil.createWindowsSymbolicLink
 
 class Jdk7SymlinkTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Requires(TestPrecondition.SYMLINKS)
     def 'on symlink supporting system, it will return true for supported symlink'() {

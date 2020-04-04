@@ -34,7 +34,7 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 @UsesNativeServices
 class BaseDirFileResolverSpec extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Requires(TestPrecondition.SYMLINKS)
     def "normalizes absolute path which points to an absolute link"() {
@@ -231,7 +231,7 @@ The following types/formats are supported:
     }
 
     private BaseDirFileResolver resolver(File baseDir = tmpDir.testDirectory) {
-        new BaseDirFileResolver(baseDir, TestFiles.getPatternSetFactory())
+        new BaseDirFileResolver(baseDir)
     }
 
     private File[] getFsRoots() {

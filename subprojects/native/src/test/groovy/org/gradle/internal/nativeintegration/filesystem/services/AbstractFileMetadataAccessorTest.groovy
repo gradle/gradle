@@ -28,7 +28,7 @@ import spock.lang.Specification
 @UsesNativeServices
 abstract class AbstractFileMetadataAccessorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
     abstract long lastModified(File file)

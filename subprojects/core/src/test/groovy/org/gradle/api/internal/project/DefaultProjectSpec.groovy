@@ -42,7 +42,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class DefaultProjectSpec extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "can create file collection configured with an Action"() {
         given:

@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class LazyLocallyAvailableResourceCandidatesTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmp
+    @Rule TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     def "does not query factory until necessary"() {
         given:

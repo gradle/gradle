@@ -54,11 +54,14 @@ import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
 import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.reflect.JavaReflectionUtil;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceRegistry;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.OwnerAware;
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.TestUtil;
 import org.junit.Rule;
@@ -67,6 +70,7 @@ import spock.lang.Issue;
 
 import javax.inject.Inject;
 import java.io.IOException;
+import java.lang.annotation.Annotation;
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
@@ -106,8 +110,18 @@ import static org.junit.Assert.fail;
 
 public class AsmBackedClassGeneratorTest {
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
+    final PropertyRoleAnnotationHandler roleHandler = new PropertyRoleAnnotationHandler() {
+        @Override
+        public Set<Class<? extends Annotation>> getAnnotationTypes() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public void applyRoleTo(ModelObject owner, Object target) {
+        }
+    };
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject(Collections.emptyList(), roleHandler, Collections.emptyList(), new TestCrossBuildInMemoryCacheFactory(), 0);
 
     private <T> T newInstance(Class<T> clazz, Object... args) throws Exception {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -154,6 +168,22 @@ public class AsmBackedClassGeneratorTest {
         assertEquals(InterfaceWithDefaultMethods.class, ((GeneratedSubclass) bean).publicType());
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpackType(bean));
         assertEquals(InterfaceWithDefaultMethods.class, GeneratedSubclasses.unpack(bean.getClass()));
+    }
+
+    @Test
+    public void mixesInModelObjectInterfaces() throws Exception {
+        Bean bean = newInstance(Bean.class);
+        assertTrue(bean instanceof ModelObject);
+        assertNull(((ModelObject) bean).getModelIdentityDisplayName());
+        assertTrue(bean instanceof OwnerAware);
+    }
+
+    @Test
+    public void mixesInModelObjectInterfacesToInterface() throws Exception {
+        InterfaceWithDefaultMethods bean = newInstance(InterfaceWithDefaultMethods.class);
+        assertTrue(bean instanceof ModelObject);
+        assertNull(((ModelObject) bean).getModelIdentityDisplayName());
+        assertTrue(bean instanceof OwnerAware);
     }
 
     @Test
@@ -1833,6 +1863,71 @@ public class AsmBackedClassGeneratorTest {
 
         @Nested
         InterfacePropertyBean getPropBean();
+    }
+
+    public static abstract class NestedBeanClassWithToString {
+        @Override
+        public String toString() {
+            return "<some bean>";
+        }
+
+        @Nested
+        abstract InterfaceFileCollectionBean getFilesBean();
+
+        @Nested
+        abstract InterfacePropertyBean getPropBean();
+    }
+
+    public static abstract class NestedBeanClass {
+        private final InterfaceFileCollectionBean filesBean;
+        private final InterfacePropertyBean propBean;
+        private InterfacePropertyBean mutableProperty;
+
+        public NestedBeanClass(ObjectFactory objectFactory) {
+            this.filesBean = objectFactory.newInstance(InterfaceFileCollectionBean.class);
+            this.propBean = objectFactory.newInstance(InterfacePropertyBean.class);
+            this.mutableProperty = objectFactory.newInstance(InterfacePropertyBean.class);
+        }
+
+        @Nested
+        InterfaceFileCollectionBean getFilesBean() {
+            return filesBean;
+        }
+
+        @Nested
+        final InterfacePropertyBean getFinalProp() {
+            return propBean;
+        }
+
+        @Nested
+        InterfacePropertyBean getMutableProperty() {
+            return mutableProperty;
+        }
+
+        void setMutableProperty(InterfacePropertyBean mutableProperty) {
+            this.mutableProperty = mutableProperty;
+        }
+    }
+
+    public static abstract class UsesToStringInConstructor {
+        public final String name = toString();
+    }
+
+    public static class FinalReadOnlyNonManagedPropertyBean {
+        private final Property<String> prop;
+
+        public FinalReadOnlyNonManagedPropertyBean(ObjectFactory objectFactory) {
+            this.prop = objectFactory.property(String.class);
+        }
+
+        public final Property<String> getProp() {
+            return prop;
+        }
+    }
+
+    public interface InterfaceUsesToStringBean {
+        @Nested
+        UsesToStringInConstructor getBean();
     }
 
     public interface InterfacePropertyBean {

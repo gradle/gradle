@@ -34,7 +34,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def listener = Mock(ChangeListener)
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "retains order of files in the snapshot"() {
         given:

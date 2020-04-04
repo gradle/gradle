@@ -23,7 +23,7 @@ import spock.lang.Specification
 class JansiStorageLocatorTest extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def locator = new JansiStorageLocator()
     def factory = Mock(JansiLibraryFactory)

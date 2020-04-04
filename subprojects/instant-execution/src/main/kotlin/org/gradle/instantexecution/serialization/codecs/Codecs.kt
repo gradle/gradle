@@ -16,37 +16,33 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.Project
-import org.gradle.api.Script
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
-import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformListener
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformParameterScheme
 import org.gradle.api.internal.attributes.ImmutableAttributesFactory
 import org.gradle.api.internal.file.FileCollectionFactory
+import org.gradle.api.internal.file.FileFactory
 import org.gradle.api.internal.file.FileLookup
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FilePropertyFactory
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.project.ProjectStateRegistry
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.services.internal.BuildServiceRegistryInternal
-import org.gradle.api.tasks.TaskContainer
 import org.gradle.api.tasks.util.PatternSet
 import org.gradle.api.tasks.util.internal.PatternSpecFactory
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.instantexecution.serialization.ownerServiceCodec
 import org.gradle.instantexecution.serialization.reentrant
-import org.gradle.instantexecution.serialization.unsupported
 import org.gradle.internal.Factory
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.FileCollectionFingerprinterRegistry
@@ -70,7 +66,6 @@ import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
-import org.gradle.kotlin.dsl.*
 import org.gradle.process.ExecOperations
 import org.gradle.process.internal.ExecActionFactory
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -81,6 +76,7 @@ class Codecs(
     directoryFileTreeFactory: DirectoryFileTreeFactory,
     fileCollectionFactory: FileCollectionFactory,
     fileLookup: FileLookup,
+    propertyFactory: PropertyFactory,
     filePropertyFactory: FilePropertyFactory,
     fileResolver: FileResolver,
     instantiator: Instantiator,
@@ -101,30 +97,28 @@ class Codecs(
     transformListener: ArtifactTransformListener,
     valueSourceProviderFactory: ValueSourceProviderFactory,
     patternSetFactory: Factory<PatternSet>,
-    fileSystem: FileSystem
+    fileOperations: FileOperations,
+    fileSystem: FileSystem,
+    fileFactory: FileFactory
 ) {
 
     val userTypesCodec = BindingsBackedCodec {
 
-        bind(unsupported<Project>())
-        bind(unsupported<Gradle>())
-        bind(unsupported<Settings>())
-        bind(unsupported<TaskContainer>())
-        bind(unsupported<ConfigurationContainer>())
-        bind(unsupported<KotlinScript>())
-        bind(unsupported<Script>())
+        unsupportedTypes()
 
         baseTypes()
 
         bind(HashCodeSerializer())
         bind(BrokenValueCodec)
 
-        providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
+        providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
 
         bind(ListenerBroadcastCodec(listenerManager))
         bind(LoggerCodec)
 
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
+
+        bind(ApiTextResourceAdapterCodec)
 
         bind(ClosureCodec)
         bind(GroovyMetaClassCodec)
@@ -135,7 +129,7 @@ class Codecs(
         bind(AttributeContainerCodec(attributesFactory))
         bind(TransformationNodeReferenceCodec)
 
-        bind(DefaultCopySpecCodec(fileResolver, fileCollectionFactory, instantiator))
+        bind(DefaultCopySpecCodec(patternSetFactory, fileCollectionFactory, instantiator))
         bind(DestinationRootCopySpecCodec(fileResolver))
 
         bind(TaskReferenceCodec)
@@ -157,6 +151,7 @@ class Codecs(
         bind(ownerServiceCodec<BuildOperationListenerManager>())
         bind(ownerServiceCodec<BuildRequestMetaData>())
         bind(ownerServiceCodec<ListenerManager>())
+        bind(ownerServiceCodec<TemporaryFileProvider>())
         bind(ServicesCodec())
 
         bind(ProxyCodec)
@@ -174,8 +169,8 @@ class Codecs(
 
         baseTypes()
 
-        providerTypes(filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
-        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, patternSetFactory, fileSystem)
+        providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
+        fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, fileOperations, fileSystem, fileFactory, patternSetFactory)
 
         bind(TaskNodeCodec(projectStateRegistry, userTypesCodec, taskNodeFactory))
         bind(InitialTransformationNodeCodec(buildOperationExecutor, transformListener))
@@ -204,26 +199,28 @@ class Codecs(
     }
 
     private
-    fun BindingsBuilder.providerTypes(filePropertyFactory: FilePropertyFactory, buildServiceRegistry: BuildServiceRegistryInternal, valueSourceProviderFactory: ValueSourceProviderFactory) {
+    fun BindingsBuilder.providerTypes(propertyFactory: PropertyFactory, filePropertyFactory: FilePropertyFactory, buildServiceRegistry: BuildServiceRegistryInternal, valueSourceProviderFactory: ValueSourceProviderFactory) {
         val nestedCodec = FixedValueReplacingProviderCodec(valueSourceProviderFactory, buildServiceRegistry)
-        bind(ListPropertyCodec(nestedCodec))
-        bind(SetPropertyCodec(nestedCodec))
-        bind(MapPropertyCodec(nestedCodec))
+        bind(ListPropertyCodec(propertyFactory, nestedCodec))
+        bind(SetPropertyCodec(propertyFactory, nestedCodec))
+        bind(MapPropertyCodec(propertyFactory, nestedCodec))
         bind(DirectoryPropertyCodec(filePropertyFactory, nestedCodec))
         bind(RegularFilePropertyCodec(filePropertyFactory, nestedCodec))
-        bind(PropertyCodec(nestedCodec))
-        bind(BuildServiceProviderCodec(buildServiceRegistry))
-        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
+        bind(PropertyCodec(propertyFactory, nestedCodec))
         bind(ProviderCodec(nestedCodec))
     }
 
     private
-    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, patternSetFactory: Factory<PatternSet>, fileSystem: FileSystem) {
-        bind(FileTreeCodec(directoryFileTreeFactory, patternSetFactory, fileSystem))
-        bind(ConfigurableFileCollectionCodec(fileCollectionFactory))
-        bind(FileCollectionCodec(fileCollectionFactory))
+    fun BindingsBuilder.fileCollectionTypes(directoryFileTreeFactory: DirectoryFileTreeFactory, fileCollectionFactory: FileCollectionFactory, fileOperations: FileOperations, fileSystem: FileSystem, fileFactory: FileFactory, patternSetFactory: Factory<PatternSet>) {
+        bind(DirectoryCodec(fileFactory))
+        bind(RegularFileCodec(fileFactory))
+        bind(ConfigurableFileTreeCodec(fileCollectionFactory))
+        bind(FileTreeCodec(fileCollectionFactory, directoryFileTreeFactory, fileOperations, fileSystem))
+        val fileCollectionCodec = FileCollectionCodec(fileCollectionFactory)
+        bind(ConfigurableFileCollectionCodec(fileCollectionCodec, fileCollectionFactory))
+        bind(fileCollectionCodec)
         bind(IntersectPatternSetCodec)
-        bind(PatternSetCodec)
+        bind(PatternSetCodec(patternSetFactory))
     }
 
     private
@@ -262,5 +259,6 @@ class Codecs(
 
         bind(arrayCodec)
         bind(EnumCodec)
+        bind(RegexpPatternCodec)
     }
 }

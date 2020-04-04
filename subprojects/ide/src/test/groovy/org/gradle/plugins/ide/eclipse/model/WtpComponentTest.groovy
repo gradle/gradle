@@ -29,7 +29,7 @@ public class WtpComponentTest extends Specification {
     private final WtpComponent component = new WtpComponent(new XmlTransformer())
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "load existing XML file"() {
         when:

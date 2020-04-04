@@ -23,7 +23,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultArtifactCacheMetadataTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def scopeMapping = Stub(CacheScopeMapping)
 
     def "calculates file store directory"() {

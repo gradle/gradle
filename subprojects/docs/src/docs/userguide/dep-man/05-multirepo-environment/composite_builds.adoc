@@ -38,7 +38,6 @@ include::sample[dir="snippets/compositeBuilds/basic/groovy",files="my-app/build.
 include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="my-app/build.gradle.kts[]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/compositeBuilds/basic`** in the ‘-all’ distribution of Gradle.
 
 [[command_line_composite]]
 === Defining a composite build via `--include-build`

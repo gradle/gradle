@@ -30,7 +30,6 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.IncrementalInputsTaskAction;
 import org.gradle.api.internal.project.taskfactory.IncrementalTaskInputsTaskAction;
 import org.gradle.api.internal.tasks.DefaultTaskValidationContext;
@@ -138,6 +137,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
     private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
     private final EmptySourceTaskSkipper emptySourceTaskSkipper;
     private final FileCollectionFactory fileCollectionFactory;
+    private final FileOperations fileOperations;
 
     public ExecuteActionsTaskExecuter(
         BuildCacheState buildCacheState,
@@ -156,7 +156,8 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         EmptySourceTaskSkipper emptySourceTaskSkipper,
-        FileCollectionFactory fileCollectionFactory
+        FileCollectionFactory fileCollectionFactory,
+        FileOperations fileOperations
     ) {
         this.buildCacheState = buildCacheState;
         this.scanPluginState = scanPluginState;
@@ -175,6 +176,7 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
         this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
         this.emptySourceTaskSkipper = emptySourceTaskSkipper;
         this.fileCollectionFactory = fileCollectionFactory;
+        this.fileOperations = fileOperations;
     }
 
     @Override
@@ -498,7 +500,6 @@ public class ExecuteActionsTaskExecuter implements TaskExecuter {
 
         @Override
         public void validate(WorkValidationContext validationContext) {
-            FileOperations fileOperations = ((ProjectInternal) task.getProject()).getFileOperations();
             Class<?> taskType = GeneratedSubclasses.unpackType(task);
             // TODO This should probably use the task class info store
             boolean cacheable = taskType.isAnnotationPresent(CacheableTask.class);

@@ -39,7 +39,7 @@ import static org.junit.Assert.*
 
 class ScalaBasePluginTest {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private final Project project = TestUtil.create(temporaryFolder).rootProject()
 
     @Before

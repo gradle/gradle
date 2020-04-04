@@ -88,7 +88,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
             if (!initialized) {
                 useNativeIntegrations = "true".equalsIgnoreCase(System.getProperty("org.gradle.native", "true"));
                 if (useNativeIntegrations) {
-                    File nativeBaseDir = getNativeServicesDir(userHomeDir);
+                    File nativeBaseDir = getNativeServicesDir(userHomeDir).getAbsoluteFile();
                     try {
                         net.rubygrapefruit.platform.Native.init(nativeBaseDir);
                     } catch (NativeIntegrationUnavailableException ex) {

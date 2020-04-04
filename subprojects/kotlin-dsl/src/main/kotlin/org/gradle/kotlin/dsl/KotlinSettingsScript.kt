@@ -69,7 +69,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
     "-jvm-target", "1.8",
     "-Xjsr305=strict",
     "-XXLanguage:+NewInference",
-    "-XXLanguage:+SamConversionForKotlinFunctions"
+    "-XXLanguage:+SamConversionForKotlinFunctions",
+    "-XXLanguage:+ReferencesToSyntheticJavaProperties"
 ])
 @SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl

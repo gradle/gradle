@@ -16,6 +16,8 @@
 
 package org.gradle.internal.reflect;
 
+import javax.annotation.Nullable;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.Collection;
 
@@ -45,4 +47,10 @@ public interface PropertyDetails {
      * Has identical ordering semantics.
      */
     Collection<Method> getSetters();
+
+    /**
+     * Returns the backing field for this property, if a Groovy implemented property. In this case, the field instead of the getter carries the property annotations.
+     */
+    @Nullable
+    Field getBackingField();
 }

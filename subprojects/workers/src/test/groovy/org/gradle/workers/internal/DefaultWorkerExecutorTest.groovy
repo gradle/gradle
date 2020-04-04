@@ -43,7 +43,7 @@ class DefaultWorkerExecutorTest extends Specification {
     @Rule
     RedirectStdOutAndErr output = new RedirectStdOutAndErr()
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def workerDaemonFactory = Mock(WorkerFactory)
     def inProcessWorkerFactory = Mock(WorkerFactory)

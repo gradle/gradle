@@ -11,17 +11,18 @@ dependencies {
     implementation("org.ow2.asm:asm:7.1")
     implementation("org.ow2.asm:asm-commons:7.1")
     implementation("com.google.code.gson:gson:2.7")
+    implementation("org.gradle:test-retry-gradle-plugin:1.1.3")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.4.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.0")
     testImplementation("junit:junit:4.12")
     testImplementation("io.mockk:mockk:1.8.13")
 }
 
 gradlePlugin {
     plugins {
-        register("buildTypes") {
-            id = "gradlebuild.build-types"
-            implementationClass = "org.gradle.plugins.buildtypes.BuildTypesPlugin"
+        register("lifecycle") {
+            id = "gradlebuild.lifecycle"
+            implementationClass = "org.gradle.plugins.lifecycle.LifecyclePlugin"
         }
         register("buildVersion") {
             id = "gradlebuild.build-version"

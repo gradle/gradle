@@ -15,12 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.repositories
 
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ComponentMetadataListerDetails
 import org.gradle.api.artifacts.ComponentMetadataSupplier
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails
 import org.gradle.api.artifacts.ComponentMetadataVersionLister
 import org.gradle.api.artifacts.repositories.AuthenticationContainer
+import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
@@ -238,6 +240,33 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
         then:
         lister.rules.configurableRules[0].ruleClass == CustomVersionListerWithParams
         lister.rules.configurableRules[0].ruleParams.isolate() == ["a", 12, [1, 2, 3]] as Object[]
+    }
+
+    def "can retrieve metadataSources"() {
+        repository.name = 'name'
+        repository.url = 'http://host'
+        resolver.resolveUri('http://host') >> new URI('http://host/')
+        transportFactory.createTransport('http', 'name', _, _) >> transport()
+
+        given:
+        repository.metadataSources(new Action<MavenArtifactRepository.MetadataSources>() {
+            @Override
+            void execute(MavenArtifactRepository.MetadataSources metadataSources) {
+                metadataSources.mavenPom()
+                metadataSources.artifact()
+                metadataSources.gradleMetadata()
+                metadataSources.ignoreGradleMetadataRedirection()
+            }
+        })
+
+        when:
+        MavenArtifactRepository.MetadataSources metadataSources = repository.getMetadataSources()
+
+        then:
+        metadataSources.isMavenPomEnabled()
+        metadataSources.isArtifactEnabled()
+        metadataSources.isGradleMetadataEnabled()
+        metadataSources.isIgnoreGradleMetadataRedirectionEnabled()
     }
 
     static class CustomVersionLister implements ComponentMetadataVersionLister {

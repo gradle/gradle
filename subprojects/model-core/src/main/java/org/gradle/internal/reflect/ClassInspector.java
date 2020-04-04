@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
@@ -83,6 +84,9 @@ public class ClassInspector {
             } else {
                 classDetails.instanceMethod(method);
             }
+        }
+        for (Field field : type.getDeclaredFields()) {
+            classDetails.field(field);
         }
     }
 }

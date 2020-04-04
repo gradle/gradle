@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class MavenProjectsCreatorSpec extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     private settings = new DefaultMavenSettingsProvider({} as MavenFileLocations)
     private creator = new MavenProjectsCreator()
 
@@ -161,7 +161,7 @@ class MavenProjectsCreatorSpec extends Specification {
   <modelVersion>4.0.0</modelVersion>
   <groupId>org.gradle.commons</groupId>
   <artifactId>commons</artifactId>
-  
+
 </project>
 """
         def mavenProjects = creator.create(settings.buildSettings(), parentPom)

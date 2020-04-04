@@ -26,6 +26,8 @@ import org.gradle.api.internal.attributes.AttributeContainerInternal
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.util.AttributeTestUtil
 import spock.lang.Specification
+import spock.lang.Unroll
+
 import static org.gradle.util.AttributeTestUtil.attributes
 import static org.gradle.util.TestUtil.objectFactory
 
@@ -543,10 +545,11 @@ class ComponentAttributeMatcherTest extends Specification {
         result == [candidate1]
     }
 
-    def "prefers a shorter match with compatible requested values and more than one extra attribute"() {
+    @Unroll
+    def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         def matcher = new ComponentAttributeMatcher()
         def usage = Attribute.of("usage", String)
-        def bundling = Attribute.of("bundling", String)
+        def bundling = Attribute.of("bundling", type)
         def status = Attribute.of("status", String)
 
         schema.with {
@@ -561,8 +564,8 @@ class ComponentAttributeMatcherTest extends Specification {
         def requested = attributes(usage: 'java-api')
         def candidate1 = attributes(usage: 'java-api-extra', status: 'integration')
         def candidate2 = attributes(usage: 'java-runtime-extra', status: 'integration')
-        def candidate3 = attributes(usage: 'java-api-extra', status: 'integration', bundling: 'embedded')
-        def candidate4 = attributes(usage: 'java-runtime-extra', status: 'integration', bundling: 'embedded')
+        def candidate3 = attributes(usage: 'java-api-extra', status: 'integration', bundling: value1)
+        def candidate4 = attributes(usage: 'java-runtime-extra', status: 'integration', bundling: value2)
 
         when:
         def result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null)
@@ -573,8 +576,8 @@ class ComponentAttributeMatcherTest extends Specification {
         when: // check with a different attribute order
         candidate1 = attributes(usage: 'java-api-extra', status: 'integration')
         candidate2 = attributes(usage: 'java-runtime-extra', status: 'integration')
-        candidate3 = attributes(usage: 'java-api-extra', bundling: 'embedded', status: 'integration')
-        candidate4 = attributes(usage: 'java-runtime-extra', bundling: 'embedded', status: 'integration')
+        candidate3 = attributes(usage: 'java-api-extra', bundling: value2, status: 'integration')
+        candidate4 = attributes(usage: 'java-runtime-extra', bundling: value1, status: 'integration')
 
         result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null)
 
@@ -584,14 +587,19 @@ class ComponentAttributeMatcherTest extends Specification {
         when: // yet another attribute order
         candidate1 = attributes(status: 'integration', usage: 'java-api-extra')
         candidate2 = attributes(usage: 'java-runtime-extra', status: 'integration')
-        candidate3 = attributes(bundling: 'embedded', status: 'integration', usage: 'java-api-extra')
-        candidate4 = attributes(status: 'integration', usage: 'java-runtime-extra', bundling: 'embedded')
+        candidate3 = attributes(bundling: value1, status: 'integration', usage: 'java-api-extra')
+        candidate4 = attributes(status: 'integration', usage: 'java-runtime-extra', bundling: value2)
 
         result = matcher.match(schema, [candidate1, candidate2, candidate3, candidate4], requested, null)
 
         then:
         result == [candidate1]
 
+        where:
+        type                | value1        | value2
+        String              | "embedded"    | "embedded"
+        EnumTestAttribute   | "NAME1"       | "NAME2"
+        NamedTestAttribute  | "foo"         | "bar"
     }
 
     private AttributeContainerInternal attrs() {

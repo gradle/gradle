@@ -17,8 +17,10 @@
 package org.gradle.api.internal.file
 
 import org.gradle.api.Task
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.internal.state.ModelObject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,13 +28,13 @@ import spock.lang.Specification
 
 class DefaultFilePropertyFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile projectDir
     DefaultFilePropertyFactory factory
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
+        factory = new DefaultFilePropertyFactory(Stub(PropertyHost), TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
     }
 
     def "can create directory instance from absolute file"() {
@@ -266,25 +268,15 @@ class DefaultFilePropertyFactoryTest extends Specification {
         !var.present
     }
 
-    def "producer task for a directory is not known by default"() {
-        def var = factory.newDirectoryProperty()
-        def context = Mock(TaskDependencyResolveContext)
-
-        when:
-        def visited = var.maybeVisitBuildDependencies(context)
-
-        then:
-        !visited
-        0 * context._
-    }
-
     def "can specify the producer task for a directory"() {
         def var = factory.newDirectoryProperty()
-        def task = Mock(Task)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
         def context = Mock(TaskDependencyResolveContext)
 
         when:
-        var.attachProducer(task)
+        var.attachProducer(owner)
         def visited = var.maybeVisitBuildDependencies(context)
 
         then:
@@ -295,24 +287,14 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
     def "can discard the producer task for a directory"() {
         def var = factory.newDirectoryProperty()
-        def task = Mock(Task)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
         def context = Mock(TaskDependencyResolveContext)
 
         when:
-        var.attachProducer(task)
+        var.attachProducer(owner)
         def visited = var.locationOnly.maybeVisitBuildDependencies(context)
-
-        then:
-        !visited
-        0 * context._
-    }
-
-    def "producer task for a regular file is not known by default"() {
-        def var = factory.newFileProperty()
-        def context = Mock(TaskDependencyResolveContext)
-
-        when:
-        def visited = var.maybeVisitBuildDependencies(context)
 
         then:
         !visited
@@ -321,11 +303,13 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
     def "can specify the producer task for a regular file"() {
         def var = factory.newFileProperty()
-        def task = Mock(Task)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
         def context = Mock(TaskDependencyResolveContext)
 
         when:
-        var.attachProducer(task)
+        var.attachProducer(owner)
         def visited = var.maybeVisitBuildDependencies(context)
 
         then:
@@ -336,11 +320,13 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
     def "can discard the producer task for a regular file"() {
         def var = factory.newFileProperty()
-        def task = Mock(Task)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
         def context = Mock(TaskDependencyResolveContext)
 
         when:
-        var.attachProducer(task)
+        var.attachProducer(owner)
         def visited = var.locationOnly.maybeVisitBuildDependencies(context)
 
         then:

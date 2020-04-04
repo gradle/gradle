@@ -78,6 +78,8 @@ public interface ComponentMetadataHandler {
      * <ul>
      *     <li>{@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} - additional Ivy-specific
      *     metadata. Rules declaring this parameter will only be invoked for components packaged as an Ivy module.</li>
+     *     <li>{@link org.gradle.api.artifacts.maven.PomModuleDescriptor} - additional Maven-specific
+     *     metadata. Rules declaring this parameter will only be invoked for components packaged as a POM module.</li>
      * </ul>
      *
      * @param rule the rule to be added
@@ -94,10 +96,10 @@ public interface ComponentMetadataHandler {
      * <ul>
      *     <li>must return void.</li>
      *     <li>must have {@link ComponentMetadataDetails} as the first parameter.</li>
-     *     <li>may have an additional parameter of type {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor}.</li>
+     *     <li>may have an additional parameter of type {@link org.gradle.api.artifacts.ivy.IvyModuleDescriptor} or {@link org.gradle.api.artifacts.maven.PomModuleDescriptor}.</li>
      * </ul>
      *
-     * @param ruleSource  the rule source object to be added
+     * @param ruleSource the rule source object to be added
      * @return this
      */
     ComponentMetadataHandler all(Object ruleSource);

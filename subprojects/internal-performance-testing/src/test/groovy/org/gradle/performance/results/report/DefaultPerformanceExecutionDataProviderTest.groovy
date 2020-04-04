@@ -26,7 +26,7 @@ import spock.lang.Subject
 
 class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Subject
     DefaultPerformanceExecutionDataProvider provider

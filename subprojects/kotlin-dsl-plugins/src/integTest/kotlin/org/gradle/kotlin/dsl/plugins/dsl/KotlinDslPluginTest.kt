@@ -251,6 +251,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `by default experimental Kotlin compiler features are enabled and a warning is issued`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()
@@ -279,6 +280,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can explicitly disable experimental Kotlin compiler features warning`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(

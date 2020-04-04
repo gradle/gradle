@@ -43,6 +43,7 @@ import org.gradle.initialization.SettingsPreparer
 import org.gradle.initialization.SettingsProcessor
 import org.gradle.initialization.TaskExecutionPreparer
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.internal.Factory
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.file.PathToFileResolver
 import org.gradle.internal.operations.BuildOperationCategory
@@ -73,6 +74,9 @@ class InstantExecutionHost internal constructor(
 
     override fun <T> getService(serviceType: Class<T>): T =
         gradle.services.get(serviceType)
+
+    override fun <T> factory(serviceType: Class<T>): Factory<T> =
+        gradle.services.getFactory(serviceType)
 
     inner class DefaultClassicModeBuild : ClassicModeBuild {
         override val buildSrc: Boolean
@@ -105,6 +109,8 @@ class InstantExecutionHost internal constructor(
                     service<BuildDefinition>().fromBuild
                 )
                 settingsPreparer.prepareSettings(this)
+
+                includedBuilds = emptyList()
 
                 setBaseProjectClassLoaderScope(coreScope)
                 projectDescriptorRegistry.rootProject!!.name = rootProjectName

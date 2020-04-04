@@ -47,7 +47,7 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.fail;
 
 public class TarFileTreeTest {
-    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    @Rule public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     @Rule public final Resources resources = new Resources();
     private final TestFile tarFile = tmpDir.getTestDirectory().file("test.tar");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");

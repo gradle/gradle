@@ -42,6 +42,11 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
     @ToBeFixedForInstantExecution(bottomSpecs = [
         "HelpTasksPluginIntegrationTest",
+        "BuildDashboardPluginIntegrationTest",
+        "GroovyPluginGoodBehaviourTest",
+        "ScalaPluginGoodBehaviourTest",
+        "AntlrPluginIntegrationTest",
+        "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "JavaGradlePluginPluginIntegrationTest",
         "ApplicationPluginIntegrationTest",
         "CheckstylePluginIntegrationTest",
@@ -75,7 +80,12 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
 
     @ToBeFixedForInstantExecution(bottomSpecs = [
         "HelpTasksPluginIntegrationTest",
+        "BuildDashboardPluginIntegrationTest",
         "JavaGradlePluginPluginIntegrationTest",
+        "GroovyPluginGoodBehaviourTest",
+        "ScalaPluginGoodBehaviourTest",
+        "AntlrPluginIntegrationTest",
+        "PlayApplicationPluginGoodBehaviourIntegrationTest",
         "ApplicationPluginIntegrationTest",
         "CheckstylePluginIntegrationTest",
         "CodeNarcPluginIntegrationTest",

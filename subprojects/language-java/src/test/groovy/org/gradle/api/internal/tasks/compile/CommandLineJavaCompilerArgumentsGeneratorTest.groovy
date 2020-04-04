@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.compile
 
 import com.google.common.collect.Lists
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
@@ -28,7 +27,7 @@ import static org.gradle.api.internal.tasks.compile.JavaCompilerArgumentsBuilder
 
 class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tempDir
+    TestNameTestDirectoryProvider tempDir = new TestNameTestDirectoryProvider(getClass())
 
     CommandLineJavaCompilerArgumentsGenerator argsGenerator = new CommandLineJavaCompilerArgumentsGenerator()
 
@@ -55,7 +54,7 @@ class CommandLineJavaCompilerArgumentsGeneratorTest extends Specification {
         def sources = createFiles(numFiles)
         def classpath = createFiles(numFiles)
         def spec = new DefaultJavaCompileSpec()
-        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.compileOptions.forkOptions.memoryMaximumSize = "256m"
         spec.sourceFiles = sources
         spec.compileClasspath = classpath

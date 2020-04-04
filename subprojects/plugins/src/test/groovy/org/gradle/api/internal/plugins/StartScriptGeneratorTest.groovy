@@ -31,6 +31,7 @@ class StartScriptGeneratorTest extends Specification {
     private static final String MAIN_CLASSNAME = 'org.gradle.launcher.GradleMain'
     private static final Iterable<String> DEFAULT_JVM_OPTS = ['-Xmx1024m']
     private static final Iterable<String> CLASSPATH = ['libs/gradle.jar']
+    private static final Iterable<String> MODULE_PATH = []
     private static final String SCRIPT_REL_PATH = 'bin/gradle'
     private static final String APP_NAME_SYS_PROP = 'org.gradle.appname'
 
@@ -38,7 +39,7 @@ class StartScriptGeneratorTest extends Specification {
     ScriptGenerator windowsStartScriptGenerator = Mock()
     StartScriptGenerator.UnixFileOperation unixFileOperation = Mock()
     StartScriptGenerator startScriptGenerator = new StartScriptGenerator(unixStartScriptGenerator, windowsStartScriptGenerator, unixFileOperation)
-    @Rule TestNameTestDirectoryProvider temporaryFolder
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         populateStartScriptGenerator()
@@ -77,11 +78,12 @@ class StartScriptGeneratorTest extends Specification {
         startScriptGenerator.mainClassName = MAIN_CLASSNAME
         startScriptGenerator.defaultJvmOpts = DEFAULT_JVM_OPTS
         startScriptGenerator.classpath = CLASSPATH
+        startScriptGenerator.modulePath = MODULE_PATH
         startScriptGenerator.scriptRelPath = SCRIPT_REL_PATH
         startScriptGenerator.appNameSystemProperty = APP_NAME_SYS_PROP
     }
 
     private JavaAppStartScriptGenerationDetails createJavaAppStartScriptGenerationDetails() {
-        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
+        return new DefaultJavaAppStartScriptGenerationDetails(APP_NAME, OPTS_ENV_VAR, EXIT_ENV_VAR, MAIN_CLASSNAME, DEFAULT_JVM_OPTS, CLASSPATH, MODULE_PATH, SCRIPT_REL_PATH, APP_NAME_SYS_PROP)
     }
 }

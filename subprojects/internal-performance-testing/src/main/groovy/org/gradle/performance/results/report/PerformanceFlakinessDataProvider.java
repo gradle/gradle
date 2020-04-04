@@ -27,7 +27,7 @@ public interface PerformanceFlakinessDataProvider {
     double FLAKY_THRESHOLD = 0.05;
 
     /**
-     * Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99%
+     * Flakiness rate of a scenario is the number of times the scenario had a regression of an improvement with more than 99.9%
      * in the flakiness detection builds divided by the total number of runs of the scenario.
      *
      * <pre>

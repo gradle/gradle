@@ -74,12 +74,12 @@ abstract class ToolingApiSpecification extends Specification {
         return targetDist.version.baseVersion.version
     }
 
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
-    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
+    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
     @Rule

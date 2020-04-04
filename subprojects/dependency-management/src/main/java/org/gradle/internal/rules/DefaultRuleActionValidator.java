@@ -18,18 +18,23 @@ package org.gradle.internal.rules;
 
 import org.gradle.model.internal.type.ModelType;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 public class DefaultRuleActionValidator implements RuleActionValidator {
     private static final String VALID_NO_TYPES = "Rule may not have an input parameter of type: %s.";
-    private static final String VALID_SINGLE_TYPES = "Rule may not have an input parameter of type: %s. Second parameter must be of type: %s.";
+    private static final String VALID_MULTIPLE_TYPES = "Rule may not have an input parameter of type: %s. Second parameter must be of type: %s.";
 
-    private final Class<?> validInputType;
+    private final List<Class<?>> validInputType;
 
     public DefaultRuleActionValidator() {
-        this.validInputType = null;
+        this.validInputType = Collections.emptyList();
     }
 
-    public DefaultRuleActionValidator(Class<?> validInputType) {
-        this.validInputType = validInputType;
+    public DefaultRuleActionValidator(Class<?>... validInputTypes) {
+        this.validInputType = Arrays.asList(validInputTypes);
     }
 
     @Override
@@ -40,24 +45,22 @@ public class DefaultRuleActionValidator implements RuleActionValidator {
 
     private void validateInputTypes(RuleAction<?> ruleAction) {
         for (Class<?> inputType : ruleAction.getInputTypes()) {
-            if (validInputType == null) {
-                throw new RuleActionValidationException(invalidParameterMessage(inputType));
-            } else if (!validInputType.equals(inputType)) {
+            if (!validInputType.contains(inputType)) {
                 throw new RuleActionValidationException(invalidParameterMessage(inputType));
             }
         }
     }
 
     private String invalidParameterMessage(Class<?> inputType) {
-        if (validInputType == null) {
+        if (validInputType.isEmpty()) {
             return String.format(VALID_NO_TYPES, inputType.getName());
         } else {
-            return String.format(VALID_SINGLE_TYPES, inputType.getName(), className(validInputType));
+            return String.format(VALID_MULTIPLE_TYPES, inputType.getName(), validTypeNames());
         }
-   }
+    }
 
-    private static String className(Class<?> aClass) {
-        return ModelType.of(aClass).toString();
+    private String validTypeNames() {
+        return validInputType.stream().map(ModelType::of).map(ModelType::toString).collect(Collectors.joining(" or "));
     }
 
 }

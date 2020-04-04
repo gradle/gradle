@@ -35,7 +35,7 @@ import java.util.concurrent.Executor
 @UsesNativeServices
 @Timeout(60)
 class DefaultExecHandleSpec extends ConcurrentSpec {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
 
     void "forks process"() {

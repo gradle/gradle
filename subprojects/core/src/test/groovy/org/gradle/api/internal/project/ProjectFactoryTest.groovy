@@ -33,7 +33,7 @@ import spock.lang.Specification
 
 class ProjectFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def instantiator = Mock(Instantiator)
     def projectDescriptor = Stub(DefaultProjectDescriptor)
     def gradle = Stub(GradleInternal)

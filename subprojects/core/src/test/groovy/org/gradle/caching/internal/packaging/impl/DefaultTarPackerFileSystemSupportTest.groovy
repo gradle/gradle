@@ -28,7 +28,7 @@ import static org.gradle.internal.file.TreeType.FILE
 @CleanupTestDirectory
 class DefaultTarPackerFileSystemSupportTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def deleter = TestFiles.deleter()
     def fileSystemSupport = new DefaultTarPackerFileSystemSupport(deleter)
 

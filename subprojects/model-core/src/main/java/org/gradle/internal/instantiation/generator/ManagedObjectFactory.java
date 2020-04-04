@@ -24,8 +24,6 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.GeneratedSubclass;
-import org.gradle.api.internal.provider.OwnerAware;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.MapProperty;
@@ -33,9 +31,10 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
 import org.gradle.internal.service.ServiceLookup;
-
-import javax.annotation.Nullable;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.OwnerAware;
 
 /**
  * A helper used by generated classes to create managed instances.
@@ -43,69 +42,75 @@ import javax.annotation.Nullable;
 public class ManagedObjectFactory {
     private final ServiceLookup serviceLookup;
     private final InstanceGenerator instantiator;
+    private final PropertyRoleAnnotationHandler roleHandler;
 
-    public ManagedObjectFactory(ServiceLookup serviceLookup, InstanceGenerator instantiator) {
+    public ManagedObjectFactory(ServiceLookup serviceLookup, InstanceGenerator instantiator, PropertyRoleAnnotationHandler roleHandler) {
         this.serviceLookup = serviceLookup;
         this.instantiator = instantiator;
+        this.roleHandler = roleHandler;
     }
 
     // Also called from generated code
-    public static <T> T attachOwner(GeneratedSubclass owner, @Nullable Describable ownerDisplayName, String propertyName, T instance) {
+    public static <T> T attachOwner(T instance, ModelObject owner, String propertyName) {
         if (instance instanceof OwnerAware) {
-            DisplayName property = displayNameFor(owner, ownerDisplayName, propertyName);
-            ((OwnerAware) instance).attachDisplayName(property);
+            ((OwnerAware) instance).attachOwner(owner, displayNameFor(owner, propertyName));
         }
         return instance;
     }
 
     // Called from generated code
-    public Object newInstance(GeneratedSubclass owner, @Nullable Describable ownerDisplayName, String propertyName, Class<?> type) {
+    public void applyRole(Object value, ModelObject owner) {
+        roleHandler.applyRoleTo(owner, value);
+    }
+
+    // Called from generated code
+    public Object newInstance(ModelObject owner, String propertyName, Class<?> type) {
         if (type.isAssignableFrom(ConfigurableFileCollection.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().fileCollection());
+            return attachOwner(getObjectFactory().fileCollection(), owner, propertyName);
         }
         if (type.isAssignableFrom(ConfigurableFileTree.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().fileTree());
+            return attachOwner(getObjectFactory().fileTree(), owner, propertyName);
         }
         if (type.isAssignableFrom(DirectoryProperty.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().directoryProperty());
+            return attachOwner(getObjectFactory().directoryProperty(), owner, propertyName);
         }
         if (type.isAssignableFrom(RegularFileProperty.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().fileProperty());
+            return attachOwner(getObjectFactory().fileProperty(), owner, propertyName);
         }
-        return instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, ownerDisplayName, propertyName));
+        return attachOwner(instantiator.newInstanceWithDisplayName(type, displayNameFor(owner, propertyName)), owner, propertyName);
     }
 
     // Called from generated code
-    public Object newInstance(GeneratedSubclass owner, @Nullable Describable ownerDisplayName, String propertyName, Class<?> type, Class<?> paramType) {
+    public Object newInstance(ModelObject owner, String propertyName, Class<?> type, Class<?> paramType) {
         if (type.isAssignableFrom(Property.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().property(paramType));
+            return attachOwner(getObjectFactory().property(paramType), owner, propertyName);
         }
         if (type.isAssignableFrom(ListProperty.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().listProperty(paramType));
+            return attachOwner(getObjectFactory().listProperty(paramType), owner, propertyName);
         }
         if (type.isAssignableFrom(SetProperty.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().setProperty(paramType));
+            return attachOwner(getObjectFactory().setProperty(paramType), owner, propertyName);
         }
         if (type.isAssignableFrom(NamedDomainObjectContainer.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().domainObjectContainer(paramType));
+            return attachOwner(getObjectFactory().domainObjectContainer(paramType), owner, propertyName);
         }
         if (type.isAssignableFrom(DomainObjectSet.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().domainObjectSet(paramType));
+            return attachOwner(getObjectFactory().domainObjectSet(paramType), owner, propertyName);
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
     }
 
     // Called from generated code
-    public Object newInstance(GeneratedSubclass owner, @Nullable Describable ownerDisplayName, String propertyName, Class<?> type, Class<?> keyType, Class<?> valueType) {
+    public Object newInstance(ModelObject owner, String propertyName, Class<?> type, Class<?> keyType, Class<?> valueType) {
         if (type.isAssignableFrom(MapProperty.class)) {
-            return attachOwner(owner, ownerDisplayName, propertyName, getObjectFactory().mapProperty(keyType, valueType));
+            return attachOwner(getObjectFactory().mapProperty(keyType, valueType), owner, propertyName);
         }
         throw new IllegalArgumentException("Don't know how to create an instance of type " + type.getName());
     }
 
-    private static ManagedPropertyName displayNameFor(GeneratedSubclass owner, @Nullable Describable ownerDisplayName, String propertyName) {
-        if (ownerDisplayName instanceof ManagedPropertyName) {
-            ManagedPropertyName root = (ManagedPropertyName) ownerDisplayName;
+    private static ManagedPropertyName displayNameFor(ModelObject owner, String propertyName) {
+        if (owner.getModelIdentityDisplayName() instanceof ManagedPropertyName) {
+            ManagedPropertyName root = (ManagedPropertyName) owner.getModelIdentityDisplayName();
             return new ManagedPropertyName(root.owner, root.propertyName + "." + propertyName);
         } else {
             return new ManagedPropertyName(owner, propertyName);
@@ -117,10 +122,10 @@ public class ManagedObjectFactory {
     }
 
     private static class ManagedPropertyName implements DisplayName {
-        private final GeneratedSubclass owner;
+        private final ModelObject owner;
         private final String propertyName;
 
-        public ManagedPropertyName(GeneratedSubclass owner, String propertyName) {
+        public ManagedPropertyName(ModelObject owner, String propertyName) {
             this.owner = owner;
             this.propertyName = propertyName;
         }
@@ -137,8 +142,9 @@ public class ManagedObjectFactory {
 
         @Override
         public String getDisplayName() {
-            if (owner.hasUsefulDisplayName()) {
-                return owner + " property '" + propertyName + "'";
+            Describable ownerDisplayName = owner.getModelIdentityDisplayName();
+            if (ownerDisplayName != null) {
+                return ownerDisplayName.getDisplayName() + " property '" + propertyName + "'";
             } else {
                 return "property '" + propertyName + "'";
             }

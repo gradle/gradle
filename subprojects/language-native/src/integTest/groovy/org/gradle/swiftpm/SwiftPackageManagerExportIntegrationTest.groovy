@@ -16,10 +16,12 @@
 
 package org.gradle.swiftpm
 
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.VersionNumber
 
 class SwiftPackageManagerExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "produces manifest for build with no native components"() {
         given:
         settingsFile << "include 'lib1', 'lib2'"
@@ -56,6 +58,7 @@ let package = Package(
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can configure the location of the generated manifest file"() {
         given:
         buildFile << """
@@ -74,6 +77,7 @@ let package = Package(
         file("Package.swift").assertDoesNotExist()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can exclude certain products from the generated file"() {
         given:
         settingsFile << "include 'lib1', 'lib2', 'app'"

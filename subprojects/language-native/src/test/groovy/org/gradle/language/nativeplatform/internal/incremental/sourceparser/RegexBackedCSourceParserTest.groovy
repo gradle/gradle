@@ -31,7 +31,7 @@ import spock.lang.Unroll
 
 class RegexBackedCSourceParserTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     CSourceParser parser = new RegexBackedCSourceParser()
 
     protected TestFile getSourceFile() {
@@ -526,11 +526,11 @@ class RegexBackedCSourceParserTest extends Specification {
 #include <system3> /*
    A comment here
 */
-#include MACRO1  // A comment here 
+#include MACRO1  // A comment here
 #include MACRO2 /*
    A comment here
 */
-#include MACRO1()  // A comment here 
+#include MACRO1()  // A comment here
 #include MACRO2() /*
    A comment here
 */
@@ -859,16 +859,16 @@ st3"
         when:
         sourceFile << """
   #   define     SOME_STRING         "abc"      // some extra
-  /*    
-  
+  /*
+
   */  \\
   #/*
-  
-  
+
+
   */\u0000define \\
         /*
          */STRING_2\\
-/*         
+/*
 */"123"\\
     /* */   // some extra"""
 
@@ -1240,16 +1240,16 @@ st3"
         when:
         sourceFile << """
   #   define     SOME_STRING(     )     "abc"      // some extra
-  /*    
-  
+  /*
+
   */  \\
   #/*
-  
-  
+
+
   */ define \\
         /*
          */STRING_2(\\
-/*         
+/*
 */)/* */"123"\\
     /* */  "some extra"""
 

@@ -17,10 +17,12 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 
 class ClosureScopeIntegrationTest extends AbstractIntegrationSpec {
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "check scope when closure in ext"() {
         given:
         file('closure_in_ext.gradle') << """

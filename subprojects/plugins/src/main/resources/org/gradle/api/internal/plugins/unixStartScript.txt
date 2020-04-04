@@ -81,6 +81,7 @@ case "`uname`" in
 esac
 
 CLASSPATH=$classpath
+<% if ( mainClassName.startsWith('--module ') ) { %>MODULE_PATH=$modulePath<% } %>
 
 # Determine the Java command to use to start the JVM.
 if [ -n "\$JAVA_HOME" ] ; then
@@ -129,6 +130,7 @@ fi
 if [ "\$cygwin" = "true" -o "\$msys" = "true" ] ; then
     APP_HOME=`cygpath --path --mixed "\$APP_HOME"`
     CLASSPATH=`cygpath --path --mixed "\$CLASSPATH"`
+    <% if ( mainClassName.startsWith('--module ') ) { %>MODULE_PATH=`cygpath --path --mixed "\$MODULE_PATH"`<% } %>
     JAVACMD=`cygpath --unix "\$JAVACMD"`
 
     # We build the pattern for arguments to be converted via cygpath
@@ -178,6 +180,6 @@ save () {
 APP_ARGS=`save "\$@"`
 
 # Collect all arguments for the java command, following the shell quoting and substitution rules
-eval set -- \$DEFAULT_JVM_OPTS \$JAVA_OPTS \$${optsEnvironmentVar} <% if ( appNameSystemProperty ) { %>"\"-D${appNameSystemProperty}=\$APP_BASE_NAME\"" <% } %>-classpath "\"\$CLASSPATH\"" ${mainClassName} "\$APP_ARGS"
+eval set -- \$DEFAULT_JVM_OPTS \$JAVA_OPTS \$${optsEnvironmentVar} <% if ( appNameSystemProperty ) { %>"\"-D${appNameSystemProperty}=\$APP_BASE_NAME\"" <% } %>-classpath "\"\$CLASSPATH\"" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "\"\$MODULE_PATH\"" <% } %>${mainClassName} "\$APP_ARGS"
 
 exec "\$JAVACMD" "\$@"

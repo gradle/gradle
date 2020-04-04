@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -836,6 +837,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << "include 'a', 'b'"
 
@@ -914,6 +916,7 @@ Searched in the following locations:
           - Required usage 'compile' but no value provided.""")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
         settingsFile << "include 'a', 'b', 'c'"
 

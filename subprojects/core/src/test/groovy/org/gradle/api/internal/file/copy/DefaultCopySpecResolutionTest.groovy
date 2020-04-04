@@ -30,11 +30,12 @@ import spock.lang.Specification
 class DefaultCopySpecResolutionTest extends Specification {
 
     @Rule
-    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     def fileResolver = TestFiles.resolver(testDir.testDirectory)
     def fileCollectionFactory = TestFiles.fileCollectionFactory(testDir.testDirectory)
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    private final DefaultCopySpec parentSpec = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+    def patternSetFactory = TestFiles.patternSetFactory
+    private final DefaultCopySpec parentSpec = copySpec()
 
     def testSpecHasRootPathAsDestinationByDefault() {
         expect:
@@ -50,7 +51,7 @@ class DefaultCopySpecResolutionTest extends Specification {
         parentContext.destPath == new RelativePath(false, 'parent')
 
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         CopySpecResolver childResolver = child.buildResolverRelativeToParent(parentContext)
 
         then:
@@ -63,7 +64,7 @@ class DefaultCopySpecResolutionTest extends Specification {
         CopySpecResolver parentContext = parentSpec.buildRootResolver()
 
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         child.into 'child'
         CopySpecResolver childResolver = child.buildResolverRelativeToParent(parentContext)
 
@@ -81,7 +82,7 @@ class DefaultCopySpecResolutionTest extends Specification {
         parentSpec.include(specInclude)
         parentSpec.exclude(specExclude)
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         PatternSet patterns = child.buildResolverRelativeToParent(parentSpec.buildRootResolver()).patternSet
 
         then:
@@ -105,7 +106,7 @@ class DefaultCopySpecResolutionTest extends Specification {
         Spec childInclude = [:] as Spec
         Spec childExclude = [:] as Spec
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         child.include('child-include')
         child.exclude('child-exclude')
         child.include(childInclude)
@@ -122,14 +123,14 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def duplicatesStrategyDefaultsToInclude() {
         expect:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
         assert childResolver.duplicatesStrategy == DuplicatesStrategy.INCLUDE
     }
 
     def childInheritsDuplicatesStrategyFromParent() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
@@ -150,7 +151,7 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def caseSensitiveFlagDefaultsToTrue() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
@@ -160,7 +161,7 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def childUsesCaseSensitiveFlagFromParentAsDefault() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
@@ -184,7 +185,7 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def includeEmptyDirsFlagDefaultsToTrue() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
@@ -193,7 +194,7 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def childUsesIncludeEmptyDirsFlagFromParentAsDefault() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
@@ -219,7 +220,7 @@ class DefaultCopySpecResolutionTest extends Specification {
         when:
         parentSpec.eachFile parentAction
 
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         child.eachFile childAction
 
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
@@ -230,7 +231,7 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def testHasNoPermissionsByDefault() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
 
         then:
@@ -240,7 +241,7 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def testInheritsPermissionsFromParent() {
         when:
-        DefaultCopySpec child = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec child = copySpec()
         DefaultCopySpec.DefaultCopySpecResolver childResolver = child.buildResolverRelativeToParent(parentSpec.buildRootResolver())
         parentSpec.fileMode = 0x1
         parentSpec.dirMode = 0x2
@@ -283,15 +284,15 @@ class DefaultCopySpecResolutionTest extends Specification {
 
     def canWalkDownTreeCreatedUsingWithIntegrationTest() {
         when:
-        DefaultCopySpec childOne = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec childOne = copySpec()
         childOne.into("child_one")
         parentSpec.with(childOne)
 
-        DefaultCopySpec childTwo = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec childTwo = copySpec()
          childTwo.into("child_two")
         parentSpec.with( childTwo)
 
-        DefaultCopySpec grandchild = new DefaultCopySpec(fileResolver, fileCollectionFactory, instantiator)
+        DefaultCopySpec grandchild = copySpec()
         grandchild.into("grandchild")
         childOne.with(grandchild)
         childTwo.with(grandchild)
@@ -311,6 +312,10 @@ class DefaultCopySpecResolutionTest extends Specification {
             new RelativePath(false, 'child_two'),
             new RelativePath(false, 'child_two', 'grandchild')
         ]
+    }
+
+    private DefaultCopySpec copySpec() {
+        return new DefaultCopySpec(fileCollectionFactory, instantiator, patternSetFactory)
     }
 }
 

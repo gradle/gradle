@@ -53,7 +53,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
     public static final TEST_ATTRIBUTE = Attribute.of("TEST", String)
 
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def instantiatorFactory = TestUtil.instantiatorFactory()
     def transformerInvocationFactory = Mock(TransformerInvocationFactory)

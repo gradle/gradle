@@ -39,6 +39,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
         return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
     }
 
+    @ToBeFixedForInstantExecution(because = ":components")
     def "cunit components"() {
         given:
         sample cunit

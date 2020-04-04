@@ -36,6 +36,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         writeConfigFile()
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "adds codenarc task for each source set"() {
         given:
         buildFile << '''
@@ -96,6 +97,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         notExecuted(":codenarcCustom")
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can customize per-source-set tasks via extension"() {
         given:
         buildFile << '''
@@ -168,6 +170,7 @@ class CodeNarcPluginIntegrationTest extends WellBehavedPluginTest {
         notExecuted(':codenarcCustom')
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "can use legacy configFile extension property"() {
         given:
         buildFile << '''

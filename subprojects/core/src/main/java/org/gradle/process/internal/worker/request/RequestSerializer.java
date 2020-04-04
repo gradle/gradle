@@ -16,102 +16,58 @@
 
 package org.gradle.process.internal.worker.request;
 
-import com.google.common.primitives.Primitives;
-import org.gradle.internal.Cast;
 import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.DefaultBuildOperationRef;
+import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
-import org.gradle.internal.serialize.Message;
 import org.gradle.internal.serialize.Serializer;
-import org.gradle.internal.serialize.SerializerRegistry;
-
-import java.util.List;
 
 public class RequestSerializer implements Serializer<Request> {
-    private final List<SerializerRegistry> registries;
-    private final ClassLoader classLoader;
-    private final JavaObjectSerializer javaObjectSerializer;
+    private final Serializer<Object> argSerializer;
+    private final boolean skipIncomingArg;
 
-    public RequestSerializer(ClassLoader classLoader, List<SerializerRegistry> registries) {
-        this.registries = registries;
-        this.classLoader = classLoader;
-        this.javaObjectSerializer = new JavaObjectSerializer(classLoader);
+    public RequestSerializer(Serializer<Object> argSerializer, boolean skipIncomingArg) {
+        this.argSerializer = argSerializer;
+        this.skipIncomingArg = skipIncomingArg;
     }
 
     @Override
     public void write(Encoder encoder, Request request) throws Exception {
-        encoder.writeString(request.getMethodName());
+        encoder.encodeChunked(target -> {
+            Object object = request.getArg();
+            argSerializer.write(target, object);
+        });
 
-        encoder.writeInt(request.getParamTypes().length);
-        for (Class<?> type : request.getParamTypes()) {
-            encoder.writeString(Primitives.wrap(type).getName());
+        encoder.writeLong(request.getBuildOperation().getId().getId());
+        OperationIdentifier parentId = request.getBuildOperation().getParentId();
+        if (parentId != null) {
+            encoder.writeBoolean(true);
+            encoder.writeLong(parentId.getId());
+        } else {
+            encoder.writeBoolean(false);
         }
-
-        if (request.getArgs() != null) {
-            for (Object object : request.getArgs()) {
-                if (object == null) {
-                    encoder.writeString(NullType.class.getName());
-                } else {
-                    Class<?> type = object.getClass();
-                    encoder.writeString(Primitives.wrap(type).getName());
-                    select(type).write(encoder, object);
-                }
-            }
-        }
-
-        javaObjectSerializer.write(encoder, request.getBuildOperation());
     }
 
     @Override
     public Request read(Decoder decoder) throws Exception {
-        String methodName = decoder.readString();
-        int numParams = decoder.readInt();
-        Class<?>[] paramTypes = new Class<?>[numParams];
-        for (int i=0; i<numParams; i++) {
-            paramTypes[i] = Primitives.unwrap(classLoader.loadClass(decoder.readString()));
+        Object arg;
+        if (skipIncomingArg) {
+            decoder.skipChunked();
+            arg = null;
+        } else {
+            arg = decoder.decodeChunked(argSerializer::read);
         }
 
-        Object[] args = new Object[numParams];
-        for (int i=0; i<numParams; i++) {
-            Class<?> type = Primitives.unwrap(classLoader.loadClass(decoder.readString()));
-            if (type == NullType.class) {
-                args[i] = null;
-            } else {
-                args[i] = select(type).read(decoder);
-            }
+        OperationIdentifier id = new OperationIdentifier(decoder.readLong());
+        BuildOperationRef buildOperation;
+        if (decoder.readBoolean()) {
+            buildOperation = new DefaultBuildOperationRef(id, new OperationIdentifier(decoder.readLong()));
+        } else {
+            buildOperation = new DefaultBuildOperationRef(id, null);
         }
 
-        BuildOperationRef buildOperation = (BuildOperationRef) javaObjectSerializer.read(decoder);
-
-        return new Request(methodName, paramTypes, args, buildOperation);
+        return new Request(arg, buildOperation);
     }
 
-    private Serializer<Object> select(Class<?> type) {
-        for (SerializerRegistry registry : registries) {
-            if (registry.canSerialize(type)) {
-                return Cast.uncheckedCast(registry.build(type));
-            }
-        }
-        return javaObjectSerializer;
-    }
-
-    private static class NullType { }
-
-    private static class JavaObjectSerializer implements Serializer<Object> {
-        private final ClassLoader classLoader;
-
-        public JavaObjectSerializer(ClassLoader classLoader) {
-            this.classLoader = classLoader;
-        }
-
-        @Override
-        public Object read(Decoder decoder) throws Exception {
-            return Message.receive(decoder.getInputStream(), classLoader);
-        }
-
-        @Override
-        public void write(Encoder encoder, Object value) throws Exception {
-            Message.send(value, encoder.getOutputStream());
-        }
-    }
 }

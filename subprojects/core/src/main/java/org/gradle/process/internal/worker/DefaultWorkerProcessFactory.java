@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.internal.classloader.ClasspathUtil;
 import org.gradle.internal.id.IdGenerator;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.remote.MessagingServer;
@@ -35,7 +36,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     private final LoggingManager loggingManager;
     private final MessagingServer server;
-    private final IdGenerator<?> idGenerator;
+    private final IdGenerator<Long> idGenerator;
     private final File gradleUserHomeDir;
     private final JavaExecHandleFactory execHandleFactory;
     private final OutputEventListener outputEventListener;
@@ -43,16 +44,16 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final MemoryManager memoryManager;
     private int connectTimeoutSeconds = 120;
 
-    public DefaultWorkerProcessFactory(LoggingManager loggingManager, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<?> idGenerator,
+    public DefaultWorkerProcessFactory(LoggingManager loggingManager, MessagingServer server, ClassPathRegistry classPathRegistry, IdGenerator<Long> idGenerator,
                                        File gradleUserHomeDir, TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory,
-                                       JvmVersionDetector jvmVersionDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
+                                       JvmVersionDetector jvmVersionDetector, JavaModuleDetector javaModuleDetector, OutputEventListener outputEventListener, MemoryManager memoryManager) {
         this.loggingManager = loggingManager;
         this.server = server;
         this.idGenerator = idGenerator;
         this.gradleUserHomeDir = gradleUserHomeDir;
         this.execHandleFactory = execHandleFactory;
         this.outputEventListener = outputEventListener;
-        this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector, gradleUserHomeDir);
+        this.workerImplementationFactory = new ApplicationClassesInSystemClassLoaderWorkerImplementationFactory(classPathRegistry, temporaryFileProvider, jvmVersionDetector, javaModuleDetector, gradleUserHomeDir);
         this.memoryManager = memoryManager;
     }
 
@@ -69,13 +70,13 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     }
 
     @Override
-    public <P> SingleRequestWorkerProcessBuilder<P> singleRequestWorker(Class<P> protocolType, Class<? extends P> workerImplementation) {
-        return new DefaultSingleRequestWorkerProcessBuilder<P>(protocolType, workerImplementation, newWorkerProcessBuilder(), outputEventListener);
+    public <IN, OUT> SingleRequestWorkerProcessBuilder<IN, OUT> singleRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation) {
+        return new DefaultSingleRequestWorkerProcessBuilder<IN, OUT>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
     }
 
     @Override
-    public <P, W extends P> MultiRequestWorkerProcessBuilder<W> multiRequestWorker(Class<W> workerType, Class<P> protocolType, Class<? extends P> workerImplementation) {
-        return new DefaultMultiRequestWorkerProcessBuilder<W>(workerType, workerImplementation, newWorkerProcessBuilder(), outputEventListener);
+    public <IN, OUT> MultiRequestWorkerProcessBuilder<IN, OUT> multiRequestWorker(Class<? extends RequestHandler<? super IN, ? extends OUT>> workerImplementation) {
+        return new DefaultMultiRequestWorkerProcessBuilder<IN, OUT>(workerImplementation, newWorkerProcessBuilder(), outputEventListener);
     }
 
     private DefaultWorkerProcessBuilder newWorkerProcessBuilder() {

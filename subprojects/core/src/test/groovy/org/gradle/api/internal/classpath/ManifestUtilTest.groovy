@@ -27,7 +27,7 @@ import java.util.zip.ZipEntry
 
 public class ManifestUtilTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def jarFile = tmpDir.file("mydir/jarfile.jar").createFile()
 
     def "creates manifest classpath with relative urls"() {
@@ -43,11 +43,11 @@ public class ManifestUtilTest extends Specification {
         def tmpDirPath = tmpDir.testDirectory.toURI().rawPath
         def file1 = tmpDir.file('different/jar1.jar')
         def file2 = tmpDir.file('different/nested/jar2.jar')
-        
+
         then:
         ManifestUtil.createManifestClasspath(jarFile, [file1, file2]) == "${tmpDirPath}different/jar1.jar ${tmpDirPath}different/nested/jar2.jar"
     }
-    
+
     def "url encodes spaces in manifest classpath"() {
         when:
         def classpathFiles = [tmpDir.file('mydir/jar one.jar'), tmpDir.file('mydir/nested dir/jar two.jar')]
@@ -60,17 +60,17 @@ public class ManifestUtilTest extends Specification {
         when:
         def nonexistent = new File("does no exist");
         def directory = tmpDir.createDir("new_directory");
-        
+
         then:
         ManifestUtil.parseManifestClasspath(nonexistent) == []
         ManifestUtil.parseManifestClasspath(directory) == []
     }
-    
+
     def "returns empty classpath for non-jar file"() {
         when:
         def file = tmpDir.createFile('non-jar.zip')
         file << "text"
-        
+
         then:
         ManifestUtil.parseManifestClasspath(file) == []
     }
@@ -114,7 +114,7 @@ public class ManifestUtilTest extends Specification {
 
         and:
         def classpathURI = ManifestUtil.parseManifestClasspath(jarFile)[0]
-        
+
         then:
         new File(classpathURI).absoluteFile == classpathFile.absoluteFile
     }

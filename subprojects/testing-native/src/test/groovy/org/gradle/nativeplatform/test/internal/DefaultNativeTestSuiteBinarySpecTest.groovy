@@ -28,7 +28,7 @@ import spock.lang.Specification
 
 class DefaultNativeTestSuiteBinarySpecTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
     final def testUtil = TestUtil.create(testDir)
 
     def tasks = new DefaultNativeTestSuiteBinarySpec.DefaultTasksCollection(new DefaultBinaryTasksCollection(null, null, CollectionCallbackActionDecorator.NOOP))

@@ -43,7 +43,7 @@ import static org.junit.Assert.assertTrue;
 public class GeneratedSingletonFileTreeTest {
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private TestFile rootDir = tmpDir.getTestDirectory();
 
     private Factory<File> fileFactory = new Factory<File>() {
@@ -68,7 +68,7 @@ public class GeneratedSingletonFileTreeTest {
         };
         GeneratedSingletonFileTree tree = tree("file.txt", fileAction);
 
-        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree);
+        FileTreeAdapter fileTreeAdapter = new FileTreeAdapter(tree, TestFiles.getPatternSetFactory());
         File file = rootDir.file("file.txt");
 
         assertTrue(fileTreeAdapter.contains(file));

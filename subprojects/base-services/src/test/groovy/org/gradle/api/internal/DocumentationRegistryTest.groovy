@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DocumentationRegistryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final GradleVersion gradleVersion = GradleVersion.current()
     final DocumentationRegistry registry = new DocumentationRegistry()
 

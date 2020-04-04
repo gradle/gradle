@@ -16,9 +16,11 @@
 package org.gradle.java
 
 import org.gradle.api.reporting.components.AbstractComponentReportIntegrationTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class PluginsComponentReportIntegrationTest extends AbstractComponentReportIntegrationTest {
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "shows details of Java project"() {
         given:
         buildFile << """
@@ -61,6 +63,7 @@ Classes 'test'
 """
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "shows details of mixed Java and JVM library project"() {
         given:
         executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
@@ -125,6 +128,7 @@ Classes 'test'
 """
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "shows details of Java project with custom source sets"() {
         given:
         buildFile << """

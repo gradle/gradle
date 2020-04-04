@@ -89,6 +89,68 @@ class InstantExecutionDependencyResolutionIntegrationTest extends AbstractInstan
         outputContains("artifacts = [a.thing, a.out (project :a), b.out (project :b), lib1-6500.jar (group:lib1:6500)]")
     }
 
+    def "task input property can include mapped configuration elements that contain project dependencies"() {
+        def fixture = newInstantExecutionFixture()
+
+        taskTypeWithOutputFileProperty()
+        taskTypeWithInputListProperty()
+
+        settingsFile << """
+            include 'a', 'b'"""
+
+        buildFile << """
+            subprojects {
+                configurations { create("default") }
+                task producer(type: FileProducer) {
+                    content = providers.gradleProperty("\${project.name}Content").orElse("0")
+                    output = layout.buildDirectory.file("\${project.name}.out")
+                }
+                configurations.default.outgoing.artifact(producer.output)
+            }
+            repositories {
+                maven { url = uri('${mavenRepo.uri}') }
+            }
+            configurations {
+                implementation
+            }
+            dependencies {
+                implementation project(':a')
+                implementation project(':b')
+            }
+            task resolve(type: InputTask) {
+                inValue = configurations.implementation.elements.map { files -> files.collect { it.asFile.text.toInteger() } }
+                outFile = file('out.txt')
+            }
+        """
+
+        given:
+        instantRun(":resolve")
+
+        when:
+        instantRun(":resolve")
+
+        then: // everything is up-to-date
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskSkipped(":a:producer")
+        result.assertTaskSkipped(":b:producer")
+        result.assertTaskSkipped(":resolve")
+        file('out.txt').text == "10,10"
+
+        when:
+        instantRun(":resolve", "-PaContent=2")
+
+        then:
+        fixture.assertStateLoaded()
+        result.assertTaskOrder(":a:producer", ":resolve")
+        result.assertTaskOrder(":b:producer", ":resolve")
+        result.assertTaskNotSkipped(":a:producer")
+        result.assertTaskSkipped(":b:producer")
+        result.assertTaskNotSkipped(    ":resolve")
+        file('out.txt').text == "12,10"
+    }
+
     def "task input file collection can include the output of artifact transform of project dependencies"() {
         def fixture = newInstantExecutionFixture()
 

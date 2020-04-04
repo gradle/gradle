@@ -29,7 +29,7 @@ import spock.lang.Specification
 class OutputCleaningCompilerTest extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     TestFile outputDir = tmpDirProvider.createDir("objs")
 

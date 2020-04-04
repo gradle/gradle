@@ -17,12 +17,10 @@
 package org.gradle.integtests.samples.java
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.Rule
 
 class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
@@ -30,7 +28,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic/groovy")
     def "can execute simple Java tests"() {
         given:
@@ -68,7 +65,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestRun(xmlResults2, "quickUiCheck")
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/customDirs/groovy")
     def "can change the destination for test results and reports"() {
         given:
@@ -127,7 +123,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         xmlResults.testcase.find { it.@name == "a" }
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/tagging/groovy")
     def "can filter tests by JUnit Platform tag"() {
         given:
@@ -165,7 +160,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         getTestResultsFile(sample, "org.gradle.testng.SimpleIntegrationTest").assertDoesNotExist()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/jupiter/groovy")
     def "can run tests using JUnit Jupiter"() {
         given:
@@ -183,7 +177,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestsRunCount(xmlResults, 5)
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/mix/groovy")
     def "can run older JUnit tests with JUnit Jupiter"() {
         given:
@@ -207,7 +200,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("testing/junitplatform/engine/groovy")
     def "can run JUnit Platform tests with a subset of engines"() {
         given:
@@ -268,7 +260,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         xmlResults.testcase.@name*.text() == ["test1", "test2", "test1", "test2"]
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic/groovy")
     def "can run simple Java integration tests"() {
         given:
@@ -286,7 +277,6 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @UsesSample("userguide/java/basic/groovy")
     def "can skip the tests with an `onlyIf` condition"() {
         given:

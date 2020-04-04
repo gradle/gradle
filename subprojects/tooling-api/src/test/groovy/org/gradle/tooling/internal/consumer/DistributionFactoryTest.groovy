@@ -32,7 +32,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DistributionFactoryTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final ProgressLoggerFactory progressLoggerFactory = Mock()
     final ProgressLogger progressLogger = Mock()
     final BuildCancellationToken cancellationToken = Mock()

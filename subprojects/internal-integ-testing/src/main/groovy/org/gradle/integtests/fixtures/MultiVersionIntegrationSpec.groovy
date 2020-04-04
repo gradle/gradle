@@ -20,6 +20,9 @@ import org.junit.experimental.categories.Category
 import org.junit.runner.RunWith
 import org.gradle.util.VersionNumber
 
+/**
+ * See {@link AbstractContextualMultiVersionSpecRunner} for information on running these tests.
+ */
 @RunWith(MultiVersionSpecRunner)
 @Category(ContextualMultiVersionTest.class)
 abstract class MultiVersionIntegrationSpec extends AbstractIntegrationSpec {

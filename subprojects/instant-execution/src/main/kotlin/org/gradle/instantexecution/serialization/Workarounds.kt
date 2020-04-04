@@ -16,49 +16,18 @@
 
 package org.gradle.instantexecution.serialization
 
-import org.gradle.api.internal.initialization.ClassLoaderScope
 import java.lang.reflect.Field
-import java.util.concurrent.ForkJoinPool
 
 
 internal
 object Workarounds {
 
     private
-    val ignoredBeanFields = listOf(
-        // Ignore a lambda field for now
-        "mFolderFilter" to "com.android.ide.common.resources.DataSet"
+    val ignoredBeanFields: List<Pair<String, String>> = listOf(
+        // TODO:instant-execution remove once fixed
+        "ndkLocation" to "com.android.build.gradle.tasks.ShaderCompile"
     )
 
     fun isIgnoredBeanField(field: Field) =
         ignoredBeanFields.contains(field.name to field.declaringClass.name)
-
-    private
-    val staticFieldsByTypeName = mapOf(
-        "com.android.build.gradle.internal.tasks.Workers" to mapOf(
-            "aapt2ThreadPool" to { ForkJoinPool(8) }
-        )
-    )
-
-    fun maybeSetDefaultStaticStateIn(scope: ClassLoaderScope) {
-        listOf(scope.localClassLoader, scope.exportClassLoader).forEach { loader ->
-            staticFieldsByTypeName.forEach { (type, fields) ->
-                try {
-                    val clazz = loader.loadClass(type)
-                    fields.forEach { (name, value) ->
-                        try {
-                            clazz.getDeclaredField(name)
-                                .apply { isAccessible = true }
-                                .takeIf { it.get(null) == null }
-                                ?.set(null, value())
-                        } catch (ex: NoSuchFieldException) {
-                            // n/a
-                        }
-                    }
-                } catch (ex: ClassNotFoundException) {
-                    // n/a
-                }
-            }
-        }
-    }
 }

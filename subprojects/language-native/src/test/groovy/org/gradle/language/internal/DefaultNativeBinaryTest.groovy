@@ -32,7 +32,7 @@ import javax.inject.Inject
 
 class DefaultNativeBinaryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def project = TestUtil.createRootProject(tmpDir.testDirectory)
     Configuration implementation = Stub(ConfigurationInternal)
 

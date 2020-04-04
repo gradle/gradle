@@ -30,7 +30,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class GeneratedSingletonFileTreeSpec extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def fileSystem = Stub(FileSystem)
 
     def "visiting creates file if visitor queries the file location"() {

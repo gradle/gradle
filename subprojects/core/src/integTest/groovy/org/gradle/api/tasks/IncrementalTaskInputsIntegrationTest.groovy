@@ -27,8 +27,8 @@ class IncrementalTaskInputsIntegrationTest extends AbstractIncrementalTasksInteg
         """
             void execute(IncrementalTaskInputs inputs) {
                 assert !(inputs instanceof ExtensionAware)
-    
-                if (project.hasProperty('forceFail')) {
+
+                if (System.getProperty('forceFail')) {
                     throw new RuntimeException('failed')
                 }
     

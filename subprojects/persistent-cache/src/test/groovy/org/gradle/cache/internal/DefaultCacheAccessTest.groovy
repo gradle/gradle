@@ -40,7 +40,7 @@ import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 class DefaultCacheAccessTest extends ConcurrentSpec {
     private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory()
 
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final FileLockManager lockManager = Mock()
     final CacheInitializationAction initializationAction = Mock()
     final CacheCleanupAction cleanupAction = Mock()

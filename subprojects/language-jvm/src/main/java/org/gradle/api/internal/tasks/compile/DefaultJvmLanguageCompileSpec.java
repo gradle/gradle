@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.compile;
 
+import com.google.common.collect.ImmutableList;
+
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.Serializable;
 import java.util.List;
@@ -26,6 +29,7 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
     private List<File> classpath;
     private File destinationDir;
     private Iterable<File> sourceFiles;
+    private Integer release;
     private String sourceCompatibility;
     private String targetCompatibility;
     private List<File> sourceRoots;
@@ -71,12 +75,26 @@ public class DefaultJvmLanguageCompileSpec implements JvmLanguageCompileSpec, Se
 
     @Override
     public List<File> getCompileClasspath() {
+        if (classpath == null) {
+            classpath = ImmutableList.of();
+        }
         return classpath;
     }
 
     @Override
     public void setCompileClasspath(List<File> classpath) {
         this.classpath = classpath;
+    }
+
+    @Override
+    @Nullable
+    public Integer getRelease() {
+        return release;
+    }
+
+    @Override
+    public void setRelease(@Nullable Integer release) {
+        this.release = release;
     }
 
     @Override

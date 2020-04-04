@@ -17,7 +17,9 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
+import org.gradle.integtests.fixtures.FeaturePreviewsFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Unroll
 
 class DependencyLockingLenientModeIntegrationTest extends AbstractLockingIntegrationTest {
     @Override
@@ -25,11 +27,15 @@ class DependencyLockingLenientModeIntegrationTest extends AbstractLockingIntegra
         return LockMode.LENIENT
     }
 
+    @Unroll
     def 'does not fail when lock file conflicts with declared strict constraint'() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -54,7 +60,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -70,13 +76,20 @@ dependencies {
                 }
             }
         }
+
+        where:
+        unique << [true, false]
     }
 
+    @Unroll
     def 'does not fail when lock file conflicts with declared version constraint'() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -99,7 +112,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -115,14 +128,21 @@ dependencies {
                 }
             }
         }
+
+        where:
+        unique << [true, false]
     }
 
+    @Unroll
     def 'does not fail when lock file contains entry that is not in resolution result'() {
 
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -144,7 +164,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -159,13 +179,20 @@ dependencies {
                 }
             }
         }
+
+        where:
+        unique << [true, false]
     }
 
+    @Unroll
     def 'does not fail when lock file does not contain entry for module in resolution result'() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'bar', '1.0').publish()
 
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -188,7 +215,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -204,11 +231,19 @@ dependencies {
                 }
             }
         }
+
+        where:
+        unique << [true, false]
     }
 
+    @Unroll
     def 'does not fail when resolution result is empty and lock file contains entries'() {
         given:
         mavenRepo.module('org', 'foo', '1.0').publish()
+
+        if (unique) {
+            FeaturePreviewsFixture.enableOneLockfilePerProject(settingsFile)
+        }
         buildFile << """
 dependencyLocking {
     lockAllConfigurations()
@@ -225,7 +260,7 @@ configurations {
     lockedConf
 }
 """
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
         succeeds 'checkDeps'
@@ -237,6 +272,9 @@ configurations {
                 // Empty result
             }
         }
+
+        where:
+        unique << [true, false]
     }
 
     @ToBeFixedForInstantExecution
@@ -268,7 +306,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:foo:1.0'], false)
 
         when:
         run 'dependencies'
@@ -310,7 +348,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf',['org:bar:1.0', 'org:foo:1.0'], false)
 
         when:
         run 'dependencies'

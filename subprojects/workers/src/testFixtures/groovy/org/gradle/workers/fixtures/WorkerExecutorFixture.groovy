@@ -31,7 +31,7 @@ class WorkerExecutorFixture {
     def outputFileDir
     def outputFileDirPath
     def list = [ 1, 2, 3 ]
-    private final TestNameTestDirectoryProvider temporaryFolder
+    private final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final WorkParameterClass testParameterType
     final WorkActionClass workActionThatCreatesFiles
     final WorkActionClass workActionThatFails
@@ -117,7 +117,7 @@ class WorkerExecutorFixture {
                         additionalParameters.call(parameters)
                     }
                 }
-                
+
                 ${workerMethodTranslation}
             }
         """
@@ -174,7 +174,7 @@ class WorkerExecutorFixture {
             } finally {
                 getParameters().getOutputDir().mkdirs();
                 new File(getParameters().getOutputDir(), "finished").createNewFile();
-            } 
+            }
         """
         return workerClass
     }
@@ -246,12 +246,12 @@ class WorkerExecutorFixture {
     String getFileHelperClass() {
         return """
             package org.gradle.test;
-            
+
             import java.io.File;
             import java.io.PrintWriter;
             import java.io.BufferedWriter;
             import java.io.FileWriter;
-            
+
             public class FileHelper {
                 public static void write(String id, File outputFile) {
                     PrintWriter out = null;
@@ -442,10 +442,10 @@ class WorkerExecutorFixture {
                     ${extraFields}
 
                     @javax.inject.Inject
-                    public ${name.capitalize()}(${constructorArgs}) { 
+                    public ${name.capitalize()}(${constructorArgs}) {
                         ${constructorAction}
                     }
-                    
+
                     public void execute() {
                         ${action}
                     }

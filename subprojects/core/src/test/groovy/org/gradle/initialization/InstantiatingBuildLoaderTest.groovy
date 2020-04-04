@@ -51,7 +51,7 @@ class InstantiatingBuildLoaderTest extends Specification {
     }
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         projectFactory = Mock(IProjectFactory)
