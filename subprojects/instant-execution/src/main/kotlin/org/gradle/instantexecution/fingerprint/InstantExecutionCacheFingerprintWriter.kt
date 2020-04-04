@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.groovy.scripts.Script
+import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
 import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.InputFile
@@ -29,6 +31,7 @@ import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprint.
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.runWriteOperation
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.scripts.ScriptExecutionListener
 import java.io.File
 
 
@@ -36,7 +39,7 @@ internal
 class InstantExecutionCacheFingerprintWriter(
     private val host: Host,
     private val writeContext: DefaultWriteContext
-) : ValueSourceProviderFactory.Listener, TaskInputsListener {
+) : ValueSourceProviderFactory.Listener, TaskInputsListener, ScriptExecutionListener {
 
     interface Host {
 
@@ -65,12 +68,7 @@ class InstantExecutionCacheFingerprintWriter(
             is FileContentValueSource.Parameters -> {
                 parameters.file.orNull?.asFile?.let { file ->
                     // TODO - consider the potential race condition in computing the hash code here
-                    write(
-                        InputFile(
-                            file,
-                            host.hashCodeOf(file)
-                        )
-                    )
+                    captureFile(file)
                 }
             }
             else -> {
@@ -83,10 +81,26 @@ class InstantExecutionCacheFingerprintWriter(
         }
     }
 
+    override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<out Script>) {
+        source.resource.file?.let {
+            captureFile(it)
+        }
+    }
+
     override fun onExecute(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
         if (isBuildSrcTask(task)) {
             captureTaskInputs(task, fileSystemInputs)
         }
+    }
+
+    private
+    fun captureFile(file: File) {
+        write(
+            InputFile(
+                file,
+                host.hashCodeOf(file)
+            )
+        )
     }
 
     private

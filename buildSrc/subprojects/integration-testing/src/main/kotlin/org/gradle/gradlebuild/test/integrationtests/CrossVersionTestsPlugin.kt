@@ -39,7 +39,7 @@ class CrossVersionTestsPlugin : Plugin<Project> {
     private
     fun Project.configureTestFixturesForCrossVersionTests() {
         dependencies {
-            "testImplementation"(testFixtures(project(":toolingApi")))
+            "crossVersionTestImplementation"(testFixtures(project(":toolingApi")))
         }
     }
 

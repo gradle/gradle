@@ -295,7 +295,6 @@ public class SubClassTests extends SuperClassTests {
         "html" | "build/reports/tests"
     }
 
-    @ToBeFixedForInstantExecution
     def "results or reports are linked to in error output"() {
         given:
         buildScript """
@@ -333,7 +332,6 @@ public class SubClassTests extends SuperClassTests {
         failure.assertHasNoCause("See the")
     }
 
-    @ToBeFixedForInstantExecution
     def "output per test case flag invalidates outputs"() {
         when:
         buildScript """

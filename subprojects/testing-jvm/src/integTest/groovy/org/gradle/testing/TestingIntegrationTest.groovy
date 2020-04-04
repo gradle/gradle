@@ -360,7 +360,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "tests are re-executed when set of candidate classes change"() {
         given:
         buildFile << """

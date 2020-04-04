@@ -114,7 +114,12 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("flag = task ':someTask' property 'flag'")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        bottomSpecs = [
+            "PropertyKotlinInterOpIntegrationTest",
+            "ManagedPropertyKotlinInterOpIntegrationTest"
+        ]
+    )
     def "can define property in language plugin and set value from Groovy DSL"() {
         pluginDefinesTask()
 

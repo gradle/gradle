@@ -24,7 +24,6 @@ import spock.lang.Issue
 
 class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
 
-    @ToBeFixedForInstantExecution
     def "implementation of nested property in Groovy build script is tracked"() {
         setupTaskClassWithActionProperty()
         buildFile << """

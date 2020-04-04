@@ -47,7 +47,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         javaClassFile("Foo.class").exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "don't implicitly compile source files from classpath"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -82,7 +81,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
-    @ToBeFixedForInstantExecution
     def "detects change in classpath order"() {
         jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
         jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
@@ -577,7 +575,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
             compileJava.dependsOn(fooJar)
 
-
         '''
         file('foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
@@ -840,7 +837,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
-    @ToBeFixedForInstantExecution
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
@@ -850,9 +846,9 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             apply plugin: 'java'
 
             compileJava {
-                if (project.hasProperty("java7")) {
+                if (providers.gradleProperty("java7").isPresent()) {
                     options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (project.hasProperty("java8")) {
+                } else if (providers.gradleProperty("java8").isPresent()) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
                 }
                 options.fork = true

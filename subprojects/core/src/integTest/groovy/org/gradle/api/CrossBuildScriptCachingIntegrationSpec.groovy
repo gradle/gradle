@@ -157,7 +157,6 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasCachedScripts(settingsHash, *buildHashes)
     }
 
-    @ToBeFixedForInstantExecution
     def "cache size increases when build file changes"() {
         given:
         root {
@@ -587,7 +586,6 @@ task fastTask { }
         noExceptionThrown()
     }
 
-    @ToBeFixedForInstantExecution
     def "same applied script is compiled once for different projects with different classpath"() {
         root {
             'common.gradle'('println "poke"')
