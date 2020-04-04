@@ -68,7 +68,6 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         "html" | 'HtmlFormat'       | '@(username: String) <html> <body> <h1>Hello @username</h1> </body> </html>'
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile custom Twirl templates"() {
         given:
         twirlTemplate("test.scala.csv") << """
