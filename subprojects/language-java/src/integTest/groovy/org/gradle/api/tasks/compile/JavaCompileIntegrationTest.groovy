@@ -589,7 +589,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1358")
-    @ToBeFixedForInstantExecution
     def "compile classpath snapshotting should warn when class on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
