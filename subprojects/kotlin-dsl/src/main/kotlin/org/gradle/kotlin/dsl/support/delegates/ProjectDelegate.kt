@@ -154,6 +154,9 @@ abstract class ProjectDelegate : Project {
     override fun zipTree(zipPath: Any): FileTree =
         delegate.zipTree(zipPath)
 
+    override fun zipTree(args: MutableMap<String, *>): FileTree =
+        delegate.zipTree(args)
+
     override fun allprojects(action: Action<in Project>) =
         delegate.allprojects(action)
 
