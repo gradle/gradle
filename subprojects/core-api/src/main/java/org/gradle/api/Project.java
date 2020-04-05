@@ -910,6 +910,22 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
     FileTree zipTree(Object zipPath);
 
     /**
+     * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
+     * evaluated as per {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
+     * method to unzip a ZIP file.</p>
+     *
+     * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
+     * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
+     * queried.</p>
+     *
+     * @param args A map with up to two keys: {@literal file} for the ZIP file, and {@literal metadataCharset} for the file name encoding
+     * @return the file tree. Never returns null.
+     * @since 6.5
+     */
+    @Incubating
+    FileTree zipTree(Map<String, ?> args);
+
+    /**
      * Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path can be:
      * <ul>
      *   <li>an instance of {@link org.gradle.api.resources.Resource}</li>

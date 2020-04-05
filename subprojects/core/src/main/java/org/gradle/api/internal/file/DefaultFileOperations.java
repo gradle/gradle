@@ -53,9 +53,11 @@ import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.nio.charset.Charset;
 import java.util.Map;
 
 public class DefaultFileOperations implements FileOperations {
@@ -153,7 +155,33 @@ public class DefaultFileOperations implements FileOperations {
 
     @Override
     public FileTree zipTree(Object zipPath) {
-        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher, null), patternSetFactory);
+        return zipTree(zipPath, null);
+    }
+
+    @Override
+    public FileTree zipTree(Map<String, ?> args) {
+        Object zipPath = args.get("file");
+        if (zipPath == null) {
+            throw new InvalidUserDataException("zipTree requires the 'file' argument.");
+        }
+
+        Object metadataCharset = args.containsKey("metadataCharset") ? args.get("metadataCharset") : null;
+
+        if (metadataCharset == null) {
+            return zipTree(args.get("file"));
+        }
+
+        final String charsetName = metadataCharset.toString();
+
+        if (!Charset.isSupported(charsetName)) {
+            throw new InvalidUserDataException(String.format("Charset for metadataCharset '%s' is not supported by your JVM", metadataCharset));
+        }
+
+        return zipTree(args.get("file"), charsetName);
+    }
+
+    private FileTree zipTree(Object zipPath, @Nullable String encoding) {
+        return new FileTreeAdapter(new ZipFileTree(file(zipPath), getExpandDir(), fileSystem, directoryFileTreeFactory, fileHasher, encoding), patternSetFactory);
     }
 
     @Override

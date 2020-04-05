@@ -939,6 +939,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public FileTree zipTree(Map<String, ?> args) {
+        return getFileOperations().zipTree(args);
+    }
+
+    @Override
     public FileTree tarTree(Object tarPath) {
         return getFileOperations().tarTree(tarPath);
     }

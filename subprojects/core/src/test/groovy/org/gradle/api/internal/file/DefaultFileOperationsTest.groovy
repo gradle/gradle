@@ -148,6 +148,49 @@ class DefaultFileOperationsTest extends Specification {
         then:
         zipTree instanceof FileTreeAdapter
         zipTree.tree instanceof ZipFileTree
+        zipTree.tree.metadataCharset == null
+    }
+
+    def createsZipFileTreeWithoutMetadataCharset() {
+        expectPathResolved('path')
+        expectTempFileCreated()
+        when:
+        def zipTree = fileOperations.zipTree(file: 'path')
+
+        then:
+        zipTree instanceof FileTreeAdapter
+        zipTree.tree instanceof ZipFileTree
+        zipTree.tree.metadataCharset == null
+    }
+
+    def createsZipFileTreeWithMetadataCharset() {
+        expectPathResolved('path')
+        expectTempFileCreated()
+        when:
+        def zipTree = fileOperations.zipTree(file: 'path', metadataCharset: 'cp437')
+
+        then:
+        zipTree instanceof FileTreeAdapter
+        zipTree.tree instanceof ZipFileTree
+        zipTree.tree.metadataCharset == 'cp437'
+    }
+
+    def errorsWhenMetadataCharsetUnsupported() {
+        when:
+        fileOperations.zipTree(file: 'path', metadataCharset: 'NO-WAY-NO-HOW')
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "Charset for metadataCharset 'NO-WAY-NO-HOW' is not supported by your JVM"
+    }
+
+    def errorsWhenFileNameMissing() {
+        when:
+        fileOperations.zipTree(metadataCharset: 'UTF-8')
+
+        then:
+        InvalidUserDataException e = thrown()
+        e.message == "zipTree requires the 'file' argument."
     }
 
     def createsTarFileTree() {

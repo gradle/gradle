@@ -61,6 +61,8 @@ public interface FileOperations {
 
     FileTree zipTree(Object zipPath);
 
+    FileTree zipTree(Map<String, ?> args);
+
     FileTree tarTree(Object tarPath);
 
     CopySpec copySpec();
