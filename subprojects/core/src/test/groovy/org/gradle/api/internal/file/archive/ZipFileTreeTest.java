@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider;
 import org.gradle.util.Resources;
 import org.junit.Rule;
 import org.junit.Test;
+import spock.lang.Issue;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +42,7 @@ public class ZipFileTreeTest {
     private final TestFile zipFile = tmpDir.getTestDirectory().file("test.zip");
     private final TestFile rootDir = tmpDir.getTestDirectory().file("root");
     private final TestFile expandDir = tmpDir.getTestDirectory().file("tmp");
-    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher());
+    private final ZipFileTree tree = new ZipFileTree(zipFile, expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher(), null);
 
     @Test
     public void displayName() {
@@ -134,5 +135,14 @@ public class ZipFileTreeTest {
         TestFile.Snapshot snapshot = content.snapshot();
         assertVisits(tree, toList("file1.txt"), new ArrayList<String>());
         content.assertHasNotChangedSince(snapshot);
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11983")
+    @Test
+    public void decodesAlternateCodePagesProperly() {
+        resources.findResource("cp437filenames.zip").copyTo(zipFile);
+        ZipFileTree encodingTree = new ZipFileTree(zipFile, expandDir, fileSystem(), directoryFileTreeFactory(), fileHasher(), "cp437");
+
+        assertVisits(encodingTree, toList("Umlaute-ÄÖÜ.txt", "Ä.txt", "Ö.txt", "Ü.txt"), new ArrayList<String>());
     }
 }

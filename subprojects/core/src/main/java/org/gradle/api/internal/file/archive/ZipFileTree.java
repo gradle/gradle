@@ -45,13 +45,15 @@ public class ZipFileTree extends AbstractArchiveFileTree {
     private final Chmod chmod;
     private final DirectoryFileTreeFactory directoryFileTreeFactory;
     private final FileHasher fileHasher;
+    private final String metadataCharset;
 
-    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher) {
+    public ZipFileTree(File zipFile, File tmpDir, Chmod chmod, DirectoryFileTreeFactory directoryFileTreeFactory, FileHasher fileHasher, String metadataCharset) {
         this.zipFile = zipFile;
         this.tmpDir = tmpDir;
         this.chmod = chmod;
         this.directoryFileTreeFactory = directoryFileTreeFactory;
         this.fileHasher = fileHasher;
+        this.metadataCharset = metadataCharset;
     }
 
     @Override
@@ -81,7 +83,7 @@ public class ZipFileTree extends AbstractArchiveFileTree {
         AtomicBoolean stopFlag = new AtomicBoolean();
 
         try {
-            ZipFile zip = new ZipFile(zipFile);
+            ZipFile zip = new ZipFile(zipFile, metadataCharset);
             File expandedDir = getExpandedDir();
             try {
                 // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
