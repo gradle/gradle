@@ -29,11 +29,11 @@ import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.io.File;
 import java.util.Optional;

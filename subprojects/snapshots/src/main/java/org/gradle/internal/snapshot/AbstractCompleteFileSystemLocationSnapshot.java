@@ -16,8 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.vfs.SnapshotHierarchy;
-
 import java.util.Optional;
 
 public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {

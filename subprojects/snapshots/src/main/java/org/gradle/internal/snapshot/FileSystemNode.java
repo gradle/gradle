@@ -16,8 +16,6 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.vfs.SnapshotHierarchy;
-
 import javax.annotation.Nullable;
 import java.util.Optional;
 

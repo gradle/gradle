@@ -16,7 +16,7 @@
 
 package org.gradle.internal.vfs.watch;
 
-import org.gradle.internal.vfs.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 
 import java.io.Closeable;
 import java.io.File;

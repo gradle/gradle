@@ -18,7 +18,6 @@ package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.List;
 import java.util.Optional;

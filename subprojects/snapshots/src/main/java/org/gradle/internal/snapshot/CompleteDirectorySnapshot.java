@@ -20,7 +20,6 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.ArrayList;
 import java.util.List;

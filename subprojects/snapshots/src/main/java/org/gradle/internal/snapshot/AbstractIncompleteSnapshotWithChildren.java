@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.ArrayList;
 import java.util.List;

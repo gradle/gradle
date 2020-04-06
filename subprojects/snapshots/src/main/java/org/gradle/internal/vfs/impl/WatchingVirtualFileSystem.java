@@ -25,7 +25,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
-import org.gradle.internal.vfs.SnapshotHierarchy;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;

@@ -17,7 +17,6 @@
 package org.gradle.internal.snapshot
 
 import org.gradle.internal.file.FileType
-import org.gradle.internal.vfs.SnapshotHierarchy
 import spock.lang.Specification
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE

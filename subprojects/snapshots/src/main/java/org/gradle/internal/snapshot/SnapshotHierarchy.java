@@ -14,12 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.vfs;
-
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemNode;
-import org.gradle.internal.snapshot.MetadataSnapshot;
-import org.gradle.internal.snapshot.SnapshotHierarchyReference;
+package org.gradle.internal.snapshot;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Collection;

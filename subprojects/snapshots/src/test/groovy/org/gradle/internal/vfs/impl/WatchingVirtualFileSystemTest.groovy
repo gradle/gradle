@@ -17,8 +17,8 @@
 package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.snapshot.CaseSensitivity
+import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.SnapshotHierarchyReference
-import org.gradle.internal.vfs.SnapshotHierarchy
 import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory
 import spock.lang.Specification

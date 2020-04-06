@@ -20,8 +20,8 @@ import com.google.common.annotations.VisibleForTesting;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.VfsRelativePath;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.Optional;
 

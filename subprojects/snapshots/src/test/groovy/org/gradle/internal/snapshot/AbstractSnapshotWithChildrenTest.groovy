@@ -16,7 +16,6 @@
 
 package org.gradle.internal.snapshot
 
-import org.gradle.internal.vfs.SnapshotHierarchy
 import spock.lang.Specification
 
 import javax.annotation.Nullable

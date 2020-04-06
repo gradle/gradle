@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import java.util.Optional;
 

@@ -17,8 +17,8 @@
 package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemNode;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotHierarchyReference;
-import org.gradle.internal.vfs.SnapshotHierarchy;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
