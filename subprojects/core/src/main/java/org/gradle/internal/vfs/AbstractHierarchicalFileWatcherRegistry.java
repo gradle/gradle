@@ -84,7 +84,7 @@ public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEv
         Set<Path> directoriesToWatch = shouldWatchDirectories.elementSet().stream()
             .filter(path -> {
                 String absolutePath = path.toString();
-                return getWatchFilter().test(absolutePath) || startsWithAnyPrefix(absolutePath, mustWatchDirectoryPrefixes);
+                return getWatchFilter().test(absolutePath) && !startsWithAnyPrefix(absolutePath, mustWatchDirectoryPrefixes);
             })
             .collect(Collectors.toSet());
         directoriesToWatch.addAll(mustWatchDirectories);
