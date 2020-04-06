@@ -15,6 +15,7 @@ Include only their name, impactful features should be called out separately belo
 [David Burström](https://github.com/davidburstrom),
 [Nelson Osacky](https://github.com/runningcode),
 [Sebastian Schuberth](https://github.com/sschuberth),
+[Ismael Juma](https://github.com/ijuma),
 and [Lars Kaulen](https://github.com/LarsKaulen).
 
 ## Upgrade instructions
