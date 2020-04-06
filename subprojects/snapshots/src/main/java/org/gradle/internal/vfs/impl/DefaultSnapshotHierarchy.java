@@ -67,15 +67,15 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, ChangeListener changeListener) {
+    public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, DiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot, changeListener), caseSensitivity);
+        return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot, diffListener), caseSensitivity);
     }
 
     @Override
-    public SnapshotHierarchy invalidate(String absolutePath, ChangeListener changeListener) {
+    public SnapshotHierarchy invalidate(String absolutePath, DiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return invalidateSingleChild(rootNode, relativePath, caseSensitivity, changeListener)
+        return invalidateSingleChild(rootNode, relativePath, caseSensitivity, diffListener)
             .<SnapshotHierarchy>map(newRootNode -> new DefaultSnapshotHierarchy(newRootNode, caseSensitivity))
             .orElse(empty());
     }
@@ -106,15 +106,15 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, ChangeListener changeListener) {
+        public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, DiffListener diffListener) {
             // TODO: Remove the duplication here
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-            changeListener.nodeAdded(snapshot.asFileSystemNode(relativePath.getAsString()));
+            diffListener.nodeAdded(snapshot.asFileSystemNode(relativePath.getAsString()));
             return from(absolutePath, snapshot, caseSensitivity);
         }
 
         @Override
-        public SnapshotHierarchy invalidate(String absolutePath, ChangeListener changeListener) {
+        public SnapshotHierarchy invalidate(String absolutePath, DiffListener diffListener) {
             return this;
         }
 

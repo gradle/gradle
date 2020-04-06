@@ -81,24 +81,24 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.ChangeListener changeListener) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
-                changeListener.nodeRemoved(CompleteDirectorySnapshot.this);
-                children.forEach(changeListener::nodeAdded);
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+                children.forEach(diffListener::nodeAdded);
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
             }
 
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
-                changeListener.nodeRemoved(CompleteDirectorySnapshot.this);
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
                 int childPathLength = foundChild.getPathToParent().length();
                 boolean completeChildRemoved = childPathLength == relativePath.length();
                 Optional<FileSystemNode> invalidated = completeChildRemoved
                     ? Optional.empty()
-                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity, new SnapshotHierarchy.ChangeListener() {
+                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity, new SnapshotHierarchy.DiffListener() {
                     @Override
                     public void nodeRemoved(FileSystemNode node) {
                         // the parent already has been removed. No children need to be removed.
@@ -106,12 +106,12 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
 
                     @Override
                     public void nodeAdded(FileSystemNode node) {
-                        changeListener.nodeAdded(node);
+                        diffListener.nodeAdded(node);
                     }
                 });
                 children.forEach(child -> {
                     if (child != foundChild) {
-                        changeListener.nodeAdded(child);
+                        diffListener.nodeAdded(child);
                     }
                 });
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));

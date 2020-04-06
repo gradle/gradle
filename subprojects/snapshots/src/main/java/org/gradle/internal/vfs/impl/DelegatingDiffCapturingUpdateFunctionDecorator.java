@@ -19,28 +19,27 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 import org.gradle.internal.vfs.SnapshotHierarchy;
-import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DelegatingChangeListenerFactory implements SnapshotHierarchy.ChangeListenerFactory {
+public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator {
 
-    private VirtualFileSystem.VirtualFileSystemChangeListener vfsChangeListener;
+    private SnapshotHierarchy.CollectedDiffListener collectedDiffListener;
 
-    public void setVfsChangeListener(@Nullable VirtualFileSystem.VirtualFileSystemChangeListener vfsChangeListener) {
-        this.vfsChangeListener = vfsChangeListener;
+    public void setCollectedDiffListener(@Nullable SnapshotHierarchy.CollectedDiffListener collectedDiffListener) {
+        this.collectedDiffListener = collectedDiffListener;
     }
 
     @Override
-    public SnapshotHierarchyReference.UpdateFunction decorateUpdateFunction(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
-        VirtualFileSystem.VirtualFileSystemChangeListener currentListener = vfsChangeListener;
+    public SnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
+        SnapshotHierarchy.CollectedDiffListener currentListener = collectedDiffListener;
         if (currentListener == null) {
-            return root -> updateFunction.update(root, SnapshotHierarchy.ChangeListener.NOOP);
+            return root -> updateFunction.update(root, SnapshotHierarchy.DiffListener.NOOP);
         }
 
-        CollectingChangeListener listener = new CollectingChangeListener(currentListener);
+        CollectingDiffListener listener = new CollectingDiffListener(currentListener);
         return root -> {
             SnapshotHierarchy newRoot = updateFunction.update(root, listener);
             listener.publishCollectedDiff();
@@ -48,12 +47,12 @@ public class DelegatingChangeListenerFactory implements SnapshotHierarchy.Change
         };
     }
 
-    private static class CollectingChangeListener implements SnapshotHierarchy.ChangeListener {
+    private static class CollectingDiffListener implements SnapshotHierarchy.DiffListener {
         private final List<FileSystemNode> removedNodes;
         private final List<FileSystemNode> addedNodes;
-        private final VirtualFileSystem.VirtualFileSystemChangeListener currentListener;
+        private final SnapshotHierarchy.CollectedDiffListener currentListener;
 
-        public CollectingChangeListener(VirtualFileSystem.VirtualFileSystemChangeListener currentListener) {
+        public CollectingDiffListener(SnapshotHierarchy.CollectedDiffListener currentListener) {
             this.currentListener = currentListener;
             removedNodes = new ArrayList<>();
             addedNodes = new ArrayList<>();

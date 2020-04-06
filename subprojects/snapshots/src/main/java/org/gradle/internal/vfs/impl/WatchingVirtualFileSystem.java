@@ -54,7 +54,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private static final Logger LOGGER = LoggerFactory.getLogger(WatchingVirtualFileSystem.class);
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
-    private final DelegatingChangeListenerFactory delegatingChangeListenerFactory;
+    private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final Predicate<String> watchFilter;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private FileWatcherRegistry watchRegistry;
@@ -81,7 +81,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     private volatile boolean consumeEvents = true;
 
-    private final VirtualFileSystemChangeListener changeListener = (removedNodes, addedNodes) -> {
+    private final SnapshotHierarchy.CollectedDiffListener collectedDiffListener = (removedNodes, addedNodes) -> {
         if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
             updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
         }
@@ -90,12 +90,12 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
         AbstractVirtualFileSystem delegate,
-        DelegatingChangeListenerFactory delegatingChangeListenerFactory,
+        DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator,
         Predicate<String> watchFilter
     ) {
         super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
-        this.delegatingChangeListenerFactory = delegatingChangeListenerFactory;
+        this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
         this.watchFilter = watchFilter;
 
         // stop thread
@@ -117,7 +117,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                                 getRoot().update(root -> {
                                     List<FileSystemNode> removedNodes = new ArrayList<>();
                                     List<FileSystemNode> addedNodes = new ArrayList<>();
-                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, new SnapshotHierarchy.ChangeListener() {
+                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, new SnapshotHierarchy.DiffListener() {
                                         @Override
                                         public void nodeRemoved(FileSystemNode node) {
                                             removedNodes.add(node);
@@ -223,7 +223,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     }
                 }
             });
-            delegatingChangeListenerFactory.setVfsChangeListener(changeListener);
+            delegatingUpdateFunctionDecorator.setCollectedDiffListener(collectedDiffListener);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
         } catch (Exception ex) {
@@ -254,7 +254,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         updateWatchRegistry(fileWatcherRegistry -> {
             try {
                 watchRegistry = null;
-                delegatingChangeListenerFactory.setVfsChangeListener(null);
+                delegatingUpdateFunctionDecorator.setCollectedDiffListener(null);
                 fileWatcherRegistry.close();
             } catch (IOException ex) {
                 LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);

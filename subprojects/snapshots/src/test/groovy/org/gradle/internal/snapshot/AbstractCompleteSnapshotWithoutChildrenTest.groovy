@@ -31,7 +31,7 @@ abstract class AbstractCompleteSnapshotWithoutChildrenTest<T extends CompleteFil
     List<FileSystemNode> removedSnapshots = []
     List<FileSystemNode> addedSnapshots = []
 
-    SnapshotHierarchy.ChangeListener changeListener = new SnapshotHierarchy.ChangeListener() {
+    SnapshotHierarchy.DiffListener changeListener = new SnapshotHierarchy.DiffListener() {
         @Override
         void nodeRemoved(FileSystemNode node) {
             removedSnapshots.add(node)

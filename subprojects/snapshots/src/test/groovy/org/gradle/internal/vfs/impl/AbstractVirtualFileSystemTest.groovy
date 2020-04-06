@@ -47,7 +47,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, CASE_SENSITIVE, SnapshotHierarchy.ChangeListenerFactory.NOOP)
+    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, CASE_SENSITIVE, SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP)
 
     void allowFileSystemAccess(boolean allow) {
         fileHasher.allowHashing(allow)

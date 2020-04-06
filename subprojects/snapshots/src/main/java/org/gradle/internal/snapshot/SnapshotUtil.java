@@ -77,7 +77,7 @@ public class SnapshotUtil {
         return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
     }
 
-    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.ChangeListener changeListener) {
+    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.DiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
@@ -85,7 +85,7 @@ public class SnapshotUtil {
                     relativePath.fromChild(child.getPathToParent()),
                     caseSensitivity,
                     snapshot,
-                    changeListener
+                    diffListener
                 );
             }
 
@@ -105,9 +105,9 @@ public class SnapshotUtil {
             }
 
             private FileSystemNode replacedNode() {
-                changeListener.nodeRemoved(child);
+                diffListener.nodeRemoved(child);
                 FileSystemNode newNode = snapshot.asFileSystemNode(relativePath.getAsString());
-                changeListener.nodeAdded(newNode);
+                diffListener.nodeAdded(newNode);
                 return newNode;
             }
 
@@ -122,7 +122,7 @@ public class SnapshotUtil {
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
 
-                changeListener.nodeAdded(sibling);
+                diffListener.nodeAdded(sibling);
 
                 boolean isDirectory = child.getSnapshot().filter(SnapshotUtil::isRegularFileOrDirectory).isPresent() || isRegularFileOrDirectory(snapshot);
                 return isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren);
@@ -134,22 +134,22 @@ public class SnapshotUtil {
         return metadataSnapshot.getType() != FileType.Missing;
     }
 
-    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.ChangeListener changeListener) {
+    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity, changeListener);
+                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity, diffListener);
             }
 
             @Override
             public Optional<FileSystemNode> handleParent() {
-                changeListener.nodeRemoved(child);
+                diffListener.nodeRemoved(child);
                 return Optional.empty();
             }
 
             @Override
             public Optional<FileSystemNode> handleSame() {
-                changeListener.nodeRemoved(child);
+                diffListener.nodeRemoved(child);
                 return Optional.empty();
             }
 

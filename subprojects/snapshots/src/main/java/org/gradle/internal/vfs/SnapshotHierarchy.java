@@ -22,6 +22,7 @@ import org.gradle.internal.snapshot.MetadataSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 
 import javax.annotation.CheckReturnValue;
+import java.util.Collection;
 import java.util.Optional;
 
 /**
@@ -49,13 +50,13 @@ public interface SnapshotHierarchy {
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
      */
     @CheckReturnValue
-    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, ChangeListener changeListener);
+    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, DiffListener diffListener);
 
     /**
      * Returns a hierarchy without any information at the absolute path.
      */
     @CheckReturnValue
-    SnapshotHierarchy invalidate(String absolutePath, ChangeListener changeListener);
+    SnapshotHierarchy invalidate(String absolutePath, DiffListener diffListener);
 
     /**
      * The empty hierarchy.
@@ -69,8 +70,8 @@ public interface SnapshotHierarchy {
         void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
     }
 
-    interface ChangeListener {
-        ChangeListener NOOP = new ChangeListener() {
+    interface DiffListener {
+        DiffListener NOOP = new DiffListener() {
             @Override
             public void nodeRemoved(FileSystemNode node) {
             }
@@ -85,12 +86,18 @@ public interface SnapshotHierarchy {
     }
 
     interface DiffCapturingUpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy root, ChangeListener changeListener);
+        SnapshotHierarchy update(SnapshotHierarchy root, DiffListener diffListener);
     }
 
-    interface ChangeListenerFactory {
-        ChangeListenerFactory NOOP = updateFunction -> root -> updateFunction.update(root, ChangeListener.NOOP);
+    interface DiffCapturingUpdateFunctionDecorator {
+        DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, DiffListener.NOOP);
 
-        SnapshotHierarchyReference.UpdateFunction decorateUpdateFunction(DiffCapturingUpdateFunction updateFunction);
+        SnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
+    }
+
+    interface CollectedDiffListener {
+        CollectedDiffListener NOOP = (removedNodes, addedNodes) -> {};
+
+        void changed(Collection<FileSystemNode> removedNodes, Collection<FileSystemNode> addedNodes);
     }
 }

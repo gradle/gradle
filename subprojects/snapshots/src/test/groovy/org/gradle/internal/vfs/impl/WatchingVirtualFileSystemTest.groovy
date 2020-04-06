@@ -27,10 +27,10 @@ class WatchingVirtualFileSystemTest extends Specification {
     def delegate = Mock(AbstractVirtualFileSystem)
     def watcherRegistryFactory = Mock(FileWatcherRegistryFactory)
     def watcherRegistry = Mock(FileWatcherRegistry)
-    def changeListenerFactory = Mock(DelegatingChangeListenerFactory)
+    def capturingUpdateFunctionDecorator = Mock(DelegatingDiffCapturingUpdateFunctionDecorator)
     def rootHierarchy = Mock(SnapshotHierarchy)
     def rootReference = new SnapshotHierarchyReference(rootHierarchy)
-    def watchingVirtualFileSystem = new WatchingVirtualFileSystem(watcherRegistryFactory, delegate, changeListenerFactory, { -> true })
+    def watchingVirtualFileSystem = new WatchingVirtualFileSystem(watcherRegistryFactory, delegate, capturingUpdateFunctionDecorator, { -> true })
     def snapshotHierarchy = DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
@@ -54,7 +54,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         then:
         _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.startWatcher(_, _) >> watcherRegistry
-        1 * changeListenerFactory.setVfsChangeListener(_)
+        1 * capturingUpdateFunctionDecorator.setCollectedDiffListener(_)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
@@ -71,7 +71,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         1 * delegate.root >> rootReference
         1 * rootHierarchy.empty()
         1 * watcherRegistry.close()
-        1 * changeListenerFactory.setVfsChangeListener(null)
+        1 * capturingUpdateFunctionDecorator.setCollectedDiffListener(null)
         0 * _
     }
 
@@ -82,7 +82,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         _ * delegate.getRoot() >> new SnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.startWatcher(_, _) >> watcherRegistry
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
-        1 * changeListenerFactory.setVfsChangeListener(_)
+        1 * capturingUpdateFunctionDecorator.setCollectedDiffListener(_)
         0 * _
 
         when:
