@@ -10,10 +10,6 @@ dependencies {
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
 }
 
-test {
-    useJUnitPlatform()
-}
-
 application {
     mainClassName = 'org.gradle.sample.Main'
 }
