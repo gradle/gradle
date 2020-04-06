@@ -36,7 +36,6 @@ import java.io.File;
 class PrecompiledGroovyScript {
     private static final String SCRIPT_PLUGIN_EXTENSION = ".gradle";
 
-    private final ScriptSource pluginsSource;
     private final ScriptSource scriptSource;
     private final Type type;
     private final PluginId pluginId;
@@ -72,12 +71,11 @@ class PrecompiledGroovyScript {
 
     PrecompiledGroovyScript(File scriptFile) {
         TextResource scriptResource = new UriTextResource("script", scriptFile);
-        this.pluginsSource = new PluginsBlockSourceWrapper(scriptResource);
         this.scriptSource = new TextResourceScriptSource(scriptResource);
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
-        this.scriptTarget = new PrecompiledScriptTarget(type == Type.PROJECT);
+        this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT);
     }
 
     static void filterPluginFiles(PatternFilterable patternFilterable) {
@@ -101,20 +99,12 @@ class PrecompiledGroovyScript {
         return scriptSource.getClassName();
     }
 
-    String getPluginsBlockClassName() {
-        return getPluginsBlockSource().getClassName();
-    }
-
     HashCode getContentHash() {
         return scriptSource.getResource().getContentHash();
     }
 
     ScriptSource getSource() {
         return scriptSource;
-    }
-
-    ScriptSource getPluginsBlockSource() {
-        return pluginsSource;
     }
 
     ScriptTarget getScriptTarget() {
@@ -144,14 +134,4 @@ class PrecompiledGroovyScript {
         return sb.toString();
     }
 
-    private static class PluginsBlockSourceWrapper extends TextResourceScriptSource {
-        public PluginsBlockSourceWrapper(TextResource resource) {
-            super(resource);
-        }
-
-        @Override
-        public String getClassName() {
-            return "plugins_" + super.getClassName();
-        }
-    }
 }
