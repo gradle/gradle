@@ -17,31 +17,26 @@
 package org.gradle.instantexecution
 
 import org.junit.Test
+import spock.lang.Unroll
 
 class InstantExecutionGroovyScriptChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
+    @Unroll
     @Test
-    def "invalidates cache upon changes to Groovy build script"() {
+    def "invalidates cache upon changes to #language build script"() {
         given:
         def instant = newInstantExecutionFixture()
-        buildFile << """
-            task greet {
-                doLast { println 'Hello!' }
-            }
-        """
+        def buildFile = file("build${language.fileExtension}")
 
         when:
+        buildFile.text = language.defineGreetTask('Hello!')
         instantRun 'greet'
 
         then:
         outputContains 'Hello!'
 
         when:
-        buildFile.text = """
-            task greet {
-                doLast { println 'Hi!' }
-            }
-        """
+        buildFile.text = language.defineGreetTask('Hi!')
         instantRun 'greet'
 
         then:
@@ -52,7 +47,49 @@ class InstantExecutionGroovyScriptChangesIntegrationTest extends AbstractInstant
         instantRun 'greet'
 
         then:
-        outputContains'Hi'
+        outputContains 'Hi'
         instant.assertStateLoaded()
+
+        where:
+        language << ScriptLanguage.values()
+    }
+
+    enum ScriptLanguage {
+
+        GROOVY{
+            @Override
+            String getFileExtension() {
+                ".gradle"
+            }
+
+            @Override
+            String defineGreetTask(String message) {
+                """
+                    task greet {
+                        doLast { println '$message' }
+                    }
+                """
+            }
+        },
+
+        KOTLIN{
+            @Override
+            String getFileExtension() {
+                ".gradle.kts"
+            }
+
+            @Override
+            String defineGreetTask(String message) {
+                """
+                    task("greet") {
+                        doLast { println("$message") }
+                    }
+                """
+            }
+        };
+
+        abstract String getFileExtension();
+
+        abstract String defineGreetTask(String message);
     }
 }
