@@ -221,7 +221,6 @@ include::sample[dir="snippets/java-feature-variant/incompatible-variants/kotlin/
 
 Dependency resolution would fail with the following error:
 
-[source]
 ----
 Cannot choose between
    org.gradle.demo:producer:1.0 variant mysqlSupportRuntimeElements and

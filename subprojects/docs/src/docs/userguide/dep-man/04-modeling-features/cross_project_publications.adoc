@@ -121,7 +121,6 @@ Therefore, we need to understand what our new variant is used for in order to se
 Let's look at the attributes we find on the `runtimeElements` configuration:
 
 .gradle outgoingVariants --variant runtimeElements
-[source]
 ----
 Attributes
     - org.gradle.category            = library

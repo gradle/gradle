@@ -362,7 +362,7 @@ Alternatively, Gradle provides an API which lets you declare that a repository _
 If you do so:
 
 - an artifact declared in a repository _can't_ be found in any other
-- exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content>>))
+- exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content>>)
 
 .Declaring exclusive repository contents
 ====
@@ -599,7 +599,10 @@ Authentication based on any custom HTTP header, e.g. private tokens, OAuth token
 [[sub:preemptive_authentication]]
 === Using preemptive authentication
 
-Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of an HTTP 401 response. In some cases, the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication] scheme:
+Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of an HTTP 401 response.
+In some cases, the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail.
+To get around this behavior, credentials may be sent to the server preemptively.
+To enable preemptive authentication simply configure your repository to explicitly use the link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication] scheme:
 
 .Configure repository to use preemptive authentication
 ====
