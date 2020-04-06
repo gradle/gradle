@@ -1899,12 +1899,25 @@ The value of this provider is derived from:
   - <c>""")
     }
 
-    def "producer task for a property is not known when property has a fixed value"() {
+    def "has no producer task and missing execution time value when property has no value"() {
+        def property = propertyWithNoValue()
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer task and fixed execution time value when property has a fixed value"() {
         def property = propertyWithNoValue()
         property.set(someValue())
 
         expect:
         assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == someValue()
     }
 
     def "can attach a producer task to property"() {
@@ -1920,16 +1933,68 @@ The value of this provider is derived from:
 
         then:
         assertHasProducer(property, task)
+
+        when:
+        setToNull(property)
+
+        then:
+        assertHasProducer(property, task)
     }
 
-    def "has producer task when value is provider with producer task"() {
+    def "producer task of upstream provider is ignored when producer task attached to property"() {
+        def task = Mock(Task)
+        def upstream = Mock(Task)
+        def property = propertyWithNoValue()
+        property.set(supplierWithProducer(upstream))
+
+        expect:
+        assertHasProducer(property, upstream)
+
+        when:
+        property.attachProducer(owner(task))
+
+        then:
+        assertHasProducer(property, task)
+    }
+
+    def "has no producer task and missing execution time value when value is provider with no value"() {
+        def provider = supplierWithNoValue()
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has producer task and fixed execution time value when value is provider with producer task and fixed value"() {
         def task = Stub(Task)
-        def provider = supplierWithProducer(task)
+        def provider = supplierWithProducer(task, someValue())
         def property = propertyWithNoValue()
         property.set(provider)
 
         expect:
         assertHasProducer(property, task)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.hasChangingContent()
+        value.fixedValue == someValue()
+    }
+
+    def "has producer task and changing execution time value when value is provider with producer task and changing value"() {
+        def task = Stub(Task)
+        def provider = supplierWithProducerAndChangingExecutionTimeValue(task, someValue(), someOtherValue())
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        assertHasProducer(property, task)
+        def value = property.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.hasChangingContent()
+        value.changingValue.get() == someValue()
+        value.changingValue.get() == someOtherValue()
     }
 
     def "mapped value has changing execution time value when producer task attached to original property"() {
@@ -2042,7 +2107,7 @@ The value of this provider is derived from:
         property.producer.visitProducerTasks(Stub(Action))
 
         then:
-        def e =  thrown(IllegalStateException)
+        def e = thrown(IllegalStateException)
         e.message == "This property is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it."
     }
 
@@ -2114,8 +2179,16 @@ The value of this provider is derived from:
         return ProviderTestUtil.withValues(values)
     }
 
+    ProviderInternal<T> supplierWithChangingExecutionTimeValues(T... values) {
+        return ProviderTestUtil.withChangingExecutionTimeValues(values)
+    }
+
     ProviderInternal<T> supplierWithProducer(Task producer, T... values) {
         return ProviderTestUtil.withProducer(type(), producer, values)
+    }
+
+    ProviderInternal<T> supplierWithProducerAndChangingExecutionTimeValue(Task producer, T... values) {
+        return ProviderTestUtil.withProducerAndChangingExecutionTimeValue(type(), producer, values)
     }
 
     class NoValueProvider<T> extends AbstractMinimalProvider<T> {

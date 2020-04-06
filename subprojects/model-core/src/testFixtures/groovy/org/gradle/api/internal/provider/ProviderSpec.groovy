@@ -458,14 +458,23 @@ abstract class ProviderSpec<T> extends Specification {
         producer.visitContentProducerTasks { assert false }
     }
 
-    void assertHasProducer(ProviderInternal<?> provider, Task task) {
+    void assertHasKnownProducer(ProviderInternal<?> provider) {
+        def producer = provider.producer
+        assert producer.known
+        producer.visitProducerTasks { assert false }
+        producer.visitContentProducerTasks { assert false }
+    }
+
+    void assertHasProducer(ProviderInternal<?> provider, Task task, Task... additional) {
+        def expected = [task] + (additional as List)
+
         def producer = provider.producer
         assert producer.known
         def tasks = []
         producer.visitProducerTasks { tasks.add(it) }
-        assert tasks == [task]
+        assert tasks == expected
         tasks.clear()
         producer.visitContentProducerTasks { tasks.add(it) }
-        assert tasks == [task]
+        assert tasks == expected
     }
 }
