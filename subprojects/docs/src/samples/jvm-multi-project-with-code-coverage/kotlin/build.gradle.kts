@@ -35,9 +35,8 @@ tasks.register<JacocoReport>("codeCoverageReport") {
                 executionData(testTask)
             }
 
-            // Alternatively you can declare a dependency so that the `codeCoverageReport` depends on the `test` tasks.
-            // This inevitably enforces that running the `codeCoverageTask` runs the test tasks as well.
-            // This may be your intended behavior.
+            // To automatically run `test` every time `./gradlew codeCoverageReport` is called,
+            // you may want to setup a task dependency between them.
             // Note that this requires the `test` tasks to be resolved eagerly (see `forEach`).
             // This has an impact on the configuration phase.
             subproject.tasks.matching({ it.extensions.findByType<JacocoTaskExtension>() != null }).forEach {
