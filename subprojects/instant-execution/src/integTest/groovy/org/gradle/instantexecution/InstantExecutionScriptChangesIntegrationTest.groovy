@@ -54,6 +54,41 @@ class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecut
         language << ScriptLanguage.values()
     }
 
+    @Unroll
+    @Test
+    def "invalidates cache upon changes to buildSrc #language build script"() {
+        given:
+        def instant = newInstantExecutionFixture()
+        def buildFile = file("buildSrc/build${language.fileExtension}").tap {
+            parentFile.mkdirs()
+        }
+
+        when:
+        buildFile.text = 'println("Hello!")'
+        instantRun 'help', '-q'
+
+        then:
+        outputContains 'Hello!'
+
+        when:
+        buildFile.text = 'println("Hi!")'
+        instantRun 'help'
+
+        then:
+        outputContains 'Hi!'
+        instant.assertStateStored()
+
+        when:
+        instantRun 'help'
+
+        then:
+        outputDoesNotContain 'Hi'
+        instant.assertStateLoaded()
+
+        where:
+        language << ScriptLanguage.values()
+    }
+
     enum ScriptLanguage {
 
         GROOVY{
