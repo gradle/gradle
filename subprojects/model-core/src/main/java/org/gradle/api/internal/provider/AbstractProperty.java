@@ -175,7 +175,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.finalizeOnNextGet();
     }
 
-    // Should be on the public API. Was not made public for the 6.3 release
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
