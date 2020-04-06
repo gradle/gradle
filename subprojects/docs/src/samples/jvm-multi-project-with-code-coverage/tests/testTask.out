@@ -1,10 +1,3 @@
-> Task :compileJava NO-SOURCE
-> Task :processResources NO-SOURCE
-> Task :classes UP-TO-DATE
-> Task :compileTestJava NO-SOURCE
-> Task :processTestResources NO-SOURCE
-> Task :testClasses UP-TO-DATE
-> Task :test NO-SOURCE
 > Task :list:compileJava
 > Task :utilities:compileJava
 > Task :application:compileJava
@@ -24,10 +17,6 @@
 > Task :list:processTestResources NO-SOURCE
 > Task :list:testClasses
 > Task :list:test
-> Task :utilities:compileTestJava NO-SOURCE
-> Task :utilities:processTestResources NO-SOURCE
-> Task :utilities:testClasses UP-TO-DATE
-> Task :utilities:test NO-SOURCE
 > Task :codeCoverageReport
 
 BUILD SUCCESSFUL in 0s
