@@ -31,7 +31,7 @@ Running the tests and generate the report:
 
 [listing.terminal.sample-command]
 ----
-$ ./gradlew test codeCoverageReport
+$ ./gradlew codeCoverageReport
 
 BUILD SUCCESSFUL
 10 actionable tasks: 10 executed
