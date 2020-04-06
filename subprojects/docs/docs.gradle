@@ -111,6 +111,7 @@ samples {
         springBootWebApplication
         gradlePluginInJava
         precompiledScriptPlugin
+        buildSrcPluginJavaModuleTransform
 
         javaApplication
         javaListLibrary
@@ -310,6 +311,15 @@ samples {
                 from(templates.javaJunit5ModuleInfoForApplication)
                 from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
                 from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
+            }
+        }
+        javaModulesWithTransform {
+            sampleDirectory = samplesRoot.dir("java/modules-with-transform")
+            displayName = "Java Modules with Legacy Libraries"
+            description = "Build a Modular Java Application that integrates legacy libraries."
+            category = "Java"
+            common {
+                from(templates.buildSrcPluginJavaModuleTransform)
             }
         }
         jvmMultiProjectWithCodeCoverage {

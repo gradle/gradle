@@ -38,4 +38,6 @@ include::sample[dir="groovy",files="build.gradle[tags=inferModulePath]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=inferModulePath]"]
 ====
 
-For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin] and link:{userManualPath}/application_plugin.html#sec:application_modular[Java Module support in the Application Plugin].
+For more information, see link:{userManualPath}/java_library_plugin.html#sec:java_library_modular[Java Module support in the Java Library Plugin],
+link:{userManualPath}/application_plugin.html#sec:application_modular[Java Module support in the Application Plugin] and
+link:{userManualPath}/java_testing.html#sec:java_testing_modular[testing Java Modules].
