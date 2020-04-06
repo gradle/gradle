@@ -517,7 +517,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             'org.test:moduleA:1.0' {
                 dependsOn 'org.test:moduleB:1.0'
                 excludeFromConfig 'org.test:moduleD', 'compile'
-                excludeFromConfig 'org.test:moduleD', 'runtime'
             }
             'org.test:moduleB:1.0' {
                 dependsOn 'org.test:moduleD:1.0'
@@ -558,7 +557,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             }
             dependencies {
                 conf 'org.test:moduleA:1.0'
-                conf 'org.test:moduleC:1.0'
                 components {
                     withModule('org.test:moduleA', IvyVariantDerivation)
                     withModule('org.test:moduleB', IvyVariantDerivation)
@@ -574,11 +572,10 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
             'org.test:moduleB:1.0' {
                 expectResolve()
             }
-            'org.test:moduleC:1.0' {
-                expectResolve()
-            }
-            'org.test:moduleD:1.0' {
-                expectResolve()
+            if (usageAttribute.contains('runtime')) {
+                'org.test:moduleD:1.0' {
+                    expectResolve()
+                }
             }
         }
 
@@ -591,12 +588,11 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
                     variant(varianName, expectedVariantAttributes)
                     module('org.test:moduleB:1.0') {
                         variant(varianName, expectedVariantAttributes)
-                    }
-                }
-                module('org.test:moduleC:1.0') {
-                    variant(varianName, expectedVariantAttributes)
-                    module('org.test:moduleD:1.0') {
-                        variant(varianName, expectedVariantAttributes)
+                        if (usageAttribute.contains('runtime')) {
+                            module('org.test:moduleD:1.0') {
+                                variant(varianName, expectedVariantAttributes)
+                            }
+                        }
                     }
                 }
             }

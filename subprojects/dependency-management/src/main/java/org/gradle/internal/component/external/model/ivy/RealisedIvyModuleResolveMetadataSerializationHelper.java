@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.external.model.ivy;
 
-import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -99,11 +98,27 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
         }
     }
 
+    @Override
+    protected void writeConfiguration(Encoder encoder, ConfigurationMetadata configuration) throws IOException {
+        super.writeConfiguration(encoder, configuration);
+        if (configuration instanceof RealisedConfigurationMetadata) {
+            RealisedConfigurationMetadata realisedMetadata = (RealisedConfigurationMetadata) configuration;
+            if (realisedMetadata.isAddedByRule()) {
+                encoder.writeBoolean(true);
+                writeMavenExcludeRules(encoder, realisedMetadata.getExcludes());
+            } else {
+                encoder.writeBoolean(false);
+            }
+        } else {
+            encoder.writeBoolean(false);
+        }
+    }
+
     private Map<String, ConfigurationMetadata> readIvyConfigurations(Decoder decoder, DefaultIvyModuleResolveMetadata metadata) throws IOException {
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(metadata.getArtifactDefinitions(), new IdentityHashMap<>(), metadata.getExcludes(), metadata.getDependencies(), metadata.getId());
 
         ImmutableMap<String, Configuration> configurationDefinitions = metadata.getConfigurationDefinitions();
-           int configurationsCount = decoder.readSmallInt();
+        int configurationsCount = decoder.readSmallInt();
         Map<String, ConfigurationMetadata> configurations = Maps.newHashMapWithExpectedSize(configurationsCount);
         Map<String, ImmutableSet<String>> configurationsHierarchies = Maps.newHashMap();
 
@@ -121,16 +136,16 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
                 hierarchy = LazyToRealisedModuleComponentResolveMetadataHelper.constructHierarchy(configuration, configurationDefinitions);
                 configurationsHierarchies.put(configurationName, hierarchy);
                 excludes = configurationHelper.filterExcludes(hierarchy);
-            } else if(isApiElements(configurationName, configurationDefinitions.values())) {
-                excludes = configurationHelper.filterExcludes(configurationsHierarchies.get("compile"));
-            } else if(isRuntimeElements(configurationName, configurationDefinitions.values())) {
-                excludes = configurationHelper.filterExcludes(configurationsHierarchies.get("default"));
             } else {
                 excludes = ImmutableList.of();
             }
 
             ImmutableAttributes attributes = getAttributeContainerSerializer().read(decoder);
             ImmutableCapabilities capabilities = readCapabilities(decoder);
+            boolean hasExplicitExcludes = decoder.readBoolean();
+            if (hasExplicitExcludes) {
+                excludes = ImmutableList.copyOf(readMavenExcludes(decoder));
+            }
             ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts = readFiles(decoder, metadata.getId());
 
             RealisedConfigurationMetadata configurationMetadata = new RealisedConfigurationMetadata(metadata.getId(), configurationName, transitive, visible,
@@ -161,18 +176,6 @@ public class RealisedIvyModuleResolveMetadataSerializationHelper extends Abstrac
             configurations.put(configurationName, configurationMetadata);
         }
         return configurations;
-    }
-
-    private boolean isRuntimeElements(String configurationName, ImmutableCollection<Configuration> ivyConfigurationDefinitions) {
-        return configurationName.equals("runtimeElements") && ivyConfigurationDefinitions.stream().anyMatch(
-            ivyConfiguration -> ivyConfiguration.getName().equals("default")
-        );
-    }
-
-    private boolean isApiElements(String configurationName, ImmutableCollection<Configuration> ivyConfigurationDefinitions) {
-        return configurationName.equals("apiElements") && ivyConfigurationDefinitions.stream().anyMatch(
-            ivyConfiguration -> ivyConfiguration.getName().equals("compile")
-        );
     }
 
     private IvyDependencyDescriptor readIvyDependency(Decoder decoder) throws IOException {
