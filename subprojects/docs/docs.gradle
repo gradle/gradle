@@ -312,6 +312,19 @@ samples {
                 from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
             }
         }
+        jvmMultiProjectWithCodeCoverage {
+            sampleDirectory = samplesRoot.dir("jvm-multi-project-with-code-coverage")
+            displayName = "Reporting code coverage with JaCoCo"
+            description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+            }
+        }
         javaLibraryPublishing {
             sampleDirectory = samplesRoot.dir("java/library-publishing")
             description = "Publish a Java library to a binary repository."
