@@ -287,6 +287,8 @@ samples {
                 from(templates.javaModuleInfoForListLibrary)
                 from(templates.javaModuleInfoForUtilitiesLibrary)
                 from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
             }
         }
         javaModulesMultiProjectWithIntegrationTests {
