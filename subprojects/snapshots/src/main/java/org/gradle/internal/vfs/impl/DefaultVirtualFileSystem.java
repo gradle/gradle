@@ -151,17 +151,8 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         }
     }
 
-    private void updateRoot(UpdateFunction updateFunction) {
-        SnapshotHierarchy.LifecycleAwareChangeListener changeListener = delegatingListener.newChangeListener();
-        root.update(current -> {
-            SnapshotHierarchy newRoot = updateFunction.update(current, changeListener);
-            changeListener.finish();
-            return newRoot;
-        });
-    }
-
-    interface UpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy current, SnapshotHierarchy.ChangeListener changeListener);
+    private void updateRoot(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
+        root.update(delegatingListener.decorateUpdateFunction(updateFunction));
     }
 
     @Override

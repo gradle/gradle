@@ -19,6 +19,7 @@ package org.gradle.internal.vfs;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.MetadataSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 
 import javax.annotation.CheckReturnValue;
 import java.util.Optional;
@@ -83,28 +84,13 @@ public interface SnapshotHierarchy {
         void nodeAdded(FileSystemNode node);
     }
 
-    interface ChangeListenerFactory {
-        ChangeListenerFactory NOOP = () -> LifecycleAwareChangeListener.NOOP;
-
-        LifecycleAwareChangeListener newChangeListener();
+    interface DiffCapturingUpdateFunction {
+        SnapshotHierarchy update(SnapshotHierarchy root, ChangeListener changeListener);
     }
 
-    interface LifecycleAwareChangeListener extends ChangeListener {
-        LifecycleAwareChangeListener NOOP = new LifecycleAwareChangeListener() {
+    interface ChangeListenerFactory {
+        ChangeListenerFactory NOOP = updateFunction -> root -> updateFunction.update(root, ChangeListener.NOOP);
 
-            @Override
-            public void nodeRemoved(FileSystemNode node) {
-            }
-
-            @Override
-            public void nodeAdded(FileSystemNode node) {
-            }
-
-            @Override
-            public void finish() {
-            }
-        };
-
-        void finish();
+        SnapshotHierarchyReference.UpdateFunction decorateUpdateFunction(DiffCapturingUpdateFunction updateFunction);
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemNode;
+import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 import org.gradle.internal.vfs.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
@@ -32,28 +33,33 @@ public class DelegatingChangeListenerFactory implements SnapshotHierarchy.Change
         this.vfsChangeListener = vfsChangeListener;
     }
 
-    public SnapshotHierarchy.LifecycleAwareChangeListener newChangeListener() {
+    @Override
+    public SnapshotHierarchyReference.UpdateFunction decorateUpdateFunction(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
         VirtualFileSystem.VirtualFileSystemChangeListener currentListener = vfsChangeListener;
         if (currentListener == null) {
-            return SnapshotHierarchy.LifecycleAwareChangeListener.NOOP;
+            return root -> updateFunction.update(root, SnapshotHierarchy.ChangeListener.NOOP);
         }
 
-        return new DefaultLifecycleAwareChangeListener(currentListener);
+        CollectingChangeListener listener = new CollectingChangeListener(currentListener);
+        return root -> {
+            SnapshotHierarchy newRoot = updateFunction.update(root, listener);
+            listener.publishCollectedDiff();
+            return newRoot;
+        };
     }
 
-    private static class DefaultLifecycleAwareChangeListener implements SnapshotHierarchy.LifecycleAwareChangeListener {
+    private static class CollectingChangeListener implements SnapshotHierarchy.ChangeListener {
         private final List<FileSystemNode> removedNodes;
         private final List<FileSystemNode> addedNodes;
         private final VirtualFileSystem.VirtualFileSystemChangeListener currentListener;
 
-        public DefaultLifecycleAwareChangeListener(VirtualFileSystem.VirtualFileSystemChangeListener currentListener) {
+        public CollectingChangeListener(VirtualFileSystem.VirtualFileSystemChangeListener currentListener) {
             this.currentListener = currentListener;
             removedNodes = new ArrayList<>();
             addedNodes = new ArrayList<>();
         }
 
-        @Override
-        public void finish() {
+        public void publishCollectedDiff() {
             currentListener.changed(removedNodes, addedNodes);
         }
 

@@ -114,30 +114,23 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                             LOGGER.debug("Handling VFS change {} {}", type, path);
                             String absolutePath = path.toString();
                             if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
-                                SnapshotHierarchy.LifecycleAwareChangeListener changeListener = new SnapshotHierarchy.LifecycleAwareChangeListener() {
-                                    private final List<FileSystemNode> removedNodes = new ArrayList<>();
-                                    private final List<FileSystemNode> addedNodes = new ArrayList<>();
-
-                                    @Override
-                                    public void finish() {
-                                        if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
-                                            updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
-                                        }
-                                    }
-
-                                    @Override
-                                    public void nodeRemoved(FileSystemNode node) {
-                                        removedNodes.add(node);
-                                    }
-
-                                    @Override
-                                    public void nodeAdded(FileSystemNode node) {
-                                        addedNodes.add(node);
-                                    }
-                                };
                                 getRoot().update(root -> {
-                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, changeListener);
-                                    changeListener.finish();
+                                    List<FileSystemNode> removedNodes = new ArrayList<>();
+                                    List<FileSystemNode> addedNodes = new ArrayList<>();
+                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, new SnapshotHierarchy.ChangeListener() {
+                                        @Override
+                                        public void nodeRemoved(FileSystemNode node) {
+                                            removedNodes.add(node);
+                                        }
+
+                                        @Override
+                                        public void nodeAdded(FileSystemNode node) {
+                                            addedNodes.add(node);
+                                        }
+                                    });
+                                    if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
+                                        updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
+                                    }
                                     return newRoot;
                                 });
                             }
