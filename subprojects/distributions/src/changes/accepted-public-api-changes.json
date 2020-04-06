@@ -1,28 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.AbstractCopyTask",
-            "member": "Method org.gradle.api.tasks.AbstractCopyTask.getFileCollectionFactory()",
-            "acceptation": "Removed an injection method",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.api.tasks.testing.Test",
-            "member": "Method org.gradle.api.tasks.testing.Test.getFileResolver()",
-            "acceptation": "Removed an injection method",
-            "changes": [
-                "Method has been removed"
-            ]
-        },
-        {
-            "type": "org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails",
-            "member": "Method org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails.getAppNameSystemProperty()",
-            "acceptation": "This was nullable before, but the package is now annotated with @NonNullApi",
-            "changes": [
-                "From non-null returning to null returning breaking change"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }
