@@ -19,7 +19,7 @@ package org.gradle.instantexecution
 import org.junit.Test
 import spock.lang.Unroll
 
-class InstantExecutionGroovyScriptChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
     @Test
