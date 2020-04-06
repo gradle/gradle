@@ -23,6 +23,7 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
@@ -32,6 +33,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
@@ -114,9 +116,13 @@ public class EclipseDependenciesCreator {
             if (libraryElements == null || !libraryElements.getName().equals(LibraryElements.JAR)) {
                 return;
             }
-            ComponentArtifactMetadata artifactId = (ComponentArtifactMetadata) artifact.getId();
+            ComponentArtifactIdentifier artifactId = artifact.getId();
+            TaskDependency buildDependencies = null;
+            if (artifactId instanceof ComponentArtifactMetadata) {
+                buildDependencies = ((ComponentArtifactMetadata) artifactId).getBuildDependencies();
+            }
             // TODO: Add handling for Test-only dependencies once https://github.com/gradle/gradle/pull/9484 is merged
-            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), artifactId.getBuildDependencies(), asJavaModule));
+            projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, asJavaModule));
         }
 
         @Override
