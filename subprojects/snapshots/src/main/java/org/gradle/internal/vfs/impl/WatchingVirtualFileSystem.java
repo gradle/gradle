@@ -58,7 +58,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private final Predicate<String> watchFilter;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private FileWatcherRegistry watchRegistry;
-    private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(100);
+    private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(4096);
     private volatile boolean buildRunning;
 
     private static class FileEvent {
