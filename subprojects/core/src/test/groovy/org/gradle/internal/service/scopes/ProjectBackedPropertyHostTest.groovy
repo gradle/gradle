@@ -21,7 +21,7 @@ import org.gradle.api.internal.project.ProjectStateInternal
 import spock.lang.Specification
 
 class ProjectBackedPropertyHostTest extends Specification {
-    def "disallows read before after evaluate"() {
+    def "disallows read before before completion"() {
         def state = new ProjectStateInternal()
         def project = Stub(ProjectInternal)
         _ * project.displayName >> "<project>"
@@ -36,7 +36,7 @@ class ProjectBackedPropertyHostTest extends Specification {
         state.toEvaluate()
         host.beforeRead() == "configuration of <project> has not finished yet"
         state.toAfterEvaluate()
-        host.beforeRead() == null
+        host.beforeRead() == "configuration of <project> has not finished yet"
         state.configured()
         host.beforeRead() == null
     }

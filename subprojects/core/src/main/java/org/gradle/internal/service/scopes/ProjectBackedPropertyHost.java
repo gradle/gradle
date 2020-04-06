@@ -31,7 +31,7 @@ class ProjectBackedPropertyHost implements PropertyHost {
     @Nullable
     @Override
     public String beforeRead() {
-        if (!project.getState().getExecuted()) {
+        if (!project.getState().hasCompleted()) {
             // Relies on the odd semantics of getExecuted() to allow access during afterEvaluate but not before
             return "configuration of " + project.getDisplayName() + " has not finished yet";
         } else {
