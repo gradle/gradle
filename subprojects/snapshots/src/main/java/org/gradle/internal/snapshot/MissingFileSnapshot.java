@@ -57,7 +57,7 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         visitor.visitFile(this);
     }
 
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         diffListener.nodeRemoved(this);
         return Optional.empty();
     }

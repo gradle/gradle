@@ -49,7 +49,7 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     }
 
     @Override
-    public CompleteFileSystemLocationSnapshot store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.DiffListener diffListener) {
+    public CompleteFileSystemLocationSnapshot store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return this;
     }
 
@@ -100,12 +100,12 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
         }
 
         @Override
-        public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
+        public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
             return delegate.invalidate(relativePath, caseSensitivity, diffListener).map(splitSnapshot -> splitSnapshot.withPathToParent(getPathToParent()));
         }
 
         @Override
-        public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot newSnapshot, SnapshotHierarchy.DiffListener diffListener) {
+        public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot newSnapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
             return this;
         }
 

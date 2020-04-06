@@ -50,13 +50,13 @@ public interface SnapshotHierarchy {
      * Returns a hierarchy augmented by the information of the snapshot at the absolute path.
      */
     @CheckReturnValue
-    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, DiffListener diffListener);
+    SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener);
 
     /**
      * Returns a hierarchy without any information at the absolute path.
      */
     @CheckReturnValue
-    SnapshotHierarchy invalidate(String absolutePath, DiffListener diffListener);
+    SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener);
 
     /**
      * The empty hierarchy.
@@ -70,8 +70,8 @@ public interface SnapshotHierarchy {
         void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
     }
 
-    interface DiffListener {
-        DiffListener NOOP = new DiffListener() {
+    interface NodeDiffListener {
+        NodeDiffListener NOOP = new NodeDiffListener() {
             @Override
             public void nodeRemoved(FileSystemNode node) {
             }
@@ -86,11 +86,11 @@ public interface SnapshotHierarchy {
     }
 
     interface DiffCapturingUpdateFunction {
-        SnapshotHierarchy update(SnapshotHierarchy root, DiffListener diffListener);
+        SnapshotHierarchy update(SnapshotHierarchy root, NodeDiffListener diffListener);
     }
 
     interface DiffCapturingUpdateFunctionDecorator {
-        DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, DiffListener.NOOP);
+        DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, NodeDiffListener.NOOP);
 
         SnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
     }

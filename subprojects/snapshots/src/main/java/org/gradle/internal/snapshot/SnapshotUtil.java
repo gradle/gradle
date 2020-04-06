@@ -77,7 +77,7 @@ public class SnapshotUtil {
         return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
     }
 
-    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.DiffListener diffListener) {
+    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
@@ -134,7 +134,7 @@ public class SnapshotUtil {
         return metadataSnapshot.getType() != FileType.Missing;
     }
 
-    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
+    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {

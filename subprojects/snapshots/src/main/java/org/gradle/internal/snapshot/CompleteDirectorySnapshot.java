@@ -81,7 +81,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
@@ -98,7 +98,7 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
                 boolean completeChildRemoved = childPathLength == relativePath.length();
                 Optional<FileSystemNode> invalidated = completeChildRemoved
                     ? Optional.empty()
-                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity, new SnapshotHierarchy.DiffListener() {
+                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
                     @Override
                     public void nodeRemoved(FileSystemNode node) {
                         // the parent already has been removed. No children need to be removed.

@@ -42,12 +42,12 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
-        removedSnapshots == [selectedChild]
-        addedSnapshots.empty
+        removedNodes == [selectedChild]
+        addedNodes.empty
         interaction { noMoreInteractions() }
 
         where:
@@ -58,11 +58,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener)
         then:
         !resultRoot.present
-        removedSnapshots == [selectedChild]
-        addedSnapshots.empty
+        removedNodes == [selectedChild]
+        addedNodes.empty
         interaction { noMoreInteractions() }
 
         where:
@@ -74,12 +74,12 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
-        removedSnapshots.empty
-        addedSnapshots.empty
+        removedNodes.empty
+        addedNodes.empty
         interaction {
             invalidateDescendantOfSelectedChild(invalidatedChild)
             noMoreInteractions()
@@ -93,12 +93,12 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
-        removedSnapshots.empty
-        addedSnapshots.empty
+        removedNodes.empty
+        addedNodes.empty
         interaction {
             invalidateDescendantOfSelectedChild(null)
             noMoreInteractions()
@@ -112,11 +112,11 @@ class UnknownSnapshotTest extends AbstractIncompleteSnapshotWithChildrenTest<Unk
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener)
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener)
         then:
         !resultRoot.present
-        removedSnapshots.empty
-        addedSnapshots.empty
+        removedNodes.empty
+        addedNodes.empty
         interaction {
             invalidateDescendantOfSelectedChild(null)
             noMoreInteractions()

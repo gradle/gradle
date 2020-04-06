@@ -46,7 +46,7 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     DirectorySnapshotter directorySnapshotter = new DirectorySnapshotter(TestFiles.fileHasher(), new StringInterner())
 
-    def diffListener = new SnapshotHierarchy.DiffListener() {
+    def diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override
         void nodeRemoved(FileSystemNode node) {
         }

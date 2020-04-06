@@ -29,18 +29,18 @@ abstract class AbstractSnapshotWithChildrenTest<NODE extends FileSystemNode, CHI
     List<CHILD> children
     VfsRelativePath searchedPath
 
-    List<FileSystemNode> removedSnapshots = []
-    List<FileSystemNode> addedSnapshots = []
+    List<FileSystemNode> removedNodes = []
+    List<FileSystemNode> addedNodes = []
 
-    SnapshotHierarchy.DiffListener changeListener = new SnapshotHierarchy.DiffListener() {
+    SnapshotHierarchy.NodeDiffListener diffListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override
         void nodeRemoved(FileSystemNode node) {
-            removedSnapshots.add(node)
+            removedNodes.add(node)
         }
 
         @Override
         void nodeAdded(FileSystemNode node) {
-            addedSnapshots.add(node)
+            addedNodes.add(node)
         }
     }
 

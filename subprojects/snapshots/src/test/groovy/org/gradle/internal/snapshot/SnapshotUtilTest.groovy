@@ -25,7 +25,7 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 @Unroll
 class SnapshotUtilTest extends Specification {
 
-    SnapshotHierarchy.DiffListener changeListener = new SnapshotHierarchy.DiffListener() {
+    SnapshotHierarchy.NodeDiffListener changeListener = new SnapshotHierarchy.NodeDiffListener() {
         @Override
         void nodeRemoved(FileSystemNode node) {
         }

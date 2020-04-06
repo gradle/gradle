@@ -32,7 +32,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
@@ -58,7 +58,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.DiffListener diffListener) {
+    public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {

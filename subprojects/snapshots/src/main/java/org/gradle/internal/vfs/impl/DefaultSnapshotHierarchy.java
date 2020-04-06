@@ -67,13 +67,13 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     }
 
     @Override
-    public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, DiffListener diffListener) {
+    public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return new DefaultSnapshotHierarchy(storeSingleChild(rootNode, relativePath, caseSensitivity, snapshot, diffListener), caseSensitivity);
     }
 
     @Override
-    public SnapshotHierarchy invalidate(String absolutePath, DiffListener diffListener) {
+    public SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener) {
         VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
         return invalidateSingleChild(rootNode, relativePath, caseSensitivity, diffListener)
             .<SnapshotHierarchy>map(newRootNode -> new DefaultSnapshotHierarchy(newRootNode, caseSensitivity))
@@ -106,7 +106,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, DiffListener diffListener) {
+        public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
             // TODO: Remove the duplication here
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
             diffListener.nodeAdded(snapshot.asFileSystemNode(relativePath.getAsString()));
@@ -114,7 +114,7 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
         }
 
         @Override
-        public SnapshotHierarchy invalidate(String absolutePath, DiffListener diffListener) {
+        public SnapshotHierarchy invalidate(String absolutePath, NodeDiffListener diffListener) {
             return this;
         }
 

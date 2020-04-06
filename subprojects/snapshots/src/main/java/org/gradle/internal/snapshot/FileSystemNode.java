@@ -46,12 +46,12 @@ public interface FileSystemNode {
      *
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      */
-    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.DiffListener diffListener);
+    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * Invalidates part of the node.
      */
-    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.DiffListener diffListener);
+    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * The path to the parent snapshot or the root of the file system.

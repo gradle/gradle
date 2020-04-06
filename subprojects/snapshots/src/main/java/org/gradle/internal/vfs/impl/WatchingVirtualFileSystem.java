@@ -117,7 +117,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                                 getRoot().update(root -> {
                                     List<FileSystemNode> removedNodes = new ArrayList<>();
                                     List<FileSystemNode> addedNodes = new ArrayList<>();
-                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, new SnapshotHierarchy.DiffListener() {
+                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, new SnapshotHierarchy.NodeDiffListener() {
                                         @Override
                                         public void nodeRemoved(FileSystemNode node) {
                                             removedNodes.add(node);

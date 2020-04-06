@@ -43,12 +43,12 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
-        removedSnapshots == [selectedChild]
-        addedSnapshots.empty
+        removedNodes == [selectedChild]
+        addedNodes.empty
         interaction { noMoreInteractions() }
 
         where:
@@ -60,12 +60,12 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         isSameNodeType(resultRoot)
-        removedSnapshots.empty
-        addedSnapshots.empty
+        removedNodes.empty
+        addedNodes.empty
 
         interaction {
             invalidateDescendantOfSelectedChild(invalidatedChild)
@@ -80,12 +80,12 @@ class PartialDirectorySnapshotTest extends AbstractIncompleteSnapshotWithChildre
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, changeListener).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.children == childrenWithSelectedChildRemoved()
         isSameNodeType(resultRoot)
-        removedSnapshots.empty
-        addedSnapshots.empty
+        removedNodes.empty
+        addedNodes.empty
         interaction {
             invalidateDescendantOfSelectedChild(null)
             noMoreInteractions()

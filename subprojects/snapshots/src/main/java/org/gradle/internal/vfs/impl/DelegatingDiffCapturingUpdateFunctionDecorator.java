@@ -36,7 +36,7 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
     public SnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
         SnapshotHierarchy.CollectedDiffListener currentListener = collectedDiffListener;
         if (currentListener == null) {
-            return root -> updateFunction.update(root, SnapshotHierarchy.DiffListener.NOOP);
+            return root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);
         }
 
         CollectingDiffListener listener = new CollectingDiffListener(currentListener);
@@ -47,7 +47,7 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
         };
     }
 
-    private static class CollectingDiffListener implements SnapshotHierarchy.DiffListener {
+    private static class CollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
         private final List<FileSystemNode> removedNodes;
         private final List<FileSystemNode> addedNodes;
         private final SnapshotHierarchy.CollectedDiffListener currentListener;
