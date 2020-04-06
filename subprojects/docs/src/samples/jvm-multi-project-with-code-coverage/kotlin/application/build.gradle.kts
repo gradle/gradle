@@ -13,7 +13,3 @@ dependencies {
 application {
     mainClassName = "org.gradle.sample.Main"
 }
-
-tasks.named<Test>("test") {
-    useJUnitPlatform()
-}
