@@ -30,7 +30,7 @@ Directories are common in the case of inter-project dependencies to avoid the co
 == Capability
 
 A capability identifies a feature offered by one or multiple components.
-A capability is identified by coordinates similar to the coordinates used for a <<sub:terminology_module_version,module versions>>.
+A capability is identified by coordinates similar to the coordinates used for <<sub:terminology_module_version,module versions>>.
 By default, each module version offers a capability that matches its coordinates, for example `com.google:guava:18.0`.
 Capabilities can be used to express that a component provides multiple <<sub:terminology_feature_variant,feature variants>> or that two different components implement the same feature (and thus cannot be used together).
 For more details, see the section on <<component_capabilities.adoc#,capabilities>>.

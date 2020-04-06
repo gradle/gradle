@@ -92,7 +92,7 @@ That is, does the rule still produce a correct and useful result if applied in a
 
 == Fixing wrong dependency details ==
 
-Lets consider as an example the publication of the Jaxen XPath Engine on link:https://repo1.maven.org/maven2/jaxen/jaxen[Maven central].
+Let's consider as an example the publication of the Jaxen XPath Engine on link:https://repo1.maven.org/maven2/jaxen/jaxen[Maven central].
 The pom of version 1.1.3 declares a number of dependencies in the compile scope which are not actually needed for compilation.
 These have been removed in the 1.1.4 pom.
 Assuming that we need to work with 1.1.3 for some reason, we can fix the metadata with the following rule:
@@ -146,7 +146,7 @@ Thus, there is no information that these jars exist and if there are any other d
 
 In Gradle Module Metadata, this variant information would be present and for the already published Quasar library, we can add it using the following rule:
 
-.Rule to add Jdk 8 variants to Quasar metadata
+.Rule to add JDK 8 variants to Quasar metadata
 ====
 include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=quasar-rule]"]
 include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=quasar-rule]"]
@@ -184,14 +184,14 @@ However, since both variants are always published together we can assume that th
 And since they are published with Maven repository conventions, we know the location of each file if we know module name and version.
 We can write the following rule:
 
-.Rule to add Jdk 6 and Jdk 8 variants to Guava metadata
+.Rule to add JDK 6 and JDK 8 variants to Guava metadata
 ====
 include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/groovy",files="build.gradle[tags=guava-rule]"]
 include::sample[dir="snippets/userguide/dependencyManagement/customizingResolution/metadataRule/kotlin",files="build.gradle.kts[tags=guava-rule]"]
 ====
 
 Similar to the previous example, we add runtime and compile variants for both Java versions.
-In the `withFile` block however, we now also specify a relative path for the corresponding jar file which allows Gradle to find the file no matter if it has selected a _-jre_ or _-android_ version.
+In the `withFiles` block however, we now also specify a relative path for the corresponding jar file which allows Gradle to find the file no matter if it has selected a _-jre_ or _-android_ version.
 The path is always relative to the location of the metadata (in this case `pom`) file of the selection module version.
 So with this rules, both Guava 28 "versions" carry both the _jdk6_ and _jdk8_ variants.
 So it does not matter to which one Gradle resolves.
@@ -221,7 +221,7 @@ Only this time we have five different runtime variants we add and nothing we nee
 The runtime variants are all based on the existing _runtime_ variant and we do not change any existing information.
 All Java ecosystem attributes, the dependencies and the main jar file stay part of each of the runtime variants.
 We only set the additional attributes `OPERATING_SYSTEM_ATTRIBUTE` and `ARCHITECTURE_ATTRIBUTE` which are defined as part of Gradle's <<building_cpp_projects.adoc#,native support>>.
-And we add the corresponding native jar file so that each runtime variant now carries two files: tha main jar and the native jar.
+And we add the corresponding native jar file so that each runtime variant now carries two files: the main jar and the native jar.
 
 In the build script, we can now request a specific variant and Gradle will fail with a selection error if more information is needed to make a decision.
 
@@ -257,7 +257,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/customizingResoluti
 ====
 
 The new variants also have the dependency on the standardized aop interfaces library `aopalliance:aopalliance` removed, as this is clearly not needed by these variants.
-Again, this is information that can not be expressed in pom metadata.
+Again, this is information that cannot be expressed in pom metadata.
 We can now select a `guice-no_aop` variant and will get the correct jar file *and* the correct dependencies.
 
 .Applying and utilising rule for Guice metadata

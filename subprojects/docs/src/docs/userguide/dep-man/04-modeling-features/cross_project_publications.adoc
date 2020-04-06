@@ -17,12 +17,13 @@ In order to be _safe to share_ between projects and allow maximum performance (p
 ====
 A frequent anti-pattern to declare cross-project dependencies is:
 
-```groovy
+[source,groovy]
+----
 dependencies {
    // this is unsafe!
    implementation project(":other").tasks.someOtherJar
 }
-```
+----
 
 This publication model is _unsafe_ and can lead to non-reproducible and hard to parallelize builds.
 This section explains how to _properly create cross-project boundaries_ by defining "exchanges" between projects by using _variants_.
@@ -63,7 +64,7 @@ Doing so, Gradle can automatically track dependencies of this task and build the
 This is possible because the `Jar` task extends `AbstractArchiveTask`.
 If it's not the case, you will need to explicitly declare how the artifact is generated.
 
-.Expliciting the task dependency of an artifact
+.Explicitly declaring the task dependency of an artifact
 ====
 include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/simple/groovy",files="producer/build.gradle[tags=attach-outgoing-artifact-explicit]"]
 include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/simple/kotlin",files="producer/build.gradle.kts[tags=attach-outgoing-artifact-explicit]"]
@@ -120,14 +121,14 @@ Therefore, we need to understand what our new variant is used for in order to se
 Let's look at the attributes we find on the `runtimeElements` configuration:
 
 .gradle outgoingVariants --variant runtimeElements
-```
+----
 Attributes
     - org.gradle.category            = library
     - org.gradle.dependency.bundling = external
     - org.gradle.jvm.version         = 11
     - org.gradle.libraryelements     = jar
     - org.gradle.usage               = java-runtime
-```
+----
 
 What it tells us is that the Java Library plugin produces variants with 5 attributes:
 
@@ -223,7 +224,7 @@ So, **avoid publishing custom variants** if they are for internal use only.
 [[targeting-different-platforms]]
 == Targeting different platforms
 
-It common for a library to target different platforms.
+It is common for a library to target different platforms.
 In the Java ecosystem, we often see different artifacts for the same library, distinguished by a different _classifier_.
 A typical example is Guava, which is published as this:
 

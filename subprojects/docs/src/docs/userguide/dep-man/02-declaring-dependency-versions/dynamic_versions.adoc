@@ -125,7 +125,7 @@ This is done by comparing published SHA1 values in the repository with the SHA1 
 
 [NOTE]
 ====
-Refreshing dependencies will cause Gradle to invalidate it's listing caches.
+Refreshing dependencies will cause Gradle to invalidate its listing caches.
 However:
 
 - it will perform HTTP HEAD requests on metadata files but _will not re-download them_ if they are identical
