@@ -23,7 +23,7 @@ Applying the Application plugin also implicitly applies the <<distribution_plugi
 
 
 [[sec:application_usage]]
-== Usage
+== Building JVM applications
 
 To use the application plugin, include the following in your build script:
 
@@ -61,8 +61,11 @@ include::sample[dir="snippets/application/groovy",files="build.gradle[tags=execu
 include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=executableDir-conf]"]
 ====
 
+[[sec:application_modular]]
+== Building applications using the Java Module System
+
 [[sec:the_distribution]]
-=== The distribution
+== Building a distribution
 
 A distribution of the application can be created, by way of the <<distribution_plugin.adoc#distribution_plugin,Distribution plugin>> (which is automatically applied). A `main` distribution is created with the following content:
 

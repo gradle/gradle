@@ -238,6 +238,9 @@ The role of each configuration is described in the following tables:
 | This configuration contains the test runtime classpath of this library
 |===
 
+[[sec:java_library_modular]]
+== Building Modules for the Java Module System
+
 [[sec:java_library_classes_usage]]
 == Using classes instead of jar for compilation
 

@@ -147,6 +147,23 @@ samples {
             target = "utilities"
         }
 
+        javaModuleInfoForListLibrary {
+            target = "list"
+        }
+        javaModuleInfoForUtilitiesLibrary {
+            target = "utilities"
+        }
+        javaModuleInfoForApplication {
+            target = "application"
+        }
+        javaJunit5ModuleInfoForUtilitiesLibrary {
+            target = "utilities"
+        }
+        javaJunit5ModuleInfoForApplication {
+            target = "application"
+        }
+
+
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
@@ -256,6 +273,43 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
                 from(templates.javaJunit5TestForApplication)
                 from(templates.javaJunit5TestForListLibrary)
+            }
+        }
+        javaModulesMultiProject {
+            sampleDirectory = samplesRoot.dir("java/modules-multi-project")
+            displayName = "Java Modules"
+            description = "Build Java Modules and a Modular Java Application."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaModuleInfoForListLibrary)
+                from(templates.javaModuleInfoForUtilitiesLibrary)
+                from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+            }
+        }
+        javaModulesMultiProjectWithIntegrationTests {
+            sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
+            displayName = "Java Modules with Blackbox Tests"
+            description = "Build Java Modules with blackbox integration tests."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaModuleInfoForListLibrary)
+                from(templates.javaModuleInfoForUtilitiesLibrary)
+                from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+
+                from(templates.javaJunit5IntegrationTestForApplication)
+                from(templates.javaJunit5ModuleInfoForApplication)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+                from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
             }
         }
         javaLibraryPublishing {
