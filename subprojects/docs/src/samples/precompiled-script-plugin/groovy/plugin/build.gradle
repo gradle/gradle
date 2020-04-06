@@ -2,5 +2,5 @@ plugins {
     id 'groovy-gradle-plugin'
 }
 
-group = "org.gradle.sample"
-version = "1.0"
+group = 'com.example'
+version = '1.0'

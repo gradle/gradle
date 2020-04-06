@@ -1,3 +1,3 @@
 plugins {
-    id("org.gradle.sample.my-plugin")
+    id("com.exampleª.my-plugin")
 }
