@@ -32,8 +32,19 @@ public class ProviderTestUtil {
         return new TestProvider<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
     }
 
+    public static <T> ProviderInternal<T> withChangingExecutionTimeValues(T... values) {
+        assert values.length > 0;
+        return new TestProviderWithChangingValue<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
+    }
+
     public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer, T... values) {
-        return new TestProvider<>(type, Arrays.asList(values), producer);
+        Class<T> valueType = values.length == 0 ? type : (Class<T>) values[0].getClass();
+        return new TestProvider<>(valueType, Arrays.asList(values), producer);
+    }
+
+    public static <T> ProviderInternal<T> withProducerAndChangingExecutionTimeValue(Class<T> type, Task producer, T... values) {
+        Class<T> valueType = values.length == 0 ? type : (Class<T>) values[0].getClass();
+        return new TestProviderWithChangingValue<>(valueType, Arrays.asList(values), producer);
     }
 
     private static class TestProvider<T> extends AbstractMinimalProvider<T> {
@@ -79,6 +90,17 @@ public class ProviderTestUtil {
         @Override
         protected Value<? extends T> calculateOwnValue() {
             return values.hasNext() ? Value.of(values.next()) : Value.missing();
+        }
+    }
+
+    private static class TestProviderWithChangingValue<T> extends TestProvider<T> {
+        public TestProviderWithChangingValue(Class<T> type, List<T> values, Task producer) {
+            super(type, values, producer);
+        }
+
+        @Override
+        public ExecutionTimeValue<T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.changingValue(this);
         }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.api.Task
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
@@ -492,6 +493,123 @@ The value of this property is derived from: <source>""")
         then:
         def ex = thrown NullPointerException
         ex.message == "Cannot add an entry with a null value to a property of type ${type().simpleName}."
+    }
+
+    def "has no producer and fixed execution time value by default"() {
+        expect:
+        assertHasKnownProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue.isEmpty()
+    }
+
+    def "has no producer and missing execution time value when element provider with no value added"() {
+        given:
+        property.putAll([a: '1', b: '2'])
+        property.put('k', supplierWithNoValue(String, displayName('thing')))
+        property.put('c', '3')
+        property.putAll(supplierWithValues([d: '4']))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer and missing execution time value when selement provider with no value added"() {
+        given:
+        property.putAll([a: '1', b: '2'])
+        property.put('k', supplierWithValues('3'))
+        property.put('c', '3')
+        property.putAll(supplierWithNoValue())
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer and fixed execution time value when element added"() {
+        given:
+        property.put('a', '1')
+        property.put('b', '2')
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and fixed execution time value when elements added"() {
+        given:
+        property.putAll(a: '1')
+        property.putAll(b: '2')
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and fixed execution time value when element provider added"() {
+        given:
+        property.put('a', supplierWithValues('1'))
+        property.put('b', supplierWithValues('2'))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and fixed execution time value when elements provider added"() {
+        given:
+        property.putAll(supplierWithValues(a: '1'))
+        property.putAll(supplierWithValues(b: '2'))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and changing execution time value when elements provider with changing value added"() {
+        given:
+        property.putAll(supplierWithChangingExecutionTimeValues([a: '1', b: '2'], [a: '1b']))
+        property.putAll(supplierWithValues([c: '3']))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.changingValue.get() == [a: '1', b: '2', c: '3']
+        value.changingValue.get() == [a: '1b', c: '3']
+    }
+
+    def "has union of producer task from providers unless producer task attached"() {
+        given:
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+        def producer = Stub(Task)
+        property.set(supplierWithProducer(task1))
+        property.putAll(supplierWithProducer(task2))
+        property.put('a', supplierWithProducer(task3, '1'))
+
+        expect:
+        assertHasProducer(property, task1, task2, task3)
+
+        property.attachProducer(owner(producer))
+        assertHasProducer(property, producer)
     }
 
     def "cannot set to empty map after value finalized"() {
