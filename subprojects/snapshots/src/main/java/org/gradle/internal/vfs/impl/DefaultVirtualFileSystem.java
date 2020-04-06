@@ -46,12 +46,12 @@ import java.util.function.Supplier;
 public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     private final SnapshotHierarchyReference root;
     private final Stat stat;
-    private final ChangeListenerFactory delegatingListener;
+    private final SnapshotHierarchy.ChangeListenerFactory delegatingListener;
     private final DirectorySnapshotter directorySnapshotter;
     private final FileHasher hasher;
     private final StripedProducerGuard<String> producingSnapshots = new StripedProducerGuard<>();
 
-    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, ChangeListenerFactory changeListenerFactory, String... defaultExcludes) {
+    public DefaultVirtualFileSystem(FileHasher hasher, Interner<String> stringInterner, Stat stat, CaseSensitivity caseSensitivity, SnapshotHierarchy.ChangeListenerFactory changeListenerFactory, String... defaultExcludes) {
         this.stat = stat;
         this.delegatingListener = changeListenerFactory;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
@@ -152,7 +152,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     private void updateRoot(UpdateFunction updateFunction) {
-        DelegatingChangeListenerFactory.LifecycleAwareChangeListener changeListener = delegatingListener.newChangeListener();
+        SnapshotHierarchy.LifecycleAwareChangeListener changeListener = delegatingListener.newChangeListener();
         root.update(current -> updateFunction.update(current, changeListener), changeListener);
     }
 

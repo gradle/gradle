@@ -82,4 +82,29 @@ public interface SnapshotHierarchy {
         void nodeRemoved(FileSystemNode node);
         void nodeAdded(FileSystemNode node);
     }
+
+    interface ChangeListenerFactory {
+        ChangeListenerFactory NOOP = () -> LifecycleAwareChangeListener.NOOP;
+
+        LifecycleAwareChangeListener newChangeListener();
+    }
+
+    interface LifecycleAwareChangeListener extends ChangeListener {
+        LifecycleAwareChangeListener NOOP = new LifecycleAwareChangeListener() {
+
+            @Override
+            public void nodeRemoved(FileSystemNode node) {
+            }
+
+            @Override
+            public void nodeAdded(FileSystemNode node) {
+            }
+
+            @Override
+            public void finish() {
+            }
+        };
+
+        void finish();
+    }
 }

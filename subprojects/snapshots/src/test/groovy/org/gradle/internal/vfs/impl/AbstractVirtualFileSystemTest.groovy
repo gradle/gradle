@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.internal.vfs.SnapshotHierarchy
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -46,7 +47,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
 
     def fileHasher = new AllowingHasher(TestFiles.fileHasher())
     def stat = new AllowingStat(TestFiles.fileSystem())
-    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, CASE_SENSITIVE, ChangeListenerFactory.NOOP)
+    def vfs = new DefaultVirtualFileSystem(fileHasher, new StringInterner(), stat, CASE_SENSITIVE, SnapshotHierarchy.ChangeListenerFactory.NOOP)
 
     void allowFileSystemAccess(boolean allow) {
         fileHasher.allowHashing(allow)

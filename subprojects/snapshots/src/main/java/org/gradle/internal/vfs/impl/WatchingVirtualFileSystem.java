@@ -114,15 +114,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                             LOGGER.debug("Handling VFS change {} {}", type, path);
                             String absolutePath = path.toString();
                             if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
-                                ChangeListenerFactory.LifecycleAwareChangeListener changeListener = new ChangeListenerFactory.LifecycleAwareChangeListener() {
+                                SnapshotHierarchy.LifecycleAwareChangeListener changeListener = new SnapshotHierarchy.LifecycleAwareChangeListener() {
                                     private final List<FileSystemNode> removedNodes = new ArrayList<>();
                                     private final List<FileSystemNode> addedNodes = new ArrayList<>();
-
-                                    @Override
-                                    public void start() {
-                                        removedNodes.clear();
-                                        addedNodes.clear();
-                                    }
 
                                     @Override
                                     public void finish() {
@@ -267,12 +261,12 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 fileWatcherRegistry.close();
             } catch (IOException ex) {
                 LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
-                getRoot().update(SnapshotHierarchy::empty, ChangeListenerFactory.LifecycleAwareChangeListener.NOOP);
+                getRoot().update(SnapshotHierarchy::empty, SnapshotHierarchy.LifecycleAwareChangeListener.NOOP);
             } finally {
                 fileEvents.clear();
             }
         });
-        getRoot().update(SnapshotHierarchy::empty, ChangeListenerFactory.LifecycleAwareChangeListener.NOOP);
+        getRoot().update(SnapshotHierarchy::empty, SnapshotHierarchy.LifecycleAwareChangeListener.NOOP);
     }
 
     private void handleWatcherRegistryEvents(String eventsFor) {

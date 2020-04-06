@@ -17,13 +17,14 @@
 package org.gradle.internal.vfs.impl;
 
 import org.gradle.internal.snapshot.FileSystemNode;
+import org.gradle.internal.vfs.SnapshotHierarchy;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
 import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class DelegatingChangeListenerFactory implements ChangeListenerFactory {
+public class DelegatingChangeListenerFactory implements SnapshotHierarchy.ChangeListenerFactory {
 
     private VirtualFileSystem.VirtualFileSystemChangeListener vfsChangeListener;
 
@@ -31,16 +32,16 @@ public class DelegatingChangeListenerFactory implements ChangeListenerFactory {
         this.vfsChangeListener = vfsChangeListener;
     }
 
-    public LifecycleAwareChangeListener newChangeListener() {
+    public SnapshotHierarchy.LifecycleAwareChangeListener newChangeListener() {
         VirtualFileSystem.VirtualFileSystemChangeListener currentListener = vfsChangeListener;
         if (currentListener == null) {
-            return LifecycleAwareChangeListener.NOOP;
+            return SnapshotHierarchy.LifecycleAwareChangeListener.NOOP;
         }
 
         return new DefaultLifecycleAwareChangeListener(currentListener);
     }
 
-    private static class DefaultLifecycleAwareChangeListener implements LifecycleAwareChangeListener {
+    private static class DefaultLifecycleAwareChangeListener implements SnapshotHierarchy.LifecycleAwareChangeListener {
         private final List<FileSystemNode> removedNodes;
         private final List<FileSystemNode> addedNodes;
         private final VirtualFileSystem.VirtualFileSystemChangeListener currentListener;
@@ -49,12 +50,6 @@ public class DelegatingChangeListenerFactory implements ChangeListenerFactory {
             this.currentListener = currentListener;
             removedNodes = new ArrayList<>();
             addedNodes = new ArrayList<>();
-        }
-
-        @Override
-        public void start() {
-            removedNodes.clear();
-            addedNodes.clear();
         }
 
         @Override
