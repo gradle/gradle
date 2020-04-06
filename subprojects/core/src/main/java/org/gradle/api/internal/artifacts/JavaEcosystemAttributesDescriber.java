@@ -99,7 +99,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
     }
 
     @Nullable
-    private static <T> T attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
+    private static <T> Object attr(Map<Attribute<?>, ?> attributes, Attribute<T> attribute) {
         return Cast.uncheckedCast(attributes.get(attribute));
     }
 

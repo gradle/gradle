@@ -92,7 +92,7 @@ public class StyledException extends GradleException {
         output.text(buf.toString());
     }
 
-    public StyledTextOutput.Style toStyle(String styleText) {
+    private static StyledTextOutput.Style toStyle(String styleText) {
         try {
             return StyledTextOutput.Style.valueOf(StringUtils.capitalize(styleText));
         } catch (IllegalArgumentException e) {
