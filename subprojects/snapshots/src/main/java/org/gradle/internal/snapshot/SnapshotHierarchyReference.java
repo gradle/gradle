@@ -33,14 +33,12 @@ public class SnapshotHierarchyReference {
         return root;
     }
 
-    public void update(UnaryOperator<SnapshotHierarchy> updateFunction, SnapshotHierarchy.LifecycleAwareChangeListener changeListener) {
+    public void update(UnaryOperator<SnapshotHierarchy> updateFunction) {
         updateLock.lock();
         try {
-            changeListener.start();
             // Store the current root in a local variable to make the call atomic
             SnapshotHierarchy currentRoot = this.root;
             this.root = updateFunction.apply(currentRoot);
-            changeListener.finish();
         } finally {
             updateLock.unlock();
         }

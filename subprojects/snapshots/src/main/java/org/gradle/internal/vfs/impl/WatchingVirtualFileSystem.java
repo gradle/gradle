@@ -135,7 +135,11 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                                         addedNodes.add(node);
                                     }
                                 };
-                                getRoot().update(root -> root.invalidate(absolutePath, changeListener), changeListener);
+                                getRoot().update(root -> {
+                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, changeListener);
+                                    changeListener.finish();
+                                    return newRoot;
+                                });
                             }
                         }
                     } catch (Exception e) {
@@ -261,12 +265,12 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 fileWatcherRegistry.close();
             } catch (IOException ex) {
                 LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);
-                getRoot().update(SnapshotHierarchy::empty, SnapshotHierarchy.LifecycleAwareChangeListener.NOOP);
+                getRoot().update(SnapshotHierarchy::empty);
             } finally {
                 fileEvents.clear();
             }
         });
-        getRoot().update(SnapshotHierarchy::empty, SnapshotHierarchy.LifecycleAwareChangeListener.NOOP);
+        getRoot().update(SnapshotHierarchy::empty);
     }
 
     private void handleWatcherRegistryEvents(String eventsFor) {
