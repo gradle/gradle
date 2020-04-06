@@ -1542,7 +1542,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskRegistration(String taskName, String taskType) {
-            return "task " + taskName + "(type: " + taskType + ")";
+            return "tasks.register('" + taskName + "', " + taskType + ")";
         }
 
         @Override
