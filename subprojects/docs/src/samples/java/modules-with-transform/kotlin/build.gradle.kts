@@ -2,6 +2,7 @@ plugins {
     `extra-java-module-info` // apply my own plugin written in buildSrc
 }
 
+// tag::extraModuleInfo[]
 extraJavaModuleInfo {
     // This does not have to be a compete description (e.g. here 'org.apache.commons.collections' does not export anything here).
     // It only needs to be good enough to work in the context of this application we are building.
@@ -14,13 +15,14 @@ extraJavaModuleInfo {
     addModuleInfo("commons-collections-3.2.2.jar", "org.apache.commons.collections", "3.2.2", emptyList(), emptyList(), emptyList())
     addAutomatic("commons-logging-1.2.jar", "org.apache.commons.logging")
 }
+// end::extraModuleInfo[]
 
 subprojects {
     version = "1.0.2"
     group = "org.gradle.sample"
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     plugins.withType<JavaPlugin>().configureEach {
