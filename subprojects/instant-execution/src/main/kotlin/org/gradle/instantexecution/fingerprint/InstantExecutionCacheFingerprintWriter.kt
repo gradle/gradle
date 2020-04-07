@@ -22,7 +22,6 @@ import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.api.internal.provider.sources.FileContentValueSource
 import org.gradle.api.provider.ValueSourceParameters
-import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.DefaultSettingsLoader.BUILD_SRC_PROJECT_PATH
 import org.gradle.instantexecution.extensions.uncheckedCast
@@ -81,7 +80,7 @@ class InstantExecutionCacheFingerprintWriter(
         }
     }
 
-    override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<out Script>) {
+    override fun onScriptClassLoaded(source: ScriptSource, scriptClass: Class<*>) {
         source.resource.file?.let {
             captureFile(it)
         }

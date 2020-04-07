@@ -15,9 +15,8 @@
  */
 package org.gradle.internal.scripts;
 
-import org.gradle.groovy.scripts.Script;
 import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptExecutionListener {
-    void onScriptClassLoaded(ScriptSource source, Class<? extends Script> scriptClass);
+    void onScriptClassLoaded(ScriptSource source, Class<?> scriptClass);
 }
