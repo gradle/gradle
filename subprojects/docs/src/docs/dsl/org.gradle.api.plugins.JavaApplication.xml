@@ -12,7 +12,11 @@
                 <td><literal>project.name</literal></td>
             </tr>
             <tr>
-                <td>mainClassName</td>
+                <td>mainModule</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>mainClass</td>
                 <td><literal>null</literal></td>
             </tr>
             <tr>
