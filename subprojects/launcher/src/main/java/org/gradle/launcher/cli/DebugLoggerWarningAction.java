@@ -29,7 +29,6 @@ import java.util.Objects;
 
 final class DebugLoggerWarningAction implements Action<ExecutionListener> {
 
-    static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry();
     static final String WARNING_MESSAGE_BODY;
 
     static {
@@ -41,9 +40,9 @@ final class DebugLoggerWarningAction implements Action<ExecutionListener> {
         sb.append('\n');
         sb.append("   Debug level logging will leak security sensitive information!\n");
         sb.append('\n');
-        sb.append("   %s\n");
+        sb.append("   ").append(new DocumentationRegistry().getDocumentationFor("logging", "debug_security")).append('\n');
         sb.append("#############################################################################\n");
-        WARNING_MESSAGE_BODY = String.format(sb.toString(), DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "debug_security"));
+        WARNING_MESSAGE_BODY = sb.toString();
     }
 
 
