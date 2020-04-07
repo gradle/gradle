@@ -21,7 +21,7 @@ import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.provider.Property;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 
 /**
  * Common configuration for Java based projects. This is added by the {@link JavaBasePlugin}.
@@ -129,5 +129,5 @@ public interface JavaPluginExtension {
      * @since 6.4
      */
     @Incubating
-    ModularClasspathHandling getModularClasspathHandling();
+    ModularitySpec getModularity();
 }

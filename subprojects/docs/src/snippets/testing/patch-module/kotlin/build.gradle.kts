@@ -5,7 +5,7 @@ repositories {
     mavenCentral()
 }
 java {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 
 // tag::patchArgs[]

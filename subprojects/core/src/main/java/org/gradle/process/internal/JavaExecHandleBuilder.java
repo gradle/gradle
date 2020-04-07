@@ -21,14 +21,14 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.jpms.DefaultModularClasspathHandling;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.process.CommandLineArgumentProvider;
 import org.gradle.process.JavaDebugOptions;
 import org.gradle.process.JavaExecSpec;
@@ -68,7 +68,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     private ConfigurableFileCollection classpath;
     private final JavaForkOptions javaOptions;
     private final List<CommandLineArgumentProvider> argumentProviders = new ArrayList<>();
-    private final ModularClasspathHandling modularClasspathHandling;
+    private final ModularitySpec modularity;
 
     public JavaExecHandleBuilder(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, ObjectFactory objectFactory, Executor executor, BuildCancellationToken buildCancellationToken, @Nullable JavaModuleDetector javaModuleDetector, JavaForkOptions javaOptions) {
         super(fileResolver, executor, buildCancellationToken);
@@ -78,7 +78,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         this.mainModule = objectFactory.property(String.class);
         this.mainClass = objectFactory.property(String.class);
         this.javaOptions = javaOptions;
-        this.modularClasspathHandling = new DefaultModularClasspathHandling(objectFactory);
+        this.modularity = new DefaultModularitySpec(objectFactory);
         executable(javaOptions.getExecutable());
     }
 
@@ -93,7 +93,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     private List<String> getAllJvmArgs(FileCollection realClasspath) {
         List<String> allArgs = new ArrayList<>(javaOptions.getAllJvmArgs());
-        boolean runAsModule = modularClasspathHandling.getInferModulePath().get() && mainModule.isPresent();
+        boolean runAsModule = modularity.getInferModulePath().get() && mainModule.isPresent();
 
         if (runAsModule) {
             addModularJavaRunArgs(realClasspath, allArgs);
@@ -125,8 +125,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         if (javaModuleDetector == null) {
             throw new IllegalStateException("Running a Java module is not supported in this context.");
         }
-        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularClasspathHandling.getInferModulePath().get(), classpath);
-        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularClasspathHandling.getInferModulePath().get(), classpath);
+        FileCollection rtModulePath = javaModuleDetector.inferModulePath(modularity.getInferModulePath().get(), classpath);
+        FileCollection rtClasspath = javaModuleDetector.inferClasspath(modularity.getInferModulePath().get(), classpath);
 
         if (rtClasspath != null && !rtClasspath.isEmpty()) {
             allArgs.add("-cp");
@@ -350,8 +350,8 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     @Override
-    public ModularClasspathHandling getModularClasspathHandling() {
-        return modularClasspathHandling;
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     @Override

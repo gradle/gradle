@@ -18,6 +18,6 @@
  * Interfaces for configuring the Java Platform Module System (JPMS).
  */
 @NonNullApi
-package org.gradle.api.jpms;
+package org.gradle.api.jvm;
 
 import org.gradle.api.NonNullApi;

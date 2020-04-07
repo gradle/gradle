@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jpms
+package org.gradle.internal.jvm
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.AbstractFileCollection

@@ -57,7 +57,7 @@ class EclipseJavaModulesIntegrationTest extends AbstractEclipseIntegrationSpec {
                 maven { url "${mavenRepo.uri}" }
             }
             $configLocation {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
             }
 
             dependencies {

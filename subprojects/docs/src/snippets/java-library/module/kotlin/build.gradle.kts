@@ -17,7 +17,7 @@ tasks.compileJava {
 
 // tag::inferModulePath[]
 java {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 // end::inferModulePath[]
 
