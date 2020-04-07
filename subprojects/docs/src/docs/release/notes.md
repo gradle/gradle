@@ -17,6 +17,7 @@ Include only their name, impactful features should be called out separately belo
 [Sebastian Schuberth](https://github.com/sschuberth),
 [Ismael Juma](https://github.com/ijuma),
 [Steve Vermeulen](https://github.com/svermeulen),
+[Victor Turansky](https://github.com/turansky),
 and [Lars Kaulen](https://github.com/LarsKaulen).
 
 ## Upgrade instructions
