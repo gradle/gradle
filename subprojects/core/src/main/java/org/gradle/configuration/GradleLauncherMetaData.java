@@ -21,7 +21,6 @@ import org.gradle.internal.UncheckedException;
 import java.io.IOException;
 
 public class GradleLauncherMetaData implements BuildClientMetaData {
-
     private final String appName;
 
     public GradleLauncherMetaData() {

@@ -69,17 +69,7 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
         }
     }
 
-    /**
-     * Disconnects all ProjectConnection instances created by this connector.
-     * <p>
-     * Calling this method cancels all running build operations and sends a 'stop when idle message' to all Gradle daemons.
-     * This method does not block.
-     * <p>
-     * After calling {@code disconnect}, creating new project connections will be rejected and the existing ones
-     * created by this instance will also deny future build operations.\
-     *
-     * TODO (donat) add this method up to the interface.
-     */
+    @Override
     public void disconnect() {
         synchronized (connections) {
             stopped = true;
