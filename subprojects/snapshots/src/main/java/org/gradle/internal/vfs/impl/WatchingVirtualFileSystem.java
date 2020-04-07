@@ -89,7 +89,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
 
-        // stop thread
         Thread eventConsumer = new Thread(() -> {
             try {
                 while (consumeEvents) {
