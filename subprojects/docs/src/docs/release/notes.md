@@ -449,16 +449,15 @@ As of Gradle 6.4, PMD also enabled [incremental analysis](dsl/org.gradle.api.plu
 
 ## Security Improvements
 
-During our investigation of a recent security vulnerability in the [Plugin Portal Publish Plugin](https://blog.gradle.org/plugin-portal-update) we became aware of how much potentially sensitive information is logged when Gradle is executed at `--debug` level.
-This information can be publicly exposed when Gradle builds are executed on public CI like Travis CI, CircleCI, & GitHub Actions where build logs are publicly visible.
-This information may include sensitive credentials and authentication tokens.
-Much of this sensitive information logging occurs deep in components of the JVM and other libraries outside the control of Gradle.
-While debugging, this information may be inherently useful for build maintainers.
+During our investigation into a recent security vulnerability on the [Plugin Portal](https://blog.gradle.org/plugin-portal-update), we became aware of how much potentially sensitive information 
+is logged when Gradle is executed with `--debug`/`-d`, such as sensitive credentials, authentication tokens or internal repository URLs. 
+This information can be exposed when Gradle builds are executed on public Continuous Integration services where build logs are world-readable. 
 
-To strike a balance between the security risks of logging sensitive information and the needs of build maintainers who may find this information useful,
-this version of Gradle now warns users about the risks of using `--debug` at the beginning and end of the log on every build.
+Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle. While debugging, this information may also be inherently useful.
 
-We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at `--debug` level and no higher.
+To strike a balance between the security risks and the needs of people who may find this information useful, Gradle now warns users about the risks of using `DEBUG` level logging.
+
+We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at the `DEBUG` log level.
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
