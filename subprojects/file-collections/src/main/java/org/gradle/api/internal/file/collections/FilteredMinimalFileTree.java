@@ -63,6 +63,11 @@ public class FilteredMinimalFileTree implements MinimalFileTree, FileSystemMirro
     public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
         tree.visitStructure(new FileCollectionStructureVisitor() {
             @Override
+            public boolean startVisit(FileCollectionInternal.Source source, FileCollectionInternal fileCollection) {
+                throw new IllegalStateException();
+            }
+
+            @Override
             public VisitType prepareForVisit(FileCollectionInternal.Source source) {
                 return visitor.prepareForVisit(source);
             }

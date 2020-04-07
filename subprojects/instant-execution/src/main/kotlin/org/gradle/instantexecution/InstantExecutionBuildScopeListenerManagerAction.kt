@@ -16,16 +16,24 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.instantexecution.initialization.InstantExecutionProblemsListener
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.scopes.BuildScopeListenerManagerAction
 
 
 internal
 class InstantExecutionBuildScopeListenerManagerAction(
-    private val listener: InstantExecutionClassLoaderScopeRegistryListener
+
+    private
+    val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
+
+    private
+    val problemsListener: InstantExecutionProblemsListener
+
 ) : BuildScopeListenerManagerAction {
 
     override fun execute(manager: ListenerManager) {
-        listener.attach(manager)
+        scopeRegistryListener.attach(manager)
+        manager.addListener(problemsListener)
     }
 }

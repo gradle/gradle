@@ -26,22 +26,21 @@ import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.Category;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
-import org.gradle.api.attributes.java.TargetJvmVersion;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.AdhocComponentWithVariants;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
-import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.plugins.PluginManager;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.component.external.model.ImmutableCapability;
 import org.gradle.util.TextUtil;
 
@@ -60,9 +59,9 @@ import static org.gradle.api.plugins.internal.JvmPluginsHelper.findJavaComponent
 public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     private final String name;
     private final JavaPluginConvention javaPluginConvention;
+    private final JavaPluginExtension javaPluginExtension;
     private final ConfigurationContainer configurationContainer;
     private final ObjectFactory objectFactory;
-    private final PluginManager pluginManager;
     private final SoftwareComponentContainer components;
     private final TaskContainer tasks;
     private final List<Capability> capabilities = Lists.newArrayListWithExpectedSize(2);
@@ -75,16 +74,16 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
     public DefaultJavaFeatureSpec(String name,
                                   Capability defaultCapability,
                                   JavaPluginConvention javaPluginConvention,
+                                  JavaPluginExtension javaPluginExtension,
                                   ConfigurationContainer configurationContainer,
                                   ObjectFactory objectFactory,
-                                  PluginManager pluginManager,
                                   SoftwareComponentContainer components,
                                   TaskContainer tasks) {
         this.name = name;
         this.javaPluginConvention = javaPluginConvention;
+        this.javaPluginExtension = javaPluginExtension;
         this.configurationContainer = configurationContainer;
         this.objectFactory = objectFactory;
-        this.pluginManager = pluginManager;
         this.components = components;
         this.tasks = tasks;
         this.capabilities.add(defaultCapability);
@@ -152,15 +151,15 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         configureUsage(runtimeElements, Usage.JAVA_RUNTIME);
         configurePacking(apiElements);
         configurePacking(runtimeElements);
-        configureTargetPlatform(apiElements);
-        configureTargetPlatform(runtimeElements);
+        configureTargetPlatform(apiElements, sourceSet);
+        configureTargetPlatform(runtimeElements, sourceSet);
         configureCategory(apiElements);
         configureCategory(runtimeElements);
         configureCapabilities(apiElements);
         configureCapabilities(runtimeElements);
         attachArtifactToConfiguration(apiElements);
         attachArtifactToConfiguration(runtimeElements);
-        configureJavaDocTask(name, sourceSet, tasks);
+        configureJavaDocTask(name, sourceSet, tasks, javaPluginExtension);
         if (withJavadocJar) {
             configureDocumentationVariantWithArtifact(sourceSet.getJavadocElementsConfigurationName(), name, JAVADOC, capabilities, sourceSet.getJavadocJarTaskName(), tasks.named(sourceSet.getJavadocTaskName()), component, configurationContainer, tasks, objectFactory);
         }
@@ -184,18 +183,9 @@ public class DefaultJavaFeatureSpec implements FeatureSpecInternal {
         }
     }
 
-    private void configureTargetPlatform(Configuration configuration) {
-        ((ConfigurationInternal)configuration).beforeLocking(new Action<ConfigurationInternal>() {
-            @Override
-            public void execute(ConfigurationInternal configuration) {
-                String majorVersion = javaPluginConvention.getTargetCompatibility().getMajorVersion();
-                AttributeContainerInternal attributes = configuration.getAttributes();
-                // If nobody said anything about this variant's target platform, use whatever the convention says
-                if (!attributes.contains(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE)) {
-                    attributes.attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, Integer.valueOf(majorVersion));
-                }
-            }
-        });
+    private void configureTargetPlatform(Configuration configuration, SourceSet sourceSet) {
+        ((ConfigurationInternal) configuration).beforeLocking(
+            JvmPluginsHelper.configureDefaultTargetPlatform(javaPluginConvention, true, tasks.named(sourceSet.getCompileJavaTaskName(), JavaCompile.class)));
     }
 
     private void configurePacking(Configuration configuration) {

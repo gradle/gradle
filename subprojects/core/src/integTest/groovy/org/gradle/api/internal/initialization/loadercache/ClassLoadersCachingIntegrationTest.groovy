@@ -132,7 +132,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         isCached(":foo")
     }
 
-    @ToBeFixedForInstantExecution
     def "uses cached subproject classloader when parent changes"() {
         settingsFile << "include 'foo'"
         addIsCachedCheck()

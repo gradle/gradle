@@ -38,7 +38,49 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
-There were no breaking changes between Gradle 6.3 and 6.4.
+==== PMD plugin requires PMD 6.0.0 or higher by default
+
+Gradle 6.4 enabled incremental analysis by default.
+Incremental analysis is only available in PMD 6.0.0 or higher.
+If you want to use an older PMD version, you need to disable incremental analysis:
+
+```
+pmd {
+    incrementalAnalysis = false
+}
+```
+
+==== Changes in dependency locking
+
+With Gradle 6.4, the incubating API for <<dependency_locking#fine_tuning_dependency_locking_behaviour_with_lock_mode, dependency locking `LockMode`>> has changed.
+The value is now set via a `Property<LockMode>` instead of a direct setter.
+This means that the notation to set the value has to be updated for the Kotlin DSL:
+
+```
+dependencyLocking {
+    lockMode.set(LockMode.STRICT)
+}
+```
+
+Users of the Groovy DSL should not be impacted as the notation `lockMode = LockMode.STRICT` remains valid.
+
+==== Java versions in published metadata
+
+If a Java library is published with Gradle Module Metadata, the information which Java version it supports is encoded in the `org.gradle.jvm.version` attribute.
+By default, this attribute was set to what you configured in `java.targetCompatibility`.
+If that was not configured, it was set to the current Java version running Gradle.
+Changing the version of a particular compile task, e.g. `javaCompile.targetCompatibility` had no effect on that attribute, leading to wrong information if the attribute was not adjusted manually.
+This is now fixed and the attribute defaults to the setting of the compile task that is associated with the sources from which the published jar is built.
+In addition, there is a new `release` property (`java.release.set(...)` or `javaCompile.release.set(...)`) which can be used for Java versions 9+ and takes precedence over the `targetCompatibility` setting.
+
+==== Ivy repositories with custom layouts
+
+Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
+Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.71[Kotlin 1.3.71].
 
 === Deprecations
 

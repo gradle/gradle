@@ -92,8 +92,8 @@ class DefaultPropertyTest extends PropertySpec<String> {
         }))
 
         expect:
-        propertyWithBadValue.toString() == "property(class java.lang.String, map(provider(?)))"
-        providerWithNoValue().toString() == "property(class java.lang.String, undefined)"
+        propertyWithBadValue.toString() == "property(java.lang.String, map(java.lang.String provider(?) check-type()))"
+        providerWithNoValue().toString() == "property(java.lang.String, undefined)"
     }
 
     def "can set to null value to discard value"() {

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.Buildable
 import org.gradle.api.Task
 import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.typeconversion.UnsupportedNotationException
@@ -153,7 +154,7 @@ class DefaultTaskDependencyTest extends Specification {
         def provider = Mock(ProviderInternal)
 
         given:
-        1 * provider.maybeVisitBuildDependencies(_) >> { TaskDependencyResolveContext context -> context.add(otherTask); return true }
+        1 * provider.producer >> ValueSupplier.ValueProducer.task(otherTask)
 
         when:
         dependency.add(provider)
@@ -166,7 +167,7 @@ class DefaultTaskDependencyTest extends Specification {
         def provider = Mock(ProviderInternal)
 
         given:
-        1 * provider.maybeVisitBuildDependencies(_) >> { return false }
+        1 * provider.producer >> ValueSupplier.ValueProducer.unknown()
         1 * provider.get() >> otherTask
 
         when:

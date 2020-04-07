@@ -17,6 +17,7 @@ package org.gradle.api.internal.file.collections;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.file.PathToFileResolver;
@@ -46,8 +47,14 @@ public class BuildDependenciesOnlyFileCollectionResolveContext implements FileCo
     @Override
     public boolean maybeAdd(Object element) {
         if (element instanceof ProviderInternal) {
-            ProviderInternal provider = (ProviderInternal) element;
-            return provider.maybeVisitBuildDependencies(taskContext);
+            ProviderInternal<?> provider = (ProviderInternal<?>) element;
+            ValueSupplier.ValueProducer producer = provider.getProducer();
+            if (producer.isKnown()) {
+                producer.visitProducerTasks(taskContext);
+                return true;
+            } else {
+                return false;
+            }
         } else if (element instanceof TaskDependencyContainer || element instanceof Buildable) {
             taskContext.add(element);
         } else if (!(element instanceof MinimalFileCollection)) {

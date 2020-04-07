@@ -217,7 +217,6 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         outputContains("hello again")
     }
 
-    @ToBeFixedForInstantExecution
     def "cleans up unused cached JARs"() {
         given:
         executer.requireIsolatedDaemons() // needs to stop daemon

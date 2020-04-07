@@ -1,0 +1,44 @@
+subprojects {
+    version = '1.0.2'
+    group = 'org.gradle.sample'
+
+    repositories {
+        jcenter()
+    }
+
+    plugins.withType(JavaPlugin).configureEach {
+        java {
+            modularClasspathHandling.inferModulePath = true
+        }
+
+        sourceSets {
+            integrationTest
+        }
+
+        configurations {
+            integrationTestImplementation.extendsFrom implementation
+            integrationTestRuntimeOnly.extendsFrom runtimeOnly
+        }
+
+        dependencies {
+            integrationTestImplementation project(path)
+            integrationTestImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.1'
+            integrationTestRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine'
+        }
+
+        def integrationTest = tasks.register('integrationTest', Test) {
+            description = 'Runs integration tests.'
+            group = 'verification'
+
+            testClassesDirs = sourceSets.integrationTest.output.classesDirs
+            classpath = sourceSets.integrationTest.runtimeClasspath
+            shouldRunAfter('test')
+        }
+
+        tasks.named('check') { dependsOn(integrationTest) }
+    }
+
+    tasks.withType(Test).configureEach {
+        useJUnitPlatform()
+    }
+}

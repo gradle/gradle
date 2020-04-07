@@ -17,17 +17,14 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.gradle.util.TextUtil.normaliseFileSeparators
 
-@Requires(KOTLIN_SCRIPT)
 class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -79,6 +76,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/walkGraph")
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "can walk the dependency graph of a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 

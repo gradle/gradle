@@ -17,6 +17,7 @@
 package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
 import spock.lang.Specification
@@ -25,7 +26,7 @@ import javax.inject.Inject
 
 class DefaultInstantiationSchemeTest extends Specification {
     def cacheFactory = new TestCrossBuildInMemoryCacheFactory()
-    def classGenerator = AsmBackedClassGenerator.injectOnly([], [], cacheFactory, 123)
+    def classGenerator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], cacheFactory, 123)
     def scheme = new DefaultInstantiationScheme(
         new Jsr330ConstructorSelector(classGenerator, cacheFactory.newClassCache()),
         classGenerator,

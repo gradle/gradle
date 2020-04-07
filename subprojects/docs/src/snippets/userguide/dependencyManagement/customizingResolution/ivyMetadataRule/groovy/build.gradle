@@ -15,6 +15,11 @@ class IvyVariantDerivationRule implements ComponentMetadataRule {
     @Inject ObjectFactory getObjects() { }
 
     void execute(ComponentMetadataContext context) {
+        // This filters out any non Ivy module
+        if(context.getDescriptor(IvyModuleDescriptor) == null) {
+            return
+        }
+
         context.details.addVariant("runtimeElements", "default") {
             attributes {
                 attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, getObjects().named(LibraryElements, LibraryElements.JAR))

@@ -53,7 +53,6 @@ class BuildEnvironmentCrossVersionSpec extends ToolingApiSpecification {
 
     @ToolingApiVersion(">=4.11")
     @TargetGradleVersion(">=4.11")
-    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "new Gradle versions can mutate environment on all JDK versions"() {
         given:
         toolingApi.requireDaemons() //cannot be run in embedded mode

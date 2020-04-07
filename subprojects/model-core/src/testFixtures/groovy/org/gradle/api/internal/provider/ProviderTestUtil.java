@@ -16,12 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -35,16 +32,27 @@ public class ProviderTestUtil {
         return new TestProvider<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
     }
 
-    public static <T> ProviderInternal<T> withProducer(Class<T> type, Object producer) {
-        return new TestProvider<>(type, Collections.emptyList(), producer);
+    public static <T> ProviderInternal<T> withChangingExecutionTimeValues(T... values) {
+        assert values.length > 0;
+        return new TestProviderWithChangingValue<>((Class<T>) values[0].getClass(), Arrays.asList(values), null);
+    }
+
+    public static <T> ProviderInternal<T> withProducer(Class<T> type, Task producer, T... values) {
+        Class<T> valueType = values.length == 0 ? type : (Class<T>) values[0].getClass();
+        return new TestProvider<>(valueType, Arrays.asList(values), producer);
+    }
+
+    public static <T> ProviderInternal<T> withProducerAndChangingExecutionTimeValue(Class<T> type, Task producer, T... values) {
+        Class<T> valueType = values.length == 0 ? type : (Class<T>) values[0].getClass();
+        return new TestProviderWithChangingValue<>(valueType, Arrays.asList(values), producer);
     }
 
     private static class TestProvider<T> extends AbstractMinimalProvider<T> {
         final Class<T> type;
         final Iterator<T> values;
-        final Object producer;
+        final Task producer;
 
-        TestProvider(Class<T> type, List<T> values, Object producer) {
+        TestProvider(Class<T> type, List<T> values, Task producer) {
             this.producer = producer;
             this.values = values.iterator();
             this.type = type;
@@ -56,19 +64,21 @@ public class ProviderTestUtil {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
+        public ValueProducer getProducer() {
             if (producer != null) {
-                visitor.execute((Task) producer);
+                return ValueProducer.task(producer);
+            } else {
+                return ValueProducer.unknown();
             }
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            ExecutionTimeValue<? extends T> value = super.calculateExecutionTimeValue();
             if (producer != null) {
-                context.add(producer);
-                return true;
+                return value.withChangingContent();
             } else {
-                return false;
+                return value;
             }
         }
 
@@ -80,6 +90,17 @@ public class ProviderTestUtil {
         @Override
         protected Value<? extends T> calculateOwnValue() {
             return values.hasNext() ? Value.of(values.next()) : Value.missing();
+        }
+    }
+
+    private static class TestProviderWithChangingValue<T> extends TestProvider<T> {
+        public TestProviderWithChangingValue(Class<T> type, List<T> values, Task producer) {
+            super(type, values, producer);
+        }
+
+        @Override
+        public ExecutionTimeValue<T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.changingValue(this);
         }
     }
 }

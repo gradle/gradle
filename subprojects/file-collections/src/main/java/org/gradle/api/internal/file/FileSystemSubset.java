@@ -51,6 +51,12 @@ public class FileSystemSubset {
         return new Builder();
     }
 
+    public static FileSystemSubset of(FileCollectionInternal fileCollection) {
+        Builder subsetBuilder = builder();
+        fileCollection.visitStructure(subsetBuilder);
+        return subsetBuilder.build();
+    }
+
     public FileSystemSubset(ImmutableCollection<File> files, ImmutableCollection<ImmutableDirectoryTree> trees) {
         this.files = files;
         this.trees = trees;

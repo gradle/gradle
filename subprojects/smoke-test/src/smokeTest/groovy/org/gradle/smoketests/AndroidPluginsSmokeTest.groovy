@@ -24,9 +24,6 @@ import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import spock.lang.Unroll
 
-import static org.hamcrest.CoreMatchers.equalTo
-import static org.hamcrest.CoreMatchers.not
-import static org.junit.Assume.assumeThat
 
 /**
  * For these tests to run you need to set ANDROID_HOME to your Android SDK directory
@@ -50,10 +47,6 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
         String agpVersion, boolean ide
     ) {
-
-        // Skip versions broken for this test
-        // https://issuetracker.google.com/issues/150438232
-        assumeThat(agpVersion, not(equalTo("4.1.0-alpha01")))
 
         given:
         def abiChange = androidLibraryAndApplicationBuild(agpVersion)

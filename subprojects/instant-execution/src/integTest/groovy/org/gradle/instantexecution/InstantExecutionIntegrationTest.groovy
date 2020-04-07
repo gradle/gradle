@@ -666,7 +666,16 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantFails "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("field 'value' from type 'SomeTask': $problem")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        when:
         instantFails "broken"
 
         then:
@@ -676,9 +685,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         failure.assertHasCause("broken!")
 
         where:
-        type               | reference                    | query
-        "Provider<String>" | "project.providers.provider" | "get()"
-        "FileCollection"   | "project.files"              | "files"
+        type               | reference                    | query   | problem
+        "Provider<String>" | "project.providers.provider" | "get()" | "value 'provider(?)' failed to unpack provider"
+        "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
     @Unroll
@@ -739,10 +748,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "null"           | "null"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "null"           | "null"
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
     }
 
     @Unroll

@@ -18,15 +18,13 @@ package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
 import org.gradle.integtests.fixtures.polyglot.MultiProjectBuilder
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.junit.runner.RunWith
+
 /**
  * An integration test which allows testing build scripts with both the
  * Groovy and Kotlin DSLs
  */
 @CompileStatic
-@Requires(TestPrecondition.KOTLIN_SCRIPT)
 @RunWith(PolyglotDslTestRunner)
 class AbstractPolyglotIntegrationSpec extends AbstractIntegrationSpec {
 

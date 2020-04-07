@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.tasks.compile
 
-import org.gradle.api.file.ProjectLayout
 import org.gradle.api.tasks.compile.CompileOptions
 import org.gradle.api.tasks.compile.GroovyCompileOptions
 import org.gradle.util.TestUtil
@@ -32,7 +31,7 @@ class NormalizingGroovyCompilerTest extends Specification {
         spec.groovyClasspath = spec.compileClasspath
         spec.sourceFiles = files('House.scala', 'Person1.java', 'package.html', 'Person2.groovy')
         spec.destinationDir = new File("destinationDir")
-        spec.compileOptions = new CompileOptions(Stub(ProjectLayout), TestUtil.objectFactory())
+        spec.compileOptions = new CompileOptions(TestUtil.objectFactory())
         spec.groovyCompileOptions = new GroovyCompileOptions()
     }
 

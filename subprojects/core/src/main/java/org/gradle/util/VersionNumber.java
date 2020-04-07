@@ -103,7 +103,7 @@ public class VersionNumber implements Comparable<VersionNumber> {
         return Ordering.natural().nullsLast().compare(toLowerCase(qualifier), toLowerCase(other.qualifier));
     }
 
-    public boolean equals(Object other) {
+    public boolean equals(@Nullable Object other) {
         return other instanceof VersionNumber && compareTo((VersionNumber) other) == 0;
     }
 

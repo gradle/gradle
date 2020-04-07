@@ -83,7 +83,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         result.groupedOutput.task(":customTask").outcome == "FROM-CACHE"
     }
 
-    @ToBeFixedForInstantExecution
     def "changing custom Groovy task implementation in buildSrc invalidates its cached result"() {
         configureCacheForBuildSrc()
         def taskSourceFile = file("buildSrc/src/main/groovy/CustomTask.groovy")
@@ -407,7 +406,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         file("build").listFiles().sort() as List == [file("build/output.txt")]
     }
 
-    @ToBeFixedForInstantExecution
     def "plural output files are only restored when map keys match"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"

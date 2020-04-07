@@ -253,19 +253,19 @@ public class ExecutionGlobalServices {
         return new InputDirectoryPropertyAnnotationHandler();
     }
 
-    PropertyAnnotationHandler createOutputFilePropertyAnnotationHandler() {
+    OutputFilePropertyAnnotationHandler createOutputFilePropertyAnnotationHandler() {
         return new OutputFilePropertyAnnotationHandler();
     }
 
-    PropertyAnnotationHandler createOutputFilesPropertyAnnotationHandler() {
+    OutputFilesPropertyAnnotationHandler createOutputFilesPropertyAnnotationHandler() {
         return new OutputFilesPropertyAnnotationHandler();
     }
 
-    PropertyAnnotationHandler createOutputDirectoryPropertyAnnotationHandler() {
+    OutputDirectoryPropertyAnnotationHandler createOutputDirectoryPropertyAnnotationHandler() {
         return new OutputDirectoryPropertyAnnotationHandler();
     }
 
-    PropertyAnnotationHandler createOutputDirectoriesPropertyAnnotationHandler() {
+    OutputDirectoriesPropertyAnnotationHandler createOutputDirectoriesPropertyAnnotationHandler() {
         return new OutputDirectoriesPropertyAnnotationHandler();
     }
 

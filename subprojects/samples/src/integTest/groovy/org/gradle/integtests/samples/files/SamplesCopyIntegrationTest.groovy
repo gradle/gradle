@@ -16,16 +16,12 @@
 
 package org.gradle.integtests.samples.files
 
+import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule

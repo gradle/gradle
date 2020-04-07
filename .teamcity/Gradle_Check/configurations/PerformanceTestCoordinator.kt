@@ -47,7 +47,7 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
     }
 
     steps {
-        runner("GRADLE_RUNNER", "clean distributed${type.taskId}s")
+        runner("GRADLE_RUNNER", "clean :performance:distributed${type.taskId}")
         checkCleanM2()
     }
 

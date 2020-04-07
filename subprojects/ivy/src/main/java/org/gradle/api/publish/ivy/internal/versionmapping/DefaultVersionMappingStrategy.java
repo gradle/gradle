@@ -33,6 +33,7 @@ import org.gradle.api.publish.internal.versionmapping.DefaultVariantVersionMappi
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
 import org.gradle.internal.component.model.AttributeMatcher;
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder;
 
 import javax.inject.Inject;
 import java.util.Collection;
@@ -92,7 +93,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
         if (!attributeBasedMappings.isEmpty()) {
             AttributeMatcher matcher = schema.matcher();
             Set<ImmutableAttributes> candidates = attributeBasedMappings.keySet();
-            List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes);
+            List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
             if (matches.size() == 1) {
                 Collection<Action<? super VariantVersionMappingStrategy>> actions = attributeBasedMappings.get(matches.get(0));
                 for (Action<? super VariantVersionMappingStrategy> action : actions) {
@@ -112,7 +113,7 @@ public class DefaultVersionMappingStrategy implements VersionMappingStrategyInte
             // provided by plugins
             AttributeMatcher matcher = schema.matcher();
             Set<ImmutableAttributes> candidates = defaultConfigurations.keySet();
-            List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes);
+            List<ImmutableAttributes> matches = matcher.matches(candidates, variantAttributes, AttributeMatchingExplanationBuilder.NO_OP);
             for (ImmutableAttributes match : matches) {
                 strategy.setTargetConfiguration(configurations.getByName(defaultConfigurations.get(match)));
             }

@@ -27,11 +27,22 @@ import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
 import org.gradle.plugins.install.Install
 
 plugins {
+    gradlebuild.lifecycle // this needs to be applied first
     `java-base`
-    gradlebuild.`build-types`
     gradlebuild.`ci-reporting`
     gradlebuild.security
     gradlebuild.install
+    gradlebuild.cleanup
+    gradlebuild.buildscan
+    gradlebuild.`build-version`
+    gradlebuild.minify
+    gradlebuild.wrapper
+    gradlebuild.ide
+    gradlebuild.`quick-check`
+    gradlebuild.`update-versions`
+    gradlebuild.`dependency-vulnerabilities`
+    gradlebuild.`add-verify-production-environment-task`
+    gradlebuild.`generate-subprojects-info`
 }
 
 buildscript {
@@ -45,134 +56,34 @@ buildscript {
     }
 }
 
+apply(from = "gradle/dependencies.gradle")
+apply(from = "gradle/test-dependencies.gradle")
+apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
+
+allprojects {
+    apply(plugin = "gradlebuild.dependencies-metadata-rules")
+}
+subprojects {
+    version = rootProject.version
+
+    if (project in javaProjects) {
+        apply(plugin = "gradlebuild.java-projects")
+    }
+
+    if (project in publicJavaProjects) {
+        apply(plugin = "gradlebuild.public-java-projects")
+    }
+
+    apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
+
+    if (project !in kotlinJsProjects) {
+        apply(plugin = "gradlebuild.task-properties-validation")
+    }
+}
+
 defaultTasks("assemble")
 
 base.archivesBaseName = "gradle"
-
-buildTypes {
-    create("compileAllBuild") {
-        tasks(":createBuildReceipt", "compileAll")
-        projectProperties("ignoreIncomingBuildReceipt" to true)
-    }
-
-    create("sanityCheck") {
-        tasks(
-            "classes", "docs:checkstyleApi", "codeQuality", "allIncubationReportsZip",
-            "distribution:checkBinaryCompatibility", "docs:javadocAll",
-            "architectureTest:test", "toolingApi:toolingApiShadedJar")
-    }
-
-    // Used by the first phase of the build pipeline, running only last version on multiversion - tests
-    create("quickTest") {
-        tasks("test", "integTest", "crossVersionTest")
-    }
-
-    // Used for builds to run all tests
-    create("fullTest") {
-        tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testVersions" to "all")
-    }
-
-    // Used for builds to test the code on certain platforms
-    create("platformTest") {
-        tasks("test", "forkingIntegTest", "forkingCrossVersionTest")
-        projectProperties("testVersions" to "partial")
-    }
-
-    // Tests not using the daemon mode
-    create("noDaemonTest") {
-        tasks("noDaemonIntegTest")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    // Run the integration tests using the parallel executer
-    create("parallelTest") {
-        tasks("parallelIntegTest")
-    }
-
-    // Run the integration tests using instant execution
-    create("instantTest") {
-        tasks("instantIntegTest")
-    }
-
-    // Run the integration tests with vfs retention enabled
-    create("vfsRetentionTest") {
-        tasks("vfsRetentionIntegTest")
-    }
-
-    create("performanceTests") {
-        tasks("performance:performanceTest")
-    }
-
-    create("performanceExperiments") {
-        tasks("performance:performanceExperiments")
-    }
-
-    create("fullPerformanceTests") {
-        tasks("performance:fullPerformanceTest")
-    }
-
-    create("distributedPerformanceTests") {
-        tasks("performance:distributedPerformanceTest")
-    }
-
-    create("distributedSlowPerformanceTests") {
-        tasks("performance:distributedSlowPerformanceTest")
-    }
-
-    create("distributedPerformanceExperiments") {
-        tasks("performance:distributedPerformanceExperiment")
-    }
-
-    create("distributedHistoricalPerformanceTests") {
-        tasks("performance:distributedHistoricalPerformanceTest")
-    }
-
-    create("distributedFlakinessDetections") {
-        tasks("performance:distributedFlakinessDetection")
-    }
-
-    // Used for cross version tests on CI
-    create("allVersionsCrossVersionTest") {
-        tasks("allVersionsCrossVersionTests")
-        projectProperties("testVersions" to "all")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    create("allVersionsIntegMultiVersionTest") {
-        tasks("integMultiVersionTest")
-        projectProperties("testVersions" to "all")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    create("quickFeedbackCrossVersionTest") {
-        tasks("quickFeedbackCrossVersionTests")
-        projectProperties("useAllDistribution" to true)
-    }
-
-    // Used to build production distros and smoke test them
-    create("packageBuild") {
-        tasks("verifyIsProductionBuildEnvironment", "clean", "buildDists",
-            "distributions:integTest", ":docs:checkSamples", "docs:check")
-    }
-
-    // Used to build production distros and smoke test them
-    create("promotionBuild") {
-        tasks(
-            "verifyIsProductionBuildEnvironment", "clean", "docs:check",
-            "buildDists", "distributions:integTest", "publish")
-    }
-
-    create("soakTest") {
-        tasks("soak:soakIntegTest")
-        projectProperties("testVersions" to "all")
-    }
-
-    // Used to run the dependency management engine in "force component realization" mode
-    create("forceRealizeDependencyManagementTest") {
-        tasks("integForceRealizeTest")
-    }
-}
 
 allprojects {
     group = "org.gradle"
@@ -201,45 +112,6 @@ allprojects {
         runtimeClasspath {
             ignore("org/gradle/build-receipt.properties")
         }
-    }
-}
-
-apply(plugin = "gradlebuild.cleanup")
-apply(plugin = "gradlebuild.buildscan")
-apply(plugin = "gradlebuild.build-version")
-apply(from = "gradle/dependencies.gradle")
-apply(plugin = "gradlebuild.minify")
-apply(from = "gradle/test-dependencies.gradle")
-apply(plugin = "gradlebuild.wrapper")
-apply(plugin = "gradlebuild.ide")
-apply(plugin = "gradlebuild.quick-check")
-apply(plugin = "gradlebuild.update-versions")
-apply(plugin = "gradlebuild.dependency-vulnerabilities")
-apply(plugin = "gradlebuild.add-verify-production-environment-task")
-apply(plugin = "gradlebuild.generate-subprojects-info")
-
-// https://github.com/gradle/gradle-private/issues/2463
-apply(from = "gradle/remove-teamcity-temp-property.gradle")
-
-allprojects {
-    apply(plugin = "gradlebuild.dependencies-metadata-rules")
-}
-
-subprojects {
-    version = rootProject.version
-
-    if (project in javaProjects) {
-        apply(plugin = "gradlebuild.java-projects")
-    }
-
-    if (project in publicJavaProjects) {
-        apply(plugin = "gradlebuild.public-java-projects")
-    }
-
-    apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-
-    if (project !in kotlinJsProjects) {
-        apply(plugin = "gradlebuild.task-properties-validation")
     }
 }
 
@@ -388,6 +260,24 @@ tasks.register<Install>("installAll") {
     description = "Installs the full distribution"
     group = "build"
     with(distributionImage("allDistImage"))
+}
+
+tasks.register("packageBuild") {
+    description = "Build production distros and smoke test them"
+    group =  "build"
+    dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+        ":distributions:integTest", ":docs:check", ":docs:checkSamples")
+}
+
+subprojects {
+    plugins.withId("gradlebuild.publish-public-libraries") {
+        tasks.register("promotionBuild") {
+            description = "Build production distros, smoke test them and publish"
+            group = "publishing"
+            dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+                ":distributions:integTest", ":docs:check", "publish")
+        }
+    }
 }
 
 tasks.register<UpdateBranchStatus>("updateBranchStatus")

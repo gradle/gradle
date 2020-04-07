@@ -84,8 +84,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching ${variantTerm()} of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
+            failure.assertHasCause("No matching ${variantTerm()} of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'canary' and the consumer needed attribute 'quality' with value 'qa'"))
         }
 
         where:
@@ -155,8 +155,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         } else {
             fails ':checkDeps'
             failure.assertHasCause("Cannot choose between the following variants of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
-            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
+            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownApiVariant' but the consumer didn't ask for it"))
+            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownRuntimeVariant' but the consumer didn't ask for it"))
         }
 
         where:
@@ -296,8 +296,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
+            failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'canary' and the consumer needed attribute 'quality' with value 'qa'"))
         }
 
         where:

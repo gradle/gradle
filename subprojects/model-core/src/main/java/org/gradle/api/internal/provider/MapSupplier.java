@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -27,5 +26,5 @@ interface MapSupplier<K, V> extends ValueSupplier {
 
     MapSupplier<K, V> plus(MapCollector<K, V> collector);
 
-    void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
+    ExecutionTimeValue<? extends Map<K, V>> calculateOwnExecutionTimeValue();
 }

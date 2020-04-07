@@ -85,6 +85,13 @@ public class StrictVersionConstraints {
         if (other == EMPTY) {
             return this;
         }
+        if (this == other) {
+            // this happens quite a lot!
+            return this;
+        }
+        if (this.modules.equals(other.modules)) {
+            return this;
+        }
         ImmutableSet.Builder<ModuleIdentifier> builder = ImmutableSet.builderWithExpectedSize(modules.size() + other.modules.size());
         builder.addAll(modules);
         builder.addAll(other.modules);

@@ -16,12 +16,14 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.Describable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.internal.Describables;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.util.NameValidator;
 
@@ -63,13 +65,15 @@ public class TaskFactory implements ITaskFactory {
             implType = identity.type.asSubclass(AbstractTask.class);
         }
 
+        Describable displayName = Describables.withTypeAndName("task", identity.getIdentityPath());
+
         return AbstractTask.injectIntoNewInstance(project, identity, new Callable<S>() {
             @Override
             public S call() {
                 try {
                     Task instance;
                     if (constructorArgs != null) {
-                        instance = instantiationScheme.instantiator().newInstance(implType, constructorArgs);
+                        instance = instantiationScheme.instantiator().newInstanceWithDisplayName(implType, displayName, constructorArgs);
                     } else {
                         instance = instantiationScheme.deserializationInstantiator().newInstance(implType, AbstractTask.class);
                     }

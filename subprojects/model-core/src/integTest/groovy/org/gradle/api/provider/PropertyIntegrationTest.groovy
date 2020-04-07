@@ -219,6 +219,7 @@ task thing {
         output.contains("prop = null")
     }
 
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#268")
     def "reports failure due to broken @Input task property"() {
         taskTypeWritesPropertyValueToFile()
         buildFile << """
@@ -273,6 +274,7 @@ task thing(type: SomeTask) {
         output.count("calculating value") == 0
     }
 
+    @ToBeFixedForInstantExecution(because = "gradle/instant-execution#270")
     def "does not calculate task @Input property value when task is skipped due to @SkipWhenEmpty on another property"() {
         buildFile << """
 

@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.instantexecution.ClassLoaderScopeSpec
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
@@ -47,7 +49,8 @@ class DefaultWriteContext(
     private
     val problemHandler: (PropertyProblem) -> Unit
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
+
     override val sharedIdentities = WriteIdentities()
 
     private
@@ -59,9 +62,15 @@ class DefaultWriteContext(
     private
     val scopes = WriteIdentities()
 
+    /**
+     * Closes the given [encoder] if it is [AutoCloseable].
+     */
+    override fun close() {
+        (encoder as? AutoCloseable)?.close()
+    }
+
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
-
 
     override val isolate: WriteIsolate
         get() = getIsolate()

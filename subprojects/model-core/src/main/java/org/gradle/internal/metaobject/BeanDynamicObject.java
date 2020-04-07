@@ -29,12 +29,12 @@ import org.codehaus.groovy.runtime.MetaClassHelper;
 import org.codehaus.groovy.runtime.metaclass.MultipleSetterProperty;
 import org.codehaus.groovy.runtime.typehandling.DefaultTypeTransformation;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
+import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.Field;
@@ -151,8 +151,8 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public boolean hasUsefulDisplayName() {
-        if (bean instanceof GeneratedSubclass) {
-            return ((GeneratedSubclass)bean).hasUsefulDisplayName();
+        if (bean instanceof ModelObject) {
+            return ((ModelObject)bean).hasUsefulDisplayName();
         }
         return !JavaPropertyReflectionUtil.hasDefaultToString(bean);
     }

@@ -39,6 +39,10 @@ public interface WorkerProcessSettings {
 
     Set<File> getApplicationClasspath();
 
+    WorkerProcessSettings applicationModulePath(Iterable<File> files);
+
+    Set<File> getApplicationModulePath();
+
     WorkerProcessSettings sharedPackages(String... packages);
 
     WorkerProcessSettings sharedPackages(Iterable<String> packages);

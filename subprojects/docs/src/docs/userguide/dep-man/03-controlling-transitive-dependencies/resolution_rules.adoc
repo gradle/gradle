@@ -7,7 +7,7 @@ This section covers mechanisms Gradle offers to directly influence the behavior 
 In contrast to the other concepts covered in this chapter, like <<dependency_constraints.adoc#,dependency constraints>> or <<component_metadata_rules.adoc#,component metadata rules>>, which are all *inputs* to resolution, the following mechanisms allow you to write rules which are directly injected into the resolution engine.
 Because of this, they can be seen as _brute force_ solutions, that may hide future problems (e.g. if new dependencies are added).
 Therefore, the general advice is to only use the following mechanisms if other means are not sufficient.
-If you are are authoring a <<library_vs_application.adoc#,library>>, you should always prefer <<dependency_constraints.adoc#,dependency constraints>> as they are published for your consumers.
+If you are authoring a <<library_vs_application.adoc#,library>>, you should always prefer <<dependency_constraints.adoc#,dependency constraints>> as they are published for your consumers.
 ====
 
 [[sec:dependency_resolve_rules]]
@@ -18,7 +18,7 @@ The feature currently offers the ability to change the group, name and/or versio
 
 Dependency resolve rules provide a very powerful way to control the dependency resolution process, and can be used to implement all sorts of advanced patterns in dependency management.
 Some of these patterns are outlined below.
-or more information and code samples see the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] class in the API documentation.
+For more information and code samples see the link:{groovyDslPath}/org.gradle.api.artifacts.ResolutionStrategy.html[ResolutionStrategy] class in the API documentation.
 
 [[sec:custom_versioning_scheme]]
 === Implementing a custom versioning scheme

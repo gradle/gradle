@@ -16,6 +16,7 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -82,6 +83,31 @@ public interface MinimalJavadocOptions {
     List<File> getClasspath();
 
     void setClasspath(List<File> classpath);
+
+    /**
+     * The --module-path.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Internal
+    List<File> getModulePath();
+
+    /**
+     * The --module-path.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    void setModulePath(List<File> modulePath);
+
+    /**
+     * The --module-path.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    MinimalJavadocOptions modulePath(List<File> classpath);
 
     MinimalJavadocOptions classpath(List<File> classpath);
 

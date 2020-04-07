@@ -38,15 +38,15 @@ The CodeNarc plugin adds the following tasks to the project:
 
 `codenarcMain` — link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]::
 +
-Runs CodeNarc against the production Java source files.
+Runs CodeNarc against the production Groovy source files.
 
 `codenarcTest` — link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]::
 +
-Runs CodeNarc against the test Java source files.
+Runs CodeNarc against the test Groovy source files.
 
 `codenarc__SourceSet__` — link:{groovyDslPath}/org.gradle.api.plugins.quality.CodeNarc.html[CodeNarc]::
 +
-Runs CodeNarc against the given source set's Java source files.
+Runs CodeNarc against the given source set's Groovy source files.
 
 === Dependencies added to other tasks
 

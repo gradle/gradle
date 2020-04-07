@@ -25,6 +25,7 @@ import org.gradle.api.internal.tasks.properties.AbstractPropertyNode;
 import org.gradle.api.internal.tasks.properties.TypeMetadata;
 import org.gradle.api.internal.tasks.properties.TypeMetadataStore;
 import org.gradle.api.internal.tasks.properties.TypeScheme;
+import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Nested;
 import org.gradle.cache.internal.DefaultCrossBuildInMemoryCacheFactory;
@@ -64,10 +65,11 @@ public class PropertyValidationAccess {
         builder.provider(new Object() {
             @SuppressWarnings("unused")
             void configure(ServiceRegistration registration) {
-                registration.add(DefaultListenerManager.class, new DefaultListenerManager());
+                registration.add(DefaultListenerManager.class);
                 registration.add(DefaultCrossBuildInMemoryCacheFactory.class);
                 // TODO: do we need any factories here?
                 registration.add(DefaultManagedFactoryRegistry.class, new DefaultManagedFactoryRegistry());
+                registration.add(OutputPropertyRoleAnnotationHandler.class);
                 registration.add(DefaultInstantiatorFactory.class);
                 List<PluginServiceRegistry> pluginServiceFactories = new DefaultServiceLocator(false, getClass().getClassLoader()).getAll(PluginServiceRegistry.class);
                 for (PluginServiceRegistry pluginServiceFactory : pluginServiceFactories) {

@@ -41,12 +41,13 @@ public class PmdExtension extends CodeQualityExtension {
     private TextResource ruleSetConfig;
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
+    private Property<Integer> maxFailures;
     private Property<Boolean> incrementalAnalysis;
 
     public PmdExtension(Project project) {
         this.project = project;
-        // TODO: Enable this by default when toolVersion >= 6.0.0 if it's stable enough.
-        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(false);
+        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
+        this.maxFailures = project.getObjects().property(Integer.class).convention(0);
     }
 
     /**
@@ -99,6 +100,18 @@ public class PmdExtension extends CodeQualityExtension {
      */
     public void setTargetJdk(TargetJdk targetJdk) {
         this.targetJdk = targetJdk;
+    }
+
+    /**
+     * The maximum number of failures to allow before stopping the build.
+     *
+     * If <pre>ignoreFailures</pre> is set, this is ignored and no limit is enforced.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    public Property<Integer> getMaxFailures() {
+        return maxFailures;
     }
 
     /**
@@ -222,7 +235,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 5.6
      */
-    @Incubating
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
     }

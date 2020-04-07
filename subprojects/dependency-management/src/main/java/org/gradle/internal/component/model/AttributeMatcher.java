@@ -30,9 +30,9 @@ public interface AttributeMatcher {
 
     <T> boolean isMatching(Attribute<T> attribute, T candidate, T requested);
 
-    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested);
+    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, AttributeMatchingExplanationBuilder builder);
 
-    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback);
+    <T extends HasAttributes> List<T> matches(Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder builder);
 
     List<MatchingDescription> describeMatching(AttributeContainerInternal candidate, AttributeContainerInternal requested);
 

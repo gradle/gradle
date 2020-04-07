@@ -93,8 +93,24 @@ public class Providers {
         }
 
         @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(value);
+        }
+
+        @Override
         public String toString() {
             return String.format("fixed(%s, %s)", getType(), value);
+        }
+    }
+
+    public static class FixedValueWithChangingContentProvider<T> extends FixedValueProvider<T> {
+        public FixedValueWithChangingContentProvider(T value) {
+            super(value);
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return super.calculateExecutionTimeValue().withChangingContent();
         }
     }
 
@@ -125,6 +141,11 @@ public class Providers {
         @Override
         protected Value<T> calculateOwnValue() {
             return Value.missing();
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.missing();
         }
 
         @Override

@@ -17,12 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
+public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     private final ProviderInternal<? extends T> provider;
     private final Transformer<? extends Provider<? extends S>, ? super T> transformer;
 
@@ -39,11 +38,7 @@ class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
 
     @Override
     public boolean isPresent() {
-        T value = provider.getOrNull();
-        if (value == null) {
-            return false;
-        }
-        return map(value).isPresent();
+        return backingProvider().isPresent();
     }
 
     @Override
@@ -52,10 +47,10 @@ class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         if (value.isMissing()) {
             return value.asType();
         }
-        return map(value.get()).calculateValue();
+        return doMapValue(value.get()).calculateValue();
     }
 
-    private ProviderInternal<? extends S> map(T value) {
+    private ProviderInternal<? extends S> doMapValue(T value) {
         Provider<? extends S> result = transformer.transform(value);
         if (result == null) {
             return Providers.notDefined();
@@ -63,9 +58,22 @@ class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return Providers.internal(result);
     }
 
+    public ProviderInternal<? extends S> backingProvider() {
+        Value<? extends T> value = provider.calculateValue();
+        if (value.isMissing()) {
+            return Providers.notDefined();
+        }
+        return doMapValue(value.get());
+    }
+
     @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return Providers.internal(map(provider.get())).maybeVisitBuildDependencies(context);
+    public ValueProducer getProducer() {
+        return backingProvider().getProducer();
+    }
+
+    @Override
+    public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
+        return backingProvider().calculateExecutionTimeValue();
     }
 
     @Override

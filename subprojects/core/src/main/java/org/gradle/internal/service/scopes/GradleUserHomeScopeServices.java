@@ -22,6 +22,7 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJournal;
 import org.gradle.api.internal.changedetection.state.GlobalScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.api.internal.initialization.loadercache.DefaultClassLoaderCache;
@@ -57,6 +58,7 @@ import org.gradle.internal.file.JarCache;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.id.LongIdGenerator;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.events.OutputEventListener;
@@ -160,7 +162,8 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
 
     WorkerProcessFactory createWorkerProcessFactory(LoggingManagerInternal loggingManagerInternal, MessagingServer messagingServer, ClassPathRegistry classPathRegistry,
                                                     TemporaryFileProvider temporaryFileProvider, JavaExecHandleFactory execHandleFactory, JvmVersionDetector jvmVersionDetector,
-                                                    MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider, OutputEventListener outputEventListener) {
+                                                    JavaModuleDetector javaModuleDetector, MemoryManager memoryManager, GradleUserHomeDirProvider gradleUserHomeDirProvider,
+                                                    OutputEventListener outputEventListener) {
         return new DefaultWorkerProcessFactory(
             loggingManagerInternal,
             messagingServer,
@@ -170,6 +173,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
             temporaryFileProvider,
             execHandleFactory,
             jvmVersionDetector,
+            javaModuleDetector,
             outputEventListener,
             memoryManager
         );
@@ -184,6 +188,10 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
 
     WorkerProcessClassPathProvider createWorkerProcessClassPathProvider(CacheRepository cacheRepository, ModuleRegistry moduleRegistry) {
         return new WorkerProcessClassPathProvider(cacheRepository, moduleRegistry);
+    }
+
+    protected JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
+        return new JavaModuleDetector(cacheFactory, fileCollectionFactory);
     }
 
     DefaultGeneratedGradleJarCache createGeneratedGradleJarCache(CacheRepository cacheRepository) {

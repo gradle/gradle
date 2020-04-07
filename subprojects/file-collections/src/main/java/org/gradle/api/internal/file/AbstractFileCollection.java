@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.file;
 
-import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Iterators;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -40,14 +40,12 @@ import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
-import org.gradle.util.CollectionUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -74,7 +72,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         return getDisplayName();
     }
 
-    // This is final - use {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
+    // This is final - override {@link TaskDependencyContainer#visitDependencies} to provide the dependencies instead.
     @Override
     public final TaskDependency getBuildDependencies() {
         return new AbstractTaskDependency() {
@@ -135,29 +133,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection minus(final FileCollection collection) {
-        return new AbstractFileCollection(patternSetFactory) {
-            @Override
-            public String getDisplayName() {
-                return AbstractFileCollection.this.getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                AbstractFileCollection.this.visitDependencies(context);
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                Set<File> files = new LinkedHashSet<File>(AbstractFileCollection.this.getFiles());
-                files.removeAll(collection.getFiles());
-                return files;
-            }
-
-            @Override
-            public boolean contains(File file) {
-                return AbstractFileCollection.this.contains(file) && !collection.contains(file);
-            }
-        };
+        return new SubtractingFileCollection(this, collection);
     }
 
     @Override
@@ -234,9 +210,9 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
     }
 
     /**
-     * Visits all the files of this tree.
+     * Visits all the files of the given tree.
      */
-    protected boolean visitAll(FileSystemMirroringFileTree tree) {
+    protected static boolean visitAll(FileSystemMirroringFileTree tree) {
         final MutableBoolean hasContent = new MutableBoolean();
         tree.visit(new FileVisitor() {
             @Override
@@ -277,40 +253,21 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
 
     @Override
     public FileCollection filter(final Spec<? super File> filterSpec) {
-        final Predicate<File> predicate = filterSpec::isSatisfiedBy;
-        return new AbstractFileCollection(patternSetFactory) {
-            @Override
-            public String getDisplayName() {
-                return AbstractFileCollection.this.getDisplayName();
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                AbstractFileCollection.this.visitDependencies(context);
-            }
-
-            @Override
-            public Set<File> getFiles() {
-                return CollectionUtils.filter(AbstractFileCollection.this, new LinkedHashSet<>(), filterSpec);
-            }
-
-            @Override
-            public boolean contains(File file) {
-                return AbstractFileCollection.this.contains(file) && predicate.apply(file);
-            }
-
-            @Override
-            public Iterator<File> iterator() {
-                return Iterators.filter(AbstractFileCollection.this.iterator(), predicate);
-            }
-        };
+        return new FilteredFileCollection(this, filterSpec);
     }
 
+    /**
+     * This is final - override {@link #visitContents(FileCollectionStructureVisitor)} instead to provide the contents.
+     */
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
-        if (visitor.prepareForVisit(OTHER) != FileCollectionStructureVisitor.VisitType.NoContents) {
-            visitor.visitCollection(OTHER, this);
+    public final void visitStructure(FileCollectionStructureVisitor visitor) {
+        if (visitor.startVisit(OTHER, this)) {
+            visitContents(visitor);
         }
+    }
+
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        visitor.visitCollection(OTHER, this);
     }
 
     private static class ElementsProvider extends AbstractProviderWithValue<Set<FileSystemLocation>> {
@@ -326,13 +283,38 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            context.add(collection);
-            return true;
+        public ValueProducer getProducer() {
+            return new ValueProducer() {
+                @Override
+                public boolean isKnown() {
+                    return true;
+                }
+
+                @Override
+                public boolean isProducesDifferentValueOverTime() {
+                    return false;
+                }
+
+                @Override
+                public void visitProducerTasks(Action<? super Task> visitor) {
+                    for (Task dependency : collection.getBuildDependencies().getDependencies(null)) {
+                        visitor.execute(dependency);
+                    }
+                }
+            };
         }
 
         @Override
-        public boolean isValueProducedByTask() {
+        public ExecutionTimeValue<Set<FileSystemLocation>> calculateExecutionTimeValue() {
+            ExecutionTimeValue<Set<FileSystemLocation>> value = ExecutionTimeValue.fixedValue(get());
+            if (contentsAreBuiltByTask()) {
+                return value.withChangingContent();
+            } else {
+                return value;
+            }
+        }
+
+        private boolean contentsAreBuiltByTask() {
             return !collection.getBuildDependencies().getDependencies(null).isEmpty();
         }
 
@@ -348,4 +330,5 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             return builder.build();
         }
     }
+
 }

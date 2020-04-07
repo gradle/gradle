@@ -3,6 +3,7 @@ package org.gradle.gradlebuild
 import org.gradle.api.Project
 
 
+// TODO This whole listing of projects should go away. Projects should individually apply plugins. And then we can react to a plugin application if needed.
 object ProjectGroups {
     val excludedFromVulnerabilityCheck = setOf(
         ":buildScanPerformance",

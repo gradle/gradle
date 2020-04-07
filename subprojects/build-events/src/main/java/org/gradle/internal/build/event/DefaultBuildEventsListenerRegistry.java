@@ -239,6 +239,10 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         @Override
         public void buildFinished(BuildResult result) {
             // TODO - maybe make the registry a build scoped service
+            if (result.getGradle().getParent() != null) {
+                // Stop only when the root build completes
+                return;
+            }
             try {
                 for (Object listener : listeners) {
                     listenerManager.removeListener(listener);

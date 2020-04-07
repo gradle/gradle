@@ -22,11 +22,14 @@ import org.apache.tools.ant.types.Resource
 import org.apache.tools.ant.types.ResourceCollection
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.DefaultAntBuilder
-import static org.hamcrest.CoreMatchers.*
-import static org.junit.Assert.*
-import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.project.DefaultAntBuilder
+
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class AntBuilderAwareUtil {
 
@@ -71,7 +74,7 @@ class AntBuilderAwareUtil {
     }
 
     static def assertSetContainsForAllTypes(MinimalFileTree set, Iterable<String> filenames) {
-        assertSetContainsForAllTypes(new FileTreeAdapter(set), filenames)
+        assertSetContainsForAllTypes(new FileTreeAdapter(set, TestFiles.patternSetFactory), filenames)
     }
 
     static def assertSetContainsForFileSet(FileCollection set, String... filenames) {

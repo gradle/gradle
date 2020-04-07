@@ -93,22 +93,38 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
 
     def "build on Groovy project without sources nor groovy dependency"() {
         given:
+        def instantExecution = newInstantExecutionFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantRun "build"
+
+        then:
+        instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
+            )
+            withTotalProblemsCount(2)
+            withProblemsWithStackTraceCount(2)
+        }
+
+        when:
         instantRun "clean"
         instantRun "build"
 
         then:
+        instantExecution.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
         result.assertTaskSkipped(":compileGroovy")
     }
 
     def "assemble on Groovy project with sources but no groovy dependency is executed and fails with a reasonable error message"() {
         given:
+        def instantExecution = newInstantExecutionFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
@@ -117,17 +133,30 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantFails "assemble"
 
         then:
+        instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
+            )
+            withProblemsWithStackTraceCount(1)
+        }
+
+        and:
         result.assertTaskExecuted(":compileGroovy")
+        failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
 
         when:
         instantFails "assemble"
 
         then:
+        instantExecution.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
+        failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
     }
 }

@@ -106,6 +106,7 @@ public class PmdPlugin extends AbstractCodeQualityPlugin<Pmd> {
         taskMapping.map("consoleOutput", () ->  extension.isConsoleOutput());
         taskMapping.map("targetJdk", () ->  extension.getTargetJdk());
 
+        task.getMaxFailures().convention(extension.getMaxFailures());
         task.getIncrementalAnalysis().convention(extension.getIncrementalAnalysis());
     }
 

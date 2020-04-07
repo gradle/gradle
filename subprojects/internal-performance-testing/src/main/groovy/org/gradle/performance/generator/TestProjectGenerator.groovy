@@ -20,10 +20,12 @@ class TestProjectGenerator {
 
     TestProjectGeneratorConfiguration config
     FileContentGenerator fileContentGenerator
+    BazelFileContentGenerator bazelContentGenerator
 
     TestProjectGenerator(TestProjectGeneratorConfiguration config) {
         this.config = config
         this.fileContentGenerator = FileContentGenerator.forConfig(config)
+        this.bazelContentGenerator = new BazelFileContentGenerator(config)
     }
 
     def generate(File outputBaseDir) {
@@ -64,6 +66,11 @@ class TestProjectGenerator {
         file projectDir, config.dsl.fileNameFor('settings'), fileContentGenerator.generateSettingsGradle(isRoot)
         file projectDir, "gradle.properties", fileContentGenerator.generateGradleProperties(isRoot)
         file projectDir, "pom.xml", fileContentGenerator.generatePomXML(subProjectNumber, dependencyTree)
+        file projectDir, "BUILD.bazel", bazelContentGenerator.generateBuildFile(subProjectNumber, dependencyTree)
+        if (isRoot) {
+            file projectDir, "WORKSPACE", bazelContentGenerator.generateWorkspace()
+            file projectDir, "junit.bzl", bazelContentGenerator.generateJunitHelper()
+        }
         file projectDir, "performance.scenarios", fileContentGenerator.generatePerformanceScenarios(isRoot)
 
         if (!isRoot || config.subProjects == 0) {

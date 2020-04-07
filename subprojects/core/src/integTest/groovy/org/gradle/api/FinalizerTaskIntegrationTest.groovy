@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -193,7 +192,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 (*) - details omitted (listed previously)"""
     }
 
-    void 'finalizer task can be used by multiple tasks that depend on one another'(){
+    void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile << """
             task a {
                 finalizedBy 'c'
@@ -252,7 +251,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
-    @ToBeFixedForInstantExecution
     def "mustRunAfter is respected for finalizer without direct dependency"() {
         settingsFile << """
             include 'a'

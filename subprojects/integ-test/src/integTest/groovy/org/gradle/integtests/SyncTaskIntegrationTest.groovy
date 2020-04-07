@@ -52,10 +52,9 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants(
             'dir1/file1.txt',
             'dir2/subdir/file2.txt',
-            'dir2/file3.txt'
+            'dir2/file3.txt',
+            'emptyDir'
         )
-        !file('dest/someOtherEmptyDir').exists()
-        file('dest/emptyDir').exists()
     }
 
     def 'preserve keeps specified files in destDir'() {
@@ -92,6 +91,7 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
             'dir2/file3.txt',
             'extraDir/extra.txt',
             'dir1/extraDir/extra.txt',
+            'emptyDir'
         )
     }
 
@@ -124,13 +124,14 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'sync'
 
         then:
-        file('dest').allDescendants() == [
+        file('dest').assertHasDescendants(
             'dir1/file1.txt',
             'dir2/subdir/file2.txt',
             'dir2/file3.txt',
             'someOtherDir/preserved.txt',
-            'somePreservedDir/preserved.txt'
-        ] as Set
+            'somePreservedDir/preserved.txt',
+            'emptyDir'
+        )
     }
 
     def 'sync is up to date when only changing preserved files'() {
@@ -330,7 +331,8 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants(
             'dir1/file1.txt',
             'dir2/subdir/file2.txt',
-            'dir2/file3.txt'
+            'dir2/file3.txt',
+            'emptyDir'
         )
         file('dest/emptyDir').exists()
         !file('dest/extra1.txt').exists()

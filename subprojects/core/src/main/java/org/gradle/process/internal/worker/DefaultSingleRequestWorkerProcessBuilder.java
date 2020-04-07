@@ -70,6 +70,17 @@ class DefaultSingleRequestWorkerProcessBuilder<IN, OUT> implements SingleRequest
     }
 
     @Override
+    public WorkerProcessSettings applicationModulePath(Iterable<File> files) {
+        builder.applicationModulePath(files);
+        return this;
+    }
+
+    @Override
+    public Set<File> getApplicationModulePath() {
+        return builder.getApplicationModulePath();
+    }
+
+    @Override
     public WorkerProcessSettings sharedPackages(String... packages) {
         builder.sharedPackages(packages);
         return this;

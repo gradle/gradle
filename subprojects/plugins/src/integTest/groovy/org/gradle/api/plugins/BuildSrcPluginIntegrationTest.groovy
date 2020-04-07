@@ -17,14 +17,12 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import spock.lang.Issue
 
 class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
 
     @Issue("GRADLE-2001")
-    @ToBeFixedForInstantExecution
     def "can use plugin from buildSrc that changes"() {
         given:
         executer.requireIsolatedDaemons() // make sure we get the same daemon both times

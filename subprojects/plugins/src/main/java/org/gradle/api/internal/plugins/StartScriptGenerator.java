@@ -35,6 +35,7 @@ public class StartScriptGenerator {
     private String mainClassName;
     private Iterable<String> defaultJvmOpts = Collections.emptyList();
     private Iterable<String> classpath;
+    private Iterable<String> modulePath = Collections.emptyList();
     private String scriptRelPath;
     private String appNameSystemProperty;
 
@@ -64,6 +65,10 @@ public class StartScriptGenerator {
 
     public void setClasspath(Iterable<String> classpath) {
         this.classpath = classpath;
+    }
+
+    public void setModulePath(Iterable<String> modulePath) {
+        this.modulePath = modulePath;
     }
 
     public void setScriptRelPath(String scriptRelPath) {
@@ -96,6 +101,7 @@ public class StartScriptGenerator {
                 mainClassName,
                 CollectionUtils.toStringList(defaultJvmOpts),
                 CollectionUtils.toStringList(classpath),
+                CollectionUtils.toStringList(modulePath),
                 scriptRelPath,
                 appNameSystemProperty
         );
@@ -110,7 +116,7 @@ public class StartScriptGenerator {
         IoActions.writeTextFile(windowsScript, new Generate(createStartScriptGenerationDetails(), windowsStartScriptGenerator));
     }
 
-    static interface UnixFileOperation {
+    interface UnixFileOperation {
         void createExecutablePermission(File file);
     }
 

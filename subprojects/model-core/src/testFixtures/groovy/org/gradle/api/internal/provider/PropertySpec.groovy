@@ -16,14 +16,14 @@
 
 package org.gradle.api.internal.provider
 
-
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
+import org.gradle.internal.state.ModelObject
 import org.gradle.util.TextUtil
 
 import java.util.concurrent.Callable
@@ -76,7 +76,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         t.message == "Cannot query the value of ${displayName} because it has no value available."
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.get()
 
         then:
@@ -484,7 +484,7 @@ The value of this property is derived from: <source>""")
     def "reports the source of mapped provider when value is missing and source is known"() {
         def transformer = Mock(Transformer)
         def property = propertyWithNoValue()
-        property.attachDisplayName(Describables.of("<a>"))
+        property.attachOwner(owner(), displayName("<a>"))
 
         def provider = property.map(transformer)
 
@@ -500,7 +500,7 @@ The value of this provider is derived from: <a>""")
     def "reports the source of flat mapped provider when value is missing and source is known"() {
         def transformer = Mock(Transformer)
         def property = propertyWithNoValue()
-        property.attachDisplayName(Describables.of("<a>"))
+        property.attachOwner(owner(), displayName("<a>"))
 
         def provider = property.flatMap(transformer)
 
@@ -518,7 +518,7 @@ The value of this provider is derived from: <a>""")
         property.set(someValue())
 
         def other = propertyWithNoValue()
-        other.attachDisplayName(Describables.of("<a>"))
+        other.attachOwner(owner(), displayName("<a>"))
 
         def provider = property.flatMap { other }
 
@@ -533,10 +533,10 @@ The value of this provider is derived from: <a>""")
 
     def "reports the source of orElse provider when both values are missing and its source is known"() {
         def property = propertyWithNoValue()
-        property.attachDisplayName(Describables.of("<a>"))
+        property.attachOwner(owner(), displayName("<a>"))
 
         def other = propertyWithNoValue()
-        other.attachDisplayName(Describables.of("<b>"))
+        other.attachOwner(owner(), displayName("<b>"))
 
         def provider = property.orElse(other)
 
@@ -921,9 +921,9 @@ The value of this provider is derived from:
 
     def "finalized property with no value reports source of value when source is known"() {
         def a = propertyWithNoValue()
-        a.attachDisplayName(Describables.of("<a>"))
+        a.attachOwner(owner(), displayName("<a>"))
         def b = propertyWithNoValue()
-        b.attachDisplayName(Describables.of("<b>"))
+        b.attachOwner(owner(), displayName("<b>"))
         def property = propertyWithNoValue()
 
         given:
@@ -1038,7 +1038,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1074,7 +1074,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1111,7 +1111,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1148,7 +1148,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1199,7 +1199,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1235,7 +1235,7 @@ The value of this property is derived from:
         e3.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(someValue())
 
         then:
@@ -1309,7 +1309,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1338,7 +1338,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1368,7 +1368,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1397,7 +1397,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.set(Mock(ProviderInternal))
 
         then:
@@ -1426,7 +1426,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1455,7 +1455,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1485,7 +1485,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1514,7 +1514,7 @@ The value of this property is derived from:
         e2.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.setFromAnyValue(someValue())
 
         then:
@@ -1535,7 +1535,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1557,7 +1557,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1580,7 +1580,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1601,7 +1601,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(someValue())
 
         then:
@@ -1623,7 +1623,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1645,7 +1645,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1668,7 +1668,7 @@ The value of this property is derived from:
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1690,7 +1690,7 @@ The value of this property is derived from:
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.convention(Mock(ProviderInternal))
 
         then:
@@ -1715,7 +1715,7 @@ The value of this property is derived from:
         e.message == "Cannot query the value of this property because <reason>."
 
         when:
-        property.attachDisplayName(Describables.of("<display-name>"))
+        property.attachOwner(owner(), displayName("<display-name>"))
         property.get()
 
         then:
@@ -1825,7 +1825,7 @@ The value of this property is derived from:
         def a = propertyWithNoValue()
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        a.attachDisplayName(Describables.of("<a>"))
+        a.attachOwner(owner(), displayName("<a>"))
         a.set(b)
         b.set(c)
 
@@ -1837,7 +1837,7 @@ The value of this property is derived from:
         e.message == "Cannot query the value of <a> because it has no value available."
 
         when:
-        c.attachDisplayName(Describables.of("<c>"))
+        c.attachOwner(owner(), displayName("<c>"))
         a.get()
 
         then:
@@ -1846,7 +1846,7 @@ The value of this property is derived from:
 The value of this property is derived from: <c>""")
 
         when:
-        b.attachDisplayName(Describables.of("<b>"))
+        b.attachOwner(owner(), displayName("<b>"))
         a.get()
 
         then:
@@ -1862,7 +1862,7 @@ The value of this property is derived from:
         def a = propertyWithNoValue()
         def b = propertyWithNoValue()
         def c = propertyWithNoValue()
-        a.attachDisplayName(Describables.of("<a>"))
+        a.attachOwner(owner(), displayName("<a>"))
         a.set(b.map { it })
         b.set(c.map { it })
         def provider = a.map { it }
@@ -1876,7 +1876,7 @@ The value of this property is derived from:
 The value of this provider is derived from: <a>""")
 
         when:
-        c.attachDisplayName(Describables.of("<c>"))
+        c.attachOwner(owner(), displayName("<c>"))
         provider.get()
 
         then:
@@ -1887,7 +1887,7 @@ The value of this provider is derived from:
   - <c>""")
 
         when:
-        b.attachDisplayName(Describables.of("<b>"))
+        b.attachOwner(owner(), displayName("<b>"))
         provider.get()
 
         then:
@@ -1899,118 +1899,216 @@ The value of this provider is derived from:
   - <c>""")
     }
 
-    def "producer task for a property is not known by default"() {
-        def context = Mock(TaskDependencyResolveContext)
+    def "has no producer task and missing execution time value when property has no value"() {
         def property = propertyWithNoValue()
-        property.set(someValue())
-
-        when:
-        def known = property.maybeVisitBuildDependencies(context)
-
-        then:
-        !known
-        0 * context._
-    }
-
-    def "can define producer task for a property"() {
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
-        def property = propertyWithNoValue()
-        property.set(someValue())
-        property.attachProducer(task)
-
-        when:
-        def known = property.maybeVisitBuildDependencies(context)
-
-        then:
-        known
-        1 * context.add(task)
-        0 * context._
-    }
-
-    def "has build dependencies when value is provider with producer task"() {
-        def producer = "some task"
-        def provider = supplierWithProducer(producer)
-        def context = Mock(TaskDependencyResolveContext)
-        def property = propertyWithNoValue()
-        property.set(provider)
-
-        when:
-        def known = property.maybeVisitBuildDependencies(context)
-
-        then:
-        known
-        1 * context.add(producer)
-        0 * context._
-    }
-
-    def "has content producer when producer task attached"() {
-        def task = Mock(Task)
-        def property = propertyWithDefaultValue()
 
         expect:
-        assertContentIsNotProducedByTask(property)
-        !property.valueProducedByTask
-
-        property.attachProducer(task)
-
-        assertContentIsProducedByTask(property, task)
-        !property.valueProducedByTask
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
     }
 
-    def "has content producer when value is provider with content producer"() {
-        def task = Mock(Task)
-        def provider = supplierWithProducer(task)
+    def "has no producer task and fixed execution time value when property has a fixed value"() {
+        def property = propertyWithNoValue()
+        property.set(someValue())
 
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == someValue()
+    }
+
+    def "can attach a producer task to property"() {
+        def task = Mock(Task)
+        def property = propertyWithNoValue()
+        property.set(someValue())
+
+        expect:
+        assertHasNoProducer(property)
+
+        when:
+        property.attachProducer(owner(task))
+
+        then:
+        assertHasProducer(property, task)
+
+        when:
+        setToNull(property)
+
+        then:
+        assertHasProducer(property, task)
+    }
+
+    def "producer task of upstream provider is ignored when producer task attached to property"() {
+        def task = Mock(Task)
+        def upstream = Mock(Task)
+        def property = propertyWithNoValue()
+        property.set(supplierWithProducer(upstream))
+
+        expect:
+        assertHasProducer(property, upstream)
+
+        when:
+        property.attachProducer(owner(task))
+
+        then:
+        assertHasProducer(property, task)
+    }
+
+    def "has no producer task and missing execution time value when value is provider with no value"() {
+        def provider = supplierWithNoValue()
         def property = propertyWithNoValue()
         property.set(provider)
 
         expect:
-        assertContentIsProducedByTask(property, task)
-        !property.valueProducedByTask
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
     }
 
-    def "mapped value has value producer when producer task attached to original property"() {
+    def "has producer task and fixed execution time value when value is provider with producer task and fixed value"() {
+        def task = Stub(Task)
+        def provider = supplierWithProducer(task, someValue())
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        assertHasProducer(property, task)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.hasChangingContent()
+        value.fixedValue == someValue()
+    }
+
+    def "has producer task and changing execution time value when value is provider with producer task and changing value"() {
+        def task = Stub(Task)
+        def provider = supplierWithProducerAndChangingExecutionTimeValue(task, someValue(), someOtherValue())
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        assertHasProducer(property, task)
+        def value = property.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.hasChangingContent()
+        value.changingValue.get() == someValue()
+        value.changingValue.get() == someOtherValue()
+    }
+
+    def "mapped value has changing execution time value when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
+        property.set(someValue())
+        def mapped = property.map { someOtherValue() }
+
+        expect:
+        assertHasNoProducer(mapped)
+        def value = mapped.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == someOtherValue()
+
+        property.attachProducer(owner(task))
+
+        assertHasProducer(mapped, task)
+        def value2 = mapped.calculateExecutionTimeValue()
+        value2.isChangingValue()
+        value2.changingValue.get() == someOtherValue()
+    }
+
+    def "mapped value has no execution time value when producer task attached to original property with no value"() {
+        def task = Mock(Task)
+        def property = propertyWithDefaultValue()
+        setToNull(property)
         def mapped = property.map { it }
 
         expect:
-        assertContentIsNotProducedByTask(mapped)
-        !mapped.valueProducedByTask
+        assertHasNoProducer(mapped)
+        mapped.calculateExecutionTimeValue().isMissing()
 
-        property.attachProducer(task)
+        property.attachProducer(owner(task))
 
-        assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        assertHasProducer(mapped, task)
+        mapped.calculateExecutionTimeValue().isMissing()
     }
 
     def "chain of mapped value has value producer when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
-        def mapped = property.map { it }.map { it }.map { it }
+        property.set(someValue())
+        def mapped = property.map { it }.map { it }.map { someOtherValue() }
 
         expect:
-        assertContentIsNotProducedByTask(mapped)
-        !mapped.valueProducedByTask
+        assertHasNoProducer(mapped)
+        def value = mapped.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == someOtherValue()
 
-        property.attachProducer(task)
+        property.attachProducer(owner(task))
 
-        assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        assertHasProducer(mapped, task)
+        def value2 = mapped.calculateExecutionTimeValue()
+        value2.isChangingValue()
+        value2.changingValue.get() == someOtherValue()
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
         def task = Mock(Task)
-        def provider = supplierWithProducer(task)
+        def provider = supplierWithProducer(task, someValue())
 
         def property = propertyWithNoValue()
         property.set(provider)
-        def mapped = property.map { it }
+        def mapped = property.map { someOtherValue() }
 
         expect:
-        assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        assertHasProducer(mapped, task)
+        def value = mapped.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.changingValue.get() == someOtherValue()
+    }
+
+    def "fails when property has multiple producers attached"() {
+        def owner1 = owner()
+        owner1.modelIdentityDisplayName >> displayName("<owner 1>")
+        def owner2 = owner()
+        owner2.modelIdentityDisplayName >> displayName("<owner 2>")
+
+        given:
+        def property = propertyWithNoValue()
+        property.attachProducer(owner1)
+
+        when:
+        property.attachProducer(owner2)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "This property is already declared as an output property of <owner 1> (type ${owner1.class.simpleName}). Cannot also declare it as an output property of <owner 2> (type ${owner2.class.simpleName})."
+
+        when:
+        property.attachOwner(owner(), displayName("<display-name>"))
+        property.attachProducer(owner2)
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "<display-name> is already declared as an output property of <owner 1> (type ${owner1.class.simpleName}). Cannot also declare it as an output property of <owner 2> (type ${owner2.class.simpleName})."
+    }
+
+    def "fails when property has producer with no task"() {
+        def owner = owner()
+        owner.taskThatOwnsThisObject >> null
+        owner.modelIdentityDisplayName >> displayName("<owner>")
+
+        given:
+        def property = propertyWithNoValue()
+        property.attachProducer(owner)
+
+        when:
+        property.producer.visitProducerTasks(Stub(Action))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "This property is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it."
     }
 
     def "can unpack state and recreate instance"() {
@@ -2039,16 +2137,18 @@ The value of this provider is derived from:
         copy2.get() == someValue()
     }
 
-    void assertContentIsNotProducedByTask(ProviderInternal<?> provider) {
-        def producers = []
-        provider.visitProducerTasks { producers.add(it) }
-        assert producers.isEmpty()
+    ModelObject owner() {
+        return Stub(ModelObject)
     }
 
-    void assertContentIsProducedByTask(ProviderInternal<?> provider, Task task) {
-        def producers = []
-        provider.visitProducerTasks { producers.add(it) }
-        assert producers == [task]
+    ModelObject owner(Task task) {
+        def owner = Stub(ModelObject)
+        _ * owner.taskThatOwnsThisObject >> task
+        return owner
+    }
+
+    DisplayName displayName(String name) {
+        return Describables.of(name)
     }
 
     /**
@@ -2079,8 +2179,16 @@ The value of this provider is derived from:
         return ProviderTestUtil.withValues(values)
     }
 
-    ProviderInternal<T> supplierWithProducer(Object producer) {
-        return ProviderTestUtil.withProducer(type(), producer)
+    ProviderInternal<T> supplierWithChangingExecutionTimeValues(T... values) {
+        return ProviderTestUtil.withChangingExecutionTimeValues(values)
+    }
+
+    ProviderInternal<T> supplierWithProducer(Task producer, T... values) {
+        return ProviderTestUtil.withProducer(type(), producer, values)
+    }
+
+    ProviderInternal<T> supplierWithProducerAndChangingExecutionTimeValue(Task producer, T... values) {
+        return ProviderTestUtil.withProducerAndChangingExecutionTimeValue(type(), producer, values)
     }
 
     class NoValueProvider<T> extends AbstractMinimalProvider<T> {

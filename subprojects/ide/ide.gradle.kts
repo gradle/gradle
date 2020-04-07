@@ -33,6 +33,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
     implementation(project(":languageJava"))
     implementation(project(":languageScala"))
     implementation(project(":scala"))

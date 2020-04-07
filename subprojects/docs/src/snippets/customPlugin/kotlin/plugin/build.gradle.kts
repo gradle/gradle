@@ -1,9 +1,6 @@
-// tag::use-plugin[]
 plugins {
     groovy
-// end::use-plugin[]
     `maven-publish`
-// tag::use-plugin[]
 }
 
 // tag::gradle-api-dependencies[]
@@ -18,7 +15,6 @@ dependencies {
 }
 // end::gradle-api-dependencies[]
 // end::local-groovy-dependencies[]
-// end::use-plugin[]
 
 repositories {
     mavenCentral()

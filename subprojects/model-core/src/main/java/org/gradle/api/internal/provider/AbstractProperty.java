@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.state.ModelObject;
 
 import javax.annotation.Nullable;
 
@@ -31,7 +30,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this property");
     private static final DisplayName DEFAULT_VALIDATION_DISPLAY_NAME = Describables.of("a property");
 
-    private Task producer;
+    private ModelObject producer;
     private DisplayName displayName;
     private FinalizationState<S> state;
     private S value;
@@ -56,7 +55,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public void attachDisplayName(DisplayName displayName) {
+    public void attachOwner(ModelObject owner, DisplayName displayName) {
         this.displayName = displayName;
     }
 
@@ -87,11 +86,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public void attachProducer(Task task) {
-        if (this.producer != null && this.producer != task) {
-            throw new IllegalStateException(String.format("%s already has a producer task associated with it.", getDisplayName().getCapitalizedDisplayName()));
+    public void attachProducer(ModelObject owner) {
+        if (this.producer == null) {
+            this.producer = owner;
+        } else if (this.producer != owner) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(getDisplayName().getCapitalizedDisplayName());
+            formatter.append(" is already declared as an output property of ");
+            format(this.producer, formatter);
+            formatter.append(". Cannot also declare it as an output property of ");
+            format(owner, formatter);
+            formatter.append(".");
+            throw new IllegalStateException(formatter.toString());
         }
-        this.producer = task;
     }
 
     protected S getSupplier() {
@@ -105,6 +112,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     protected abstract Value<? extends T> calculateOwnValue(S value);
+
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        beforeRead();
+        ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
+        if (getProducerTask() == null) {
+            return value;
+        } else {
+            return value.withChangingContent();
+        }
+    }
+
+    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(S value);
 
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
@@ -122,26 +142,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-        if (producer != null) {
-            visitor.execute(producer);
+    public ValueProducer getProducer() {
+        Task task = getProducerTask();
+        if (task != null) {
+            return ValueProducer.task(task);
         } else {
-            getSupplier().visitProducerTasks(visitor);
+            return getSupplier().getProducer();
         }
-    }
-
-    @Override
-    public boolean isValueProducedByTask() {
-        return getSupplier().isValueProducedByTask();
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (producer != null) {
-            context.add(producer);
-            return true;
-        }
-        return getSupplier().maybeVisitBuildDependencies(context);
     }
 
     @Override
@@ -213,6 +220,40 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected void assertCanMutate() {
         state.beforeMutate(getDisplayName());
+    }
+
+    @Nullable
+    private Task getProducerTask() {
+        if (producer == null) {
+            return null;
+        }
+        Task task = producer.getTaskThatOwnsThisObject();
+        if (task == null) {
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node(getDisplayName().getCapitalizedDisplayName());
+            formatter.append(" is declared as an output property of ");
+            format(producer, formatter);
+            formatter.append(" but does not have a task associated with it.");
+            throw new IllegalStateException(formatter.toString());
+        }
+        return task;
+    }
+
+    private void format(ModelObject modelObject, TreeFormatter formatter) {
+        if (modelObject.getModelIdentityDisplayName() != null) {
+            formatter.append(modelObject.getModelIdentityDisplayName().getDisplayName());
+            formatter.append(" (type ");
+            formatter.appendType(modelObject.getClass());
+            formatter.append(")");
+        } else if (modelObject.hasUsefulDisplayName()) {
+            formatter.append(modelObject.toString());
+            formatter.append(" (type ");
+            formatter.appendType(modelObject.getClass());
+            formatter.append(")");
+        } else {
+            formatter.append("an object with type ");
+            formatter.appendType(modelObject.getClass());
+        }
     }
 
     private static abstract class FinalizationState<S> {

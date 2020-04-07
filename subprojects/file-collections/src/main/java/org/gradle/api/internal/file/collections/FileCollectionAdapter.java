@@ -18,6 +18,8 @@ package org.gradle.api.internal.file.collections;
 import org.gradle.api.Buildable;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.Factory;
 
 import java.io.File;
 import java.util.Set;
@@ -26,31 +28,36 @@ import java.util.Set;
  * Adapts a {@link MinimalFileSet} into a full {@link org.gradle.api.file.FileCollection}.
  */
 public class FileCollectionAdapter extends AbstractFileCollection implements FileCollectionContainer {
-    private final MinimalFileSet fileCollection;
+    private final MinimalFileSet fileSet;
 
     public FileCollectionAdapter(MinimalFileSet fileSet) {
-        this.fileCollection = fileSet;
+        this.fileSet = fileSet;
+    }
+
+    public FileCollectionAdapter(MinimalFileSet fileSet, Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
+        this.fileSet = fileSet;
     }
 
     @Override
     public String getDisplayName() {
-        return fileCollection.getDisplayName();
+        return fileSet.getDisplayName();
     }
 
     @Override
     public void visitContents(FileCollectionResolveContext context) {
-        context.add(fileCollection);
+        context.add(fileSet);
     }
 
     @Override
     public Set<File> getFiles() {
-        return fileCollection.getFiles();
+        return fileSet.getFiles();
     }
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
-        if (fileCollection instanceof Buildable) {
-            context.add(fileCollection);
+        if (fileSet instanceof Buildable) {
+            context.add(fileSet);
         }
     }
 }

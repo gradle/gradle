@@ -18,7 +18,9 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.jvm.application.scripts.JavaAppStartScriptGenerationDetails;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 
 public final class DefaultJavaAppStartScriptGenerationDetails implements JavaAppStartScriptGenerationDetails {
 
@@ -28,17 +30,19 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     private final String mainClassName;
     private final List<String> defaultJvmOpts;
     private final List<String> classpath;
+    private final List<String> modulePath;
     private final String scriptRelPath;
     private final String appNameSystemProperty;
 
-    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, String mainClassName, List<String> defaultJvmOpts,
-                                                      List<String> classpath, String scriptRelPath, String appNameSystemProperty) {
+    public DefaultJavaAppStartScriptGenerationDetails(String applicationName, String optsEnvironmentVar, String exitEnvironmentVar, String mainClassName,
+                                                      List<String> defaultJvmOpts, List<String> classpath, List<String> modulePath, String scriptRelPath, @Nullable String appNameSystemProperty) {
         this.applicationName = applicationName;
         this.optsEnvironmentVar = optsEnvironmentVar;
         this.exitEnvironmentVar = exitEnvironmentVar;
         this.mainClassName = mainClassName;
         this.defaultJvmOpts = defaultJvmOpts;
         this.classpath = classpath;
+        this.modulePath = modulePath;
         this.scriptRelPath = scriptRelPath;
         this.appNameSystemProperty = appNameSystemProperty;
     }
@@ -74,11 +78,17 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
     }
 
     @Override
+    public List<String> getModulePath() {
+        return modulePath;
+    }
+
+    @Override
     public String getScriptRelPath() {
         return scriptRelPath;
     }
 
     @Override
+    @Nullable
     public String getAppNameSystemProperty() {
         return appNameSystemProperty;
     }
@@ -95,28 +105,31 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
 
         DefaultJavaAppStartScriptGenerationDetails that = (DefaultJavaAppStartScriptGenerationDetails) o;
 
-        if (appNameSystemProperty != null ? !appNameSystemProperty.equals(that.appNameSystemProperty) : that.appNameSystemProperty != null) {
+        if (!Objects.equals(appNameSystemProperty, that.appNameSystemProperty)) {
             return false;
         }
-        if (applicationName != null ? !applicationName.equals(that.applicationName) : that.applicationName != null) {
+        if (!Objects.equals(applicationName, that.applicationName)) {
             return false;
         }
-        if (classpath != null ? !classpath.equals(that.classpath) : that.classpath != null) {
+        if (!Objects.equals(classpath, that.classpath)) {
             return false;
         }
-        if (defaultJvmOpts != null ? !defaultJvmOpts.equals(that.defaultJvmOpts) : that.defaultJvmOpts != null) {
+        if (!Objects.equals(modulePath, that.modulePath)) {
             return false;
         }
-        if (exitEnvironmentVar != null ? !exitEnvironmentVar.equals(that.exitEnvironmentVar) : that.exitEnvironmentVar != null) {
+        if (!Objects.equals(defaultJvmOpts, that.defaultJvmOpts)) {
             return false;
         }
-        if (mainClassName != null ? !mainClassName.equals(that.mainClassName) : that.mainClassName != null) {
+        if (!Objects.equals(exitEnvironmentVar, that.exitEnvironmentVar)) {
             return false;
         }
-        if (optsEnvironmentVar != null ? !optsEnvironmentVar.equals(that.optsEnvironmentVar) : that.optsEnvironmentVar != null) {
+        if (!Objects.equals(mainClassName, that.mainClassName)) {
             return false;
         }
-        if (scriptRelPath != null ? !scriptRelPath.equals(that.scriptRelPath) : that.scriptRelPath != null) {
+        if (!Objects.equals(optsEnvironmentVar, that.optsEnvironmentVar)) {
+            return false;
+        }
+        if (!Objects.equals(scriptRelPath, that.scriptRelPath)) {
             return false;
         }
 
@@ -131,6 +144,7 @@ public final class DefaultJavaAppStartScriptGenerationDetails implements JavaApp
         result = 31 * result + (mainClassName != null ? mainClassName.hashCode() : 0);
         result = 31 * result + (defaultJvmOpts != null ? defaultJvmOpts.hashCode() : 0);
         result = 31 * result + (classpath != null ? classpath.hashCode() : 0);
+        result = 31 * result + (modulePath != null ? modulePath.hashCode() : 0);
         result = 31 * result + (scriptRelPath != null ? scriptRelPath.hashCode() : 0);
         result = 31 * result + (appNameSystemProperty != null ? appNameSystemProperty.hashCode() : 0);
         return result;

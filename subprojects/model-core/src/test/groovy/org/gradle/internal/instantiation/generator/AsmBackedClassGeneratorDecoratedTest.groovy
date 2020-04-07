@@ -27,16 +27,20 @@ import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.util.BiFunction
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.TestUtil
 import spock.lang.Issue
 
 import static AsmBackedClassGeneratorTest.Bean
 import static AsmBackedClassGeneratorTest.InterfaceBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.UsesToStringInConstructor
 
 class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
-    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], [], new TestCrossBuildInMemoryCacheFactory(), 0)
+    final ClassGenerator generator = AsmBackedClassGenerator.decorateAndInject([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
     def "mixes in toString() implementation for class"() {
         given:
@@ -46,9 +50,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<display name>"
         bean.hasUsefulDisplayName()
+        bean.modelIdentityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString().startsWith("${Bean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
+        beanWithNoName.modelIdentityDisplayName == null
     }
 
     def "does not mixes in toString() implementation for class that defines an implementation"() {
@@ -59,9 +65,11 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<bean>"
         bean.hasUsefulDisplayName()
+        bean.modelIdentityDisplayName.displayName == "<display name>"
 
         beanWithNoName.toString() == "<bean>"
         beanWithNoName.hasUsefulDisplayName()
+        beanWithNoName.modelIdentityDisplayName == null
     }
 
     def "mixes in toString() implementation for interface"() {
@@ -72,19 +80,33 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         expect:
         bean.toString() == "<display name>"
         bean.hasUsefulDisplayName()
+        bean.modelIdentityDisplayName.displayName == "<display name>"
+
         beanWithNoName.toString().startsWith("${InterfaceBean.name}_Decorated@")
         !beanWithNoName.hasUsefulDisplayName()
+        beanWithNoName.modelIdentityDisplayName == null
+    }
+
+    def "constructor can use toString() implementation"() {
+        given:
+        def bean = create(UsesToStringInConstructor, Describables.of("<display name>"))
+        def beanWithNoName = create(UsesToStringInConstructor)
+
+        expect:
+        bean.name == "<display name>"
+
+        beanWithNoName.name.startsWith("${UsesToStringInConstructor.name}_Decorated@")
     }
 
     def "assigns display name to read only property of type Property<T>"() {
         given:
-        def finalReadOnlyBean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"), TestUtil.objectFactory())
-        def readOnlyBean = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
-        def readOnlyBeanWithMapping = create(HasReadOnlyProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def finalReadOnlyBean = create(HasReadOnlyFinalProperty, Describables.of("<display name>"))
+        def readOnlyBean = create(HasReadOnlyProperty, Describables.of("<display name>"))
+        def readOnlyBeanWithMapping = create(HasReadOnlyProperty, Describables.of("<display name>"))
         readOnlyBeanWithMapping.conventionMapping.map("other") { "ignore" }
-        def finalBeanWithOverloads = create(HasReadOnlyFinalBooleanPropertyWithOverloads, Describables.of("<display name>"), TestUtil.objectFactory())
-        def beanWithOverloads = create(HasReadOnlyBooleanPropertyWithOverloads, Describables.of("<display name>"), TestUtil.objectFactory())
-        def mutableBean = create(HasMutableProperty, Describables.of("<display name>"), TestUtil.objectFactory())
+        def finalBeanWithOverloads = create(HasReadOnlyFinalBooleanPropertyWithOverloads, Describables.of("<display name>"))
+        def beanWithOverloads = create(HasReadOnlyBooleanPropertyWithOverloads, Describables.of("<display name>"))
+        def mutableBean = create(HasMutableProperty, Describables.of("<display name>"))
 
         expect:
         finalReadOnlyBean.someValue.toString() == "<display name> property 'someValue'"
@@ -92,7 +114,32 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         readOnlyBeanWithMapping.someValue.toString() == "<display name> property 'someValue'"
         finalBeanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
         beanWithOverloads.getSomeValue().toString() == "<display name> property 'someValue'"
-        mutableBean.someValue.toString() == "property(class java.lang.String, undefined)"
+
+        // Does not assign display name to mutable property
+        mutableBean.someValue.toString() == "property(java.lang.String, undefined)"
+    }
+
+    def "assigns display name to read only non-final nested property that is not managed"() {
+        def bean = create(NestedBeanClass)
+        def beanWithDisplayName = create(NestedBeanClass, Describables.of("<display-name>"))
+
+        expect:
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        bean.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+    }
+
+    def "assigns display name to read only final non-managed property of type Property"() {
+        def bean = create(FinalReadOnlyNonManagedPropertyBean)
+        def beanWithDisplayName = create(FinalReadOnlyNonManagedPropertyBean, Describables.of("<display-name>"))
+
+        expect:
+        bean.prop.toString() == "property 'prop'"
+        beanWithDisplayName.prop.toString() == "<display-name> property 'prop'"
     }
 
     def "can attach nested extensions to object"() {
@@ -132,7 +179,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         conf(thing1) { m1() }
 
         then:
-        def e = thrown(groovy.lang.MissingMethodException)
+        def e = thrown(MissingMethodException)
         e.method == "foo"
 
         when:
@@ -140,7 +187,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         conf(thing1) { abc }
 
         then:
-        e = thrown(groovy.lang.MissingPropertyException)
+        e = thrown(MissingPropertyException)
         e.property == "bar"
 
         when:
@@ -148,7 +195,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         conf(thing1) { abc = true }
 
         then:
-        e = thrown(groovy.lang.MissingPropertyException)
+        e = thrown(MissingPropertyException)
         e.property == "baz"
     }
 

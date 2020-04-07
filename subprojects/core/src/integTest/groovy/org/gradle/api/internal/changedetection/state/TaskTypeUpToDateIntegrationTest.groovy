@@ -53,7 +53,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         skipped":copy"
     }
 
-    @ToBeFixedForInstantExecution
     def "task with type declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
 
@@ -81,7 +80,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         then: skipped":copy"
     }
 
-    @ToBeFixedForInstantExecution
     def "task with action declared in build script is not up-to-date after build script change"() {
         file("input.txt") << "input"
         buildFile << """
@@ -115,7 +113,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2936")
-    @ToBeFixedForInstantExecution
     def "task declared in buildSrc is not up-to-date after its source is changed"() {
         file("input.txt") << "input"
 
@@ -191,11 +188,11 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             class IncrementalTask extends DefaultTask {
                 @InputFile File input
-             
+
                 @TaskAction execute(${incrementalChangesType} inputChanges) {
                 }
-            }   
-            
+            }
+
             task noOutput(type: IncrementalTask) {
                 input = file('${input.name}')
             }
@@ -222,7 +219,7 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
         """
     }
 
-    private static String declareSimpleCopyTaskType(boolean modification  = false) {
+    private static String declareSimpleCopyTaskType(boolean modification = false) {
         """
             import org.gradle.api.*
             import org.gradle.api.tasks.*

@@ -400,7 +400,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def 'changing rule implementation invalidates cache'() {
         repository {
             'org.test:projectA:1.0'()

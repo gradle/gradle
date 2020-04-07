@@ -15,9 +15,11 @@
  */
 package org.gradle.plugins.ide.eclipse
 
+import org.gradle.api.Project
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.ide.eclipse.model.EclipseClasspath
+import org.gradle.util.TestUtil
 
 class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
 
@@ -28,7 +30,9 @@ class GenerateEclipseClasspathTest extends AbstractSpockTaskTest {
     }
 
     def setup() {
+        def project = Mock(Project)
+        project.getObjects() >> TestUtil.objectFactory()
         eclipseClasspath = createTask(GenerateEclipseClasspath.class)
-        eclipseClasspath.classpath = new EclipseClasspath(null)
+        eclipseClasspath.classpath = new EclipseClasspath(project)
     }
 }

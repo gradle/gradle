@@ -41,6 +41,7 @@ import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.jpms.JavaModuleDetector;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
@@ -62,14 +63,18 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
  */
 public class IdeDependencySet {
     private final DependencyHandler dependencyHandler;
+    private final JavaModuleDetector javaModuleDetector;
     private final Collection<Configuration> plusConfigurations;
     private final Collection<Configuration> minusConfigurations;
+    private final boolean inferModulePath;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations,  boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
         this.dependencyHandler = dependencyHandler;
+        this.javaModuleDetector = javaModuleDetector;
         this.plusConfigurations = plusConfigurations;
         this.minusConfigurations = minusConfigurations;
+        this.inferModulePath = inferModulePath;
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
@@ -214,22 +219,34 @@ public class IdeDependencySet {
         private void visitArtifacts(IdeDependencyVisitor visitor) {
             for (ResolvedArtifactResult artifact : resolvedArtifacts.values()) {
                 ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
-                ComponentArtifactIdentifier artifactIdentifier = artifact.getId();
+                boolean testOnly = isTestConfiguration(configurations.get(artifact.getId()));
+                boolean asModule = isModule(testOnly, artifact.getFile());
                 if (componentIdentifier instanceof ProjectComponentIdentifier) {
-                    visitor.visitProjectDependency(artifact);
-                } else if (componentIdentifier instanceof ModuleComponentIdentifier) {
-                    Set<ResolvedArtifactResult> sources = auxiliaryArtifacts.get(componentIdentifier, SourcesArtifact.class);
-                    sources = sources != null ? sources : Collections.<ResolvedArtifactResult>emptySet();
-                    Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
-                    javaDoc = javaDoc != null ? javaDoc : Collections.<ResolvedArtifactResult>emptySet();
-                    visitor.visitModuleDependency(artifact, sources, javaDoc, isTestConfiguration(configurations.get(artifactIdentifier)));
-                } else if (isLocalGroovyDependency(artifact)) {
-                    File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
-                    visitor.visitGradleApiDependency(artifact, localGroovySources, isTestConfiguration(configurations.get(artifactIdentifier)));
+                    visitor.visitProjectDependency(artifact, asModule);
                 } else {
-                    visitor.visitFileDependency(artifact, isTestConfiguration(configurations.get(artifactIdentifier)));
+                    if (componentIdentifier instanceof ModuleComponentIdentifier) {
+                        Set<ResolvedArtifactResult> sources = auxiliaryArtifacts.get(componentIdentifier, SourcesArtifact.class);
+                        sources = sources != null ? sources : Collections.emptySet();
+                        Set<ResolvedArtifactResult> javaDoc = auxiliaryArtifacts.get(componentIdentifier, JavadocArtifact.class);
+                        javaDoc = javaDoc != null ? javaDoc : Collections.emptySet();
+                        visitor.visitModuleDependency(artifact, sources, javaDoc, testOnly, asModule);
+                    } else if (isLocalGroovyDependency(artifact)) {
+                        File localGroovySources = shouldDownloadSources(visitor) ? gradleApiSourcesResolver.resolveLocalGroovySources(artifact.getFile().getName()) : null;
+                        visitor.visitGradleApiDependency(artifact, localGroovySources, testOnly);
+                    } else {
+                        visitor.visitFileDependency(artifact, testOnly);
+                    }
                 }
             }
+        }
+
+        private boolean isModule(boolean testOnly, File artifact) {
+            // Test code is not treated as modules, as Eclipse does not support compiling two modules in one project anyway.
+            // See also: https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667
+            //
+            // We assume that a test-only dependency is not a module, which corresponds to how Eclipse does test running for modules:
+            // It patches the main module with the tests and expects test dependencies to be part of the unnamed module (classpath).
+            return javaModuleDetector.isModule(inferModulePath && !testOnly, artifact);
         }
 
         private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {

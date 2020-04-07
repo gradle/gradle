@@ -39,7 +39,7 @@ dependencies {
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 
-    add("reports", "jquery:jquery.min:1.11.0@js")
+    add("reports", "jquery:jquery.min:3.4.1@js")
 }
 
 gradlebuildJava {

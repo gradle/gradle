@@ -21,8 +21,6 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.ProjectConnection
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
@@ -65,7 +63,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def events = ProgressEvents.create()
         settingsFile << "rootProject.name = 'single'"
         buildFile << """
-            plugins { 
+            plugins {
                 id 'java'
             }
         """
@@ -92,7 +90,6 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         base.parent == javaBase
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @Issue('https://github.com/gradle/gradle-private/issues/1341')
     def "generates plugin application events for community plugin applied through plugins dsl"() {
         given:
@@ -129,7 +126,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         settingsFile << """
             rootProject.name = 'single'
             apply plugin: ExamplePlugin
-            
+
             class ExamplePlugin implements Plugin<Object> {
                 void apply(Object target) { }
             }
@@ -158,7 +155,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         buildFile << ""
         initScript  << """
             apply plugin: ExamplePlugin
-            
+
             class ExamplePlugin implements Plugin<Object> {
                 void apply(Object target) { }
             }
@@ -187,7 +184,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def initScript = file('init.gradle')
         buildFile << ""
         initScript  << """
-            rootProject { 
+            rootProject {
                 apply plugin: 'java'
             }
         """
@@ -221,7 +218,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def initScript = file('init.gradle')
         buildFile << ""
         initScript  << """
-            rootProject { 
+            rootProject {
                 apply plugin: 'java'
             }
         """
@@ -255,7 +252,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def initScript = file('init.gradle')
         buildFile << ""
         initScript  << """
-            allprojects { 
+            allprojects {
                 apply plugin: 'java'
             }
         """
@@ -289,7 +286,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         def initScript = file('init.gradle')
         buildFile << ""
         initScript  << """
-            allprojects { 
+            allprojects {
                 apply plugin: 'java'
             }
         """
@@ -530,7 +527,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
         applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:a").child("Apply plugin org.gradle.java to project ':buildSrc:a'")
         applyBuildSrcBuildGradle.child("Execute 'allprojects {}' action").child("Cross-configure project :buildSrc:b").child("Apply plugin org.gradle.java to project ':buildSrc:b'")
     }
-    
+
     @TargetGradleVersion(">=4.0 <6.0")
     def "generates Java plugin application events for buildSrc"() {
         given:
@@ -583,7 +580,7 @@ class PluginApplicationBuildProgressCrossVersionSpec extends ToolingApiSpecifica
     private buildSrc() {
         file("buildSrc/settings.gradle") << "include 'a', 'b'"
         file("buildSrc/build.gradle") << """
-            allprojects {   
+            allprojects {
                 apply plugin: 'java'
             }
             dependencies {

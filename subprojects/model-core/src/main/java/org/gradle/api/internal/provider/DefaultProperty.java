@@ -117,6 +117,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     }
 
     @Override
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderInternal<? extends T> value) {
+        // Discard this property from a provider chain, as it does not contribute anything to the calculation.
+        return value.calculateExecutionTimeValue();
+    }
+
+    @Override
     protected Value<? extends T> calculateOwnValue(ProviderInternal<? extends T> value) {
         return value.calculateValue();
     }
@@ -129,6 +135,6 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("property(%s, %s)", type, getSupplier());
+        return String.format("property(%s, %s)", type.getName(), getSupplier());
     }
 }

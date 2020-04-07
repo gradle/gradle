@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ManagedFactory
@@ -25,7 +26,6 @@ import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
 import spock.lang.Unroll
 
-import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.*
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
@@ -36,6 +36,7 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceContainerPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDirectoryPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceDomainSetPropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileCollectionBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFilePropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceFileTreeBean
@@ -46,13 +47,17 @@ import static org.gradle.internal.instantiation.generator.AsmBackedClassGenerato
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfacePropertyWithParamTypeBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceSetPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceUsesToStringBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.InterfaceWithDefaultMethods
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NamedBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.NestedBeanClassWithToString
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Param
 
 class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec {
     ManagedFactory generatorFactory = TestUtil.instantiatorFactory().managedFactory
     final ManagedFactoryRegistry managedFactoryRegistry = new DefaultManagedFactoryRegistry().withFactories(generatorFactory)
-    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
+    final ClassGenerator generator = AsmBackedClassGenerator.injectOnly([], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), generatorFactory.id)
 
     def canConstructInstanceOfAbstractClassWithAbstractPropertyGetterAndSetter() {
         def bean = create(BeanWithAbstractProperty)
@@ -197,20 +202,76 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def beanWithDisplayName = create(InterfaceNestedBean, Describables.of("<display-name>"))
 
         expect:
-        bean.filesBean.toString() == "property 'filesBean'"
-        bean.filesBean.prop.toString() == "file collection"
+        beanWithDisplayName.toString() == "<display-name>"
+
         bean.filesBean.prop.empty
         bean.filesBean.prop.from("a", "b")
         bean.filesBean.prop.files == [projectDir.file("a"), projectDir.file("b")] as Set
 
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.filesBean.modelIdentityDisplayName.displayName == "property 'filesBean'"
+        bean.filesBean.prop.toString() == "file collection"
+
         bean.propBean.toString() == "property 'propBean'"
+        bean.propBean.modelIdentityDisplayName.displayName == "property 'propBean'"
         bean.propBean.prop.toString() == "property 'propBean.prop'"
 
         beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.modelIdentityDisplayName.displayName == "<display-name> property 'filesBean'"
         beanWithDisplayName.filesBean.prop.toString() == "file collection"
 
         beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.modelIdentityDisplayName.displayName == "<display-name> property 'propBean'"
         beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
+    }
+
+    def "nested object can use toString() in its constructor"() {
+        def bean = create(InterfaceUsesToStringBean)
+        def beanWithDisplayName = create(InterfaceUsesToStringBean, Describables.of("<display-name>"))
+
+        expect:
+        bean.bean.name == "property 'bean'"
+        beanWithDisplayName.bean.name == "<display-name> property 'bean'"
+    }
+
+    def "assigns display name to nested object when owner has toString() implementation"() {
+        def bean = create(NestedBeanClassWithToString)
+        def beanWithDisplayName = create(NestedBeanClassWithToString, Describables.of("<display-name>"))
+
+        expect:
+        bean.toString() == "<some bean>"
+
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.filesBean.modelIdentityDisplayName.displayName == "property 'filesBean'"
+        bean.filesBean.prop.toString() == "file collection"
+
+        bean.propBean.toString() == "property 'propBean'"
+        bean.propBean.modelIdentityDisplayName.displayName == "property 'propBean'"
+        bean.propBean.prop.toString() == "property 'propBean.prop'"
+
+        beanWithDisplayName.toString() == "<some bean>"
+
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.modelIdentityDisplayName.displayName == "<display-name> property 'filesBean'"
+        beanWithDisplayName.filesBean.prop.toString() == "file collection"
+
+        beanWithDisplayName.propBean.toString() == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.modelIdentityDisplayName.displayName == "<display-name> property 'propBean'"
+        beanWithDisplayName.propBean.prop.toString() == "<display-name> property 'propBean.prop'"
+    }
+
+    def "assigns display name to read only non-final nested property that is not managed"() {
+        def bean = create(NestedBeanClass)
+        def beanWithDisplayName = create(NestedBeanClass, Describables.of("<display-name>"))
+
+        expect:
+        bean.filesBean.toString() == "property 'filesBean'"
+        bean.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        bean.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+
+        beanWithDisplayName.filesBean.toString() == "<display-name> property 'filesBean'"
+        beanWithDisplayName.finalProp.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
+        beanWithDisplayName.mutableProperty.toString().startsWith("${InterfacePropertyBean.name}_Decorated@")
     }
 
     @Unroll
