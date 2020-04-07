@@ -37,8 +37,8 @@ The only mandatory configuration for the plugin is the specification of the main
 
 .Configure the application main class
 ====
-include::sample[dir="snippets/application/groovy",files="build.gradle[tags=mainClassName-conf]"]
-include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=mainClassName-conf]"]
+include::sample[dir="snippets/application/groovy",files="build.gradle[tags=mainClass-conf]"]
+include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=mainClass-conf]"]
 ====
 
 You can run the application by executing the `run` task (type: link:{javadocPath}/org/gradle/api/tasks/JavaExec.html[JavaExec]). This will compile the main source set, and launch a new JVM with its classes (along with all runtime dependencies) as the classpath and using the specified main class. You can launch the application in debug mode with `gradle run --debug-jvm` (see link:{javadocPath}/org/gradle/api/tasks/JavaExec.html#setDebug-boolean-[JavaExec.setDebug(boolean)]).
@@ -63,6 +63,41 @@ include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=e
 
 [[sec:application_modular]]
 == Building applications using the Java Module System
+
+Samples: link:../samples/#java_modules[Java Modules sample projects]
+
+[NOTE]
+====
+Java Module System support is an incubating feature and therefore you need to turn on _module path inference_ explicitly as shown below.
+====
+
+.Activate module path inference
+====
+include::sample[dir="snippets/application/groovy",files="build.gradle[tags=inferModulePath]"]
+include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=inferModulePath]"]
+====
+
+Gradle supports the building of https://www.oracle.com/corporate/features/understanding-java-9-modules.html[Java Modules] as described in the <<java_library_plugin.adoc#sec:java_library_modular,corresponding section of the Java Library plugin documentation>>.
+Java modules can also be runnable and you can use the application plugin to run and package such a modular application.
+For this, you need to do two things in addition to what you do for a non-modular application.
+
+First, you need to add a `module-info.java` file to describe your application module.
+Please refer to the <<java_library_plugin.adoc#sec:java_library_modular,Java Library plugin documentation>> for more details on this topic.
+
+Second, you need to tell Gradle the name of the module you want to run in addition to the main class name like this:
+
+.Configure the modular application's main module
+====
+include::sample[dir="snippets/application/groovy",files="build.gradle[tags=mainModule-conf]"]
+include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=mainModule-conf]"]
+====
+
+That's all.
+If you run your application (by executing the `run` task or through a <<#sec:the_distribution,generated start script>>), it will run as module and respect module boundaries at runtime.
+For example, reflective access to an internal package from another module can fail.
+
+The configured _main class_ is also baked into the `module-info.class` file of your application Jar.
+If you run the modular application directly using the `java` command, it is then sufficient to provide the module name.
 
 [[sec:the_distribution]]
 == Building a distribution
@@ -107,9 +142,12 @@ You can run `gradle installDist` to create an image of the application in `build
 [[sec:customizing_start_script_generation]]
 === Customizing start script generation
 
-The application plugin can generate Unix (suitable for Linux, macOS etc.) and Windows start scripts out of the box. The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. `JAVA_OPTS` env var). The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
+The application plugin can generate Unix (suitable for Linux, macOS etc.) and Windows start scripts out of the box.
+The start scripts launch a JVM with the specified settings defined as part of the original build and runtime environment (e.g. `JAVA_OPTS` env var).
+The default script templates are based on the same scripts used to launch Gradle itself, that ship as part of a Gradle distribution.
 
-The start scripts are completely customizable. Please refer to the documentation of link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] for more details and customization examples.
+The start scripts are completely customizable.
+Please refer to the documentation of link:{groovyDslPath}/org.gradle.jvm.application.tasks.CreateStartScripts.html[CreateStartScripts] for more details and customization examples.
 
 [[sec:application_tasks]]
 == Tasks
