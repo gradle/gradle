@@ -31,6 +31,40 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+## Building, testing and running Java Modules
+
+With this release, Gradle now supports the Java Module System in all Java-related functionality.
+The Java Module System (also known as Project Jigsaw or JPMS) was introduced with Java 9 and allows for strong encapsulation of Java Modules.
+A Java Module is a Jar with additional module information that describes, for instance, which packages of the Jar can be seen by other modules or which other modules are required to compile and run a module.
+
+While there is some overlap with Gradle's dependency management features, Java Modules offer additional strong encapsulation features with the added benefit that module boundaries are also enforced by the Java runtime at execution time.
+The Java Module System support in Gradle 6.4 gives you everything you need to compile, test and run Java Modules.
+In addition, it also supports building Javadoc for modules.
+
+The only thing you need to configure is _module path inference_ for the Java plugins:
+
+```
+java {
+    modularClasspathSupport.inferModulePath.set(true)
+}
+```
+
+Then you just need to make sure that you write a proper Java module by providing a `module-info.java` descriptor as part of your sources:
+
+```
+src
+└── main
+    └── java
+        └── module-info.java
+```
+
+For more details, head over to the documentation on 
+[building modules](userguide/java_library_plugin.html#sec:java_library_modular), 
+[building modular applications](userguide/application_plugin.html#sec:application_modular) and 
+[testing modules](userguide/java_testing.html#sec:java_testing_modular).
+
+Also feel free to explore [the samples we have prepared](samples/#java_modules).
+
 ## New dependency locking file format
 
 Gradle 6.4 introduces an experimental dependency locking file format.
@@ -419,22 +453,10 @@ Gradle 6.4 takes a first step in improving those error messages by making them m
                                 hfi1vdp51SUqS9SXyd8U8JJAV1h4ThiOvrAQ6e2isLCgoLCwoKCgoKCgoGAYGM7ppODN4jfM+Aok
                                 sRq1uwAAAABJRU5ErkJggg==">
 
-<!-- 
-Add release features here!
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
-
 ## Improvements to code quality plugins
 
-The PMD plugin now supports a new property `maxFailures`. If set, the build will not fail if the number of failures is below the defined treshold.
+The PMD plugin now supports a new property `maxFailures`.
+If set, the build will not fail if the number of failures is below the defined threshold.
 This can help to introduce PMD into existing projects that may initially have too many warnings.
 
 ```
