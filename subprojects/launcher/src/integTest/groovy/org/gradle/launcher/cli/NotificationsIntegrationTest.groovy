@@ -111,7 +111,7 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
 
    Debug level logging will leak security sensitive information!
 
-   ${DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "debug_security")}
+   ${DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "sec:debug_security")}
 #############################################################################
 """
         withDebugLogging()

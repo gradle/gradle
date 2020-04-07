@@ -250,7 +250,7 @@ Plugins often also provide custom task types. Please see <<custom_tasks.adoc#cus
 Gradle provides a number of features that are helpful when developing Gradle types, including plugins. Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.
 
 CAUTION: When developing Gradle Plugins, it is important to be cautious when logging information to the build log.
-Logging sensitive information (e.g. credentials, tokens, certain environment variables) is <<logging.adoc#debug_security,considered a security vulnerability>>.
+Logging sensitive information (e.g. credentials, tokens, certain environment variables) is <<logging.adoc#sec:debug_security,considered a security vulnerability>>.
 Build logs for public Continuous Integration services are world-viewable and can expose this sensitive information.
 
 == Behind the scenes
