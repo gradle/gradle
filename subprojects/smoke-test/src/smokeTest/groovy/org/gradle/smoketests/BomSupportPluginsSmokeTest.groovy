@@ -16,7 +16,6 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -30,7 +29,6 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
     static springVersion = "5.0.8.RELEASE"
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task with Configuration field in ResolveTestFixture")
     def 'bom support is provided by #bomSupportProvider'() {
         given:
         def springVersion = springVersion
