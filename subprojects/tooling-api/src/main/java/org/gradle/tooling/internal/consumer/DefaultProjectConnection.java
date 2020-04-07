@@ -49,7 +49,6 @@ class DefaultProjectConnection implements ProjectConnection {
     }
 
     void disconnect() {
-        // TODO no-op when close() was called
         connection.disconnect();
     }
 
