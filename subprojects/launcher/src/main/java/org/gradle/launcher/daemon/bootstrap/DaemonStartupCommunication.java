@@ -32,6 +32,7 @@ import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 
 import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -43,23 +44,22 @@ public class DaemonStartupCommunication {
     private static final Logger LOGGER = Logging.getLogger(DaemonStartupCommunication.class);
 
     public void printDaemonStarted(PrintStream target, Long pid, String uid, Address address, File daemonLog) {
-        target.print(daemonGreeting());
 
         // Encode as ascii
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
         try {
-            OutputStream outputStream = new EncodedStream.EncodedOutput(target);
+            byteArrayOutputStream.write(daemonGreeting().getBytes());
+            OutputStream outputStream = new EncodedStream.EncodedOutput(byteArrayOutputStream);
             FlushableEncoder encoder = new OutputStreamBackedEncoder(outputStream);
             encoder.writeNullableString(pid == null ? null : pid.toString());
             encoder.writeString(uid);
             MultiChoiceAddress multiChoiceAddress = (MultiChoiceAddress) address;
             new MultiChoiceAddressSerializer().write(encoder, multiChoiceAddress);
             encoder.writeString(daemonLog.getPath());
-            encoder.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-
-        target.println();
+        target.println(byteArrayOutputStream.toString());
 
         //ibm vm 1.6 + windows XP gotchas:
         //we need to print something else to the stream after we print the daemon greeting.

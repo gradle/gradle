@@ -21,7 +21,9 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
 import static spock.util.matcher.HamcrestSupport.that
 
 class PmdPluginTest extends AbstractProjectBuilderSpec {
@@ -109,7 +111,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert ignoreFailures == false
             assert maxFailures.get() == 0
             assert rulePriority == 5
-            assert incrementalAnalysis.get() == false
+            assert incrementalAnalysis.get() == true
         }
     }
 
@@ -128,7 +130,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.ignoreFailures == false
         task.maxFailures.get() == 0
         task.rulePriority == 5
-        task.incrementalAnalysis.get() == false
+        task.incrementalAnalysis.get() == true
     }
 
     def "adds pmd tasks to check lifecycle task"() {

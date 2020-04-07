@@ -507,6 +507,104 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         'java-runtime' | 'runtimeElements'
     }
 
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "ivy")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @Unroll
+    def "can add variants for ivy - #usageAttribute - honors conf based excludes "() {
+        // through this, we opt-into variant aware dependency management for a pure ivy module
+        given:
+        repository {
+            'org.test:moduleA:1.0' {
+                dependsOn 'org.test:moduleB:1.0'
+                excludeFromConfig 'org.test:moduleD', 'compile'
+            }
+            'org.test:moduleB:1.0' {
+                dependsOn 'org.test:moduleD:1.0'
+            }
+            'org.test:moduleC:1.0' {
+                dependsOn 'org.test:moduleD:1.0'
+            }
+            'org.test:moduleD:1.0'()
+        }
+
+        when:
+        buildFile << """
+            class IvyVariantDerivation implements ComponentMetadataRule {
+                @javax.inject.Inject
+                ObjectFactory getObjects() { }
+
+                void execute(ComponentMetadataContext context) {
+                    context.details.addVariant('runtimeElements', 'default') { // the way it is published, the ivy 'default' configuration is the runtime variant
+                        attributes {
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+                        }
+                    }
+                    context.details.addVariant('apiElements', 'compile') {
+                        attributes {
+                            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+                            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.LIBRARY))
+                            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                            attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+                        }
+                    }
+                }
+            }
+            configurations.conf {
+                attributes { attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, '$usageAttribute')) }
+            }
+            dependencies {
+                conf 'org.test:moduleA:1.0'
+                components {
+                    withModule('org.test:moduleA', IvyVariantDerivation)
+                    withModule('org.test:moduleB', IvyVariantDerivation)
+                    withModule('org.test:moduleC', IvyVariantDerivation)
+                    withModule('org.test:moduleD', IvyVariantDerivation)
+                }
+            }
+        """
+        repositoryInteractions {
+            'org.test:moduleA:1.0' {
+                expectResolve()
+            }
+            'org.test:moduleB:1.0' {
+                expectResolve()
+            }
+            if (usageAttribute.contains('runtime')) {
+                'org.test:moduleD:1.0' {
+                    expectResolve()
+                }
+            }
+        }
+
+        then:
+        succeeds 'checkDep'
+        def expectedVariantAttributes = expectedJavaLibraryAttributes(true) + ['org.gradle.usage': usageAttribute]
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module('org.test:moduleA:1.0') {
+                    variant(varianName, expectedVariantAttributes)
+                    module('org.test:moduleB:1.0') {
+                        variant(varianName, expectedVariantAttributes)
+                        if (usageAttribute.contains('runtime')) {
+                            module('org.test:moduleD:1.0') {
+                                variant(varianName, expectedVariantAttributes)
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        where:
+        usageAttribute | varianName
+        'java-api'     | 'apiElements'
+        'java-runtime' | 'runtimeElements'
+    }
+
+
     @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
     @Unroll
