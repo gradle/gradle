@@ -90,13 +90,8 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     }
 
     private void requestCancellation() {
-        lock.lock();
-        try {
-            if (cancellationToken != null) {
-                cancellationToken.cancel();
-            }
-        } finally {
-            lock.unlock();
+        if (cancellationToken != null) {
+            cancellationToken.cancel();
         }
     }
 
