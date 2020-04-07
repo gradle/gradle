@@ -24,6 +24,16 @@ import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE
 @Unroll
 class SnapshotUtilTest extends Specification {
 
+    SnapshotHierarchy.NodeDiffListener diffListener = new SnapshotHierarchy.NodeDiffListener() {
+        @Override
+        void nodeRemoved(FileSystemNode node) {
+        }
+
+        @Override
+        void nodeAdded(FileSystemNode node) {
+        }
+    }
+
     def "getSnapshotFromChild returns child when queried at the same path #absolutePath"() {
         def child = mockChild(pathToParent)
 
@@ -66,10 +76,10 @@ class SnapshotUtilTest extends Specification {
         def relativePath = VfsRelativePath.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
-        def resultRoot = SnapshotUtil.storeSingleChild(child, relativePath, CASE_SENSITIVE, snapshot)
+        def resultRoot = SnapshotUtil.storeSingleChild(child, relativePath, CASE_SENSITIVE, snapshot, diffListener)
         then:
         resultRoot.is updatedChild
-        1 * child.store(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE, snapshot) >> updatedChild
+        1 * child.store(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE, snapshot, diffListener) >> updatedChild
 
         where:
         absolutePath                    | suffixStart               | pathToParent | childOffset
@@ -85,10 +95,10 @@ class SnapshotUtilTest extends Specification {
         def relativePath = VfsRelativePath.of(absolutePath).suffixStartingFrom(suffixStart)
 
         when:
-        def resultRoot = SnapshotUtil.invalidateSingleChild(child, relativePath, CASE_SENSITIVE).get()
+        def resultRoot = SnapshotUtil.invalidateSingleChild(child, relativePath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot.is invalidatedChild
-        1 * child.invalidate(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE) >> Optional.of(invalidatedChild)
+        1 * child.invalidate(relativePath.suffixStartingFrom(pathToParent.length() + childOffset), CASE_SENSITIVE, diffListener) >> Optional.of(invalidatedChild)
 
         where:
         absolutePath                    | suffixStart               | pathToParent | childOffset
