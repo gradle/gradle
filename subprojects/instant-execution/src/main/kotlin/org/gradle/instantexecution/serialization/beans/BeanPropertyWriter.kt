@@ -22,6 +22,7 @@ import org.gradle.api.internal.IConventionAware
 import org.gradle.instantexecution.InstantExecutionError
 import org.gradle.instantexecution.InstantExecutionProblemsException
 import org.gradle.instantexecution.extensions.maybeUnwrapInvocationTargetException
+import org.gradle.instantexecution.problems.DisableInstantExecutionFieldTypeCheck
 import org.gradle.instantexecution.problems.PropertyKind
 import org.gradle.instantexecution.problems.propertyDescriptionFor
 import org.gradle.instantexecution.serialization.Codec
@@ -30,6 +31,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import org.gradle.instantexecution.serialization.logUnsupported
 import java.io.IOException
+import java.lang.reflect.Field
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
@@ -48,7 +50,7 @@ class BeanPropertyWriter(
         for (field in relevantFields) {
             val fieldName = field.name
             val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
-            reportFieldProblems(fieldName, field.type, fieldValue)
+            reportFieldProblems(field, fieldName, field.type, fieldValue)
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }
@@ -72,14 +74,16 @@ class BeanPropertyWriter(
 
 
 private
-fun WriteContext.reportFieldProblems(fieldName: String, fieldType: Class<*>, fieldValue: Any?) {
-    withPropertyTrace(PropertyKind.Field, fieldName) {
-        unsupportedFieldDeclaredTypes
-            .firstOrNull { it.java.isAssignableFrom(fieldType) }
-            ?.let { unsupported ->
-                if (fieldValue == null) logUnsupported(unsupported)
-                else logUnsupported(unsupported, fieldValue::class.java)
-            }
+fun WriteContext.reportFieldProblems(field: Field, fieldName: String, fieldType: Class<*>, fieldValue: Any?) {
+    if (!field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)) {
+        withPropertyTrace(PropertyKind.Field, fieldName) {
+            unsupportedFieldDeclaredTypes
+                .firstOrNull { it.java.isAssignableFrom(fieldType) }
+                ?.let { unsupported ->
+                    if (fieldValue == null) logUnsupported(unsupported)
+                    else logUnsupported(unsupported, fieldValue::class.java)
+                }
+        }
     }
 }
 
