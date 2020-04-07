@@ -8,7 +8,7 @@ version = "1.0.2"
 
 // tag::inferModulePath[]
 java {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 // end::inferModulePath[]
 

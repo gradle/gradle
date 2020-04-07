@@ -133,7 +133,7 @@ abstract class AbstractCrossTaskIncrementalJavaCompilationIntegrationTest extend
         """
         file("impl/build.gradle") << """
             compileJava {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
             }
         """
         succeeds "impl:${language.compileTaskName}"

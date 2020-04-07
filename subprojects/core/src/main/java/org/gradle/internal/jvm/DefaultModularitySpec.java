@@ -14,20 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.jpms;
+package org.gradle.internal.jvm;
 
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 
 import javax.inject.Inject;
 
-public class DefaultModularClasspathHandling implements ModularClasspathHandling {
+public class DefaultModularitySpec implements ModularitySpec {
 
     private Property<Boolean> inferModulePath;
 
     @Inject
-    public DefaultModularClasspathHandling(ObjectFactory objects) {
+    public DefaultModularitySpec(ObjectFactory objects) {
         inferModulePath = objects.property(Boolean.class).convention(false);
     }
 

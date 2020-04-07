@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.jpms;
+package org.gradle.api.jvm;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Property;
@@ -40,7 +40,7 @@ import org.gradle.api.tasks.Input;
  * @since 6.4
  */
 @Incubating
-public interface ModularClasspathHandling {
+public interface ModularitySpec {
 
     /**
      * Should a --module-path be inferred by analysing JARs and class folders on the classpath?

@@ -260,10 +260,10 @@ application {
     mainModule.set('main.test')
 }
 compileJava {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 startScripts {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 """
     }

@@ -39,7 +39,7 @@ import org.gradle.api.internal.tasks.testing.junit.result.TestClassResult;
 import org.gradle.api.internal.tasks.testing.junit.result.TestResultSerializer;
 import org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestFramework;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.CacheableTask;
@@ -62,8 +62,8 @@ import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.actor.ActorFactory;
-import org.gradle.internal.jpms.DefaultModularClasspathHandling;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -145,7 +145,7 @@ import static org.gradle.util.ConfigureUtil.configureUsing;
 public class Test extends AbstractTestTask implements JavaForkOptions, PatternFilterable {
 
     private final JavaForkOptions forkOptions;
-    private final ModularClasspathHandling modularClasspathHandling;
+    private final ModularitySpec modularity;
 
     private FileCollection testClassesDirs;
     private PatternFilterable patternSet;
@@ -160,7 +160,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         patternSet = getPatternSetFactory().create();
         forkOptions = getForkOptionsFactory().newDecoratedJavaForkOptions();
         forkOptions.setEnableAssertions(true);
-        modularClasspathHandling = getObjectFactory().newInstance(DefaultModularClasspathHandling.class);
+        modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
     @Inject
@@ -591,8 +591,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      */
     @Incubating
     @Nested
-    public ModularClasspathHandling getModularClasspathHandling() {
-        return modularClasspathHandling;
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     /**
@@ -605,7 +605,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
         JavaForkOptions javaForkOptions = getForkOptionsFactory().newJavaForkOptions();
         copyTo(javaForkOptions);
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean testIsModule = javaModuleDetector.isModule(modularClasspathHandling.getInferModulePath().get(), getTestClassesDirs());
+        boolean testIsModule = javaModuleDetector.isModule(modularity.getInferModulePath().get(), getTestClassesDirs());
         FileCollection classpath = javaModuleDetector.inferClasspath(testIsModule, getClasspath());
         FileCollection modulePath = javaModuleDetector.inferModulePath(testIsModule, getClasspath());
         return new JvmTestExecutionSpec(getTestFramework(), classpath, modulePath, getCandidateClassFiles(), isScanForTestClasses(), getTestClassesDirs(), getPath(), getIdentityPath(), getForkEvery(), javaForkOptions, getMaxParallelForks(), getPreviousFailedTestClasses());

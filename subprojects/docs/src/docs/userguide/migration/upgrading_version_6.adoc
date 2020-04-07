@@ -78,6 +78,16 @@ In addition, there is a new `release` property (`java.release.set(...)` or `java
 Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
 Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
 
+=== New properties may shadow variables in build scripts
+
+This release introduces some new properties -- `mainClass`, `mainModule`, `modularity` -- in different places.
+Since these are very generic names, there is a chance that you use one of them in your build scripts as variable name.
+A new property might then shadow one of your variables in an undesired way, leading to a build failure where the property is accessed instead of the local variable with the same name.
+You can fix it by renaming the corresponding variable in the build script.
+
+Affected is configuration code inside the `application {}` and `java {}` configuration blocks, inside a java execution setup with `project.javaexec {}`, and inside various task configurations
+(`JavaExec`, `CreateStartScripts`, `JavaCompile`, `Test`, `Javadoc`).
+
 ==== Updates to bundled Gradle dependencies
 
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.71[Kotlin 1.3.71].
