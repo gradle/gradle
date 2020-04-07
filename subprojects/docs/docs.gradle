@@ -111,6 +111,7 @@ samples {
         springBootWebApplication
         gradlePluginInJava
         precompiledScriptPlugin
+        buildSrcPluginJavaModuleTransform
 
         javaApplication
         javaListLibrary
@@ -278,8 +279,8 @@ samples {
         javaModulesMultiProject {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project")
             displayName = "Java Modules"
-            description = "Build Java Modules and a Modular Java Application."
-            category = "Java"
+            description = "Build Java Modules and a modular Java application."
+            category = "Java Modules"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
@@ -295,7 +296,7 @@ samples {
             sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
             displayName = "Java Modules with Blackbox Tests"
             description = "Build Java Modules with blackbox integration tests."
-            category = "Java"
+            category = "Java Modules"
             common {
                 from(templates.javaApplicationAsSubproject)
                 from(templates.javaListLibraryAsSubproject)
@@ -310,6 +311,15 @@ samples {
                 from(templates.javaJunit5ModuleInfoForApplication)
                 from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
                 from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
+            }
+        }
+        javaModulesWithTransform {
+            sampleDirectory = samplesRoot.dir("java/modules-with-transform")
+            displayName = "Java Modules with Legacy Libraries"
+            description = "Build a modular Java application that integrates legacy libraries."
+            category = "Java Modules"
+            common {
+                from(templates.buildSrcPluginJavaModuleTransform)
             }
         }
         jvmMultiProjectWithCodeCoverage {
@@ -427,6 +437,16 @@ tasks.named("checkAsciidoctorSampleContents") {
 
 tasks.named("generateWrapperForSamples") {
     gradleVersion = project.version
+}
+
+// TODO add some kind of test precondition support in sample test conf
+tasks.named("docsTest") {
+    // Do not execute Java Module tests on JVM < 9
+    if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
+        filter {
+            excludeTestsMatching "org.gradle.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
+        }
+    }
 }
 
 // Publications for the docs subproject:
