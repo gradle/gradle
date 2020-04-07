@@ -22,7 +22,6 @@ import java.io.IOException;
 
 public class GradleLauncherMetaData implements BuildClientMetaData {
 
-    // TODO maybe create a TAPILauncherMetadata
     private final String appName;
 
     public GradleLauncherMetaData() {
