@@ -8,7 +8,7 @@ subprojects {
 
     plugins.withType(JavaPlugin).configureEach {
         java {
-            modularClasspathHandling.inferModulePath = true
+            modularity.inferModulePath = true
         }
 
         sourceSets {

@@ -49,8 +49,8 @@ project(":http") {
         "implementation"(ratpack.dependency("dropwizard-metrics"))
         "runtimeOnly"("org.slf4j:slf4j-simple:1.7.25")
     }
-    configure<ApplicationPluginConvention> {
-        mainClassName = "example.App"
+    configure<JavaApplication> {
+        mainClass.set("example.App")
     }
     ratpack.baseDir = file("src/ratpack/baseDir")
 }

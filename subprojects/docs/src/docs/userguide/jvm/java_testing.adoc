@@ -129,7 +129,11 @@ For more details and examples of declaring filters in the build script, please s
 
 The command-line option is especially useful to execute a single test method. When you use `--tests`, be aware that the inclusions declared in the build script are still honored. It is also possible to supply multiple `--tests` options, all of whose patterns will take effect. The following sections have several examples of using the command-line option.
 
-NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible. However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
+[NOTE]
+====
+Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
+However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
+====
 
 The following two sections look at the specific cases of simple class/method names and fully-qualified names.
 
@@ -434,6 +438,75 @@ include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.k
 Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDirs` property — and what needs to be on the classpath when running them — `classpath`.
 
 Users commonly want to run integration tests after the unit tests, because they are often slower to run and you want the build to fail early on the unit tests rather than later on the integration tests. That's why the above example adds a `shouldRunAfter()` declaration. This is preferred over `mustRunAfter()` so that Gradle has more flexibility in executing the build in parallel.
+
+[[sec:java_testing_modular]]
+== Testing Java Modules
+
+If you are <<java_library_plugin.adoc#,developing Java Modules>>, everything described in this chapter still applies and any of the supported test frameworks can be used.
+However, there are some things to consider depending on whether you need module information to be available, and module boundaries to be enforced, during test execution.
+In this context, the terms _whitebox testing_ (module boundaries are deactivated or relaxed) and _blackbox testing_ (module boundaries are in place) are often used.
+Whitebox testing is used/needed for unit testing and blackbox testing fits functional or integration test requirements.
+
+Sample: link:../samples/sample_java_modules_multi_project_with_integration_tests.html[Java Modules multi-project with integration tests]
+
+=== Whitebox unit test execution on the classpath
+
+The simplest setup to write unit tests for functions or classes in modules is to _not_ use module specifics during test execution.
+For this, you just need to write tests the same way you would write them for normal libraries.
+If you don't have a `module-info.java` file in your test source set (`src/main/test`) this source set will be considered as traditional Java library during compilation and test runtime.
+This means, all dependencies, including Jars with module information, are put on the classpath.
+The advantage is that all internal classes of your (or other) modules are then accessible directly in tests.
+This may be a totally valid setup for unit testing, where we do not care about the larger module structure, but only about testing single functions.
+
+[NOTE]
+====
+If you are using Eclipse: By default, Eclipse also runs unit tests as modules using module patching (see <<#sec:java_testing_modular_patching,below>>).
+In an imported Gradle project, unit testing a module with the Eclipse test runner might fail.
+You then need to manually adjust the classpath/module path in the test run configuration or delegate test execution to Gradle.
+This only concerns the test execution.
+Unit test compilation and development works fine in Eclipse.
+====
+
+=== Blackbox integration testing
+
+For integration tests, you have the option to define the test set itself as additional module.
+You do this similar to how you turn your main sources into a module:
+by adding a `module-info.java` file to the corresponding source set (e.g. `integrationTests/java/module-info.java`).
+
+You can find a full example that includes blackbox integration tests link:../samples/sample_java_modules_multi_project_with_integration_tests.html[here].
+
+[NOTE]
+====
+In Eclipse, compiling multiple modules in one project is https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667[currently not support].
+Therefore the integration test (blackbox) setup described here only works in Eclipse if the tests are moved to a separate subproject.
+====
+
+[[sec:java_testing_modular_patching]]
+=== Whitebox test execution with module patching
+
+Another approach for whitebox testing is to stay in the module world by _patching_ the tests into the module under test.
+This way, module boundaries stay in place, but the tests themselves become part of the module under test and can then access the module's internals.
+
+For which uses cases this is relevant and how this is best done is a topic of discussion.
+There is no general best approach at the moment.
+Thus, there is no special support for this in Gradle right now.
+
+You can however, setup module patching for tests like this:
+
+* Add a `module-info.java` to your test source set that is a copy of the main `module-info.java` with additional dependencies needed for testing (e.g. `requires org.junit.jupiter.api`).
+* Configure both the `testCompileJava` and `test` tasks with arguments to patch the the main classes with the test classes as shown below.
+
+.Patch module for testing using command line arguments
+====
+include::sample[dir="snippets/testing/patch-module/groovy",files="build.gradle[tags=patchArgs]"]
+include::sample[dir="snippets/testing/patch-module/kotlin",files="build.gradle.kts[tags=patchArgs]"]
+====
+
+[NOTE]
+====
+If custom arguments are used for patching, these are not picked up by Eclipse and IDEA.
+You will most likely see invalid compilation errors in the IDE.
+====
 
 [[sec:skipping_java_tests]]
 == Skipping the tests

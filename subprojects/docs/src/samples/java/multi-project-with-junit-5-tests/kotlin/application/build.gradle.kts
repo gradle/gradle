@@ -9,7 +9,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "org.gradle.sample.app.Main"
+    mainClass.set("org.gradle.sample.app.Main")
 }
 
 tasks.named<Test>("test") {

@@ -563,10 +563,10 @@ application {
     mainModule.set('org.gradle.test.main')
 }
 compileJava {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 startScripts {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 """
     }

@@ -16,18 +16,9 @@
 
 package org.gradle.internal.vfs.watch;
 
-import org.gradle.internal.vfs.SnapshotHierarchy;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.Collection;
-import java.util.function.Predicate;
-
 public interface FileWatcherRegistryFactory {
     /**
-     * Start watching the given snapshot hierarchy.
-     *
-     * @throws WatchingNotSupportedException when the native watcher is unable to watch the given snapshot hierarchy.
+     * Start the watch server.
      */
-    FileWatcherRegistry startWatching(SnapshotHierarchy snapshotHierarchy, Predicate<String> watchFilter, Collection<File> mustWatchDirectories, FileWatcherRegistry.ChangeHandler handler) throws IOException, WatchingNotSupportedException;
+    FileWatcherRegistry startWatcher(FileWatcherRegistry.ChangeHandler handler);
 }

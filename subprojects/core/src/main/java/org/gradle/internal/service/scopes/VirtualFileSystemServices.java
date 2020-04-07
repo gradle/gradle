@@ -68,6 +68,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
 import org.gradle.internal.vfs.LinuxFileWatcherRegistry;
@@ -76,6 +77,7 @@ import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
+import org.gradle.internal.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
 import org.gradle.internal.vfs.impl.NonWatchingVirtualFileSystem;
 import org.gradle.internal.vfs.impl.WatchingVirtualFileSystem;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
@@ -85,6 +87,7 @@ import java.io.File;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Predicate;
 
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_INSENSITIVE;
 import static org.gradle.internal.snapshot.CaseSensitivity.CASE_SENSITIVE;
@@ -169,18 +172,22 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             StringInterner stringInterner,
             ListenerManager listenerManager
         ) {
+            Predicate<String> watchFilter = path -> !additiveCacheLocations.isInsideAdditiveCache(path);
+            DelegatingDiffCapturingUpdateFunctionDecorator updateFunctionDecorator = new DelegatingDiffCapturingUpdateFunctionDecorator(watchFilter);
             DefaultVirtualFileSystem delegate = new DefaultVirtualFileSystem(
                 hasher,
                 stringInterner,
                 stat,
                 fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                updateFunctionDecorator,
                 DirectoryScanner.getDefaultExcludes()
             );
             WatchingAwareVirtualFileSystem watchingAwareVirtualFileSystem = determineWatcherRegistryFactory(OperatingSystem.current())
                 .<WatchingAwareVirtualFileSystem>map(watcherRegistryFactory -> new WatchingVirtualFileSystem(
                     watcherRegistryFactory,
                     delegate,
-                    path -> !additiveCacheLocations.isInsideAdditiveCache(path)
+                    updateFunctionDecorator,
+                    watchFilter
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
@@ -263,6 +270,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 stringInterner,
                 stat,
                 fileSystem.isCaseSensitive() ? CASE_SENSITIVE : CASE_INSENSITIVE,
+                SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator.NOOP,
                 DirectoryScanner.getDefaultExcludes()
             );
             RoutingVirtualFileSystem routingVirtualFileSystem = new RoutingVirtualFileSystem(

@@ -35,7 +35,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
@@ -50,8 +50,8 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.jpms.DefaultModularClasspathHandling;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -84,7 +84,7 @@ public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
     private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
-    private final ModularClasspathHandling modularClasspathHandling;
+    private final ModularitySpec modularity;
 
     public JavaCompile() {
         Project project = getProject();
@@ -100,7 +100,7 @@ public class JavaCompile extends AbstractCompile {
             return version;
         }));
 
-        this.modularClasspathHandling = objects.newInstance(DefaultModularClasspathHandling.class);
+        this.modularity = objects.newInstance(DefaultModularitySpec.class);
     }
 
     /**
@@ -239,7 +239,7 @@ public class JavaCompile extends AbstractCompile {
     private DefaultJavaCompileSpec createSpec() {
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
-        boolean isModule = JavaModuleDetector.isModuleSource(modularClasspathHandling.getInferModulePath().get(), sourcesRoots);
+        boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
 
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
@@ -272,8 +272,8 @@ public class JavaCompile extends AbstractCompile {
      */
     @Incubating
     @Nested
-    public ModularClasspathHandling getModularClasspathHandling() {
-        return modularClasspathHandling;
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     /**

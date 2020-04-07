@@ -76,30 +76,38 @@ public class SnapshotUtil {
         return child.getSnapshot(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
     }
 
-    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
+    public static FileSystemNode storeSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleDescendant() {
                 return child.store(
                     relativePath.fromChild(child.getPathToParent()),
                     caseSensitivity,
-                    snapshot
+                    snapshot,
+                    diffListener
                 );
             }
 
             @Override
             public FileSystemNode handleParent() {
-                return snapshot.asFileSystemNode(relativePath.getAsString());
+                return replacedNode();
             }
 
             @Override
             public FileSystemNode handleSame() {
                 return snapshot instanceof CompleteFileSystemLocationSnapshot
-                    ? snapshot.asFileSystemNode(child.getPathToParent())
+                    ? replacedNode()
                     : child.getSnapshot()
                         .filter(oldSnapshot -> oldSnapshot instanceof CompleteFileSystemLocationSnapshot)
                         .map(it -> child)
-                        .orElseGet(() -> snapshot.asFileSystemNode(child.getPathToParent()));
+                        .orElseGet(this::replacedNode);
+            }
+
+            private FileSystemNode replacedNode() {
+                diffListener.nodeRemoved(child);
+                FileSystemNode newNode = snapshot.asFileSystemNode(relativePath.getAsString());
+                diffListener.nodeAdded(newNode);
+                return newNode;
             }
 
             @Override
@@ -112,6 +120,9 @@ public class SnapshotUtil {
                 ImmutableList<FileSystemNode> newChildren = PathUtil.getPathComparator(caseSensitivity).compare(newChild.getPathToParent(), sibling.getPathToParent()) < 0
                     ? ImmutableList.of(newChild, sibling)
                     : ImmutableList.of(sibling, newChild);
+
+                diffListener.nodeAdded(sibling);
+
                 boolean isDirectory = child.getSnapshot().filter(SnapshotUtil::isRegularFileOrDirectory).isPresent() || isRegularFileOrDirectory(snapshot);
                 return isDirectory ? new PartialDirectorySnapshot(commonPrefix, newChildren) : new UnknownSnapshot(commonPrefix, newChildren);
             }
@@ -122,20 +133,22 @@ public class SnapshotUtil {
         return metadataSnapshot.getType() != FileType.Missing;
     }
 
-    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public static Optional<FileSystemNode> invalidateSingleChild(FileSystemNode child, VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return handlePrefix(child.getPathToParent(), relativePath, caseSensitivity, new DescendantHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleDescendant() {
-                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity);
+                return child.invalidate(relativePath.fromChild(child.getPathToParent()), caseSensitivity, diffListener);
             }
 
             @Override
             public Optional<FileSystemNode> handleParent() {
+                diffListener.nodeRemoved(child);
                 return Optional.empty();
             }
 
             @Override
             public Optional<FileSystemNode> handleSame() {
+                diffListener.nodeRemoved(child);
                 return Optional.empty();
             }
 

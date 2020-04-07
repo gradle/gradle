@@ -24,7 +24,7 @@ import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.plugins.StartScriptGenerator;
 import org.gradle.api.internal.plugins.UnixStartScriptGenerator;
 import org.gradle.api.internal.plugins.WindowsStartScriptGenerator;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Classpath;
@@ -34,8 +34,8 @@ import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.internal.jpms.DefaultModularClasspathHandling;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.application.scripts.ScriptGenerator;
 import org.gradle.util.GUtil;
 
@@ -52,7 +52,7 @@ import java.util.stream.Collectors;
  * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   outputDir = file('build/sample')
- *   mainClassName = 'org.gradle.test.Main'
+ *   mainClass = 'org.gradle.test.Main'
  *   applicationName = 'myApp'
  *   classpath = files('path/to/some.jar')
  * }
@@ -121,14 +121,14 @@ public class CreateStartScripts extends ConventionTask {
     private String optsEnvironmentVar;
     private String exitEnvironmentVar;
     private FileCollection classpath;
-    private final ModularClasspathHandling modularClasspathHandling;
+    private final ModularitySpec modularity;
     private ScriptGenerator unixStartScriptGenerator = new UnixStartScriptGenerator();
     private ScriptGenerator windowsStartScriptGenerator = new WindowsStartScriptGenerator();
 
     public CreateStartScripts() {
         this.mainModule = getObjectFactory().property(String.class);
         this.mainClass = getObjectFactory().property(String.class);
-        this.modularClasspathHandling = getObjectFactory().newInstance(DefaultModularClasspathHandling.class);
+        this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
     @Inject
@@ -314,8 +314,8 @@ public class CreateStartScripts extends ConventionTask {
      */
     @Incubating
     @Nested
-    public ModularClasspathHandling getModularClasspathHandling() {
-        return modularClasspathHandling;
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     public void setClasspath(@Nullable FileCollection classpath) {

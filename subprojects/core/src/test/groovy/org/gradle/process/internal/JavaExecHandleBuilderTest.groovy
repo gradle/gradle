@@ -19,7 +19,7 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.internal.jpms.JavaModuleDetector
+import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestUtil
 import spock.lang.Issue
@@ -131,7 +131,7 @@ class JavaExecHandleBuilderTest extends Specification {
 
         when:
         // turn off module support:
-        builder.modularClasspathHandling.inferModulePath.set(false)
+        builder.modularity.inferModulePath.set(false)
 
         then:
         !builder.getAllArguments().contains('--module')
@@ -144,7 +144,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(new File("file1.jar").canonicalFile)
 
         when:
-        builder.modularClasspathHandling.inferModulePath.set(true)
+        builder.modularity.inferModulePath.set(true)
         builder.getAllArguments()
 
         then:
@@ -175,7 +175,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(libJar, moduleJar)
 
         when:
-        builder.modularClasspathHandling.inferModulePath.set(true)
+        builder.modularity.inferModulePath.set(true)
 
         then:
         builder.getAllArguments().findAll { !it.startsWith('-Duser.') } == ['-Dfile.encoding=UTF-8', '-cp', libJar.name, '--module-path', moduleJar.name, '--module', 'mainModule/mainClass']

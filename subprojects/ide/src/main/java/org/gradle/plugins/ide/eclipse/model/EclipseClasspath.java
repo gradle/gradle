@@ -329,7 +329,7 @@ public class EclipseClasspath {
         boolean inferModulePath = false;
         Task compileJava = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
         if (compileJava instanceof JavaCompile) {
-            inferModulePath = ((JavaCompile) compileJava).getModularClasspathHandling().getInferModulePath().get();
+            inferModulePath = ((JavaCompile) compileJava).getModularity().getInferModulePath().get();
         }
         ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project), inferModulePath);
         return classpathFactory.createEntries();

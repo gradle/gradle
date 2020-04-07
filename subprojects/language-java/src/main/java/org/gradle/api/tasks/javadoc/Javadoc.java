@@ -24,7 +24,7 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -41,8 +41,8 @@ import org.gradle.api.tasks.javadoc.internal.JavadocSpec;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.jpms.DefaultModularClasspathHandling;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
 import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
@@ -108,12 +108,12 @@ public class Javadoc extends SourceTask {
     private final StandardJavadocDocletOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath = getProject().files();
-    private final ModularClasspathHandling modularClasspathHandling;
+    private final ModularitySpec modularity;
 
     private String executable;
 
     public Javadoc() {
-        this.modularClasspathHandling = getObjectFactory().newInstance(DefaultModularClasspathHandling.class);
+        this.modularity = getObjectFactory().newInstance(DefaultModularitySpec.class);
     }
 
     @TaskAction
@@ -133,7 +133,7 @@ public class Javadoc extends SourceTask {
 
         JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
         List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getSource());
-        boolean isModule = JavaModuleDetector.isModuleSource(modularClasspathHandling.getInferModulePath().get(), sourcesRoots);
+        boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
 
         options.classpath(new ArrayList<>(javaModuleDetector.inferClasspath(isModule, getClasspath()).getFiles()));
         options.modulePath(new ArrayList<>(javaModuleDetector.inferModulePath(isModule, getClasspath()).getFiles()));
@@ -324,8 +324,8 @@ public class Javadoc extends SourceTask {
      */
     @Incubating
     @Nested
-    public ModularClasspathHandling getModularClasspathHandling() {
-        return modularClasspathHandling;
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     /**

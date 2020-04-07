@@ -33,7 +33,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
