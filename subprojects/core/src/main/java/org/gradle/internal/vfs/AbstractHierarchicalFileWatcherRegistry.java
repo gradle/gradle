@@ -64,9 +64,10 @@ public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEv
 
     @Override
     public void updateMustWatchDirectories(Collection<File> updatedWatchDirectories) {
-        Set<String> rootPaths = updatedWatchDirectories.stream()
+        Set<Path> rootPaths = updatedWatchDirectories.stream()
             .filter(File::isDirectory)
-            .map(File::getAbsolutePath)
+            .map(File::toPath)
+            .map(Path::toAbsolutePath)
             .collect(Collectors.toSet());
         Multisets.removeOccurrences(shouldWatchDirectories, mustWatchDirectories);
         mustWatchDirectories.clear();
@@ -86,7 +87,7 @@ public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEv
             .collect(Collectors.toSet());
         directoriesToWatch.addAll(mustWatchDirectories);
 
-        updateWatchedDirectories(WatchRootUtil.resolveRootsToWatchFromPaths(directoriesToWatch));
+        updateWatchedDirectories(WatchRootUtil.resolveRootsToWatch(directoriesToWatch));
     }
 
     private void updateWatchedDirectories(Set<Path> newWatchRoots) {
