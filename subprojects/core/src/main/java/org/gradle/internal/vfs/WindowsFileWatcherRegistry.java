@@ -23,9 +23,11 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
 
+    private static final int BUFFER_SIZE = 128 * 1024;
+
     public WindowsFileWatcherRegistry(ChangeHandler handler) {
         super(
-            callback -> Native.get(WindowsFileEventFunctions.class).startWatcher(callback),
+            callback -> Native.get(WindowsFileEventFunctions.class).startWatcher(BUFFER_SIZE, callback),
             handler
         );
     }
