@@ -69,6 +69,11 @@ pmd {
 ```
 This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
+## Improvements for tooling providers
+
+The GradleConnector class has a new `disconnect` method. Clients can use it to asynchronously cancel release all Tooling API connections without waiting for the current build to finish.
+For more details, refer to the [javadoc](javadoc/org/gradle/tooling/GradleConnector.html). 
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
