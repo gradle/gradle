@@ -35,9 +35,8 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
     final FileSystemNode rootNode;
     private final CaseSensitivity caseSensitivity;
 
-    public static SnapshotHierarchy from(String absolutePath, MetadataSnapshot snapshot, CaseSensitivity caseSensitivity) {
-        VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-        return new DefaultSnapshotHierarchy(snapshot.asFileSystemNode(relativePath.getAsString()), caseSensitivity);
+    public static SnapshotHierarchy from(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
+        return new DefaultSnapshotHierarchy(rootNode, caseSensitivity);
     }
 
     private DefaultSnapshotHierarchy(FileSystemNode rootNode, CaseSensitivity caseSensitivity) {
@@ -107,10 +106,10 @@ public class DefaultSnapshotHierarchy implements SnapshotHierarchy {
 
         @Override
         public SnapshotHierarchy store(String absolutePath, MetadataSnapshot snapshot, NodeDiffListener diffListener) {
-            // TODO: Remove the duplication here
             VfsRelativePath relativePath = VfsRelativePath.of(absolutePath);
-            diffListener.nodeAdded(snapshot.asFileSystemNode(relativePath.getAsString()));
-            return from(absolutePath, snapshot, caseSensitivity);
+            FileSystemNode rootNode = snapshot.asFileSystemNode(relativePath.getAsString());
+            diffListener.nodeAdded(rootNode);
+            return from(rootNode, caseSensitivity);
         }
 
         @Override
