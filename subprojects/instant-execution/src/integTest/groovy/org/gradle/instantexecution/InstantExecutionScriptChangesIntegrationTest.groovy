@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 import spock.lang.Unroll
 
@@ -23,108 +24,85 @@ class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecut
 
     @Unroll
     @Test
-    def "invalidates cache upon changes to #language build script"() {
+    def "invalidates cache upon changes to #language #scriptType script"() {
         given:
         def instant = newInstantExecutionFixture()
-        def buildFile = file("build${language.fileExtension}")
+        def scriptFile = scriptFileFor(language, scriptType).tap { parentFile.mkdirs() }
+        List<String> buildArgs = buildArgumentsFor(scriptType, scriptFile)
+        def build = { instantRun('help', *buildArgs) }
 
         when:
-        buildFile.text = language.defineGreetTask('Hello!')
-        instantRun 'greet'
+        scriptFile.text = 'println("Hello!")'
+        build()
 
         then:
         outputContains 'Hello!'
 
         when:
-        buildFile.text = language.defineGreetTask('Hi!')
-        instantRun 'greet'
+        scriptFile.text = 'println("Hi!")'
+        build()
 
         then:
         outputContains 'Hi!'
         instant.assertStateStored()
 
         when:
-        instantRun 'greet'
-
-        then:
-        outputContains 'Hi'
-        instant.assertStateLoaded()
-
-        where:
-        language << ScriptLanguage.values()
-    }
-
-    @Unroll
-    @Test
-    def "invalidates cache upon changes to buildSrc #language build script"() {
-        given:
-        def instant = newInstantExecutionFixture()
-        def buildFile = file("buildSrc/build${language.fileExtension}").tap {
-            parentFile.mkdirs()
-        }
-
-        when:
-        buildFile.text = 'println("Hello!")'
-        instantRun 'help', '-q'
-
-        then:
-        outputContains 'Hello!'
-
-        when:
-        buildFile.text = 'println("Hi!")'
-        instantRun 'help'
-
-        then:
-        outputContains 'Hi!'
-        instant.assertStateStored()
-
-        when:
-        instantRun 'help'
+        build()
 
         then:
         outputDoesNotContain 'Hi'
         instant.assertStateLoaded()
 
         where:
-        language << ScriptLanguage.values()
+        [language_, scriptType_] << [ScriptLanguage.values(), ScriptType.values()].combinations()
+        language = language_ as ScriptLanguage
+        scriptType = scriptType_ as ScriptType
+    }
+
+    private TestFile scriptFileFor(ScriptLanguage language, ScriptType type) {
+        switch (type) {
+            case ScriptType.PROJECT:
+                return file("build${language.fileExtension}")
+            case ScriptType.SETTINGS:
+                return file("settings${language.fileExtension}")
+            case ScriptType.BUILDSRC_PROJECT:
+                return file("buildSrc/build${language.fileExtension}")
+            case ScriptType.BUILDSRC_SETTINGS:
+                return file("buildSrc/settings${language.fileExtension}")
+            case ScriptType.INIT:
+                return file("gradle/my.init${language.fileExtension}")
+        }
+    }
+
+    private List<String> buildArgumentsFor(ScriptType type, TestFile scriptFile) {
+        switch (type) {
+            case ScriptType.INIT:
+                return ["-I", scriptFile.absolutePath]
+            default:
+                return []
+        }
+    }
+
+    enum ScriptType {
+        PROJECT,
+        SETTINGS,
+        INIT,
+        BUILDSRC_PROJECT,
+        BUILDSRC_SETTINGS,
     }
 
     enum ScriptLanguage {
 
         GROOVY{
             @Override
-            String getFileExtension() {
-                ".gradle"
-            }
-
-            @Override
-            String defineGreetTask(String message) {
-                """
-                    task greet {
-                        doLast { println '$message' }
-                    }
-                """
-            }
+            String getFileExtension() { ".gradle" }
         },
 
         KOTLIN{
             @Override
-            String getFileExtension() {
-                ".gradle.kts"
-            }
-
-            @Override
-            String defineGreetTask(String message) {
-                """
-                    task("greet") {
-                        doLast { println("$message") }
-                    }
-                """
-            }
+            String getFileExtension() { ".gradle.kts" }
         };
 
         abstract String getFileExtension();
-
-        abstract String defineGreetTask(String message);
     }
 }
