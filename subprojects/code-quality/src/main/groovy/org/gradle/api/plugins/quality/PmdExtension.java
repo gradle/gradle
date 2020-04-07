@@ -46,8 +46,7 @@ public class PmdExtension extends CodeQualityExtension {
 
     public PmdExtension(Project project) {
         this.project = project;
-        // TODO: Enable this by default when toolVersion >= 6.0.0 if it's stable enough.
-        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(false);
+        this.incrementalAnalysis = project.getObjects().property(Boolean.class).convention(true);
         this.maxFailures = project.getObjects().property(Integer.class).convention(0);
     }
 
@@ -236,7 +235,6 @@ public class PmdExtension extends CodeQualityExtension {
      *
      * @since 5.6
      */
-    @Incubating
     public Property<Boolean> getIncrementalAnalysis() {
         return incrementalAnalysis;
     }
