@@ -278,25 +278,25 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
             def inputFile = file("input.txt")
             def outputFile = file("build/output.txt")
 
-            task waitForUserChanges {
-                doLast {
-                    ${server.callFromBuild("userInput")}
-                }
-            }
-
             task consumer {
                 inputs.file(inputFile)
                 outputs.file(outputFile)
                 doLast {
                     outputFile.text = inputFile.text
                 }
-                finalizedBy(waitForUserChanges)
+            }
+
+            task waitForUserChanges {
+                dependsOn(consumer)
+                doLast {
+                    ${server.callFromBuild("userInput")}
+                }
             }
         """
 
         when:
         inputFile.text = "initial"
-        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+        runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
             inputFile.text = "changed"
             waitForChangesToBePickedUp()
         }
@@ -306,7 +306,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         retainedFilesInCurrentBuild == 1
 
         when:
-        runWithRetentionAndDoChangesWhen("consumer", "userInput") {
+        runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
             inputFile.text = "changedAgain"
             waitForChangesToBePickedUp()
         }
@@ -318,7 +318,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         server.expect("userInput")
-        withRetention().run("consumer")
+        withRetention().run("waitForUserChanges")
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
