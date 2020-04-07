@@ -112,7 +112,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         connection.getModel(GradleProject)
 
         then:
-        thrown(GradleConnectionException)
+        thrown(RuntimeException)
     }
 
     def "Cannot create new project connection after disconnect"() {
@@ -127,6 +127,6 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         connector.connect()
 
         then:
-        thrown(IllegalStateException)
+        thrown(RuntimeException)
     }
 }
