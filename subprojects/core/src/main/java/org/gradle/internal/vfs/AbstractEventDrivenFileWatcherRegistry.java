@@ -50,10 +50,6 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
         this.watchFilter = watchFilter;
     }
 
-    protected Predicate<String> getWatchFilter() {
-        return watchFilter;
-    }
-
     public FileWatcher getWatcher() {
         return watcher;
     }
@@ -67,7 +63,11 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
 
     private List<CompleteFileSystemLocationSnapshot> getAllSnapshots(Collection<FileSystemNode> nodes) {
         List<CompleteFileSystemLocationSnapshot> snapshots = new ArrayList<>();
-        nodes.forEach(rootNode -> rootNode.accept(snapshots::add));
+        nodes.forEach(rootNode -> rootNode.accept(snapshot -> {
+            if (watchFilter.test(snapshot.getAbsolutePath())) {
+                snapshots.add(snapshot);
+            }
+        }));
         return snapshots;
     }
 
