@@ -30,6 +30,7 @@ import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
+import org.gradle.instantexecution.problems.DisableInstantExecutionFieldTypeCheck
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.ComparisonFailure
@@ -864,6 +865,7 @@ class GenerateGraphTask extends DefaultTask {
     @Internal
     File outputFile
     @Internal
+    @DisableInstantExecutionFieldTypeCheck
     Configuration configuration
     @Internal
     boolean buildArtifacts
