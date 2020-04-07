@@ -18,11 +18,11 @@ package org.gradle.internal.snapshot;
 
 import java.util.concurrent.locks.ReentrantLock;
 
-public class SnapshotHierarchyReference {
+public class AtomicSnapshotHierarchyReference {
     private volatile SnapshotHierarchy root;
     private final ReentrantLock updateLock = new ReentrantLock();
 
-    public SnapshotHierarchyReference(SnapshotHierarchy root) {
+    public AtomicSnapshotHierarchyReference(SnapshotHierarchy root) {
         this.root = root;
     }
 
@@ -34,8 +34,8 @@ public class SnapshotHierarchyReference {
         updateLock.lock();
         try {
             // Store the current root in a local variable to make the call atomic
-            SnapshotHierarchy currentRoot = this.root;
-            this.root = updateFunction.updateRoot(currentRoot);
+            SnapshotHierarchy currentRoot = root;
+            root = updateFunction.updateRoot(currentRoot);
         } finally {
             updateLock.unlock();
         }

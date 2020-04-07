@@ -23,6 +23,7 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileMetadata;
@@ -30,7 +31,6 @@ import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
@@ -44,7 +44,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
-    private final SnapshotHierarchyReference root;
+    private final AtomicSnapshotHierarchyReference root;
     private final Stat stat;
     private final SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator updateFunctionDecorator;
     private final DirectorySnapshotter directorySnapshotter;
@@ -56,7 +56,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         this.updateFunctionDecorator = updateFunctionDecorator;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, defaultExcludes);
         this.hasher = hasher;
-        this.root = new SnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
+        this.root = new AtomicSnapshotHierarchyReference(DefaultSnapshotHierarchy.empty(caseSensitivity));
     }
 
     @Override
@@ -156,7 +156,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     @Override
-    SnapshotHierarchyReference getRoot() {
+    AtomicSnapshotHierarchyReference getRoot() {
         return root;
     }
 

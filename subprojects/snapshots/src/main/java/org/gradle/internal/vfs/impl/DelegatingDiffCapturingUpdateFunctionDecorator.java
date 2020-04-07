@@ -16,8 +16,8 @@
 
 package org.gradle.internal.vfs.impl;
 
+import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
-import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 
 import javax.annotation.Nullable;
 import java.util.function.Predicate;
@@ -36,7 +36,7 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
     }
 
     @Override
-    public SnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
+    public AtomicSnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
         SnapshotHierarchy.SnapshotDiffListener currentListener = snapshotDiffListener;
         if (currentListener == null) {
             return root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);

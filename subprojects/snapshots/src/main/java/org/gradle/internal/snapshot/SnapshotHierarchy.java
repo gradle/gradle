@@ -87,7 +87,7 @@ public interface SnapshotHierarchy {
     interface DiffCapturingUpdateFunctionDecorator {
         DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, NodeDiffListener.NOOP);
 
-        SnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
+        AtomicSnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
     }
 
     interface SnapshotDiffListener {
