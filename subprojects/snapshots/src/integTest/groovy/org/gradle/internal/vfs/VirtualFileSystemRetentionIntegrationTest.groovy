@@ -133,7 +133,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputContains "Hello from the modified build!"
     }
 
-    @ToBeFixedForInstantExecution
     def "Kotlin build script changes get recognized"() {
         when:
         buildKotlinFile.text = """

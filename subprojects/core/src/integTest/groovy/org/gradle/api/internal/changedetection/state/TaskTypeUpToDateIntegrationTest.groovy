@@ -18,7 +18,6 @@ package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.tasks.incremental.IncrementalTaskInputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.work.InputChanges
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -146,7 +145,6 @@ class TaskTypeUpToDateIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1910")
-    @ToBeFixedForInstantExecution
     def "task declared in buildSrc is not up-to-date after dependencies change"() {
         file("input.txt") << "input"
 

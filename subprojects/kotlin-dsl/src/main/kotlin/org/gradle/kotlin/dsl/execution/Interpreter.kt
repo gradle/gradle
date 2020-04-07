@@ -127,6 +127,8 @@ class Interpreter(val host: Host) {
 
         fun runCompileBuildOperation(scriptPath: String, stage: String, action: () -> String): String
 
+        fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>)
+
         val implicitImports: List<String>
 
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
@@ -496,8 +498,8 @@ class Interpreter(val host: Host) {
 
         open fun eval(specializedProgram: Class<*>, scriptHost: KotlinScriptHost<*>) {
             withContextClassLoader(specializedProgram.classLoader) {
-                instantiate(specializedProgram)
-                    .execute(this, scriptHost)
+                host.onScriptClassLoaded(scriptHost.scriptSource, specializedProgram)
+                instantiate(specializedProgram).execute(this, scriptHost)
             }
         }
 

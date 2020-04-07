@@ -21,12 +21,12 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.instantexecution.BuildTreeListenerManager
 import org.gradle.instantexecution.extensions.hashCodeOf
 import org.gradle.instantexecution.extensions.serviceOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
-import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -46,7 +46,7 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val virtualFileSystem: VirtualFileSystem,
     private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
-    private val listenerManager: ListenerManager
+    private val listenerManager: BuildTreeListenerManager
 ) {
 
     private
@@ -126,16 +126,14 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     fun addListener(listener: InstantExecutionCacheFingerprintWriter) {
-        listenerManager.addListener(listener)
-        valueSourceProviderFactory.addListener(listener)
+        listenerManager.service.addListener(listener)
         taskInputsListeners.addListener(listener)
     }
 
     private
     fun removeListener(listener: InstantExecutionCacheFingerprintWriter) {
         taskInputsListeners.removeListener(listener)
-        valueSourceProviderFactory.removeListener(listener)
-        listenerManager.removeListener(listener)
+        listenerManager.service.removeListener(listener)
     }
 
     private

@@ -163,7 +163,10 @@ abstract class AbstractPropertyLanguageInterOpIntegrationTest extends AbstractLa
         outputContains("map = {3=true}")
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(
+        because = "Kotlin Gradle Plugin",
+        bottomSpecs = ["PropertyKotlinInterOpIntegrationTest", "ManagedPropertyKotlinInterOpIntegrationTest"]
+    )
     def "can define property in language plugin and set value from Kotlin DSL"() {
         pluginDefinesTask()
 
