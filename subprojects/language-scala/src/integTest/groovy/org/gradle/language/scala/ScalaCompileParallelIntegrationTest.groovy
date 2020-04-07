@@ -49,6 +49,10 @@ class ScalaCompileParallelIntegrationTest extends AbstractIntegrationSpec {
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
+    @ToBeFixedForInstantExecution(
+        because = "task execution listener",
+        skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP
+    )
     def "multi-project build is multi-process safe"() {
         given:
         def projects = (1..MAX_PARALLEL_COMPILERS)

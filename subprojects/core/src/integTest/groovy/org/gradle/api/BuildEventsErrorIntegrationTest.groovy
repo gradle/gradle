@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
 class BuildEventsErrorIntegrationTest extends AbstractIntegrationSpec {
@@ -146,6 +147,7 @@ gradle.rootProject { task a }
     }
 
     @Unroll
+    @UnsupportedWithInstantExecution
     def "produces reasonable error when BuildListener.#method method fails"() {
         settingsFile << """
 def listener = new BuildAdapter() {

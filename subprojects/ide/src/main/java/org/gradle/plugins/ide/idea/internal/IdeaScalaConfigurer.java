@@ -24,7 +24,6 @@ import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.util.Node;
-import org.gradle.BuildAdapter;
 import org.gradle.api.Action;
 import org.gradle.api.GradleScriptException;
 import org.gradle.api.Project;
@@ -69,9 +68,9 @@ public class IdeaScalaConfigurer {
     }
 
     public void configure() {
-        rootProject.getGradle().addBuildListener(new BuildAdapter() {
+        rootProject.getGradle().projectsEvaluated(new Action<Gradle>() {
             @Override
-            public void projectsEvaluated(Gradle gradle) {
+            public void execute(Gradle gradle) {
                 VersionNumber ideaTargetVersion = findIdeaTargetVersion();
                 final boolean useScalaSdk = ideaTargetVersion == null || IDEA_VERSION_WHEN_SCALA_SDK_WAS_INTRODUCED.compareTo(ideaTargetVersion) <= 0;
                 final Collection<Project> scalaProjects = findProjectsApplyingIdeaAndScalaPlugins();

@@ -32,6 +32,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         requireGradleDistributionOnEmbeddedExecuter()
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `warns on unexpected kotlin-dsl plugin version`() {
 
         // The test applies the in-development version of the kotlin-dsl

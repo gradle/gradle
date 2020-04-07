@@ -42,6 +42,12 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
         AndroidHome.assertIsSet()
     }
 
+    // TODO:instant-execution remove once fixed upstream
+    @Override
+    protected int maxInstantExecutionProblems() {
+        return 7
+    }
+
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "android library and application APK assembly (agp=#agpVersion, ide=#ide)"(
