@@ -77,7 +77,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     private volatile boolean consumeEvents = true;
 
-    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedNodes, addedNodes) -> updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
+    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedSnapshots, addedSnapshots));
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,

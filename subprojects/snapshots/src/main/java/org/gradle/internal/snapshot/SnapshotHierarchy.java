@@ -65,6 +65,11 @@ public interface SnapshotHierarchy {
         void visitSnapshotRoot(CompleteFileSystemLocationSnapshot snapshot);
     }
 
+    /**
+     * Receives diff when a {@link SnapshotHierarchy} is updated.
+     *
+     * Only the root nodes which have been removed/added are reported.
+     */
     interface NodeDiffListener {
         NodeDiffListener NOOP = new NodeDiffListener() {
             @Override
@@ -76,23 +81,52 @@ public interface SnapshotHierarchy {
             }
         };
 
+        /**
+         * Called when a node is removed during the update.
+         *
+         * Only called for the node which is removed, and not every node in the hierarchy which is removed.
+         */
         void nodeRemoved(FileSystemNode node);
+
+        /**
+         * Called when a node is added during the update.
+         *
+         * Only called for the node which is added, and not every node in the hierarchy which is added.
+         */
         void nodeAdded(FileSystemNode node);
     }
 
+    /**
+     * Listens to diffs to {@link CompleteFileSystemLocationSnapshot}s during an update of {@link SnapshotHierarchy}.
+     *
+     * Similar to {@link NodeDiffListener}, only that
+     * - it listens for {@link CompleteFileSystemLocationSnapshot}s and not {@link FileSystemNode}s.
+     * - it receives all the changes for one update at once.
+     */
+    interface SnapshotDiffListener {
+        SnapshotDiffListener NOOP = (removedSnapshots, addedSnapshots) -> {};
+
+        /**
+         * Called after the update to {@link SnapshotHierarchy} finished.
+         *
+         * Only the roots of added/removed hierarchies are reported.
+         */
+        void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
+    }
+
+    /**
+     * Updates the snapshot hierarchy, passing a {@link NodeDiffListener} to the calls on {@link SnapshotHierarchy}.
+     */
     interface DiffCapturingUpdateFunction {
         SnapshotHierarchy update(SnapshotHierarchy root, NodeDiffListener diffListener);
     }
 
+    /**
+     * Passes an {@link NodeDiffListener} to an {@link DiffCapturingUpdateFunction}, so it becomes an {@link org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference.UpdateFunction}.
+     */
     interface DiffCapturingUpdateFunctionDecorator {
         DiffCapturingUpdateFunctionDecorator NOOP = updateFunction -> root -> updateFunction.update(root, NodeDiffListener.NOOP);
 
         AtomicSnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
-    }
-
-    interface SnapshotDiffListener {
-        SnapshotDiffListener NOOP = (removedNodes, addedNodes) -> {};
-
-        void changed(Collection<CompleteFileSystemLocationSnapshot> removedNodes, Collection<CompleteFileSystemLocationSnapshot> addedNodes);
     }
 }
