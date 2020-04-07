@@ -135,9 +135,18 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         }
 
         when:
+        problems.withDoNotFailOnProblems()
         instantRun "broken"
 
         then:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'badReference' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
+                "field 'badReference' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution."
+            )
+        }
+
+        and:
         outputContains("this.reference = null")
         outputContains("bean.reference = null")
 
