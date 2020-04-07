@@ -53,6 +53,13 @@ You can use the command line switches shown in <<#logLevelCommandLineOptions, Lo
 | `-d` or `--debug` | DEBUG and higher (that is, all log messages)
 |===
 
+[CAUTION]
+====
+
+The DEBUG log level can <<#sec:debug_security, expose security sensitive information to the console>>.
+
+====
+
 [[stacktraces]]
 
 === Stacktrace command-line options
@@ -66,6 +73,30 @@ The full stacktraces are printed out. This option renders stacktraces for deprec
 &lt;No stacktrace options&gt;::
 No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the `DEBUG` log level is chosen, truncated stacktraces are always printed.
 
+[[sec:debug_security]]
+
+== Debug Security
+
+Running Gradle with the DEBUG log level can expose security sensitive information to the console.
+This information can include (but is not limited to):
+
+- Environment variables
+- Private repository credentials
+- Build cache & Gradle Enterprise Credentials
+- https://plugins.gradle.org/[Plugin Portal] publishing credentials
+
+The DEBUG log level should *not* be used when running on public CI (eg. Travis CI, Circle CI, GitHub Actions, ect...).
+Public CI logs are usually world-viewable and https://edoverflow.com/2019/ci-knew-there-would-be-bugs-here/[can expose this sensitive information].
+Depending upon your organization's threat model, logging sensitive credentials in private CI may also be a vulnerability.
+Please discuss this with your organization's security team.
+
+Some CI frameworks attempt to scrub sensitive credentials from logs, however, this is historically imperfect and usually only scrubs exact-matches of pre-configured secrets.
+
+[[debug_security_plugins]]
+=== Published Plugins
+
+Plugin authors should be aware that logging sensitive information at a level higher than DEBUG in their plugin is a security vulnerability.
+If you believe that your Gradle Plugin may be exposing sensitive information, please contact mailto:security@gradle.com[security@gradle.com] for disclosure assistance.
 
 [[sec:sending_your_own_log_messages]]
 == Writing your own log messages

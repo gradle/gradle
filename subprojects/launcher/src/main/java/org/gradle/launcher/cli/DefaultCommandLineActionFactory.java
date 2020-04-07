@@ -251,9 +251,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             loggingManager.start();
 
             Action<ExecutionListener> exceptionReportingAction =
-                    new ExceptionReportingAction(reporter, loggingManager,
-                            new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
-                                    new WelcomeMessageAction(buildLayout, action)));
+                new ExceptionReportingAction(reporter, loggingManager,
+                    new DebugLoggerWarningAction(loggingConfiguration,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                            new WelcomeMessageAction(buildLayout, action))));
             try {
                 exceptionReportingAction.execute(executionListener);
             } finally {
