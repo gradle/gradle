@@ -1,9 +1,0 @@
-> Task :compileJava
-> Task :processResources NO-SOURCE
-> Task :classes
-
-> Task :run
-Greetings from the sample application.
-
-BUILD SUCCESSFUL in 0s
-2 actionable tasks: 2 executed
