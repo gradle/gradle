@@ -311,7 +311,8 @@ class DefaultInstantExecution internal constructor(
         decoder,
         service(),
         beanConstructors,
-        logger
+        logger,
+        problems::onProblem
     )
 
     private
