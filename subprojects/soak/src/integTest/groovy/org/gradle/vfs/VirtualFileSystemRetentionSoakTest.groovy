@@ -24,6 +24,7 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
+import spock.lang.Ignore
 
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
@@ -63,6 +64,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         }
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3041')
     def "file watching works with multiple builds on the same daemon"() {
         def numberOfChangesBetweenBuilds = maxFileChangesWithoutOverflow
 
@@ -97,6 +99,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         }
     }
 
+    @Ignore('https://github.com/gradle/gradle-private/issues/3041')
     def "file watching works with many changes between two builds"() {
         // Use 40 minutes idle timeout since the test may be running longer with an idle daemon
         executer.withDaemonIdleTimeoutSecs(2400)
