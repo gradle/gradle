@@ -64,19 +64,6 @@ include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=e
 [[sec:application_modular]]
 == Building applications using the Java Module System
 
-Samples: link:../samples/#java_modules[Java Modules sample projects]
-
-[NOTE]
-====
-Java Module System support is an incubating feature and therefore you need to turn on _module path inference_ explicitly as shown below.
-====
-
-.Activate module path inference
-====
-include::sample[dir="snippets/application/groovy",files="build.gradle[tags=inferModulePath]"]
-include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=inferModulePath]"]
-====
-
 Gradle supports the building of https://www.oracle.com/corporate/features/understanding-java-9-modules.html[Java Modules] as described in the <<java_library_plugin.adoc#sec:java_library_modular,corresponding section of the Java Library plugin documentation>>.
 Java modules can also be runnable and you can use the application plugin to run and package such a modular application.
 For this, you need to do two things in addition to what you do for a non-modular application.
@@ -93,11 +80,24 @@ include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=m
 ====
 
 That's all.
-If you run your application (by executing the `run` task or through a <<#sec:the_distribution,generated start script>>), it will run as module and respect module boundaries at runtime.
+If you run your application, by executing the `run` task or through a <<#sec:the_distribution,generated start script>>, it will run as module and respect module boundaries at runtime.
 For example, reflective access to an internal package from another module can fail.
 
 The configured _main class_ is also baked into the `module-info.class` file of your application Jar.
 If you run the modular application directly using the `java` command, it is then sufficient to provide the module name.
+
+You can also look at a link:../samples/sample_java_modules_multi_project.html[ready made example] that includes a modular application as part of a multi-project.
+
+[NOTE]
+====
+Java Module System support is an incubating feature and therefore you need to turn on _module path inference_ explicitly as shown below.
+====
+
+.Activate module path inference
+====
+include::sample[dir="snippets/application/groovy",files="build.gradle[tags=inferModulePath]"]
+include::sample[dir="snippets/application/kotlin",files="build.gradle.kts[tags=inferModulePath]"]
+====
 
 [[sec:the_distribution]]
 == Building a distribution
