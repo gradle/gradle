@@ -129,7 +129,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void afterStart(boolean watchingEnabled) {
+    public void afterBuildStarted(boolean watchingEnabled) {
         if (watchingEnabled) {
             startWatching();
             handleWatcherRegistryEvents("since last build");
@@ -159,7 +159,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     }
 
     @Override
-    public void beforeComplete(boolean watchingEnabled) {
+    public void beforeBuildFinished(boolean watchingEnabled) {
         if (watchingEnabled) {
             handleWatcherRegistryEvents("for current build");
             buildRunning = false;

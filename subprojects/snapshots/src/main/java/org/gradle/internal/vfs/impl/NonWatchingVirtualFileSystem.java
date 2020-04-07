@@ -35,7 +35,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
     }
 
     @Override
-    public void afterStart(boolean watchingEnabled) {
+    public void afterBuildStarted(boolean watchingEnabled) {
         if (watchingEnabled) {
             LOGGER.warn("Watching for file changes is not supported on the current operating system");
         }
@@ -47,7 +47,7 @@ public class NonWatchingVirtualFileSystem extends AbstractDelegatingVirtualFileS
     }
 
     @Override
-    public void beforeComplete(boolean watchingEnabled) {
+    public void beforeBuildFinished(boolean watchingEnabled) {
         invalidateAll();
     }
 }

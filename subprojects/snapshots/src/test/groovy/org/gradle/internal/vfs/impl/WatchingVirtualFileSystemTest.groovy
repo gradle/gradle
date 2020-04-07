@@ -35,14 +35,14 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "invalidates the virtual file system before and after the build when watching is disabled"() {
         when:
-        watchingVirtualFileSystem.afterStart(false)
+        watchingVirtualFileSystem.afterBuildStarted(false)
         then:
         1 * delegate.root >> rootReference
         1 * rootHierarchy.empty()
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(false)
+        watchingVirtualFileSystem.beforeBuildFinished(false)
         then:
         1 * delegate.invalidateAll()
         0 * _
@@ -50,7 +50,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "stops the watchers before the build when watching is disabled"() {
         when:
-        watchingVirtualFileSystem.afterStart(true)
+        watchingVirtualFileSystem.afterBuildStarted(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.startWatcher(_) >> watcherRegistry
@@ -59,14 +59,14 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(true)
+        watchingVirtualFileSystem.beforeBuildFinished(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
         when:
-        watchingVirtualFileSystem.afterStart(false)
+        watchingVirtualFileSystem.afterBuildStarted(false)
         then:
         1 * delegate.root >> rootReference
         1 * rootHierarchy.empty()
@@ -77,7 +77,7 @@ class WatchingVirtualFileSystemTest extends Specification {
 
     def "retains the virtual file system when watching is enabled"() {
         when:
-        watchingVirtualFileSystem.afterStart(true)
+        watchingVirtualFileSystem.afterBuildStarted(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistryFactory.startWatcher(_) >> watcherRegistry
@@ -86,14 +86,14 @@ class WatchingVirtualFileSystemTest extends Specification {
         0 * _
 
         when:
-        watchingVirtualFileSystem.beforeComplete(true)
+        watchingVirtualFileSystem.beforeBuildFinished(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
 
         when:
-        watchingVirtualFileSystem.afterStart(true)
+        watchingVirtualFileSystem.afterBuildStarted(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)

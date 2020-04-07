@@ -28,12 +28,12 @@ public interface WatchingAwareVirtualFileSystem extends VirtualFileSystem {
     /**
      * Called when the build is started.
      */
-    void afterStart(boolean watchingEnabled);
+    void afterBuildStarted(boolean watchingEnabled);
 
     void updateMustWatchDirectories(Collection<File> mustWatchDirectories);
 
     /**
-     * Called when the build is completed.
+     * Called when the build is finished.
      */
-    void beforeComplete(boolean watchingEnabled);
+    void beforeBuildFinished(boolean watchingEnabled);
 }
