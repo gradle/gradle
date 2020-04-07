@@ -16,60 +16,38 @@
 
 package org.gradle.internal.vfs.impl;
 
-import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.snapshot.SnapshotHierarchyReference;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.Predicate;
 
 public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator {
 
-    private SnapshotHierarchy.CollectedDiffListener collectedDiffListener;
+    private final Predicate<String> watchFilter;
+    private SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener;
 
-    public void setCollectedDiffListener(@Nullable SnapshotHierarchy.CollectedDiffListener collectedDiffListener) {
-        this.collectedDiffListener = collectedDiffListener;
+    public DelegatingDiffCapturingUpdateFunctionDecorator(Predicate<String> watchFilter) {
+        this.watchFilter = watchFilter;
+    }
+
+    public void setSnapshotDiffListener(@Nullable SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
+        this.snapshotDiffListener = snapshotDiffListener;
     }
 
     @Override
     public SnapshotHierarchyReference.UpdateFunction decorate(SnapshotHierarchy.DiffCapturingUpdateFunction updateFunction) {
-        SnapshotHierarchy.CollectedDiffListener currentListener = collectedDiffListener;
+        SnapshotHierarchy.SnapshotDiffListener currentListener = snapshotDiffListener;
         if (currentListener == null) {
             return root -> updateFunction.update(root, SnapshotHierarchy.NodeDiffListener.NOOP);
         }
 
-        CollectingDiffListener listener = new CollectingDiffListener(currentListener);
+        SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
         return root -> {
-            SnapshotHierarchy newRoot = updateFunction.update(root, listener);
-            listener.publishCollectedDiff();
+            SnapshotHierarchy newRoot = updateFunction.update(root, diffListener);
+            diffListener.publishSnapshotDiff(currentListener);
             return newRoot;
         };
     }
 
-    private static class CollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
-        private final List<FileSystemNode> removedNodes;
-        private final List<FileSystemNode> addedNodes;
-        private final SnapshotHierarchy.CollectedDiffListener currentListener;
-
-        public CollectingDiffListener(SnapshotHierarchy.CollectedDiffListener currentListener) {
-            this.currentListener = currentListener;
-            removedNodes = new ArrayList<>();
-            addedNodes = new ArrayList<>();
-        }
-
-        public void publishCollectedDiff() {
-            currentListener.changed(removedNodes, addedNodes);
-        }
-
-        @Override
-        public void nodeRemoved(FileSystemNode node) {
-            removedNodes.add(node);
-        }
-
-        @Override
-        public void nodeAdded(FileSystemNode node) {
-            addedNodes.add(node);
-        }
-    }
 }

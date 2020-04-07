@@ -90,9 +90,9 @@ public interface SnapshotHierarchy {
         SnapshotHierarchyReference.UpdateFunction decorate(DiffCapturingUpdateFunction updateFunction);
     }
 
-    interface CollectedDiffListener {
-        CollectedDiffListener NOOP = (removedNodes, addedNodes) -> {};
+    interface SnapshotDiffListener {
+        SnapshotDiffListener NOOP = (removedNodes, addedNodes) -> {};
 
-        void changed(Collection<FileSystemNode> removedNodes, Collection<FileSystemNode> addedNodes);
+        void changed(Collection<CompleteFileSystemLocationSnapshot> removedNodes, Collection<CompleteFileSystemLocationSnapshot> addedNodes);
     }
 }

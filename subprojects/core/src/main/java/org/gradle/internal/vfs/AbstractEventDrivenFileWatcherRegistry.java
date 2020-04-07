@@ -18,20 +18,14 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.file.FileWatcherCallback;
-import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.function.Predicate;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATE;
@@ -43,32 +37,13 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
 
     private final FileWatcher watcher;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
-    private final Predicate<String> watchFilter;
 
-    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, Predicate<String> watchFilter, ChangeHandler handler) {
+    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
         this.watcher = createWatcher(watcherCreator, handler);
-        this.watchFilter = watchFilter;
     }
 
     public FileWatcher getWatcher() {
         return watcher;
-    }
-
-    @Override
-    public void changed(Collection<FileSystemNode> removedNodes, Collection<FileSystemNode> addedNodes) {
-        handleChanges(getAllSnapshots(removedNodes), getAllSnapshots(addedNodes));
-    }
-
-    protected abstract void handleChanges(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
-
-    private List<CompleteFileSystemLocationSnapshot> getAllSnapshots(Collection<FileSystemNode> nodes) {
-        List<CompleteFileSystemLocationSnapshot> snapshots = new ArrayList<>();
-        nodes.forEach(rootNode -> rootNode.accept(snapshot -> {
-            if (watchFilter.test(snapshot.getAbsolutePath())) {
-                snapshots.add(snapshot);
-            }
-        }));
-        return snapshots;
     }
 
     private FileWatcher createWatcher(FileWatcherCreator watcherCreator, ChangeHandler handler) {

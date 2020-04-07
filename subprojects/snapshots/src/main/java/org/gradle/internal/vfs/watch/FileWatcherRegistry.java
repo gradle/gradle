@@ -25,7 +25,7 @@ import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Optional;
 
-public interface FileWatcherRegistry extends Closeable, SnapshotHierarchy.CollectedDiffListener {
+public interface FileWatcherRegistry extends Closeable, SnapshotHierarchy.SnapshotDiffListener {
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);

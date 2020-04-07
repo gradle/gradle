@@ -40,7 +40,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
@@ -50,16 +49,15 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
     private final Set<String> mustWatchDirectories = new HashSet<>();
     private final Map<String, ImmutableList<String>> watchedRootsForSnapshot = new HashMap<>();
 
-    public LinuxFileWatcherRegistry(Predicate<String> watchFilter, ChangeHandler handler) {
+    public LinuxFileWatcherRegistry(ChangeHandler handler) {
         super(
             callback -> Native.get(LinuxFileEventFunctions.class).startWatcher(callback),
-            watchFilter,
             handler
         );
     }
 
     @Override
-    protected void handleChanges(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
+    public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
         Map<String, Integer> changedWatchedDirectories = new HashMap<>();
 
         removedSnapshots.forEach(snapshot -> {
@@ -137,8 +135,8 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
 
     public static class Factory implements FileWatcherRegistryFactory {
         @Override
-        public FileWatcherRegistry startWatcher(Predicate<String> watchFilter, ChangeHandler handler) {
-            return new LinuxFileWatcherRegistry(watchFilter, handler);
+        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
+            return new LinuxFileWatcherRegistry(handler);
         }
     }
 

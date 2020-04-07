@@ -33,7 +33,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
@@ -44,12 +43,12 @@ public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEv
     private final Set<Path> watchedRoots = new HashSet<>();
     private final Set<Path> mustWatchDirectories = new HashSet<>();
 
-    public AbstractHierarchicalFileWatcherRegistry(FileWatcherCreator watcherCreator, Predicate<String> watchFilter, ChangeHandler handler) {
-        super(watcherCreator, watchFilter, handler);
+    public AbstractHierarchicalFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
+        super(watcherCreator, handler);
     }
 
     @Override
-    protected void handleChanges(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
+    public void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots) {
         removedSnapshots.forEach(snapshot -> {
             ImmutableList<Path> previouslyWatchedRootsForSnapshot = watchedRootsForSnapshot.remove(snapshot.getAbsolutePath());
             Multisets.removeOccurrences(shouldWatchDirectories, previouslyWatchedRootsForSnapshot);

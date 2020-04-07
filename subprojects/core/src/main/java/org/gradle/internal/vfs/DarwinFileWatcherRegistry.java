@@ -22,11 +22,10 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 import java.util.concurrent.TimeUnit;
-import java.util.function.Predicate;
 
 public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
 
-    public DarwinFileWatcherRegistry(Predicate<String> watchFilter, ChangeHandler handler) {
+    public DarwinFileWatcherRegistry(ChangeHandler handler) {
         super(
             callback -> Native.get(OsxFileEventFunctions.class)
                 .startWatcher(
@@ -34,7 +33,6 @@ public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRe
                     20, TimeUnit.MICROSECONDS,
                     callback
                 ),
-            watchFilter,
             handler
         );
     }
@@ -42,8 +40,8 @@ public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRe
     public static class Factory implements FileWatcherRegistryFactory {
 
         @Override
-        public FileWatcherRegistry startWatcher(Predicate<String> watchFilter, ChangeHandler handler) {
-            return new DarwinFileWatcherRegistry(watchFilter, handler);
+        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
+            return new DarwinFileWatcherRegistry(handler);
         }
 
     }

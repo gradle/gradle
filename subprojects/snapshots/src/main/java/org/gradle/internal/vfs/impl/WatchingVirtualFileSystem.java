@@ -23,7 +23,6 @@ import org.gradle.internal.file.FileHierarchySet;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
@@ -37,9 +36,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
@@ -55,7 +52,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     private final FileWatcherRegistryFactory watcherRegistryFactory;
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
-    private final Predicate<String> watchFilter;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private FileWatcherRegistry watchRegistry;
     private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(4096);
@@ -81,11 +77,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     private volatile boolean consumeEvents = true;
 
-    private final SnapshotHierarchy.CollectedDiffListener collectedDiffListener = (removedNodes, addedNodes) -> {
-        if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
-            updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
-        }
-    };
+    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedNodes, addedNodes) -> updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
 
     public WatchingVirtualFileSystem(
         FileWatcherRegistryFactory watcherRegistryFactory,
@@ -96,7 +88,6 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         super(delegate);
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
-        this.watchFilter = watchFilter;
 
         // stop thread
         Thread eventConsumer = new Thread(() -> {
@@ -115,22 +106,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                             String absolutePath = path.toString();
                             if (!(buildRunning && producedByCurrentBuild.get().contains(absolutePath))) {
                                 getRoot().update(root -> {
-                                    List<FileSystemNode> removedNodes = new ArrayList<>();
-                                    List<FileSystemNode> addedNodes = new ArrayList<>();
-                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, new SnapshotHierarchy.NodeDiffListener() {
-                                        @Override
-                                        public void nodeRemoved(FileSystemNode node) {
-                                            removedNodes.add(node);
-                                        }
-
-                                        @Override
-                                        public void nodeAdded(FileSystemNode node) {
-                                            addedNodes.add(node);
-                                        }
-                                    });
-                                    if (!removedNodes.isEmpty() || !addedNodes.isEmpty()) {
-                                        updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedNodes, addedNodes));
-                                    }
+                                    SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
+                                    SnapshotHierarchy newRoot = root.invalidate(absolutePath, diffListener);
+                                    diffListener.publishSnapshotDiff(snapshotDiffListener);
                                     return newRoot;
                                 });
                             }
@@ -202,7 +180,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         }
         try {
             long startTime = System.currentTimeMillis();
-            watchRegistry = watcherRegistryFactory.startWatcher(watchFilter, new FileWatcherRegistry.ChangeHandler() {
+            watchRegistry = watcherRegistryFactory.startWatcher(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     try {
@@ -223,7 +201,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     }
                 }
             });
-            delegatingUpdateFunctionDecorator.setCollectedDiffListener(collectedDiffListener);
+            delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
         } catch (Exception ex) {
@@ -254,7 +232,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         updateWatchRegistry(fileWatcherRegistry -> {
             try {
                 watchRegistry = null;
-                delegatingUpdateFunctionDecorator.setCollectedDiffListener(null);
+                delegatingUpdateFunctionDecorator.setSnapshotDiffListener(null);
                 fileWatcherRegistry.close();
             } catch (IOException ex) {
                 LOGGER.error("Couldn't fetch file changes, dropping VFS state", ex);

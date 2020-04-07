@@ -21,14 +21,11 @@ import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
-import java.util.function.Predicate;
-
 public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
 
-    public WindowsFileWatcherRegistry(Predicate<String> watchFilter, ChangeHandler handler) {
+    public WindowsFileWatcherRegistry(ChangeHandler handler) {
         super(
             callback -> Native.get(WindowsFileEventFunctions.class).startWatcher(callback),
-            watchFilter,
             handler
         );
     }
@@ -36,8 +33,8 @@ public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherR
     public static class Factory implements FileWatcherRegistryFactory {
 
         @Override
-        public FileWatcherRegistry startWatcher(Predicate<String> watchFilter, ChangeHandler handler) {
-            return new WindowsFileWatcherRegistry(watchFilter, handler);
+        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
+            return new WindowsFileWatcherRegistry(handler);
         }
     }
 }
