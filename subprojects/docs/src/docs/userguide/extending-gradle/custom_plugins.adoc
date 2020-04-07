@@ -22,11 +22,6 @@ You can implement a Gradle plugin in any language you like, provided the impleme
 In our examples, we are going to use Java as the implementation language for standalone plugin project and Groovy or Kotlin in the buildscript plugin examples.
 In general, a plugin implemented using Java or Kotlin, which are statically typed, will perform better than the same plugin implemented using Groovy.
 
-
-CAUTION: When developing Gradle Plugins it is important to be cautious of the information the plugin logs.
-For publicly published plugins, logging sensitive information (eg. credentials, tokens, certain environment variables), at log levels above DEBUG is <<logging.adoc#debug_security_plugins,considered a security vulnerability>>.
-Build logs for Public CI (eg. Travis CI, Circle CI, GitHub Actions, ect...) are world-viewable and https://edoverflow.com/2019/ci-knew-there-would-be-bugs-here/[can expose this sensitive information].
-
 [[sec:packaging_a_plugin]]
 == Packaging a plugin
 
@@ -254,6 +249,9 @@ Plugins often also provide custom task types. Please see <<custom_tasks.adoc#cus
 
 Gradle provides a number of features that are helpful when developing Gradle types, including plugins. Please see <<custom_gradle_types.adoc#custom_gradle_types,Developing Custom Gradle Types>> for more details.
 
+CAUTION: When developing Gradle Plugins, it is important to be cautious when logging information to the build log.
+Logging sensitive information (e.g. credentials, tokens, certain environment variables) is <<logging.adoc#debug_security,considered a security vulnerability>>.
+Build logs for public Continuous Integration services are world-viewable and can expose this sensitive information.
 
 == Behind the scenes
 
