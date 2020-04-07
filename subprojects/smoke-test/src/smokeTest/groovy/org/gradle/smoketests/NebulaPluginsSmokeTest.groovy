@@ -51,6 +51,7 @@ class NebulaPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/nebula.plugin-plugin')
+    @ToBeFixedForInstantExecution(because = "Gradle.addBuildListener")
     def 'nebula plugin plugin'() {
         when:
         buildFile << """
