@@ -169,9 +169,13 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
 
     @Override
     public void update(Iterable<String> locations, Runnable action) {
-        for (String location : locations) {
-            updateRoot((root, changeListener) -> root.invalidate(location, changeListener));
-        }
+        root.update(root -> {
+            SnapshotHierarchy result = root;
+            for (String location : locations) {
+                result = updateFunctionDecorator.decorate((currentRoot, changeListener) -> currentRoot.invalidate(location, changeListener)).updateRoot(result);
+            }
+            return result;
+        });
         action.run();
     }
 
