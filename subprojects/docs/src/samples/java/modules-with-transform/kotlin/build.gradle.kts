@@ -27,7 +27,7 @@ subprojects {
 
     plugins.withType<JavaPlugin>().configureEach {
         configure<JavaPluginExtension> {
-            modularClasspathHandling.inferModulePath.set(true)
+            modularity.inferModulePath.set(true)
         }
     }
 }
