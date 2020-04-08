@@ -18,7 +18,8 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import spock.lang.Ignore
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -783,8 +784,9 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains(':compileGroovyPlugins FAILED')
     }
 
+    @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @ToBeFixedForInstantExecution
-    def "can not use a precompiled script plugin with Gradle earlier than 6.4"() {
+    def "can use a precompiled script plugin with Gradle 6.0"() {
         given:
         def pluginJar = packagePrecompiledPlugin("foo.gradle", "println 'foo plugin applied'")
 
@@ -803,15 +805,12 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        def distribution = buildContext.distribution('6.3')
+        def distribution = buildContext.distribution('6.0')
 
         then:
-        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").runWithFailure()
-        result.assertHasDescription("An exception occurred applying plugin request [id: 'foo']")
-        result.assertHasCause("Failed to apply plugin [id 'foo']")
-        result.assertHasCause('Precompiled Groovy script plugins require Gradle 6.4 or higher')
-        result.assertNotOutput('foo plugin applied')
-        !result.error.contains('java.lang.NoClassDefFoundError')
+        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").run()
+        def output = result.output // because codenarc complains otherwise
+        output.contains('foo plugin applied')
     }
 
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
