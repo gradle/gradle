@@ -16,7 +16,9 @@
 
 package org.gradle.api.publish;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.api.provider.Property;
 
 /**
  * A publication is a description of a consumable representation of one or more artifacts, and possibly associated metadata.
@@ -24,4 +26,15 @@ import org.gradle.api.Named;
  * @since 1.3
  */
 public interface Publication extends Named {
+
+    /**
+     * A {@link Property} that allows to configure the build identifier value mapped to the Gradle Module Metadata file.
+     * <p>
+     * If this value is not configured, it will default to the internal build identifier, different for each build invocation.
+     *
+     * @return a {@code String} property
+     * @since 6.4
+     */
+    @Incubating
+    Property<String> getBuildIdentifier();
 }

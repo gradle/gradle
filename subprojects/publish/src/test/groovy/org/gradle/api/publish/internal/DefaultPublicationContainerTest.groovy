@@ -20,6 +20,7 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.NamedDomainObjectFactory
 import org.gradle.api.UnknownDomainObjectException
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.provider.Property
 import org.gradle.api.publish.Publication
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.util.TestUtil
@@ -96,6 +97,11 @@ class DefaultPublicationContainerTest extends Specification {
 
         TestPublication(name) {
             this.name = name
+        }
+
+        @Override
+        Property<String> getBuildIdentifier() {
+            return null;
         }
     }
 }
