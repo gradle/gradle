@@ -20,9 +20,9 @@ subprojects {
 
 // tag::coverageTask[]
 // task to gather code coverage from multiple subprojects
-// NOTE: the report task does *not* depend on the `test` task by default. Meaning you have to ensure
+// NOTE: the `JacocoReport` tasks do *not* depend on the `test` task by default. Meaning you have to ensure
 // that `test` (or other tasks generating code coverage) run before generating the report.
-// You can achieve this by calling the `check` lifecycle task manually
+// You can achieve this by calling the `test` lifecycle task manually
 // $ ./gradlew test codeCoverageReport
 tasks.register<JacocoReport>("codeCoverageReport") {
     // If a subproject applies the 'jacoco' plugin, add the result it to the report
@@ -36,9 +36,9 @@ tasks.register<JacocoReport>("codeCoverageReport") {
             }
 
             // To automatically run `test` every time `./gradlew codeCoverageReport` is called,
-            // you may want to setup a task dependency between them.
-            // Note that this requires the `test` tasks to be resolved eagerly (see `forEach`).
-            // This has an impact on the configuration phase.
+            // you may want to set up a task dependency between them as shown below.
+            // Note that this requires the `test` tasks to be resolved eagerly (see `forEach`) which
+            // may have a negative effect on the configuration time of your build.
             subproject.tasks.matching({ it.extensions.findByType<JacocoTaskExtension>() != null }).forEach {
                 rootProject.tasks["codeCoverageReport"].dependsOn(it)
             }
