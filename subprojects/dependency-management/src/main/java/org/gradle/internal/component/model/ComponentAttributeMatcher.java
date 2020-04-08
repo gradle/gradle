@@ -101,45 +101,40 @@ public class ComponentAttributeMatcher {
     /**
      * Selects the candidates from the given set that are compatible with the requested criteria, according to the given schema.
      */
-    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback) {
+    public <T extends HasAttributes> List<T> match(AttributeSelectionSchema schema, Collection<? extends T> candidates, AttributeContainerInternal requested, @Nullable T fallback, AttributeMatchingExplanationBuilder explanationBuilder) {
         if (candidates.size() == 0) {
             if (fallback != null && isMatching(schema, (AttributeContainerInternal) fallback.getAttributes(), requested)) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("No candidates for {}, selected matching fallback {}", requested, fallback);
-                }
+                explanationBuilder.selectedFallbackConfiguration(requested, fallback);
                 return ImmutableList.of(fallback);
             }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("No candidates for {} and fallback {} does not match. Select nothing.", requested, fallback);
-            }
+            explanationBuilder.noCandidates(requested, fallback);
             return ImmutableList.of();
         }
 
         if (candidates.size() == 1) {
             T candidate = candidates.iterator().next();
             if (isMatching(schema, (AttributeContainerInternal) candidate.getAttributes(), requested)) {
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Selected match {} from candidates {} for {}", candidate, candidates, requested);
-                }
+                explanationBuilder.singleMatch(candidate, candidates, requested);
                 return Collections.singletonList(candidate);
             }
-            if (LOGGER.isDebugEnabled()) {
-                LOGGER.debug("Selected match [] from candidates {} for {}", candidates, requested);
-            }
+            explanationBuilder.candidateDoesNotMatchAttributes(candidate, requested);
             return ImmutableList.of();
         }
 
         ImmutableAttributes requestedAttributes = requested.asImmutable();
-        CachedQuery query = CachedQuery.of(schema, requestedAttributes, candidates);
-        int[] index = cachedQueries.get(query);
-        if (index != null) {
-            return CachedQuery.select(index, candidates);
+        CachedQuery query = null;
+        if (explanationBuilder.canSkipExplanation()) {
+            query = CachedQuery.of(schema, requestedAttributes, candidates);
+            int[] index = cachedQueries.get(query);
+            if (index != null) {
+                return CachedQuery.select(index, candidates);
+            }
         }
-        List<T> matches = new MultipleCandidateMatcher<T>(schema, candidates, requestedAttributes).getMatches();
-        if (LOGGER.isDebugEnabled()) {
+        List<T> matches = new MultipleCandidateMatcher<T>(schema, candidates, requestedAttributes, explanationBuilder).getMatches();
+        if (query != null) {
             LOGGER.debug("Selected matches {} from candidates {} for {}", matches, candidates, requested);
+            cacheMatchingResult(candidates, query, matches);
         }
-        cacheMatchingResult(candidates, query, matches);
         return matches;
     }
 
@@ -195,7 +190,7 @@ public class ComponentAttributeMatcher {
             ImmutableAttributes[] attributes = new ImmutableAttributes[candidates.size()];
             int i = 0;
             for (T candidate : candidates) {
-                attributes[i++] = ((AttributeContainerInternal)candidate.getAttributes()).asImmutable();
+                attributes[i++] = ((AttributeContainerInternal) candidate.getAttributes()).asImmutable();
             }
             return new CachedQuery(schema, requestedAttributes, attributes);
         }

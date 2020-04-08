@@ -91,6 +91,7 @@ abstract class AbstractSourceDependencyIntegrationTest extends AbstractIntegrati
         assertRepoNotCheckedOut()
     }
 
+    @ToBeFixedForInstantExecution(because = "source dependencies")
     def "can use source dependency in build script classpath"() {
         mappingFor(repo, "org.test:dep")
         file("build.gradle").text = """

@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.internal.xml.XmlTransformer
 import org.gradle.plugins.ide.api.PropertiesFileContentMerger
 import org.gradle.plugins.ide.api.XmlFileContentMerger
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class EclipseModelTest extends Specification {
@@ -31,7 +32,9 @@ class EclipseModelTest extends Specification {
     EclipseModel model = new EclipseModel(Mock(ProjectInternal))
 
     def setup() {
-        model.classpath = new EclipseClasspath(null)
+        def project = Mock(org.gradle.api.Project)
+        project.getObjects() >> TestUtil.objectFactory()
+        model.classpath = new EclipseClasspath(project)
     }
 
     def "enables setting path variables even if wtp is not configured"() {

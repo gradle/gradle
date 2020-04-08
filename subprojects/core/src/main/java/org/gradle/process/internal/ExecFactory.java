@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.initialization.BuildCancellationToken;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.reflect.Instantiator;
 
 /**

@@ -24,7 +24,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/cr
 include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
 ====
 
-In other cases, you might want to modify a variant that was added by the one of the Java plugin already.
+In other cases, you might want to modify a variant that was added by one of the Java plugins already.
 For example, if you activate publishing of Javadoc and sources, these become additional variants of the `java` component.
 If you only want to publish one of them, e.g. only Javadoc but no sources, you can modify the `sources` variant to not being published:
 
@@ -37,7 +37,7 @@ include::sample[dir="snippets/maven-publish/javaProject/kotlin",files="build.gra
 [[sec:publishing-custom-components]]
 == Creating and publishing custom components
 
-In the <<sec:adding-variants-to-existing-components, previous example>>, we have demonstrated how to extend or modify an existing component, like the components provided by a Java plugins.
+In the <<sec:adding-variants-to-existing-components, previous example>>, we have demonstrated how to extend or modify an existing component, like the components provided by the Java plugins.
 But Gradle also allows you to build a custom component (not a Java Library, not a Java Platform, not something supported natively by Gradle).
 
 To create a custom component, you first need to create an empty _adhoc_ component.
@@ -90,7 +90,7 @@ Please refer to the <<cross_project_publications.adoc#sec:variant-aware-sharing,
 
 If you attach extra artifacts to a publication directly, they are published "out of context".
 That means, they are not referenced in the metadata at all and can then only be addressed directly through a classifier on a dependency.
-In contrast to Gradle Module Metadata, Maven pom metadata will not contain information on additional artifacts regardless of whether they are added though a variant or directly, as variants can not be represented in the pom format.
+In contrast to Gradle Module Metadata, Maven pom metadata will not contain information on additional artifacts regardless of whether they are added through a variant or directly, as variants cannot be represented in the pom format.
 ====
 
 The following section describes how you publish artifacts directly if you are sure that metadata, for example Gradle or POM metadata, is irrelevant for your use case.

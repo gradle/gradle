@@ -45,7 +45,7 @@ dependencies {
     testFixturesImplementation(project(":platformBase"))
     testFixturesImplementation(testFixtures(project(":languageJvm")))
 
-    compileOnly("org.scala-sbt:zinc_2.12:1.3.0")
+    compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
 }
 
 

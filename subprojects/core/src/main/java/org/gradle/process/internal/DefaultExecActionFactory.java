@@ -38,7 +38,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.Stoppable;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.reflect.Instantiator;

@@ -244,6 +244,15 @@ final class DefaultImmutableAttributes implements ImmutableAttributes, Attribute
     }
 
     @Override
+    public Map<Attribute<?>, ?> asMap() {
+        ImmutableMap.Builder<Attribute<?>, ?> builder = ImmutableMap.builder();
+        for (Attribute<?> attribute : keySet()) {
+            builder.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
+        }
+        return builder.build();
+    }
+
+    @Override
     public AttributeContainer getAttributes() {
         return this;
     }

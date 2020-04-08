@@ -21,12 +21,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Iterables;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
-import java.util.List;
 
 public class Collectors {
     public interface ProvidedCollector<T> extends Collector<T> {
@@ -52,22 +49,13 @@ public class Collectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-            sources.add(Providers.of(ImmutableList.of(element)));
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.of(element)));
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
 
         @Override
@@ -94,20 +82,20 @@ public class Collectors {
     }
 
     public static class ElementFromProvider<T> implements ProvidedCollector<T> {
-        private final ProviderInternal<? extends T> providerOfElement;
+        private final ProviderInternal<? extends T> provider;
 
-        public ElementFromProvider(ProviderInternal<? extends T> providerOfElement) {
-            this.providerOfElement = providerOfElement;
+        public ElementFromProvider(ProviderInternal<? extends T> provider) {
+            this.provider = provider;
         }
 
         @Override
         public boolean isPresent() {
-            return providerOfElement.isPresent();
+            return provider.isPresent();
         }
 
         @Override
         public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> collection) {
-            Value<? extends T> value = providerOfElement.calculateValue();
+            Value<? extends T> value = provider.calculateValue();
             if (value.isMissing()) {
                 return value.asType();
             }
@@ -117,27 +105,24 @@ public class Collectors {
 
         @Override
         public boolean isProvidedBy(Provider<?> provider) {
-            return Objects.equal(provider, providerOfElement);
+            return Objects.equal(provider, this.provider);
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-            sources.add(providerOfElement.map(e -> ImmutableList.of(e)));
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            ExecutionTimeValue<? extends T> value = provider.calculateExecutionTimeValue();
+            if (value.isMissing()) {
+                visitor.execute(ExecutionTimeValue.missing());
+            } else if (value.isFixedValue()) {
+                visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.of(value.getFixedValue())));
+            } else {
+                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(e -> ImmutableList.of(e))));
+            }
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return providerOfElement.maybeVisitBuildDependencies(context);
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            providerOfElement.visitProducerTasks(visitor);
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return providerOfElement.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return provider.getProducer();
         }
 
         @Override
@@ -149,12 +134,12 @@ public class Collectors {
                 return false;
             }
             ElementFromProvider<?> that = (ElementFromProvider<?>) o;
-            return Objects.equal(providerOfElement, that.providerOfElement);
+            return Objects.equal(provider, that.provider);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hashCode(providerOfElement);
+            return Objects.hashCode(provider);
         }
 
         @Override
@@ -182,22 +167,13 @@ public class Collectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-            sources.add(Providers.of(value));
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(value));
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
 
         @Override
@@ -246,23 +222,13 @@ public class Collectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-            sources.add(provider);
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(provider.calculateExecutionTimeValue());
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return provider.maybeVisitBuildDependencies(context);
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            provider.visitProducerTasks(visitor);
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return provider.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return provider.getProducer();
         }
 
         @Override
@@ -318,22 +284,13 @@ public class Collectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-            sources.add(Providers.of(ImmutableList.copyOf(value)));
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(ImmutableList.copyOf(value)));
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
 
         @Override
@@ -378,23 +335,13 @@ public class Collectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources) {
-            delegate.visit(sources);
+        public void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor) {
+            delegate.calculateExecutionTimeValue(visitor);
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return delegate.maybeVisitBuildDependencies(context);
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            delegate.visitProducerTasks(visitor);
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return delegate.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return delegate.getProducer();
         }
 
         @Override

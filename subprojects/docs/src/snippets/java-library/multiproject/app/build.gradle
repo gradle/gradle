@@ -23,7 +23,7 @@ dependencies {
     implementation project(':utils')
 }
 
-mainClassName = 'org.gradle.samples.app.Main'
+mainClass = 'org.gradle.samples.app.Main'
 
 run {
     standardInput = System.in

@@ -142,7 +142,7 @@ public class ApplicationPlugin implements Plugin<Project> {
             run.getConventionMapping().map("jvmArgs", pluginConvention::getApplicationDefaultJvmArgs);
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-            run.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
+            run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
     }
 
@@ -164,7 +164,7 @@ public class ApplicationPlugin implements Plugin<Project> {
             startScripts.getConventionMapping().map("defaultJvmOpts", pluginConvention::getApplicationDefaultJvmArgs);
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-            startScripts.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
+            startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
     }
 

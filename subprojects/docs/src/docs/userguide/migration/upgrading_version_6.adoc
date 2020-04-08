@@ -38,6 +38,18 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+==== PMD plugin requires PMD 6.0.0 or higher by default
+
+Gradle 6.4 enabled incremental analysis by default.
+Incremental analysis is only available in PMD 6.0.0 or higher.
+If you want to use an older PMD version, you need to disable incremental analysis:
+
+```
+pmd {
+    incrementalAnalysis = false
+}
+```
+
 ==== Changes in dependency locking
 
 With Gradle 6.4, the incubating API for <<dependency_locking#fine_tuning_dependency_locking_behaviour_with_lock_mode, dependency locking `LockMode`>> has changed.
@@ -65,6 +77,16 @@ In addition, there is a new `release` property (`java.release.set(...)` or `java
 
 Gradle versions from 6.0 to 6.3.x included could generate bad Gradle Module Metadata when publishing on an Ivy repository which had a custom repository layout.
 Starting from 6.4, Gradle will no longer publish Gradle Module Metadata if it detects that you are using a custom repository layout.
+
+=== New properties may shadow variables in build scripts
+
+This release introduces some new properties -- `mainClass`, `mainModule`, `modularity` -- in different places.
+Since these are very generic names, there is a chance that you use one of them in your build scripts as variable name.
+A new property might then shadow one of your variables in an undesired way, leading to a build failure where the property is accessed instead of the local variable with the same name.
+You can fix it by renaming the corresponding variable in the build script.
+
+Affected is configuration code inside the `application {}` and `java {}` configuration blocks, inside a java execution setup with `project.javaexec {}`, and inside various task configurations
+(`JavaExec`, `CreateStartScripts`, `JavaCompile`, `Test`, `Javadoc`).
 
 ==== Updates to bundled Gradle dependencies
 

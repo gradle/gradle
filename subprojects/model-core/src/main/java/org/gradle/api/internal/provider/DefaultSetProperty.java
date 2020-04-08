@@ -20,18 +20,21 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.Set;
+import java.util.function.Supplier;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
+    private static final Supplier<ImmutableCollection.Builder<Object>> FACTORY = new Supplier<ImmutableCollection.Builder<Object>>() {
+        @Override
+        public ImmutableCollection.Builder<Object> get() {
+            return ImmutableSet.builder();
+        }
+    };
     public DefaultSetProperty(PropertyHost host, Class<T> elementType) {
-        super(host, Set.class, elementType);
-    }
-
-    @Override
-    protected ImmutableCollection.Builder<T> builder() {
-        return ImmutableSet.builder();
+        super(host, Set.class, elementType, Cast.uncheckedNonnullCast(FACTORY));
     }
 
     @Override

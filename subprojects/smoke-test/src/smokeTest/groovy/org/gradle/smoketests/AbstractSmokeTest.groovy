@@ -198,6 +198,13 @@ abstract class AbstractSmokeTest extends Specification {
         if (GradleContextualExecuter.isInstant()) {
             parameters += InstantExecutionGradleExecuter.INSTANT_EXECUTION_ARGS
             parameters += ["-D${BuildOperationTrace.SYSPROP}=${buildOperationTracePath()}".toString()]
+            def maxProblems = maxInstantExecutionProblems()
+            if (maxProblems > 0) {
+                parameters += [
+                    '-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false',
+                    "-Dorg.gradle.unsafe.instant-execution.max-problems=$maxProblems".toString()
+                ]
+            }
         }
         def generatedApiJarCacheDir = IntegrationTestBuildContext.INSTANCE.gradleGeneratedApiJarCacheDir
         if (generatedApiJarCacheDir == null) {
@@ -221,6 +228,10 @@ abstract class AbstractSmokeTest extends Specification {
             "-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}" as String,
             "-D${INIT_SCRIPT_LOCATION}=${mirrorInitScriptPath}" as String,
         ]
+    }
+
+    protected int maxInstantExecutionProblems() {
+        return 0
     }
 
     protected void assertInstantExecutionStateStored() {

@@ -17,15 +17,17 @@
 package org.gradle.internal.vfs.impl
 
 import org.gradle.internal.hash.Hashing
-import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.FileMetadata
+import org.gradle.internal.snapshot.PathUtil
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.vfs.watch.WatchRootUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import java.nio.file.Paths
 
 @Unroll
 class WatchRootUtilTest extends Specification {
@@ -65,70 +67,28 @@ class WatchRootUtilTest extends Specification {
         ["C:\\b\\a", "C:\\a"]       | ["C:\\a", "C:\\b\\a"]
     }
 
-    def "resolves directories to watch from snapshot hierarchy"() {
-        def prefix = '/some/absolute'
-
+    def "resolves directories to watch from snapshot"() {
         when:
-        def directoriesToWatch = resolveDirectoriesToWatch(hierarchy, prefix)
+        def directoriesToWatch = WatchRootUtil.getDirectoriesToWatch(snapshot).collect { it.toString() } as Set
         then:
-        normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch.collect { "${prefix}${it}".toString() } as Set)
+        normalizeLineSeparators(directoriesToWatch) == (expectedDirectoriesToWatch as Set)
 
         where:
-        hierarchy  | expectedDirectoriesToWatch
-        [root: []] | ["", "/root"]
-        [root: [
-            [
-                dir: ['file'],
-                dir2: ['anotherFile', [subDir: []]],
-            ],
-            'rootFile'
-        ]]         | ["", "/root", "/root/dir", "/root/dir2", "/root/dir2/subDir"]
-        [
-            root1: [
-                [
-                    dir: [],
-                ],
-                'rootFile'
-            ],
-            root2: [
-                [
-                    dir: ['file'],
-                ]
-            ]
-        ]          | ["", "/root1", "/root1/dir", "/root2", "/root2/dir"]
-    }
-
-    private static Set<String> resolveDirectoriesToWatch(Map roots, String prefix) {
-        def dirs = directoriesFromMap(roots, prefix)
-        def hierarchy = dirs.inject(DefaultSnapshotHierarchy.empty(CaseSensitivity.CASE_SENSITIVE)) { acc, snapshot ->
-            acc.store(snapshot.getAbsolutePath(), snapshot)
-        }
-        WatchRootUtil.resolveDirectoriesToWatch(hierarchy, { true }, [])
-    }
-
-    private static List<CompleteDirectorySnapshot> directoriesFromMap(Map entries, String prefix) {
-        entries.collect { name, value ->
-            String absolutePath = "${prefix}/${name}"
-            def children = value.collectMany { child ->
-                switch (child) {
-                    case String:
-                        return [fileSnapshot("${absolutePath}/${child}")]
-                    case Map:
-                        return directoriesFromMap(child, absolutePath)
-                    default:
-                        throw new AssertionError("Unexpected child: ${child}")
-                }
-            }
-            new CompleteDirectorySnapshot(absolutePath, name, children, Hashing.md5().hashString(absolutePath))
-        }
+        snapshot                                       | expectedDirectoriesToWatch
+        fileSnapshot('/some/absolute/parent/file')     | ['/some/absolute/parent']
+        directorySnapshot('/some/absolute/parent/dir') | ['/some/absolute/parent', '/some/absolute/parent/dir']
     }
 
     private static RegularFileSnapshot fileSnapshot(String absolutePath) {
         new RegularFileSnapshot(absolutePath, absolutePath.substring(absolutePath.lastIndexOf('/') + 1), Hashing.md5().hashString(absolutePath), new FileMetadata(1, 1))
     }
 
+    private static CompleteDirectorySnapshot directorySnapshot(String absolutePath) {
+        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [], Hashing.md5().hashString(absolutePath))
+    }
+
     private static List<String> resolveRecursiveRoots(List<String> directories) {
-        WatchRootUtil.resolveRootsToWatch(directories as Set)
+        WatchRootUtil.resolveRootsToWatch(directories.collect { Paths.get(it) } as Set)
             .collect { it.toString() }
             .sort()
     }

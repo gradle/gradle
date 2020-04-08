@@ -54,7 +54,7 @@ import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;

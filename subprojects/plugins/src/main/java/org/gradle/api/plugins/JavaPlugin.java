@@ -428,7 +428,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
                         return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
                     }
                 });
-                test.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
+                test.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             }
         });
 

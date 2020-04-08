@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -70,19 +67,13 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-        backingProvider().visitProducerTasks(visitor);
+    public ValueProducer getProducer() {
+        return backingProvider().getProducer();
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
-        return backingProvider().isValueProducedByTask() || !getProducerTasks().isEmpty();
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return backingProvider().maybeVisitBuildDependencies(context);
+    public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
+        return backingProvider().calculateExecutionTimeValue();
     }
 
     @Override

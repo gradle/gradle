@@ -16,6 +16,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ArtifactBuilder
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.file.TestFile
@@ -240,6 +241,7 @@ initscript {
     }
 
     @Issue("https://github.com/gradle/gradle-native/issues/962")
+    @UnsupportedWithInstantExecution
     def "init script can register all projects hook from within the projects loaded callback of build listener"() {
         given:
         executer.requireOwnGradleUserHomeDir()

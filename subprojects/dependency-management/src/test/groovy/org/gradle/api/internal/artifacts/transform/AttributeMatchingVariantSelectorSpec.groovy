@@ -37,6 +37,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
     def attributeMatcher = Mock(AttributeMatcher)
     def attributesSchema = Mock(AttributesSchemaInternal) {
         withProducer(_) >> attributeMatcher
+        getConsumerDescribers() >> []
     }
     def attributesFactory = Mock(ImmutableAttributesFactory) {
         concat(_, _) >> { args -> return args[0]}
@@ -64,7 +65,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
 
         then:
         result == resolvedArtifactSet
-        1 * attributeMatcher.matches(_, _) >> [variant]
+        1 * attributeMatcher.matches(_, _, _) >> [variant]
         1 * variant.getArtifacts() >> resolvedArtifactSet
         0 * consumerProvidedVariantFinder._
     }
@@ -97,7 +98,9 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
                 return null
             }
         })
-        1 * attributeMatcher.matches(_, _) >> [variant, otherResolvedVariant]
+        2 * variantSet.getSchema() >> attributesSchema
+        2 * variantSet.getOverriddenAttributes() >> ImmutableAttributes.EMPTY
+        2 * attributeMatcher.matches(_, _, _) >> [variant, otherResolvedVariant]
         2 * attributeMatcher.isMatching(_, _, _) >> true
         0 * consumerProvidedVariantFinder._
     }
@@ -114,7 +117,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transformation, 1)
         }
@@ -143,7 +146,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform1, 2)
@@ -151,7 +154,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform2, 3)
         }
-        1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
+        1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
         1 * transformationNodeRegistry.getOrCreate(_, transform1, _) >> [Mock(TransformationNode)]
     }
 
@@ -176,7 +179,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform1, 2)
@@ -184,7 +187,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform2, 3)
         }
-        1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
+        1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
         1 * transformationNodeRegistry.getOrCreate(_, transform1, _) >> [Mock(TransformationNode)]
     }
 
@@ -209,14 +212,14 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(otherVariantAttributes, transform1, 2)
         }
         1 * consumerProvidedVariantFinder.collectConsumerVariants(otherVariantAttributes, requestedAttributes) >> { args ->
             match(variantAttributes, transform2, 3)
         }
-        1 * attributeMatcher.matches(_, _) >> { args -> [args[0].get(0)] }
+        1 * attributeMatcher.matches(_, _, _) >> { args -> [args[0].get(0)] }
         1 * transformationNodeRegistry.getOrCreate(_, transform1, _) >> [Mock(TransformationNode)]
     }
 
@@ -247,7 +250,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         2 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform1, 3)
@@ -258,7 +261,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform3, 2)
         }
-        1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
+        1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
         1 * transformationNodeRegistry.getOrCreate(_, transform3, _) >> [Mock(TransformationNode)]
     }
 
@@ -289,7 +292,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform1, 3)
         }
@@ -300,7 +303,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
             match(requestedAttributes, transform3, 3)
         }
         2 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >> true
-        1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
+        1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
         1 * transformationNodeRegistry.getOrCreate(_, transform2, _) >> [Mock(TransformationNode)]
     }
 
@@ -331,7 +334,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         result.visitDependencies(context)
 
         then:
-        1 * attributeMatcher.matches(_, _) >> Collections.emptyList()
+        1 * attributeMatcher.matches(_, _, _) >> Collections.emptyList()
         1 * consumerProvidedVariantFinder.collectConsumerVariants(variantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform1, 3)
         }
@@ -341,7 +344,7 @@ class AttributeMatchingVariantSelectorSpec extends Specification {
         1 * consumerProvidedVariantFinder.collectConsumerVariants(yetAnotherVariantAttributes, requestedAttributes) >> { args ->
             match(requestedAttributes, transform3, 3)
         }
-        1 * attributeMatcher.matches(_, _) >> { args -> args[0] }
+        1 * attributeMatcher.matches(_, _, _) >> { args -> args[0] }
         3 * attributeMatcher.isMatching(requestedAttributes, requestedAttributes) >>> [false, false, true]
         1 * context.visitFailure({it instanceof AmbiguousTransformException})
     }

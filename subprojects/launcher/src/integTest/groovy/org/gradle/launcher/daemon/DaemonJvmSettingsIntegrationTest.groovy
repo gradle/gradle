@@ -96,4 +96,18 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         where:
         javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
     }
+
+    def 'can start the daemon with ClassLoading tracing enabled'() {
+        given:
+        file('build.gradle') << """
+println 'Started'
+"""
+        executer.useOnlyRequestedJvmOpts()
+
+        when:
+        file('gradle.properties') << 'org.gradle.jvmargs=-XX:+TraceClassLoading'
+
+        then:
+        succeeds()
+    }
 }

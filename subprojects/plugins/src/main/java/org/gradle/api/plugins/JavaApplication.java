@@ -30,7 +30,7 @@ import org.gradle.api.provider.Property;
  * apply plugin: 'application'
  *
  * application {
- *   mainClassName = "com.foo.bar.FooBar"
+ *   mainClass.set("com.foo.bar.FooBar")
  * }
  * </pre>
  *

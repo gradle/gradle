@@ -17,6 +17,7 @@
 package org.gradle.java
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 
 class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
 
@@ -42,5 +43,62 @@ class JavaLibraryConsumptionIntegrationTest extends AbstractIntegrationSpec {
         fails 'checkForRxJavaDependency', 'build'
         failure.assertHasCause('Compilation failed; see the compiler error output for details.')
         failure.assertHasErrorOutput('error: package rx.observers does not exist')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11995")
+    def "provides a human understable error message when some variants were discarded and the remainder is ambiguous"() {
+        buildFile << """
+            apply plugin: 'java-base'
+
+            configurations {
+                consumer {
+                    canBeResolved = true
+                    canBeConsumed = false
+                    attributes {
+                        // intentionally not complete
+                        attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, project.objects.named(Bundling, Bundling.EXTERNAL))
+                        attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 7)
+                    }
+                }
+            }
+
+            ${jcenterRepository()}
+            dependencies {
+                consumer "org.junit.jupiter:junit-jupiter-api:5.6.0"
+            }
+
+            tasks.register("resolve") {
+                doLast {
+                    println configurations.consumer.files
+                }
+            }
+        """
+
+        when:
+        fails 'resolve'
+
+        then:
+        failure.assertHasCause """The consumer was configured to find a runtime of a component compatible with Java 7, and its dependencies declared externally. However we cannot choose between the following variants of org.junit.jupiter:junit-jupiter-api:5.6.0:
+  - javadocElements
+  - sourcesElements
+All of them match the consumer attributes:
+  - Variant 'javadocElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a runtime of a component, and its dependencies declared externally:
+      - Unmatched attributes:
+          - Provides documentation but the consumer didn't ask for it
+          - Provides javadocs but the consumer didn't ask for it
+          - Doesn't say anything about its target Java version (required compatibility with Java 7)
+          - Provides release status but the consumer didn't ask for it
+  - Variant 'sourcesElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a runtime of a component, and its dependencies declared externally:
+      - Unmatched attributes:
+          - Provides documentation but the consumer didn't ask for it
+          - Provides sources but the consumer didn't ask for it
+          - Doesn't say anything about its target Java version (required compatibility with Java 7)
+          - Provides release status but the consumer didn't ask for it
+The following variants were also considered but didn't match the requested attributes:
+  - Variant 'apiElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a component, and its dependencies declared externally:
+      - Incompatible because this component declares an API of a component compatible with Java 8 and the consumer needed a runtime of a component compatible with Java 7
+  - Variant 'runtimeElements' capability org.junit.jupiter:junit-jupiter-api:5.6.0 declares a runtime of a component, and its dependencies declared externally:
+      - Incompatible because this component declares a component compatible with Java 8 and the consumer needed a component compatible with Java 7"""
     }
 }

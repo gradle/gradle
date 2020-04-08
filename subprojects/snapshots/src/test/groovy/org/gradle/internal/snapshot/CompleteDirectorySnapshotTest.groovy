@@ -38,11 +38,13 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == children
         resultRoot.pathToParent == initialRoot.pathToParent
+        removedNodes == [initialRoot.getSnapshot().get()]
+        addedNodes == children
         interaction { noMoreInteractions() }
 
         where:
@@ -53,11 +55,13 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildRemoved()
         resultRoot.pathToParent == initialRoot.pathToParent
+        removedNodes == [initialRoot.getSnapshot().get()]
+        addedNodes == childrenWithSelectedChildRemoved()
         interaction { noMoreInteractions() }
 
         where:
@@ -69,11 +73,13 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         def invalidatedChild = mockChild(selectedChild.pathToParent)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildReplacedBy(invalidatedChild)
         resultRoot.pathToParent == initialRoot.pathToParent
+        removedNodes == [initialRoot.getSnapshot().get()]
+        addedNodes == childrenWithSelectedChildRemoved()
 
         interaction {
             invalidateDescendantOfSelectedChild(invalidatedChild)
@@ -88,11 +94,13 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         when:
-        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE).get()
+        def resultRoot = initialRoot.invalidate(searchedPath, CASE_SENSITIVE, diffListener).get()
         then:
         resultRoot instanceof PartialDirectorySnapshot
         resultRoot.children == childrenWithSelectedChildRemoved()
         resultRoot.pathToParent == initialRoot.pathToParent
+        removedNodes == [initialRoot.getSnapshot().get()]
+        addedNodes == childrenWithSelectedChildRemoved()
 
         interaction {
             invalidateDescendantOfSelectedChild(null)
@@ -107,7 +115,9 @@ class CompleteDirectorySnapshotTest extends AbstractSnapshotWithChildrenTest<Fil
         setupTest(vfsSpec)
 
         expect:
-        initialRoot.store(searchedPath, CASE_SENSITIVE, Mock(MetadataSnapshot)) is initialRoot
+        initialRoot.store(searchedPath, CASE_SENSITIVE, Mock(MetadataSnapshot), diffListener) is initialRoot
+        addedNodes.empty
+        removedNodes.empty
 
         where:
         vfsSpec << onlyDirectChildren(NO_COMMON_PREFIX + SAME_PATH + CHILD_IS_PREFIX)

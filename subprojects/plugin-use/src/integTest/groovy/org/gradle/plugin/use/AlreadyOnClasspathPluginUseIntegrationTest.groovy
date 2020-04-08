@@ -174,7 +174,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         operations.hasOperation("Apply plugin my-plugin to project ':a'")
     }
 
-    @ToBeFixedForInstantExecution
     def "can request plugin from TestKit injected classpath"() {
 
         given:
@@ -239,7 +238,6 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         failureHasCause("Plugin request for plugin already on the classpath must not include a version")
     }
 
-    @ToBeFixedForInstantExecution
     def "cannot request plugin version of plugin from TestKit injected classpath"() {
 
         given:
@@ -282,9 +280,9 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         file("$projectPath/src/main/groovy/my/MyPlugin.groovy") << """
 
             package my
-            
+
             import org.gradle.api.*
-            
+
             class MyPlugin implements Plugin<Project> {
                 @Override
                 void apply(Project project) {
@@ -306,7 +304,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
 
             group = "com.acme"
             version = "1.0"
-            
+
             gradlePlugin {
                 plugins {
                     myPlugin {
@@ -326,21 +324,21 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         """.stripIndent()
         if (testKitSpec) {
             file("src/test/groovy/my/MyPluginTest.groovy") << """
-    
+
                 package my
-                
+
                 import org.junit.*
                 import org.junit.rules.*
-                
+
                 import org.gradle.testkit.runner.*
-    
+
                 class MyPluginTest {
-                
+
                     @Rule public TemporaryFolder tmpDir = new TemporaryFolder()
-    
+
                     @Test
                     public void assertions() {
-                    
+
                         // given:
                         def rootDir = tmpDir.newFolder("root")
                         new File(rootDir, "settings.gradle").text = \"\"\"
@@ -354,7 +352,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
                         new File(rootDir, "a/build.gradle").text = \"\"\"
                             ${testKitSpec.childProjectBuildScript ?: ""}
                         \"\"\".stripIndent()
-    
+
                         //when:
                         def runner = GradleRunner.create()
                             .withGradleInstallation(new File("${distribution.gradleHomeDir.absolutePath.replace("\\", "\\\\")}"))
@@ -362,12 +360,12 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
                             .withProjectDir(rootDir)
                             .withArguments("help")
                         def result = runner.${testKitSpec.succeeds ? "build" : "buildAndFail"}()
-    
+
                         // then:
                         ${testKitSpec.testKitAssertions}
                     }
                 }
-    
+
             """.stripIndent()
         }
     }

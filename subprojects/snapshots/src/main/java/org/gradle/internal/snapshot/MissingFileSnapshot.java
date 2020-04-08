@@ -20,7 +20,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -57,12 +56,8 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         visitor.visitFile(this);
     }
 
-    @Override
-    public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
-        visitor.visitNode(this, parent);
-    }
-
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        diffListener.nodeRemoved(this);
         return Optional.empty();
     }
 }

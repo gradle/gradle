@@ -477,7 +477,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasCause("Unable to find a matching variant of project :greeter")
+        failure.assertHasCause("No matching variant of project :greeter was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName.toLowerCase()}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:")
     }
 
     def "fails when dependency library does not specify the same target architecture"() {
@@ -511,7 +511,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         and:
         failure.assertHasCause("Could not resolve project :greeter")
-        failure.assertHasErrorOutput("Required org.gradle.native.architecture '${currentArchitecture}' and found incompatible value 'foo'.")
+        failure.assertHasErrorOutput("Incompatible because this component declares attribute 'org.gradle.native.architecture' with value 'foo', attribute 'org.gradle.usage' with value 'native-link' and the consumer needed attribute 'org.gradle.native.architecture' with value '${currentArchitecture}', attribute 'org.gradle.usage' with value 'native-runtime'")
     }
 
     @ToBeFixedForInstantExecution
@@ -521,7 +521,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         given:
         file("src/main/cpp/main.cpp") << """
             #include "foo.h"
-            
+
             int main(int argc, char** argv) {
                 return EXIT_VALUE;
             }
@@ -530,9 +530,9 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         and:
         buildFile << """
             apply plugin: 'cpp-application'
-            
+
             def headerDirectory = objects.directoryProperty()
-            
+
             task generateHeader {
                 outputs.dir(headerDirectory)
                 headerDirectory.set(layout.buildDirectory.dir("headers"))
@@ -544,7 +544,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
                     '''
                 }
             }
-            
+
             application.binaries.whenElementFinalized { binary ->
                 def dependency = project.dependencies.create(files(headerDirectory))
                 binary.getIncludePathConfiguration().dependencies.add(dependency)
@@ -623,16 +623,14 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         expect:
         fails ":app:assemble"
 
-        failure.assertHasCause """Unable to find a matching variant of project :hello:
+        failure.assertHasCause """No matching variant of project :hello was found. The consumer was configured to find attribute 'org.gradle.usage' with value 'native-runtime', attribute 'org.gradle.native.debuggable' with value 'true', attribute 'org.gradle.native.optimized' with value 'false', attribute 'org.gradle.native.operatingSystem' with value '${currentOsFamilyName}', attribute 'org.gradle.native.architecture' with value '${currentArchitecture}' but:
   - Variant 'cppApiElements' capability test:hello:unspecified:
-      - Incompatible attribute:
-          - Required org.gradle.usage 'native-runtime' and found incompatible value 'cplusplus-api'.
-      - Other attributes:
-          - Found artifactType 'directory' but wasn't required.
-          - Required org.gradle.native.architecture '${currentArchitecture}' but no value provided.
-          - Required org.gradle.native.debuggable 'true' but no value provided.
-          - Required org.gradle.native.operatingSystem '${currentOsFamilyName}' but no value provided.
-          - Required org.gradle.native.optimized 'false' but no value provided."""
+      - Incompatible because this component declares attribute 'org.gradle.usage' with value 'cplusplus-api' and the consumer needed attribute 'org.gradle.usage' with value 'native-runtime'
+      - Other compatible attributes:
+          - Doesn't say anything about org.gradle.native.architecture (required '${currentArchitecture}')
+          - Doesn't say anything about org.gradle.native.debuggable (required 'true')
+          - Doesn't say anything about org.gradle.native.operatingSystem (required '${currentOsFamilyName}')
+          - Doesn't say anything about org.gradle.native.optimized (required 'false')"""
     }
 
     @ToBeFixedForInstantExecution
@@ -650,7 +648,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
-                
+
                 library.linkage = [Linkage.STATIC]
             }
         """
@@ -683,7 +681,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
             }
             project(':hello') {
                 apply plugin: 'cpp-library'
-                
+
                 library.linkage = [Linkage.STATIC, Linkage.SHARED]
             }
         """
@@ -1088,7 +1086,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
         and:
         buildFile << """
             apply plugin: 'cpp-application'
-            
+
             application {
                 binaries.configureEach {
                     compileTask.get().compilerArgs.add("-Wall")
@@ -1123,7 +1121,7 @@ class CppApplicationIntegrationTest extends AbstractCppIntegrationTest implement
 
         buildFile << """
             apply plugin: 'cpp-application'
-            
+
             application {
                 privateHeaders.from 'src/main/headers', 'src/sumHeaders'
             }

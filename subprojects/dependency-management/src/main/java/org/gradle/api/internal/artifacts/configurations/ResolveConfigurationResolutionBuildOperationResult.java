@@ -137,6 +137,11 @@ class ResolveConfigurationResolutionBuildOperationResult implements ResolveConfi
         }
 
         @Override
+        public Map<Attribute<?>, ?> asMap() {
+            return getDesugared().asMap();
+        }
+
+        @Override
         public <T> AttributeValue<T> findEntry(Attribute<T> key) {
             return getDesugared().findEntry(key);
         }
