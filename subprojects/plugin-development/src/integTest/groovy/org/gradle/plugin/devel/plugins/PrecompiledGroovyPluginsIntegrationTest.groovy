@@ -18,8 +18,6 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -813,35 +811,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         withBuildCache().fails('classes')
         executed(':compileGroovyPlugins')
         outputContains(':compileGroovyPlugins FAILED')
-    }
-
-    @Requires(TestPrecondition.JDK13_OR_EARLIER)
-    @ToBeFixedForInstantExecution
-    def "can use a precompiled script plugin with Gradle 6.0"() {
-        given:
-        def pluginJar = packagePrecompiledPlugin("foo.gradle", "println 'foo plugin applied'")
-
-        when:
-        settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath(files("$pluginJar"))
-                }
-            }
-        """
-
-        buildFile << """
-            plugins {
-                id 'foo'
-            }
-        """
-
-        def distribution = buildContext.distribution('6.0')
-
-        then:
-        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").run()
-        def output = result.output // because codenarc complains otherwise
-        output.contains('foo plugin applied')
     }
 
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
