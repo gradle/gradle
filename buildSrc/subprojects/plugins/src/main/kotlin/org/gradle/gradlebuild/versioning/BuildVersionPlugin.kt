@@ -85,7 +85,7 @@ fun Project.setBuildVersion() {
 
     registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 
-    if (!isSnapshot) {
+    if (isPromotionBuild()) {
         logger.logBuildVersion(versionNumber, baseVersion, isSnapshot, buildTimestamp.get())
     }
 
@@ -94,6 +94,10 @@ fun Project.setBuildVersion() {
         BuildVersion(baseVersion, isSnapshot)
     )
 }
+
+
+private
+fun Project.isPromotionBuild(): Boolean = gradle.startParameter.taskNames.contains("promotionBuild")
 
 
 private
