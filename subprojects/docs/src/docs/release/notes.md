@@ -50,7 +50,7 @@ Gradle now allows precompiled script plugins to be written using the Groovy DSL 
 Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
 They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
 
-For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin'}`.
+For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
 
 Precompiled script plugins are covered in more depth in the [user guide](userguide/custom_plugins.html#sec:precompiled_plugins).
 
