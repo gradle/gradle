@@ -92,23 +92,16 @@ public interface FileCollectionFactory {
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
-     * <p>The collection is live and resolves the files on each query. Tracks changes to the source list.
+     * <p>The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(String displayName, List<?> sources);
+    FileCollectionInternal resolving(String displayName, Object sources);
 
     /**
      * Creates a {@link FileCollection} with the given files as content.
      *
      * <p>The collection is live and resolves the files on each query.
      */
-    FileCollectionInternal resolving(String displayName, Object... sources);
-
-    /**
-     * Creates a {@link FileCollection} with the given files as content.
-     *
-     * <p>The collection is live and resolves the files on each query.
-     */
-    FileCollectionInternal resolving(Object... sources);
+    FileCollectionInternal resolving(Object sources);
 
     /**
      * Creates an empty {@link ConfigurableFileCollection} instance.

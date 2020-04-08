@@ -176,7 +176,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "returns empty collection when resolving collection constructed with empty resolving array"() {
         expect:
-        def collection = factory.resolving()
+        def collection = factory.resolving([])
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
@@ -185,7 +185,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
 
     def "returns empty collection when resolving collection constructed with display name and empty resolving array"() {
         expect:
-        def collection = factory.resolving("some collection")
+        def collection = factory.resolving("some collection", [])
         collection.files.empty
         collection.buildDependencies.getDependencies(null).empty
         collection.visitStructure(new BrokenVisitor())
@@ -215,7 +215,7 @@ class DefaultFileCollectionFactoryTest extends Specification {
     }
 
     def 'resolves specified files for resolving collection using FileResolver'() {
-        def collection = factory.resolving('test files', 'abc', 'def')
+        def collection = factory.resolving('test files', ['abc', 'def'])
 
         when:
         Set<File> files = collection.getFiles()

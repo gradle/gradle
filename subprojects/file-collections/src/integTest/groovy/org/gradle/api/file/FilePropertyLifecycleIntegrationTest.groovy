@@ -176,6 +176,7 @@ task thing {
 
         expect:
         succeeds("after")
+        output.count("prop = " + file("build/text.out")) == 3
     }
 
     def "can query task output directory property at any time"() {
@@ -202,6 +203,153 @@ task thing {
 
         expect:
         succeeds("after")
+        output.count("prop = " + file("build/dir.out")) == 3
+    }
+
+    def "cannot query strict task output file property until task starts execution"() {
+        taskTypeWithOutputFileProperty()
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            task producer(type: FileProducer) {
+                output.disallowUnsafeRead()
+                output = layout.buildDir.file("text.out")
+                doFirst {
+                    try {
+                        output = file('ignore')
+                    } catch(IllegalStateException e) {
+                        println("set failed: " + e.message)
+                    }
+                }
+            }
+
+            try {
+                producer.output.get()
+            } catch(IllegalStateException e) {
+                println("get failed: " + e.message)
+            }
+
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + producer.output.get())
+                }
+            }
+
+            task before {
+                doLast {
+                    try {
+                        producer.output.get()
+                    } catch(IllegalStateException e) {
+                        println("get from task failed: " + e.message)
+                    }
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+        outputContains("get failed: Cannot query the value of task ':producer' property 'output' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get from task failed: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
+        outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+        output.count("prop = " + file("build/text.out")) == 1
+    }
+
+    def "cannot query strict task output directory property until task starts execution"() {
+        taskTypeWithOutputDirectoryProperty()
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            task producer(type: DirProducer) {
+                output.disallowUnsafeRead()
+                output = layout.buildDir.dir("dir.out")
+                names = ["a", "b"]
+                doFirst {
+                    try {
+                        output = file('ignore')
+                    } catch(IllegalStateException e) {
+                        println("set failed: " + e.message)
+                    }
+                }
+            }
+
+            try {
+                producer.output.get()
+            } catch(IllegalStateException e) {
+                println("get failed: " + e.message)
+            }
+
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + producer.output.get())
+                }
+            }
+
+            task before {
+                doLast {
+                    try {
+                        producer.output.get()
+                    } catch(IllegalStateException e) {
+                        println("get from task failed: " + e.message)
+                    }
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+        outputContains("get failed: Cannot query the value of task ':producer' property 'output' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get from task failed: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
+        outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+        output.count("prop = " + file("build/dir.out")) == 1
+    }
+
+    def "can query strict task output file property location after project configuration completes"() {
+        taskTypeWithOutputFileProperty()
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            task producer(type: FileProducer) {
+                output.disallowUnsafeRead()
+                output = layout.buildDir.file("text.out")
+            }
+
+            def location = producer.output.locationOnly
+
+            try {
+                location.get()
+            } catch(IllegalStateException e) {
+                println("get failed: " + e.message)
+            }
+
+            task after {
+                dependsOn(producer)
+                doLast {
+                    println("prop = " + location.get())
+                }
+            }
+
+            task before {
+                dependsOn {
+                    println("prop = " + location.get())
+                    try {
+                        producer.output = file("ignore")
+                    } catch(IllegalStateException e) {
+                        println("set failed: " + e.message)
+                    }
+                }
+                doLast {
+                    println("prop = " + location.get())
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+        outputContains("get failed: Cannot query the value of task ':producer' property 'output' because configuration of root project 'broken' has not completed yet.")
+        outputContains("set failed: The value for task ':producer' property 'output' is final and cannot be changed any further.")
+        output.count("prop = " + file("build/text.out")) == 3
     }
 
     def "can query mapped task output file location property at any time"() {

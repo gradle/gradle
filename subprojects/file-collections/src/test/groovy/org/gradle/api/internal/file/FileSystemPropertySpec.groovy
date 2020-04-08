@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.Task
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.provider.PropertySpec
 import org.gradle.api.internal.provider.Providers
@@ -33,7 +34,7 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     def "can set value using absolute file"() {
         given:
         def file = tmpDir.file("thing")
-        def prop = providerWithNoValue()
+        def prop = propertyWithNoValue()
         prop.set(file)
 
         expect:
@@ -43,7 +44,7 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     def "can set value using relative file"() {
         given:
         def file = new File("thing")
-        def prop = providerWithNoValue()
+        def prop = propertyWithNoValue()
         prop.set(file)
 
         expect:
@@ -53,7 +54,7 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     def "can set value using absolute file provider"() {
         given:
         def file = tmpDir.file("thing")
-        def prop = providerWithNoValue()
+        def prop = propertyWithNoValue()
         prop.fileProvider(Providers.of(file))
 
         expect:
@@ -63,7 +64,7 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     def "can set value using relative file provider"() {
         given:
         def file = new File("thing")
-        def prop = providerWithNoValue()
+        def prop = propertyWithNoValue()
         prop.fileProvider(Providers.of(file))
 
         expect:
@@ -73,7 +74,7 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
     def "cannot set value using file when finalized"() {
         given:
         def file = tmpDir.file("thing")
-        def prop = providerWithNoValue()
+        def prop = propertyWithNoValue()
         prop.finalizeValue()
 
         when:
@@ -84,10 +85,24 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
         e.message == 'The value for this property is final and cannot be changed any further.'
     }
 
+    def "cannot set value using file provider when finalized"() {
+        given:
+        def file = tmpDir.file("thing")
+        def prop = propertyWithNoValue()
+        prop.finalizeValue()
+
+        when:
+        prop.fileProvider(Providers.of(file))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for this property is final and cannot be changed any further.'
+    }
+
     def "cannot set value using file when changes disallowed"() {
         given:
         def file = tmpDir.file("thing")
-        def prop = providerWithNoValue()
+        def prop = propertyWithNoValue()
         prop.disallowChanges()
 
         when:
@@ -96,5 +111,53 @@ abstract class FileSystemPropertySpec<T extends FileSystemLocation> extends Prop
         then:
         def e = thrown(IllegalStateException)
         e.message == 'The value for this property cannot be changed any further.'
+    }
+
+    def "can query the value of the location of a property"() {
+        given:
+        def file = tmpDir.file("thing")
+        def prop = propertyWithNoValue()
+        def location = prop.locationOnly
+
+        expect:
+        !location.present
+        location.orNull == null
+
+        when:
+        prop.fileValue(file)
+
+        then:
+        location.present
+        location.get().asFile == file
+    }
+
+    def "location provider does not have any producer even when the source property does"() {
+        given:
+        def task = Stub(Task)
+        def prop = propertyWithNoValue()
+        def location = prop.locationOnly
+        prop.attachProducer(owner(task))
+        assertHasProducer(prop, task)
+
+        expect:
+        assertHasNoProducer(location)
+    }
+
+    def "location provider does not check producer when source property is strict"() {
+        given:
+        def file = tmpDir.file("thing")
+        def task = Stub(Task)
+        def prop = propertyWithNoValue()
+        def location = prop.locationOnly
+        prop.fileValue(file)
+        prop.attachProducer(owner(task))
+        prop.disallowUnsafeRead()
+
+        when:
+        def result = location.present
+
+        then:
+        result
+        1 * host.beforeRead(null) >> null
     }
 }

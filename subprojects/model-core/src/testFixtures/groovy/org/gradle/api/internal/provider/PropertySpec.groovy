@@ -1708,7 +1708,7 @@ The value of this property is derived from:
         property.get()
 
         then:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
 
         and:
         def e = thrown(IllegalStateException)
@@ -1719,7 +1719,7 @@ The value of this property is derived from:
         property.get()
 
         then:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
 
         and:
         def e2 = thrown(IllegalStateException)
@@ -1729,7 +1729,7 @@ The value of this property is derived from:
         def result = property.get()
 
         then:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
 
         and:
         result == someValue()
@@ -1748,7 +1748,7 @@ The value of this property is derived from:
         given:
         def property = propertyWithNoValue()
         property.disallowUnsafeRead()
-        _ * host.beforeRead() >> "<reason>"
+        _ * host.beforeRead(null) >> "<reason>"
 
         when:
         property.get()
@@ -1807,7 +1807,7 @@ The value of this property is derived from:
         def result = property.get()
 
         then:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
 
         and:
         result == someValue()
