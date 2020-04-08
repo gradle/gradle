@@ -25,6 +25,8 @@ import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category
 
+import java.nio.file.Files
+
 @Category(SoakTest)
 class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implements VfsRetentionFixture {
 
@@ -68,12 +70,15 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
         when:
         succeeds("assemble")
+        // Assemble twice, so everything is up-to-date and nothing is invalidated
+        succeeds("assemble")
         def daemon = daemons.daemon
+        def retainedFilesInLastBuild = retainedFilesInCurrentBuild
         then:
         daemon.assertIdle()
 
         expect:
-        boolean overflowDetected = false
+        long endOfDaemonLog = getLinesInDaemonLog(daemon)
         50.times { iteration ->
             // when:
             changeSourceFiles(iteration, numberOfChangesBetweenBuilds)
@@ -84,16 +89,18 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             assert daemons.daemon.logFile == daemon.logFile
             daemon.assertIdle()
             assertWatchingSucceeded()
-            if (!overflowDetected) {
-                overflowDetected = detectOverflow(daemon)
-            }
-            int expectedNumberOfRetainedFiles = retainedFilesInCurrentBuild - numberOfChangesBetweenBuilds
+            boolean overflowDetected = detectOverflow(daemon, endOfDaemonLog)
+            int expectedNumberOfRetainedFiles = retainedFilesInLastBuild - numberOfChangesBetweenBuilds
+            int retainedFilesAtTheBeginningOfTheCurrentBuild = retainedFilesSinceLastBuild
             if (overflowDetected) {
-                assert retainedFilesSinceLastBuild in [expectedNumberOfRetainedFiles, 0]
+                assert retainedFilesAtTheBeginningOfTheCurrentBuild == 0
             } else {
-                assert retainedFilesSinceLastBuild == expectedNumberOfRetainedFiles
+                assert retainedFilesAtTheBeginningOfTheCurrentBuild <= expectedNumberOfRetainedFiles
+                assert expectedNumberOfRetainedFiles - 100 <= retainedFilesAtTheBeginningOfTheCurrentBuild
             }
             assert receivedFileSystemEventsSinceLastBuild >= minimumExpectedFileSystemEvents(numberOfChangesBetweenBuilds, 1)
+            retainedFilesInLastBuild = retainedFilesInCurrentBuild
+            endOfDaemonLog = getLinesInDaemonLog(daemon)
         }
     }
 
@@ -105,6 +112,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
         when:
         succeeds("assemble")
+        // Assemble twice, so everything is up-to-date and nothing is invalidated
+        succeeds("assemble")
         def daemon = daemons.daemon
         then:
         daemon.assertIdle()
@@ -114,7 +123,7 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             changeSourceFiles(iteration, numberOfChangedSourcesFilesPerBatch)
             waitBetweenChangesToAvoidOverflow()
         }
-        boolean overflowDetected = detectOverflow(daemon)
+        boolean overflowDetected = detectOverflow(daemon, 0)
         int expectedNumberOfRetainedFiles = overflowDetected
             ? 0
             : retainedFilesInCurrentBuild - numberOfChangedSourcesFilesPerBatch
@@ -133,12 +142,16 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
             : 1000
     }
 
-    private static boolean detectOverflow(DaemonFixture daemon) {
-        boolean overflowDetected = daemon.logContains(FileWatcherRegistry.Type.INVALIDATE.toString())
+    private static boolean detectOverflow(DaemonFixture daemon, long fromLine) {
+        boolean overflowDetected = daemon.logContains(fromLine, FileWatcherRegistry.Type.INVALIDATE.toString())
         if (overflowDetected) {
             println "Detected overflow in watcher, no files will be retained for the next build"
         }
         overflowDetected
+    }
+
+    private static long getLinesInDaemonLog(DaemonFixture daemon) {
+        Files.lines(daemon.logFile.toPath()).withCloseable { lines -> lines.count() }
     }
 
     private static void waitBetweenChangesToAvoidOverflow() {
