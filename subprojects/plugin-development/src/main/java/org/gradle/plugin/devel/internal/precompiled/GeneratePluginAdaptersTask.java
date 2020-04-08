@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.internal.precompiled;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -54,17 +55,19 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CompileOperationFactory compileOperationFactory;
     private final ServiceRegistry serviceRegistry;
+    private final FileSystemOperations fileSystemOperations;
     private final ClassLoaderScope classLoaderScope;
 
     @Inject
     public GeneratePluginAdaptersTask(ScriptCompilationHandler scriptCompilationHandler,
                                       ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                       CompileOperationFactory compileOperationFactory,
-                                      ServiceRegistry serviceRegistry) {
+                                      ServiceRegistry serviceRegistry, FileSystemOperations fileSystemOperations) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.serviceRegistry = serviceRegistry;
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
+        this.fileSystemOperations = fileSystemOperations;
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -80,6 +83,10 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     @TaskAction
     void generatePluginAdapters() {
+        fileSystemOperations.delete(spec -> spec.delete(getPluginAdapterSourcesOutputDirectory()));
+        getPluginAdapterSourcesOutputDirectory().get().getAsFile().mkdirs();
+
+        // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
             PluginRequests pluginRequests = getValidPluginRequests(scriptPlugin);
             generateScriptPluginAdapter(scriptPlugin, pluginRequests);

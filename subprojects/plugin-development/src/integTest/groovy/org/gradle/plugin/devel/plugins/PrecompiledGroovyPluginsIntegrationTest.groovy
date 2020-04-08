@@ -46,6 +46,14 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
+    def "adding precompiled script support does not fail when there are no precompiled scripts"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+
+        then:
+        succeeds("help")
+    }
+
     def "can apply a precompiled script plugin by id"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
@@ -175,6 +183,30 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         succeeds(SAMPLE_TASK)
+    }
+
+    def "removing plugins removes old adapters"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.bar.gradle") << "println 'foo.bar applied'"
+        file("buildSrc/src/main/groovy/plugins/baz.bar.gradle") << "println 'baz.bar applied'"
+
+        buildFile << """
+            plugins {
+                id 'foo.bar'
+            }
+        """
+        succeeds("help")
+
+        when:
+        file("buildSrc/src/main/groovy/plugins/baz.bar.gradle").delete()
+        then:
+        succeeds("help")
+
+        when:
+        file("buildSrc/src/main/groovy/plugins/foo.bar.gradle").delete()
+        then:
+        fails("help")
     }
 
     @ToBeFixedForInstantExecution

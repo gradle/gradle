@@ -91,7 +91,11 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     @TaskAction
     void compileScripts() {
         ClassLoader compileClassLoader = new URLClassLoader(DefaultClassPath.of(getClasspath()).getAsURLArray(), classLoaderScope.getLocalClassLoader());
+        fileSystemOperations.delete(spec -> spec.delete(intermediatePluginMetadataDirectory, intermediatePluginClassesDirectory));
+        intermediatePluginMetadataDirectory.get().getAsFile().mkdirs();
+        intermediatePluginClassesDirectory.get().getAsFile().mkdirs();
 
+        // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
             compileBuildScript(scriptPlugin, compileClassLoader);
         }

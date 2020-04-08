@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.internal.precompiled;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -44,15 +45,17 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CompileOperationFactory compileOperationFactory;
+    private final FileSystemOperations fileSystemOperations;
     private final ClassLoaderScope classLoaderScope;
 
     @Inject
     public ExtractPluginRequestsTask(ScriptCompilationHandler scriptCompilationHandler,
                                      ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                     CompileOperationFactory compileOperationFactory) {
+                                     CompileOperationFactory compileOperationFactory, FileSystemOperations fileSystemOperations) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
+        this.fileSystemOperations = fileSystemOperations;
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -68,6 +71,10 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     @TaskAction
     void extractPluginsBlocks() {
+        fileSystemOperations.delete(spec -> spec.delete(getExtractedPluginRequestsClassesDirectory()));
+        getExtractedPluginRequestsClassesDirectory().get().getAsFile().mkdirs();
+
+        // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
             compilePluginsBlock(scriptPlugin);
         }
