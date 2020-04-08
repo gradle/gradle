@@ -20,9 +20,6 @@ import org.gradle.api.internal.tasks.compile.daemon.AbstractDaemonCompiler;
 import org.gradle.api.tasks.compile.ForkOptions;
 import org.gradle.internal.classloader.VisitableURLClassLoader;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.internal.classpath.DefaultClassPath;
-import org.gradle.internal.jvm.JavaInfo;
-import org.gradle.internal.jvm.Jvm;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
@@ -33,10 +30,7 @@ import org.gradle.workers.internal.FlatClassLoaderStructure;
 import org.gradle.workers.internal.KeepAliveMode;
 import org.gradle.workers.internal.WorkerDaemonFactory;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> {
     private final Class<? extends Compiler<JavaCompileSpec>> compilerClass;
@@ -64,13 +58,8 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
         ForkOptions forkOptions = spec.getCompileOptions().getForkOptions();
         JavaForkOptions javaForkOptions = new BaseForkOptionsConverter(forkOptionsFactory).transform(forkOptions);
         javaForkOptions.setWorkingDir(daemonWorkingDir);
-        JavaInfo jvm = findJvm(javaForkOptions);
+
         ClassPath compilerClasspath = classPathRegistry.getClassPath("JAVA-COMPILER");
-        if (jvm != null && jvm.getToolsJar() != null) {
-            List<File> classPath = new ArrayList<>(compilerClasspath.getAsFiles());
-            classPath.add(jvm.getToolsJar());
-            compilerClasspath = DefaultClassPath.of(classPath);
-        }
         FlatClassLoaderStructure classLoaderStructure = new FlatClassLoaderStructure(new VisitableURLClassLoader.Spec("compiler", compilerClasspath.getAsURLs()));
 
         return new DaemonForkOptionsBuilder(forkOptionsFactory)
@@ -78,25 +67,6 @@ public class DaemonJavaCompiler extends AbstractDaemonCompiler<JavaCompileSpec> 
             .withClassLoaderStructure(classLoaderStructure)
             .keepAliveMode(KeepAliveMode.SESSION)
             .build();
-    }
-
-    @Nullable
-    private JavaInfo findJvm(JavaForkOptions forkOptions) {
-        JavaInfo jvm = null;
-        String compilerExec = forkOptions.getExecutable();
-        if (compilerExec != null) {
-            File cur = new File(compilerExec);
-            if (cur.exists()) { // .../bin/javac
-                cur = cur.getParentFile(); // ..../bin
-                if (cur.exists()) {
-                    cur = cur.getParentFile(); // home, sweet Java home!
-                }
-            }
-            if (cur.exists()) {
-                jvm = Jvm.forHome(cur);
-            }
-        }
-        return jvm;
     }
 
     public static class JavaCompilerParameters extends CompilerParameters {

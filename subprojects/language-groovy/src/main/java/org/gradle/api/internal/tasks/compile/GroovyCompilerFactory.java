@@ -35,6 +35,8 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 import org.gradle.workers.internal.WorkerFactory;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.List;
 
 public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCompileSpec> {
     private final WorkerDaemonFactory workerDaemonFactory;
@@ -75,11 +77,13 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
     public static class DaemonSideCompiler implements Compiler<GroovyJavaJointCompileSpec> {
         private final ExecHandleFactory execHandleFactory;
         private final ProjectLayout projectLayout;
+        private final List<File> javaCompilerPlugins;
 
         @Inject
-        public DaemonSideCompiler(ExecHandleFactory execHandleFactory, ProjectLayout projectLayout) {
+        public DaemonSideCompiler(ExecHandleFactory execHandleFactory, ProjectLayout projectLayout, List<File> javaCompilerPlugins) {
             this.execHandleFactory = execHandleFactory;
             this.projectLayout = projectLayout;
+            this.javaCompilerPlugins = javaCompilerPlugins;
         }
 
         @Override
@@ -88,10 +92,11 @@ public class GroovyCompilerFactory implements CompilerFactory<GroovyJavaJointCom
             if (CommandLineJavaCompileSpec.class.isAssignableFrom(spec.getClass())) {
                 javaCompiler = new CommandLineJavaCompiler(execHandleFactory);
             } else {
-                javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory());
+                javaCompiler = new JdkJavaCompiler(new JavaHomeBasedJavaCompilerFactory(javaCompilerPlugins));
             }
             Compiler<GroovyJavaJointCompileSpec> groovyCompiler = new ApiGroovyCompiler(javaCompiler, projectLayout);
             return groovyCompiler.execute(spec);
         }
+
     }
 }

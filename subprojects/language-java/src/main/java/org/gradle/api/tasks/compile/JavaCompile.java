@@ -200,25 +200,32 @@ public class JavaCompile extends AbstractCompile {
         sourceClassesMappingFile.delete();
         spec.getCompileOptions().setIncrementalCompilationMappingFile(sourceClassesMappingFile);
         Compiler<JavaCompileSpec> compiler = createCompiler(spec);
-        FileTree sources = getStableSources().getAsFileTree();
-        compiler = getIncrementalCompilerFactory().makeIncremental(
-            (CleaningJavaCompiler<JavaCompileSpec>) compiler,
-            getPath(),
-            sources,
-            new JavaRecompilationSpecProvider(
-                getDeleter(),
-                getServices().get(FileOperations.class),
-                sources,
-                inputs.isIncremental(),
-                () -> inputs.getFileChanges(getStableSources()).iterator(),
-                sourceFileClassNameConverter)
-        );
+        compiler = makeIncremental(inputs, sourceFileClassNameConverter, (CleaningJavaCompiler<JavaCompileSpec>) compiler, getStableSources().getAsFileTree());
         WorkResult workResult = performCompilation(spec, compiler);
         if (workResult instanceof IncrementalCompilationResult && !isUsingCliCompiler) {
             // The compilation will generate the new mapping file
             // Only merge old mappings into new mapping on incremental recompilation
             mergeIncrementalMappingsIntoOldMappings(sourceClassesMappingFile, getStableSources(), inputs, oldMappings);
         }
+    }
+
+    private Compiler<JavaCompileSpec> makeIncremental(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, CleaningJavaCompiler<JavaCompileSpec> compiler, FileTree sources) {
+        return getIncrementalCompilerFactory().makeIncremental(
+            compiler,
+            getPath(),
+            sources,
+            createRecompilationSpec(inputs, sourceFileClassNameConverter, sources)
+        );
+    }
+
+    private JavaRecompilationSpecProvider createRecompilationSpec(InputChanges inputs, SourceFileClassNameConverter sourceFileClassNameConverter, FileTree sources) {
+        return new JavaRecompilationSpecProvider(
+            getDeleter(),
+            getServices().get(FileOperations.class),
+            sources,
+            inputs.isIncremental(),
+            () -> inputs.getFileChanges(getStableSources()).iterator(),
+            sourceFileClassNameConverter);
     }
 
     private boolean isUsingCliCompiler(DefaultJavaCompileSpec spec) {
