@@ -14,13 +14,10 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
+    gradlebuild.`strict-compile`
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
+description = "A Java compiler plugin used by Gradle's incremental compiler"
