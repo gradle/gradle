@@ -52,7 +52,7 @@ They can be resolved and applied using the `plugins {}` block. They can also be 
 
 For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
 
-Precompiled script plugins are covered in more depth in the [user guide](userguide/custom_plugins.html#sec:precompiled_plugins).
+Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
 
 There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
 
