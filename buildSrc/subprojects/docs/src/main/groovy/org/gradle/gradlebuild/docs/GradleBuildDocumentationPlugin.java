@@ -33,7 +33,6 @@ import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.gradlebuild.ProjectGroups;
 import org.gradle.gradlebuild.PublicApi;
 
 import java.util.Collections;
@@ -94,13 +93,15 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
         extension.getClasspath().from(gradleApiRuntime);
 
         // TODO: This should not reach across project boundaries
-        for (Project publicProject : ProjectGroups.INSTANCE.getPublicJavaProjects(project)) {
-            SourceDirectorySet javaSources = publicProject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava();
-            extension.getDocumentedSource().from(javaSources.matching(pattern -> {
-                // Filter out any non-public APIs
-                pattern.include(PublicApi.INSTANCE.getIncludes());
-                pattern.exclude(PublicApi.INSTANCE.getExcludes());
-            }));
+        for (Project subproject : project.getRootProject().getSubprojects()) {
+            subproject.getPlugins().withId("gradlebuild.distribution.api", p -> {
+                SourceDirectorySet javaSources = subproject.getExtensions().getByType(SourceSetContainer.class).getByName("main").getAllJava();
+                extension.getDocumentedSource().from(javaSources.matching(pattern -> {
+                    // Filter out any non-public APIs
+                    pattern.include(PublicApi.INSTANCE.getIncludes());
+                    pattern.exclude(PublicApi.INSTANCE.getExcludes());
+                }));
+            });
         }
     }
 

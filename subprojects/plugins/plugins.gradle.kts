@@ -1,6 +1,4 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -17,7 +15,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -86,11 +84,6 @@ dependencies {
         because("for unknown reason (bug in the Groovy/Spock compiler?) requires it to be present to use the Gradle Module Metadata test fixtures")
     }
     integTestRuntimeOnly(project(":testingJunitPlatform"))
-}
-
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")

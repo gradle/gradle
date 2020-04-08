@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -17,7 +15,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -44,8 +42,4 @@ dependencies {
     testImplementation(project(":fileCollections"))
     testImplementation(testFixtures(project(":core")))
     testRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }

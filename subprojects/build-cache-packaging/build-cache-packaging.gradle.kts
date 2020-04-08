@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
     gradlebuild.classycle
 }
@@ -43,8 +41,4 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":snapshots")))
     testImplementation(testFixtures(project(":coreApi")))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }

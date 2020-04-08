@@ -17,7 +17,6 @@ package org.gradle.gradlebuild.buildquality
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.gradlebuild.ProjectGroups
 
 import org.gradle.kotlin.dsl.*
 
@@ -27,20 +26,13 @@ import org.owasp.dependencycheck.gradle.extension.DependencyCheckExtension
 open class DependencyVulnerabilitiesPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        configure(projectsIncludedInDistribution()) {
+        configure(subprojects) {
             apply(plugin = "org.owasp.dependencycheck")
 
             configure<DependencyCheckExtension> {
                 failBuildOnCVSS = 8F // 10 is the maximum
                 skipConfigurations = listOf("jmh")
             }
-        }
-    }
-
-    private
-    fun Project.projectsIncludedInDistribution(): List<Project> {
-        return subprojects.filter { prj ->
-            !ProjectGroups.excludedFromVulnerabilityCheck.contains(prj.path)
         }
     }
 }

@@ -15,11 +15,6 @@
  */
 
 import org.gradle.build.BuildReceipt
-import org.gradle.gradlebuild.ProjectGroups.implementationPluginProjects
-import org.gradle.gradlebuild.ProjectGroups.javaProjects
-import org.gradle.gradlebuild.ProjectGroups.kotlinJsProjects
-import org.gradle.gradlebuild.ProjectGroups.pluginProjects
-import org.gradle.gradlebuild.ProjectGroups.publicJavaProjects
 import org.gradle.gradlebuild.UpdateAgpVersions
 import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
@@ -56,29 +51,9 @@ buildscript {
     }
 }
 
-apply(from = "gradle/dependencies.gradle")
-apply(from = "gradle/test-dependencies.gradle")
-apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
-
-allprojects {
-    apply(plugin = "gradlebuild.dependencies-metadata-rules")
-}
 subprojects {
     version = rootProject.version
 
-    if (project in javaProjects) {
-        apply(plugin = "gradlebuild.java-projects")
-    }
-
-    if (project in publicJavaProjects) {
-        apply(plugin = "gradlebuild.public-java-projects")
-    }
-
-    apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
-
-    if (project !in kotlinJsProjects) {
-        apply(plugin = "gradlebuild.task-properties-validation")
-    }
 }
 
 defaultTasks("assemble")
@@ -219,19 +194,20 @@ configurations {
     }
 }
 
-extra["allTestRuntimeDependencies"] = testRuntime.allDependencies
-
 dependencies {
-
     coreRuntime(project(":launcher"))
     coreRuntime(project(":runtimeApiInfo"))
     coreRuntime(project(":wrapper"))
     coreRuntime(project(":installationBeacon"))
     coreRuntime(project(":kotlinDsl"))
 
-    pluginProjects.forEach { gradlePlugins(it) }
-    implementationPluginProjects.forEach { gradlePlugins(it) }
-
+    subprojects {
+        val subproject = this
+        plugins.withType<gradlebuild.distribution.PluginsPlugin> {
+            gradlePlugins(subproject)
+        }
+    }
+    // why are these core modules put into 'plugins'? (effect is that they end up in 'plugins/' in the distribution)
     gradlePlugins(project(":workers"))
     gradlePlugins(project(":dependencyManagement"))
     gradlePlugins(project(":testKit"))
@@ -244,11 +220,8 @@ dependencies {
     coreRuntimeExtensions(project(":kotlinDslToolingBuilders"))
 
     testRuntime(project(":apiMetadata"))
+
 }
-
-extra["allCoreRuntimeExtensions"] = coreRuntimeExtensions.allDependencies
-
-evaluationDependsOn(":distributions")
 
 tasks.register<Install>("install") {
     description = "Installs the minimal distribution"

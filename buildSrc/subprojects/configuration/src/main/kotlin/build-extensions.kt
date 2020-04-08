@@ -24,34 +24,34 @@ import org.gradle.kotlin.dsl.extra
 
 @Suppress("unchecked_cast")
 val Project.libraries
-    get() = rootProject.extra["libraries"] as Map<String, Map<String, String>>
+    get() = if (rootProject.extra.has("libraries")) rootProject.extra["libraries"] as Map<String, Map<String, String>> else mapOf()
 
 
 @Suppress("unchecked_cast")
 val Project.testLibraries
-    get() = rootProject.extra["testLibraries"] as Map<String, Any>
+    get() = if (rootProject.extra.has("testLibraries")) rootProject.extra["testLibraries"] as Map<String, Any> else mapOf()
 
 
 fun Project.library(name: String): String =
-    libraries[name]!!["coordinates"]!!
+    libraries.getValue(name).getValue("coordinates")
 
 
 fun Project.libraryVersion(name: String): String =
-    libraries[name]!!["version"]!!
+    libraries.getValue(name).getValue("version")
 
 
 fun Project.libraryReason(name: String): String? =
-    libraries[name]!!["because"]
+    libraries.getValue(name)["because"]
 
 
 fun Project.testLibrary(name: String): String =
-    testLibraries[name]!! as String
+    testLibraries.getValue(name) as String
 
 
 // TODO:kotlin-dsl Remove work around for https://github.com/gradle/kotlin-dsl/issues/639 once fixed
 @Suppress("unchecked_cast")
 fun Project.testLibraries(name: String): List<String> =
-    testLibraries[name]!! as List<String>
+    testLibraries.getValue(name) as List<String>
 
 
 val Project.maxParallelForks: Int

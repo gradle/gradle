@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -47,9 +45,3 @@ dependencies {
 
     compileOnly("org.scala-sbt:zinc_2.12:1.3.5")
 }
-
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-

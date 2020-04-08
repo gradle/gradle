@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.`strict-compile`
 }
 
@@ -45,10 +44,6 @@ dependencies {
     integTestRuntimeOnly(project(":pluginDevelopment"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 tasks.register<IntegrationTest>("crossVersionTests") {

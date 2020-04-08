@@ -14,10 +14,8 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -60,10 +58,6 @@ dependencies {
     integTestRuntimeOnly(project(":ide"))
     integTestRuntimeOnly(project(":maven"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 tasks.named<Test>("integTest") {

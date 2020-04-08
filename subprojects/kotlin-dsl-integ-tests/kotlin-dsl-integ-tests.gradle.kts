@@ -15,19 +15,14 @@
  */
 
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.futurePluginVersionsFile
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    `kotlin-library`
+    gradlebuild.internal.kotlin
 }
 
 description = "Kotlin DSL Integration Tests"
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
 
 dependencies {
     testImplementation(project(":kotlinDslTestFixtures"))
@@ -37,11 +32,9 @@ dependencies {
     integTestImplementation(project(":core"))
     integTestImplementation(project(":internalTesting"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
-
-    val allTestRuntimeDependencies: DependencySet by rootProject.extra
-    allTestRuntimeDependencies.forEach {
-        integTestRuntimeOnly(it)
-    }
+}
+configurations.integTestRuntimeOnly.get().withDependencies {
+    addAll(rootProject.configurations.testRuntime.get().allDependencies)
 }
 
 val pluginBundles = listOf(

@@ -18,9 +18,9 @@ package org.gradle.gradlebuild.unittestandcompile
 import accessors.base
 import accessors.java
 import buildJvms
+import libraries
 import library
 import maxParallelForks
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
@@ -32,7 +32,6 @@ import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
 import org.gradle.api.attributes.Usage
-import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.plugins.JavaPluginExtension
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.SourceSet
@@ -58,38 +57,7 @@ import org.gradle.testretry.TestRetryPlugin
 import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
-import kotlin.reflect.full.declaredFunctions
 import org.gradle.testing.PerformanceTest
-
-
-enum class ModuleType(val compatibility: JavaVersion = JavaVersion.VERSION_1_8) {
-
-    /**
-     * the first modules loaded during startup that support an older Java version
-     * to print a proper error message when running on an old JDK
-     */
-    STARTUP(JavaVersion.VERSION_1_6),
-
-    /**
-     * modules that may run as part of a worker process that supports an older JDK version
-     */
-    WORKER(JavaVersion.VERSION_1_6),
-
-    /**
-     * modules that end up in the distribution in addition to STARTUP and WORKER
-     */
-    CORE,
-
-    /**
-     * modules that are published as plugins on the portal
-     */
-    PORTAL_PLUGINS,
-
-    /**
-     * internal modules, like test fixtures, that are not part of the distribution
-     */
-    INTERNAL,
-}
 
 
 /**
@@ -119,6 +87,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureCompile() {
+        java.targetCompatibility = JavaVersion.VERSION_1_8
+        java.sourceCompatibility = JavaVersion.VERSION_1_8
         afterEvaluate {
             val jdkForCompilation = rootProject.buildJvms.compileJvm.get()
 
@@ -135,7 +105,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureSourcesVariant() {
-        extensions.getByType<JavaPluginExtension>().apply {
+        the<JavaPluginExtension>().apply {
             withSourcesJar()
         }
         val implementation by configurations
@@ -176,26 +146,23 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
+        val runtimeClasspath by configurations
         val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
             archiveBaseName.set(base.archivesBaseName)
             generatedResourcesDir.set(gradlebuildJava.generatedResourcesDir)
-            val runtimeClasspath by configurations
-            runtimeProjectDependenciesPaths.set(
-                runtimeClasspath.allDependencies
-                    .withType<ProjectDependency>()
-                    .filter { it.dependencyProject.plugins.hasPlugin("java-base") }
-                    .map { it.dependencyProject.path }
-            )
             runtimeNonProjectDependencies.from(
                 runtimeClasspath.fileCollection {
                     it is ExternalDependency || it is FileCollectionDependency
                 }
             )
         }
-        rootProject.allprojects.forEach { p ->
-            p.afterEvaluate {
+        rootProject.subprojects.forEach { p ->
+            p.plugins.withType<UnitTestAndCompilePlugin> {
                 classpathManifest {
                     archiveBaseNamesByProjectPath.put(p.path, p.base.archivesBaseName)
+                    if (runtimeClasspath.allDependencies.any { it is ProjectDependency && it.dependencyProject == p }) {
+                        runtimeProjectDependenciesPaths.add(p.path)
+                    }
                 }
             }
         }
@@ -214,7 +181,13 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addDependencies() {
+        if (libraries.isEmpty()) {
+            return
+        }
+        val platformProject = ":distributionsDependencies"
         dependencies {
+            val implementation = configurations.getByName("implementation")
+            val compileOnly = configurations.getByName("compileOnly")
             val testImplementation = configurations.getByName("testImplementation")
             val testRuntimeOnly = configurations.getByName("testRuntimeOnly")
             testImplementation(library("junit"))
@@ -222,8 +195,19 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             testImplementation(testLibrary("spock"))
             testRuntimeOnly(testLibrary("bytebuddy"))
             testRuntimeOnly(library("objenesis"))
+            compileOnly(platform(project(platformProject)))
+            testImplementation(platform(project(platformProject)))
+            implementation.withDependencies {
+                if (!isPublishedIndependently()) {
+                    "implementation"(platform(project(platformProject)))
+                }
+            }
         }
     }
+
+    private
+    fun Project.isPublishedIndependently() = name != "toolingApi" &&
+        (pluginManager.hasPlugin("gradlebuild.portalplugin.kotlin") || pluginManager.hasPlugin("gradlebuild.publish-public-libraries"))
 
     private
     fun Project.addCompileAllTask() {
@@ -334,48 +318,16 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 open class UnitTestAndCompileExtension(val project: Project) {
     val generatedResourcesDir = project.file("${project.buildDir}/generated-resources/main")
     val generatedTestResourcesDir = project.file("${project.buildDir}/generated-resources/test")
-    var moduleType: ModuleType? = null
-        set(value) {
-            field = value!!
-            project.addPlatformDependency(value)
-            project.java.targetCompatibility = value.compatibility
-            project.java.sourceCompatibility = value.compatibility
-            project.java.disableAutoTargetJvmGradle53()
-        }
 
-    init {
-        project.afterEvaluate {
-            if (this@UnitTestAndCompileExtension.moduleType == null) {
-                throw InvalidUserDataException("gradlebuild.moduletype must be set for project $project")
-            }
-        }
+    fun usedInWorkers() {
+        project.java.targetCompatibility = JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_6
+        project.java.disableAutoTargetJvm()
     }
 
-    private
-    fun Project.addPlatformDependency(moduleType: ModuleType) {
-        val platformProject = ":distributionsDependencies"
-        dependencies {
-            if (moduleType == ModuleType.PORTAL_PLUGINS) {
-                "compileOnly"(platform(project(platformProject)))
-                "testImplementation"(platform(project(platformProject)))
-            } else {
-                if (pluginManager.hasPlugin("maven-publish") && name != "toolingApi") {
-                    "testImplementation"(platform(project(platformProject)))
-                } else {
-                    "implementation"(platform(project(platformProject)))
-                }
-                pluginManager.withPlugin("java-test-fixtures") {
-                    "testFixturesImplementation"(platform(project(platformProject)))
-                }
-            }
-        }
-    }
-}
-
-
-fun JavaPluginConvention.disableAutoTargetJvmGradle53() {
-    val function = JavaPluginConvention::class.declaredFunctions.find { it.name == "disableAutoTargetJvm" }
-    function?.also {
-        it.call(this)
+    fun usedForStartup() {
+        project.java.targetCompatibility = JavaVersion.VERSION_1_6
+        project.java.sourceCompatibility = JavaVersion.VERSION_1_6
+        project.java.disableAutoTargetJvm()
     }
 }

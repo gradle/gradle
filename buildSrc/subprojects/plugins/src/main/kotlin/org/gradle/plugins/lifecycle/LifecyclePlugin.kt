@@ -60,10 +60,11 @@ class LifecyclePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         setupGlobalState()
+        sharedDependencyAndQualityConfigs()
 
         subprojects {
             tasks.registerCITestDistributionLifecycleTasks()
-            plugins.withId("gradlebuild.java-projects") {
+            plugins.withId("gradlebuild.java-library") {
                 tasks.registerEarlyFeedbackLifecycleTasks()
             }
             plugins.withId("gradlebuild.integration-tests") {
@@ -76,7 +77,7 @@ class LifecyclePlugin : Plugin<Project> {
     }
 
     private
-    fun Project.setupGlobalState(): Unit = project.run {
+    fun Project.setupGlobalState() {
         if (needsToIgnoreIncomingBuildReceipt()) {
             globalProperty("ignoreIncomingBuildReceipt" to true)
         }
@@ -88,6 +89,17 @@ class LifecyclePlugin : Plugin<Project> {
         }
         if (needsToUseAllDistribution()) {
             globalProperty("useAllDistribution" to true)
+        }
+    }
+
+    private
+    fun Project.sharedDependencyAndQualityConfigs() {
+        apply(from = "gradle/dependencies.gradle")
+        apply(from = "gradle/test-dependencies.gradle")
+        apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
+        allprojects {
+            apply(plugin = "gradlebuild.dependencies-metadata-rules")
+            apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
         }
     }
 

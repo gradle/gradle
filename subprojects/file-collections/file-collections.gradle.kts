@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     // Some cycles have been inherited from the time these classes were in :core
     // gradlebuild.classycle
 }
@@ -59,10 +57,3 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
-
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.CORE
-    }
-}
-

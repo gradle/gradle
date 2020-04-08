@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
+    gradlebuild.classycle
     gradlebuild.`strict-compile`
 }
 
 description = "Base tools to work with files"
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseAnnotations"))
@@ -34,8 +34,4 @@ dependencies {
         because("TextUtil is needed")
     }
     testImplementation(testFixtures(project(":native")))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
 }

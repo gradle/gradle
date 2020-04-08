@@ -122,10 +122,16 @@ open class IntTestImagePlugin : Plugin<Project> {
         // TODO: Model these as publications of different types of distributions, collapse the number of variants exposed by the root project
         // and eliminate duplication with distributions.gradle
         dependencies {
-            gradleRuntimeSource(project(":"))
-            gradleRuntimeSource(project(":apiMetadata"))
-            gradleDocumentation(project(":docs"))
-            gradleScripts(project(":launcher"))
+            gradleRuntimeSource.withDependencies {
+                gradleRuntimeSource(project(":"))
+                gradleRuntimeSource(project(":apiMetadata"))
+            }
+            gradleDocumentation.withDependencies {
+                gradleDocumentation(project(":docs"))
+            }
+            gradleScripts.withDependencies {
+                gradleScripts(project(":launcher"))
+            }
         }
 
         if (useAllDistribution) {

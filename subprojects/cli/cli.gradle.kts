@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2011 the original author or authors.
  *
@@ -15,18 +13,11 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-/*
-    This project contains some utilities for parsing command line arguments.
-
-    It's packaged separately because it's used by multiple “applications” (i.e. gradle core and the wrapper).
-    It has no dependencies, and should never have any.
-*/
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
-}
+description = "Utilities for parsing command line arguments"
+
+gradlebuildJava.usedInWorkers()

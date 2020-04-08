@@ -1,13 +1,7 @@
-import org.gradle.gradlebuild.ProjectGroups.publicProjects
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    gradlebuild.internal.java
 }
 
 dependencies {
@@ -17,8 +11,14 @@ dependencies {
     testImplementation(testLibrary("archunit_junit4"))
     testImplementation(library("guava"))
 
-    publicProjects.forEach {
-        testRuntimeOnly(it)
+    rootProject.subprojects {
+        val subproject = this.path
+        plugins.withType<gradlebuild.distribution.CorePlugin> {
+            testRuntimeOnly(project(subproject))
+        }
+        plugins.withType<gradlebuild.distribution.PluginsPlugin> {
+            testRuntimeOnly(project(subproject))
+        }
     }
 }
 

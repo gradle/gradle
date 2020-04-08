@@ -248,6 +248,7 @@ public class JavaPlugin implements Plugin<ProjectInternal> {
      *
      * @deprecated Use {@link #TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME} instead.
      */
+    @Deprecated
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
 
     /**

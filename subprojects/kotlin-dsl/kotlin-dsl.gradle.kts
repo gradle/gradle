@@ -19,19 +19,14 @@ import build.kotlin
 import build.kotlinVersion
 import codegen.GenerateKotlinDependencyExtensions
 import org.gradle.build.ReproduciblePropertiesWriter
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 
 plugins {
-    `kotlin-dsl-module`
+    gradlebuild.distribution.`core-api-kotlin`
 }
 
 description = "Kotlin DSL Provider"
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
 
 dependencies {
     api(project(":kotlinDslToolingModels"))

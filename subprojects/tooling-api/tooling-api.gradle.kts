@@ -17,10 +17,9 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
     gradlebuild.`shaded-jar`
 }
@@ -89,10 +88,6 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
     integTestRuntimeOnly(project(":apiMetadata"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 apply(from = "buildship.gradle")

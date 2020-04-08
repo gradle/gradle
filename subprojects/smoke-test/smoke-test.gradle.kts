@@ -17,16 +17,11 @@ import accessors.groovy
 import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.test.integrationtests.SmokeTest
 import org.gradle.gradlebuild.test.integrationtests.defaultGradleGeneratedApiJarCacheDirProvider
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.versioning.DetermineCommitId
 import org.gradle.testing.performance.generator.tasks.RemoteProject
 
 plugins {
-    `java-library`
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
+    gradlebuild.internal.java
 }
 
 val smokeTest: SourceSet by sourceSets.creating {
@@ -64,13 +59,11 @@ dependencies {
     }
     smokeTestImplementation(testLibrary("spock"))
 
-    val allTestRuntimeDependencies: DependencySet by rootProject.extra
-    allTestRuntimeDependencies.forEach {
-        smokeTestRuntimeOnly(it)
-    }
-
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":versionControl")))
+}
+configurations["smokeTestRuntimeOnly"].withDependencies {
+    addAll(rootProject.configurations.testRuntime.get().allDependencies)
 }
 
 fun SmokeTest.configureForSmokeTest() {

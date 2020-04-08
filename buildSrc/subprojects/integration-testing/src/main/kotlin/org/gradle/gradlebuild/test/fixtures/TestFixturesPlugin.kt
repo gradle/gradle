@@ -90,6 +90,8 @@ open class TestFixturesPlugin : Plugin<Project> {
             testFixturesImplementation(testLibrary("spock"))
             testFixturesRuntimeOnly(testLibrary("bytebuddy"))
             testFixturesRuntimeOnly(testLibrary("cglib"))
+            // platform
+            testFixturesImplementation(platform(project(":distributionsDependencies")))
         }
 
         // Add an outgoing variant allowing to select the exploded resources directory

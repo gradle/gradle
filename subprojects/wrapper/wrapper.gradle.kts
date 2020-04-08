@@ -15,12 +15,13 @@
  */
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import java.util.jar.Attributes
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.classycle
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":cli"))
@@ -42,10 +43,6 @@ dependencies {
     crossVersionTestImplementation(project(":persistentCache"))
     crossVersionTestImplementation(project(":launcher"))
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
 }
 
 tasks.register<Jar>("executableJar") {

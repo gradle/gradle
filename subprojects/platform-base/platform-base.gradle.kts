@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.`strict-compile`
 }
 
@@ -34,8 +32,4 @@ dependencies {
     testFixturesImplementation(library("guava"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesApi(testFixtures(project(":diagnostics")))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
