@@ -91,6 +91,8 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
                 executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk8().javaExecutable)}'
             }
         """
+        // Test workers that die very quickly after startup can cause an unexpected stack trace sometimes
+        executer.withStackTraceChecksDisabled()
 
         when:
         testModuleInfo('requires junit')
