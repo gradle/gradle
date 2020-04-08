@@ -105,8 +105,8 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
                 validationErrors.add(String.format("Invalid plugin request %s. " +
                         "Plugin requests from precompiled scripts must not include a version number. " +
                         "Please remove the version from the offending request and make sure the module containing the " +
-                        "requested plugin '%s' is an implementation dependency of %s",
-                    pluginRequest, pluginRequest.getId(), getProject()));
+                        "requested plugin '%s' is an implementation dependency",
+                    pluginRequest, pluginRequest.getId()));
             }
         }
         if (!validationErrors.isEmpty()) {
