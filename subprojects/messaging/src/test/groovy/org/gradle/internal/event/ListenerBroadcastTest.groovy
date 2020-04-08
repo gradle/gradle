@@ -43,10 +43,20 @@ class ListenerBroadcastTest extends Specification {
         broadcast.source.event1("param")
     }
 
+    def 'visit listeners does nothing when no listeners are added'() {
+        def visitor = Mock(Action)
+
+        when:
+        broadcast.visitListeners(visitor)
+
+        then:
+        0 * visitor._
+    }
+
     def 'source object notifies each listener in the added order'() {
         given:
-        TestListener listener1 = Mock()
-        TestListener listener2 = Mock()
+        def listener1 = Mock(TestListener)
+        def listener2 = Mock(TestListener)
         broadcast.add(listener1)
         broadcast.add(listener2)
 
@@ -62,8 +72,8 @@ class ListenerBroadcastTest extends Specification {
 
     def 'can dispatch event to listeners'() {
         given:
-        TestListener listener1 = Mock()
-        TestListener listener2 = Mock()
+        def listener1 = Mock(TestListener)
+        def listener2 = Mock(TestListener)
         broadcast.add(listener1)
         broadcast.add(listener2)
 
@@ -78,9 +88,29 @@ class ListenerBroadcastTest extends Specification {
         0 * _._
     }
 
+    def 'visit listener visits listeners in order added'() {
+        def listener1 = Mock(TestListener)
+        def listener2 = Mock(TestListener)
+        def visitor = Mock(Action)
+
+        given:
+        broadcast.add(listener1)
+        broadcast.add(listener2)
+
+        when:
+        broadcast.visitListeners(visitor)
+
+        then:
+        1 * visitor.execute(listener1)
+
+        then:
+        1 * visitor.execute(listener2)
+        0 * visitor._
+    }
+
     def 'listener is not used after it is removed'() {
         given:
-        TestListener listener = Mock()
+        def listener = Mock(TestListener)
         broadcast.add(listener)
         broadcast.remove(listener)
 
@@ -89,6 +119,21 @@ class ListenerBroadcastTest extends Specification {
 
         then:
         0 * _._
+    }
+
+    def 'listener is not visited after it is removed'() {
+        def visitor = Mock(Action)
+        def listener = Mock(TestListener)
+
+        given:
+        broadcast.add(listener)
+        broadcast.remove(listener)
+
+        when:
+        broadcast.visitListeners(visitor)
+
+        then:
+        0 * visitor._
     }
 
     def 'can use dispatch to receive notifications'() {
@@ -108,6 +153,20 @@ class ListenerBroadcastTest extends Specification {
         then:
         1 * dispatch2.dispatch(invocation)
         0 * _._
+    }
+
+    def 'visit listeners does not visit dispatch instances'() {
+        def dispatch = Mock(Dispatch)
+        def visitor = Mock(Action)
+
+        given:
+        broadcast.add(dispatch)
+
+        when:
+        broadcast.visitListeners(visitor)
+
+        then:
+        0 * visitor._
     }
 
     def 'dispatch is not used after it is removed'() {
@@ -255,7 +314,7 @@ class ListenerBroadcastTest extends Specification {
         exception.causes == [failure1, failure2]
     }
 
-    public interface TestListener {
+    interface TestListener {
         void event1(String param)
 
         void event2(int value, String other)
