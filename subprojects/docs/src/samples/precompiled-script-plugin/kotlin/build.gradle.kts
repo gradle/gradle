@@ -1,3 +1,3 @@
 plugins {
-    id("com.exampleª.my-plugin")
+    id("com.example.my-plugin")
 }
