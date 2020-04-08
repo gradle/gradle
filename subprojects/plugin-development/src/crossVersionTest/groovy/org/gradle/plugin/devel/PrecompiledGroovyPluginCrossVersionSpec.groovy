@@ -24,30 +24,27 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
 
     private static final String PLUGIN_ID = 'foo.bar.my-plugin'
     private static final String PLUGIN_TASK = 'myTask'
-    private static final String PLUGIN_JAR_NAME = 'plugin.jar'
 
     def setup() {
         settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath(files('$PLUGIN_JAR_NAME'))
+            pluginManagement {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
                 }
             }
         """
 
         buildFile << """
             plugins {
-                id '$PLUGIN_ID'
+                id '$PLUGIN_ID' version '1.0'
             }
         """
     }
 
-    def cleanup() {
-        file(PLUGIN_JAR_NAME).delete()
-    }
-
-    def "precompiled Groovy plugin built with current version can be used with Gradle 6.0+"() {
-        Assume.assumeTrue(previous.version >= GradleVersion.version('6.0'))
+    def "precompiled Groovy plugin built with current version can be used with Gradle 5.0+"() {
+        Assume.assumeTrue(previous.version >= GradleVersion.version('5.0'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
@@ -74,8 +71,9 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         result.output.contains("$PLUGIN_TASK executed")
     }
 
-    def "can not use a precompiled script plugin with Gradle earlier than 6.0"() {
-        Assume.assumeTrue(previous.version < GradleVersion.version('6.0'))
+    def "can not use a precompiled script plugin with Gradle earlier than 5.0"() {
+        Assume.assumeTrue(previous.version >= GradleVersion.version('3.5')) // because 3.4 does not yet support pluginManagement {} block
+        Assume.assumeTrue(previous.version < GradleVersion.version('5.0'))
 
         given:
         precompiledGroovyPluginBuiltWith(version(getCurrent()))
@@ -84,7 +82,9 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         def result = pluginTaskExecutedWith(version(getPrevious())).runWithFailure()
 
         then:
-        result.assertHasDescription("Plugin [id: '$PLUGIN_ID'] was not found in any of the following sources")
+        result.assertHasDescription("An exception occurred applying plugin request [id: '$PLUGIN_ID', version: '1.0']")
+        result.assertHasCause("Failed to apply plugin [id '$PLUGIN_ID']")
+        result.assertHasCause('Precompiled Groovy script plugins require Gradle 5.0 or higher')
         result.assertNotOutput("$PLUGIN_ID applied")
         result.assertNotOutput("$PLUGIN_TASK executed")
     }
@@ -106,13 +106,20 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         file("plugins/build.gradle") << """
             plugins {
                 id 'groovy-gradle-plugin'
+                id 'maven-publish'
+            }
+            group = 'com.example'
+            version = '1.0'
+            publishing {
+                repositories {
+                    maven {
+                        url '${mavenRepo.uri}'
+                    }
+                }
             }
         """
 
-        executer.inDirectory(file("plugins")).withTasks("jar").run()
-        def pluginJar = file("plugins/build/libs/precompiled-plugin.jar").assertExists()
-        def movedJar = file(PLUGIN_JAR_NAME)
-        pluginJar.renameTo(movedJar)
+        executer.inDirectory(file("plugins")).withTasks("publish").run()
         file('plugins').forceDeleteDir()
     }
 
