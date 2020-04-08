@@ -116,9 +116,9 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     def "can share multiple precompiled plugins via a jar"() {
         given:
         def pluginsJar = packagePrecompiledPlugins([
-            "foo.gradle": 'tasks.register("firstPluginTask") {}',
-            "bar.gradle": 'tasks.register("secondPluginTask") {}',
-            "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
+                "foo.gradle": 'tasks.register("firstPluginTask") {}',
+                "bar.gradle": 'tasks.register("secondPluginTask") {}',
+                "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
         ])
 
         when:
@@ -601,7 +601,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'groovy-gradle-plugin'
             }
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
             }
@@ -639,10 +639,10 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         firstDir.copyTo(secondDir)
 
         def cachedTasks = [
-            ":extractPluginRequests",
-            ":generatePluginAdapters",
-            ":compileJava",
-            ":compileGroovyPlugins"
+                ":extractPluginRequests",
+                ":generatePluginAdapters",
+                ":compileJava",
+                ":compileGroovyPlugins"
         ]
 
         def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
@@ -781,7 +781,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         executer.inDirectory(file("plugins")).withTasks("jar").run()
-            .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
+                .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
         def pluginJar = file("plugins/build/libs/plugins.jar").assertExists()
         def movedJar = file('plugins.jar')
         pluginJar.renameTo(movedJar)
