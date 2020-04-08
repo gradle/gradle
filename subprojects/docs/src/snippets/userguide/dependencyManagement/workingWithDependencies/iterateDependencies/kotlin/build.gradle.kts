@@ -11,12 +11,11 @@ dependencies {
 
 // tag::iteration-task[]
 tasks.register("iterateDeclaredDependencies") {
-    val dependencyCoordinates = provider {
-        configurations["scm"].dependencies.map { "${it.group}:${it.name}:${it.version}" }
-    }
     doLast {
-        dependencyCoordinates.get().forEach {
-            logger.quiet(it)
+        val dependencySet = configurations["scm"].dependencies
+
+        dependencySet.forEach {
+            logger.quiet("${it.group}:${it.name}:${it.version}")
         }
     }
 }

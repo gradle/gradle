@@ -13,12 +13,11 @@ dependencies {
 
 // tag::iteration-task[]
 task iterateDeclaredDependencies {
-    def dependencyCoordinates = provider {
-        configurations.scm.dependencies.collect { "$it.group:$it.name:$it.version".toString() }
-    }
     doLast {
-        dependencyCoordinates.get().each {
-            logger.quiet it
+        DependencySet dependencySet = configurations.scm.dependencies
+
+        dependencySet.each {
+            logger.quiet "$it.group:$it.name:$it.version"
         }
     }
 }

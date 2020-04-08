@@ -13,10 +13,10 @@ dependencies {
 
 // tag::iteration-task[]
 task iterateResolvedArtifacts {
-    FileCollection scm = configurations.scm
-    dependsOn scm
+    dependsOn configurations.scm
+
     doLast {
-        scm.each {
+        configurations.scm.each {
             logger.quiet it.absolutePath
         }
     }

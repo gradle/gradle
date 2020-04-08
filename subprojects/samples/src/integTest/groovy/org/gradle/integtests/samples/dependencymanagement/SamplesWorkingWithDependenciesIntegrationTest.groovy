@@ -18,6 +18,7 @@ package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Unroll
@@ -35,6 +36,7 @@ class SamplesWorkingWithDependenciesIntegrationTest extends AbstractIntegrationS
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateDependencies")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can iterate over dependencies assigned to a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -74,6 +76,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/walkGraph")
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "can walk the dependency graph of a configuration with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -98,6 +101,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/accessMetadataArtifact")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can accessing a module's metadata artifact with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
