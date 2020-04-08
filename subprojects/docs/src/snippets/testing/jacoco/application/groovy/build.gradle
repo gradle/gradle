@@ -21,7 +21,7 @@ plugins {
 }
 
 application {
-    mainClassName = 'org.gradle.MyMain'
+    mainClass = 'org.gradle.MyMain'
 }
 
 jacoco {

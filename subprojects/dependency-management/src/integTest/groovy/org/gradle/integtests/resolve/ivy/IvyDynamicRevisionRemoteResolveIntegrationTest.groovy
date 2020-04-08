@@ -451,7 +451,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.2"
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached artifacts that match multiple dynamic versions"() {
         given:
         useRepository ivyHttpRepo
@@ -552,7 +551,6 @@ task resolveStaleThenFresh {
         outputContains("stale:[projectA-1.2.jar],fresh:[projectA-1.3.jar]")
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached version lists unless no matches"() {
         given:
         useRepository ivyHttpRepo
@@ -782,7 +780,6 @@ dependencies {
         checkResolve "group:projectA:1.+": "group:projectA:1.0"
     }
 
-    @ToBeFixedForInstantExecution
     def "reuses cached artifacts across repository types"() {
         def ivyRepo = ivyHttpRepo('repo1')
         def mavenRepo = mavenHttpRepo('repo2')

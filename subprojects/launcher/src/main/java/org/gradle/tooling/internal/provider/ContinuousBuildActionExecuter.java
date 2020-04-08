@@ -16,7 +16,6 @@
 
 package org.gradle.tooling.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.execution.internal.TaskInputsListener;
 import org.gradle.api.execution.internal.TaskInputsListeners;
 import org.gradle.api.internal.file.FileSystemSubset;
@@ -137,19 +136,14 @@ public class ContinuousBuildActionExecuter implements BuildActionExecuter<BuildA
                     logger.println().withStyle(StyledTextOutput.Style.Failure).println("Exiting continuous build as no executed tasks declared file system inputs.");
                     return lastResult;
                 } else {
-                    cancellableOperationManager.monitorInput(new Action<BuildCancellationToken>() {
-                        @Override
-                        public void execute(BuildCancellationToken cancellationToken) {
-                            FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
-                            waiter.wait(new Runnable() {
-                                @Override
-                                public void run() {
-                                    logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext));
-                                }
-                            }, reporter);
-                            if (!cancellationToken.isCancellationRequested()) {
-                                reporter.reportChanges(logger);
-                            }
+                    cancellableOperationManager.monitorInput(operationToken -> {
+                        FileWatcherEventListener reporter = new DefaultFileWatcherEventListener();
+                        waiter.wait(
+                            () -> logger.println().println("Waiting for changes to input files of tasks..." + determineExitHint(requestContext)),
+                            reporter
+                        );
+                        if (!operationToken.isCancellationRequested()) {
+                            reporter.reportChanges(logger);
                         }
                     });
                 }

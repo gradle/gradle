@@ -169,7 +169,7 @@ project(':b') {
         attributesSchema.attribute(flavor) {
             compatibilityRules.add(PaidRule)
         }
-    }    
+    }
     ${freeAndPaidFlavoredJars('b')}
 }
 
@@ -232,7 +232,7 @@ project(':b') {
             attributesSchema.attribute(flavor) {
             disambiguationRules.add(SelectPaidRule)
         }
-    }    
+    }
     ${freeAndPaidFlavoredJars('b')}
 }
 
@@ -280,7 +280,7 @@ project(':a') {
 project(':b') {
     dependencies {
         attributesSchema.attribute(flavor)
-    }    
+    }
     ${freeAndPaidFlavoredJars('b')}
 }
 
@@ -292,19 +292,15 @@ task show {
 """
         expect:
         fails("show")
-        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
-  - Configuration ':a:compile' variant free:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found flavor 'free' but wasn't required.
-      - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.
-  - Configuration ':a:compile' variant paid:
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides flavor 'free' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found flavor 'paid' but wasn't required.
-      - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.""")
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides flavor 'paid' but the consumer didn't ask for it""")
 
         where:
         expression                                                                                         | _
@@ -368,35 +364,24 @@ task show {
         expect:
         fails("show")
         failure.assertHasCause("""No variants of project :a match the consumer attributes:
-  - Configuration ':a:compile' variant free:
-      - Incompatible attributes:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-          - Required flavor 'preview' and found incompatible value 'free'.
-      - Other attribute:
-          - Required usage 'compile' and found compatible value 'compile'.
-  - Configuration ':a:compile' variant paid:
-      - Incompatible attributes:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-          - Required flavor 'preview' and found incompatible value 'paid'.
-      - Other attribute:
-          - Required usage 'compile' and found compatible value 'compile'.""")
+  - Configuration ':a:compile' variant free declares attribute 'usage' with value 'compile':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
+  - Configuration ':a:compile' variant paid declares attribute 'usage' with value 'compile':
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         failure.assertHasCause("""No variants of test:test:1.2 match the consumer attributes:
   - test:test:1.2 configuration default:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
-          - Required flavor 'preview' but no value provided.
-          - Found org.gradle.status 'release' but wasn't required.
-          - Required usage 'compile' but no value provided.""")
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+      - Other compatible attributes:
+          - Doesn't say anything about flavor (required 'preview')
+          - Doesn't say anything about usage (required 'compile')""")
 
         failure.assertHasCause("""No variants of things.jar match the consumer attributes:
   - things.jar:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
-          - Required flavor 'preview' but no value provided.
-          - Required usage 'compile' but no value provided.""")
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
+      - Other compatible attributes:
+          - Doesn't say anything about flavor (required 'preview')
+          - Doesn't say anything about usage (required 'compile')""")
 
         where:
         expression                                                                                         | _
@@ -585,7 +570,7 @@ task show {
         failure.assertHasCause("Could not download test2-2.0.jar (org:test2:2.0)")
         failure.assertHasCause("broken 1")
         failure.assertHasCause("broken 2")
-        failure.assertHasCause("More than one variant of project :a matches the consumer attributes")
+        failure.assertHasCause("The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:")
 
         where:
         expression                                                                                         | _

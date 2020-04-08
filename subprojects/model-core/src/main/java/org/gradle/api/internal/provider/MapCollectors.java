@@ -20,10 +20,7 @@ import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
-import java.util.List;
 import java.util.Map;
 
 public class MapCollectors {
@@ -56,22 +53,13 @@ public class MapCollectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.add(Providers.of(ImmutableMap.of(key, value)));
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            visitor.execute(ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value)));
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
 
         @Override
@@ -127,23 +115,20 @@ public class MapCollectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.add(providerOfValue.map(v -> ImmutableMap.of(key, v)));
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            ExecutionTimeValue<? extends V> value = providerOfValue.calculateExecutionTimeValue();
+            if (value.isMissing()) {
+                visitor.execute(ExecutionTimeValue.missing());
+            } else if (value.isFixedValue()) {
+                visitor.execute(ExecutionTimeValue.fixedValue(ImmutableMap.of(key, value.getFixedValue())));
+            } else {
+                visitor.execute(ExecutionTimeValue.changingValue(value.getChangingValue().map(v -> ImmutableMap.of(key, v))));
+            }
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return providerOfValue.maybeVisitBuildDependencies(context);
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            providerOfValue.visitProducerTasks(visitor);
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return providerOfValue.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return providerOfValue.getProducer();
         }
     }
 
@@ -173,22 +158,13 @@ public class MapCollectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.add(Providers.of(entries));
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> sources) {
+            sources.execute(ExecutionTimeValue.fixedValue(entries));
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return false;
+        public ValueProducer getProducer() {
+            return ValueProducer.unknown();
         }
     }
 
@@ -227,23 +203,13 @@ public class MapCollectors {
         }
 
         @Override
-        public void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources) {
-            sources.add(providerOfEntries);
+        public void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor) {
+            visitor.execute(providerOfEntries.calculateExecutionTimeValue());
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            return providerOfEntries.maybeVisitBuildDependencies(context);
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            providerOfEntries.visitProducerTasks(visitor);
-        }
-
-        @Override
-        public boolean isValueProducedByTask() {
-            return providerOfEntries.isValueProducedByTask();
+        public ValueProducer getProducer() {
+            return providerOfEntries.getProducer();
         }
     }
 }

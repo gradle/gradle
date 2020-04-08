@@ -100,7 +100,6 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
 
     }
 
-    @ToBeFixedForInstantExecution
     def "rerun when arguments changed"() {
         when:
         grammar("Test1")

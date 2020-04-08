@@ -17,7 +17,7 @@ package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.GradleScriptException
 import org.gradle.groovy.scripts.Script
-import org.gradle.groovy.scripts.ScriptExecutionListener
+import org.gradle.internal.scripts.ScriptExecutionListener
 import org.gradle.groovy.scripts.ScriptRunner
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.logging.StandardOutputCapture
@@ -73,7 +73,7 @@ class DefaultScriptRunnerFactoryTest extends Specification {
         _ * scriptMock.contextClassloader >> classLoaderDummy
 
         1 * compiledScriptMock.runDoesSomething >> true
-        1 * scriptExecutionListenerMock.scriptClassLoaded(scriptSourceDummy, Script)
+        1 * scriptExecutionListenerMock.onScriptClassLoaded(scriptSourceDummy, Script)
         1 * scriptMock.init(target, scriptServices)
         1 * standardOutputCaptureMock.start()
         1 * scriptMock.run()
@@ -108,7 +108,7 @@ class DefaultScriptRunnerFactoryTest extends Specification {
         _ * scriptMock.contextClassloader >> classLoaderDummy
 
         1 * compiledScriptMock.runDoesSomething >> true
-        1 * scriptExecutionListenerMock.scriptClassLoaded(scriptSourceDummy, Script)
+        1 * scriptExecutionListenerMock.onScriptClassLoaded(scriptSourceDummy, Script)
         1 * scriptMock.init(target, scriptServices)
         1 * standardOutputCaptureMock.start()
         1 * scriptMock.run() >> { throw failure }

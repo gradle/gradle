@@ -52,18 +52,20 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListenerManager
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.serialize.BaseSerializerFactory.BIG_DECIMAL_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.BIG_INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BOOLEAN_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.BYTE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.CHAR_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.DOUBLE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FILE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.FLOAT_SERIALIZER
+import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.INTEGER_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.LONG_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.PATH_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.SHORT_SERIALIZER
 import org.gradle.internal.serialize.BaseSerializerFactory.STRING_SERIALIZER
-import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.ValueSnapshotter
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.process.ExecOperations
@@ -108,7 +110,7 @@ class Codecs(
 
         baseTypes()
 
-        bind(HashCodeSerializer())
+        bind(HASHCODE_SERIALIZER)
         bind(BrokenValueCodec)
 
         providerTypes(propertyFactory, filePropertyFactory, buildServiceRegistry, valueSourceProviderFactory)
@@ -236,6 +238,8 @@ class Codecs(
         bind(DOUBLE_SERIALIZER)
         bind(FILE_SERIALIZER)
         bind(PATH_SERIALIZER)
+        bind(BIG_INTEGER_SERIALIZER)
+        bind(BIG_DECIMAL_SERIALIZER)
         bind(ClassCodec)
         bind(MethodCodec)
 

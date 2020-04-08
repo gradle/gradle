@@ -78,7 +78,7 @@ include::sample[dir="snippets/compositeBuilds/basic/groovy",files="composite/bui
 include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
 ====
 
-More details tasks that depend on included build tasks below.
+More details about tasks that depend on included build tasks are below.
 
 [[included_builds]]
 === Restrictions on included builds

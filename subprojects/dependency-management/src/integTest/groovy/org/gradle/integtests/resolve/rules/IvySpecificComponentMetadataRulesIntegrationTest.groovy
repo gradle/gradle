@@ -198,7 +198,6 @@ resolve.doLast { assert IvyRule.ruleInvoked }
         identifier << Identifier.all
     }
 
-    @ToBeFixedForInstantExecution
     def "rule that doesn't initially access Ivy metadata can be changed to get access at any time"() {
         given:
         repository {

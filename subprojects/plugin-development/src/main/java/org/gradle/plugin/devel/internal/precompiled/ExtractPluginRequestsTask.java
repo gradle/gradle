@@ -17,7 +17,9 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -26,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.groovy.scripts.internal.CompileOperation;
@@ -36,39 +39,42 @@ import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 import javax.inject.Inject;
 import java.io.File;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @CacheableTask
 abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CompileOperationFactory compileOperationFactory;
+    private final FileSystemOperations fileSystemOperations;
     private final ClassLoaderScope classLoaderScope;
 
     @Inject
     public ExtractPluginRequestsTask(ScriptCompilationHandler scriptCompilationHandler,
                                      ClassLoaderScopeRegistry classLoaderScopeRegistry,
-                                     CompileOperationFactory compileOperationFactory) {
+                                     CompileOperationFactory compileOperationFactory, FileSystemOperations fileSystemOperations) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
+        this.fileSystemOperations = fileSystemOperations;
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    Set<File> getScriptFiles() {
-        return getScriptPlugins().get().stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet());
-    }
+    @SkipWhenEmpty
+    abstract ConfigurableFileCollection getScriptFiles();
 
     @OutputDirectory
-    abstract DirectoryProperty getExtractedPluginRequestsClassesDir();
+    abstract DirectoryProperty getExtractedPluginRequestsClassesDirectory();
 
     @Internal
     abstract ListProperty<PrecompiledGroovyScript> getScriptPlugins();
 
     @TaskAction
     void extractPluginsBlocks() {
+        fileSystemOperations.delete(spec -> spec.delete(getExtractedPluginRequestsClassesDirectory()));
+        getExtractedPluginRequestsClassesDirectory().get().getAsFile().mkdirs();
+
+        // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
             compilePluginsBlock(scriptPlugin);
         }
@@ -76,7 +82,7 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     private void compilePluginsBlock(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
-        File outputDir = getExtractedPluginRequestsClassesDir().get().dir(scriptPlugin.getId()).getAsFile();
+        File outputDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         scriptCompilationHandler.compileToDir(
             scriptPlugin.getSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
             PluginsAwareScript.class, Actions.doNothing());

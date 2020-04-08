@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
@@ -25,7 +26,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
-import org.gradle.api.internal.provider.AbstractMappingProvider;
+import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
@@ -79,32 +80,22 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
-        return new AbstractMappingProvider<RegularFile, File>(RegularFile.class, Providers.internal(provider)) {
+        return new MappingProvider<>(RegularFile.class, Providers.internal(provider), new Transformer<RegularFile, File>() {
             @Override
-            protected String getMapDescription() {
-                return "resolve-file";
-            }
-
-            @Override
-            protected RegularFile mapValue(File file) {
+            public RegularFile transform(File file) {
                 return fileFactory.file(fileResolver.resolve(file));
             }
-        };
+        });
     }
 
     @Override
     public Provider<Directory> dir(Provider<File> provider) {
-        return new AbstractMappingProvider<Directory, File>(Directory.class, Providers.internal(provider)) {
+        return new MappingProvider<>(Directory.class, Providers.internal(provider), new Transformer<Directory, File>() {
             @Override
-            protected String getMapDescription() {
-                return "resolve-dir";
-            }
-
-            @Override
-            protected Directory mapValue(File file) {
+            public Directory transform(File file) {
                 return fileFactory.dir(fileResolver.resolve(file));
             }
-        };
+        });
     }
 
     @Override

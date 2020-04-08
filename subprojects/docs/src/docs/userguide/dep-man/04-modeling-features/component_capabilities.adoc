@@ -91,8 +91,8 @@ Capabilities are published to Gradle Module Metadata.
 However, they have _no equivalent_ in POM or Ivy metadata files.
 As a consequence, when publishing such a component, Gradle will warn you that this feature is only for Gradle consumers:
 
-```
+----
 Maven publication 'maven' contains dependencies that cannot be represented in a published pom file.
   - Declares capability com.acme:my-library:1.0
   - Declares capability com.other:module:1.1
-```
+----

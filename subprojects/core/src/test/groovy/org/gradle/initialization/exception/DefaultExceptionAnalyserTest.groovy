@@ -332,7 +332,7 @@ class DefaultExceptionAnalyserTest extends Specification {
     }
 
     private void notifyAnalyser(DefaultExceptionAnalyser analyser, final ScriptSource source) {
-        analyser.scriptClassLoaded(source, Script.class)
+        analyser.onScriptClassLoaded(source, Script.class)
     }
 
     private DefaultExceptionAnalyser analyser() {

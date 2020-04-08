@@ -24,7 +24,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.component.SoftwareComponentContainer;
-import org.gradle.api.jpms.ModularClasspathHandling;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
@@ -33,7 +33,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
-import org.gradle.internal.jpms.DefaultModularClasspathHandling;
+import org.gradle.internal.jvm.DefaultModularitySpec;
 
 import java.util.regex.Pattern;
 
@@ -53,7 +53,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final SoftwareComponentContainer components;
     private final TaskContainer tasks;
     private final Project project;
-    private final ModularClasspathHandling modularClasspathHandling;
+    private final ModularitySpec modularity;
     private final Property<Integer> release;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
@@ -64,7 +64,7 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.components = project.getComponents();
         this.tasks = project.getTasks();
         this.project = project;
-        this.modularClasspathHandling = project.getObjects().newInstance(DefaultModularClasspathHandling.class);
+        this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
         this.release = project.getObjects().property(Integer.class);
         ((DefaultJavaPluginConvention) convention).internalReleaseFlagProperty(release);
     }
@@ -130,8 +130,8 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     }
 
     @Override
-    public ModularClasspathHandling getModularClasspathHandling() {
-        return modularClasspathHandling;
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     private static String validateFeatureName(String name) {

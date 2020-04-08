@@ -23,7 +23,7 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.io.StreamByteBuffer;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.process.ArgWriter;
 import org.gradle.internal.remote.Address;
@@ -105,7 +105,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
         if (useOptionsFile) {
             // Use an options file to pass across application classpath
             File optionsFile = temporaryFileProvider.createTemporaryFile("gradle-worker-classpath", "txt");
-            List<String> jvmArgs = writeOptionsFile(execSpec.getModularClasspathHandling().getInferModulePath().get(), workerMainClassPath, implementationModulePath, applicationClasspath, applicationModulePath, optionsFile);
+            List<String> jvmArgs = writeOptionsFile(execSpec.getModularity().getInferModulePath().get(), workerMainClassPath, implementationModulePath, applicationClasspath, applicationModulePath, optionsFile);
             execSpec.jvmArgs(jvmArgs);
         } else {
             // Use a dummy security manager, which hacks the application classpath into the system ClassLoader
@@ -135,7 +135,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory im
             }
 
             // Serialize the worker implementation classpath, this is consumed by GradleWorkerMain
-            if (execSpec.getModularClasspathHandling().getInferModulePath().get() || implementationModulePath == null) {
+            if (execSpec.getModularity().getInferModulePath().get() || implementationModulePath == null) {
                 outstr.writeInt(implementationClassPath.size());
                 for (URL entry : implementationClassPath) {
                     outstr.writeUTF(entry.toString());

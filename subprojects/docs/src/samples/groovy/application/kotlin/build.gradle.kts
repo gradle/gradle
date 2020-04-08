@@ -15,5 +15,5 @@ dependencies {
 }
 
 application {
-    mainClassName = "org.gradle.sample.Main"
+    mainClass.set("org.gradle.sample.app.Main")
 }

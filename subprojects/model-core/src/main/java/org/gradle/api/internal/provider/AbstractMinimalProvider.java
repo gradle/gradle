@@ -16,11 +16,10 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -28,8 +27,6 @@ import org.gradle.internal.state.Managed;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
 /**
  * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue()}.
@@ -124,27 +121,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         // When used as an input, add the producing tasks if known
-        maybeVisitBuildDependencies(context);
+        getProducer().visitProducerTasks(context);
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        return false;
+    public ValueProducer getProducer() {
+        return ValueProducer.unknown();
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-    }
-
-    protected List<Task> getProducerTasks() {
-        List<Task> producers = new ArrayList<>();
-        visitProducerTasks(producers::add);
-        return producers;
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return false;
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return ExecutionTimeValue.value(calculateOwnValue());
     }
 
     @Override
@@ -152,7 +139,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         if (getType() != null && !targetType.isAssignableFrom(getType())) {
             throw new IllegalArgumentException(String.format("Cannot set the value of %s of type %s using a provider of type %s.", owner.getDisplayName(), targetType.getName(), getType().getName()));
         } else if (getType() == null) {
-            return new TypeSanitizingProvider<>(owner, sanitizer, targetType, this);
+            return new MappingProvider<>(Cast.uncheckedCast(targetType), this, new TypeSanitizingTransformer<>(owner, sanitizer, targetType));
         } else {
             return this;
         }

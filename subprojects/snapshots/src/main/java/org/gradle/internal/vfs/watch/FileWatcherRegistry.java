@@ -16,12 +16,17 @@
 
 package org.gradle.internal.vfs.watch;
 
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.SnapshotHierarchy;
+
 import java.io.Closeable;
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Optional;
 
-public interface FileWatcherRegistry extends Closeable {
+public interface FileWatcherRegistry extends Closeable, SnapshotHierarchy.SnapshotDiffListener {
 
     interface ChangeHandler {
         void handleChange(Type type, Path path);
@@ -35,6 +40,21 @@ public interface FileWatcherRegistry extends Closeable {
         REMOVED,
         INVALIDATE
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * @throws WatchingNotSupportedException when the native watchers can't be updated.
+     */
+    @Override
+    void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
+
+    /**
+     * Changes the must watch directories, e.g. when the same daemon is used on a different project.
+     *
+     * @throws WatchingNotSupportedException when the native watchers can't be updated.
+     */
+    void updateMustWatchDirectories(Collection<File> updatedWatchDirectories);
 
     /**
      * Get statistics about the received changes.

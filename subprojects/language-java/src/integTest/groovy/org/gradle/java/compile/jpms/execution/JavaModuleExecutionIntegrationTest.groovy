@@ -53,7 +53,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
             }
@@ -77,7 +77,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
                 mainClass.set('consumer.MainModule')
@@ -102,7 +102,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 dependsOn jar
                 doLast {
                     project.javaexec {
-                        modularClasspathHandling.inferModulePath.set(true)
+                        modularity.inferModulePath.set(true)
                         classpath = files(jar) + configurations.runtimeClasspath
                         mainModule.set('consumer')
                     }
@@ -131,7 +131,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 dependsOn jar
                 doLast {
                     project.javaexec {
-                        modularClasspathHandling.inferModulePath.set(true)
+                        modularity.inferModulePath.set(true)
                         classpath = files(jar) + configurations.runtimeClasspath
                         mainModule.set('consumer')
                         mainClass.set('consumer.MainModule')

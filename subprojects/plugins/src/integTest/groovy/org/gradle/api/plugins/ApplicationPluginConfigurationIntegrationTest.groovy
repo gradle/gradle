@@ -90,10 +90,10 @@ class ApplicationPluginConfigurationIntegrationTest extends AbstractIntegrationS
                 $configModule
             }
             compileJava {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
             }
             startScripts {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
             }
         """
 

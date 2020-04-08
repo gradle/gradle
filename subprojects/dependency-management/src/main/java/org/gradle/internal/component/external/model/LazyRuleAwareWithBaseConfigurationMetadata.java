@@ -44,6 +44,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private final ModuleConfigurationMetadata base;
     private final ModuleComponentIdentifier componentId;
     private final VariantMetadataRules variantMetadataRules;
+    private final ImmutableList<ExcludeMetadata> excludes;
 
     private List<? extends ModuleDependencyMetadata> computedDependencies;
     private ImmutableAttributes computedAttributes;
@@ -51,12 +52,13 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
     private ImmutableList<? extends ComponentArtifactMetadata> computedArtifacts;
     private ImmutableAttributes componentLevelAttributes;
 
-    LazyRuleAwareWithBaseConfigurationMetadata(String name, @Nullable ModuleConfigurationMetadata base, ModuleComponentIdentifier componentId, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules) {
+    LazyRuleAwareWithBaseConfigurationMetadata(String name, @Nullable ModuleConfigurationMetadata base, ModuleComponentIdentifier componentId, ImmutableAttributes componentLevelAttributes, VariantMetadataRules variantMetadataRules, ImmutableList<ExcludeMetadata> excludes) {
         this.name = name;
         this.base = base;
         this.componentId = componentId;
         this.variantMetadataRules = variantMetadataRules;
         this.componentLevelAttributes = componentLevelAttributes;
+        this.excludes = excludes;
     }
 
     @Override
@@ -123,7 +125,7 @@ class LazyRuleAwareWithBaseConfigurationMetadata implements ModuleConfigurationM
 
     @Override
     public ImmutableList<ExcludeMetadata> getExcludes() {
-        return ImmutableList.of();
+        return excludes;
     }
 
     @Override

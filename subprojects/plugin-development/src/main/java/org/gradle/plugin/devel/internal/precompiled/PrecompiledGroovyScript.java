@@ -17,13 +17,13 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import com.google.common.base.CaseFormat;
-import org.gradle.api.Project;
-import org.gradle.api.initialization.Settings;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.configuration.ScriptTarget;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
+import org.gradle.initialization.DefaultSettings;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
@@ -42,16 +42,18 @@ class PrecompiledGroovyScript {
     private final ScriptTarget scriptTarget;
 
     private enum Type {
-        PROJECT(Project.class, SCRIPT_PLUGIN_EXTENSION),
-        SETTINGS(Settings.class, ".settings.gradle"),
-        INIT(Gradle.class, ".init.gradle");
+        PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION, "target.getServices()"),
+        SETTINGS(DefaultSettings.class, ".settings.gradle", "target.getGradle().getServices()"),
+        INIT(GradleInternal.class, ".init.gradle", "target.getServices()");
 
         private final Class<?> targetClass;
         private final String fileExtension;
+        private final String serviceRegistryAccessCode;
 
-        Type(Class<?> targetClass, String fileExtension) {
+        Type(Class<?> targetClass, String fileExtension, String serviceRegistryAccessCode) {
             this.targetClass = targetClass;
             this.fileExtension = fileExtension;
+            this.serviceRegistryAccessCode = serviceRegistryAccessCode;
         }
 
         static Type getType(String fileName) {
@@ -113,6 +115,10 @@ class PrecompiledGroovyScript {
 
     String getTargetClassName() {
         return type.targetClass.getName();
+    }
+
+    public String serviceRegistryAccessCode() {
+        return type.serviceRegistryAccessCode;
     }
 
     private static String kebabCaseToPascalCase(String s) {

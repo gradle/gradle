@@ -17,7 +17,6 @@
 package org.gradle.api.file
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
@@ -86,7 +85,6 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("The value for task ':show' property 'prop' is final and cannot be changed any further.")
     }
 
-    @ToBeFixedForInstantExecution
     def "can wire the output file of multiple tasks as input to another task using property"() {
         buildFile << """
             class FileOutputTask extends DefaultTask {
@@ -223,7 +221,6 @@ class FileCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
         file("output/merged.txt").text == 'new-file1,new-file1'
     }
 
-    @ToBeFixedForInstantExecution
     def "can wire the output directory of multiple tasks as input to another task using property"() {
         buildFile << """
             class DirOutputTask extends DefaultTask {

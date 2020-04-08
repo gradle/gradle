@@ -24,6 +24,11 @@ package org.gradle.api.logging;
  * Logging#getLogger(String)}. A {@code Logger} instance is also available through {@link
  * org.gradle.api.Project#getLogger()}, {@link org.gradle.api.Task#getLogger()} and {@link
  * org.gradle.api.Script#getLogger()}.</p>
+ * <br>
+ * <p><b>CAUTION!</b>
+ * Logging sensitive information (credentials, tokens, certain environment variables) above {@link Logger#debug} level is a security vulnerability.
+ * See <a href="https://docs.gradle.org/current/userguide/logging.html#sec:debug_security">our recommendations</a> for more information.
+ * </p>
  */
 public interface Logger extends org.slf4j.Logger {
     /**

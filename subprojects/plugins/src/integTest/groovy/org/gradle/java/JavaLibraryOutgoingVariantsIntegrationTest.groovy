@@ -258,7 +258,6 @@ project(':consumer') {
         outputContains("main (project :java) {artifactType=java-classes-directory, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=classes, org.gradle.usage=java-runtime}")
     }
 
-    @ToBeFixedForInstantExecution
     def "provides runtime resources variant"() {
         buildFile << """
             project(':consumer') {

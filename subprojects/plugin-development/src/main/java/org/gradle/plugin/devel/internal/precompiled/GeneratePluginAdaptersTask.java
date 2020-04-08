@@ -17,9 +17,9 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.tasks.CacheableTask;
@@ -28,6 +28,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.groovy.scripts.internal.CompileOperation;
@@ -51,37 +52,41 @@ import java.util.Set;
 
 @CacheableTask
 abstract class GeneratePluginAdaptersTask extends DefaultTask {
-
-    private final Project project = getProject();
-
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CompileOperationFactory compileOperationFactory;
     private final ServiceRegistry serviceRegistry;
+    private final FileSystemOperations fileSystemOperations;
     private final ClassLoaderScope classLoaderScope;
 
     @Inject
     public GeneratePluginAdaptersTask(ScriptCompilationHandler scriptCompilationHandler,
                                       ClassLoaderScopeRegistry classLoaderScopeRegistry,
                                       CompileOperationFactory compileOperationFactory,
-                                      ServiceRegistry serviceRegistry) {
+                                      ServiceRegistry serviceRegistry, FileSystemOperations fileSystemOperations) {
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.compileOperationFactory = compileOperationFactory;
         this.serviceRegistry = serviceRegistry;
         this.classLoaderScope = classLoaderScopeRegistry.getCoreAndPluginsScope();
+        this.fileSystemOperations = fileSystemOperations;
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    abstract DirectoryProperty getExtractedPluginRequestsClassesDir();
+    @SkipWhenEmpty
+    abstract DirectoryProperty getExtractedPluginRequestsClassesDirectory();
 
     @OutputDirectory
-    abstract DirectoryProperty getPluginAdapterSourcesOutputDir();
+    abstract DirectoryProperty getPluginAdapterSourcesOutputDirectory();
 
     @Internal
     abstract ListProperty<PrecompiledGroovyScript> getScriptPlugins();
 
     @TaskAction
     void generatePluginAdapters() {
+        fileSystemOperations.delete(spec -> spec.delete(getPluginAdapterSourcesOutputDirectory()));
+        getPluginAdapterSourcesOutputDirectory().get().getAsFile().mkdirs();
+
+        // TODO: Use worker API?
         for (PrecompiledGroovyScript scriptPlugin : getScriptPlugins().get()) {
             PluginRequests pluginRequests = getValidPluginRequests(scriptPlugin);
             generateScriptPluginAdapter(scriptPlugin, pluginRequests);
@@ -100,8 +105,8 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
                 validationErrors.add(String.format("Invalid plugin request %s. " +
                         "Plugin requests from precompiled scripts must not include a version number. " +
                         "Please remove the version from the offending request and make sure the module containing the " +
-                        "requested plugin '%s' is an implementation dependency of %s",
-                    pluginRequest, pluginRequest.getId(), project));
+                        "requested plugin '%s' is an implementation dependency",
+                    pluginRequest, pluginRequest.getId()));
             }
         }
         if (!validationErrors.isEmpty()) {
@@ -126,14 +131,14 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
-        File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDir().get().dir(scriptPlugin.getId()).getAsFile();
+        File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         return scriptCompilationHandler.loadFromDir(scriptPlugin.getSource(), scriptPlugin.getContentHash(),
             classLoaderScope, compiledPluginRequestsDir, compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
     private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         String targetClass = scriptPlugin.getTargetClassName();
-        File outputFile = getPluginAdapterSourcesOutputDir().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
+        File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
 
         StringBuilder pluginImports = new StringBuilder();
         StringBuilder applyPlugins = new StringBuilder();
@@ -146,32 +151,32 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             applyPlugins.append("target.apply(plugins);");
         }
 
-        String buildScriptClass = "Class.forName(\"" + scriptPlugin.getClassName() + "\")";
-
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
             writer.write("import " + targetClass + ";\n");
-            writer.write("import org.gradle.util.GradleVersion;\n");
+            writer.write("import org.gradle.groovy.scripts.BasicScript;\n");
+            writer.write("import org.gradle.groovy.scripts.ScriptSource;\n");
+            writer.write("import org.gradle.groovy.scripts.TextResourceScriptSource;\n");
+            writer.write("import org.gradle.internal.resource.StringTextResource;\n");
+            writer.write("import org.gradle.internal.service.ServiceRegistry;\n");
             writer.write(pluginImports + "\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
             writer.write("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {\n");
-            writer.write("  private static final String MIN_SUPPORTED_GRADLE_VERSION = \"6.4\";\n");
             writer.write("  public void apply(" + targetClass + " target) {\n");
-            writer.write("      assertSupportedByCurrentGradleVersion();\n");
             writer.write("      " + applyPlugins + "\n");
             writer.write("      try {\n");
-            writer.write("          Class<?> precompiledScriptClass = " + buildScriptClass + ";\n");
-            writer.write("          new " + PrecompiledScriptRunner.class.getName() + "(target)\n");
-            writer.write("              .run(precompiledScriptClass);\n");
+            writer.write("          Class<? extends BasicScript> precompiledScriptClass = Class.forName(\"" + scriptPlugin.getClassName() + "\").asSubclass(BasicScript.class);\n");
+            writer.write("          BasicScript script = precompiledScriptClass.getDeclaredConstructor().newInstance();\n");
+            writer.write("          script.setScriptSource(scriptSource(precompiledScriptClass));\n");
+            writer.write("          script.init(target, " + scriptPlugin.serviceRegistryAccessCode() + ");\n");
+            writer.write("          script.run();\n");
             writer.write("      } catch (Exception e) {\n");
             writer.write("          throw new RuntimeException(e);\n");
             writer.write("      }\n");
             writer.write("  }\n");
-            writer.write("  private static void assertSupportedByCurrentGradleVersion() {\n");
-            writer.write("      if (GradleVersion.current().getBaseVersion().compareTo(GradleVersion.version(MIN_SUPPORTED_GRADLE_VERSION)) < 0) {\n");
-            writer.write("          throw new RuntimeException(\"Precompiled Groovy script plugins require Gradle \"+MIN_SUPPORTED_GRADLE_VERSION+\" or higher\");\n");
-            writer.write("      }\n");
+            writer.write("  private static ScriptSource scriptSource(Class<?> scriptClass) {\n");
+            writer.write("      return new TextResourceScriptSource(new StringTextResource(scriptClass.getSimpleName(), \"\"));\n");
             writer.write("  }\n");
             writer.write("}\n");
         } catch (IOException e) {

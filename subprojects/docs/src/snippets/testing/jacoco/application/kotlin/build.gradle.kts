@@ -5,7 +5,7 @@ plugins {
 }
 
 application {
-    mainClassName = "org.gradle.MyMain"
+    mainClass.set("org.gradle.MyMain")
 }
 
 jacoco {

@@ -563,10 +563,10 @@ application {
     mainModule.set('org.gradle.test.main')
 }
 compileJava {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 startScripts {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 """
     }
@@ -597,7 +597,6 @@ rootProject.name = 'sample'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1923")
-    @ToBeFixedForInstantExecution
     def "not up-to-date if classpath changes"() {
         given:
         succeeds("startScripts")

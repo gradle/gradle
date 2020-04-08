@@ -17,7 +17,6 @@
 package org.gradle.play.tasks
 
 import org.gradle.integtests.fixtures.TargetCoverage
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.play.integtest.fixtures.PlayCoverage
 
 @TargetCoverage({ PlayCoverage.DEFAULT })
@@ -65,7 +64,6 @@ model {
         destinationDir.assertHasDescendants(createRouteFileList() as String[])
     }
 
-    @ToBeFixedForInstantExecution
     def "recompiles when route compiler type is changed"() {
         when:
         withRoutesTemplate()

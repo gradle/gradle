@@ -18,6 +18,8 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -44,6 +46,14 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds("help")
     }
 
+    def "adding precompiled script support does not fail when there are no precompiled scripts"() {
+        when:
+        enablePrecompiledPluginsInBuildSrc()
+
+        then:
+        succeeds("help")
+    }
+
     def "can apply a precompiled script plugin by id"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
@@ -65,6 +75,69 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("foo script plugin applied")
+    }
+
+    def "can apply a precompiled script plugin by id to a multi-project build from root"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            plugins {
+                id 'base'
+            }
+            logger.lifecycle("hello from " + path)
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo' apply false
+            }
+            allprojects {
+                apply plugin: 'foo'
+            }
+        """
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("hello from :")
+        outputContains("hello from :a")
+        outputContains("hello from :b")
+        outputContains("hello from :c")
+    }
+
+    def "can apply a precompiled script plugin by id to a multi-project build"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            plugins {
+                id 'base'
+            }
+            logger.lifecycle("hello from " + path)
+        """
+
+        [buildFile, file("a/build.gradle"), file("b/build.gradle"), file("c/build.gradle") ].each { bf ->
+            bf << """
+                plugins {
+                    id 'foo'
+                }
+            """
+        }
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("hello from :")
+        outputContains("hello from :a")
+        outputContains("hello from :b")
+        outputContains("hello from :c")
     }
 
     def "multiple plugins with same namespace do not clash"() {
@@ -112,13 +185,37 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         succeeds(SAMPLE_TASK)
     }
 
+    def "removing plugins removes old adapters"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.bar.gradle") << "println 'foo.bar applied'"
+        file("buildSrc/src/main/groovy/plugins/baz.bar.gradle") << "println 'baz.bar applied'"
+
+        buildFile << """
+            plugins {
+                id 'foo.bar'
+            }
+        """
+        succeeds("help")
+
+        when:
+        file("buildSrc/src/main/groovy/plugins/baz.bar.gradle").delete()
+        then:
+        succeeds("help")
+
+        when:
+        file("buildSrc/src/main/groovy/plugins/foo.bar.gradle").delete()
+        then:
+        fails("help")
+    }
+
     @ToBeFixedForInstantExecution
     def "can share multiple precompiled plugins via a jar"() {
         given:
         def pluginsJar = packagePrecompiledPlugins([
-            "foo.gradle": 'tasks.register("firstPluginTask") {}',
-            "bar.gradle": 'tasks.register("secondPluginTask") {}',
-            "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
+                "foo.gradle": 'tasks.register("firstPluginTask") {}',
+                "bar.gradle": 'tasks.register("secondPluginTask") {}',
+                "fizz.buzz.foo-bar.gradle": 'tasks.register("thirdPluginTask") {}'
         ])
 
         when:
@@ -383,7 +480,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         fails("help")
 
         then:
-        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'some-plugin' is an implementation dependency of project ':buildSrc'")
+        failureDescriptionContains("Invalid plugin request [id: 'some-plugin', version: '42.0']. Plugin requests from precompiled scripts must not include a version number. Please remove the version from the offending request and make sure the module containing the requested plugin 'some-plugin' is an implementation dependency")
     }
 
     def "can use classes from project sources"() {
@@ -601,7 +698,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             plugins {
                 id 'groovy-gradle-plugin'
             }
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
             }
@@ -639,10 +736,10 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         firstDir.copyTo(secondDir)
 
         def cachedTasks = [
-            ":extractPluginRequests",
-            ":generatePluginAdapters",
-            ":compileJava",
-            ":compileGroovyPlugins"
+                ":extractPluginRequests",
+                ":generatePluginAdapters",
+                ":compileJava",
+                ":compileGroovyPlugins"
         ]
 
         def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
@@ -718,8 +815,9 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains(':compileGroovyPlugins FAILED')
     }
 
+    @Requires(TestPrecondition.JDK13_OR_EARLIER)
     @ToBeFixedForInstantExecution
-    def "can not use a precompiled script plugin with Gradle earlier than 6.4"() {
+    def "can use a precompiled script plugin with Gradle 6.0"() {
         given:
         def pluginJar = packagePrecompiledPlugin("foo.gradle", "println 'foo plugin applied'")
 
@@ -738,15 +836,12 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        def distribution = buildContext.distribution('6.3')
+        def distribution = buildContext.distribution('6.0')
 
         then:
-        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").runWithFailure()
-        result.assertHasDescription("An exception occurred applying plugin request [id: 'foo']")
-        result.assertHasCause("Failed to apply plugin [id 'foo']")
-        result.assertHasCause('Precompiled Groovy script plugins require Gradle 6.4 or higher')
-        result.assertNotOutput('foo plugin applied')
-        !result.error.contains('java.lang.NoClassDefFoundError')
+        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").run()
+        def output = result.output // because codenarc complains otherwise
+        output.contains('foo plugin applied')
     }
 
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
@@ -781,7 +876,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         """
 
         executer.inDirectory(file("plugins")).withTasks("jar").run()
-            .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
+                .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
         def pluginJar = file("plugins/build/libs/plugins.jar").assertExists()
         def movedJar = file('plugins.jar')
         pluginJar.renameTo(movedJar)

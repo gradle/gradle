@@ -394,7 +394,6 @@ class CachedTaskExecutionIntegrationTest extends AbstractIntegrationSpec impleme
         noneSkipped()
     }
 
-    @ToBeFixedForInstantExecution
     def "task with custom actions gets logged"() {
         when:
         withBuildCache().run "compileJava", "--info"

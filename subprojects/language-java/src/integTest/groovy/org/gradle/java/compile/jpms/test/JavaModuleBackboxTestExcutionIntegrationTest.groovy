@@ -16,6 +16,10 @@
 
 package org.gradle.java.compile.jpms.test
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.util.Requires
+import org.gradle.util.TextUtil
+
 class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTestingIntegrationTest {
 
     def "runs JUnit4 blackbox test as module using the module path"() {
@@ -74,4 +78,26 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
         succeeds ':test'
     }
 
+    // This documents the current behavior.
+    // In all places where we support Java Modules, we do not check if we actually run on Java 9 or later.
+    // Instead, we just let javac/java/javadoc fail. We could improve by checking ourselves and throwing a different error.
+    // But we should do that in all places then.
+    @Requires(adhoc = { AvailableJavaHomes.getJdk8() })
+    def "fails testing a Java module on Java 8"() {
+        given:
+        buildFile << """
+            dependencies { testImplementation 'junit:junit:4.13' }
+            test {
+                executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk8().javaExecutable)}'
+            }
+        """
+
+        when:
+        testModuleInfo('requires junit')
+        testModuleClass('')
+
+        then:
+        fails "test"
+        failure.assertHasErrorOutput('Unrecognized option: --module')
+    }
 }

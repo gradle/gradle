@@ -1,0 +1,25 @@
+plugins {
+    id 'java-library'
+}
+repositories {
+    mavenCentral()
+}
+java {
+    modularity.inferModulePath = true
+}
+
+// tag::patchArgs[]
+def moduleName = "org.gradle.sample"
+def patchArgs = ["--patch-module", "$moduleName=${tasks.compileJava.destinationDirectory.asFile.get().path}"]
+tasks.compileTestJava {
+    options.compilerArgs += patchArgs
+}
+tasks.test {
+    jvmArgs += patchArgs
+}
+// end::patchArgs[]
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.1")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+}

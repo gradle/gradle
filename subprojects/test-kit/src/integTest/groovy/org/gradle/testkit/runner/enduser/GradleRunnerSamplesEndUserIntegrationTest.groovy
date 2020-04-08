@@ -77,7 +77,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Unroll
     @UsesSample("testKit/gradleRunner/automaticClasspathInjectionQuickstart")
-    @ToBeFixedForInstantExecution
     def "automaticClasspathInjectionQuickstart with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))
@@ -89,7 +88,6 @@ class GradleRunnerSamplesEndUserIntegrationTest extends BaseTestKitEndUserIntegr
 
     @Unroll
     @UsesSample("testKit/gradleRunner/automaticClasspathInjectionCustomTestSourceSet")
-    @ToBeFixedForInstantExecution
     def "automaticClasspathInjectionCustomTestSourceSet with #dsl dsl"() {
         expect:
         executer.inDirectory(sample.dir.file(dsl))

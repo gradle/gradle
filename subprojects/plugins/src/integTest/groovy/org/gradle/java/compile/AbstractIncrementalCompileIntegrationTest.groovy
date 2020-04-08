@@ -19,7 +19,6 @@ package org.gradle.java.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.integtests.fixtures.FeaturePreviewsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
 abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegrationSpec implements IncrementalCompileMultiProjectTestFixture {
@@ -31,7 +30,6 @@ abstract class AbstractIncrementalCompileIntegrationTest extends AbstractIntegra
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "recompiles source when properties change"() {
         given:
         file("src/main/${language.name}/Test.${language.name}") << 'public class Test{}'

@@ -68,7 +68,6 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         "html" | 'HtmlFormat'       | '@(username: String) <html> <body> <h1>Hello @username</h1> </body> </html>'
     }
 
-    @ToBeFixedForInstantExecution
     def "can compile custom Twirl templates"() {
         given:
         twirlTemplate("test.scala.csv") << """
@@ -109,7 +108,6 @@ class TwirlCompileIntegrationTest extends PlayMultiVersionIntegrationTest {
         result.assertTasksNotSkipped(":compilePlayBinaryPlayTwirlTemplates", ":compilePlayBinaryScala")
     }
 
-    @ToBeFixedForInstantExecution
     def "can specify additional imports for a Twirl template"() {
         given:
         withTwirlTemplate()
