@@ -17,7 +17,6 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -28,6 +27,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.groovy.scripts.internal.CompileOperation;
@@ -51,9 +51,6 @@ import java.util.Set;
 
 @CacheableTask
 abstract class GeneratePluginAdaptersTask extends DefaultTask {
-
-    private final Project project = getProject();
-
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final CompileOperationFactory compileOperationFactory;
     private final ServiceRegistry serviceRegistry;
@@ -72,10 +69,11 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    abstract DirectoryProperty getExtractedPluginRequestsClassesDir();
+    @SkipWhenEmpty
+    abstract DirectoryProperty getExtractedPluginRequestsClassesDirectory();
 
     @OutputDirectory
-    abstract DirectoryProperty getPluginAdapterSourcesOutputDir();
+    abstract DirectoryProperty getPluginAdapterSourcesOutputDirectory();
 
     @Internal
     abstract ListProperty<PrecompiledGroovyScript> getScriptPlugins();
@@ -101,7 +99,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
                         "Plugin requests from precompiled scripts must not include a version number. " +
                         "Please remove the version from the offending request and make sure the module containing the " +
                         "requested plugin '%s' is an implementation dependency of %s",
-                    pluginRequest, pluginRequest.getId(), project));
+                    pluginRequest, pluginRequest.getId(), getProject()));
             }
         }
         if (!validationErrors.isEmpty()) {
@@ -126,14 +124,14 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     private CompiledScript<PluginsAwareScript, ?> loadCompiledPluginsBlocks(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
-        File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDir().get().dir(scriptPlugin.getId()).getAsFile();
+        File compiledPluginRequestsDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         return scriptCompilationHandler.loadFromDir(scriptPlugin.getSource(), scriptPlugin.getContentHash(),
             classLoaderScope, compiledPluginRequestsDir, compiledPluginRequestsDir, pluginsCompileOperation, PluginsAwareScript.class);
     }
 
     private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         String targetClass = scriptPlugin.getTargetClassName();
-        File outputFile = getPluginAdapterSourcesOutputDir().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
+        File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
 
         StringBuilder pluginImports = new StringBuilder();
         StringBuilder applyPlugins = new StringBuilder();

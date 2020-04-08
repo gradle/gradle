@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.internal.precompiled;
 
 import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.provider.ListProperty;
@@ -26,6 +27,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.groovy.scripts.internal.CompileOperation;
@@ -57,12 +59,11 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    Set<File> getScriptFiles() {
-        return getScriptPlugins().get().stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet());
-    }
+    @SkipWhenEmpty
+    abstract ConfigurableFileCollection getScriptFiles();
 
     @OutputDirectory
-    abstract DirectoryProperty getExtractedPluginRequestsClassesDir();
+    abstract DirectoryProperty getExtractedPluginRequestsClassesDirectory();
 
     @Internal
     abstract ListProperty<PrecompiledGroovyScript> getScriptPlugins();
@@ -76,7 +77,7 @@ abstract class ExtractPluginRequestsTask extends DefaultTask {
 
     private void compilePluginsBlock(PrecompiledGroovyScript scriptPlugin) {
         CompileOperation<?> pluginsCompileOperation = compileOperationFactory.getPluginsBlockCompileOperation(scriptPlugin.getScriptTarget());
-        File outputDir = getExtractedPluginRequestsClassesDir().get().dir(scriptPlugin.getId()).getAsFile();
+        File outputDir = getExtractedPluginRequestsClassesDirectory().get().dir(scriptPlugin.getId()).getAsFile();
         scriptCompilationHandler.compileToDir(
             scriptPlugin.getSource(), classLoaderScope.getExportClassLoader(), outputDir, outputDir, pluginsCompileOperation,
             PluginsAwareScript.class, Actions.doNothing());

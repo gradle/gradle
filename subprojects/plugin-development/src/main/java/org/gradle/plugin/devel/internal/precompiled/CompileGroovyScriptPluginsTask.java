@@ -32,6 +32,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.configuration.CompileOperationFactory;
 import org.gradle.configuration.ScriptTarget;
@@ -45,8 +46,6 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 import javax.inject.Inject;
 import java.io.File;
 import java.net.URLClassLoader;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @CacheableTask
 abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
@@ -56,8 +55,8 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
     private final FileSystemOperations fileSystemOperations;
     private final ClassLoaderScope classLoaderScope;
 
-    private final Provider<Directory> intermediatePluginClassesDir;
-    private final Provider<Directory> intermediatePluginMetadataDir;
+    private final Provider<Directory> intermediatePluginClassesDirectory;
+    private final Provider<Directory> intermediatePluginMetadataDirectory;
 
     @Inject
     public CompileGroovyScriptPluginsTask(ScriptCompilationHandler scriptCompilationHandler,
@@ -71,21 +70,20 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
 
         Project project = getProject();
         DirectoryProperty buildDir = project.getLayout().getBuildDirectory();
-        this.intermediatePluginClassesDir = buildDir.dir("groovy-dsl-plugins/work/classes");
-        this.intermediatePluginMetadataDir = buildDir.dir("groovy-dsl-plugins/work/metadata");
+        this.intermediatePluginClassesDirectory = buildDir.dir("groovy-dsl-plugins/work/classes");
+        this.intermediatePluginMetadataDirectory = buildDir.dir("groovy-dsl-plugins/work/metadata");
     }
 
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
-    Set<File> getScriptFiles() {
-        return getScriptPlugins().get().stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet());
-    }
+    @SkipWhenEmpty
+    abstract ConfigurableFileCollection getScriptFiles();
 
     @Classpath
     abstract ConfigurableFileCollection getClasspath();
 
     @OutputDirectory
-    abstract DirectoryProperty getPrecompiledGroovyScriptsOutputDir();
+    abstract DirectoryProperty getPrecompiledGroovyScriptsOutputDirectory();
 
     @Internal
     abstract ListProperty<PrecompiledGroovyScript> getScriptPlugins();
@@ -98,17 +96,17 @@ abstract class CompileGroovyScriptPluginsTask extends DefaultTask {
             compileBuildScript(scriptPlugin, compileClassLoader);
         }
 
-        fileSystemOperations.copy(copySpec -> {
-            copySpec.from(intermediatePluginClassesDir.get().getAsFileTree().getFiles());
-            copySpec.into(getPrecompiledGroovyScriptsOutputDir());
+        fileSystemOperations.sync(copySpec -> {
+            copySpec.from(intermediatePluginClassesDirectory.get().getAsFileTree().getFiles());
+            copySpec.into(getPrecompiledGroovyScriptsOutputDirectory());
         });
     }
 
     private void compileBuildScript(PrecompiledGroovyScript scriptPlugin, ClassLoader compileClassLoader) {
         ScriptTarget target = scriptPlugin.getScriptTarget();
         CompileOperation<BuildScriptData> scriptCompileOperation = compileOperationFactory.getScriptCompileOperation(scriptPlugin.getSource(), target);
-        File scriptMetadataDir = subdirectory(intermediatePluginMetadataDir, scriptPlugin.getId());
-        File scriptClassesDir = subdirectory(intermediatePluginClassesDir, scriptPlugin.getId());
+        File scriptMetadataDir = subdirectory(intermediatePluginMetadataDirectory, scriptPlugin.getId());
+        File scriptClassesDir = subdirectory(intermediatePluginClassesDirectory, scriptPlugin.getId());
         scriptCompilationHandler.compileToDir(
             scriptPlugin.getSource(), compileClassLoader, scriptClassesDir,
             scriptMetadataDir, scriptCompileOperation, target.getScriptClass(),
