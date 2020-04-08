@@ -257,7 +257,7 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
 
                 @Override
                 protected Value<? extends T> calculateOwnValue() {
-                    return AbstractFileVar.this.calculateOwnValue();
+                    return calculateOwnValueNoProducer();
                 }
             };
         }

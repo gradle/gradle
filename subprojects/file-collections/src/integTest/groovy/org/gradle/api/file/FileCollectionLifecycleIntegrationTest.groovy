@@ -231,10 +231,10 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("get files failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not finished yet.")
-        outputContains("get elements failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not finished yet.")
-        outputContains("get files in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not finished yet.")
-        outputContains("get elements in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not finished yet.")
+        outputContains("get files failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get files in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
         outputContains("set after read failed with: The value for this file collection is final and cannot be changed.")
         output.count("value = [${file('some-file-2')}]") == 2
         output.count("elements = [${file('some-file-2')}]") == 2

@@ -228,9 +228,9 @@ task show {
         run("show")
 
         then:
-        outputContains("get failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not finished yet.")
-        outputContains("present failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not finished yet.")
-        outputContains("get in afterEvaluate failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not finished yet.")
+        outputContains("get failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("present failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get in afterEvaluate failed with: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
         outputContains("set after read failed with: The value for extension 'thing' property 'prop' is final and cannot be changed any further.")
         output.count("value = value two") == 2
     }
