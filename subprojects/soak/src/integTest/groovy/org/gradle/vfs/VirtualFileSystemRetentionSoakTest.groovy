@@ -70,6 +70,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
 
         when:
         succeeds("assemble")
+        // Assemble twice, so everything is up-to-date and nothing is invalidated
+        succeeds("assemble")
         def daemon = daemons.daemon
         def retainedFilesInLastBuild = retainedFilesInCurrentBuild
         then:
@@ -109,6 +111,8 @@ class VirtualFileSystemRetentionSoakTest extends DaemonIntegrationSpec implement
         def numberOfChangeBatches = 500
 
         when:
+        succeeds("assemble")
+        // Assemble twice, so everything is up-to-date and nothing is invalidated
         succeeds("assemble")
         def daemon = daemons.daemon
         then:
