@@ -27,7 +27,9 @@ import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolutionStrategy
 import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -45,6 +47,8 @@ import org.gradle.api.attributes.DisambiguationRuleChain
 import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet
 import org.gradle.api.internal.artifacts.DefaultDependencySet
+import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
+import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
@@ -112,6 +116,8 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
                 }
             }
 
+            ${mavenCentralRepository()}
+
             task other
             task broken(type: SomeTask)
         """
@@ -156,7 +162,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultTask                           | Task                           | "project.tasks.other"
         DefaultSourceSetContainer             | SourceSetContainer             | "project.sourceSets"
         DefaultSourceSet                      | SourceSet                      | "project.sourceSets['main']"
-        // Dependency Resolution Services
+        // Dependency Resolution Types
         DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
         DefaultConfiguration                  | Configuration                  | "project.configurations.maybeCreate('some')"
         DefaultResolutionStrategy             | ResolutionStrategy             | "project.configurations.maybeCreate('some').resolutionStrategy"
@@ -180,5 +186,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultDependencySet                  | DependencySet                  | "project.configurations.maybeCreate('some').dependencies"
         DefaultExternalModuleDependency       | Dependency                     | "project.dependencies.create('junit:junit:4.12')"
         DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
+        DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.12') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
+        DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.12') }.resolvedConfiguration.resolvedArtifacts.first()"
     }
 }
