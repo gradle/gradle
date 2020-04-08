@@ -17,10 +17,8 @@
 package org.gradle.configuration;
 
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
@@ -31,13 +29,7 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.groovy.scripts.ScriptRunner;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.internal.BuildScriptData;
-import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
-import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
-import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
-import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
-import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
@@ -47,31 +39,27 @@ import org.gradle.model.dsl.internal.transform.ClosureCreationInterceptingVerifi
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
-import org.gradle.plugin.use.internal.PluginRequestCollector;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
-    private final static StringInterner INTERNER = new StringInterner();
-    private static final String CLASSPATH_COMPILE_STAGE = "CLASSPATH";
-    private static final String BODY_COMPILE_STAGE = "BODY";
 
-    private final BuildScriptDataSerializer buildScriptDataSerializer = new BuildScriptDataSerializer();
     private final ServiceRegistry scriptServices;
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final Factory<LoggingManagerInternal> loggingFactoryManager;
-    private final DocumentationRegistry documentationRegistry;
     private final AutoAppliedPluginHandler autoAppliedPluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
+    private final CompileOperationFactory compileOperationFactory;
     private ScriptPluginFactory scriptPluginFactory;
 
     public DefaultScriptPluginFactory(ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, Factory<LoggingManagerInternal> loggingFactoryManager,
-                                      DocumentationRegistry documentationRegistry, AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator) {
+                                      AutoAppliedPluginHandler autoAppliedPluginHandler, PluginRequestApplicator pluginRequestApplicator,
+                                      CompileOperationFactory compileOperationFactory) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.loggingFactoryManager = loggingFactoryManager;
-        this.documentationRegistry = documentationRegistry;
         this.autoAppliedPluginHandler = autoAppliedPluginHandler;
         this.pluginRequestApplicator = pluginRequestApplicator;
+        this.compileOperationFactory = compileOperationFactory;
         this.scriptPluginFactory = this;
     }
 
@@ -117,13 +105,8 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(scriptSource);
 
             // Pass 1, extract plugin requests and plugin repositories and execute buildscript {}, ignoring (i.e. not even compiling) anything else
-
+            CompileOperation<?> initialOperation = compileOperationFactory.getPluginsBlockCompileOperation(initialPassScriptTarget);
             Class<? extends BasicScript> scriptType = initialPassScriptTarget.getScriptClass();
-            InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
-            SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
-            String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
-            CompileOperation<?> initialOperation = new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
-
             ScriptRunner<? extends BasicScript, ?> initialRunner = compiler.compile(scriptType, initialOperation, baseScope, Actions.doNothing());
             initialRunner.run(target, services);
 
@@ -137,9 +120,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             final ScriptTarget scriptTarget = secondPassTarget(target);
             scriptType = scriptTarget.getScriptClass();
 
-            BuildScriptTransformer buildScriptTransformer = new BuildScriptTransformer(scriptSource, scriptTarget);
-            String operationId = scriptTarget.getId();
-            CompileOperation<BuildScriptData> operation = new FactoryBackedCompileOperation<BuildScriptData>(operationId, BODY_COMPILE_STAGE, buildScriptTransformer, buildScriptTransformer, buildScriptDataSerializer);
+            CompileOperation<BuildScriptData> operation = compileOperationFactory.getScriptCompileOperation(scriptSource, scriptTarget);
 
             final ScriptRunner<? extends BasicScript, BuildScriptData> runner = compiler.compile(scriptType, operation, targetScope, ClosureCreationInterceptingVerifier.INSTANCE);
             if (scriptTarget.getSupportsMethodInheritance() && runner.getHasMethods()) {
@@ -149,12 +130,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 return;
             }
 
-            Runnable buildScriptRunner = new Runnable() {
-                @Override
-                public void run() {
-                    runner.run(target, services);
-                }
-            };
+            Runnable buildScriptRunner = () -> runner.run(target, services);
 
             boolean hasImperativeStatements = runner.getData().getHasImperativeStatements();
             scriptTarget.addConfiguration(buildScriptRunner, !hasImperativeStatements);
@@ -195,10 +171,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         if (initialRunner.getRunDoesSomething()) {
             BasicScript script = initialRunner.getScript();
             if (script instanceof PluginsAwareScript) {
-                PluginRequestCollector pluginRequestCollector = ((PluginsAwareScript) script).pluginRequestCollector;
-                if (pluginRequestCollector != null) {
-                    return pluginRequestCollector.getPluginRequests();
-                }
+                return ((PluginsAwareScript) script).getPluginRequests();
             }
         }
         return PluginRequests.EMPTY;

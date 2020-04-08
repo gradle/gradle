@@ -27,9 +27,10 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 
 import org.gradle.internal.classloader.ClasspathHasher
-
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
+import org.gradle.internal.scripts.ScriptExecutionListener
 
 import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
@@ -86,7 +87,8 @@ object BuildServices {
         scriptCache: ScriptCache,
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
-        buildOperationExecutor: BuildOperationExecutor
+        buildOperationExecutor: BuildOperationExecutor,
+        listenerManager: ListenerManager
     ): KotlinScriptEvaluator =
 
         StandardKotlinScriptEvaluator(
@@ -102,7 +104,9 @@ object BuildServices {
             scriptCache,
             implicitImports,
             progressLoggerFactory,
-            buildOperationExecutor)
+            buildOperationExecutor,
+            listenerManager.getBroadcaster(ScriptExecutionListener::class.java)
+        )
 
     private
     fun versionedJarCacheFor(jarCache: GeneratedGradleJarCache): JarCache =

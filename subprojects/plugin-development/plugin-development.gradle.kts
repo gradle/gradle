@@ -44,6 +44,8 @@ dependencies {
     implementation(project(":publish"))
     implementation(project(":messaging"))
     implementation(project(":workers"))
+    implementation(project(":modelGroovy"))
+    implementation(project(":resources"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -66,6 +68,10 @@ dependencies {
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
+
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {

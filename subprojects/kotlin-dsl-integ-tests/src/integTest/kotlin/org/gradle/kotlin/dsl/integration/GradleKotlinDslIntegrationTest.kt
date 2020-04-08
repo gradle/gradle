@@ -419,7 +419,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     fun `script plugin can be applied to either Project or Settings`() {
 
         withFile("common.gradle.kts", """

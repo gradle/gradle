@@ -209,11 +209,21 @@ class InterpreterTest : TestWithTempFiles() {
                     "kotlin-dsl:$scriptPath:$stage2TemplateId",
                     stage2CacheDir,
                     "Program",
-                    null)
+                    null
+                )
 
+                val specializedProgram = classLoaders[1].loadClass("Program")
                 verify(host).cache(
-                    DummyCompiledScript(classLoaders[1].loadClass("Program")),
-                    stage2ProgramId)
+                    DummyCompiledScript(specializedProgram),
+                    stage2ProgramId
+                )
+
+                verify(host).onScriptClassLoaded(
+                    scriptSource,
+                    specializedProgram
+                )
+
+                verifyNoMoreInteractions()
             }
         } finally {
             classLoaders.forEach {

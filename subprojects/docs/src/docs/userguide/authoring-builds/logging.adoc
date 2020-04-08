@@ -53,6 +53,13 @@ You can use the command line switches shown in <<#logLevelCommandLineOptions, Lo
 | `-d` or `--debug` | DEBUG and higher (that is, all log messages)
 |===
 
+[CAUTION]
+====
+
+The `DEBUG` log level can <<#sec:debug_security, expose security sensitive information to the console>>.
+
+====
+
 [[stacktraces]]
 
 === Stacktrace command-line options
@@ -66,6 +73,26 @@ The full stacktraces are printed out. This option renders stacktraces for deprec
 &lt;No stacktrace options&gt;::
 No stacktraces are printed to the console in case of a build error (e.g. a compile error). Only in case of internal exceptions will stacktraces be printed. If the `DEBUG` log level is chosen, truncated stacktraces are always printed.
 
+[[sec:debug_security]]
+== Logging Sensitive Information
+
+Running Gradle with the `DEBUG` log level can expose security sensitive information to the console and build log.
+
+This information can include but is not limited to:
+
+- Environment variables
+- Private repository credentials
+- Build cache & Gradle Enterprise Credentials
+- https://plugins.gradle.org/[Plugin Portal] publishing credentials
+
+The DEBUG log level should *not* be used when running on public Continuous Integration services.
+Build logs for public Continuous Integration services are world-viewable and can expose this sensitive information.
+Depending upon your organization's threat model, logging sensitive credentials in private CI may also be a vulnerability.
+Please discuss this with your organization's security team.
+
+Some CI providers attempt to scrub sensitive credentials from logs; however, this will be imperfect and usually only scrubs exact-matches of pre-configured secrets.
+
+If you believe a Gradle Plugin may be exposing sensitive information, please contact mailto:security@gradle.com[security@gradle.com] for disclosure assistance.
 
 [[sec:sending_your_own_log_messages]]
 == Writing your own log messages
