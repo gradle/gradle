@@ -1044,4 +1044,31 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
     }
+
+    def "captures changes applied in task graph whenReady listener"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Internal
+                String value
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                }
+            }
+
+            task ok(type: SomeTask)
+
+            gradle.taskGraph.whenReady {
+                ok.value = 'value'
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = value")
+    }
 }

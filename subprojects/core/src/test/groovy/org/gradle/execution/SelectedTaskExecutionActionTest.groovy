@@ -16,9 +16,7 @@
 package org.gradle.execution
 
 import org.gradle.StartParameter
-import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
-import org.gradle.api.tasks.TaskState
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import spock.lang.Specification
 
@@ -40,6 +38,7 @@ class SelectedTaskExecutionActionTest extends Specification {
 
         given:
         _ * startParameter.continueOnFailure >> false
+        _ * taskGraph.allTasks >> []
 
         when:
         action.execute(context, failures)
@@ -53,6 +52,7 @@ class SelectedTaskExecutionActionTest extends Specification {
 
         given:
         _ * startParameter.continueOnFailure >> true
+        _ * taskGraph.allTasks >> []
 
         when:
         action.execute(context, failures)
@@ -60,14 +60,5 @@ class SelectedTaskExecutionActionTest extends Specification {
         then:
         1 * taskGraph.setContinueOnFailure(true)
         1 * taskGraph.execute(failures)
-    }
-
-    def brokenTask(Throwable failure) {
-        Task task = Mock()
-        TaskState state = Mock()
-        _ * task.state >> state
-        _ * state.failure >> failure
-        _ * state.rethrowFailure() >> { throw failure }
-        return task
     }
 }
