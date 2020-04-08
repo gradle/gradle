@@ -236,10 +236,8 @@ include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.grad
 In addition to plugins written as standalone projects, Gradle also allows you to provide build logic written in either Groovy or Kotlin DSLs as precompiled script plugins. You write these as `\*.gradle` files in `src/main/groovy`
 directory or `*.gradle.kts` files in `src/main/kotlin` directory.
 
-Precompiled script plugins are compiled as part of a regular source set and placed on the build classpath or packaged in
-a binary plugin, depending on what type of project they are in. For all intents and purposes, they are binary plugins,
-particularly as they can be applied by plugin ID, just like a regular binary plugin. In fact, the plugin metadata for
-them is generated via implicitly applied <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
+Precompiled script plugins are compiled into class files and packaged into a jar. For all intents and purposes, they are binary plugins and can be applied by plugin ID, tested and published as binary plugins. In fact, the plugin metadata for
+them is generated using the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>.
 
 [NOTE]
 ====
