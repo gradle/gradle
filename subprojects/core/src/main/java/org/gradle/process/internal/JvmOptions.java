@@ -50,16 +50,20 @@ public class JvmOptions {
     public static final String USER_VARIANT_KEY = "user.variant";
     public static final String JMX_REMOTE_KEY = "com.sun.management.jmxremote";
     public static final String JAVA_IO_TMPDIR_KEY = "java.io.tmpdir";
+    public static final String JAVA_NET_PREFER_IPV4_KEY = "java.net.preferIPv4Stack";
+    public static final String JAVA_NET_PREFER_IPV6_KEY = "java.net.preferIPv6Addresses";
 
     private static final Logger LOGGER = LoggerFactory.getLogger(JvmOptions.class);
 
     public static final Set<String> IMMUTABLE_SYSTEM_PROPERTIES = ImmutableSet.of(
-        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY
+        FILE_ENCODING_KEY, USER_LANGUAGE_KEY, USER_COUNTRY_KEY, USER_VARIANT_KEY, JMX_REMOTE_KEY, JAVA_IO_TMPDIR_KEY, JAVA_NET_PREFER_IPV4_KEY, JAVA_NET_PREFER_IPV6_KEY
     );
 
     // Store this because Locale.default is mutable and we want the unchanged default
     // We are assuming this class will be initialized before any code has a chance to change the default
     private static final Locale DEFAULT_LOCALE = Locale.getDefault();
+    private static final String JAVA_NET_PREFER_IPV4 = System.getProperty(JAVA_NET_PREFER_IPV4_KEY);
+    private static final String JAVA_NET_PREFER_IPV6 = System.getProperty(JAVA_NET_PREFER_IPV6_KEY);
 
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> mutableSystemProperties = new TreeMap<String, Object>();
@@ -81,6 +85,12 @@ public class JvmOptions {
         immutableSystemProperties.put(USER_LANGUAGE_KEY, DEFAULT_LOCALE.getLanguage());
         immutableSystemProperties.put(USER_COUNTRY_KEY, DEFAULT_LOCALE.getCountry());
         immutableSystemProperties.put(USER_VARIANT_KEY, DEFAULT_LOCALE.getVariant());
+        if (JAVA_NET_PREFER_IPV4!=null) {
+            immutableSystemProperties.put(JAVA_NET_PREFER_IPV4_KEY, JAVA_NET_PREFER_IPV4);
+        }
+        if (JAVA_NET_PREFER_IPV6!=null) {
+            immutableSystemProperties.put(JAVA_NET_PREFER_IPV6_KEY, JAVA_NET_PREFER_IPV6);
+        }
     }
 
     public JvmOptions(FileCollectionFactory fileCollectionFactory) {
