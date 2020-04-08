@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Ignore
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -65,6 +66,70 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("foo script plugin applied")
+    }
+
+    @Ignore
+    def "can apply a precompiled script plugin by id to a multi-project build from root"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            plugins {
+                id 'base'
+            }
+            logger.lifecycle("hello from " + path)
+        """
+
+        buildFile << """
+            plugins {
+                id 'foo' apply false
+            }
+            allprojects {
+                apply plugin: 'foo'
+            }
+        """
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("hello from :")
+        outputContains("hello from :a")
+        outputContains("hello from :b")
+        outputContains("hello from :c")
+    }
+
+    def "can apply a precompiled script plugin by id to a multi-project build"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/plugins/foo.gradle") << """
+            plugins {
+                id 'base'
+            }
+            logger.lifecycle("hello from " + path)
+        """
+
+        [buildFile, file("a/build.gradle"), file("b/build.gradle"), file("c/build.gradle") ].each { bf ->
+            bf << """
+                plugins {
+                    id 'foo'
+                }
+            """
+        }
+        settingsFile << """
+            include 'a', 'b', 'c'
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("hello from :")
+        outputContains("hello from :a")
+        outputContains("hello from :b")
+        outputContains("hello from :c")
     }
 
     def "multiple plugins with same namespace do not clash"() {
