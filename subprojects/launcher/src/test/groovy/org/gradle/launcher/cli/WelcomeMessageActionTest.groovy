@@ -19,9 +19,7 @@ package org.gradle.launcher.cli
 import com.google.common.base.Function
 import org.gradle.api.Action
 import org.gradle.initialization.BuildLayoutParameters
-import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLogger
-import org.gradle.internal.logging.slf4j.OutputEventListenerBackedLoggerContext
-import org.gradle.internal.time.MockClock
+import org.gradle.internal.logging.ToStringLogger
 import org.gradle.launcher.bootstrap.ExecutionListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.GradleVersion
@@ -197,25 +195,5 @@ For more details see https://docs.gradle.org/42.0/release-notes.html''')
 
     private TestFile markerFile(String version) {
         new TestFile(gradleUserHomeDir, "notifications", version, "release-features.rendered")
-    }
-
-    private static class ToStringLogger extends OutputEventListenerBackedLogger {
-
-        private final StringBuilder log = new StringBuilder()
-
-        ToStringLogger() {
-            super("ToStringLogger", new OutputEventListenerBackedLoggerContext(new MockClock()), new MockClock())
-        }
-
-        @Override
-        void lifecycle(String message) {
-            log.append(message)
-            log.append('\n')
-        }
-
-        @Override
-        String toString() {
-            log.toString()
-        }
     }
 }

@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli
 
 import org.apache.commons.io.IOUtils
+import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.tooling.fixture.ToolingApi
 import org.gradle.util.GradleVersion
@@ -24,6 +25,8 @@ import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 
 class NotificationsIntegrationTest extends AbstractIntegrationSpec {
+
+    private static final DocumentationRegistry DOCUMENTATION_REGISTRY = new DocumentationRegistry()
 
     def customGradleUserHomeDir = testDirectoryProvider.getTestDirectory().file('user-home')
     def markerFile
@@ -98,6 +101,26 @@ ${getReleaseNotesDetailsMessage(distribution.version)}
         then:
         !stdOut2.toString().contains(welcomeMessage)
         markerFile.exists()
+    }
+
+    def "when debug logging is enabled, debug warning is logged first"() {
+        given:
+        def expectedWarning = """
+#############################################################################
+   WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING WARNING
+
+   Debug level logging will leak security sensitive information!
+
+   ${DOCUMENTATION_REGISTRY.getDocumentationFor("logging", "sec:debug_security")}
+#############################################################################
+"""
+        withDebugLogging()
+
+        when:
+        succeeds()
+
+        then:
+        outputContains(expectedWarning)
     }
 
     static String readReleaseFeatures() {

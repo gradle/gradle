@@ -48,9 +48,9 @@ To generate the user manual and see your changes, run:
     
 This will generate:
 
- - A multi-page HTML manual in `build/docs/userguide` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
- - A single-page HTML manual at `build/docs/userguide/userguide_single.html`
- - A PDF at `build/docs/userguide/userguide.pdf`
+ - A multi-page HTML manual in `build/working/usermanual/render-multi/` for each chapter. There is a 1-1 mapping from `.adoc` file to `.html` file.
+ - A single-page HTML manual at `build/working/usermanual/render-single/userguide_single.html`
+ - A PDF at `build/working/usermanual/render-single/userguide_single.pdf`
 
 Note that PNG files in the source are generated from ".graphml" files in the same directory.  You can edit these files
 with tools like [yEd](http://www.yworks.com/en/products_yed_about.html) and then generate the associated PNG.
@@ -142,7 +142,7 @@ To build it, run:
 ./gradlew :docs:dslHtml
 ```
 
-The output is available under `build/docs/dsl`.
+The output is available under `build/working/dsl`.
 
 ### Useful docbook tags
 
@@ -168,7 +168,7 @@ To build these, run:
 
     ./gradlew :docs:javadoc
 
-The output is available within `build/docs/javadoc`.
+The output is available within `build/javadoc`.
 
 ## Building all the docs
 

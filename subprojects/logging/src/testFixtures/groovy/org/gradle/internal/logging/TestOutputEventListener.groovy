@@ -16,11 +16,13 @@
 
 package org.gradle.internal.logging
 
+import groovy.transform.CompileStatic
 import org.gradle.internal.logging.events.LogEvent
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 
+@CompileStatic
 class TestOutputEventListener implements OutputEventListener {
     final StringWriter writer = new StringWriter()
 

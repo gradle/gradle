@@ -470,6 +470,18 @@ This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
 As of Gradle 6.4, PMD also enabled [incremental analysis](dsl/org.gradle.api.plugins.quality.Pmd.html#org.gradle.api.plugins.quality.Pmd:incrementalAnalysis) by default.
 
+## Security Improvements
+
+During our investigation into a recent security vulnerability on the [Plugin Portal](https://blog.gradle.org/plugin-portal-update), we became aware of how much potentially sensitive information 
+is logged when Gradle is executed with `--debug`/`-d`, such as sensitive credentials, authentication tokens or internal repository URLs. 
+This information can be exposed when Gradle builds are executed on public Continuous Integration services where build logs are world-readable. 
+
+Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle. While debugging, this information may also be inherently useful.
+
+To strike a balance between the security risks and the needs of people who may find this information useful, Gradle now warns users about the risks of using `DEBUG` level logging.
+
+We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at the `DEBUG` log level.
+
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
 See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
