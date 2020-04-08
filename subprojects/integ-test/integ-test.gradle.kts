@@ -46,6 +46,8 @@ dependencies {
     crossVersionTestImplementation(project(":ide"))
     crossVersionTestImplementation(project(":codeQuality"))
     crossVersionTestImplementation(project(":signing"))
+    crossVersionTestImplementation(project(":logging"))
+
 
     allTestRuntimeDependencies.forEach {
         crossVersionTestRuntimeOnly(it)
