@@ -243,7 +243,7 @@ them is generated using the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugi
 Kotlin DSL precompiled script plugins built with Gradle 6.0 cannot be used with earlier versions of Gradle.
 This limitation will be lifted in a future version of Gradle.
 
-Groovy DSL precompiled script plugins are available starting with Gradle 6.4 and they can not be used with earlier versions.
+Groovy DSL precompiled script plugins are available starting with Gradle 6.4.
 ====
 
 [.multi-language-text.lang-groovy]
