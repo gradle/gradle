@@ -212,13 +212,17 @@ class BuildOperationNotificationIntegrationTest extends AbstractIntegrationSpec 
         notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":buildSrc", projectPath: ":"]).id
         notifications.op(NotifyProjectAfterEvaluatedBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).parentId == notifications.op(ConfigureProjectBuildOperationType.Details, [buildPath: ":a:buildSrc", projectPath: ":"]).id
 
-        notifications.op(RunRootBuildWorkBuildOperationType.Details).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
+        notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
+        notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
 
-        // TODO - this is incorrect, these should be accounted as configuration time, not task execution time
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(RunRootBuildWorkBuildOperationType.Details).id
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(RunBuildBuildOperationType.Details).id
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':']).id
-        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(BuildBuildSrcBuildOperationType.Details, [buildPath: ':a']).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":"]).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ":a"]).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":buildSrc"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':buildSrc']).id
+        notifications.op(NotifyTaskGraphWhenReadyBuildOperationType.Details, [buildPath: ":a:buildSrc"]).parentId == notifications.op(CalculateTaskGraphBuildOperationType.Details, [buildPath: ':a:buildSrc']).id
+
+        notifications.op(RunRootBuildWorkBuildOperationType.Details).parentId == notifications.op(RunBuildBuildOperationType.Details).id
     }
 
     @ToBeFixedForInstantExecution

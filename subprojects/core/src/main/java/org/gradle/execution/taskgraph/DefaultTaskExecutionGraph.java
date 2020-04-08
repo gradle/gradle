@@ -157,21 +157,6 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     @Override
     public void populate() {
         ensurePopulated();
-    }
-
-    @Override
-    public void execute(Collection<? super Throwable> failures) {
-        ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices);
-        try {
-            executeWithServices(projectExecutionServices, failures);
-        } finally {
-            projectExecutionServices.close();
-        }
-    }
-
-    private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
-        Timer clock = Time.startTimer();
-        ensurePopulated();
         if (!hasFiredWhenReady) {
             // We know that we're running single-threaded here, so we can use lenient project locking
             projectStateRegistry.withLenientState(new Runnable() {
@@ -184,7 +169,20 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         } else if (!graphListeners.isEmpty()) {
             LOGGER.warn("Ignoring listeners of task graph ready event, as this build (" + gradleInternal.getIdentityPath() + ") has already executed work.");
         }
+    }
 
+    @Override
+    public void execute(Collection<? super Throwable> failures) {
+        if (!hasFiredWhenReady) {
+            throw new IllegalStateException("Task graph should be populated before execution starts.");
+        }
+        try (ProjectExecutionServiceRegistry projectExecutionServices = new ProjectExecutionServiceRegistry(globalServices)) {
+            executeWithServices(projectExecutionServices, failures);
+        }
+    }
+
+    private void executeWithServices(ProjectExecutionServiceRegistry projectExecutionServices, Collection<? super Throwable> failures) {
+        Timer clock = Time.startTimer();
         try {
             planExecutor.process(executionPlan, failures,
                 new BuildOperationAwareExecutionAction(
