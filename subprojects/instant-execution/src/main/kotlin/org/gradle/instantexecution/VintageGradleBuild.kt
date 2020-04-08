@@ -21,7 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.Node
 
 
-interface ClassicModeBuild {
+interface VintageGradleBuild {
     val gradle: GradleInternal
 
     val buildSrc: Boolean
