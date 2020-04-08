@@ -69,7 +69,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo script plugin applied")
     }
 
-    @Ignore
     def "can apply a precompiled script plugin by id to a multi-project build from root"() {
         given:
         enablePrecompiledPluginsInBuildSrc()
