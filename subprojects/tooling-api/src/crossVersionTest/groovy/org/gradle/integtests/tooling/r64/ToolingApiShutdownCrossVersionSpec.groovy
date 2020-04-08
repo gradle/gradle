@@ -17,8 +17,10 @@
 package org.gradle.integtests.tooling.r64
 
 import org.gradle.integtests.tooling.CancellationSpec
+import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.TestResultHandler
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
+import org.gradle.tooling.BuildCancelledException
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.model.GradleProject
@@ -36,7 +38,9 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         existingDaemonPids = toolingApi.daemons.daemons.collect { it.context.pid }
     }
 
-    def "can forcibly stop daemon when running a build"() {
+    @TargetGradleVersion(">=6.4")
+    def "Disconnect during build stops daemon"() {
+        setup:
         toolingApi.requireDaemons()
         buildFile << """
             task hang {
@@ -61,12 +65,12 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.finished()
 
         then:
-        waitFor.eventually {
-            toolingApi.daemons.daemons.findAll { !existingDaemonPids.contains(it.context.pid) }.empty
-        }
+        assertNoRunningDaemons()
     }
 
-    def "can forcibly stop a daemon when querying a tooling model"() {
+    @TargetGradleVersion(">=6.4")
+    def "Disconnect during tooling model query stops daemon"() {
+        setup:
         toolingApi.requireDaemons()
         buildFile << """
             apply plugin: 'eclipse'
@@ -95,9 +99,225 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.finished()
 
         then:
-        waitFor.eventually {
-            toolingApi.daemons.daemons.findAll { !existingDaemonPids.contains(it.context.pid) }.empty
+        assertNoRunningDaemons()
+    }
+
+    @TargetGradleVersion(">=6.4")
+    def "Disconnect stops multiple daemons"() {
+        setup:
+        toolingApi.requireDaemons()
+        buildFile << """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        ProjectConnection connection1 = connector.connect()
+        ProjectConnection connection2 = connector.connect()
+
+        def build = connection1.newBuild()
+        build.forTasks('hang')
+        build.run(resultHandler)
+
+        def build2 = connection2.newBuild()
+        build2.forTasks('hang')
+        build2.run(resultHandler)
+
+        then:
+        assertNumberOfRunningDaemons(2)
+
+        when:
+        sync.waitForAllPendingCalls(resultHandler)
+        connector.disconnect()
+        resultHandler.finished()
+
+        then:
+        assertNoRunningDaemons()
+    }
+
+    def "Disconnect cancels the current build"() {
+        toolingApi.requireDaemons()
+        buildFile << """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        ProjectConnection connection = connector.connect()
+
+        def build = connection.newBuild()
+        build.forTasks('hang')
+        build.run(resultHandler)
+        sync.waitForAllPendingCalls(resultHandler)
+        connector.disconnect()
+        resultHandler.finished()
+
+        then:
+        resultHandler.assertFailedWith(BuildCancelledException)
+    }
+
+    def "Disconnect before build starts"() {
+        when:
+        GradleConnector connector = toolingApi.connector()
+        connector.connect()
+        connector.disconnect()
+
+        then:
+        notThrown(Exception)
+        assertNoRunningDaemons()
+    }
+
+    def "Can call disconnect after the build was cancelled"() {
+        toolingApi.requireDaemons()
+        buildFile << """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        ProjectConnection connection = connector.connect()
+
+        def cancellation = GradleConnector.newCancellationTokenSource()
+        def build = connection.newBuild()
+
+        build.forTasks('hang').withCancellationToken(cancellation.token()).run(resultHandler)
+        sync.waitForAllPendingCalls(resultHandler)
+        cancellation.cancel()
+        connector.disconnect()
+        resultHandler.finished()
+
+        then:
+        resultHandler.assertFailedWith(BuildCancelledException)
+    }
+
+    def "Can call cancel after disconnect"() {
+        toolingApi.requireDaemons()
+        buildFile << """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        ProjectConnection connection = connector.connect()
+
+        def cancellation = GradleConnector.newCancellationTokenSource()
+        def build = connection.newBuild()
+
+        build.forTasks('hang').withCancellationToken(cancellation.token()).run(resultHandler)
+        sync.waitForAllPendingCalls(resultHandler)
+        connector.disconnect()
+        cancellation.cancel()
+        resultHandler.finished()
+
+        then:
+        resultHandler.assertFailedWith(BuildCancelledException)
+    }
+
+    def "Can call close after disconnect"() {
+        toolingApi.requireDaemons()
+        buildFile << """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        ProjectConnection connection = connector.connect()
+
+        def build = connection.newBuild()
+
+        build.forTasks('hang').run(resultHandler)
+        sync.waitForAllPendingCalls(resultHandler)
+        connector.disconnect()
+        connection.close()
+        resultHandler.finished()
+
+        then:
+        resultHandler.assertFailedWith(BuildCancelledException)
+    }
+
+    def "Can call disconnect after project connection closed"() {
+        toolingApi.requireDaemons()
+        buildFile << """
+            task myTask {
+                doLast {
+                    println "myTask"
+                }
+            }
+        """.stripIndent()
+
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        withConnection(connector) { connection ->
+            def build = connection.newBuild()
+            build.forTasks('myTask').run()
         }
+        connector.disconnect()
+
+        then:
+        true
+    }
+
+    def "Can call disconnect before project connection closed"() {
+        toolingApi.requireDaemons()
+        buildFile << """
+            task hang {
+                doLast {
+                    ${server.callFromBuild("waiting")}
+                }
+            }
+        """.stripIndent()
+
+        def sync = server.expectAndBlock("waiting")
+        def resultHandler = new TestResultHandler()
+
+        when:
+        GradleConnector connector = toolingApi.connector()
+        withConnection(connector) { connection ->
+            def build = connection.newBuild()
+            build.forTasks('hang').run(resultHandler)
+            sync.waitForAllPendingCalls(resultHandler)
+            connector.disconnect()
+        }
+
+
+        then:
+        resultHandler.assertFailedWith(BuildCancelledException)
     }
 
     def "Cannot run build operations on project connection after disconnect"() {
@@ -127,5 +347,16 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
         then:
         thrown(RuntimeException)
+    }
+
+    def assertNoRunningDaemons() {
+        assertNumberOfRunningDaemons(0)
+    }
+
+    def assertNumberOfRunningDaemons(number) {
+        waitFor.eventually {
+            toolingApi.daemons.daemons.findAll { !existingDaemonPids.contains(it.context.pid) }.size() == number
+        }
+        true // `eventually` throws a runtime exception when the condition is never met
     }
 }
