@@ -45,7 +45,7 @@ Take a look at [the documentation](userguide/dependency_locking.html#single_lock
 
 ## Precompiled Groovy script plugins
 
-Gradle now allows precompiled script plugins to be written in Groovy in addition to already present Kotlin DSL support.
+Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
 
 Precompiled script plugins are binary plugins that are written in one of Gradle's DSLs.
 They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
