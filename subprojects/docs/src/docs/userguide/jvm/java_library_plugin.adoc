@@ -330,7 +330,7 @@ include::sample[dir="snippets/java-library/module/groovy",files="build.gradle[ta
 include::sample[dir="snippets/java-library/module/kotlin",files="build.gradle.kts[tags=declareVersion]"]
 ====
 
-=== Using Libraries that are not modules
+=== Using libraries that are not modules
 
 You probably want to use external libraries, like OSS libraries from Maven Central, in your modular Java project.
 Some libraries, in their newer versions, are already full modules with a module descriptor.
