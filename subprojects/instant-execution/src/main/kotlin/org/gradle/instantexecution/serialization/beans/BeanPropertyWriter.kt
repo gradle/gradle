@@ -80,8 +80,8 @@ fun WriteContext.reportFieldProblems(field: Field, fieldName: String, fieldType:
             unsupportedFieldDeclaredTypes
                 .firstOrNull { it.java.isAssignableFrom(fieldType) }
                 ?.let { unsupported ->
-                    if (fieldValue == null) logUnsupported(unsupported)
-                    else logUnsupported(unsupported, fieldValue::class.java)
+                    if (fieldValue == null) logUnsupported("serialize", unsupported)
+                    else logUnsupported("serialize", unsupported, fieldValue::class.java)
                 }
         }
     }
