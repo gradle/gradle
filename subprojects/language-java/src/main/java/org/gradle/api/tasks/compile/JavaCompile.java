@@ -29,7 +29,6 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
-import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CommandLineJavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
@@ -42,9 +41,9 @@ import org.gradle.api.internal.tasks.compile.incremental.recomp.DefaultSourceFil
 import org.gradle.api.internal.tasks.compile.incremental.recomp.FileNameDerivingClassNameConverter;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.IncrementalCompilationResult;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.SourceFileClassNameConverter;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.CompileClasspath;
@@ -277,7 +276,7 @@ public class JavaCompile extends AbstractCompile {
     /**
      * The Groovy source-classes mapping file. Internal use only.
      *
-     * @since 6.4
+     * @since 6.5
      */
     @LocalState
     @Incubating

@@ -16,12 +16,10 @@
 
 package org.gradle.java.compile.incremental
 
-
 import org.gradle.integtests.fixtures.CompiledLanguage
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
-import spock.lang.Unroll
 
 import java.nio.file.Files
 import java.nio.file.Paths
@@ -32,91 +30,6 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
     void recompiledWithFailure(String expectedFailure, String... recompiledClasses) {
         fails language.compileTaskName
         failure.assertHasErrorOutput(expectedFailure)
-    }
-
-    @Unroll
-    def "change to #retention retention annotation class recompiles #desc"() {
-        def annotationClass = file("src/main/${language.name}/SomeAnnotation.${language.name}") << """
-            import java.lang.annotation.*;
-
-            @Retention(RetentionPolicy.$retention)
-            public @interface SomeAnnotation {}
-        """
-        source "@SomeAnnotation class A {}", "class B {}"
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        annotationClass.text += "/* change */"
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledClasses(expected as String[])
-
-        where:
-        desc              | retention | expected
-        'all'             | 'SOURCE'  | ['A', 'B', 'SomeAnnotation']
-        'annotated types' | 'CLASS'   | ['SomeAnnotation', 'A']
-        'annotated types' | 'RUNTIME' | ['SomeAnnotation', 'A']
-    }
-
-    def "deletes headers when source file is deleted"() {
-        given:
-        def sourceFile = file("src/main/java/my/org/Foo.java")
-        sourceFile.text = """
-            package my.org;
-
-            public class Foo {
-                public native void foo();
-
-                public static class Inner {
-                    public native void anotherNative();
-                }
-            }
-        """
-        def generatedHeaderFile = file("build/generated/sources/headers/java/main/my_org_Foo.h")
-        def generatedInnerClassHeaderFile = file("build/generated/sources/headers/java/main/my_org_Foo_Inner.h")
-
-        source("""class Bar {
-            public native void bar();
-        }""")
-
-        succeeds language.compileTaskName
-        generatedHeaderFile.assertExists()
-        generatedInnerClassHeaderFile.assertExists()
-
-        when:
-        sourceFile.delete()
-        succeeds language.compileTaskName
-
-        then:
-        generatedHeaderFile.assertDoesNotExist()
-        generatedInnerClassHeaderFile.assertDoesNotExist()
-        file("build/generated/sources/headers/java/main/Bar.h").assertExists()
-    }
-
-    def "changed class with used non-private constant incurs full rebuild"() {
-        source "class A { int foo() { return 1; } }", "class B { final static int x = 1;}"
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        source "class B { /* change */ }"
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledClasses 'B', 'A'
-    }
-
-    //  Can re-enable with compiler plugins. See gradle/gradle#1474
-    def "changing an unused non-private constant incurs partial rebuild"() {
-        source "class A { int foo() { return 2; } }", "class B { final static int x = 1;}"
-        outputs.snapshot { run language.compileTaskName }
-
-        when:
-        source "class B { /* change */ }"
-        run language.compileTaskName
-
-        then:
-        outputs.recompiledClasses 'B'
     }
 
     @Requires(TestPrecondition.JDK9_OR_LATER)

@@ -18,8 +18,6 @@ package org.gradle.java.compile.incremental
 
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.CompiledLanguage
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
 import spock.lang.Unroll
@@ -57,7 +55,6 @@ abstract class BaseJavaSourceIncrementalCompilationIntegrationTest extends Abstr
         'annotated types' | 'RUNTIME' | ['SomeAnnotation', 'A']
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "deletes headers when source file is deleted"() {
         given:
         def sourceFile = file("src/main/java/my/org/Foo.java")

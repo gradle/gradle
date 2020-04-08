@@ -46,7 +46,7 @@ class JdkToolsTest extends Specification {
         new JdkTools(Mock(JavaInfo) {
             getToolsJar() >> null
             getJavaHome() >> new File('.')
-        })
+        }, [])
 
         then:
         thrown IllegalStateException
@@ -60,7 +60,7 @@ class JdkToolsTest extends Specification {
         }
         new JdkTools(Mock(JavaInfo) {
             getToolsJar() >> new File("/nothing")
-        }).systemJavaCompiler
+        }, []).systemJavaCompiler
 
         then:
         thrown IllegalStateException
