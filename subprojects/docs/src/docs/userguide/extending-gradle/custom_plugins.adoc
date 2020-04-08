@@ -233,8 +233,7 @@ include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.grad
 
 [[sec:precompiled_plugins]]
 == Precompiled script plugins
-In addition to plugins written as regular projects, Gradle allows you to provide the plugin logic
-in either Groovy or Kotlin DSL as precompiled script plugins. You write these as `\*.gradle` files in `src/main/groovy`
+In addition to plugins written as standalone projects, Gradle also allows you to provide build logic written in either Groovy or Kotlin DSLs as precompiled script plugins. You write these as `\*.gradle` files in `src/main/groovy`
 directory or `*.gradle.kts` files in `src/main/kotlin` directory.
 
 Precompiled script plugins are compiled as part of a regular source set and placed on the build classpath or packaged in
