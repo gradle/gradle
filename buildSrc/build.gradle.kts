@@ -14,8 +14,8 @@
  * limitations under the License.
  */
 
-import java.util.*
 import org.gradle.internal.os.OperatingSystem
+import java.util.Properties
 
 plugins {
     `java`
@@ -87,10 +87,6 @@ allprojects {
                 // This repository contains an older version which has been overwritten in Central
                 excludeModule("com.google.j2objc", "j2objc-annotations")
             }
-        }
-        maven {
-            name = "Gradle Enterprise Gradle plugin RC"
-            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
         }
         maven {
             name = "kotlinx"
