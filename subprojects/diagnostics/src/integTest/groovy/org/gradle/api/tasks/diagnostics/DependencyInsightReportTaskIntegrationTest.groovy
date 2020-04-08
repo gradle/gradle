@@ -89,6 +89,7 @@ No dependencies matching given input were found in configuration ':compileClassp
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "indicates that requested dependency cannot be found for custom configuration"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -119,6 +120,7 @@ No dependencies matching given input were found in configuration ':conf'
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows basic single tree with repeated dependency"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -165,6 +167,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "basic dependency insight with conflicting versions"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
@@ -232,6 +235,7 @@ org:leaf2:1.5 -> 2.5
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "can limit the report to one path to each dependency"() {
         given:
         mavenRepo.with {
@@ -557,6 +561,7 @@ org:foo:1.+ FAILED
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows forced version and substitution equivalent to force"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -632,6 +637,7 @@ org:leaf:2.0 -> 1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows forced dynamic version"() {
         given:
         mavenRepo.module("org", "leaf", "1").publish()
@@ -675,6 +681,7 @@ org:leaf:[1,2] -> 2
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows multiple outgoing dependencies"() {
         given:
         ivyRepo.module("org", "leaf", "1.0").publish()
@@ -734,6 +741,7 @@ org:leaf:latest.integration -> 1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows version selected by multiple rules"() {
         given:
         mavenRepo.module("org", "bar", "2.0").publish()
@@ -792,6 +800,7 @@ org:foo:1.0 -> org:bar:2.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows version and reason when chosen by dependency resolve rule"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -876,6 +885,7 @@ org:foo:1.0 -> 2.0
     }
 
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows version and reason with dependency substitution"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -935,6 +945,7 @@ org:foo:1.0 -> org:bar:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows substituted modules"() {
         given:
         mavenRepo.module("org", "new-leaf", "77").publish()
@@ -986,6 +997,7 @@ org:leaf:2.0 -> org:new-leaf:77
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows substituted modules with a custom description"() {
         given:
         mavenRepo.module("org", "foo", "1.0").publish()
@@ -1046,6 +1058,7 @@ org:foo:1.0 -> 2.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows version resolved from dynamic selectors"() {
         given:
         ivyRepo.module("org", "leaf", "1.6").publish()
@@ -1095,6 +1108,7 @@ org:leaf:latest.integration -> 1.6
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "forced version matches the conflict resolution"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -1143,6 +1157,7 @@ org:leaf:1.0 -> 2.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "forced version does not match anything in the graph"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -1192,6 +1207,7 @@ org:leaf:2.0 -> 1.5
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "forced version at dependency level"() {
         given:
         mavenRepo.module("org", "leaf", "1.0").publish()
@@ -1244,6 +1260,7 @@ org:leaf:2.0 -> 1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "forced version combined with constraint"() {
         given:
         mavenRepo.module("org", "leaf", "2.0").publish()
@@ -1294,6 +1311,7 @@ org:leaf:1.4 -> 2.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows decent failure when inputs missing"() {
         given:
         file("build.gradle") << """
@@ -1309,6 +1327,7 @@ org:leaf:1.4 -> 2.0
         failure.assertHasCause("Dependency insight report cannot be generated because the input configuration was not specified.")
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "informs that there are no dependencies"() {
         given:
         file("build.gradle") << """
@@ -1328,6 +1347,7 @@ org:leaf:1.4 -> 2.0
         outputContains("No dependencies matching given input were found")
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "informs that nothing matches the input dependency"() {
         given:
         mavenRepo.module("org", "top").publish()
@@ -1668,6 +1688,7 @@ project :C FAILED
 
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "deals with dependency cycles"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1709,6 +1730,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "deals with dependency cycle to root"() {
         given:
         file("settings.gradle") << "include 'impl'; rootProject.name='root'"
@@ -1761,6 +1783,7 @@ project :
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "selects a module component dependency with a given name"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -1816,6 +1839,7 @@ org:leaf2:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "selects a project component dependency with a given project path"() {
         given:
         mavenRepo.module("org", "leaf1").dependsOnModules("leaf2").publish()
@@ -2143,6 +2167,7 @@ org:leaf3:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     void "fails a configuration is not resolvable"() {
         mavenRepo.module("foo", "foo", '1.0').publish()
         mavenRepo.module("foo", "bar", '2.0').publish()
@@ -2670,6 +2695,7 @@ org.test:leaf:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "mentions web-based dependency insight report available using build scans"() {
         given:
         mavenRepo.module("org", "leaf1").publish()
