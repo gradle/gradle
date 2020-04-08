@@ -45,7 +45,6 @@ public class InitialPassStatementTransformer implements StatementTransformer {
 
     private boolean seenNonClasspathStatement;
     private boolean seenPluginsBlock;
-    private int pluginsBlockLineNumber = 0;
     private boolean seenPluginManagementBlock;
     private boolean seenClasspathBlock;
 
