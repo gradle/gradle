@@ -12,10 +12,10 @@ java {
 val moduleName = "org.gradle.sample"
 val patchArgs = listOf("--patch-module", "$moduleName=${tasks.compileJava.get().destinationDirectory.asFile.get().path}")
 tasks.compileTestJava {
-    options.compilerArgs = patchArgs
+    options.compilerArgs.addAll(patchArgs)
 }
 tasks.test {
-    jvmArgs = patchArgs
+    jvmArgs(patchArgs)
 }
 // end::patchArgs[]
 
