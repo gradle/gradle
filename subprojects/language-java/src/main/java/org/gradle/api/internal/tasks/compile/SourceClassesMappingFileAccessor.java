@@ -27,6 +27,7 @@ import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -48,6 +49,8 @@ import java.util.stream.StreamSupport;
  * org.gradle.MyGroovyClass$Inner
  */
 public class SourceClassesMappingFileAccessor {
+    private static final int BUFFER_SIZE = 65536;
+
     public static Multimap<String, String> readSourceClassesMappingFile(File mappingFile) {
         Multimap<String, String> sourceClassesMapping = MultimapBuilder.SetMultimapBuilder
             .hashKeys()
@@ -84,7 +87,7 @@ public class SourceClassesMappingFileAccessor {
     }
 
     public static void writeSourceClassesMappingFile(File mappingFile, Map<String, Collection<String>> mapping) {
-        try (Writer wrt = new OutputStreamWriter(new FileOutputStream(mappingFile, false), StandardCharsets.UTF_8)) {
+        try (Writer wrt = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(mappingFile, false), StandardCharsets.UTF_8), BUFFER_SIZE)) {
             for (Map.Entry<String, Collection<String>> entry : mapping.entrySet()) {
                 wrt.write(entry.getKey() + "\n");
                 for (String className : entry.getValue()) {

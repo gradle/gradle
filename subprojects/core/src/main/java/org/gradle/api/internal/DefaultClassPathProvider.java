@@ -58,6 +58,9 @@ public class DefaultClassPathProvider implements ClassPathProvider {
         if (name.equals("JAVA-COMPILER")) {
             return addJavaCompilerModules(ClassPath.EMPTY);
         }
+        if (name.equals("JAVA-COMPILER-PLUGIN")) {
+            return addJavaCompilerModules(moduleRegistry.getModule("gradle-java-compiler-plugin").getImplementationClasspath());
+        }
         if (name.equals("ANT")) {
             ClassPath classpath = ClassPath.EMPTY;
             classpath = classpath.plus(moduleRegistry.getExternalModule("ant").getClasspath());
