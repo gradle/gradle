@@ -18,8 +18,6 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 

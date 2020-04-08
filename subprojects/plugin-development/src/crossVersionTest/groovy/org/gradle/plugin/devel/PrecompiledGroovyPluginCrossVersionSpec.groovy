@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.plugin.devel
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
@@ -22,28 +22,28 @@ import org.junit.Assume
 
 class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpec {
 
-    private static final String pluginId = 'foo.bar.my-plugin'
-    private static final String pluginTask = 'myTask'
-    private static final String pluginJarName = 'plugin.jar'
+    private static final String PLUGIN_ID = 'foo.bar.my-plugin'
+    private static final String PLUGIN_TASK = 'myTask'
+    private static final String PLUGIN_JAR_NAME = 'plugin.jar'
 
     def setup() {
         settingsFile << """
             buildscript {
                 dependencies {
-                    classpath(files('$pluginJarName'))
+                    classpath(files('$PLUGIN_JAR_NAME'))
                 }
             }
         """
 
         buildFile << """
             plugins {
-                id '$pluginId'
+                id '$PLUGIN_ID'
             }
         """
     }
 
     def cleanup() {
-        file(pluginJarName).delete()
+        file(PLUGIN_JAR_NAME).delete()
     }
 
     def "precompiled Groovy plugin built with current version can be used with Gradle 6.0+"() {
@@ -56,8 +56,8 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         def result = pluginTaskExecutedWith(version(getPrevious())).run()
 
         then:
-        result.output.contains("$pluginId applied")
-        result.output.contains("$pluginTask executed")
+        result.output.contains("$PLUGIN_ID applied")
+        result.output.contains("$PLUGIN_TASK executed")
     }
 
     def "precompiled Groovy plugin built with Gradle 6.4+ can be used with current Gradle version"() {
@@ -70,8 +70,8 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         def result = pluginTaskExecutedWith(version(getCurrent())).run()
 
         then:
-        result.output.contains("$pluginId applied")
-        result.output.contains("$pluginTask executed")
+        result.output.contains("$PLUGIN_ID applied")
+        result.output.contains("$PLUGIN_TASK executed")
     }
 
     def "can not use a precompiled script plugin with Gradle earlier than 6.0"() {
@@ -84,23 +84,23 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         def result = pluginTaskExecutedWith(version(getPrevious())).runWithFailure()
 
         then:
-        result.assertHasDescription("Plugin [id: '$pluginId'] was not found in any of the following sources")
-        result.assertNotOutput("$pluginId applied")
-        result.assertNotOutput("$pluginTask executed")
+        result.assertHasDescription("Plugin [id: '$PLUGIN_ID'] was not found in any of the following sources")
+        result.assertNotOutput("$PLUGIN_ID applied")
+        result.assertNotOutput("$PLUGIN_TASK executed")
     }
 
     private static GradleExecuter pluginTaskExecutedWith(GradleExecuter executer) {
-        return executer.withTasks(pluginTask)
+        return executer.withTasks(PLUGIN_TASK)
     }
 
     private void precompiledGroovyPluginBuiltWith(GradleExecuter executer) {
-        file("plugins/src/main/groovy/${pluginId}.gradle") << """
-            tasks.register('$pluginTask') {
+        file("plugins/src/main/groovy/${PLUGIN_ID}.gradle") << """
+            tasks.register('$PLUGIN_TASK') {
                 doLast {
-                    println '$pluginTask executed'
+                    println '$PLUGIN_TASK executed'
                 }
             }
-            println '$pluginId applied'
+            println '$PLUGIN_ID applied'
         """
         file("plugins/settings.gradle") << "rootProject.name = 'precompiled-plugin'"
         file("plugins/build.gradle") << """
@@ -111,7 +111,7 @@ class PrecompiledGroovyPluginCrossVersionSpec extends CrossVersionIntegrationSpe
 
         executer.inDirectory(file("plugins")).withTasks("jar").run()
         def pluginJar = file("plugins/build/libs/precompiled-plugin.jar").assertExists()
-        def movedJar = file(pluginJarName)
+        def movedJar = file(PLUGIN_JAR_NAME)
         pluginJar.renameTo(movedJar)
         file('plugins').forceDeleteDir()
     }
