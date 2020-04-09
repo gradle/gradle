@@ -56,6 +56,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private FileWatcherRegistry watchRegistry;
     private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(4096);
     private volatile boolean buildRunning;
+    private final Thread eventConsumerThread;
 
     private static class FileEvent {
         final Path path;
@@ -89,7 +90,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
 
-        Thread eventConsumer = new Thread(() -> {
+        this.eventConsumerThread = new Thread(() -> {
             try {
                 while (consumeEvents) {
                     FileEvent nextEvent = fileEvents.take();
@@ -122,9 +123,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 // stop thread
             }
         });
-        eventConsumer.setDaemon(true);
-        eventConsumer.setName("File watcher consumer");
-        eventConsumer.start();
+        eventConsumerThread.setDaemon(true);
+        eventConsumerThread.setName("File watcher consumer");
+        eventConsumerThread.start();
     }
 
     @Override
@@ -175,6 +176,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
      */
     private synchronized void startWatching() {
         if (watchRegistry != null) {
+            if (!eventConsumerThread.isAlive()) {
+                throw new RuntimeException("The thread consuming the file events stopped for an unknown reason");
+            }
             return;
         }
         try {
