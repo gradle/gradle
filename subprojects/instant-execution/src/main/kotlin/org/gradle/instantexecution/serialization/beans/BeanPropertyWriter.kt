@@ -29,7 +29,6 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
-import java.lang.reflect.Field
 import java.util.concurrent.Callable
 import java.util.function.Supplier
 
@@ -45,10 +44,13 @@ class BeanPropertyWriter(
      * Serializes a bean by serializing the value of each of its fields.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
-        for (field in relevantFields) {
+        for (relevantField in relevantFields) {
+            val field = relevantField.field
             val fieldName = field.name
             val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
-            reportFieldProblems("serialize", field, fieldValue)
+            relevantField.problemReporter?.apply {
+                report("serialize", fieldValue)
+            }
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }

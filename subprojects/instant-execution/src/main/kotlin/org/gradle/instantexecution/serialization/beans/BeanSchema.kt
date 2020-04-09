@@ -31,6 +31,7 @@ import org.gradle.instantexecution.serialization.logUnsupported
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import kotlin.reflect.KClass
 
 
 internal
@@ -40,31 +41,45 @@ val unsupportedFieldDeclaredTypes = listOf(
 
 
 internal
-fun IsolateContext.reportFieldProblems(action: String, field: Field, fieldValue: Any? = null) {
-    if (!field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)) {
+fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
+    relevantTypeHierarchyOf(beanType)
+        .toList()
+        .flatMap(Class<*>::relevantFields)
+        .onEach(Field::makeAccessible)
+        .map { RelevantField(it, problemReporterFor(it)) }
+
+
+internal
+class RelevantField(val field: Field, val problemReporter: FieldProblemReporter?)
+
+
+internal
+class FieldProblemReporter(val field: Field, val type: KClass<*>) {
+    fun IsolateContext.report(action: String, fieldValue: Any? = null) {
         withPropertyTrace(PropertyKind.Field, field.name) {
-            unsupportedFieldDeclaredTypes
-                .firstOrNull { it.java.isAssignableFrom(field.type) }
-                ?.let { unsupported ->
-                    if (fieldValue == null) logUnsupported(action, unsupported)
-                    else logUnsupported(action, unsupported, fieldValue::class.java)
-                }
+            if (fieldValue == null) logUnsupported(action, type)
+            else logUnsupported(action, type, fieldValue::class.java)
         }
     }
 }
 
 
 internal
-fun relevantStateOf(taskType: Class<*>): List<Field> =
-    relevantTypeHierarchyOf(taskType)
-        .toList()
-        .flatMap(Class<*>::relevantFields)
-        .onEach(Field::makeAccessible)
+fun problemReporterFor(field: Field): FieldProblemReporter? =
+    field.takeUnless {
+        field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)
+    }?.let {
+        unsupportedFieldDeclaredTypes
+            .firstOrNull { it.java.isAssignableFrom(field.type) }
+            ?.let { unsupportedType ->
+                FieldProblemReporter(field, unsupportedType)
+            }
+    }
 
 
 private
-fun relevantTypeHierarchyOf(taskType: Class<*>) = sequence<Class<*>> {
-    var current: Class<*>? = taskType
+fun relevantTypeHierarchyOf(beanType: Class<*>) = sequence<Class<*>> {
+    var current: Class<*>? = beanType
     while (current != null) {
         if (isRelevantDeclaringClass(current)) {
             yield(current)
