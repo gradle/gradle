@@ -142,7 +142,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         fails('pmdMain')
 
         then:
-        failure.error.contains("Incremental analysis only supports PMD 6.0.0 and newer")
+        failure.error.contains("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD ${versionNumber} or disable incremental analysis.")
     }
 
     private goodCode() {
