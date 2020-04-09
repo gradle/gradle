@@ -189,25 +189,26 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             watchRegistry = watcherRegistryFactory.startWatcher(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    addToQueueOrReportOverflow(FileEvent.changed(path, type));
+                    boolean addedToQueue = fileEvents.offer(FileEvent.changed(path, type));
+                    if (!addedToQueue) {
+                        LOGGER.warn("Gradle file event buffer overflow, dropping state");
+                        signalLostState();
+                    }
                 }
 
                 @Override
                 public void handleLostState() {
-                    addToQueueOrReportOverflow(FileEvent.lostState());
+                    LOGGER.warn("Native file events buffer overflow, dropping state");
+                    signalLostState();
                 }
 
-                private void addToQueueOrReportOverflow(FileEvent fileEvent) {
-                    boolean addedToQueue = fileEvents.offer(fileEvent);
-                    if (!addedToQueue) {
-                        LOGGER.warn("Couldn't handle file events fast enough, dropping state");
-                        fileEvents.clear();
-                        try {
-                            fileEvents.put(FileEvent.lostState());
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            throw new RuntimeException(e);
-                        }
+                private void signalLostState() {
+                    fileEvents.clear();
+                    try {
+                        fileEvents.put(FileEvent.lostState());
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException(e);
                     }
                 }
             });
