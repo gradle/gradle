@@ -103,16 +103,19 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
             class SomeTask extends DefaultTask {
                 private final ${baseType.name} badReference
                 private final bean = new SomeBean()
+                private final sameBean = new SomeBean()
 
                 SomeTask() {
                     badReference = ${reference}
                     bean.badReference = ${reference}
+                    sameBean.badReference = ${reference}
                 }
 
                 @TaskAction
                 void run() {
                     println "this.reference = " + badReference
                     println "bean.reference = " + bean.badReference
+                    println "sameBean.reference = " + sameBean.badReference
                 }
             }
 
@@ -128,6 +131,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(3)
             withUniqueProblems(
                 "field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.",
                 "field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution."
@@ -140,6 +144,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(3)
             withUniqueProblems(
                 "field 'badReference' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
                 "field 'badReference' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution."
@@ -149,6 +154,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         and:
         outputContains("this.reference = null")
         outputContains("bean.reference = null")
+        outputContains("sameBean.reference = null")
 
         where:
         concreteType                          | baseType                       | reference
@@ -210,16 +216,19 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
             class SomeTask extends DefaultTask {
                 private final ${baseType.name} badField
                 private final bean = new SomeBean()
+                private final sameBean = new SomeBean()
 
                 SomeTask() {
                     badField = ${reference}
                     bean.badField = ${reference}
+                    sameBean.badField = ${reference}
                 }
 
                 @TaskAction
                 void run() {
                     println "this.reference = " + badField
                     println "bean.reference = " + bean.badField
+                    println "sameBean.reference = " + sameBean.badField
                 }
             }
 
@@ -235,6 +244,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(3)
             withUniqueProblems(
                 "field 'badField' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.",
                 "field 'badField' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution."
@@ -247,6 +257,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(6)
             withUniqueProblems(
                 "field 'badField' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
                 "field 'badField' from type 'SomeTask': value '$deserializedValue' is not assignable to '${baseType.name}'",
@@ -258,6 +269,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         and:
         outputContains("this.reference = null")
         outputContains("bean.reference = null")
+        outputContains("sameBean.reference = null")
 
         where:
         concreteType         | baseType      | reference                                    | deserializedValue
