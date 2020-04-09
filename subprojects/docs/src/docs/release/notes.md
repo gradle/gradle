@@ -1,6 +1,6 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features [1](), [2](), ... [n](), and more.
+This release features support for [developing Java Modules](#java-modules), using a new experimental lock file format and better diagnostics for [dependency management](#dependency-management), as well as some [new features for code quality plugins](#code-quality) and [bug fixes](#fixed-issues).
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -32,15 +32,15 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
+<a name="java-modules"></a>
 ## Building, testing and running Java Modules
 
-With this release, Gradle now supports the Java Module System in all Java-related functionality.
-The Java Module System (also known as Project Jigsaw or JPMS) was introduced with Java 9 and allows for strong encapsulation of Java Modules.
-A Java Module is a Jar with additional module information that describes, for instance, which packages of the Jar can be seen by other modules or which other modules are required to compile and run a module.
+With this release, Gradle now supports the Java Module System in all Java-related functionality.  Everything you need to compile, execute tests, build Javadoc and run Java Modules.
 
-While there is some overlap with Gradle's dependency management features, Java Modules offer additional strong encapsulation features with the added benefit that module boundaries are also enforced by the Java runtime at execution time.
-The Java Module System support in Gradle 6.4 gives you everything you need to compile, test and run Java Modules.
-In addition, it also supports building Javadoc for modules.
+The [Java Module System (also known as Project Jigsaw or JPMS)](https://openjdk.java.net/projects/jigsaw/) was introduced in Java 9 and allows developers to encapsulate their libraries and applications into Java Modules.
+A Java Module is a jar with additional module information that describes which packages of the software can be seen by other modules or which other modules are required to compile and run the software.
+
+While there is some overlap with Gradle's dependency management features, Java Modules offer additional features like module boundaries that are enforced by the Java runtime.
 
 The only thing you need to configure is _module path inference_ for the Java plugins:
 
@@ -66,7 +66,10 @@ For more details, head over to the documentation on
 
 Also feel free to explore [the samples we have prepared](samples/#java_modules).
 
-## New dependency locking file format
+<a name="dependency-management"></a>
+## Dependency Management Improvements
+
+### New dependency locking file format
 
 Gradle 6.4 introduces an experimental dependency locking file format.
 This format uses a single lock file per project instead of a file per locked configuration.
@@ -81,11 +84,12 @@ It is however stable and expected to become the default format in Gradle 7.0.
 
 Take a look at [the documentation](userguide/dependency_locking.html#single_lock_file_per_project) for more information and how to enable the feature.
 
-## Improved variant matching error messages
+### Better variant matching error messages
 
 This release introduces new variant matching error messages for the Java ecosystem.
-Those error messages could be very intimidating or, sometimes missing context which would let you understand what to do.
-Gradle 6.4 takes a first step in improving those error messages by making them more human readable and introducing some coloring on the console to highlight the problems.
+
+In previous releases, these error messages could be very intimidating and sometimes lacked enough context to understand what to do.
+Gradle 6.4 takes a first step in improving those error messages by making them more human readable and introducing some coloring on the console to highlight problems.
 
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoUAAAE5CAMAAADRF6p1AAAC91BMVEUBAQEFAwABAgQGBgUCAwYH
                                 AwIEBQaqqqoBAxSbaDCJ4jMNAwICAwtJgaMRBQMpBgKicjkCBBofBwInXpIDBw4YBAJ9RhEgVoyH
@@ -454,11 +458,16 @@ Gradle 6.4 takes a first step in improving those error messages by making them m
                                 hfi1vdp51SUqS9SXyd8U8JJAV1h4ThiOvrAQ6e2isLCgoLCwoKCgoKCgoGAYGM7ppODN4jfM+Aok
                                 sRq1uwAAAABJRU5ErkJggg==">
 
+<a name="code-quality"></a>
 ## Improvements to code quality plugins
 
-The PMD plugin now supports a new property `maxFailures`.
-If set, the build will not fail if the number of failures is below the defined threshold.
-This can help to introduce PMD into existing projects that may initially have too many warnings.
+### Specify number of violations required before the build fails (PMD)
+
+The [PMD plugin](userguide/pmd_plugin.html) now allows you to specify the number of violations required before the build fails.
+This can make it easier to introduce PMD into existing projects that may initially have many violations.
+ 
+When [`maxFailures`](dsl/org.gradle.api.plugins.quality.Pmd.html#org.gradle.api.plugins.quality.Pmd:maxFailures) is set, the build will not fail if the number of failures is below the defined threshold.
+
 
 ```
 pmd {
@@ -468,7 +477,11 @@ pmd {
 
 This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
-As of Gradle 6.4, PMD also enabled [incremental analysis](dsl/org.gradle.api.plugins.quality.Pmd.html#org.gradle.api.plugins.quality.Pmd:incrementalAnalysis) by default.
+### Incremental Analysis is enabled by default (PMD)
+
+As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default.
+
+For builds relying on an older version of PMD, you may need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#pmd_plugin_requires_pmd_6_0_0_or_higher_by_default). 
 
 ## Security Improvements
 
@@ -497,16 +510,6 @@ main(MavenPublication) {
 ```
 
 See the documentation for more information on [Gradle Module Metadata generation](userguide/publishing_gradle_module_metadata.html#sub:gmm-reproducible).
-
-## Promoted features
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
-See the User Manual section on the “[Feature Lifecycle](userguide/feature_lifecycle.html)” for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Fixed issues
 

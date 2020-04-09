@@ -1,2 +1,3 @@
- - Building, testing and running Java Modules
- - Improved variant matching error messages
+ - Support for building, testing and running Java Modules
+ - Better variant matching error messages
+ - Precompiled script plugins for Groovy DSL
