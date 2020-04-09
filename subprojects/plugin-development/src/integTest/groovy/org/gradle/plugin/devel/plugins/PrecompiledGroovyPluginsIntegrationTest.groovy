@@ -18,6 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.test.fixtures.file.TestFile
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -835,21 +836,26 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private String packagePrecompiledPlugins(Map<String, String> pluginToContent) {
+        TestFile pluginsDir = file(UUID.randomUUID().toString())
+        pluginsDir.mkdir()
         pluginToContent.each { pluginFile, pluginContent ->
-            file("plugins/src/main/groovy/$pluginFile").setText(pluginContent)
+            pluginsDir.file("src/main/groovy/$pluginFile").setText(pluginContent)
         }
-        file("plugins/build.gradle").setText("""
+        pluginsDir.file("build.gradle").setText("""
             plugins {
                 id 'groovy-gradle-plugin'
             }
         """)
+        pluginsDir.file("settings.gradle").setText("""
+            rootProject.name = 'plugins'
+        """)
 
-        executer.inDirectory(file("plugins")).withTasks("jar").run()
+        executer.inDirectory(pluginsDir).withTasks("jar").run()
                 .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
-        def pluginJar = file("plugins/build/libs/plugins.jar").assertExists()
+        def pluginJar = pluginsDir.file("build/libs/plugins.jar").assertExists()
         def movedJar = file('plugins.jar')
         pluginJar.renameTo(movedJar)
-        file('plugins').forceDeleteDir()
+        pluginsDir.forceDeleteDir()
         return movedJar.name
     }
 
