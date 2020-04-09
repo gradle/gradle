@@ -198,7 +198,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
                 @Override
                 public void handleLostState() {
-                    LOGGER.warn("Native file events buffer overflow, dropping state");
+                    LOGGER.warn("Native file event watching reported lost state");
                     signalLostState();
                 }
 
@@ -207,7 +207,8 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     try {
                         fileEvents.put(FileEvent.lostState());
                     } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+                        //noinspection ResultOfMethodCallIgnored
+                        Thread.interrupted();
                         throw new RuntimeException(e);
                     }
                 }
