@@ -25,7 +25,6 @@ import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.internal.DefaultJavaPluginConvention
-import org.gradle.api.plugins.internal.DefaultJavaPluginExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import spock.lang.Specification
 import org.gradle.util.TestUtil
@@ -61,17 +60,6 @@ class DefaultJavaPluginConventionTest extends Specification {
         expect:
         convention.sourceCompatibility == currentJvmVersion
         convention.targetCompatibility == currentJvmVersion
-    }
-
-    def "source and target compatibility default to release if set"() {
-        given:
-        JavaPluginExtension extension = new DefaultJavaPluginExtension(convention, project)
-        project.getExtensions().add("java", extension)
-        extension.release.set(8)
-
-        expect:
-        convention.sourceCompatibility == JavaVersion.VERSION_1_8
-        convention.targetCompatibility == JavaVersion.VERSION_1_8
     }
 
     @Test

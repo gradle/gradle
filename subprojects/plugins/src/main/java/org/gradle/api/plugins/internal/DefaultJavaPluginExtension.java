@@ -29,7 +29,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.FeatureSpec;
 import org.gradle.api.plugins.JavaPluginConvention;
 import org.gradle.api.plugins.JavaPluginExtension;
-import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.internal.component.external.model.ProjectDerivedCapability;
@@ -54,7 +53,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
     private final TaskContainer tasks;
     private final Project project;
     private final ModularitySpec modularity;
-    private final Property<Integer> release;
 
     public DefaultJavaPluginExtension(JavaPluginConvention convention,
                                       Project project) {
@@ -65,13 +63,6 @@ public class DefaultJavaPluginExtension implements JavaPluginExtension {
         this.tasks = project.getTasks();
         this.project = project;
         this.modularity = project.getObjects().newInstance(DefaultModularitySpec.class);
-        this.release = project.getObjects().property(Integer.class);
-        ((DefaultJavaPluginConvention) convention).internalReleaseFlagProperty(release);
-    }
-
-    @Override
-    public Property<Integer> getRelease() {
-        return release;
     }
 
     @Override

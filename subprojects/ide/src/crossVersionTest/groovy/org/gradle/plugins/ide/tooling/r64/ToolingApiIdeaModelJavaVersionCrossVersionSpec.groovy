@@ -31,9 +31,8 @@ class ToolingApiIdeaModelJavaVersionCrossVersionSpec extends ToolingApiSpecifica
             plugins {
                 id 'java-library'
             }
-            java.targetCompatibility = JavaVersion.VERSION_1_10
-            java.sourceCompatibility = JavaVersion.VERSION_1_10
-            java.release.set(8)
+            java.targetCompatibility = JavaVersion.VERSION_1_8
+            java.sourceCompatibility = JavaVersion.VERSION_1_8
         """
 
         when:
