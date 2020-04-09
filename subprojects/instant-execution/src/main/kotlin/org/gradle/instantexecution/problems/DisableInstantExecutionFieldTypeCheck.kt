@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
-
-import org.gradle.api.internal.GradleInternal
-import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.execution.plan.Node
+package org.gradle.instantexecution.problems
 
 
-interface ClassicModeBuild {
-    val gradle: GradleInternal
-
-    val buildSrc: Boolean
-
-    val rootProject: ProjectInternal
-
-    val scheduledWork: List<Node>
-}
+/**
+ * Disable instant execution field type check for the annotated field.
+ *
+ * This is a temporary measure, internal, in order to not loose too much coverage.
+ *
+ * TODO:instant-execution This annotation should be removed.
+ */
+@Target(AnnotationTarget.FIELD)
+@Retention(AnnotationRetention.RUNTIME)
+annotation class DisableInstantExecutionFieldTypeCheck

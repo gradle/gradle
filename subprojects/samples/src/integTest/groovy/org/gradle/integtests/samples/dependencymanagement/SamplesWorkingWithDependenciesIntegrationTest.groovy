@@ -53,6 +53,7 @@ commons-codec:commons-codec:1.7""")
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/workingWithDependencies/iterateArtifacts")
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can iterate over artifacts resolved for a module with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
