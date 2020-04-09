@@ -23,15 +23,17 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
 import java.util.concurrent.TimeUnit;
 
-public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
+public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
 
     public DarwinFileWatcherRegistry(ChangeHandler handler) {
         super(
             eventQueue -> Native.get(OsxFileEventFunctions.class)
                 .newWatcher(eventQueue)
+                // TODO Figure out a good value for this
                 .withLatency(20, TimeUnit.MICROSECONDS)
                 .start(),
-            handler
+            handler,
+            HierarchicalFileWatcherUpdater::new
         );
     }
 

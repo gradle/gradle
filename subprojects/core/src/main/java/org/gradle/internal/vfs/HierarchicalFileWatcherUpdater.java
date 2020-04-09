@@ -21,7 +21,9 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multiset;
 import com.google.common.collect.Multisets;
+import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,16 +37,18 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractHierarchicalFileWatcherRegistry.class);
+public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(HierarchicalFileWatcherUpdater.class);
 
     private final Map<String, ImmutableList<Path>> watchedRootsForSnapshot = new HashMap<>();
     private final Multiset<Path> shouldWatchDirectories = HashMultiset.create();
     private final Set<Path> watchedRoots = new HashSet<>();
     private final Set<Path> mustWatchDirectories = new HashSet<>();
+    private final FileWatcher watcher;
 
-    public AbstractHierarchicalFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        super(watcherCreator, handler);
+    public HierarchicalFileWatcherUpdater(FileWatcher watcher) {
+        this.watcher = watcher;
     }
 
     @Override
@@ -100,11 +104,11 @@ public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEv
             return;
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", newWatchRoots.size());
-        getWatcher().stopWatching(watchRootsToRemove.stream()
+        watcher.stopWatching(watchRootsToRemove.stream()
             .map(Path::toFile)
             .collect(Collectors.toList())
         );
-        getWatcher().startWatching(newWatchRoots.stream()
+        watcher.startWatching(newWatchRoots.stream()
             .map(Path::toFile)
             .collect(Collectors.toList())
         );

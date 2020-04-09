@@ -52,7 +52,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private final Predicate<String> watchFilter;
-    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedSnapshots, addedSnapshots));
+    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().changed(removedSnapshots, addedSnapshots));
 
     private FileWatcherRegistry watchRegistry;
     private volatile boolean buildRunning;
@@ -96,7 +96,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     @Override
     public void updateMustWatchDirectories(Collection<File> mustWatchDirectories) {
-        updateWatchRegistry(watchRegistry -> watchRegistry.updateMustWatchDirectories(mustWatchDirectories));
+        updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateMustWatchDirectories(mustWatchDirectories));
     }
 
     @Override
