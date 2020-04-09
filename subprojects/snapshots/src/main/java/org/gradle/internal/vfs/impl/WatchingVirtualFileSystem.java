@@ -32,6 +32,7 @@ import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -63,16 +64,18 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         final FileWatcherRegistry.Type type;
         final boolean lostState;
 
-        public FileEvent(Path path, FileWatcherRegistry.Type type) {
-            this.path = path;
-            this.type = type;
-            this.lostState = false;
+        public static FileEvent lostState() {
+            return new FileEvent(null, null, true);
         }
 
-        public FileEvent(boolean lostState) {
+        public static FileEvent changed(Path path, FileWatcherRegistry.Type type) {
+            return new FileEvent(path, type, false);
+        }
+
+        private FileEvent(@Nullable Path path, @Nullable FileWatcherRegistry.Type type, boolean lostState) {
+            this.path = path;
+            this.type = type;
             this.lostState = lostState;
-            this.path = null;
-            this.type = null;
         }
     }
 
@@ -186,21 +189,26 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             watchRegistry = watcherRegistryFactory.startWatcher(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    try {
-                        if (fileEvents.remainingCapacity() > 1) {
-                            fileEvents.put(new FileEvent(path, type));
-                        } else {
-                            fileEvents.offer(new FileEvent(true));
-                        }
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
-                    }
+                    addToQueueOrReportOverflow(FileEvent.changed(path, type));
                 }
 
                 @Override
                 public void handleLostState() {
-                    fileEvents.offer(new FileEvent(true));
+                    addToQueueOrReportOverflow(FileEvent.lostState());
+                }
+
+                private void addToQueueOrReportOverflow(FileEvent fileEvent) {
+                    boolean addedToQueue = fileEvents.offer(fileEvent);
+                    if (!addedToQueue) {
+                        LOGGER.warn("Couldn't handle file events fast enough, dropping state");
+                        fileEvents.clear();
+                        try {
+                            fileEvents.put(FileEvent.lostState());
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            throw new RuntimeException(e);
+                        }
+                    }
                 }
             });
             getRoot().update(SnapshotHierarchy::empty);
