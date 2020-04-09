@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
     implementation(project(":internalTesting"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy"))
     implementation(library("junit"))
