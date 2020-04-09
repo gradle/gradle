@@ -54,7 +54,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         task instanceof JavaExec
-        task.classpath.from as List == [project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath]
+        task.classpath.from.files == [project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath.files]
         task TaskDependencyMatchers.dependsOn('classes')
     }
 

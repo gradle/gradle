@@ -650,4 +650,26 @@ rootProject.name = 'sample'
         file('build/install/sample/').allDescendants() == ["not-the-root/bin/sample", "not-the-root/bin/sample.bat", "not-the-root/lib/sample.jar"] as Set
         assert file("build/install/sample/not-the-root/bin/sample").permissions == "rwxr-xr-x"
     }
+
+    @ToBeFixedForInstantExecution
+    def "runs the classes folder for traditional applications"() {
+        when:
+        succeeds("run")
+
+        then:
+        executed(':compileJava', ':processResources', ':classes', ':run')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @ToBeFixedForInstantExecution
+    def "runs the jar for modular applications"() {
+        given:
+        configureMainModule()
+
+        when:
+        succeeds("run")
+
+        then:
+        executed(':compileJava', ':processResources', ':classes', ':jar', ':run')
+    }
 }
