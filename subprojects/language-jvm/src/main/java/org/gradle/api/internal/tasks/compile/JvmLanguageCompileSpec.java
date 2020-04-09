@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.language.base.internal.compile.CompileSpec;
 
-import javax.annotation.Nullable;
 import java.io.File;
 import java.util.List;
 
@@ -42,11 +41,6 @@ public interface JvmLanguageCompileSpec extends CompileSpec {
     List<File> getCompileClasspath();
 
     void setCompileClasspath(List<File> classpath);
-
-    @Nullable
-    Integer getRelease();
-
-    void setRelease(@Nullable Integer release);
 
     String getSourceCompatibility();
 

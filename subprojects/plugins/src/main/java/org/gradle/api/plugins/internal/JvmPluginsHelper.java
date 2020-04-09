@@ -263,14 +263,23 @@ public class JvmPluginsHelper {
             if (alwaysEnabled || !convention.getAutoTargetJvmDisabled()) {
                 JavaCompile javaCompile = compileTaskProvider.get();
                 int majorVersion;
-                if (javaCompile.getRelease().isPresent()) {
-                    majorVersion = javaCompile.getRelease().get();
+                int releaseOption = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
+                if (releaseOption > 0) {
+                    majorVersion = releaseOption;
                 } else {
                     majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
                 }
                 JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
             }
         };
+    }
+
+    private static int getReleaseOption(List<String> compilerArgs) {
+        int flagIndex = compilerArgs.indexOf("--release");
+        if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+            return Integer.parseInt(compilerArgs.get(flagIndex + 1));
+        }
+        return 0;
     }
 
     /**
