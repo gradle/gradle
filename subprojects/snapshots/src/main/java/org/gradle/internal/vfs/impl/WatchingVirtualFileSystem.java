@@ -200,6 +200,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                     }
                 }
             });
+            getRoot().update(SnapshotHierarchy::empty);
             delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener);
             long endTime = System.currentTimeMillis() - startTime;
             LOGGER.warn("Spent {} ms registering watches for file system events", endTime);
