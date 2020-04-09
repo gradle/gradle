@@ -56,18 +56,20 @@ Actual: \${actual[key]}
                         writer.close()
                     }
                 }
-                gradle.buildFinished {
-                    if (!gradleEnvironment.exists()) {
-                        throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
-                    } else {
-                        def expectedEnvironment = new Properties()
-                        expectedEnvironment.load(gradleEnvironment.newInputStream())
+                gradle.taskGraph.whenReady { taskGraph ->
+                    taskGraph.allTasks.last().doLast {
+                        if (!gradleEnvironment.exists()) {
+                            throw new GradleException("could not determine if $ideCommandLineTool is using the correct environment, did $ideTaskName task run?")
+                        } else {
+                            def expectedEnvironment = new Properties()
+                            expectedEnvironment.load(gradleEnvironment.newInputStream())
 
-                        def actualEnvironment = gatherEnvironment()
+                            def actualEnvironment = gatherEnvironment()
 
-                        assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
-                        assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
-                        assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                            assertEquals('JAVA_HOME', expectedEnvironment, actualEnvironment)
+                            assertEquals('GRADLE_USER_HOME', expectedEnvironment, actualEnvironment)
+                            assertEquals('GRADLE_OPTS', expectedEnvironment, actualEnvironment)
+                        }
                     }
                 }
             }
