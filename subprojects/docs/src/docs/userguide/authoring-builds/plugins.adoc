@@ -39,7 +39,11 @@ By applying plugins, rather than adding logic to the project build script, we ca
 [[sec:types_of_plugins]]
 == Types of plugins
 
-There are two general types of plugins in Gradle, _script_ plugins and _binary_ plugins. Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build. They are typically used within a build although they can be externalized and accessed from a remote location. Binary plugins are classes that implement the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface and adopt a programmatic approach to manipulating the build. Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
+There are two general types of plugins in Gradle, _binary_ plugins and _script_ plugins.
+Binary plugins are written either programmatically by implementing link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface or declaratively using one of Gradle's DSL languages.
+Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
+Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
+They are typically used within a build although they can be externalized and accessed from a remote location.
 
 A plugin often starts out as a script plugin (because they are easy to write) and then, as the code becomes more valuable, it's migrated to a binary plugin that can be easily tested and shared between multiple projects or organizations.
 
@@ -53,18 +57,6 @@ _Resolving_ a plugin means finding the correct version of the jar which contains
 _Applying_ a plugin means actually executing the plugin's link:{javadocPath}/org/gradle/api/Plugin.html#apply-T-[Plugin.apply(T)] on the Project you want to enhance with the plugin. Applying plugins is _idempotent_. That is, you can safely apply any plugin multiple times without side effects.
 
 The most common use case for using a plugin is to both resolve the plugin and apply it to the current project. Since this is such a common use case, it's recommended that build authors use the <<#sec:plugins_block,plugins DSL>> to both resolve and apply plugins in one step.
-
-[[sec:script_plugins]]
-== Script plugins
-
-
-.Applying a script plugin
-====
-include::sample[dir="snippets/userguide/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
-include::sample[dir="snippets/userguide/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
-====
-
-Script plugins are automatically resolved and can be applied from a script on the local filesystem or at a remote location. Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL. Multiple script plugins (of either form) can be applied to a given target.
 
 [[sec:binary_plugins]]
 == Binary plugins
@@ -354,6 +346,16 @@ include::sample[dir="snippets/plugins/buildscript/groovy", files="build.gradle[t
 include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.kts[tags=buildscript_block]"]
 ====
 
+[[sec:script_plugins]]
+== Script plugins
+
+.Applying a script plugin
+====
+include::sample[dir="snippets/userguide/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/userguide/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
+====
+
+Script plugins are automatically resolved and can be applied from a script on the local filesystem or at a remote location. Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL. Multiple script plugins (of either form) can be applied to a given target.
 
 [[sec:finding_community_plugins]]
 == Finding community plugins
