@@ -35,7 +35,7 @@ class AbstractJavaModuleTestingIntegrationTest extends AbstractJavaModuleIntegra
             public class MainModuleTest {
 
                 @Test
-                public void testMain() {
+                public void testMain() throws Exception {
                     $statement;
                 }
             }

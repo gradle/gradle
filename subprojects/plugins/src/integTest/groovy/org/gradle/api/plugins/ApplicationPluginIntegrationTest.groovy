@@ -660,6 +660,7 @@ rootProject.name = 'sample'
         executed(':compileJava', ':processResources', ':classes', ':run')
     }
 
+    @Requires(TestPrecondition.JDK9_OR_LATER)
     @ToBeFixedForInstantExecution
     def "runs the jar for modular applications"() {
         given:
