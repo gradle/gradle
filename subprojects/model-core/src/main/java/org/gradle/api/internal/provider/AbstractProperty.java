@@ -158,7 +158,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public void finalizeValue() {
-        if (state.isNotFinal()) {
+        if (state.shouldFinalize(getDisplayName(), producer)) {
             value = finalValue(value);
             state = state.finalState();
         }
@@ -265,7 +265,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     private static abstract class FinalizationState<S> {
-        public abstract boolean isNotFinal();
+        public abstract boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer);
 
         public abstract FinalizationState<S> finalState();
 
@@ -305,7 +305,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public boolean isNotFinal() {
+        public boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer) {
+            if (disallowUnsafeRead) {
+                String reason = host.beforeRead(producer);
+                if (reason != null) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot finalize the value of ");
+                    formatter.append(displayName.getDisplayName());
+                    formatter.append(" because ");
+                    formatter.append(reason);
+                    formatter.append(".");
+                    throw new IllegalStateException(formatter.toString());
+                }
+            }
             return true;
         }
 
@@ -396,7 +408,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     private static class FinalizedValue<S> extends FinalizationState<S> {
         @Override
-        public boolean isNotFinal() {
+        public boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer) {
             return false;
         }
 
