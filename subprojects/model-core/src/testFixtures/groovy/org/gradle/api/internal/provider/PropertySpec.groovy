@@ -1774,18 +1774,49 @@ The value of this property is derived from:
         e3.message == "Cannot query the value of this property because <reason>."
     }
 
-    def "can read value of finalized property when host is not ready and unsafe read disallowed"() {
+    def "cannot finalize a property when host is not ready and unsafe read disallowed"() {
         given:
         def property = propertyWithDefaultValue()
         property.disallowUnsafeRead()
         property.set(someValue())
+
+        when:
         property.finalizeValue()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot finalize the value of this property because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * host._
+
+        when:
+        property.attachOwner(owner(), displayName("<property>"))
+        property.finalizeValue()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot finalize the value of <property> because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * host._
 
         when:
         def result = property.get()
 
         then:
         result == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+        0 * host._
+
+        when:
+        property.finalizeValue()
+
+        then:
         0 * host._
     }
 
@@ -1818,6 +1849,50 @@ The value of this property is derived from:
         then:
         def e = thrown(IllegalStateException)
         e.message == "The value for this property is final and cannot be changed any further."
+    }
+
+    def "can finalize on next read when host is not ready when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+
+        when:
+        property.finalizeValueOnRead()
+
+        then:
+        0 * _
+
+        when:
+        def value = property.orNull
+
+        then:
+        value == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+    }
+
+    def "can disallow changes when host is not ready when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+
+        when:
+        property.disallowChanges()
+
+        then:
+        0 * _
+
+        when:
+        def value = property.orNull
+
+        then:
+        value == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
     }
 
     def "reports the source of property value when value is missing and source is known"() {

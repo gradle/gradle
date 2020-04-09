@@ -275,6 +275,44 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         output.count("value = [${file('some-file')}]") == 2
     }
 
+    def "cannot finalize a strict file collection before project configuration completes"() {
+        given:
+        settingsFile << 'rootProject.name = "broken"'
+        buildFile << """
+            interface ProjectModel {
+                ConfigurableFileCollection getProp()
+            }
+
+            project.extensions.create('thing', ProjectModel.class)
+            thing.prop.disallowUnsafeRead()
+
+            try {
+                thing.prop.finalizeValue()
+            } catch(IllegalStateException e) {
+                println("finalize failed with: " + e.message)
+            }
+
+            thing.prop.from("some-file")
+
+            task show {
+                dependsOn {
+                    thing.prop.finalizeValue()
+                    println("value = " + thing.prop.files)
+                }
+                doLast {
+                    println("value = " + thing.prop.files)
+                }
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("finalize failed with: Cannot finalize the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        output.count("value = [${file('some-file')}]") == 2
+    }
+
     def "task @InputFiles file collection property is implicitly finalized and changes ignored when task starts execution"() {
         taskTypeWithInputFileCollection()
         buildFile << """

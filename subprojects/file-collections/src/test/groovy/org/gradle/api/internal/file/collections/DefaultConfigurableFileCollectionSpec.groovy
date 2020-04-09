@@ -423,11 +423,11 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         then:
         1 * visitor.startVisit(FileCollectionInternal.OTHER, collection) >> true
         1 * fileResolver.resolve('a') >> one
-        1 * visitor.startVisit(FileCollectionInternal.OTHER, {it as List == [one]}) >> true
-        1 * visitor.visitCollection(FileCollectionInternal.OTHER, {it as List == [one]})
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [one] }) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [one] })
         1 * fileResolver.resolve('b') >> two
-        1 * visitor.startVisit(FileCollectionInternal.OTHER, {it as List == [two]}) >> true
-        1 * visitor.visitCollection(FileCollectionInternal.OTHER, {it as List == [two]})
+        1 * visitor.startVisit(FileCollectionInternal.OTHER, { it as List == [two] }) >> true
+        1 * visitor.visitCollection(FileCollectionInternal.OTHER, { it as List == [two] })
         0 * _
     }
 
@@ -1286,5 +1286,88 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         1 * host.beforeRead(null) >> null
         1 * fileResolver.resolve('a') >> file
         0 * _
+    }
+
+    def cannotFinalizeValueWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot finalize the value for <display> because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * _
+
+        when:
+        collection.finalizeValue()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        result == [file] as Set
+
+        and:
+        0 * _
+    }
+
+    def canFinalizeOnNextReadWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.finalizeValueOnRead()
+
+        then:
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+
+        then:
+        result == [file] as Set
+    }
+
+    def canDisallowChangesWhenUnsafeReadsDisallowedAndHostIsNotReady() {
+        given:
+        def file = new File('one')
+        collection.from('a')
+        collection.disallowUnsafeRead()
+
+        when:
+        collection.disallowChanges()
+
+        then:
+        0 * _
+
+        when:
+        def result = collection.files
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * fileResolver.resolve('a') >> file
+        0 * _
+
+        then:
+        result == [file] as Set
     }
 }
