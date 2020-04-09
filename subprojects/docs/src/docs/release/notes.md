@@ -1,6 +1,7 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features support for [developing Java Modules](#java-modules), using a new experimental lock file format and better diagnostics for [dependency management](#dependency-management), as well as some [new features for code quality plugins](#code-quality) and [bug fixes](#fixed-issues).
+This release features support for [developing Java Modules](#java-modules), better diagnostics for [dependency management failures](#dm-variant-error) and a [new experimental lock file format](#dm-lock-format).
+This release also adds [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL and [incremental PMD analysis by default](#incremental-analysis-is-enabled-by-default-pmd) and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -66,9 +67,10 @@ For more details, head over to the documentation on
 
 Also feel free to explore [the samples we have prepared](samples/#java_modules).
 
-<a name="dependency-management"></a>
+
 ## Dependency Management Improvements
 
+<a name="dm-lock-format"></a>
 ### New dependency locking file format
 
 Gradle 6.4 introduces an experimental dependency locking file format.
@@ -84,6 +86,7 @@ It is however stable and expected to become the default format in Gradle 7.0.
 
 Take a look at [the documentation](userguide/dependency_locking.html#single_lock_file_per_project) for more information and how to enable the feature.
 
+<a name="dm-variant-error"></a>
 ### Better variant matching error messages
 
 This release introduces new variant matching error messages for the Java ecosystem.
@@ -458,8 +461,44 @@ Gradle 6.4 takes a first step in improving those error messages by making them m
                                 hfi1vdp51SUqS9SXyd8U8JJAV1h4ThiOvrAQ6e2isLCgoLCwoKCgoKCgoGAYGM7ppODN4jfM+Aok
                                 sRq1uwAAAABJRU5ErkJggg==">
 
-<a name="code-quality"></a>
+### Gradle module metadata can be made reproducible
+
+The Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution.
+This results in the generated file being different at each build execution.
+
+This value can now be configured to something else at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file.
+
+```groovy
+main(MavenPublication) {
+    from components.java
+    buildIdentifier = 'unused'
+}
+```
+
+See the documentation for more information on [Gradle Module Metadata generation](userguide/publishing_gradle_module_metadata.html#sub:gmm-reproducible).
+
+<a name="precompiled-groovy-dsl"></a>
+## Precompiled Groovy DSL script plugins
+
+Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
+
+Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
+They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
+
+For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
+
+Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
+
+There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
+
 ## Improvements to code quality plugins
+
+<a name="code-quality"></a>
+### Incremental Analysis is enabled by default (PMD)
+
+As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default.
+
+For builds relying on an older version of PMD, you may need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#pmd_plugin_requires_pmd_6_0_0_or_higher_by_default). 
 
 ### Specify number of violations required before the build fails (PMD)
 
@@ -477,12 +516,6 @@ pmd {
 
 This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
-### Incremental Analysis is enabled by default (PMD)
-
-As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default.
-
-For builds relying on an older version of PMD, you may need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#pmd_plugin_requires_pmd_6_0_0_or_higher_by_default). 
-
 ## Security Improvements
 
 During our investigation into a recent security vulnerability on the [Plugin Portal](https://blog.gradle.org/plugin-portal-update), we became aware of how much potentially sensitive information 
@@ -494,35 +527,6 @@ Much of this logging occurs deep in components of the JVM and other libraries ou
 To strike a balance between the security risks and the needs of people who may find this information useful, Gradle now warns users about the risks of using `DEBUG` level logging.
 
 We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at the `DEBUG` log level.
-
-## Precompiled Groovy script plugins
-
-Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
-
-Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
-They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
-
-For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
-
-Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
-
-There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
-
-## Gradle module metadata can be made reproducible
-
-The Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution.
-This results in the generated file being different at each build execution.
-
-This value can now be configured to something else at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file.
-
-```groovy
-main(MavenPublication) {
-    from components.java
-    buildIdentifier = 'unused'
-}
-```
-
-See the documentation for more information on [Gradle Module Metadata generation](userguide/publishing_gradle_module_metadata.html#sub:gmm-reproducible).
 
 ## Fixed issues
 
