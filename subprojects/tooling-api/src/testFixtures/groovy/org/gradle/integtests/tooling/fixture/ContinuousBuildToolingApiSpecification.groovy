@@ -83,8 +83,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
             buildResult = new TestResultHandler()
 
             cancellationTokenSource.withCancellation { CancellationToken token ->
-                // this is here to ensure that the lastModified() timestamps actually change in between builds.
-                // if the build is very fast, the timestamp of the file will not change and the JDK file watch service won't see the change.
                 def initScript = file("init.gradle")
                 initScript.text = """
                     |import java.lang.management.ManagementFactory
@@ -94,14 +92,6 @@ abstract class ContinuousBuildToolingApiSpecification extends ToolingApiSpecific
                     |        gradle.rootProject.buildDir.mkdir()
                     |        new File(gradle.rootProject.buildDir, "build.pid").text = ManagementFactory.getRuntimeMXBean().getName().split("@")[0]
                     |    } catch (Throwable t) {
-                    |    }
-                    |}
-
-                    |def startAt = System.nanoTime()
-                    |gradle.buildFinished {
-                    |    long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                    |    if (sinceStart > 0 && sinceStart < 2000) {
-                    |      sleep(2000 - sinceStart)
                     |    }
                     |}
                 """.stripMargin()
