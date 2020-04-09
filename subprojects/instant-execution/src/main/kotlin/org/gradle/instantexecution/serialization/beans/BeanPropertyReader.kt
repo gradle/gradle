@@ -46,7 +46,10 @@ class BeanPropertyReader(
     val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
 
     private
-    val fieldSetters = relevantStateOf(beanType).map { Pair(it.name, setterFor(it)) }
+    val fieldSetters = relevantStateOf(beanType).map { FieldSetter(it, setterFor(it)) }
+
+    private
+    class FieldSetter(val field: Field, val setter: ReadContext.(Any, Any?) -> Unit)
 
     private
     val constructorForSerialization by unsafeLazy {
@@ -61,9 +64,10 @@ class BeanPropertyReader(
     }
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
-        for (field in fieldSetters) {
-            val fieldName = field.first
-            val setter = field.second
+        for (fieldSetter in fieldSetters) {
+            reportFieldProblems("deserialize", fieldSetter.field)
+            val fieldName = fieldSetter.field.name
+            val setter = fieldSetter.setter
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
                 setter(bean, fieldValue)
             }

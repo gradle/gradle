@@ -23,7 +23,11 @@ import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
 
+import org.gradle.instantexecution.problems.DisableInstantExecutionFieldTypeCheck
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.Workarounds
+import org.gradle.instantexecution.serialization.logUnsupported
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
@@ -33,6 +37,21 @@ internal
 val unsupportedFieldDeclaredTypes = listOf(
     Configuration::class
 )
+
+
+internal
+fun IsolateContext.reportFieldProblems(action: String, field: Field, fieldValue: Any? = null) {
+    if (!field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)) {
+        withPropertyTrace(PropertyKind.Field, field.name) {
+            unsupportedFieldDeclaredTypes
+                .firstOrNull { it.java.isAssignableFrom(field.type) }
+                ?.let { unsupported ->
+                    if (fieldValue == null) logUnsupported(action, unsupported)
+                    else logUnsupported(action, unsupported, fieldValue::class.java)
+                }
+        }
+    }
+}
 
 
 internal
