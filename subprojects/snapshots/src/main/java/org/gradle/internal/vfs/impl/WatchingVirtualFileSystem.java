@@ -32,6 +32,7 @@ import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
@@ -56,22 +57,25 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private FileWatcherRegistry watchRegistry;
     private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(4096);
     private volatile boolean buildRunning;
+    private final Thread eventConsumerThread;
 
     private static class FileEvent {
         final Path path;
         final FileWatcherRegistry.Type type;
         final boolean lostState;
 
-        public FileEvent(Path path, FileWatcherRegistry.Type type) {
-            this.path = path;
-            this.type = type;
-            this.lostState = false;
+        public static FileEvent lostState() {
+            return new FileEvent(null, null, true);
         }
 
-        public FileEvent(boolean lostState) {
+        public static FileEvent changed(Path path, FileWatcherRegistry.Type type) {
+            return new FileEvent(path, type, false);
+        }
+
+        private FileEvent(@Nullable Path path, @Nullable FileWatcherRegistry.Type type, boolean lostState) {
+            this.path = path;
+            this.type = type;
             this.lostState = lostState;
-            this.path = null;
-            this.type = null;
         }
     }
 
@@ -89,7 +93,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         this.watcherRegistryFactory = watcherRegistryFactory;
         this.delegatingUpdateFunctionDecorator = delegatingUpdateFunctionDecorator;
 
-        Thread eventConsumer = new Thread(() -> {
+        this.eventConsumerThread = new Thread(() -> {
             try {
                 while (consumeEvents) {
                     FileEvent nextEvent = fileEvents.take();
@@ -122,9 +126,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 // stop thread
             }
         });
-        eventConsumer.setDaemon(true);
-        eventConsumer.setName("File watcher consumer");
-        eventConsumer.start();
+        eventConsumerThread.setDaemon(true);
+        eventConsumerThread.setName("File watcher consumer");
+        eventConsumerThread.start();
     }
 
     @Override
@@ -175,6 +179,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
      */
     private synchronized void startWatching() {
         if (watchRegistry != null) {
+            if (!eventConsumerThread.isAlive()) {
+                throw new RuntimeException("The thread consuming the file events stopped for an unknown reason");
+            }
             return;
         }
         try {
@@ -182,20 +189,26 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             watchRegistry = watcherRegistryFactory.startWatcher(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
-                    try {
-                        fileEvents.put(new FileEvent(path, type));
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
+                    boolean addedToQueue = fileEvents.offer(FileEvent.changed(path, type));
+                    if (!addedToQueue) {
+                        LOGGER.warn("Gradle file event buffer overflow, dropping state");
+                        signalLostState();
                     }
                 }
 
                 @Override
                 public void handleLostState() {
+                    LOGGER.warn("Native file event watching reported lost state");
+                    signalLostState();
+                }
+
+                private void signalLostState() {
+                    fileEvents.clear();
                     try {
-                        fileEvents.put(new FileEvent(true));
+                        fileEvents.put(FileEvent.lostState());
                     } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
+                        //noinspection ResultOfMethodCallIgnored
+                        Thread.interrupted();
                         throw new RuntimeException(e);
                     }
                 }
