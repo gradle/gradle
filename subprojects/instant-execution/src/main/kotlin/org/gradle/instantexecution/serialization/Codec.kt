@@ -105,7 +105,7 @@ sealed class IsolateOwner {
     }
 
     class OwnerHost(override val delegate: DefaultInstantExecution.Host) : IsolateOwner() {
-        override fun <T> service(type: Class<T>): T = delegate.getService(type)
+        override fun <T> service(type: Class<T>): T = delegate.service(type)
     }
 }
 

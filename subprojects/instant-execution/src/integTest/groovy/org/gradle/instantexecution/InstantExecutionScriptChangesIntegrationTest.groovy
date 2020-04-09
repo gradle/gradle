@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import groovy.transform.Canonical
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.Test
 import spock.lang.Unroll
@@ -24,12 +25,12 @@ class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecut
 
     @Unroll
     @Test
-    def "invalidates cache upon changes to #language #scriptType script"() {
+    def "invalidates cache upon changes to #testLabel"() {
         given:
         def instant = newInstantExecutionFixture()
-        def scriptFile = scriptFileFor(language, scriptType).tap { parentFile.mkdirs() }
-        List<String> buildArgs = buildArgumentsFor(scriptType, scriptFile)
-        def build = { instantRun('help', *buildArgs) }
+        def fixture = scriptChangeFixtureFor(language, scriptType, scriptDiscovery)
+        def scriptFile = fixture.scriptFile
+        def build = { instantRun('help', *fixture.buildArguments) }
 
         when:
         scriptFile.text = 'println("Hello!")'
@@ -54,33 +55,67 @@ class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecut
         instant.assertStateLoaded()
 
         where:
-        [language_, scriptType_] << [ScriptLanguage.values(), ScriptType.values()].combinations()
+        [scriptDiscovery_, language_, scriptType_] << [
+            ScriptDiscovery.values(),
+            ScriptLanguage.values(),
+            ScriptType.values()
+        ].combinations()
         language = language_ as ScriptLanguage
         scriptType = scriptType_ as ScriptType
+        scriptDiscovery = scriptDiscovery_ as ScriptDiscovery
+        testLabel = "$scriptDiscovery $language $scriptType script".toLowerCase()
     }
 
-    private TestFile scriptFileFor(ScriptLanguage language, ScriptType type) {
+    @Canonical
+    static class ScriptChangeFixture {
+        TestFile scriptFile
+        List<String> buildArguments
+    }
+
+    private ScriptChangeFixture scriptChangeFixtureFor(
+        ScriptLanguage language, ScriptType scriptType, ScriptDiscovery scriptDiscovery
+    ) {
+        def scriptFileExtension = language == ScriptLanguage.GROOVY ? ".gradle" : ".gradle.kts"
+        def defaultScriptFile = file("${baseScriptFileNameFor(scriptType)}$scriptFileExtension")
+        def buildArguments = scriptType == ScriptType.INIT
+            ? ["-I", defaultScriptFile.absolutePath]
+            : []
+        switch (scriptDiscovery) {
+            case ScriptDiscovery.DEFAULT:
+                return new ScriptChangeFixture(defaultScriptFile, buildArguments)
+            case ScriptDiscovery.APPLIED:
+                String appliedScriptName = "applied${scriptFileExtension}"
+                TestFile appliedScriptFile = new TestFile(defaultScriptFile.parentFile, appliedScriptName)
+                defaultScriptFile.text = language == ScriptLanguage.GROOVY
+                    ? "apply from: './$appliedScriptName'"
+                    : "apply(from = \"./$appliedScriptName\")"
+                return new ScriptChangeFixture(appliedScriptFile, buildArguments)
+        }
+    }
+
+    private static String baseScriptFileNameFor(ScriptType type) {
         switch (type) {
             case ScriptType.PROJECT:
-                return file("build${language.fileExtension}")
+                return "build"
             case ScriptType.SETTINGS:
-                return file("settings${language.fileExtension}")
+                return "settings"
             case ScriptType.BUILDSRC_PROJECT:
-                return file("buildSrc/build${language.fileExtension}")
+                return "buildSrc/build"
             case ScriptType.BUILDSRC_SETTINGS:
-                return file("buildSrc/settings${language.fileExtension}")
+                return "buildSrc/settings"
             case ScriptType.INIT:
-                return file("gradle/my.init${language.fileExtension}")
+                return "gradle/my.init"
         }
     }
 
-    private List<String> buildArgumentsFor(ScriptType type, TestFile scriptFile) {
-        switch (type) {
-            case ScriptType.INIT:
-                return ["-I", scriptFile.absolutePath]
-            default:
-                return []
-        }
+    enum ScriptDiscovery {
+        DEFAULT,
+        APPLIED
+    }
+
+    enum ScriptLanguage {
+        GROOVY,
+        KOTLIN
     }
 
     enum ScriptType {
@@ -89,20 +124,5 @@ class InstantExecutionScriptChangesIntegrationTest extends AbstractInstantExecut
         INIT,
         BUILDSRC_PROJECT,
         BUILDSRC_SETTINGS,
-    }
-
-    enum ScriptLanguage {
-
-        GROOVY{
-            @Override
-            String getFileExtension() { ".gradle" }
-        },
-
-        KOTLIN{
-            @Override
-            String getFileExtension() { ".gradle.kts" }
-        };
-
-        abstract String getFileExtension();
     }
 }

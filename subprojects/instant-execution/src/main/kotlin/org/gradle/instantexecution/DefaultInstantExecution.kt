@@ -74,11 +74,11 @@ class DefaultInstantExecution internal constructor(
 
     interface Host {
 
-        val currentBuild: ClassicModeBuild
+        val currentBuild: VintageGradleBuild
 
         fun createBuild(rootProjectName: String): InstantExecutionBuild
 
-        fun <T> getService(serviceType: Class<T>): T
+        fun <T> service(serviceType: Class<T>): T
 
         fun <T> factory(serviceType: Class<T>): Factory<T>
     }
@@ -470,7 +470,7 @@ class DefaultInstantExecution internal constructor(
 
 
 inline fun <reified T> DefaultInstantExecution.Host.service(): T =
-    getService(T::class.java)
+    service(T::class.java)
 
 
 internal
