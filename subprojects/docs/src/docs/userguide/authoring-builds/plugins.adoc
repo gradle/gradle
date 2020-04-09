@@ -40,7 +40,7 @@ By applying plugins, rather than adding logic to the project build script, we ca
 == Types of plugins
 
 There are two general types of plugins in Gradle, _binary_ plugins and _script_ plugins.
-Binary plugins are classes that implement the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface and adopt a programmatic approach to manipulating the build.
+Binary plugins are written either programmatically by implementing link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] interface or declaratively using one of Gradle's DSL languages.
 Binary plugins can reside within a build script, within the project hierarchy or externally in a plugin jar.
 Script plugins are additional build scripts that further configure the build and usually implement a declarative approach to manipulating the build.
 They are typically used within a build although they can be externalized and accessed from a remote location.
