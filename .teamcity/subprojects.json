@@ -557,7 +557,7 @@
     "name": "pluginDevelopment",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "core-api",

@@ -68,7 +68,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
             }
         }
         throw new IllegalArgumentException(String.format("Method %s() not found for listener type %s.", methodName,
-                type.getSimpleName()));
+            type.getSimpleName()));
     }
 
     public abstract BroadcastDispatch<T> remove(Object listener);
@@ -76,6 +76,8 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
     public abstract BroadcastDispatch<T> addAll(Collection<? extends T> listeners);
 
     public abstract BroadcastDispatch<T> removeAll(Collection<?> listeners);
+
+    public abstract void visitListeners(Action<T> visitor);
 
     private static class ActionInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
@@ -122,6 +124,10 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         @Override
         BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch) {
             return new SingletonDispatch<T>(type, handler, dispatch);
+        }
+
+        @Override
+        public void visitListeners(Action<T> visitor) {
         }
 
         @Override
@@ -227,6 +233,13 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
         }
 
         @Override
+        public void visitListeners(Action<T> visitor) {
+            if (getType().isInstance(handler)) {
+                visitor.execute(getType().cast(handler));
+            }
+        }
+
+        @Override
         public void dispatch(MethodInvocation message) {
             dispatch(message, dispatch);
         }
@@ -313,6 +326,13 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
                 return this;
             }
             return new CompositeDispatch<T>(type, result);
+        }
+
+        @Override
+        public void visitListeners(Action<T> visitor) {
+            for (SingletonDispatch<T> dispatcher : dispatchers) {
+                dispatcher.visitListeners(visitor);
+            }
         }
 
         @Override
