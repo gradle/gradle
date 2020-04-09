@@ -16,9 +16,12 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 
@@ -26,11 +29,24 @@ import org.gradle.internal.event.ListenerManager
 internal
 class ListenerBroadcastCodec(private val listenerManager: ListenerManager) : Codec<AnonymousListenerBroadcast<*>> {
     override suspend fun WriteContext.encode(value: AnonymousListenerBroadcast<*>) {
+        val broadcast: AnonymousListenerBroadcast<Any> = value.uncheckedCast()
         writeClass(value.type)
+        val listeners = mutableListOf<Any>()
+        broadcast.visitListeners {
+            listeners.add(it)
+        }
+        writeCollection(listeners) {
+            write(it)
+        }
     }
 
     override suspend fun ReadContext.decode(): AnonymousListenerBroadcast<*> {
-        val type = readClass()
-        return listenerManager.createAnonymousBroadcaster(type)
+        val type: Class<Any> = readClass().uncheckedCast()
+        val broadcast = listenerManager.createAnonymousBroadcaster(type)
+        readCollection {
+            val listener = read()
+            broadcast.add(listener)
+        }
+        return broadcast
     }
 }

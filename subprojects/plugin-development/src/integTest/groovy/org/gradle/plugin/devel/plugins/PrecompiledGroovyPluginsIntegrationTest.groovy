@@ -18,8 +18,7 @@ package org.gradle.plugin.devel.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
+import org.gradle.test.fixtures.file.TestFile
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -815,35 +814,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains(':compileGroovyPlugins FAILED')
     }
 
-    @Requires(TestPrecondition.JDK13_OR_EARLIER)
-    @ToBeFixedForInstantExecution
-    def "can use a precompiled script plugin with Gradle 6.0"() {
-        given:
-        def pluginJar = packagePrecompiledPlugin("foo.gradle", "println 'foo plugin applied'")
-
-        when:
-        settingsFile << """
-            buildscript {
-                dependencies {
-                    classpath(files("$pluginJar"))
-                }
-            }
-        """
-
-        buildFile << """
-            plugins {
-                id 'foo'
-            }
-        """
-
-        def distribution = buildContext.distribution('6.0')
-
-        then:
-        def result = distribution.executer(temporaryFolder, buildContext).withTasks("help").run()
-        def output = result.output // because codenarc complains otherwise
-        output.contains('foo plugin applied')
-    }
-
     def "can apply precompiled Groovy script plugin from Kotlin script"() {
         when:
         enablePrecompiledPluginsInBuildSrc()
@@ -866,21 +836,26 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private String packagePrecompiledPlugins(Map<String, String> pluginToContent) {
+        TestFile pluginsDir = file(UUID.randomUUID().toString())
+        pluginsDir.mkdir()
         pluginToContent.each { pluginFile, pluginContent ->
-            file("plugins/src/main/groovy/plugins/$pluginFile") << pluginContent
+            pluginsDir.file("src/main/groovy/$pluginFile").setText(pluginContent)
         }
-        file("plugins/build.gradle") << """
+        pluginsDir.file("build.gradle").setText("""
             plugins {
                 id 'groovy-gradle-plugin'
             }
-        """
+        """)
+        pluginsDir.file("settings.gradle").setText("""
+            rootProject.name = 'plugins'
+        """)
 
-        executer.inDirectory(file("plugins")).withTasks("jar").run()
+        executer.inDirectory(pluginsDir).withTasks("jar").run()
                 .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
-        def pluginJar = file("plugins/build/libs/plugins.jar").assertExists()
+        def pluginJar = pluginsDir.file("build/libs/plugins.jar").assertExists()
         def movedJar = file('plugins.jar')
         pluginJar.renameTo(movedJar)
-        file('plugins').forceDeleteDir()
+        pluginsDir.forceDeleteDir()
         return movedJar.name
     }
 

@@ -28,7 +28,7 @@ module org.gradle.sample.utilities {
 Unit (whitebox) tests that need to access the internals of a module can be written in the traditional way by **not** adding a `module-info.java` to the test source set.
 In test execution, the modules are then treated as standard Java libraries with the encapsulation deactivated.
 
-Backbox (e.g. integration) tests, which should also follow the encapsulation rules during test execution, can be written by turning the corresponding test sources set itself into a module by adding a `module-info.java`.
+Blackbox (e.g. integration) tests, which should also follow the encapsulation rules during test execution, can be written by turning the corresponding test sources set itself into a module by adding a `module-info.java`.
 This is shown in link:sample_java_modules_multi_project_with_integration_tests.html[this extended sample].
 
 As of Gradle 6.4, module support needs to be explicitly activated, which we do for all subprojects in the root build script like this:
