@@ -836,13 +836,13 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
     private String packagePrecompiledPlugins(Map<String, String> pluginToContent) {
         pluginToContent.each { pluginFile, pluginContent ->
-            file("plugins/src/main/groovy/plugins/$pluginFile") << pluginContent
+            file("plugins/src/main/groovy/$pluginFile").setText(pluginContent)
         }
-        file("plugins/build.gradle") << """
+        file("plugins/build.gradle").setText("""
             plugins {
                 id 'groovy-gradle-plugin'
             }
-        """
+        """)
 
         executer.inDirectory(file("plugins")).withTasks("jar").run()
                 .assertNotOutput("No valid plugin descriptors were found in META-INF/gradle-plugins")
