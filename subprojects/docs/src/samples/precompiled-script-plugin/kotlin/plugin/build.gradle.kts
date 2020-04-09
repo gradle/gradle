@@ -1,10 +1,8 @@
-// NOTE: Precompiled script plugins are only be written in Kotlin at the moment.
-
 plugins {
     `kotlin-dsl`
 }
 
-group = "org.gradle.sample"
+group = "com.example"
 version = "1.0"
 
 repositories {

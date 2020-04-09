@@ -495,6 +495,19 @@ To strike a balance between the security risks and the needs of people who may f
 
 We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at the `DEBUG` log level.
 
+## Precompiled Groovy script plugins
+
+Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
+
+Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
+They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
+
+For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
+
+Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
+
+There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
+
 ## Gradle module metadata can be made reproducible
 
 The Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution.

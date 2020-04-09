@@ -1,0 +1,6 @@
+plugins {
+    id 'groovy-gradle-plugin'
+}
+
+group = 'com.example'
+version = '1.0'

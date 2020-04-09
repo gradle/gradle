@@ -131,6 +131,11 @@ It is possible to embed sample sources, commands, and expected output directly i
 
 Samples and output belong under `src/samples` and are published beside the user manual. See the `org.gradle.samples` plugin.
 
+To run the samples tests:
+```
+./gradlew :docs:docsTest --tests "org.gradle.samples.ExemplarExternalSamplesFunctionalTest.*"
+```
+
 ## Groovy DSL Reference
 
 The DSL reference is authored in Docbook syntax, with sources under `src/docs/dsl`. 
