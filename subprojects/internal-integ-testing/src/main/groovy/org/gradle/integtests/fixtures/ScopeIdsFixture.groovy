@@ -134,17 +134,17 @@ class ScopeIdsFixture extends UserInitScriptExecuterFixture {
 
         // Assert that same IDs were used for all builds in build
         def allScopeIds = ids.values()
-        def buildInvocationIds = allScopeIds.buildInvocation
+        def buildInvocationIds = allScopeIds*.buildInvocation
 
         assert buildInvocationIds.unique(false).size() == 1
 
         if (!disableConsistentWorkspaceIdCheck) {
-            def workspaceIds = allScopeIds.workspace
+            def workspaceIds = allScopeIds*.workspace
             assert workspaceIds.unique(false).size() == 1
         }
 
         if (!disableConsistentUserIdCheck) {
-            def userIds = allScopeIds.user
+            def userIds = allScopeIds*.user
             assert userIds.unique(false).size() == 1
         }
 
