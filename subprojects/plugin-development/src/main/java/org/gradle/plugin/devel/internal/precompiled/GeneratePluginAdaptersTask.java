@@ -140,15 +140,11 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
         String targetClass = scriptPlugin.getTargetClassName();
         File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
 
-        StringBuilder pluginImports = new StringBuilder();
         StringBuilder applyPlugins = new StringBuilder();
         if (!pluginRequests.isEmpty()) {
-            pluginImports.append("import java.util.Map;\n").append("import java.util.HashMap;\n");
-            applyPlugins.append("Map<String, String> plugins = new HashMap<>(); ");
             for (PluginRequest pluginRequest : pluginRequests) {
-                applyPlugins.append("plugins.put(\"plugin\", \"").append(pluginRequest.getId().getId()).append("\"); ");
+                applyPlugins.append("target.getPluginManager().apply(\"").append(pluginRequest.getId().getId()).append("\"); ");
             }
-            applyPlugins.append("target.apply(plugins);");
         }
 
         try (BufferedWriter writer = Files.newBufferedWriter(Paths.get(outputFile.toURI()))) {
@@ -158,7 +154,6 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.write("import org.gradle.groovy.scripts.TextResourceScriptSource;\n");
             writer.write("import org.gradle.internal.resource.StringTextResource;\n");
             writer.write("import org.gradle.internal.service.ServiceRegistry;\n");
-            writer.write(pluginImports + "\n");
             writer.write("/**\n");
             writer.write(" * Precompiled " + scriptPlugin.getId() + " script plugin.\n");
             writer.write(" **/\n");
