@@ -38,6 +38,7 @@ Some plugins will break with this new version of Gradle, for example because the
 
 === Potential breaking changes
 
+[[upgrade:pmd_expects_6]]
 ==== PMD plugin expects PMD 6.0.0 or higher by default
 
 Gradle 6.4 enabled incremental analysis by default.

@@ -498,7 +498,7 @@ There is also a [sample](samples/sample_precompiled_script_plugin.html) availabl
 
 As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default.
 
-For builds relying on an older version of PMD, you may need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#pmd_plugin_requires_pmd_6_0_0_or_higher_by_default). 
+For builds relying on an older version of PMD, you may need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#upgrade:pmd_expects_6). 
 
 ### Specify number of violations required before the build fails (PMD)
 
