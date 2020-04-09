@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.function.Function;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATED;
@@ -43,12 +45,14 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
     private final BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(4096);
     private final Thread eventConsumerThread;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
+    private final FileWatcherUpdater fileWatcherUpdater;
 
     private volatile boolean consumeEvents = true;
     private volatile boolean stopping = false;
 
-    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
+    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler, Function<FileWatcher, FileWatcherUpdater> watcherUpdaterCreator) {
         this.watcher = createWatcher(watcherCreator);
+        this.fileWatcherUpdater = watcherUpdaterCreator.apply(watcher);
         this.eventConsumerThread = createAndStartEventConsumerThread(handler);
     }
 
@@ -104,8 +108,9 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
         return thread;
     }
 
-    public FileWatcher getWatcher() {
-        return watcher;
+    @Override
+    public FileWatcherUpdater getFileWatcherUpdater() {
+        return fileWatcherUpdater;
     }
 
     private FileWatcher createWatcher(FileWatcherCreator watcherCreator) {

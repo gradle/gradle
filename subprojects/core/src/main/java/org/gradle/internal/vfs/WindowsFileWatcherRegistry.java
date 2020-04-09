@@ -21,7 +21,7 @@ import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 
-public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
+public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
 
     private static final int BUFFER_SIZE = 128 * 1024;
 
@@ -31,7 +31,8 @@ public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherR
                 .newWatcher(eventQueue)
                 .withBufferSize(BUFFER_SIZE)
                 .start(),
-            handler
+            handler,
+            HierarchicalFileWatcherUpdater::new
         );
     }
 
