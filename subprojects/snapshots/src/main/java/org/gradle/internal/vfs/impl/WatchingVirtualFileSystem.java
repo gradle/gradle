@@ -183,7 +183,11 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     try {
-                        fileEvents.put(new FileEvent(path, type));
+                        if (fileEvents.remainingCapacity() > 1) {
+                            fileEvents.put(new FileEvent(path, type));
+                        } else {
+                            fileEvents.offer(new FileEvent(true));
+                        }
                     } catch (InterruptedException e) {
                         Thread.currentThread().interrupt();
                         throw new RuntimeException(e);
@@ -192,12 +196,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
                 @Override
                 public void handleLostState() {
-                    try {
-                        fileEvents.put(new FileEvent(true));
-                    } catch (InterruptedException e) {
-                        Thread.currentThread().interrupt();
-                        throw new RuntimeException(e);
-                    }
+                    fileEvents.offer(new FileEvent(true));
                 }
             });
             getRoot().update(SnapshotHierarchy::empty);
