@@ -49,6 +49,29 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         outputContains("Module Version: 1.0-beta2")
     }
 
+    def "runs a module accessing resources using the module path with the application plugin"() {
+        given:
+        buildFile.text = buildFile.text.replace('java-library', 'application')
+        buildFile << """
+            application {
+                mainClass.set('consumer.MainModule')
+                mainModule.set('consumer')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        def mainClass = consumingModuleClass('moda.ModaClass')
+        mainClass.text = mainClass.text.replace('.run()', '.run(); MainModule.class.getModule().getResourceAsStream("data.txt").readAllBytes()')
+        file('src/main/resources/data.txt').text = "some data"
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
     def "runs a module using the module path with main class defined in compile task"() {
         given:
         buildFile << """
