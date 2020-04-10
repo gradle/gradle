@@ -369,8 +369,11 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
                 void finished($BuildOperationDescriptor.name buildOperation, $OperationFinishEvent.name finishEvent) {
                     logger.lifecycle "finished operation"
                 }
+            } 
+            manager.addListener(listener) 
+            gradle.buildFinished {
+                manager.removeListener(listener)
             }
-            manager.addListener(listener)
             task t
         """
 
