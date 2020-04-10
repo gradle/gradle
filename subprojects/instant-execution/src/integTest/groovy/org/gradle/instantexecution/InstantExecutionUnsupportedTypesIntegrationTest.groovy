@@ -103,19 +103,19 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
             class SomeTask extends DefaultTask {
                 private final ${baseType.name} badReference
                 private final bean = new SomeBean()
-                private final sameBean = new SomeBean()
+                private final beanWithSameType = new SomeBean()
 
                 SomeTask() {
                     badReference = ${reference}
                     bean.badReference = ${reference}
-                    sameBean.badReference = ${reference}
+                    beanWithSameType.badReference = ${reference}
                 }
 
                 @TaskAction
                 void run() {
                     println "this.reference = " + badReference
                     println "bean.reference = " + bean.badReference
-                    println "sameBean.reference = " + sameBean.badReference
+                    println "beanWithSameType.reference = " + beanWithSameType.badReference
                 }
             }
 
@@ -154,7 +154,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         and:
         outputContains("this.reference = null")
         outputContains("bean.reference = null")
-        outputContains("sameBean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         where:
         concreteType                          | baseType                       | reference
@@ -216,19 +216,19 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
             class SomeTask extends DefaultTask {
                 private final ${baseType.name} badField
                 private final bean = new SomeBean()
-                private final sameBean = new SomeBean()
+                private final beanWithSameType = new SomeBean()
 
                 SomeTask() {
                     badField = ${reference}
                     bean.badField = ${reference}
-                    sameBean.badField = ${reference}
+                    beanWithSameType.badField = ${reference}
                 }
 
                 @TaskAction
                 void run() {
                     println "this.reference = " + badField
                     println "bean.reference = " + bean.badField
-                    println "sameBean.reference = " + sameBean.badField
+                    println "beanWithSameType.reference = " + beanWithSameType.badField
                 }
             }
 
@@ -269,7 +269,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         and:
         outputContains("this.reference = null")
         outputContains("bean.reference = null")
-        outputContains("sameBean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         where:
         concreteType         | baseType      | reference                                    | deserializedValue
