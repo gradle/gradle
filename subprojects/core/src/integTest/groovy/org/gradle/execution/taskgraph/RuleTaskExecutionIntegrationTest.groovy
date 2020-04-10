@@ -23,8 +23,14 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
 
     def setup() {
         buildFile << """
-            gradle.buildFinished {
-                file("tasks.txt").text = allprojects*.tasks.flatten().grep({ it.group == "mygroup" })*.path.join("\\n")
+            def tasksFile = file("tasks.txt")
+            tasksFile.text = ''
+            gradle.taskGraph.whenReady {
+                allprojects {
+                    tasks.matching { it.group == "mygroup" }.all {
+                        tasksFile << path + '\\n'
+                    }
+                }
             }
         """
     }
