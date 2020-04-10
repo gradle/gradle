@@ -66,7 +66,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
 }
 
 
-internal
+private
 class ConsumerProvidedVariantSpec(
     val node: TransformationNode,
     val variantDisplayName: DisplayName,
@@ -74,7 +74,7 @@ class ConsumerProvidedVariantSpec(
 )
 
 
-internal
+private
 class CollectingArtifactVisitor : ArtifactVisitor {
     val elements = mutableListOf<Any>()
     val failures = mutableListOf<Throwable>()
@@ -114,7 +114,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
 }
 
 
-internal
+private
 class FixedArtifactCollection(
     private val artifactFiles: FileCollection,
     private val elements: List<Any>,
