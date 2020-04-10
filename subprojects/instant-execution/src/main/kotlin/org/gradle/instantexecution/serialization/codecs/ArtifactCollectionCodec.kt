@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 import org.gradle.api.attributes.AttributeContainer
 import org.gradle.api.component.Artifact
@@ -37,6 +38,7 @@ import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readList
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.internal.DisplayName
+import java.io.File
 import java.util.concurrent.Callable
 
 
@@ -55,7 +57,7 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         @Suppress("implicit_cast_to_any")
         val files = fileCollectionFactory.resolving(elements.map {
             when (it) {
-                is ResolvedArtifactResult -> it.file
+                is ResolvedArtifactResultSpec -> it.file
                 is ConsumerProvidedVariantSpec -> Callable { it.node.transformedSubject.get().files }
                 else -> throw IllegalArgumentException("Unexpected element $it in artifact collection")
             }
@@ -64,6 +66,15 @@ class ArtifactCollectionCodec(private val fileCollectionFactory: FileCollectionF
         return FixedArtifactCollection(files, elements, failures)
     }
 }
+
+
+private
+class ResolvedArtifactResultSpec(
+    val id: ComponentArtifactIdentifier,
+    val variantAttributes: AttributeContainer,
+    val variantDisplayName: DisplayName,
+    val file: File
+)
 
 
 private
@@ -95,7 +106,7 @@ class CollectingArtifactVisitor : ArtifactVisitor {
     }
 
     override fun visitArtifact(variantName: DisplayName, variantAttributes: AttributeContainer, artifact: ResolvableArtifact) {
-        elements.add(DefaultResolvedArtifactResult(artifact.id, variantAttributes, variantName, Artifact::class.java, artifact.file))
+        elements.add(ResolvedArtifactResultSpec(artifact.id, variantAttributes, variantName, artifact.file))
     }
 
     override fun endVisitCollection(source: FileCollectionInternal.Source) {
@@ -132,7 +143,7 @@ class FixedArtifactCollection(
         val result = mutableSetOf<ResolvedArtifactResult>()
         for (element in elements) {
             when (element) {
-                is ResolvedArtifactResult -> result.add(element)
+                is ResolvedArtifactResultSpec -> result.add(DefaultResolvedArtifactResult(element.id, element.variantAttributes, element.variantDisplayName, Artifact::class.java, element.file))
                 is ConsumerProvidedVariantSpec -> {
                     for (output in element.node.transformedSubject.get().files) {
                         val resolvedArtifact: ResolvableArtifact = element.node.inputArtifact.transformedTo(output)
