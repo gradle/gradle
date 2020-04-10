@@ -62,20 +62,18 @@ For more details, head over to the documentation on
 [building modular applications](userguide/application_plugin.html#sec:application_modular) and 
 [testing modules](userguide/java_testing.html#sec:java_testing_modular).
 
-Also feel free to explore [the samples we have prepared](samples/#java_modules).
+Also feel free to explore [the samples](samples/#java_modules).
 
-## Dependency Management Improvements
+## Dependency management improvements
 
 <a name="dm-lock-format"></a>
 ### New dependency locking file format
 
-Gradle 6.4 introduces an experimental dependency locking file format.
-With this format, Gradle generates a single lock file per project instead of a file per locked configuration.
-The main benefit is a reduction in the total number of lock files in a given project.
+[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when dependencies use version ranges. Gradle has had support for dependency locking for several years, and in this release, Gradle has a new experimental dependency locking file format.
+With this format, Gradle generates a single lock file per project instead of a file per locked configuration to reduce the total number of lock files in a given project.
 
 In addition, when using this format, the lock file name can be configured.
-This enables use cases where a given project may resolve different dependency graphs for the same configuration based on some project state.
-A typical example in the JVM world are Scala projects where the Scala version is encoded in dependency names.
+This enables use cases where a given project may resolve different dependency graphs for the same configuration based on some project state as seen in Scala projects where the Scala version is encoded in dependency names.
 
 The format is expected to become the default lock file format in Gradle 7.0. For now, the format is experimental and requires your build to opt-in to try out the new format.
 
@@ -455,7 +453,6 @@ Gradle 6.4 takes a first step in improving those error messages by making them m
                                 Uv5CRRS2JVvrCwvPCPFYdbmnE04sRKWYYyF+vlA9qi2qS2EhPDvwKwujfVdYeE6IedVlqPZYSH2O
                                 hfi1vdp51SUqS9SXyd8U8JJAV1h4ThiOvrAQ6e2isLCgoLCwoKCgoKCgoGAYGM7ppODN4jfM+Aok
                                 sRq1uwAAAABJRU5ErkJggg==">
-
 ### Gradle module metadata can be made reproducible
 
 The Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution.
@@ -486,12 +483,12 @@ Precompiled script plugins are covered in more depth in the [user manual](usergu
 
 There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
 
-## Improvements to code quality plugins
+## Improvements to Java code quality plugins
 
 <a name="code-quality"></a>
-### Incremental Analysis is enabled by default (PMD)
+### Incremental analysis is enabled by default (PMD)
 
-As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default.
+As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default. This can significantly reduce analysis time on subsequent builds.
 
 For builds relying on a version of PMD older than 6.0.0, you will need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#upgrade:pmd_expects_6). 
 
@@ -510,11 +507,10 @@ pmd {
 
 This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
-## Security Improvements
+## Security improvements
 
-During our investigation into a recent security vulnerability on the [Plugin Portal](https://blog.gradle.org/plugin-portal-update), we became aware of how much potentially sensitive information 
-is logged when Gradle is executed with debug level logging, such as sensitive credentials, authentication tokens or internal repository URLs. 
-This information can be exposed when Gradle builds are executed on Continuous Integration services where build logs are publicly-accessible. 
+Potentially sensitive information is logged when Gradle is executed with debug level logging, such as sensitive credentials, authentication tokens or internal repository URLs. 
+This information can be unintentionally exposed when Gradle builds are executed on Continuous Integration services where build logs are publicly-accessible. See the recent update about the fixed [Plugin Portal vulnerability](https://blog.gradle.org/plugin-portal-update) for an example of this security risk.
 
 Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle. While debugging, this information may also be inherently useful.
 
