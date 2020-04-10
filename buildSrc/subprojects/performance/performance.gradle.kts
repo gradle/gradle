@@ -1,3 +1,7 @@
+plugins {
+    `groovy-gradle-plugin`
+}
+
 dependencies {
     api(project(":integrationTesting"))
     implementation(project(":build"))
