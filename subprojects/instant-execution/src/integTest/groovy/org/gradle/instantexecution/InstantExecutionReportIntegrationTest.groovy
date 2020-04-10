@@ -284,6 +284,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         "Gradle.addBuildListener" | "gradle.addBuildListener(new BuildAdapter())"
         "Gradle.addListener"      | "gradle.addListener(new BuildAdapter())"
         "Gradle.buildStarted"     | "gradle.buildStarted {}"
+        "Gradle.buildFinished"    | "gradle.buildFinished {}"
     }
 
     @Unroll
