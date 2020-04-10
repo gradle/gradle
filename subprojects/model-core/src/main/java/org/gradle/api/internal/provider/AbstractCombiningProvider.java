@@ -36,17 +36,17 @@ public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractM
     }
 
     @Override
-    public boolean isPresent() {
-        return left.isPresent() && right.isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return left.calculatePresence(consumer) && right.calculatePresence(consumer);
     }
 
     @Override
-    protected Value<OUT> calculateOwnValue() {
-        Value<? extends BASE> leftValue = left.calculateValue();
+    protected Value<OUT> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends BASE> leftValue = left.calculateValue(consumer);
         if (leftValue.isMissing()) {
             return leftValue.asType();
         }
-        Value<? extends IN> rightValue = right.calculateValue();
+        Value<? extends IN> rightValue = right.calculateValue(consumer);
         if (rightValue.isMissing()) {
             return rightValue.asType();
         }

@@ -319,7 +319,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
 
         @Override
-        public Set<FileSystemLocation> get() {
+        protected Value<Set<FileSystemLocation>> calculateOwnValue(ValueConsumer consumer) {
             // TODO - visit the contents of this collection instead.
             // This is just a super simple implementation for now
             Set<File> files = collection.getFiles();
@@ -327,7 +327,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             for (File file : files) {
                 builder.add(new DefaultFileSystemLocation(file));
             }
-            return builder.build();
+            return Value.of(builder.build());
         }
     }
 

@@ -46,13 +46,13 @@ public class MappingProvider<OUT, IN> extends AbstractMinimalProvider<OUT> {
     }
 
     @Override
-    public boolean isPresent() {
-        return provider.isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return provider.calculatePresence(consumer);
     }
 
     @Override
-    protected Value<OUT> calculateOwnValue() {
-        Value<? extends IN> value = provider.calculateValue();
+    protected Value<OUT> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends IN> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return value.asType();
         }

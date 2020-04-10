@@ -37,17 +37,17 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public boolean isPresent() {
-        return backingProvider().isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return backingProvider(consumer).calculatePresence(consumer);
     }
 
     @Override
-    protected Value<? extends S> calculateOwnValue() {
-        Value<? extends T> value = provider.calculateValue();
+    protected Value<? extends S> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return value.asType();
         }
-        return doMapValue(value.get()).calculateValue();
+        return doMapValue(value.get()).calculateValue(consumer);
     }
 
     private ProviderInternal<? extends S> doMapValue(T value) {
@@ -58,8 +58,8 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return Providers.internal(result);
     }
 
-    public ProviderInternal<? extends S> backingProvider() {
-        Value<? extends T> value = provider.calculateValue();
+    private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return Providers.notDefined();
         }
@@ -68,12 +68,12 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
 
     @Override
     public ValueProducer getProducer() {
-        return backingProvider().getProducer();
+        return backingProvider(ValueConsumer.Lenient).getProducer();
     }
 
     @Override
     public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
-        return backingProvider().calculateExecutionTimeValue();
+        return backingProvider(ValueConsumer.Lenient).calculateExecutionTimeValue();
     }
 
     @Override

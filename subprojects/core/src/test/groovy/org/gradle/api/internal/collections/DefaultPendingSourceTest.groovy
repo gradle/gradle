@@ -30,9 +30,9 @@ class DefaultPendingSourceTest extends Specification {
 
     def setup() {
         pending.onRealize(realize)
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of("provider1")
-        _ * provider2.calculateValue() >> ValueSupplier.Value.of("provider2")
-        _ * provider3.calculateValue() >> ValueSupplier.Value.of("provider3")
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of("provider1")
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of("provider2")
+        _ * provider3.calculateValue(_) >> ValueSupplier.Value.of("provider3")
     }
 
     def "realizes pending elements on flush"() {

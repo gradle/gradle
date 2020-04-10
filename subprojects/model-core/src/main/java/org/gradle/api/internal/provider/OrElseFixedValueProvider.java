@@ -62,8 +62,12 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     }
 
     @Override
-    public T get() {
-        T value = provider.getOrNull();
-        return value != null ? value : fallbackValue;
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
+        if (value.isMissing()) {
+            return Value.of(fallbackValue);
+        } else {
+            return value;
+        }
     }
 }

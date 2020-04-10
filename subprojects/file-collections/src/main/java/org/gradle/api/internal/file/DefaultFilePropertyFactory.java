@@ -256,8 +256,8 @@ public class DefaultFilePropertyFactory implements FilePropertyFactory, FileFact
                 }
 
                 @Override
-                protected Value<? extends T> calculateOwnValue() {
-                    return calculateOwnValueNoProducer();
+                protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+                    return calculateOwnValueNoProducer(consumer);
                 }
             };
         }

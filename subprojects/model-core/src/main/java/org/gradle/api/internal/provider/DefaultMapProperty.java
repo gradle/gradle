@@ -236,13 +236,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     }
 
     @Override
-    protected Value<? extends Map<K, V>> calculateOwnValue(MapSupplier<K, V> value) {
-        return value.calculateValue();
+    protected Value<? extends Map<K, V>> calculateValueFrom(MapSupplier<K, V> value, ValueConsumer consumer) {
+        return value.calculateValue(consumer);
     }
 
     @Override
-    protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value) {
-        Value<? extends Map<K, V>> result = value.calculateValue();
+    protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value, ValueConsumer consumer) {
+        Value<? extends Map<K, V>> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
             Map<K, V> entries = result.get();
             return new FixedSuppler<>(entries);
@@ -272,8 +272,8 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        protected Value<? extends V> calculateOwnValue() {
-            Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue();
+        protected Value<? extends V> calculateOwnValue(ValueConsumer consumer) {
+            Value<? extends Map<K, V>> result = DefaultMapProperty.this.calculateOwnValue(consumer);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -290,9 +290,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        protected Value<? extends Set<K>> calculateOwnValue() {
-            beforeRead();
-            return getSupplier().calculateKeys();
+        protected Value<? extends Set<K>> calculateOwnValue(ValueConsumer consumer) {
+            beforeRead(consumer);
+            return getSupplier().calculateKeys(consumer);
         }
     }
 
@@ -305,17 +305,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return false;
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             return value;
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return value.asType();
         }
 
@@ -338,17 +338,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     private class EmptySupplier implements MapSupplier<K, V> {
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             return Value.of(ImmutableMap.of());
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return Value.of(ImmutableSet.of());
         }
 
@@ -377,17 +377,17 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             return Value.of(entries);
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             return Value.of(entries.keySet());
         }
 
@@ -415,15 +415,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
-            return collector.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return collector.calculatePresence(consumer);
         }
 
         @Override
-        public Value<? extends Set<K>> calculateKeys() {
+        public Value<? extends Set<K>> calculateKeys(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             ImmutableSet.Builder<K> builder = ImmutableSet.builder();
-            Value<Void> result = collector.collectKeys(keyCollector, builder);
+            Value<Void> result = collector.collectKeys(consumer, keyCollector, builder);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -431,13 +431,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public Value<? extends Map<K, V>> calculateValue() {
+        public Value<? extends Map<K, V>> calculateValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             // Cannot use ImmutableMap.Builder here, as it does not allow multiple entries with the same key, however the contract
             // for MapProperty allows a provider to override the entries of earlier providers and so there can be multiple entries
             // with the same key
             Map<K, V> entries = new LinkedHashMap<>();
-            Value<Void> result = collector.collectEntries(entryCollector, entries);
+            Value<Void> result = collector.collectEntries(consumer, entryCollector, entries);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -504,10 +504,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        protected Value<? extends Map<K, V>> calculateOwnValue() {
+        protected Value<? extends Map<K, V>> calculateOwnValue(ValueConsumer consumer) {
             Map<K, V> entries = new LinkedHashMap<>();
             for (ProviderInternal<? extends Map<? extends K, ? extends V>> provider : providers) {
-                Value<? extends Map<? extends K, ? extends V>> value = provider.calculateValue();
+                Value<? extends Map<? extends K, ? extends V>> value = provider.calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
@@ -527,26 +527,26 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         @Override
-        public boolean isPresent() {
-            return left.isPresent() && right.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
         }
 
         @Override
-        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<Void> result = left.collectEntries(collector, dest);
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<Void> result = left.collectEntries(consumer, collector, dest);
             if (result.isMissing()) {
                 return result;
             }
-            return right.collectEntries(collector, dest);
+            return right.collectEntries(consumer, collector, dest);
         }
 
         @Override
-        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            Value<Void> result = left.collectKeys(collector, dest);
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<Void> result = left.collectKeys(consumer, collector, dest);
             if (result.isMissing()) {
                 return result;
             }
-            return right.collectKeys(collector, dest);
+            return right.collectKeys(consumer, collector, dest);
         }
 
         @Override

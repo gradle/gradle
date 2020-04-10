@@ -29,7 +29,7 @@ import org.gradle.util.GUtil;
 import javax.annotation.Nullable;
 
 /**
- * A partial {@link Provider} implementation. Subclasses need to implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue()}.
+ * A partial {@link Provider} implementation. Subclasses must implement {@link ProviderInternal#getType()} and {@link AbstractMinimalProvider#calculateOwnValue(ValueConsumer)}.
  */
 public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>, Managed {
     private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this provider");
@@ -67,16 +67,21 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
         return DEFAULT_DISPLAY_NAME;
     }
 
-    protected abstract ValueSupplier.Value<? extends T> calculateOwnValue();
+    protected abstract ValueSupplier.Value<? extends T> calculateOwnValue(ValueConsumer consumer);
 
     @Override
     public boolean isPresent() {
-        return !calculateOwnValue().isMissing();
+        return calculatePresence(ValueConsumer.Lenient);
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return !calculateOwnValue(consumer).isMissing();
     }
 
     @Override
     public T get() {
-        Value<? extends T> value = calculateOwnValue();
+        Value<? extends T> value = calculateOwnValue(ValueConsumer.Lenient);
         if (value.isMissing()) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
@@ -95,17 +100,17 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T getOrNull() {
-        return calculateOwnValue().orNull();
+        return calculateOwnValue(ValueConsumer.Lenient).orNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
-        return calculateOwnValue().orElse(defaultValue);
+        return calculateOwnValue(ValueConsumer.Lenient).orElse(defaultValue);
     }
 
     @Override
-    public Value<? extends T> calculateValue() {
-        return calculateOwnValue().pushWhenMissing(getDeclaredDisplayName());
+    public Value<? extends T> calculateValue(ValueConsumer consumer) {
+        return calculateOwnValue(consumer).pushWhenMissing(getDeclaredDisplayName());
     }
 
     @Override
@@ -131,7 +136,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        return ExecutionTimeValue.value(calculateOwnValue());
+        return ExecutionTimeValue.value(calculateOwnValue(ValueConsumer.Lenient));
     }
 
     @Override
@@ -146,8 +151,8 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
-    public ProviderInternal<T> withFinalValue() {
-        return Providers.nullableValue(calculateValue());
+    public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
+        return Providers.nullableValue(calculateValue(consumer));
     }
 
     @Override

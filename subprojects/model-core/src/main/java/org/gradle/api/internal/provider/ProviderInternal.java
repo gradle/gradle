@@ -38,7 +38,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     /**
      * Calculates the current value of this provider.
      */
-    ValueSupplier.Value<? extends T> calculateValue();
+    ValueSupplier.Value<? extends T> calculateValue(ValueConsumer consumer);
 
     /**
      * Returns a view of this provider that can be used to supply a value to a {@link org.gradle.api.provider.Property} instance.
@@ -48,7 +48,7 @@ public interface ProviderInternal<T> extends Provider<T>, ValueSupplier, TaskDep
     /**
      * Returns a copy of this provider with a final value. The returned value is used to replace this provider by a property when the property is finalized.
      */
-    ProviderInternal<T> withFinalValue();
+    ProviderInternal<T> withFinalValue(ValueConsumer consumer);
 
     /**
      * Calculates the state of this provider that is required at execution time. The state is serialized to the instant execution cache, and recreated as a {@link Provider} implementation

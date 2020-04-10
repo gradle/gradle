@@ -23,25 +23,12 @@ import org.gradle.api.provider.Provider;
  */
 public abstract class AbstractProviderWithValue<T> extends AbstractMinimalProvider<T> {
     @Override
-    protected Value<? extends T> calculateOwnValue() {
-        return Value.of(get());
-    }
-
-    @Override
-    public abstract T get();
-
-    @Override
-    public T getOrNull() {
-        return get();
-    }
-
-    @Override
-    public T getOrElse(T defaultValue) {
-        return get();
-    }
-
-    @Override
     public boolean isPresent() {
+        return true;
+    }
+
+    @Override
+    public boolean calculatePresence(ValueConsumer consumer) {
         return true;
     }
 
