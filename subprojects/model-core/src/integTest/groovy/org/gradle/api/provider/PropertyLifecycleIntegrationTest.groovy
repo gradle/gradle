@@ -377,4 +377,61 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         outputContains("set after read failed with: The value for extension 'one' property 'prop' is final and cannot be changed any further.")
         output.count("value = value two") == 2
     }
+
+    def "finalizes upstream property when strict property is read"() {
+        given:
+        settingsFile << 'rootProject.name = "broken"'
+        buildFile << """
+            interface ProjectModel {
+                Property<String> getProp()
+            }
+
+            project.extensions.create('one', ProjectModel.class)
+            project.extensions.create('two', ProjectModel.class)
+            project.extensions.create('three', ProjectModel.class)
+            three.prop.disallowUnsafeRead()
+            three.prop = two.prop.map { "[\$it]" }
+            two.prop = one.prop.orElse("unknown")
+
+            gradle.taskGraph.whenReady {
+                println("three = " + three.prop.get())
+                println("two = " + two.prop.get())
+                println("one = " + one.prop.orNull)
+                try {
+                    three.prop.set("ignore me")
+                } catch(IllegalStateException e) {
+                    println("set three after read failed with: " + e.message)
+                }
+                try {
+                    two.prop.set("ignore me")
+                } catch(IllegalStateException e) {
+                    println("set two after read failed with: " + e.message)
+                }
+                try {
+                    one.prop.set("ignore me")
+                } catch(IllegalStateException e) {
+                    println("set one after read failed with: " + e.message)
+                }
+            }
+
+            task show {
+                doLast {
+                    println("three = " + three.prop.get())
+                    println("two = " + two.prop.get())
+                    println("one = " + one.prop.orNull)
+                }
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("set three after read failed with: The value for extension 'three' property 'prop' is final and cannot be changed any further.")
+        outputContains("set two after read failed with: The value for extension 'two' property 'prop' is final and cannot be changed any further.")
+        outputContains("set one after read failed with: The value for extension 'one' property 'prop' is final and cannot be changed any further.")
+        output.count("three = [unknown]") == 2
+        output.count("two = unknown") == 2
+        output.count("one = null") == 2
+    }
 }

@@ -445,7 +445,7 @@ abstract class ProviderSpec<T> extends Specification {
             }
 
             @Override
-            protected ValueSupplier.Value<T> calculateOwnValue() {
+            protected ValueSupplier.Value<T> calculateOwnValue(ValueSupplier.ValueConsumer consumer) {
                 throw new RuntimeException("broken!")
             }
         }

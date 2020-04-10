@@ -178,13 +178,13 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    protected Value<? extends C> calculateOwnValue(CollectionSupplier<T, C> value) {
-        return value.calculateValue();
+    protected Value<? extends C> calculateValueFrom(CollectionSupplier<T, C> value, ValueConsumer consumer) {
+        return value.calculateValue(consumer);
     }
 
     @Override
-    protected CollectionSupplier<T, C> finalValue(CollectionSupplier<T, C> value) {
-        Value<? extends C> result = value.calculateValue();
+    protected CollectionSupplier<T, C> finalValue(CollectionSupplier<T, C> value, ValueConsumer consumer) {
+        Value<? extends C> result = value.calculateValue(consumer);
         if (!result.isMissing()) {
             return new FixedSupplier<>(result.get());
         } else if (result.getPathToOrigin().isEmpty()) {
@@ -229,12 +229,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return false;
         }
 
         @Override
-        public Value<? extends C> calculateValue() {
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
             return value;
         }
 
@@ -257,12 +257,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     private class EmptySupplier implements CollectionSupplier<T, C> {
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<? extends C> calculateValue() {
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
             return Value.of(emptyCollection());
         }
 
@@ -291,12 +291,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<? extends C> calculateValue() {
+        public Value<? extends C> calculateValue(ValueConsumer consumer) {
             return Value.of(value);
         }
 
@@ -324,15 +324,15 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean isPresent() {
-            return value.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return value.calculatePresence(consumer);
         }
 
         @Override
-        public Value<C> calculateValue() {
+        public Value<C> calculateValue(ValueConsumer consumer) {
             // TODO - don't make a copy when the collector already produces an immutable collection
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
-            Value<Void> result = value.collectEntries(valueCollector, builder);
+            Value<Void> result = value.collectEntries(consumer, valueCollector, builder);
             if (result.isMissing()) {
                 return result.asType();
             }
@@ -406,10 +406,10 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        protected Value<? extends C> calculateOwnValue() {
+        protected Value<? extends C> calculateOwnValue(ValueConsumer consumer) {
             ImmutableCollection.Builder<T> builder = collectionFactory.get();
             for (ProviderInternal<? extends Iterable<? extends T>> provider : providers) {
-                Value<? extends Iterable<? extends T>> value = provider.calculateValue();
+                Value<? extends Iterable<? extends T>> value = provider.calculateValue(consumer);
                 if (value.isMissing()) {
                     return Value.missing();
                 }
@@ -429,8 +429,8 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public boolean isPresent() {
-            return left.isPresent() && right.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return left.calculatePresence(consumer) && right.calculatePresence(consumer);
         }
 
         @Override
@@ -439,12 +439,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
         }
 
         @Override
-        public Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
-            Value<Void> value = left.collectEntries(collector, dest);
+        public Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest) {
+            Value<Void> value = left.collectEntries(consumer, collector, dest);
             if (value.isMissing()) {
                 return value;
             }
-            return right.collectEntries(collector, dest);
+            return right.collectEntries(consumer, collector, dest);
         }
 
         @Override

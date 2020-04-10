@@ -26,9 +26,9 @@ import java.util.Map;
  */
 public interface MapCollector<K, V> extends ValueSupplier {
 
-    Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest);
+    Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest);
 
-    Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
+    Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 
     void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor);
 }

@@ -221,7 +221,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         !result
 
         and:
-        1 * provider.calculateValue() >> ValueSupplier.Value.of(a)
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of(a)
         0 * _
     }
 
@@ -241,7 +241,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         _ * provider.size() >> 2
-        1 * provider.calculateValue() >> ValueSupplier.Value.of([a, d])
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of([a, d])
         0 * _
     }
 
@@ -288,8 +288,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(b, a, d, c)
 
         and:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(d)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(d)
         0 * _
     }
 
@@ -310,7 +310,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         and:
         _ * provider1.size() >> 2
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a, d])
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of([a, d])
         0 * _
     }
 
@@ -422,7 +422,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         1 * action.execute(c)
         _ * provider1.type >> type
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(c)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(c)
         0 * _
 
         when:
@@ -449,7 +449,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         1 * action.execute(c)
         _ * provider1.elementType >> type
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of([c])
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of([c])
         _ * provider1.size() >> 1
         0 * _
 
@@ -494,7 +494,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result == iterationOrder(c, a)
         _ * provider.type >> type
-        1 * provider.calculateValue() >> ValueSupplier.Value.of(a)
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of(a)
         0 * _
 
         when:
@@ -526,7 +526,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result == iterationOrder(c, a, b)
         _ * provider.size() >> 2
-        1 * provider.calculateValue() >> ValueSupplier.Value.of([a, b])
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of([a, b])
         0 * _
 
         when:
@@ -564,7 +564,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         result2 == iterationOrder(c, a, d)
-        1 * provider.calculateValue() >> ValueSupplier.Value.of(a)
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of(a)
         0 * _
     }
 
@@ -597,7 +597,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         result2 == iterationOrder(c, a, b, d)
         _ * provider.size() >> 2
-        1 * provider.calculateValue() >> ValueSupplier.Value.of([a, b])
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of([a, b])
         0 * _
     }
 
@@ -675,7 +675,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider1.type >> type
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(c)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(c)
         1 * action.execute(c)
         0 * _
 
@@ -704,7 +704,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.elementType >> type
         _ * provider1.size() >> 1
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of([c])
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of([c])
         1 * action.execute(c)
         0 * _
 
@@ -790,7 +790,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container)
 
         then:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         1 * action.execute(a)
         0 * _
 
@@ -805,7 +805,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         toList(container)
 
         then:
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(c)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(c)
         1 * action.execute(c)
         0 * _
 
@@ -821,7 +821,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider3.size() >> 2
-        1 * provider3.calculateValue() >> ValueSupplier.Value.of([b, d])
+        1 * provider3.calculateValue(_) >> ValueSupplier.Value.of([b, d])
         1 * action.execute(b)
         1 * action.execute(d)
         0 * _
@@ -834,8 +834,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def providerOfIterable = Mock(CollectionProviderInternal)
 
         given:
-        _ * provider.calculateValue() >> ValueSupplier.Value.of(a)
-        _ * providerOfIterable.calculateValue() >> ValueSupplier.Value.of([b, c])
+        _ * provider.calculateValue(_) >> ValueSupplier.Value.of(a)
+        _ * providerOfIterable.calculateValue(_) >> ValueSupplier.Value.of([b, c])
         container.addLater(provider)
         container.addAllLater(providerOfIterable)
         toList(container)
@@ -888,10 +888,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         _ * provider1.type >> type
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         1 * action.execute(a)
         _ * provider2.type >> otherType
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(d)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(d)
         0 * _
 
         when:
@@ -925,12 +925,12 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.elementType >> type
         _ * provider1.size() >> 2
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a, c])
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of([a, c])
         1 * action.execute(a)
         1 * action.execute(c)
         _ * provider2.elementType >> otherType
         _ * provider2.size() >> 1
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of([d])
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of([d])
         0 * _
 
         when:
@@ -963,8 +963,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result = toList(filtered)
 
         then:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         0 * _
 
         and:
@@ -1002,8 +1002,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.size() >> 1
         _ * provider2.size() >> 2
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a])
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of([c, b])
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of([a])
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of([c, b])
         0 * _
 
         and:
@@ -1039,7 +1039,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         0 * provider1.get() >> a
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         0 * _
 
         and:
@@ -1078,7 +1078,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         _ * provider1.size() >> 1
         _ * provider2.size() >> 2
         0 * provider1.get()
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of([b, c])
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of([b, c])
         0 * _
 
         and:
@@ -1113,8 +1113,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result = toList(filtered)
 
         then:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         0 * _
 
         and:
@@ -1149,7 +1149,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         def result = toList(container)
 
         then:
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         0 * _
 
         and:
@@ -1197,10 +1197,10 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider1.present >> true
         _ * provider2.type >> type
-        _ * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         _ * provider2.present >> true
         _ * provider3.type >> otherType
         container.addLater(provider1)
@@ -1242,7 +1242,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider2.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)
@@ -1268,7 +1268,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider1.get() >> a
         _ * provider1.present >> true
         _ * provider2.type >> otherType
@@ -1312,7 +1312,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider2.type >> otherType
         container.addLater(provider1)
         container.addLater(provider2)
@@ -1370,9 +1370,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider2.type >> otherType
-        _ * provider2.calculateValue() >> ValueSupplier.Value.of(d)
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of(d)
         container.addLater(provider1)
         container.addLater(provider2)
         container.whenObjectRemoved(action)
@@ -1387,7 +1387,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(d)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(d)
         1 * action.execute(a)
         1 * action.execute(d)
         0 * _
@@ -1420,8 +1420,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         0 * _
 
         when:
@@ -1441,9 +1441,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider2.type >> otherType
-        _ * provider2.calculateValue() >> ValueSupplier.Value.of(d)
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of(d)
         container.addLater(provider1)
         container.addLater(provider2)
 
@@ -1457,7 +1457,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         didRetained
 
         and:
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(d)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(d)
         0 * _
 
         when:
@@ -1497,8 +1497,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         then:
         _ * provider1.size() >> 1
         _ * provider2.size() >> 2
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of([a])
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of([b, c])
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of([a])
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of([b, c])
         0 * _
 
         and:
@@ -1525,7 +1525,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         container.withType(type).iterator()
 
         then:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         0 * _
 
         when:
@@ -1533,7 +1533,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         then:
         0 * provider1.get()
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         0 * _
 
         and:
@@ -1548,9 +1548,9 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider2.type >> type
-        _ * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        _ * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         container.addLater(provider1)
         container.addLater(provider2)
         container.whenObjectRemoved(action)
@@ -1565,8 +1565,8 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
         result == iterationOrder(b)
 
         and:
-        1 * provider1.calculateValue() >> ValueSupplier.Value.of(a)
-        1 * provider2.calculateValue() >> ValueSupplier.Value.of(b)
+        1 * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
+        1 * provider2.calculateValue(_) >> ValueSupplier.Value.of(b)
         1 * action.execute(a)
         0 * _
     }
@@ -1579,7 +1579,7 @@ abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
         given:
         _ * provider1.type >> type
-        _ * provider1.calculateValue() >> ValueSupplier.Value.of(a)
+        _ * provider1.calculateValue(_) >> ValueSupplier.Value.of(a)
         _ * provider1.get() >> a
         _ * provider1.present >> true
         _ * provider2.type >> otherType

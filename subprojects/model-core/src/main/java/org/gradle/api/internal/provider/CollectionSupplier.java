@@ -19,7 +19,7 @@ package org.gradle.api.internal.provider;
 import java.util.Collection;
 
 interface CollectionSupplier<T, C extends Collection<? extends T>> extends ValueSupplier {
-    Value<? extends C> calculateValue();
+    Value<? extends C> calculateValue(ValueConsumer consumer);
 
     CollectionSupplier<T, C> plus(Collector<T> collector);
 

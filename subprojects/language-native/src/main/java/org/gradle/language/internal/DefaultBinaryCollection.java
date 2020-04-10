@@ -217,7 +217,7 @@ public class DefaultBinaryCollection<T extends SoftwareComponent> implements Bin
         }
 
         @Override
-        protected Value<S> calculateOwnValue() {
+        protected Value<S> calculateOwnValue(ValueConsumer consumer) {
             if (ambiguous) {
                 throw new IllegalStateException("Found multiple elements");
             }

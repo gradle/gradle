@@ -831,7 +831,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;
         }
 
@@ -854,7 +854,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return getOrNull() != null;
         }
 
@@ -867,7 +867,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        protected Value<I> calculateOwnValue() {
+        protected Value<I> calculateOwnValue(ValueConsumer consumer) {
             return Value.ofNullable(Cast.uncheckedCast(findByNameWithoutRules(getName())));
         }
     }
@@ -888,7 +888,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;
         }
 
@@ -916,7 +916,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        protected Value<? extends I> calculateOwnValue() {
+        protected Value<? extends I> calculateOwnValue(ValueConsumer consumer) {
             if (wasElementRemoved()) {
                 return Value.missing();
             }

@@ -83,12 +83,12 @@ public class ProviderTestUtil {
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return values.hasNext();
         }
 
         @Override
-        protected Value<? extends T> calculateOwnValue() {
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return values.hasNext() ? Value.of(values.next()) : Value.missing();
         }
     }

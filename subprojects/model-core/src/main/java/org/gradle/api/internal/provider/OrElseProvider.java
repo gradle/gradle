@@ -43,17 +43,17 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public boolean isPresent() {
-        return left.isPresent() || right.isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return left.calculatePresence(consumer) || right.calculatePresence(consumer);
     }
 
     @Override
-    protected Value<? extends T> calculateOwnValue() {
-        Value<? extends T> leftValue = left.calculateValue();
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> leftValue = left.calculateValue(consumer);
         if (!leftValue.isMissing()) {
             return leftValue;
         }
-        Value<? extends T> rightValue = right.calculateValue();
+        Value<? extends T> rightValue = right.calculateValue(consumer);
         if (!rightValue.isMissing()) {
             return rightValue;
         }

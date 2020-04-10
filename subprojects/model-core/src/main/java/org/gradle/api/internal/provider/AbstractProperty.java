@@ -52,10 +52,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public boolean isPresent() {
-        beforeRead(producer);
+    public boolean calculatePresence(ValueConsumer consumer) {
+        beforeRead(producer, consumer);
         try {
-            return getSupplier().isPresent();
+            return getSupplier().calculatePresence(consumer);
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
@@ -116,21 +116,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return value;
     }
 
-    protected Value<? extends T> calculateOwnValueNoProducer() {
-        beforeRead(null);
-        return doCalculateValue();
+    protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
+        beforeRead(null, consumer);
+        return doCalculateValue(consumer);
     }
 
     @Override
-    protected Value<? extends T> calculateOwnValue() {
-        beforeRead(producer);
-        return doCalculateValue();
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        beforeRead(producer, consumer);
+        return doCalculateValue(consumer);
     }
 
     @NotNull
-    private Value<? extends T> doCalculateValue() {
+    private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
         try {
-            return calculateOwnValue(value);
+            return calculateValueFrom(value, consumer);
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
@@ -140,11 +140,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
-    protected abstract Value<? extends T> calculateOwnValue(S value);
+    protected abstract Value<? extends T> calculateValueFrom(S value, ValueConsumer consumer);
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        beforeRead(producer);
+        beforeRead(producer, ValueConsumer.Lenient);
         ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
         if (getProducerTask() == null) {
             return value;
@@ -183,7 +183,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     @Override
     public void finalizeValue() {
         if (state.shouldFinalize(getDisplayName(), producer)) {
-            finalizeNow();
+            finalizeNow(ValueConsumer.Lenient);
         }
     }
 
@@ -207,7 +207,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.disallowUnsafeRead();
     }
 
-    protected abstract S finalValue(S value);
+    protected abstract S finalValue(S value, ValueConsumer consumer);
 
     protected void setSupplier(S supplier) {
         assertCanMutate();
@@ -222,20 +222,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     /**
      * Call prior to reading the value of this property.
      */
-    protected void beforeRead() {
-        beforeRead(producer);
+    protected void beforeRead(ValueConsumer consumer) {
+        beforeRead(producer, consumer);
     }
 
-    private void beforeRead(@Nullable ModelObject effectiveProducer) {
-        state.beforeRead(getDisplayName(), effectiveProducer);
-        if (state.isFinalizeOnRead()) {
-            finalizeNow();
+    private void beforeRead(@Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
+        if (state.maybeFinalizeOnRead(getDisplayName(), effectiveProducer, consumer)) {
+            finalizeNow(state.forUpstream(consumer));
         }
     }
 
-    private void finalizeNow() {
+    private void finalizeNow(ValueConsumer consumer) {
         try {
-            value = finalValue(value);
+            value = finalValue(value, state.forUpstream(consumer));
         } catch (Exception e) {
             if (displayName != null) {
                 throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
@@ -327,11 +326,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         public abstract S implicitValue();
 
-        public abstract boolean isFinalizeOnRead();
-
-        public abstract void beforeRead(DisplayName displayName, @Nullable ModelObject producer);
+        public abstract boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer);
 
         public abstract void beforeMutate(DisplayName displayName);
+
+        public abstract ValueConsumer forUpstream(ValueConsumer consumer);
     }
 
     private static class NonFinalizedValue<S> extends FinalizationState<S> {
@@ -369,12 +368,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public boolean isFinalizeOnRead() {
-            return finalizeOnNextGet;
-        }
-
-        @Override
-        public void beforeRead(DisplayName displayName, @Nullable ModelObject producer) {
+        public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
             if (disallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
@@ -386,6 +380,16 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
                     formatter.append(".");
                     throw new IllegalStateException(formatter.toString());
                 }
+            }
+            return finalizeOnNextGet || consumer == ValueConsumer.Strict;
+        }
+
+        @Override
+        public ValueConsumer forUpstream(ValueConsumer consumer) {
+            if (disallowUnsafeRead) {
+                return ValueConsumer.Strict;
+            } else {
+                return consumer;
             }
         }
 
@@ -470,13 +474,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public void beforeRead(DisplayName displayName, @Nullable ModelObject producer) {
-            // Value is available
+        public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
+            // Already finalized
+            return false;
         }
 
         @Override
-        public boolean isFinalizeOnRead() {
-            return false;
+        public ValueConsumer forUpstream(ValueConsumer consumer) {
+            return consumer;
         }
 
         @Override
