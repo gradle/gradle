@@ -19,7 +19,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  */
 
 plugins {
-    id 'binary-compatibility'
+    id 'gradlebuild.binary-compatibility'
 }
 
 // This is a groovy project because we have int tests.
