@@ -1,7 +1,7 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features support for [building and testing Java Modules](#java-modules), better [diagnostics for dependency management failures](#dm-variant-error) and a [new experimental lock file format](#dm-lock-format).
-This release also adds [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL, [enables PMD's incremental analysis by default](#code-quality) and more.
+This release features support for [building and testing Java Modules](#java-modules) and [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL.
+This release also has better [diagnostics for dependency management failures](#dm-variant-error), adds a [new experimental lock file format](#dm-lock-format) and [enables PMD's incremental analysis by default](#code-quality). 
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -63,6 +63,20 @@ For more details, head over to the documentation on
 [testing modules](userguide/java_testing.html#sec:java_testing_modular).
 
 Also feel free to explore [the samples](samples/#java_modules).
+
+<a name="precompiled-groovy-dsl"></a>
+## Precompiled Groovy DSL script plugins
+
+Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
+
+Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
+They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
+
+For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
+
+Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
+
+There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
 
 ## Dependency management improvements
 
@@ -468,20 +482,6 @@ main(MavenPublication) {
 ```
 
 See the documentation for more information on [Gradle Module Metadata generation](userguide/publishing_gradle_module_metadata.html#sub:gmm-reproducible).
-
-<a name="precompiled-groovy-dsl"></a>
-## Precompiled Groovy DSL script plugins
-
-Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
-
-Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
-They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
-
-For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
-
-Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
-
-There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
 
 ## Improvements to Java code quality plugins
 
