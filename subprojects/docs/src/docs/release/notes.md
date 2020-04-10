@@ -1,7 +1,7 @@
 The Gradle team is excited to announce Gradle @version@.
 
 This release features support for [building and testing Java Modules](#java-modules), better [diagnostics for dependency management failures](#dm-variant-error) and a [new experimental lock file format](#dm-lock-format).
-This release also adds [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL, [enables PMD incremental analysis by default](#code-quality) and more.
+This release also adds [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL, [enables PMD's incremental analysis by default](#code-quality) and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -36,7 +36,7 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="java-modules"></a>
 ## Building, testing and running Java Modules
 
-With this release, Gradle now supports the [Java Module System](https://openjdk.java.net/projects/jigsaw/) with everything you need to compile and execute tests for Java modules. You can also build Javadoc and run applications.  A Java module is a jar with additional module information that describes which packages of the module can be accessed by other modules and which modules are required to compile and run the software.
+With this release, Gradle now supports the [Java Module System](https://openjdk.java.net/projects/jigsaw/) with everything you need to compile and execute tests for Java modules. You can also build Javadoc and run applications. 
 
 While there is some overlap with Gradle's dependency management features, Java Modules offer additional features like module boundaries that are enforced by the Java runtime.
 
@@ -500,7 +500,7 @@ For builds relying on a version of PMD older than 6.0.0, you will need to [expli
 The [PMD plugin](userguide/pmd_plugin.html) now lets you set the number of violations before the build fails.
 This can make it easier to introduce PMD into existing projects that may initially have many violations.
  
-If we wanted to fail the build if the number of violations is above 150, we can set [`maxFailures`](dsl/org.gradle.api.plugins.quality.Pmd.html#org.gradle.api.plugins.quality.Pmd:maxFailures) to 150. 
+If you wanted to fail the build if the number of violations is above 150, you can set [`maxFailures`](dsl/org.gradle.api.plugins.quality.Pmd.html#org.gradle.api.plugins.quality.Pmd:maxFailures) to 150. 
 
 ```
 pmd {
@@ -514,7 +514,7 @@ This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
 During our investigation into a recent security vulnerability on the [Plugin Portal](https://blog.gradle.org/plugin-portal-update), we became aware of how much potentially sensitive information 
 is logged when Gradle is executed with debug level logging, such as sensitive credentials, authentication tokens or internal repository URLs. 
-This information can be exposed when Gradle builds are executed on Continuous Integration services where build logs are world-readable. 
+This information can be exposed when Gradle builds are executed on Continuous Integration services where build logs are publicly-accessible. 
 
 Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle. While debugging, this information may also be inherently useful.
 
