@@ -38,9 +38,11 @@ fun IsolateContext.logPropertyInfo(action: String, value: Any?) {
 }
 
 
-fun IsolateContext.logUnsupported(baseType: KClass<*>, actualType: Class<*>) {
+fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>, actualType: Class<*>) {
     logPropertyProblem {
-        text("cannot serialize object of type ")
+        text("cannot ")
+        text(action)
+        text(" object of type ")
         reference(GeneratedSubclasses.unpack(actualType))
         text(", a subtype of ")
         reference(baseType)
@@ -49,9 +51,11 @@ fun IsolateContext.logUnsupported(baseType: KClass<*>, actualType: Class<*>) {
 }
 
 
-fun IsolateContext.logUnsupported(baseType: KClass<*>) {
+fun IsolateContext.logUnsupported(action: String, baseType: KClass<*>) {
     logPropertyProblem {
-        text("cannot serialize object of type ")
+        text("cannot ")
+        text(action)
+        text(" object of type ")
         reference(baseType)
         text(" as these are not supported with instant execution.")
     }

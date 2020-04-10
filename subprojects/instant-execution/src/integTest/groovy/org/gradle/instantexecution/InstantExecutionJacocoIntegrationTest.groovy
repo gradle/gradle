@@ -32,11 +32,18 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
 
         and:
         def instantExecution = newInstantExecutionFixture()
-        def expectedProblemCount = 4
-        def expectedProblems = [
+        def expectedStoreProblemCount = 4
+        def expectedStoreProblems = [
             "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot serialize object of type 'org.gradle.api.tasks.testing.Test', a subtype of 'org.gradle.api.Task', as these are not supported with instant execution.",
             "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPluginExtension': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.",
             "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution."
+        ]
+        def expectedLoadProblemCount = 5
+        def expectedLoadProblems = [
+            "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': cannot deserialize object of type 'org.gradle.api.Task' as these are not supported with instant execution.",
+            "field 'val\$testTaskProvider' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin\$11': value 'undefined' is not assignable to 'org.gradle.api.tasks.TaskProvider'",
+            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPluginExtension': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution.",
+            "field 'project' from type 'org.gradle.testing.jacoco.plugins.JacocoPlugin': cannot deserialize object of type 'org.gradle.api.Project' as these are not supported with instant execution."
         ]
 
         when:
@@ -44,8 +51,8 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(expectedProblems)
-            withTotalProblemsCount(expectedProblemCount)
+            withUniqueProblems(expectedStoreProblems)
+            withTotalProblemsCount(expectedStoreProblemCount)
         }
 
         when:
@@ -55,8 +62,8 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         then:
         instantExecution.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withTotalProblemsCount(expectedProblemCount)
-            withUniqueProblems(expectedProblems)
+            withTotalProblemsCount(expectedStoreProblemCount)
+            withUniqueProblems(expectedStoreProblems)
         }
         htmlReportDir.assertIsDir()
 
@@ -65,6 +72,17 @@ class InstantExecutionJacocoIntegrationTest extends AbstractInstantExecutionInte
         htmlReportDir.assertDoesNotExist()
 
         and:
+        instantFails 'test', 'jacocoTestReport'
+
+        then:
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withTotalProblemsCount(expectedLoadProblemCount)
+            withUniqueProblems(expectedLoadProblems)
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
         instantRun 'test', 'jacocoTestReport'
 
         then:
