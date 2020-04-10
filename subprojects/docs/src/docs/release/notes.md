@@ -1,7 +1,7 @@
 The Gradle team is excited to announce Gradle @version@.
 
 This release features support for [building and testing Java Modules](#java-modules), better [diagnostics for dependency management failures](#dm-variant-error) and a [new experimental lock file format](#dm-lock-format).
-This release also adds [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL, [enables PMD incremental analysis by default](#incremental-analysis-is-enabled-by-default-pmd) and more.
+This release also adds [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL, [enables PMD incremental analysis by default](#code-quality) and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
