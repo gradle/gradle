@@ -44,7 +44,7 @@ The only thing you need to configure is _module path inference_ for the Java plu
 
 ```
 java {
-    modularClasspathSupport.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 ```
 
