@@ -1,7 +1,13 @@
+plugins {
+    `groovy-gradle-plugin`
+}
+
 dependencies {
     api("me.champeau.gradle:japicmp-gradle-plugin:0.2.9")
 
     implementation(project(":kotlinDsl"))
+    implementation(project(":configuration"))
+    implementation(project(":versioning"))
 
     implementation("com.google.code.gson:gson:2.8.2")
     implementation("org.javassist:javassist:3.23.0-GA")
