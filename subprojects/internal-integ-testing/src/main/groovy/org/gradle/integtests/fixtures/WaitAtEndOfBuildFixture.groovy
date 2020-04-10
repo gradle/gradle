@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.execution.RunRootBuildWorkBuildOperationType
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationListener
@@ -25,7 +26,6 @@ import org.gradle.internal.operations.OperationFinishEvent
 import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.OperationProgressEvent
 import org.gradle.internal.operations.OperationStartEvent
-import org.gradle.launcher.exec.RunBuildBuildOperationType
 import org.gradle.util.GradleVersion
 
 
@@ -59,7 +59,7 @@ class WaitAtEndOfBuildFixture {
 
                 @Override
                 void finished(${BuildOperationDescriptor.name} buildOperation, ${OperationFinishEvent.name} finishEvent) {
-                    if (buildOperation.details instanceof ${RunBuildBuildOperationType.Details.name}) {
+                    if (buildOperation.details instanceof ${RunRootBuildWorkBuildOperationType.Details.name}) {
                         Thread.sleep(parameters.waitTimeMillis.get())
                     }
                 }
@@ -107,7 +107,7 @@ class WaitAtEndOfBuildFixture {
 
                 @Override
                 void finished(${BuildOperationDescriptor.name} buildOperation, ${OperationFinishEvent.name} finishEvent) {
-                    if (buildOperation.details instanceof ${RunBuildBuildOperationType.Details.name}) {
+                    if (buildOperation.details instanceof ${RunRootBuildWorkBuildOperationType.Details.name}) {
                         long sinceStart = (System.nanoTime() - parameters.startAt.get()) / 1000000L
                         if (sinceStart > 0 && sinceStart < parameters.minimumBuildTimeMillis.get()) {
                           Thread.sleep((parameters.minimumBuildTimeMillis.get() - sinceStart) as Long)
