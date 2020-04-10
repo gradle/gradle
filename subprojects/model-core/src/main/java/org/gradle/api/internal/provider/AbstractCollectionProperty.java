@@ -184,7 +184,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     protected CollectionSupplier<T, C> finalValue(CollectionSupplier<T, C> value) {
-        Value<? extends C> result = calculateOwnValue(value);
+        Value<? extends C> result = value.calculateValue();
         if (!result.isMissing()) {
             return new FixedSupplier<>(result.get());
         } else if (result.getPathToOrigin().isEmpty()) {

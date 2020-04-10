@@ -149,6 +149,29 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         e.message == 'Cannot set the value of a property using a null provider.'
     }
 
+    def "reports failure to query value from provider and property has display name"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.set(brokenSupplier())
+        property.attachOwner(owner(), displayName("<property>"))
+
+        when:
+        property.present
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to query the value of <property>."
+        e.cause.message == "broken!"
+
+        when:
+        property.get()
+
+        then:
+        def e2 = thrown(AbstractProperty.PropertyQueryException)
+        e2.message == "Failed to query the value of <property>."
+        e2.cause.message == "broken!"
+    }
+
     def "can set untyped using null"() {
         given:
         def property = propertyWithNoValue()
@@ -618,6 +641,39 @@ The value of this provider is derived from:
         present
         result == someValue()
         0 * _
+    }
+
+    def "reports failure to query provider value when finalizing and property has display name"() {
+        def property = propertyWithDefaultValue()
+
+        given:
+        property.set(brokenSupplier())
+        property.attachOwner(owner(), displayName("<property>"))
+        property.finalizeValueOnRead()
+
+        when:
+        property.finalizeValue()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to calculate the value of <property>."
+        e.cause.message == "broken!"
+
+        when:
+        property.present
+
+        then:
+        def e2 = thrown(AbstractProperty.PropertyQueryException)
+        e2.message == "Failed to calculate the value of <property>."
+        e2.cause.message == "broken!"
+
+        when:
+        property.get()
+
+        then:
+        def e3 = thrown(AbstractProperty.PropertyQueryException)
+        e3.message == "Failed to calculate the value of <property>."
+        e3.cause.message == "broken!"
     }
 
     def "replaces provider with fixed value on next query of value when value implicitly finalized"() {

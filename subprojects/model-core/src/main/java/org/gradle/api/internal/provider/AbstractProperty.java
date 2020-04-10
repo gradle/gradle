@@ -20,8 +20,11 @@ import org.gradle.api.Task;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -51,11 +54,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     @Override
     public boolean isPresent() {
         beforeRead(producer);
-        return getSupplier().isPresent();
+        try {
+            return getSupplier().isPresent();
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
     }
 
     @Override
-    public void attachOwner(ModelObject owner, DisplayName displayName) {
+    public void attachOwner(@Nullable ModelObject owner, DisplayName displayName) {
         this.displayName = displayName;
     }
 
@@ -107,13 +118,26 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     protected Value<? extends T> calculateOwnValueNoProducer() {
         beforeRead(null);
-        return calculateOwnValue();
+        return doCalculateValue();
     }
 
     @Override
     protected Value<? extends T> calculateOwnValue() {
         beforeRead(producer);
-        return calculateOwnValue(value);
+        return doCalculateValue();
+    }
+
+    @NotNull
+    private Value<? extends T> doCalculateValue() {
+        try {
+            return calculateOwnValue(value);
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
     }
 
     protected abstract Value<? extends T> calculateOwnValue(S value);
@@ -159,8 +183,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     @Override
     public void finalizeValue() {
         if (state.shouldFinalize(getDisplayName(), producer)) {
-            value = finalValue(value);
-            state = state.finalState();
+            finalizeNow();
         }
     }
 
@@ -206,9 +229,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private void beforeRead(@Nullable ModelObject effectiveProducer) {
         state.beforeRead(getDisplayName(), effectiveProducer);
         if (state.isFinalizeOnRead()) {
-            value = finalValue(value);
-            state = state.finalState();
+            finalizeNow();
         }
+    }
+
+    private void finalizeNow() {
+        try {
+            value = finalValue(value);
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        state = state.finalState();
     }
 
     /**
@@ -261,6 +296,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         } else {
             formatter.append("an object with type ");
             formatter.appendType(modelObject.getClass());
+        }
+    }
+
+    @Contextual
+    public static class PropertyQueryException extends RuntimeException {
+        public PropertyQueryException(String message, Throwable cause) {
+            super(message, cause);
         }
     }
 

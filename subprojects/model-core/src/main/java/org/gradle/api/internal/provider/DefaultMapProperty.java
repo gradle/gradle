@@ -242,7 +242,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     protected MapSupplier<K, V> finalValue(MapSupplier<K, V> value) {
-        Value<? extends Map<K, V>> result = calculateOwnValue(value);
+        Value<? extends Map<K, V>> result = value.calculateValue();
         if (!result.isMissing()) {
             Map<K, V> entries = result.get();
             return new FixedSuppler<>(entries);

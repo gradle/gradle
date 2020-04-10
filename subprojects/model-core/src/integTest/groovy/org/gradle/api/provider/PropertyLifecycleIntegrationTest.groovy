@@ -308,4 +308,73 @@ class PropertyLifecycleIntegrationTest extends AbstractIntegrationSpec {
         outputContains("finalize failed with: Cannot finalize the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
         output.count("value = value 1") == 2
     }
+
+    def "cannot read project property instance whose value is a strict project property before project configuration completes"() {
+        given:
+        settingsFile << 'rootProject.name = "broken"'
+        buildFile << """
+            interface ProjectModel {
+                Property<String> getProp()
+            }
+
+            project.extensions.create('one', ProjectModel.class)
+            project.extensions.create('two', ProjectModel.class)
+            one.prop.disallowUnsafeRead()
+            one.prop = "value one"
+            two.prop = one.prop
+
+            try {
+                two.prop.get()
+            } catch(RuntimeException e) {
+                println("get failed with: " + e.message)
+                println("get failed with cause: " + e.cause.message)
+            }
+            try {
+                two.prop.present
+            } catch(RuntimeException e) {
+                println("present failed with: " + e.message)
+                println("present failed with cause: " + e.cause.message)
+            }
+
+            one.prop = "value two"
+
+            afterEvaluate {
+                try {
+                    two.prop.get()
+                } catch(RuntimeException e) {
+                    println("get in afterEvaluate failed with: " + e.message)
+                    println("get in afterEvaluate failed with cause: " + e.cause.message)
+                }
+            }
+
+            task show {
+                // Task graph calculation is ok
+                dependsOn {
+                    println("value = " + two.prop.get())
+                    try {
+                        one.prop = "ignore me"
+                    } catch(IllegalStateException e) {
+                        println("set after read failed with: " + e.message)
+                    }
+                    []
+                }
+                doLast {
+                    println("value = " + two.prop.get())
+                }
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("get failed with: Failed to query the value of extension 'two' property 'prop'.")
+        outputContains("get failed with cause: Cannot query the value of extension 'one' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("present failed with: Failed to query the value of extension 'two' property 'prop'.")
+        outputContains("present failed with cause: Cannot query the value of extension 'one' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get in afterEvaluate failed with: Failed to query the value of extension 'two' property 'prop'.")
+        outputContains("get in afterEvaluate failed with cause: Cannot query the value of extension 'one' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("set after read failed with: The value for extension 'one' property 'prop' is final and cannot be changed any further.")
+        output.count("value = value two") == 2
+    }
 }
