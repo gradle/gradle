@@ -36,8 +36,6 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectDepende
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.component.SoftwareComponentInternal
 import org.gradle.api.internal.component.UsageContext
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.publish.internal.versionmapping.VariantVersionMappingStrategyInternal
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal
 import org.gradle.internal.component.external.model.ImmutableCapability
@@ -72,7 +70,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)
     def generator = new GradleModuleMetadataWriter(new BuildInvocationScopeId(buildId), projectDependencyResolver, TestUtil.checksumService)
-    def buildIdentifier = new DefaultProperty(Mock(PropertyHost), String)
 
     def "fails to write file for component with no variants"() {
         def writer = new StringWriter()
@@ -1131,7 +1128,6 @@ class ModuleMetadataFileGeneratorTest extends Specification {
         publication.component >> component
         publication.coordinates >> coords
         publication.versionMappingStrategy >> mappingStrategyInternal
-        publication.buildIdentifier >> buildIdentifier
         return publication
     }
 
