@@ -19,7 +19,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import java.util.concurrent.TimeUnit
 
 plugins {
-    id 'performance-templates'
+    id 'gradlebuild.performance-templates'
 }
 
 dependencies {
