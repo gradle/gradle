@@ -46,34 +46,37 @@ fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
         .toList()
         .flatMap(Class<*>::relevantFields)
         .onEach(Field::makeAccessible)
-        .map { RelevantField(it, problemReporterFor(it)) }
+        .map { RelevantField(it, unsupportedFieldTypeFor(it)) }
 
 
 internal
-class RelevantField(val field: Field, val problemReporter: FieldProblemReporter?)
+class RelevantField(
+    val field: Field,
+    val unsupportedFieldType: KClass<*>?
+)
 
 
 internal
-class FieldProblemReporter(val field: Field, val type: KClass<*>) {
-    fun IsolateContext.report(action: String, fieldValue: Any? = null) {
-        withPropertyTrace(PropertyKind.Field, field.name) {
-            if (fieldValue == null) logUnsupported(action, type)
-            else logUnsupported(action, type, fieldValue::class.java)
-        }
+fun IsolateContext.reportUnsupportedFieldType(
+    unsupportedType: KClass<*>,
+    action: String,
+    fieldName: String,
+    fieldValue: Any? = null
+) {
+    withPropertyTrace(PropertyKind.Field, fieldName) {
+        if (fieldValue == null) logUnsupported(action, unsupportedType)
+        else logUnsupported(action, unsupportedType, fieldValue::class.java)
     }
 }
 
 
 internal
-fun problemReporterFor(field: Field): FieldProblemReporter? =
+fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
     field.takeUnless {
         field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)
     }?.let {
         unsupportedFieldDeclaredTypes
             .firstOrNull { it.java.isAssignableFrom(field.type) }
-            ?.let { unsupportedType ->
-                FieldProblemReporter(field, unsupportedType)
-            }
     }
 
 

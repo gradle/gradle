@@ -48,8 +48,8 @@ class BeanPropertyWriter(
             val field = relevantField.field
             val fieldName = field.name
             val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
-            relevantField.problemReporter?.apply {
-                report("serialize", fieldValue)
+            relevantField.unsupportedFieldType?.let {
+                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
             }
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
