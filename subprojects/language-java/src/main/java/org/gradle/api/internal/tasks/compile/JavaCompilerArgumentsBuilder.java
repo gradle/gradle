@@ -130,13 +130,9 @@ public class JavaCompilerArgumentsBuilder {
         if (!includeMainOptions) {
             return;
         }
-        Integer release = spec.getRelease();
-        final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
 
-        if (release != null) {
-            args.add("--release");
-            args.add(release.toString());
-        } else if (!releaseOptionIsSet(compilerArgs)) {
+        final MinimalJavaCompileOptions compileOptions = spec.getCompileOptions();
+        if (!releaseOptionIsSet(compilerArgs)) {
             String sourceCompatibility = spec.getSourceCompatibility();
             if (sourceCompatibility != null) {
                 args.add("-source");

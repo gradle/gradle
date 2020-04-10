@@ -9,9 +9,10 @@
 > Task :application:compileJava UP-TO-DATE
 > Task :application:processResources NO-SOURCE
 > Task :application:classes UP-TO-DATE
+> Task :application:jar
 
 > Task :application:run
 Hello, World!
 
 BUILD SUCCESSFUL in 0s
-6 actionable tasks: 1 executed, 5 up-to-date
+7 actionable tasks: 2 executed, 5 up-to-date

@@ -1238,7 +1238,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         e.message == "Cannot query the value for <display> because <reason>."
 
         and:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
         0 * _
 
         when:
@@ -1248,7 +1248,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         result == [file] as Set
 
         and:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
         1 * fileResolver.resolve('a') >> file
         0 * _
     }
@@ -1273,7 +1273,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         e.message == "Cannot query the value for <display> because <reason>."
 
         and:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
         0 * _
 
         when:
@@ -1283,7 +1283,7 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         result.asFile == [file]
 
         and:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
         1 * fileResolver.resolve('a') >> file
         0 * _
     }

@@ -46,6 +46,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 
 import java.io.File;
 import java.io.OutputStream;
+import java.lang.reflect.Array;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -128,22 +129,20 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, List<?> sources) {
+    public FileCollectionInternal resolving(String displayName, Object sources) {
+        if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
+            return empty(displayName);
+        }
         return new ResolvingFileCollection(displayName, fileResolver, patternSetFactory, sources);
     }
 
     @Override
-    public FileCollectionInternal resolving(String displayName, Object... sources) {
-        return resolving(displayName, ImmutableList.copyOf(sources));
-    }
-
-    @Override
-    public FileCollectionInternal resolving(Object... sources) {
-        if (sources.length == 0) {
-            return empty();
+    public FileCollectionInternal resolving(Object sources) {
+        if (sources instanceof FileCollectionInternal) {
+            return (FileCollectionInternal) sources;
         }
-        if (sources.length == 1 && sources[0] instanceof FileCollectionInternal) {
-            return (FileCollectionInternal) sources[0];
+        if (sources.getClass().isArray() && Array.getLength(sources) == 0) {
+            return empty();
         }
         return resolving(DEFAULT_COLLECTION_DISPLAY_NAME, sources);
     }
@@ -284,16 +283,16 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
     }
 
-    private static final class ResolvingFileCollection extends CompositeFileCollection {
+    private static class ResolvingFileCollection extends CompositeFileCollection {
         private final String displayName;
         private final PathToFileResolver resolver;
-        private final List<?> paths;
+        private final Object source;
 
-        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, List<?> paths) {
+        public ResolvingFileCollection(String displayName, PathToFileResolver resolver, Factory<PatternSet> patternSetFactory, Object source) {
             super(patternSetFactory);
             this.displayName = displayName;
             this.resolver = resolver;
-            this.paths = paths;
+            this.source = source;
         }
 
         @Override
@@ -304,7 +303,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         @Override
         public void visitContents(FileCollectionResolveContext context) {
             UnpackingVisitor nested = new UnpackingVisitor(context, resolver);
-            nested.add(paths);
+            nested.add(source);
         }
     }
 }

@@ -460,6 +460,35 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo script plugin applied")
     }
 
+    def "can apply multiple plugins within a precompiled script plugin"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+
+        file("buildSrc/src/main/groovy/child1.gradle") << "println 'child1 applied'"
+        file("buildSrc/src/main/groovy/child2.gradle") << "println 'child2 applied'"
+        file("buildSrc/src/main/groovy/parent.gradle") << """
+            plugins {
+                id 'child1'
+                id 'child2'
+            }
+            println 'parent applied'
+        """
+
+        buildFile << """
+            plugins {
+                id 'parent'
+            }
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains('child1 applied')
+        outputContains('child2 applied')
+        outputContains('parent applied')
+    }
+
     def "fails the build with help message for plugin spec with version"() {
         given:
         enablePrecompiledPluginsInBuildSrc()

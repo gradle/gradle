@@ -17,6 +17,7 @@
 > Task :application:compileIntegrationTestJava
 > Task :application:processIntegrationTestResources NO-SOURCE
 > Task :application:integrationTestClasses
+> Task :application:integrationTestJar
 > Task :application:integrationTest
 > Task :application:check
 > Task :list:compileTestJava
@@ -26,6 +27,7 @@
 > Task :list:compileIntegrationTestJava NO-SOURCE
 > Task :list:processIntegrationTestResources NO-SOURCE
 > Task :list:integrationTestClasses UP-TO-DATE
+> Task :list:integrationTestJar
 > Task :list:integrationTest NO-SOURCE
 > Task :list:check
 > Task :utilities:compileTestJava NO-SOURCE
@@ -35,8 +37,9 @@
 > Task :utilities:compileIntegrationTestJava
 > Task :utilities:processIntegrationTestResources NO-SOURCE
 > Task :utilities:integrationTestClasses
+> Task :utilities:integrationTestJar
 > Task :utilities:integrationTest
 > Task :utilities:check
 
 BUILD SUCCESSFUL in 0s
-14 actionable tasks: 14 executed
+17 actionable tasks: 17 executed

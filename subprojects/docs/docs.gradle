@@ -408,11 +408,8 @@ samples {
         }
 
         precompiledScriptPlugin {
-            description = "Use Kotlin DSL in a precompiled script plugin."
+            description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
             category = "Build organization"
-            common {
-                from(templates.precompiledScriptPlugin)
-            }
         }
 
         gradlePlugin {

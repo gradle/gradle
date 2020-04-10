@@ -50,7 +50,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public boolean isPresent() {
-        beforeRead();
+        beforeRead(producer);
         return getSupplier().isPresent();
     }
 
@@ -105,9 +105,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return value;
     }
 
+    protected Value<? extends T> calculateOwnValueNoProducer() {
+        beforeRead(null);
+        return calculateOwnValue();
+    }
+
     @Override
     protected Value<? extends T> calculateOwnValue() {
-        beforeRead();
+        beforeRead(producer);
         return calculateOwnValue(value);
     }
 
@@ -115,7 +120,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        beforeRead();
+        beforeRead(producer);
         ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
         if (getProducerTask() == null) {
             return value;
@@ -175,7 +180,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.finalizeOnNextGet();
     }
 
-    // Should be on the public API. Was not made public for the 6.3 release
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
@@ -196,7 +200,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
      * Call prior to reading the value of this property.
      */
     protected void beforeRead() {
-        state.beforeRead(getDisplayName());
+        beforeRead(producer);
+    }
+
+    private void beforeRead(@Nullable ModelObject effectiveProducer) {
+        state.beforeRead(getDisplayName(), effectiveProducer);
         if (state.isFinalizeOnRead()) {
             value = finalValue(value);
             state = state.finalState();
@@ -277,15 +285,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         public abstract S implicitValue();
 
-        public abstract void beforeRead(DisplayName displayName);
-
         public abstract boolean isFinalizeOnRead();
+
+        public abstract void beforeRead(DisplayName displayName, @Nullable ModelObject producer);
 
         public abstract void beforeMutate(DisplayName displayName);
     }
 
     private static class NonFinalizedValue<S> extends FinalizationState<S> {
-
         private final PropertyHost host;
         private boolean explicitValue;
         private boolean finalizeOnNextGet;
@@ -313,9 +320,9 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public void beforeRead(DisplayName displayName) {
+        public void beforeRead(DisplayName displayName, @Nullable ModelObject producer) {
             if (disallowUnsafeRead) {
-                String reason = host.beforeRead();
+                String reason = host.beforeRead(producer);
                 if (reason != null) {
                     TreeFormatter formatter = new TreeFormatter();
                     formatter.node("Cannot query the value of ");
@@ -405,11 +412,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         public void disallowUnsafeRead() {
-            // Finalized so read is safe
+            // Finalized already so read is safe
         }
 
         @Override
-        public void beforeRead(DisplayName displayName) {
+        public void beforeRead(DisplayName displayName, @Nullable ModelObject producer) {
             // Value is available
         }
 

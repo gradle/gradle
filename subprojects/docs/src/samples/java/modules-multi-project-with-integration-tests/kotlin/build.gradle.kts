@@ -22,12 +22,17 @@ subprojects {
             "integrationTestRuntimeOnly"("org.junit.jupiter:junit-jupiter-engine")
         }
 
+        val integrationTestJarTask = tasks.register<Jar>(integrationTest.jarTaskName) {
+            archiveClassifier.set("integration-tests")
+            from(integrationTest.output)
+        }
         val integrationTestTask = tasks.register<Test>("integrationTest") {
             description = "Runs integration tests."
             group = "verification"
 
             testClassesDirs = integrationTest.output.classesDirs
-            classpath = integrationTest.runtimeClasspath
+            // Make sure we run the 'Jar' containing the tests (and not just the 'classes' folder) so that test resources are also part of the test module
+            classpath = configurations[integrationTest.runtimeClasspathConfigurationName] + files(integrationTestJarTask)
             shouldRunAfter("test")
         }
 

@@ -16,14 +16,16 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.internal.state.ModelObject;
+
 import javax.annotation.Nullable;
 
 public interface PropertyHost {
-    PropertyHost NO_OP = () -> null;
+    PropertyHost NO_OP = producer -> null;
 
     /**
      * Returns null if the host allows reads of its state, or a string that explains why reads are not allowed.
      */
     @Nullable
-    String beforeRead();
+    String beforeRead(@Nullable ModelObject producer);
 }

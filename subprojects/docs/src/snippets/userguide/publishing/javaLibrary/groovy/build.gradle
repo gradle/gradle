@@ -41,3 +41,14 @@ tasks.withType(GenerateMavenPom).all {
     destination = "$buildDir/poms/${publicationName}-pom.xml"
 }
 // end::configure-generate-task[]
+
+// tag::configure-build-id[]
+publishing {
+    publications {
+        main(MavenPublication) {
+            from components.java
+            buildIdentifier = 'unused'
+        }
+    }
+}
+// end::configure-build-id[]
