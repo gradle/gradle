@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.model.internal.core.ModelNode
 
 class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
@@ -86,6 +87,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createdTasksFor("t1") == [":t1"]
     }
 
+    @UnsupportedWithInstantExecution
     def "task container is self closed by task selection and can be later graph closed"() {
         when:
         buildFile << '''
