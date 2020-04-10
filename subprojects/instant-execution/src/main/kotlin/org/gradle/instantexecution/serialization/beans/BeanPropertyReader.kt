@@ -48,7 +48,7 @@ class BeanPropertyReader(
 
     private
     val fieldSetters = relevantStateOf(beanType).map {
-        FieldSetter(it.field, it.unsupportedFieldType, setterFor(it.field))
+        FieldSetter(it.field.name, it.unsupportedFieldType, setterFor(it.field))
     }
 
     private
@@ -65,11 +65,10 @@ class BeanPropertyReader(
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
         for (fieldSetter in fieldSetters) {
-            val field = fieldSetter.field
-            val fieldName = field.name
+            val fieldName = fieldSetter.fieldName
             val setter = fieldSetter.setter
             fieldSetter.unsupportedFieldType?.let {
-                reportUnsupportedFieldType(it, "deserialize", field.name)
+                reportUnsupportedFieldType(it, "deserialize", fieldName)
             }
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
                 setter(bean, fieldValue)
@@ -114,7 +113,7 @@ class BeanPropertyReader(
 
 private
 class FieldSetter(
-    val field: Field,
+    val fieldName: String,
     val unsupportedFieldType: KClass<*>?,
     val setter: ReadContext.(Any, Any?) -> Unit
 )
