@@ -150,6 +150,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "captures threaded output sources with context"() {
         given:
         executer.requireOwnGradleUserHomeDir()

@@ -32,6 +32,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         server.start()
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "shows progress bar and percent phase completion"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
