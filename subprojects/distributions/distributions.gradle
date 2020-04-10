@@ -18,6 +18,10 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 
+plugins {
+    id 'binary-compatibility'
+}
+
 // This is a groovy project because we have int tests.
 // Remove any pre-configured archives
 configurations.all {
@@ -219,5 +223,3 @@ integTestTasks.configureEach {
     systemProperty 'org.gradle.public.api.includes', PublicApi.includes.join(':')
     systemProperty 'org.gradle.public.api.excludes', PublicApi.excludes.join(':')
 }
-
-apply from: 'binary-compatibility.gradle'
