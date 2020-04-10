@@ -41,6 +41,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ComponentResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -68,6 +69,7 @@ import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
 import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
 import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -194,5 +196,6 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.12') }.resolvedConfiguration.resolvedArtifacts.first()"
         DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary).execute()"
         DefaultComponentArtifactsResult       | ComponentResult                | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary).execute().components.first()"
+        DefaultResolvedVariantResult          | ResolvedVariantResult          | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first().variant"
     }
 }

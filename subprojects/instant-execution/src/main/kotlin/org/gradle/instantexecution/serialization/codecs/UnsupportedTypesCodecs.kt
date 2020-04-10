@@ -39,6 +39,7 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository
 import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.ComponentResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -115,4 +116,5 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<ResolvedArtifact>())
     bind(unsupported<ArtifactResolutionResult>())
     bind(unsupported<ComponentResult>())
+    bind(unsupported<ResolvedVariantResult>())
 }
