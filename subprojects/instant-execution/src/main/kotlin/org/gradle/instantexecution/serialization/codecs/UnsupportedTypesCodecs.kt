@@ -18,6 +18,7 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.Script
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraintSet
@@ -115,6 +116,7 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<DependencyLockingHandler>())
     bind(unsupported<ResolvedDependency>())
     bind(unsupported<ResolvedArtifact>())
+    bind(unsupported<ArtifactView>())
     bind(unsupported<ArtifactResolutionResult>())
     bind(unsupported<ComponentResult>())
     bind(unsupported<ArtifactResult>())
