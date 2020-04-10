@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.TextUtil
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -79,7 +80,7 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "generated plugin adapter satisfies Gradle checkstyle requirements"() {
         when:
-        def checkstyleConfigDir = new File('../../config/checkstyle/').toPath().toAbsolutePath()
+        def checkstyleConfigDir = TextUtil.normaliseFileSeparators(new File('../../config/checkstyle/').toPath().toAbsolutePath().toString())
 
         buildFile << """
             plugins {
