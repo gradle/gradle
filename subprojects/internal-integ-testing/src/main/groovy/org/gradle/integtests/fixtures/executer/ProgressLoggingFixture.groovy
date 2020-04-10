@@ -59,7 +59,9 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
            }
            def loggingOutputInternal = gradle.services.get(LoggingOutputInternal)
            loggingOutputInternal.addOutputEventListener(outputEventListener)
-        """
+           buildFinished{
+                loggingOutputInternal.removeOutputEventListener(outputEventListener)
+           }"""
     }
 
     @Override
