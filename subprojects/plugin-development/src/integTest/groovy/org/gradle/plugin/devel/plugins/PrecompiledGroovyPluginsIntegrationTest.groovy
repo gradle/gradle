@@ -19,7 +19,6 @@ package org.gradle.plugin.devel.plugins
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.TextUtil
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -75,32 +74,6 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("foo script plugin applied")
-    }
-
-    @ToBeFixedForInstantExecution
-    def "generated plugin adapter satisfies Gradle checkstyle requirements"() {
-        when:
-        def checkstyleConfigDir = TextUtil.normaliseFileSeparators(new File('../../config/checkstyle/').toPath().toAbsolutePath().toString())
-
-        buildFile << """
-            plugins {
-                id 'groovy-gradle-plugin'
-                id 'checkstyle'
-            }
-            ${mavenCentralRepository()}
-            checkstyle {
-                configDirectory = file('$checkstyleConfigDir')
-            }
-        """
-        file("src/main/groovy/foo.gradle") << """
-            plugins {
-                id 'base'
-            }
-            logger.lifecycle "foo script plugin applied"
-        """
-
-        then:
-        succeeds("checkstyleMain")
     }
 
     def "can apply a precompiled script plugin by id to a multi-project build from root"() {
