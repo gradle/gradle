@@ -20,7 +20,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 
-import java.nio.file.Files
 import java.nio.file.Path
 
 class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
