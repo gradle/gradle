@@ -456,22 +456,6 @@ Gradle 6.4 takes a first step in improving those error messages by making them m
                                 hfi1vdp51SUqS9SXyd8U8JJAV1h4ThiOvrAQ6e2isLCgoLCwoKCgoKCgoGAYGM7ppODN4jfM+Aok
                                 sRq1uwAAAABJRU5ErkJggg==">
 
-### Gradle module metadata can be made reproducible
-
-The Gradle Module Metadata file contains a build identifier field which defaults to a unique ID generated during build execution.
-This results in the generated file being different at each build execution.
-
-This value can now be configured to something else at the publication level, allowing users to opt-in for a reproducible Gradle Module Metadata file.
-
-```groovy
-main(MavenPublication) {
-    from components.java
-    buildIdentifier = 'unused'
-}
-```
-
-See the documentation for more information on [Gradle Module Metadata generation](userguide/publishing_gradle_module_metadata.html#sub:gmm-reproducible).
-
 <a name="precompiled-groovy-dsl"></a>
 ## Precompiled Groovy DSL script plugins
 
