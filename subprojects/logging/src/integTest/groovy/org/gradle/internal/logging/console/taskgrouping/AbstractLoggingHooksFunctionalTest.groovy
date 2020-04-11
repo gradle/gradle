@@ -37,6 +37,7 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         """
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildListener")
     def "listener added to script receives output synchronously and only while script is running"() {
         buildFile << """
             System.out.println "before" 
