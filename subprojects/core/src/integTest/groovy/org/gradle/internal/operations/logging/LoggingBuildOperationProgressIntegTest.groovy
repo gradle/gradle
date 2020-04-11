@@ -344,6 +344,7 @@ class LoggingBuildOperationProgressIntegTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "does not fail when build operation listeners emit logging"() {
         when:
         buildFile << """
