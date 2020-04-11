@@ -4,5 +4,5 @@ plugins {
 }
 
 tasks.named('check') {
-    it.dependsOn(gradle.includedBuilds*.task(':check'))
+    dependsOn(gradle.includedBuilds*.task(':check'))
 }
