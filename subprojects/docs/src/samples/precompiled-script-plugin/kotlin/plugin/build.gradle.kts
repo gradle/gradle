@@ -9,6 +9,10 @@ repositories {
     jcenter()
 }
 
+dependencies {
+    testImplementation("junit:junit:4.12")
+}
+
 kotlinDslPluginOptions {
     experimentalWarning.set(false)
 }

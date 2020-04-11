@@ -1,3 +1,8 @@
 plugins {
+    id 'base'
     id 'com.example.my-plugin'
+}
+
+tasks.named('check') {
+    it.dependsOn(gradle.includedBuilds*.task(':check'))
 }
