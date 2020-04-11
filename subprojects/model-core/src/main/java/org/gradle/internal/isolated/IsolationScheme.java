@@ -125,7 +125,14 @@ public class IsolationScheme<IMPLEMENTATION, PARAMS> {
         private final Object params;
         private final Spec<Class<?>> whiteListPolicy;
 
-        public ServicesForIsolatedObject(Class<?> interfaceType, Class<?> noParamsType, @Nullable Object params, ServiceLookup allServices, Collection<? extends Class<?>> additionalWhiteListedServices, Spec<Class<?>> whiteListPolicy) {
+        public ServicesForIsolatedObject(
+            Class<?> interfaceType,
+            Class<?> noParamsType,
+            @Nullable Object params,
+            ServiceLookup allServices,
+            Collection<? extends Class<?>> additionalWhiteListedServices,
+            Spec<Class<?>> whiteListPolicy
+        ) {
             this.interfaceType = interfaceType;
             this.noParamsType = noParamsType;
             this.additionalWhiteListedServices = additionalWhiteListedServices;

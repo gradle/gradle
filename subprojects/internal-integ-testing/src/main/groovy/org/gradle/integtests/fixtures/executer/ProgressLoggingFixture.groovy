@@ -16,14 +16,27 @@
 
 package org.gradle.integtests.fixtures.executer
 
+
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.internal.logging.events.OutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.logging.LoggingOutputInternal
+import org.gradle.internal.operations.BuildOperationDescriptor
+import org.gradle.internal.operations.BuildOperationListener
+import org.gradle.internal.operations.OperationFinishEvent
+import org.gradle.internal.operations.OperationIdentifier
+import org.gradle.internal.operations.OperationProgressEvent
+import org.gradle.internal.operations.OperationStartEvent
 import org.gradle.test.fixtures.file.TestDirectoryProvider
 import org.gradle.test.fixtures.file.TestFile
+
+import javax.inject.Inject
 
 class ProgressLoggingFixture extends InitScriptExecuterFixture {
 
@@ -38,15 +51,43 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
     @Override
     String initScriptContent() {
         fixtureData = testDir.testDirectory.file("progress-fixture.log")
-        """import ${OutputEventListener.name}
-           import ${OutputEvent.name}
-           import ${ProgressStartEvent.name}
-           import ${ProgressEvent.name}
-           import ${ProgressCompleteEvent.name}
-           import ${LoggingOutputInternal.name}
+        """
+            import ${OutputEventListener.name}
+            import ${OutputEvent.name}
+            import ${ProgressStartEvent.name}
+            import ${ProgressEvent.name}
+            import ${ProgressCompleteEvent.name}
+            import ${LoggingOutputInternal.name}
+            import ${BuildServiceRegistry.name}
+            import ${BuildService.name}
+            import ${BuildServiceParameters.name}
+            import ${BuildOperationListener.name}
+            import ${BuildEventListenerRegistryInternal.name}
+            import ${BuildOperationDescriptor.name}
+            import ${OperationIdentifier.name}
+            import ${OperationStartEvent.name}
+            import ${OperationProgressEvent.name}
+            import ${OperationFinishEvent.name}
+            import ${Inject.name}
 
-           File outputFile = file("${fixtureData.toURI()}")
-           OutputEventListener outputEventListener = new OutputEventListener() {
+            abstract class OutputProgressService
+                implements BuildService<Parameters>, BuildOperationListener, OutputEventListener, AutoCloseable  {
+
+                interface Parameters extends BuildServiceParameters {
+                    RegularFileProperty getOutputFile()
+                }
+
+                @Inject
+                protected abstract LoggingOutputInternal getLoggingOutputInternal()
+
+                OutputProgressService() {
+                    loggingOutputInternal.addOutputEventListener(this)
+                }
+
+                synchronized void close() {
+                    loggingOutputInternal.removeOutputEventListener(this)
+                }
+
                 void onOutput(OutputEvent event) {
                     if (event instanceof ProgressStartEvent) {
                         outputFile << "[START \$event.description]\\n"
@@ -56,12 +97,41 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                         outputFile << "[END \$event.status]\\n"
                     }
                 }
-           }
-           def loggingOutputInternal = gradle.services.get(LoggingOutputInternal)
-           loggingOutputInternal.addOutputEventListener(outputEventListener)
-           buildFinished{
-                loggingOutputInternal.removeOutputEventListener(outputEventListener)
-           }"""
+
+                private File getOutputFile() {
+                    parameters.outputFile.get().asFile
+                }
+
+                // Empty implementation of BuildOperationListener just so the service
+                // is automatically started during instant execution.
+                // Ideally there would be an AutoStartable interface for services
+                // like this.
+                @Override
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+                }
+
+                @Override
+                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {
+                }
+
+                @Override
+                synchronized void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+                }
+            }
+
+            File outputFile = file("${fixtureData.toURI()}")
+
+            def services = gradle.services
+            def buildServices = services.get(BuildServiceRegistry)
+            def outputProgress = buildServices.registerIfAbsent("outputProgress", OutputProgressService) {
+                parameters.outputFile.set(outputFile)
+            }
+            def buildEvents = services.get(BuildEventListenerRegistryInternal)
+            buildEvents.onOperationCompletion(outputProgress)
+
+            // forces the service to be initialized immediatelly
+            outputProgress.get()
+       """
     }
 
     @Override

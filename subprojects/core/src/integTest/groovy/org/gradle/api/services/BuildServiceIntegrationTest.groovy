@@ -32,6 +32,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
+import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
@@ -555,6 +556,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             FileSystemOperations,
             ObjectFactory,
             ProviderFactory,
+            LoggingOutputInternal // for internal use
         ].collect { it.name }
     }
 
