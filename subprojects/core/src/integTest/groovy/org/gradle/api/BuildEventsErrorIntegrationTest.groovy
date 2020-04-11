@@ -17,7 +17,6 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
@@ -97,7 +96,7 @@ allprojects {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method closure fails"() {
         settingsFile << """
 gradle.${method} {
@@ -123,7 +122,7 @@ gradle.rootProject { task a }
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method action fails"() {
         settingsFile << """
 def action = {
