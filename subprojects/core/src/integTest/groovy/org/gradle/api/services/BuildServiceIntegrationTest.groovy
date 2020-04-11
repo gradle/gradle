@@ -18,6 +18,7 @@ package org.gradle.api.services
 
 import org.gradle.api.file.FileSystemOperations
 import org.gradle.api.file.ProjectLayout
+import org.gradle.api.logging.LoggingOutput
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.Input
@@ -32,7 +33,6 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.InstantExecutionRunner
 import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
-import org.gradle.internal.logging.LoggingOutputInternal
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.process.ExecOperations
 import org.junit.runner.RunWith
@@ -556,7 +556,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             FileSystemOperations,
             ObjectFactory,
             ProviderFactory,
-            LoggingOutputInternal // for internal use
+            LoggingOutput
         ].collect { it.name }
     }
 

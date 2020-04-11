@@ -78,14 +78,15 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
                 }
 
                 @Inject
-                protected abstract LoggingOutputInternal getLoggingOutputInternal()
+                protected abstract LoggingOutput getLoggingOutput()
 
                 OutputProgressService() {
-                    loggingOutputInternal.addOutputEventListener(this)
+                    (loggingOutput as LoggingOutputInternal).addOutputEventListener(this)
                 }
 
+                @Override
                 synchronized void close() {
-                    loggingOutputInternal.removeOutputEventListener(this)
+                    (loggingOutput as LoggingOutputInternal).removeOutputEventListener(this)
                 }
 
                 void onOutput(OutputEvent event) {

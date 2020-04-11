@@ -18,13 +18,13 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.logging.LoggingOutputInternal;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
@@ -97,10 +97,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                 ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
                     isolatedParameters,
                     internalServices,
-                    ImmutableList.of(
-                        // Required by ProgressLoggingFixture
-                        LoggingOutputInternal.class
-                    ),
+                    ImmutableList.of(LoggingOutput.class),
                     serviceType -> false
                 );
                 try {
