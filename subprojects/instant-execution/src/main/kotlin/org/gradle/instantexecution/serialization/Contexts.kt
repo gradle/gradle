@@ -172,7 +172,11 @@ class DefaultReadContext(
     private
     val constructors: BeanConstructors,
 
-    override val logger: Logger
+    override val logger: Logger,
+
+    private
+    val problemHandler: (PropertyProblem) -> Unit
+
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
@@ -274,7 +278,7 @@ class DefaultReadContext(
         DefaultReadIsolate(owner)
 
     override fun onProblem(problem: PropertyProblem) {
-        // ignore problems
+        problemHandler(problem)
     }
 }
 

@@ -381,7 +381,8 @@ class UserTypesCodecTest {
             decoder = KryoBackedDecoder(inputStream),
             instantiatorFactory = TestUtil.instantiatorFactory(),
             constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
-            logger = mock()
+            logger = mock(),
+            problemHandler = {}
         )
 
     private

@@ -19,6 +19,7 @@ package org.gradle.instantexecution
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
@@ -38,7 +39,11 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.result.ArtifactResolutionResult
+import org.gradle.api.artifacts.result.ArtifactResult
+import org.gradle.api.artifacts.result.ComponentResult
 import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -51,6 +56,7 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifact
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies
+import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.ConfigurationArtifactView
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration.ConfigurationResolvableDependencies.LenientResolutionResult
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
@@ -64,6 +70,10 @@ import org.gradle.api.internal.artifacts.ivyservice.ErrorHandlingConfigurationRe
 import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultResolutionStrategy
 import org.gradle.api.internal.artifacts.query.DefaultArtifactResolutionQuery
 import org.gradle.api.internal.artifacts.repositories.DefaultMavenArtifactRepository
+import org.gradle.api.internal.artifacts.result.DefaultArtifactResolutionResult
+import org.gradle.api.internal.artifacts.result.DefaultComponentArtifactsResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedArtifactResult
+import org.gradle.api.internal.artifacts.result.DefaultResolvedVariantResult
 import org.gradle.api.internal.artifacts.type.DefaultArtifactTypeContainer
 import org.gradle.api.internal.attributes.DefaultAttributeMatchingStrategy
 import org.gradle.api.internal.attributes.DefaultAttributesSchema
@@ -92,7 +102,7 @@ import java.util.concurrent.ThreadFactory
 class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     @Unroll
-    def "warns when task field references an object of type #baseType"() {
+    def "reports when task field references an object of type #baseType"() {
         buildFile << """
             plugins { id "java" }
 
@@ -103,16 +113,19 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
             class SomeTask extends DefaultTask {
                 private final ${baseType.name} badReference
                 private final bean = new SomeBean()
+                private final beanWithSameType = new SomeBean()
 
                 SomeTask() {
                     badReference = ${reference}
                     bean.badReference = ${reference}
+                    beanWithSameType.badReference = ${reference}
                 }
 
                 @TaskAction
                 void run() {
                     println "this.reference = " + badReference
                     println "bean.reference = " + bean.badReference
+                    println "beanWithSameType.reference = " + beanWithSameType.badReference
                 }
             }
 
@@ -128,6 +141,7 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
 
         then:
         problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(3)
             withUniqueProblems(
                 "field 'badReference' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.",
                 "field 'badReference' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution."
@@ -135,11 +149,22 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         }
 
         when:
+        problems.withDoNotFailOnProblems()
         instantRun "broken"
 
         then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(3)
+            withUniqueProblems(
+                "field 'badReference' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
+                "field 'badReference' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution."
+            )
+        }
+
+        and:
         outputContains("this.reference = null")
         outputContains("bean.reference = null")
+        outputContains("beanWithSameType.reference = null")
 
         where:
         concreteType                          | baseType                       | reference
@@ -164,7 +189,6 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultSourceSet                      | SourceSet                      | "project.sourceSets['main']"
         // Dependency Resolution Types
         DefaultConfigurationContainer         | ConfigurationContainer         | "project.configurations"
-        DefaultConfiguration                  | Configuration                  | "project.configurations.maybeCreate('some')"
         DefaultResolutionStrategy             | ResolutionStrategy             | "project.configurations.maybeCreate('some').resolutionStrategy"
         ErrorHandlingResolvedConfiguration    | ResolvedConfiguration          | "project.configurations.maybeCreate('some').resolvedConfiguration"
         ErrorHandlingLenientConfiguration     | LenientConfiguration           | "project.configurations.maybeCreate('some').resolvedConfiguration.lenientConfiguration"
@@ -188,5 +212,82 @@ class InstantExecutionUnsupportedTypesIntegrationTest extends AbstractInstantExe
         DefaultDependencyLockingHandler       | DependencyLockingHandler       | "project.dependencyLocking"
         DefaultResolvedDependency             | ResolvedDependency             | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.12') }.resolvedConfiguration.firstLevelModuleDependencies.first()"
         DefaultResolvedArtifact               | ResolvedArtifact               | "project.configurations.create(java.util.UUID.randomUUID().toString()).tap { project.dependencies.add(name, 'junit:junit:4.12') }.resolvedConfiguration.resolvedArtifacts.first()"
+        ConfigurationArtifactView             | ArtifactView                   | "project.configurations.maybeCreate('some').incoming.artifactView {}"
+        DefaultArtifactResolutionResult       | ArtifactResolutionResult       | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary).execute()"
+        DefaultComponentArtifactsResult       | ComponentResult                | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary).execute().components.first()"
+        DefaultResolvedArtifactResult         | ArtifactResult                 | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first()"
+        DefaultResolvedVariantResult          | ResolvedVariantResult          | "project.dependencies.createArtifactResolutionQuery().forModule('junit', 'junit', '4.12').withArtifacts(JvmLibrary, SourcesArtifact).execute().components.first().getArtifacts(SourcesArtifact).first().variant"
+    }
+
+    @Unroll
+    def "reports when task field is declared with type #baseType"() {
+        buildFile << """
+            plugins { id "java" }
+
+            class SomeBean {
+                private ${baseType.name} badField
+            }
+
+            class SomeTask extends DefaultTask {
+                private final ${baseType.name} badField
+                private final bean = new SomeBean()
+                private final beanWithSameType = new SomeBean()
+
+                SomeTask() {
+                    badField = ${reference}
+                    bean.badField = ${reference}
+                    beanWithSameType.badField = ${reference}
+                }
+
+                @TaskAction
+                void run() {
+                    println "this.reference = " + badField
+                    println "bean.reference = " + bean.badField
+                    println "beanWithSameType.reference = " + beanWithSameType.badField
+                }
+            }
+
+            ${mavenCentralRepository()}
+
+            task other
+            task broken(type: SomeTask)
+        """
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantRun "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(3)
+            withUniqueProblems(
+                "field 'badField' from type 'SomeTask': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution.",
+                "field 'badField' from type 'SomeBean': cannot serialize object of type '${concreteType.name}', a subtype of '${baseType.name}', as these are not supported with instant execution."
+            )
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantRun "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(6)
+            withUniqueProblems(
+                "field 'badField' from type 'SomeTask': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
+                "field 'badField' from type 'SomeTask': value '$deserializedValue' is not assignable to '${baseType.name}'",
+                "field 'badField' from type 'SomeBean': cannot deserialize object of type '${baseType.name}' as these are not supported with instant execution.",
+                "field 'badField' from type 'SomeBean': value '$deserializedValue' is not assignable to '${baseType.name}'"
+            )
+        }
+
+        and:
+        outputContains("this.reference = null")
+        outputContains("bean.reference = null")
+        outputContains("beanWithSameType.reference = null")
+
+        where:
+        concreteType         | baseType      | reference                                    | deserializedValue
+        DefaultConfiguration | Configuration | "project.configurations.maybeCreate('some')" | 'file collection'
     }
 }

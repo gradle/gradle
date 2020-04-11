@@ -30,11 +30,16 @@ object TaskReferenceCodec : Codec<Task> {
         if (value === isolate.owner.delegate) {
             writeBoolean(true)
         } else {
-            logUnsupported(Task::class, value.javaClass)
+            logUnsupported("serialize", Task::class, value.javaClass)
             writeBoolean(false)
         }
     }
 
     override suspend fun ReadContext.decode(): Task? =
-        isolate.owner.delegate.takeIf { readBoolean() } as Task?
+        if (readBoolean()) {
+            isolate.owner.delegate as Task
+        } else {
+            logUnsupported("deserialize", Task::class)
+            null
+        }
 }
