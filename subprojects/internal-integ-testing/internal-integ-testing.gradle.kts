@@ -52,6 +52,7 @@ dependencies {
     implementation(testLibrary("jetty"))
     implementation(testLibrary("littleproxy"))
     implementation(library("gcs"))
+    implementation(library("inject"))
     implementation(library("commons_httpclient"))
     implementation(library("joda"))
     implementation(library("jackson_core"))

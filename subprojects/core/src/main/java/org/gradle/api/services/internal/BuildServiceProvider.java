@@ -16,7 +16,9 @@
 
 package org.gradle.api.services.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
@@ -92,7 +94,12 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
                 // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
                 P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
                 // TODO - reuse this in other places
-                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(isolatedParameters, internalServices);
+                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
+                    isolatedParameters,
+                    internalServices,
+                    ImmutableList.of(LoggingOutput.class),
+                    serviceType -> false
+                );
                 try {
                     instance = Try.successful(instantiationScheme.withServices(instantiationServices).instantiator().newInstance(implementationType));
                 } catch (Exception e) {
