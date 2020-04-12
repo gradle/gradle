@@ -100,11 +100,13 @@ public interface FileTreeElement {
      */
     default boolean copyTo(Path target) {
         try {
-            if (!isDirectory()) {
+            if (target.getParent() != null) {
                 Files.createDirectories(target.getParent());
+            }
+            if (!isDirectory()) {
                 Files.copy(getNioPath(), target, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS);
             } else {
-                Files.createDirectories(target);
+                Files.createDirectory(target);
             }
             return true;
         } catch (Exception e) {
