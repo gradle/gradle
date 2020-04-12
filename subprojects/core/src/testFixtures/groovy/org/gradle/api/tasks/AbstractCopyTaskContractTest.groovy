@@ -55,7 +55,7 @@ abstract class AbstractCopyTaskContractTest extends AbstractConventionTaskTest {
         File fromSrcDir = createDir(project.projectDir, 'src')
         File fromConfDir = createDir(fromSrcDir, 'conf')
         File fromPropertiesFile = createFile(fromConfDir, 'file.properties')
-        fromPropertiesFile.text << 'foo'
+        fromPropertiesFile << 'foo'
         File intoBuildDir = createDir(project.projectDir, 'build')
         EachFileClosureInvocation closureInvocation = new EachFileClosureInvocation()
 
