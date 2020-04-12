@@ -46,7 +46,7 @@ public class FileCopyAction implements CopyAction {
         public void processFile(FileCopyDetailsInternal details) {
             File target = fileResolver.resolve(details.getRelativePath().getPathString());
             renameIfCaseChanged(target);
-            boolean copied = details.copyTo(target);
+            boolean copied = details.copyTo(target.toPath());
             if (copied) {
                 didWork = true;
             }

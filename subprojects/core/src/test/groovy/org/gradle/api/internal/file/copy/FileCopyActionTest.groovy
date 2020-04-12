@@ -47,7 +47,7 @@ class FileCopyActionTest extends Specification {
     private FileCopyDetailsInternal file(final RelativePath relativePath, final File targetFile) {
         final FileCopyDetailsInternal details = Mock(FileCopyDetailsInternal)
         _ * details.relativePath >> relativePath
-        1 * details.copyTo(targetFile)
+        1 * details.copyTo(targetFile.toPath())
         0 * details._
         return details
     }
