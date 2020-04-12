@@ -31,6 +31,9 @@ import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
 
+import java.nio.file.Files
+import java.nio.file.Path
+
 import static org.gradle.api.internal.file.copy.CopyActionExecuterUtil.visit
 import static org.hamcrest.CoreMatchers.equalTo
 
@@ -160,7 +163,7 @@ class ZipCopyActionTest extends Specification {
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> false
         mock.getMode() >> 1
-        mock.copyTo(_ as OutputStream) >> { OutputStream out ->
+        mock.copyTo(_ as Path) >> { Path out ->
             out << "contents of $path"
         }
         mock
@@ -172,6 +175,9 @@ class ZipCopyActionTest extends Specification {
         mock.getLastModified() >> 1000L
         mock.isDirectory() >> true
         mock.getMode() >> 2
+        mock.copyTo(_ as Path) >> { Path out ->
+            Files.createDirectories(out)
+        }
         mock
     }
 

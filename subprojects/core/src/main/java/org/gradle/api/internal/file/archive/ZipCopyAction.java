@@ -18,8 +18,6 @@ package org.gradle.api.internal.file.archive;
 import org.apache.tools.zip.UnixStat;
 import org.apache.tools.zip.Zip64RequiredException;
 import org.apache.tools.zip.ZipEntry;
-import org.apache.tools.zip.ZipOutputStream;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
@@ -35,6 +33,10 @@ import org.gradle.api.tasks.bundling.Zip;
 import org.gradle.internal.IoActions;
 
 import java.io.File;
+import java.nio.file.FileSystem;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.attribute.FileTime;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -72,20 +74,17 @@ public class ZipCopyAction implements CopyAction {
 
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
-        final ZipOutputStream zipOutStr;
+        final FileSystem zipFileSystem;
 
         try {
-            zipOutStr = compressor.createArchiveOutputStream(zipFile);
+            zipFileSystem = compressor.createArchiveFileSystem(zipFile.toPath(), encoding);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not create ZIP '%s'.", zipFile), e);
         }
 
         try {
-            IoActions.withResource(zipOutStr, new Action<ZipOutputStream>() {
-                @Override
-                public void execute(ZipOutputStream outputStream) {
-                    stream.process(new StreamAction(outputStream, encoding));
-                }
+            IoActions.withResource(zipFileSystem, fileSystem -> {
+                stream.process(new StreamAction(fileSystem));
             });
         } catch (UncheckedIOException e) {
             if (e.getCause() instanceof Zip64RequiredException) {
@@ -99,13 +98,10 @@ public class ZipCopyAction implements CopyAction {
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {
-        private final ZipOutputStream zipOutStr;
+        private final FileSystem zipFileSystem;
 
-        public StreamAction(ZipOutputStream zipOutStr, String encoding) {
-            this.zipOutStr = zipOutStr;
-            if (encoding != null) {
-                this.zipOutStr.setEncoding(encoding);
-            }
+        public StreamAction(FileSystem zipFileSystem) {
+            this.zipFileSystem = zipFileSystem;
         }
 
         @Override
@@ -119,12 +115,9 @@ public class ZipCopyAction implements CopyAction {
 
         private void visitFile(FileCopyDetails fileDetails) {
             try {
-                ZipEntry archiveEntry = new ZipEntry(fileDetails.getRelativePath().getPathString());
-                archiveEntry.setTime(getArchiveTimeFor(fileDetails));
-                archiveEntry.setUnixMode(UnixStat.FILE_FLAG | fileDetails.getMode());
-                zipOutStr.putNextEntry(archiveEntry);
-                fileDetails.copyTo(zipOutStr);
-                zipOutStr.closeEntry();
+                Path destination = zipFileSystem.getPath("", fileDetails.getRelativePath().getSegments());
+                fileDetails.copyTo(destination);
+                //Files.setLastModifiedTime(destination, FileTime.fromMillis(getArchiveTimeFor(fileDetails)));
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
             }
@@ -132,12 +125,9 @@ public class ZipCopyAction implements CopyAction {
 
         private void visitDir(FileCopyDetails dirDetails) {
             try {
-                // Trailing slash in name indicates that entry is a directory
-                ZipEntry archiveEntry = new ZipEntry(dirDetails.getRelativePath().getPathString() + '/');
-                archiveEntry.setTime(getArchiveTimeFor(dirDetails));
-                archiveEntry.setUnixMode(UnixStat.DIR_FLAG | dirDetails.getMode());
-                zipOutStr.putNextEntry(archiveEntry);
-                zipOutStr.closeEntry();
+                Path destination = zipFileSystem.getPath("", dirDetails.getRelativePath().getPathString());
+                dirDetails.copyTo(destination);
+                //Files.setLastModifiedTime(destination, FileTime.fromMillis(getArchiveTimeFor(dirDetails)));
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
             }
