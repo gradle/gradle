@@ -37,7 +37,7 @@ public interface ValueSupplier {
     boolean calculatePresence(ValueConsumer consumer);
 
     enum ValueConsumer {
-        Strict, Lenient
+        DisallowUnsafeRead, IgnoreUnsafeRead
     }
 
     /**

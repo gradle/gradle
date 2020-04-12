@@ -71,7 +71,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public boolean isPresent() {
-        return calculatePresence(ValueConsumer.Lenient);
+        return calculatePresence(ValueConsumer.IgnoreUnsafeRead);
     }
 
     @Override
@@ -81,7 +81,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T get() {
-        Value<? extends T> value = calculateOwnValue(ValueConsumer.Lenient);
+        Value<? extends T> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
         if (value.isMissing()) {
             TreeFormatter formatter = new TreeFormatter();
             formatter.node("Cannot query the value of ").append(getDisplayName().getDisplayName()).append(" because it has no value available.");
@@ -100,12 +100,12 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public T getOrNull() {
-        return calculateOwnValue(ValueConsumer.Lenient).orNull();
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orNull();
     }
 
     @Override
     public T getOrElse(T defaultValue) {
-        return calculateOwnValue(ValueConsumer.Lenient).orElse(defaultValue);
+        return calculateOwnValue(ValueConsumer.IgnoreUnsafeRead).orElse(defaultValue);
     }
 
     @Override
@@ -136,7 +136,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        return ExecutionTimeValue.value(calculateOwnValue(ValueConsumer.Lenient));
+        return ExecutionTimeValue.value(calculateOwnValue(ValueConsumer.IgnoreUnsafeRead));
     }
 
     @Override

@@ -1904,6 +1904,54 @@ The value of this property is derived from:
         result2 == someValue()
     }
 
+    def "cannot read value with upstream task output until host is ready and task completed when unsafe read disallowed"() {
+        given:
+        def producer = owner()
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        upstream.set(someValue())
+        upstream.attachOwner(owner(), displayName("<upstream>"))
+        upstream.attachProducer(producer)
+
+        property.set(upstream)
+        property.attachOwner(owner(), displayName("<display-name>"))
+        property.disallowUnsafeRead()
+
+        when:
+        property.get()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * host.beforeRead(producer) >> "<task>"
+        0 * host._
+
+        and:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to calculate the value of <display-name>."
+        e.cause.message == "Cannot query the value of <upstream> because <task>."
+
+        when:
+        def result = property.get()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * host.beforeRead(producer) >> null
+        0 * host._
+
+        and:
+        result == someValue()
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * host._
+
+        and:
+        result2 == someValue()
+    }
+
     def "reports that value is unsafe to read regardless of whether a value is available or not"() {
         given:
         def property = propertyWithNoValue()

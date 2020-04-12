@@ -68,12 +68,12 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
 
     @Override
     public ValueProducer getProducer() {
-        return backingProvider(ValueConsumer.Lenient).getProducer();
+        return backingProvider(ValueConsumer.IgnoreUnsafeRead).getProducer();
     }
 
     @Override
     public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
-        return backingProvider(ValueConsumer.Lenient).calculateExecutionTimeValue();
+        return backingProvider(ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
     }
 
     @Override

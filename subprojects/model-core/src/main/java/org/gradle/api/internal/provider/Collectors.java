@@ -321,7 +321,7 @@ public class Collectors {
         }
 
         public void collectInto(ImmutableCollection.Builder<T> builder) {
-            collectEntries(ValueConsumer.Lenient, valueCollector, builder);
+            collectEntries(ValueConsumer.IgnoreUnsafeRead, valueCollector, builder);
         }
 
         @Override
