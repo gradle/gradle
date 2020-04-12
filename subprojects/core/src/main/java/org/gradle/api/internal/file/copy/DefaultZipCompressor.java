@@ -22,6 +22,12 @@ import org.gradle.internal.IoActions;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultZipCompressor implements ZipCompressor {
     private final int entryCompressionMethod;
@@ -46,4 +52,13 @@ public class DefaultZipCompressor implements ZipCompressor {
         }
     }
 
+    @Override
+    public FileSystem createArchiveFileSystem(Path destination, String encoding) throws IOException {
+        Map<String, Object> env = new HashMap<>();
+        env.put("create", true);
+        if (encoding != null) {
+            env.put("encoding", encoding);
+        }
+        return FileSystems.newFileSystem(URI.create("jar:" + destination.toUri()), env, null);
+    }
 }
