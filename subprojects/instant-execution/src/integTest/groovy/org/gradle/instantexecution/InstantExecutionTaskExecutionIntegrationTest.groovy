@@ -81,4 +81,43 @@ class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecut
         failureDescriptionStartsWith("Execution failed for task ':sleepyTask'.")
         failureHasCause("Timeout has been exceeded")
     }
+
+    def "honors task enabled flag"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildFile << """
+            tasks.register('someTask') {
+                doLast {}
+            }
+        """
+
+        when:
+        instantRun 'someTask'
+        executedAndNotSkipped(':someTask')
+
+        and:
+        instantRun 'someTask'
+        executedAndNotSkipped(':someTask')
+
+        then:
+        instant.assertStateLoaded()
+
+        when:
+        buildFile << """
+            someTask.enabled = false
+        """
+        instantRun 'someTask'
+
+        then:
+        instant.assertStateStored()
+        skipped(':someTask')
+
+        when:
+        instantRun 'someTask'
+
+        then:
+        instant.assertStateLoaded()
+        skipped(':someTask')
+    }
 }
