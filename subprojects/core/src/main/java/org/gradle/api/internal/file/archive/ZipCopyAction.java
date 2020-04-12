@@ -15,10 +15,9 @@
  */
 package org.gradle.api.internal.file.archive;
 
-import org.apache.tools.zip.UnixStat;
 import org.apache.tools.zip.Zip64RequiredException;
-import org.apache.tools.zip.ZipEntry;
 import org.gradle.api.GradleException;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.internal.DocumentationRegistry;
@@ -36,7 +35,7 @@ import java.io.File;
 import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.attribute.FileTime;
+import java.nio.file.attribute.PosixFilePermissions;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -72,6 +71,28 @@ public class ZipCopyAction implements CopyAction {
         this.preserveFileTimestamps = preserveFileTimestamps;
     }
 
+    /**
+     * Returns the Unix permissions of this file in , e.g. {@code 0644}.
+     *
+     * @return The Unix file permissions.
+     */
+    private static String getModeStr(int mode) {
+        StringBuilder toReturn = new StringBuilder();
+
+        // Build other, group, and owner in that order.
+        // Each append tests the rightmost bit and then shifts right.
+        for (int i = 0; i < 3; i++) {
+            toReturn.append((mode & 1) == 1 ? 'x' : '-');
+            mode >>>= 1;
+            toReturn.append((mode & 1) == 1 ? 'w' : '-');
+            mode >>>= 1;
+            toReturn.append((mode & 1) == 1 ? 'r' : '-');
+            mode >>>= 1;
+        }
+
+        return toReturn.toString();
+    }
+
     @Override
     public WorkResult execute(final CopyActionProcessingStream stream) {
         final FileSystem zipFileSystem;
@@ -89,12 +110,16 @@ public class ZipCopyAction implements CopyAction {
         } catch (UncheckedIOException e) {
             if (e.getCause() instanceof Zip64RequiredException) {
                 throw new org.gradle.api.tasks.bundling.internal.Zip64RequiredException(
-                        String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s", e.getCause().getMessage(), documentationRegistry.getDslRefForProperty(Zip.class, "zip64"))
+                    String.format("%s\n\nTo build this archive, please enable the zip64 extension.\nSee: %s", e.getCause().getMessage(), documentationRegistry.getDslRefForProperty(Zip.class, "zip64"))
                 );
             }
         }
 
         return WorkResults.didWork(true);
+    }
+
+    private long getArchiveTimeFor(FileCopyDetails details) {
+        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_ZIP_ENTRIES;
     }
 
     private class StreamAction implements CopyActionProcessingStreamAction {
@@ -117,6 +142,9 @@ public class ZipCopyAction implements CopyAction {
             try {
                 Path destination = zipFileSystem.getPath("", fileDetails.getRelativePath().getSegments());
                 fileDetails.copyTo(destination);
+                if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+                    Files.setPosixFilePermissions(destination, PosixFilePermissions.fromString(getModeStr(fileDetails.getMode())));
+                }
                 //Files.setLastModifiedTime(destination, FileTime.fromMillis(getArchiveTimeFor(fileDetails)));
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", fileDetails, zipFile), e);
@@ -125,16 +153,15 @@ public class ZipCopyAction implements CopyAction {
 
         private void visitDir(FileCopyDetails dirDetails) {
             try {
-                Path destination = zipFileSystem.getPath("", dirDetails.getRelativePath().getPathString());
+                Path destination = zipFileSystem.getPath(dirDetails.getRelativePath().getPathString() + "/");
                 dirDetails.copyTo(destination);
+                if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14)) {
+                    Files.setPosixFilePermissions(destination, PosixFilePermissions.fromString(getModeStr(dirDetails.getMode())));
+                }
                 //Files.setLastModifiedTime(destination, FileTime.fromMillis(getArchiveTimeFor(dirDetails)));
             } catch (Exception e) {
                 throw new GradleException(String.format("Could not add %s to ZIP '%s'.", dirDetails, zipFile), e);
             }
         }
-    }
-
-    private long getArchiveTimeFor(FileCopyDetails details) {
-        return preserveFileTimestamps ? details.getLastModified() : CONSTANT_TIME_FOR_ZIP_ENTRIES;
     }
 }

@@ -29,6 +29,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import org.junit.Test
+import spock.lang.Requires
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -77,6 +78,7 @@ class ZipCopyActionTest extends Specification {
         expandDir.file("file2").assertContents(equalTo("contents of file2"))
     }
 
+    @Requires({ javaVersion >= 14 })
     void zipFileContainsExpectedPermissions() {
         given:
         zip(dir("dir"), file("file"))
