@@ -120,4 +120,47 @@ class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecut
         instant.assertStateLoaded()
         skipped(':someTask')
     }
+
+    def "honors task onlyIf spec"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildFile << """
+            tasks.register('someTask') {
+                doLast {}
+                // use undeclared input on purpose
+                def skipFile = file('skip')
+                onlyIf { !skipFile.exists() }
+            }
+        """
+
+        when:
+        instantRun 'someTask'
+        instantRun 'someTask'
+
+        then:
+        instant.assertStateLoaded()
+        executedAndNotSkipped(':someTask')
+
+        when:
+        file('skip').text = ''
+        instantRun 'someTask'
+
+        then:
+        instant.assertStateLoaded()
+        skipped(':someTask')
+
+        when:
+        file('skip').delete()
+        buildFile << """
+            someTask.enabled = false
+        """
+
+        and:
+        instantRun 'someTask'
+
+        then:
+        instant.assertStateStored()
+        skipped(':someTask')
+    }
 }

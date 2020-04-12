@@ -122,7 +122,7 @@ val Class<*>.relevantFields: List<Field>
 
 
 private
-val abstractTaskRelevantFields = listOf("actions", "enabled", "timeout")
+val abstractTaskRelevantFields = listOf("actions", "enabled", "timeout", "onlyIfSpec")
 
 
 internal
