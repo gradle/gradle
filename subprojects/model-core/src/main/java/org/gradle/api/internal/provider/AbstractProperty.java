@@ -144,7 +144,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        beforeRead(producer, ValueConsumer.Lenient);
+        beforeRead(producer, ValueConsumer.IgnoreUnsafeRead);
         ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
         if (getProducerTask() == null) {
             return value;
@@ -183,7 +183,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     @Override
     public void finalizeValue() {
         if (state.shouldFinalize(getDisplayName(), producer)) {
-            finalizeNow(ValueConsumer.Lenient);
+            finalizeNow(ValueConsumer.IgnoreUnsafeRead);
         }
     }
 
@@ -369,7 +369,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
-            if (disallowUnsafeRead) {
+            if (disallowUnsafeRead || consumer == ValueConsumer.DisallowUnsafeRead) {
                 String reason = host.beforeRead(producer);
                 if (reason != null) {
                     TreeFormatter formatter = new TreeFormatter();
@@ -381,13 +381,13 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
                     throw new IllegalStateException(formatter.toString());
                 }
             }
-            return finalizeOnNextGet || consumer == ValueConsumer.Strict;
+            return finalizeOnNextGet || consumer == ValueConsumer.DisallowUnsafeRead;
         }
 
         @Override
         public ValueConsumer forUpstream(ValueConsumer consumer) {
             if (disallowUnsafeRead) {
-                return ValueConsumer.Strict;
+                return ValueConsumer.DisallowUnsafeRead;
             } else {
                 return consumer;
             }
@@ -480,43 +480,47 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public ValueConsumer forUpstream(ValueConsumer consumer) {
-            return consumer;
-        }
-
-        @Override
         public void beforeMutate(DisplayName displayName) {
             throw new IllegalStateException(String.format("The value for %s is final and cannot be changed any further.", displayName.getDisplayName()));
         }
 
         @Override
+        public ValueConsumer forUpstream(ValueConsumer consumer) {
+            throw unexpected();
+        }
+
+        @Override
         public S explicitValue(S value) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public S explicitValue(S value, S defaultValue) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public S applyConvention(S value, S convention) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public S implicitValue() {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public FinalizationState<S> finalState() {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         void setConvention(S convention) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
+        }
+
+        private UnsupportedOperationException unexpected() {
+            return new UnsupportedOperationException("This property is in an unexpected state.");
         }
     }
 }
