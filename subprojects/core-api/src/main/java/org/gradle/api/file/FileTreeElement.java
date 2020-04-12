@@ -15,9 +15,15 @@
  */
 package org.gradle.api.file;
 
+import org.gradle.api.GradleException;
+
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 /**
  * Information about a file in a directory/file tree.
@@ -29,6 +35,15 @@ public interface FileTreeElement {
      * @return The file. Never returns null.
      */
     File getFile();
+
+    /**
+     * Returns the {@link Path} being visited.
+     *
+     * @return The NIO path. Never returns null.
+     */
+    default Path getNioPath() {
+        return getFile().toPath();
+    }
 
     /**
      * Returns true if this element is a directory, or false if this element is a regular file.
@@ -65,6 +80,7 @@ public interface FileTreeElement {
      *
      * @param output The output stream to write to. The caller is responsible for closing this stream.
      */
+    @Deprecated
     void copyTo(OutputStream output);
 
     /**
@@ -73,7 +89,26 @@ public interface FileTreeElement {
      * @param target the target file.
      * @return true if this file was copied, false if it was up-to-date
      */
+    @Deprecated
     boolean copyTo(File target);
+
+    /**
+     * Copies this file to the given target {@link Path}. Does not copy the file if the target is already a copy of this file.
+     *
+     * @param target the target path.
+     * @return true if this file was copied, false if it was up-to-date
+     */
+    default boolean copyTo(Path target) {
+        try {
+            if (!isDirectory()) {
+                Files.createDirectories(getNioPath().getParent());
+                Files.copy(getNioPath(), target, StandardCopyOption.COPY_ATTRIBUTES, StandardCopyOption.REPLACE_EXISTING, LinkOption.NOFOLLOW_LINKS);
+            }
+            return true;
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not copy %s to '%s'.", getNioPath(), target), e);
+        }
+    }
 
     /**
      * Returns the base name of this file.
