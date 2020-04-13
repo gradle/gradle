@@ -98,7 +98,7 @@ public interface ClassLoaderScope {
     ClassLoaderScope createChild(String id);
 
     /**
-     * Creates a child scope that is immutable and ready to use. Uses the given factory to create the local ClassLoader if not already cached. The factory takes a parent ClassLoader produces a ClassLoader
+     * Creates a child scope that is immutable and ready to use. Uses the given factory to create the local ClassLoader if not already cached. The factory takes a parent ClassLoader and produces a ClassLoader
      */
     ClassLoaderScope createLockedChild(String id, ClassPath localClasspath, @Nullable HashCode classpathImplementationHash, @Nullable Function<ClassLoader, ClassLoader> localClassLoaderFactory);
 
