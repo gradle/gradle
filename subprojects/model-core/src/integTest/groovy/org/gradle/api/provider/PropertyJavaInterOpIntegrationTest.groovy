@@ -39,6 +39,7 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyJavaInterOpInte
             public class SomeTask extends DefaultTask {
                 private final Property<Boolean> flag;
                 private final Property<String> message;
+                private final Property<Double> number;
                 private final ListProperty<Integer> list;
                 private final SetProperty<Integer> set;
                 private final MapProperty<Integer, Boolean> map;
@@ -47,6 +48,7 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyJavaInterOpInte
                 public SomeTask(ObjectFactory objectFactory) {
                     flag = objectFactory.property(Boolean.class);
                     message = objectFactory.property(String.class);
+                    number = objectFactory.property(Double.class);
                     list = objectFactory.listProperty(Integer.class);
                     set = objectFactory.setProperty(Integer.class);
                     map = objectFactory.mapProperty(Integer.class, Boolean.class);
@@ -60,6 +62,11 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyJavaInterOpInte
                 @Internal
                 public Property<String> getMessage() {
                     return message;
+                }
+
+                @Internal
+                public Property<Double> getNumber() {
+                    return number;
                 }
 
                 @Internal
@@ -81,6 +88,7 @@ class PropertyJavaInterOpIntegrationTest extends AbstractPropertyJavaInterOpInte
                 public void run() {
                     System.out.println("flag = " + flag.get());
                     System.out.println("message = " + message.get());
+                    System.out.println("number = " + number.get());
                     System.out.println("list = " + list.get());
                     System.out.println("set = " + set.get());
                     System.out.println("map = " + map.get());

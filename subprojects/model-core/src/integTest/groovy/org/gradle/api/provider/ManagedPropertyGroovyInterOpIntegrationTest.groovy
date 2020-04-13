@@ -37,6 +37,8 @@ class ManagedPropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovy
                 @Internal
                 abstract Property<String> getMessage()
                 @Internal
+                abstract Property<Double> getNumber()
+                @Internal
                 abstract ListProperty<Integer> getList()
                 @Internal
                 abstract SetProperty<Integer> getSet()
@@ -47,6 +49,7 @@ class ManagedPropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovy
                 void run() {
                     System.out.println("flag = " + flag.get())
                     System.out.println("message = " + message.get())
+                    System.out.println("number = " + number.get())
                     System.out.println("list = " + list.get())
                     System.out.println("set = " + set.get())
                     System.out.println("map = " + map.get().toString())

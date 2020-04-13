@@ -42,6 +42,8 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovyInterOp
                 @Internal
                 final Property<String> message
                 @Internal
+                final Property<Double> number
+                @Internal
                 final ListProperty<Integer> list
                 @Internal
                 final SetProperty<Integer> set
@@ -52,6 +54,7 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovyInterOp
                 SomeTask(ObjectFactory objectFactory) {
                     flag = objectFactory.property(Boolean)
                     message = objectFactory.property(String)
+                    number = objectFactory.property(Double)
                     list = objectFactory.listProperty(Integer)
                     set = objectFactory.setProperty(Integer)
                     map = objectFactory.mapProperty(Integer, Boolean)
@@ -61,6 +64,7 @@ class PropertyGroovyInterOpIntegrationTest extends AbstractPropertyGroovyInterOp
                 void run() {
                     System.out.println("flag = " + flag.get())
                     System.out.println("message = " + message.get())
+                    System.out.println("number = " + number.get())
                     System.out.println("list = " + list.get())
                     System.out.println("set = " + set.get())
                     System.out.println("map = " + map.get().toString())

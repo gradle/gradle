@@ -44,6 +44,7 @@ abstract class AbstractPropertyGroovyInterOpIntegrationTest extends AbstractProp
                     project.tasks.register("someTask", SomeTask) { t ->
                         t.flag = true
                         t.message = "some value"
+                        t.number = 1.23d
                         t.list = [1, 2]
                         t.set = [1, 2]
                         t.map = [1: true, 2: false]
@@ -64,6 +65,7 @@ abstract class AbstractPropertyGroovyInterOpIntegrationTest extends AbstractProp
                     project.tasks.register("someTask", SomeTask) { t ->
                         t.flag = project.provider { true }
                         t.message = project.provider { "some value" }
+                        t.number = project.provider { 1.23d }
                         t.list = project.provider { [1, 2] }
                         t.set = project.provider { [1, 2] }
                         t.map = project.provider { [1: true, 2: false] }
@@ -85,6 +87,7 @@ abstract class AbstractPropertyGroovyInterOpIntegrationTest extends AbstractProp
                         def provider = project.provider { "some value" }
                         t.flag = provider.map { s -> !s.empty }
                         t.message = provider.map { s -> s }
+                        t.number = provider.map { s -> 1.23d }
                         t.list = provider.map { s -> [1, 2] }
                         t.set = provider.map { s -> [1, 2] }
                         t.map = provider.map { s -> [1: true, 2: false] }
