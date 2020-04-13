@@ -16,8 +16,6 @@
 
 package org.gradle.instantexecution
 
-import java.time.Duration
-
 class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     def "honors task up-to-date spec"() {
         buildFile << """
@@ -51,116 +49,5 @@ class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecut
         then:
         result.assertTaskSkipped(":always")
         result.assertTasksNotSkipped(":never")
-    }
-
-    def "honors task timeout"() {
-
-        given:
-        def instant = newInstantExecutionFixture()
-        buildFile << """
-            tasks.register("sleepyTask") {
-                timeout.set(${Duration.name}.ofMillis(500))
-                // use undeclared input on purpose
-                def sleepFile = file('sleep')
-                doLast {
-                    Thread.sleep(sleepFile.text.toInteger())
-                }
-            }
-        """
-
-        when:
-        file('sleep').text = '0'
-        instantRun 'sleepyTask'
-
-        and:
-        file('sleep').text = '1000'
-        instantFails 'sleepyTask'
-
-        then:
-        instant.assertStateLoaded()
-        failureDescriptionStartsWith("Execution failed for task ':sleepyTask'.")
-        failureHasCause("Timeout has been exceeded")
-    }
-
-    def "honors task enabled flag"() {
-
-        given:
-        def instant = newInstantExecutionFixture()
-        buildFile << """
-            tasks.register('someTask') {
-                doLast {}
-            }
-        """
-
-        when:
-        instantRun 'someTask'
-        executedAndNotSkipped(':someTask')
-
-        and:
-        instantRun 'someTask'
-        executedAndNotSkipped(':someTask')
-
-        then:
-        instant.assertStateLoaded()
-
-        when:
-        buildFile << """
-            someTask.enabled = false
-        """
-        instantRun 'someTask'
-
-        then:
-        instant.assertStateStored()
-        skipped(':someTask')
-
-        when:
-        instantRun 'someTask'
-
-        then:
-        instant.assertStateLoaded()
-        skipped(':someTask')
-    }
-
-    def "honors task onlyIf spec"() {
-
-        given:
-        def instant = newInstantExecutionFixture()
-        buildFile << """
-            tasks.register('someTask') {
-                doLast {}
-                // use undeclared input on purpose
-                def skipFile = file('skip')
-                onlyIf { !skipFile.exists() }
-            }
-        """
-
-        when:
-        instantRun 'someTask'
-        instantRun 'someTask'
-
-        then:
-        instant.assertStateLoaded()
-        executedAndNotSkipped(':someTask')
-
-        when:
-        file('skip').text = ''
-        instantRun 'someTask'
-
-        then:
-        instant.assertStateLoaded()
-        skipped(':someTask')
-
-        when:
-        file('skip').delete()
-        buildFile << """
-            someTask.enabled = false
-        """
-
-        and:
-        instantRun 'someTask'
-
-        then:
-        instant.assertStateStored()
-        skipped(':someTask')
     }
 }
