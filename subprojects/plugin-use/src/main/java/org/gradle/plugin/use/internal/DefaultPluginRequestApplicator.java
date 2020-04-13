@@ -18,8 +18,6 @@ package org.gradle.plugin.use.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.repositories.ArtifactRepository;
-import org.gradle.api.artifacts.repositories.MavenArtifactRepository;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.plugins.ClassloaderBackedPluginDescriptorLocator;
@@ -50,11 +48,8 @@ import java.util.Formatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static com.google.common.collect.Sets.newHashSet;
-import static com.google.common.collect.Sets.newLinkedHashSet;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
@@ -77,7 +72,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     @Override
     public void applyPlugins(final PluginRequests requests, final ScriptHandlerInternal scriptHandler, @Nullable final PluginManagerInternal target, final ClassLoaderScope classLoaderScope) {
         if (target == null || requests.isEmpty()) {
-            defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.<PluginImplementation<?>>emptyList());
+            defineScriptHandlerClassScope(scriptHandler, classLoaderScope, Collections.emptyList());
             return;
         }
 
@@ -93,20 +88,11 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
         final Map<Result, PluginImplementation<?>> pluginImplsFromOtherLoaders = newLinkedHashMap();
 
         if (!results.isEmpty()) {
-            final RepositoryHandler repositories = scriptHandler.getRepositories();
-            final Set<String> repoUrls = newLinkedHashSet();
-
             for (final Result result : results) {
                 applyPlugin(result.request, result.found.getPluginId(), new Runnable() {
                     @Override
                     public void run() {
                         result.found.execute(new PluginResolveContext() {
-                            @Override
-                            public void addLegacy(PluginId pluginId, final String m2RepoUrl, Object dependencyNotation) {
-                                repoUrls.add(m2RepoUrl);
-                                addLegacy(pluginId, dependencyNotation);
-                            }
-
                             @Override
                             public void addLegacy(PluginId pluginId, Object dependencyNotation) {
                                 legacyActualPluginIds.put(result, pluginId);
@@ -127,8 +113,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
                     }
                 });
             }
-
-            addMissingMavenRepositories(repositories, repoUrls);
         }
 
         defineScriptHandlerClassScope(scriptHandler, classLoaderScope, pluginImplsFromOtherLoaders.values());
@@ -164,28 +148,6 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private void addPluginArtifactRepositories(RepositoryHandler repositories) {
         repositories.addAll(pluginRepositoriesProvider.getPluginRepositories());
-    }
-
-    private void addMissingMavenRepositories(RepositoryHandler repositories, Set<String> repoUrls) {
-        if (repoUrls.isEmpty()) {
-            return;
-        }
-        final Set<String> existingMavenUrls = existingMavenUrls(repositories);
-        for (final String repoUrl : repoUrls) {
-            if (!existingMavenUrls.contains(repoUrl)) {
-                repositories.maven(repository -> repository.setUrl(repoUrl));
-            }
-        }
-    }
-
-    private Set<String> existingMavenUrls(RepositoryHandler repositories) {
-        Set<String> mavenUrls = newHashSet();
-        for (ArtifactRepository repo : repositories) {
-            if (repo instanceof MavenArtifactRepository) {
-                mavenUrls.add(((MavenArtifactRepository) repo).getUrl().toString());
-            }
-        }
-        return mavenUrls;
     }
 
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
@@ -286,7 +248,7 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
     }
 
     private static class Result implements PluginResolutionResult {
-        private final List<NotFound> notFoundList = new LinkedList<NotFound>();
+        private final List<NotFound> notFoundList = new LinkedList<>();
         private final PluginRequestInternal request;
         private PluginResolution found;
 

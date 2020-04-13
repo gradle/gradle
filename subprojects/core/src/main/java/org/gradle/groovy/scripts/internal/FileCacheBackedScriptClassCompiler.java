@@ -20,7 +20,6 @@ import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -56,16 +55,13 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
-    private final ClassLoaderCache classLoaderCache;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, ClassLoaderCache classLoaderCache,
-                                              ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+                                              ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.classLoaderCache = classLoaderCache;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
     }
 
@@ -99,7 +95,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
         PersistentCache remappedClassesCache = cacheRepository.cache("scripts-remapped/" + source.getClassName() + "/" + sourceHash + "/" + classpathHash)
             .withDisplayName(dslId + " remapped class cache for " + sourceHash)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<M, T>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
+            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
                 "Compiling " + source.getFileName() + " into local compilation cache"))
             .open();
@@ -114,7 +110,7 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     private <T extends Script, M> CompiledScript<T, M> emptyCompiledScript(CompileOperation<M> operation) {
-        return new EmptyCompiledScript<T, M>(operation);
+        return new EmptyCompiledScript<>(operation);
     }
 
     @Override
@@ -154,8 +150,8 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     }
 
     static class ProgressReportingInitializer implements Action<PersistentCache> {
-        private ProgressLoggerFactory progressLoggerFactory;
-        private Action<? super PersistentCache> delegate;
+        private final ProgressLoggerFactory progressLoggerFactory;
+        private final Action<? super PersistentCache> delegate;
         private final String shortDescription;
         private final String longDescription;
 

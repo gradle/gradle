@@ -17,7 +17,6 @@ package org.gradle.groovy.scripts.internal
 
 import org.gradle.api.Action
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache
 import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.PersistentCache
@@ -46,14 +45,13 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final ClassLoaderScope targetScope = Mock() {
         getExportClassLoader() >> classLoader
     }
-    final ClassLoaderCache classLoaderCache = Mock()
     final classLoaderHierarchyHasher = Mock(ClassLoaderHierarchyHasher) {
         getClassLoaderHash(classLoader) >> HashCode.fromInt(9999)
     }
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")
     final File classesDir = new File(globalDir, "classes")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, scriptCompilationHandler, Stub(ProgressLoggerFactory), classLoaderCache, classLoaderHierarchyHasher)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, scriptCompilationHandler, Stub(ProgressLoggerFactory), classLoaderHierarchyHasher)
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script
