@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -194,6 +195,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "the number of tasks executed in parallel is limited by the number of parallel threads"() {
         given:
         withParallelThreads(2)
@@ -232,6 +234,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks are not run in parallel if destroy files overlap with output files"() {
         given:
         withParallelThreads(2)
@@ -249,6 +252,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks are not run in parallel if destroy files overlap with output files in multiproject build"() {
         given:
         withParallelThreads(2)
@@ -266,6 +270,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first)"() {
         given:
         withParallelThreads(2)
@@ -289,6 +294,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "tasks are not run in parallel if destroy files overlap with input files (create/use first)"() {
         given:
         withParallelThreads(2)
@@ -312,6 +318,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "tasks are not run in parallel if destroy files overlap with input files (destroy first) in multi-project build"() {
         given:
         withParallelThreads(2)
@@ -339,6 +346,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "explicit task dependency relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
@@ -365,6 +373,7 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
