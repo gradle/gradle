@@ -21,7 +21,6 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.JarCache;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
 import org.gradle.util.CollectionUtils;
@@ -51,13 +50,13 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @Override
-    public ClassPath transform(ClassPath classPath) {
-        return DefaultClassPath.of(CollectionUtils.collect(classPath.getAsFiles(), jarFileTransformer));
+    public ClassPath transform(ClassPath classPath, Usage usage) {
+        return cache.useCache(() -> DefaultClassPath.of(CollectionUtils.collect(classPath.getAsFiles(), jarFileTransformer)));
     }
 
     @Override
-    public Collection<URL> transform(Collection<URL> urls) {
-        return CollectionUtils.collect(urls, url -> {
+    public Collection<URL> transform(Collection<URL> urls, Usage usage) {
+        return cache.useCache(() -> CollectionUtils.collect(urls, url -> {
             if (url.getProtocol().equals("file")) {
                 try {
                     return jarFileTransformer.transform(new File(url.toURI())).toURI().toURL();
@@ -67,7 +66,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             } else {
                 return url;
             }
-        });
+        }));
     }
 
     private class CachedJarFileTransformer implements Transformer<File, File> {
@@ -82,7 +81,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         @Override
         public File transform(final File original) {
             if (shouldUseFromCache(original)) {
-                return cache.useCache(() -> jarCache.getCachedJar(original, cache.getBaseDir()));
+                return jarCache.getCachedJar(original, cache.getBaseDir());
             }
             return original;
         }

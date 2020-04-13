@@ -24,7 +24,8 @@ import spock.lang.Specification
 
 class BuildSrcUpdateFactoryTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     def launcher = Stub(BuildController)
     def listener = Stub(BuildSrcBuildListenerFactory.Listener)
@@ -40,7 +41,7 @@ class BuildSrcUpdateFactoryTest extends Specification {
 
         then:
         1 * listenerFactory.create() >> listener
-        1 * cachedClasspathTransformer.transform(_) >> { arguments ->
+        1 * cachedClasspathTransformer.transform(_, _) >> { arguments ->
             arguments[0]
         }
 
