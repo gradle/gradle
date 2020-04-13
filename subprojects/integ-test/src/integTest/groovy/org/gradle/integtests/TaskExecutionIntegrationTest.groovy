@@ -58,11 +58,11 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         notified = true
     }
 """
-        when:
-        succeeds "a"
-
-        then:
-        result.assertTasksExecuted(":b", ":a")
+        expect:
+        2.times {
+            succeeds "a"
+            result.assertTasksExecuted(":b", ":a")
+        }
     }
 
     @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
@@ -85,10 +85,12 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     task e(dependsOn: [a, d]);
 """
         expect:
-        run("a", "b").assertTasksExecuted(":a", ":b")
-        run("a", "a").assertTasksExecuted(":a")
-        run("c", "a").assertTasksExecuted(":a", ":c")
-        run("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e")
+        2.times {
+            run("a", "b").assertTasksExecuted(":a", ":b")
+            run("a", "a").assertTasksExecuted(":a")
+            run("c", "a").assertTasksExecuted(":a", ":c")
+            run("c", "e").assertTasksExecuted(":a", ":c", ":d", ":e")
+        }
     }
 
     def executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
@@ -102,8 +104,10 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child1-2:b", ":child1-2:c", ":child1-2-2:b", ":child1-2-2:c", ":child2:b", ":child2:c")
-        run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c")
+        2.times {
+            run("a", "c").assertTasksExecuted(":a", ":b", ":c", ":child1:b", ":child1:c", ":child1-2:b", ":child1-2:c", ":child1-2-2:b", ":child1-2-2:c", ":child2:b", ":child2:c")
+            run("b", ":child2:c").assertTasksExecuted(":b", ":child1:b", ":child1-2:b", ":child1-2-2:b", ":child2:b", ":a", ":child2:c")
+        }
     }
 
     def executesMultiProjectDefaultTasksInASingleBuildAndEachTaskAtMostOnce() {
@@ -118,7 +122,9 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        run().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b")
+        2.times {
+            succeeds().assertTasksExecuted(":a", ":child1:a", ":child2:a", ":child1:b", ":child2:b")
+        }
     }
 
     def doesNotExecuteTaskActionsWhenDryRunSpecified() {
@@ -129,10 +135,12 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        // project defaults
-        executer.withArguments("-m").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
-        // named tasks
-        executer.withArguments("-m").withTasks("b").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
+        2.times {
+            // project defaults
+            executer.withArguments("-m").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
+            // named tasks
+            executer.withArguments("-m").withTasks("b").run().normalizedOutput.contains(":a SKIPPED\n:b SKIPPED")
+        }
     }
 
     @ToBeFixedForInstantExecution
@@ -158,7 +166,9 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     }
 """
         expect:
-        succeeds("a", "b", "c")
+        2.times {
+            succeeds("a", "b", "c")
+        }
     }
 
     def excludesTasksWhenExcludePatternSpecified() {
@@ -176,19 +186,21 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        // Exclude entire branch
-        executer.withTasks(":d").withArguments("-x", "c").run().assertTasksExecuted(":d")
-        // Exclude direct dependency
-        executer.withTasks(":d").withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d")
-        // Exclude using paths and multi-project
-        executer.withTasks("d").withArguments("-x", "c").run().assertTasksExecuted(":d", ":sub:d")
-        executer.withTasks("d").withArguments("-x", "sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
-        executer.withTasks("d").withArguments("-x", ":sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
-        executer.withTasks("d").withArguments("-x", "d").run().assertTasksExecuted()
-        // Project defaults
-        executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
-        // Unknown task
-        executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
+        2.times {
+            // Exclude entire branch
+            executer.withTasks(":d").withArguments("-x", "c").run().assertTasksExecuted(":d")
+            // Exclude direct dependency
+            executer.withTasks(":d").withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d")
+            // Exclude using paths and multi-project
+            executer.withTasks("d").withArguments("-x", "c").run().assertTasksExecuted(":d", ":sub:d")
+            executer.withTasks("d").withArguments("-x", "sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
+            executer.withTasks("d").withArguments("-x", ":sub:c").run().assertTasksExecuted(":a", ":b", ":c", ":d", ":sub:d")
+            executer.withTasks("d").withArguments("-x", "d").run().assertTasksExecuted()
+            // Project defaults
+            executer.withArguments("-x", "b").run().assertTasksExecuted(":a", ":c", ":d", ":sub:c", ":sub:d")
+            // Unknown task
+            executer.withTasks("d").withArguments("-x", "unknown").runWithFailure().assertThatDescription(startsWith("Task 'unknown' not found in root project"))
+        }
     }
 
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
@@ -203,7 +215,9 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 """
 
         expect:
-        executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
+        2.times {
+            executer.inDirectory(file('sub')).withTasks('c').withArguments('-x', 'a').run().assertTasksExecuted(':a', ':sub:b', ':sub:c')
+        }
     }
 
     def 'can use camel-case matching to exclude tasks'() {
@@ -214,8 +228,10 @@ task someTask(dependsOn: [someDep, someOtherDep])
 """
 
         expect:
-        executer.withTasks("someTask").withArguments("-x", "sODep").run().assertTasksExecuted(":someDep", ":someTask")
-        executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
+        2.times {
+            executer.withTasks("someTask").withArguments("-x", "sODep").run().assertTasksExecuted(":someDep", ":someTask")
+            executer.withTasks("someTask").withArguments("-x", ":sODep").run().assertTasksExecuted(":someDep", ":someTask")
+        }
     }
 
     def 'can combine exclude task filters'() {
@@ -226,9 +242,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
 """
 
         expect:
-        executer.withTasks("someTask").withArguments("-x", "someDep", "-x", "someOtherDep").run().assertTasksExecuted(":someTask")
-        executer.withTasks("someTask").withArguments("-x", ":someDep", "-x", ":someOtherDep").run().assertTasksExecuted(":someTask")
-        executer.withTasks("someTask").withArguments("-x", "sODep", "-x", "soDep").run().assertTasksExecuted(":someTask")
+        2.times {
+            executer.withTasks("someTask").withArguments("-x", "someDep", "-x", "someOtherDep").run().assertTasksExecuted(":someTask")
+            executer.withTasks("someTask").withArguments("-x", ":someDep", "-x", ":someOtherDep").run().assertTasksExecuted(":someTask")
+            executer.withTasks("someTask").withArguments("-x", "sODep", "-x", "soDep").run().assertTasksExecuted(":someTask")
+        }
     }
 
     @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
@@ -245,8 +263,10 @@ task someTask(dependsOn: [someDep, someOtherDep])
 """
 
         expect:
-        executer.withTasks("d").withArguments("-x", "a").run().assertTasksExecuted(":b", ":c", ":d")
-        executer.withTasks("b", "a").withArguments("-x", ":a").run().assertTasksExecuted(":b", ":sub:a")
+        2.times {
+            executer.withTasks("d").withArguments("-x", "a").run().assertTasksExecuted(":b", ":c", ":d")
+            executer.withTasks("b", "a").withArguments("-x", ":a").run().assertTasksExecuted(":b", ":sub:a")
+        }
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2022")
@@ -254,11 +274,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         buildFile << """
     new DefaultTask()
 """
-        when:
-        fails "tasks"
-
-        then:
-        failure.assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported")
+        expect:
+        2.times {
+            fails "tasks"
+            failure.assertHasCause("Task of type 'org.gradle.api.DefaultTask' has been instantiated directly which is not supported")
+        }
     }
 
     def "sensible error message for circular task dependency"() {
@@ -266,16 +286,16 @@ task someTask(dependsOn: [someDep, someOtherDep])
     task a(dependsOn: 'b')
     task b(dependsOn: 'a')
 """
-        when:
-        fails 'b'
-
-        then:
-        failure.assertHasDescription """Circular dependency between the following tasks:
+        expect:
+        2.times {
+            fails 'b'
+            failure.assertHasDescription """Circular dependency between the following tasks:
 :a
 \\--- :b
      \\--- :a (*)
 
 (*) - details omitted (listed previously)"""
+        }
     }
 
     def "honours mustRunAfter task ordering"() {
@@ -289,11 +309,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
     c.mustRunAfter d
 
 """
-        when:
-        succeeds 'c', 'd'
-
-        then:
-        result.assertTasksExecutedInOrder(any(':d', ':b', ':a'), ':c')
+        expect:
+        2.times {
+            succeeds 'c', 'd'
+            result.assertTasksExecutedInOrder(any(':d', ':b', ':a'), ':c')
+        }
     }
 
     def "finalizer task is executed if a finalized task is executed"() {
@@ -304,11 +324,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         finalizedBy a
     }
 """
-        when:
-        succeeds 'b'
-
-        then:
-        executed(":a")
+        expect:
+        2.times {
+            succeeds 'b'
+            executed(":a")
+        }
     }
 
     def "finalizer task is executed even if the finalised task fails"() {
@@ -319,11 +339,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         finalizedBy a
     }
 """
-        when:
-        fails 'b'
-
-        then:
-        executed(":a")
+        expect:
+        2.times {
+            fails 'b'
+            executed(":a")
+        }
     }
 
     def "finalizer task is not executed if the finalized task does not run"() {
@@ -339,11 +359,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         onlyIf { false }
     }
 """
-        when:
-        fails 'c'
-
-        then:
-        notExecuted(":b")
+        expect:
+        2.times {
+            fails 'c'
+            notExecuted(":b")
+        }
     }
 
     def "sensible error message for circular task dependency due to mustRunAfter"() {
@@ -353,16 +373,16 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
     task b(dependsOn: 'a')
 """
-        when:
-        fails 'b'
-
-        then:
-        failure.assertHasDescription """Circular dependency between the following tasks:
+        expect:
+        2.times {
+            fails 'b'
+            failure.assertHasDescription """Circular dependency between the following tasks:
 :a
 \\--- :b
      \\--- :a (*)
 
 (*) - details omitted (listed previously)"""
+        }
     }
 
     def "checked exceptions thrown by tasks are reported correctly"() {
@@ -380,11 +400,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
             }
         """
 
-        when:
-        fails "explode"
-
-        then:
-        failure.assertHasCause "java.lang.Exception: I am the checked exception"
+        expect:
+        2.times {
+            fails "explode"
+            failure.assertHasCause "java.lang.Exception: I am the checked exception"
+        }
     }
 
     def "honours shouldRunAfter task ordering"() {
@@ -400,12 +420,12 @@ task someTask(dependsOn: [someDep, someOtherDep])
         dependsOn 'c'
     }
 """
-        when:
-        args("--max-workers=1")
-        succeeds 'a', 'd'
-
-        then:
-        result.assertTasksExecuted(':c', ':b', ':a', ':d')
+        expect:
+        2.times {
+            args("--max-workers=1")
+            succeeds 'a', 'd'
+            result.assertTasksExecuted(':c', ':b', ':a', ':d')
+        }
     }
 
     def "multiple should run after ordering can be ignored for one execution plan"() {
@@ -436,12 +456,12 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 """
 
-        when:
-        args("--max-workers=1")
-        succeeds 'a', 'd'
-
-        then:
-        result.assertTasksExecuted(':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e')
+        expect:
+        2.times {
+            args("--max-workers=1")
+            succeeds 'a', 'd'
+            result.assertTasksExecuted(':g', ':c', ':b', ':h', ':a', ':f', ':d', ':e')
+        }
     }
 
     @Issue("GRADLE-3575")
@@ -479,55 +499,55 @@ task someTask(dependsOn: [someDep, someOtherDep])
             task h()
         """
 
-        when:
-        succeeds 'a'
-
-        then:
-        result.assertTasksExecutedInOrder(
-            any(
-                exact(':f', ':h'),
-                exact(any(':c', ':g'), ':a'),
-                exact(':f', ':d', ':c')
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder(
+                any(
+                    exact(':f', ':h'),
+                    exact(any(':c', ':g'), ':a'),
+                    exact(':f', ':d', ':c')
+                )
             )
-        )
+        }
 
-        when:
-        succeeds 'b'
-
-        then:
-        result.assertTasksExecutedInOrder(
-            any(
-                exact(':f', ':h'),
-                exact(':b', ':e'),
-                exact(':f', ':d', ':b')
+        and:
+        2.times {
+            succeeds 'b'
+            result.assertTasksExecutedInOrder(
+                any(
+                    exact(':f', ':h'),
+                    exact(':b', ':e'),
+                    exact(':f', ':d', ':b')
+                )
             )
-        )
+        }
 
-        when:
-        succeeds 'a', 'b'
-
-        then:
-        result.assertTasksExecutedInOrder(
-            any(
-                exact(':f', ':h'),
-                exact(':b', ':e'),
-                exact(':f', ':d', any(':b', ':c')),
-                exact(any(':c', ':g'), ':a'),
+        and:
+        2.times {
+            succeeds 'a', 'b'
+            result.assertTasksExecutedInOrder(
+                any(
+                    exact(':f', ':h'),
+                    exact(':b', ':e'),
+                    exact(':f', ':d', any(':b', ':c')),
+                    exact(any(':c', ':g'), ':a'),
+                )
             )
-        )
+        }
 
-        when:
-        succeeds 'b', 'a'
-
-        then:
-        result.assertTasksExecutedInOrder(
-            any(
-                exact(':f', ':h'),
-                exact(':b', ':e'),
-                exact(':f', ':d', any(':b', ':c')),
-                exact(any(':c', ':g'), ':a'),
+        and:
+        2.times {
+            succeeds 'b', 'a'
+            result.assertTasksExecutedInOrder(
+                any(
+                    exact(':f', ':h'),
+                    exact(':b', ':e'),
+                    exact(':f', ':d', any(':b', ':c')),
+                    exact(any(':c', ':g'), ':a'),
+                )
             )
-        )
+        }
     }
 
     @Issue("gradle/gradle#783")
@@ -555,11 +575,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         """
         settingsFile << "include 'a', 'b'"
 
-        when:
-        succeeds ':build'
-
-        then:
-        result.assertTasksExecutedInOrder(':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build')
+        expect:
+        2.times {
+            succeeds ':build'
+            result.assertTasksExecutedInOrder(':b:jar', ':a:compileJava', ':a:compileFinalizer', ':a:jar', ':build')
+        }
     }
 
     @Issue(["gradle/gradle#769", "gradle/gradle#841"])
@@ -584,12 +604,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
             task "d_\$nextIndex"()
         """
 
-        when:
-        succeeds 'a'
-
-        then:
-
-        result.assertTasksExecutedInOrder(([':a'] + (count..0).collect { ":d_$it" } + [':f']) as String[])
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder(([':a'] + (count..0).collect { ":d_$it" } + [':f']) as String[])
+        }
     }
 
     @NotYetImplemented
@@ -612,6 +631,12 @@ task someTask(dependsOn: [someDep, someOtherDep])
 
         then:
         thrown(CircularReferenceException)
+
+        when:
+        fails 'a'
+
+        then:
+        thrown(CircularReferenceException)
     }
 
     def "produces a sensible error when a task declares both outputs and destroys"() {
@@ -624,11 +649,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         file('foo') << 'foo'
         file('bar') << 'bar'
 
-        when:
-        fails 'a'
-
-        then:
-        failure.assertHasDescription('Task :a has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.')
+        expect:
+        2.times {
+            fails 'a'
+            failure.assertHasDescription('Task :a has both outputs and destroyables defined.  A task can define either outputs or destroyables, but not both.')
+        }
     }
 
     def "produces a sensible error when a task declares both inputs and destroys"() {
@@ -641,11 +666,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         file('foo') << 'foo'
         file('bar') << 'bar'
 
-        when:
-        fails 'a'
-
-        then:
-        failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+        expect:
+        2.times {
+            fails 'a'
+            failure.assertHasDescription('Task :a has both inputs and destroyables defined.  A task can define either inputs or destroyables, but not both.')
+        }
     }
 
     def "produces a sensible error when a task declares both local state and destroys"() {
@@ -658,11 +683,11 @@ task someTask(dependsOn: [someDep, someOtherDep])
         file('foo') << 'foo'
         file('bar') << 'bar'
 
-        when:
-        fails 'a'
-
-        then:
-        failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
+        expect:
+        2.times {
+            fails 'a'
+            failure.assertHasDescription('Task :a has both local state and destroyables defined.  A task can define either local state or destroyables, but not both.')
+        }
     }
 
     @Timeout(30)
@@ -673,13 +698,13 @@ task someTask(dependsOn: [someDep, someOtherDep])
                 destroyables.register(mutatedFile)
                 doLast {
                     assert mutatedFile.delete()
-                }                                
+                }
             }
             def producer = tasks.register("producer") {
                 outputs.file(mutatedFile)
                 doLast {
                     mutatedFile.text = "created"
-                }                                
+                }
             }
             def failingConsumer = tasks.register("failingConsumer") {
                 dependsOn(producer)
@@ -695,7 +720,9 @@ task someTask(dependsOn: [someDep, someOtherDep])
         """
 
         expect:
-        fails "consumer"
+        2.times {
+            fails "consumer"
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/2401")
@@ -727,7 +754,9 @@ task someTask(dependsOn: [someDep, someOtherDep])
         """
 
         expect:
-        succeeds "custom", "--rerun-tasks"
+        2.times {
+            succeeds "custom", "--rerun-tasks"
+        }
     }
 
     @Ignore
@@ -735,15 +764,17 @@ task someTask(dependsOn: [someDep, someOtherDep])
     def "detects a cycle with a task that mustRunAfter itself as finalizer of another task"() {
         buildFile << """
             def finalizer = tasks.register("finalizer")
-            tasks.named("finalizer").configure { 
-                mustRunAfter(finalizer) 
+            tasks.named("finalizer").configure {
+                mustRunAfter(finalizer)
             }
             task myTask {
                 finalizedBy finalizer
             }
         """
         expect:
-        // This should fail with a cycle and not as a misdetected cycle.
-        succeeds("myTask")
+        2.times {
+            // This should fail with a cycle and not as a misdetected cycle.
+            succeeds("myTask")
+        }
     }
 }
