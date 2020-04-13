@@ -17,6 +17,7 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.ToBeImplemented
 import spock.lang.Ignore
 import spock.lang.Issue
@@ -28,6 +29,7 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy and different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
@@ -43,6 +45,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", iterationMatchers = ".* excluding \\(d\\)")
     void 'finalizer tasks work with task excluding (#excludedTask)'() {
         setupProject()
         executer.beforeExecute {
@@ -74,6 +77,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     void 'finalizer tasks work with --continue (#requestedTasks, #failingTask)'() {
         setupProject()
         executer.beforeExecute {
@@ -129,6 +133,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks are executed as expected in parallel builds'() {
         setupMultipleProjects()
         executer.beforeExecute {
@@ -142,6 +147,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     void 'finalizers for finalizers are executed when finalized is executed'() {
         buildFile << """
             task a {
@@ -203,6 +209,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile << """
             task a {
@@ -223,6 +230,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     void 'finalizers are executed after the last task to be finalized'() {
         settingsFile << """
             include "a"
@@ -262,6 +270,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     def "mustRunAfter is respected for finalizer without direct dependency"() {
         settingsFile << """
             include 'a'
