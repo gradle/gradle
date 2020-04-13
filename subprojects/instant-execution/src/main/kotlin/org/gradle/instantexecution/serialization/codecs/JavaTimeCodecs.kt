@@ -32,9 +32,13 @@ private
 object DurationCodec : Codec<Duration> {
 
     override suspend fun WriteContext.encode(value: Duration) {
-        writeString(value.toString())
+        // Do not use the ISO-8601 format for serialization
+        // to work around https://bugs.openjdk.java.net/browse/JDK-8054978
+        // on Java 8
+        writeLong(value.seconds)
+        writeSmallInt(value.nano)
     }
 
     override suspend fun ReadContext.decode(): Duration =
-        Duration.parse(readString())
+        Duration.ofSeconds(readLong(), readSmallInt().toLong())
 }
