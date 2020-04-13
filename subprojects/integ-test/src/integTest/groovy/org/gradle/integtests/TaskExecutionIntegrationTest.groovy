@@ -791,4 +791,26 @@ task someTask(dependsOn: [someDep, someOtherDep])
             succeeds("myTask")
         }
     }
+
+    @Unroll
+    def "task disabled by #method is skipped"() {
+
+        given:
+        buildFile << """
+            tasks.register('myTask') {
+                $code
+            }
+        """
+
+        expect:
+        2.times {
+            succeeds ':myTask'
+            skipped ':myTask'
+        }
+
+        where:
+        method                     | code
+        'setting enabled to false' | 'enabled = false'
+        'onlyIf'                   | 'onlyIf { false }'
+    }
 }
