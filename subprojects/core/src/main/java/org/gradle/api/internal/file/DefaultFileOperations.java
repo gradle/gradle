@@ -165,7 +165,7 @@ public class DefaultFileOperations implements FileOperations {
             throw new InvalidUserDataException("zipTree requires the 'file' argument.");
         }
 
-        Object metadataCharset = args.containsKey("metadataCharset") ? args.get("metadataCharset") : null;
+        Object metadataCharset = args.get("metadataCharset");
 
         if (metadataCharset == null) {
             return zipTree(args.get("file"));
