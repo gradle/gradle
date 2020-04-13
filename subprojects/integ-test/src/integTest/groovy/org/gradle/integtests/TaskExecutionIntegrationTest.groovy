@@ -20,6 +20,7 @@ import groovy.transform.NotYetImplemented
 import org.gradle.api.CircularReferenceException
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -32,6 +33,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 @Unroll
 class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
 
+    @UnsupportedWithInstantExecution
     def taskCanAccessTaskGraph() {
         buildFile << """
     boolean notified = false
@@ -143,7 +145,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "script under test captures the script class")
     def executesTaskActionsInCorrectEnvironment() {
         buildFile << """
     // An action attached to built-in task
@@ -171,6 +173,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -203,6 +206,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -220,6 +224,7 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
 task someDep
@@ -234,6 +239,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def 'can combine exclude task filters'() {
         buildFile << """
 task someDep
@@ -250,6 +256,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
+    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def 'excluding a task that is a dependency of multiple tasks'() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -346,6 +353,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     def "finalizer task is not executed if the finalized task does not run"() {
         buildFile << """
     task a {
@@ -465,6 +473,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue("GRADLE-3575")
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
             task a() {
@@ -551,6 +560,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue("gradle/gradle#783")
+    @ToBeFixedForInstantExecution(because = "Task.finalizedBy")
     def "executes finalizer task as soon as possible after finalized task"() {
         buildFile << """
             project(":a") {
@@ -583,6 +593,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue(["gradle/gradle#769", "gradle/gradle#841"])
+    @ToBeFixedForInstantExecution(because = "different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
         buildFile << """
@@ -639,6 +650,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         thrown(CircularReferenceException)
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "produces a sensible error when a task declares both outputs and destroys"() {
         buildFile << """
             task a {
@@ -656,6 +668,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "produces a sensible error when a task declares both inputs and destroys"() {
         buildFile << """
             task a {
@@ -673,6 +686,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.destroyables and Task.localState")
     def "produces a sensible error when a task declares both local state and destroys"() {
         buildFile << """
             task a {
