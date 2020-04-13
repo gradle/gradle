@@ -26,23 +26,28 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
-    void 'finalizer tasks are scheduled as expected'() {
+
+    @Unroll
+    void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
+        given:
         setupProject()
 
-        when:
-        succeeds(*requestedTasks)
-
-        then:
-        result.assertTasksExecutedInOrder any(':d', exact(':c', ':a')), ':b'
+        expect:
+        2.times {
+            succeeds(*requestedTasks)
+            result.assertTasksExecutedInOrder any(':d', exact(':c', ':a')), ':b'
+        }
 
         where:
-        requestedTasks << [ ['a'], ['a', 'b'], ['d', 'a'] ]
+        requestedTasks << [['a'], ['a', 'b'], ['d', 'a']]
     }
 
     @Unroll
-    void 'finalizer tasks work with task excluding'() {
+    void 'finalizer tasks work with task excluding (#excludedTask)'() {
         setupProject()
-        executer.withArguments('-x', excludedTask)
+        executer.beforeExecute {
+            withArguments('-x', excludedTask)
+        }
 
         tasksNotInGraph.each { task ->
             buildFile << """
@@ -52,11 +57,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             """
         }
 
-        when:
-        succeeds 'a'
-
-        then:
-        result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
+        }
 
         where:
         excludedTask | expectedExecutedTasks
@@ -69,19 +74,21 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    void 'finalizer tasks work with --continue'() {
+    void 'finalizer tasks work with --continue (#requestedTasks, #failingTask)'() {
         setupProject()
-        executer.withArguments('--continue')
+        executer.beforeExecute {
+            withArguments('--continue')
+        }
 
         buildFile << """
             ${failingTask}.doLast { throw new RuntimeException() }
         """
 
-        when:
-        fails(*requestedTasks)
-
-        then:
-        result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
+        expect:
+        2.times {
+            fails(*requestedTasks)
+            result.assertTasksExecutedInOrder(expectedExecutedTasks as Object[])
+        }
 
         where:
         requestedTasks | failingTask | expectedExecutedTasks
@@ -92,7 +99,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Ignore
     @Unroll
-    void 'finalizer tasks work with task disabling'() {
+    void 'finalizer tasks work with task disabling (#taskDisablingStatement)'() {
         setupProject()
         buildFile << """
             $taskDisablingStatement
@@ -102,11 +109,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        succeeds 'a'
-
-        then:
-        result.assertTasksExecuted(':c')
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecuted(':c')
+        }
 
         where:
         taskDisablingStatement << ['a.enabled = false', 'a.onlyIf {false}']
@@ -117,18 +124,22 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         setupProject()
 
         expect:
-        fails 'b', 'a'
+        2.times {
+            fails 'b', 'a'
+        }
     }
 
     void 'finalizer tasks are executed as expected in parallel builds'() {
         setupMultipleProjects()
-        executer.withArguments('--parallel')
+        executer.beforeExecute {
+            withArguments('--parallel')
+        }
 
-        when:
-        succeeds 'a'
-
-        then:
-        result.assertTasksExecutedInOrder(any(':b:d', exact(':a:c', ':a:a')), ':b:b')
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder(any(':b:d', exact(':a:c', ':a:a')), ':b:b')
+        }
     }
 
     void 'finalizers for finalizers are executed when finalized is executed'() {
@@ -142,11 +153,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             task c
         """
 
-        when:
-        succeeds 'a'
-
-        then:
-        result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
     }
 
     void 'finalizer tasks are executed after their dependencies'() {
@@ -160,11 +171,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        succeeds 'a'
-
-        then:
-        result.assertTasksExecutedInOrder ':c', ':b', ':a'
+        expect:
+        2.times {
+            succeeds 'a'
+            result.assertTasksExecutedInOrder ':c', ':b', ':a'
+        }
     }
 
     void 'circular dependency errors are detected for finalizer tasks'() {
@@ -179,17 +190,17 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        fails 'a'
-
-        then:
-        failure.assertHasDescription """Circular dependency between the following tasks:
+        expect:
+        2.times {
+            fails 'a'
+            failure.assertHasDescription """Circular dependency between the following tasks:
 :a
 \\--- :c
      \\--- :b
           \\--- :a (*)
 
 (*) - details omitted (listed previously)"""
+        }
     }
 
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
@@ -204,11 +215,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             task c
         """
 
-        when:
-        succeeds 'b'
-
-        then:
-        result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        expect:
+        2.times {
+            succeeds 'b'
+            result.assertTasksExecutedInOrder ':a', ':b', ':c'
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
@@ -224,7 +235,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
                         sleep 100
                     }
                 }
-                
+
                 task foo {
                     finalizedBy finalizer
                     doLast {
@@ -232,7 +243,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
                     }
                 }
             }
-            
+
             configure(project(':b')) {
                 task foo {
                     finalizedBy ':a:finalizer'
@@ -243,11 +254,11 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        run "foo", "--parallel"
-
-        then:
-        result.assertTaskOrder(any(":a:foo", ":b:foo"), ":a:finalizer")
+        expect:
+        2.times {
+            run "foo", "--parallel"
+            result.assertTaskOrder(any(":a:foo", ":b:foo"), ":a:finalizer")
+        }
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/10549")
@@ -263,7 +274,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
                         println "finalized"
                     }
                 }
-            
+
                 task work {
                     doLast {
                         sleep 1000
@@ -272,7 +283,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
                     finalizedBy(finalizer)
                 }
             }
-            
+
             configure(project(':b')) {
                 task work {
                     doLast {
@@ -283,22 +294,24 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
-        when:
-        run("work", "--parallel")
-        then:
-        // TODO: Should be:
-        // result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
-        result.assertTaskOrder(any(exact(":a:work", ":a:finalizer"), ":b:work"))
+        expect:
+        2.times {
+            run("work", "--parallel")
+            // TODO: Should be:
+            // result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+            result.assertTaskOrder(any(exact(":a:work", ":a:finalizer"), ":b:work"))
+        }
 
-        when: "Apply workaround"
+        and: "Apply workaround"
         buildFile << """
             configure(project(':b')) {
                 work.mustRunAfter(":a:work")
             }
         """
-        run("work", "--parallel")
-        then:
-        result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+        2.times {
+            run("work", "--parallel")
+            result.assertTaskOrder(":a:work", ":a:finalizer", ":b:work")
+        }
     }
 
     private void setupProject() {
