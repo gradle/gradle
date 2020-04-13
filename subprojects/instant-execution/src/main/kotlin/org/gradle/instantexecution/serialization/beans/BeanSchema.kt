@@ -116,9 +116,13 @@ val Class<*>.relevantFields: List<Field>
                 || Workarounds.isIgnoredBeanField(field)
         }
         .filter { field ->
-            field.declaringClass != AbstractTask::class.java || field.name == "actions"
+            field.declaringClass != AbstractTask::class.java || field.name in abstractTaskRelevantFields
         }
         .sortedBy { it.name }
+
+
+private
+val abstractTaskRelevantFields = listOf("actions", "enabled", "timeout", "onlyIfSpec")
 
 
 internal
