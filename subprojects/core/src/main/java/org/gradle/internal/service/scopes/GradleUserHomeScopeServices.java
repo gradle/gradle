@@ -54,7 +54,7 @@ import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.file.JarCache;
+import org.gradle.internal.classpath.JarCache;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.id.LongIdGenerator;
