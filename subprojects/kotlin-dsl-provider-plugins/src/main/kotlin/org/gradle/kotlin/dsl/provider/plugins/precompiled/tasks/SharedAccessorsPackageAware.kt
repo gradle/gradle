@@ -16,19 +16,47 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
+import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.provider.Property
-import org.gradle.api.tasks.Input
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.FileCollection
+import org.gradle.api.tasks.Classpath
+import org.gradle.api.tasks.InputFiles
+import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.serviceOf
 
 
-interface SharedAccessorsPackageAware {
-
-    @get:Input
-    val sharedAccessorsPackage: Property<String>
+interface ClassPathAware {
+    @get:InputFiles
+    @get:Classpath
+    val classPathFiles: ConfigurableFileCollection
 }
 
 
+interface SharedAccessorsPackageAware : ClassPathAware
+
+
 internal
-fun <T> T.implicitImportsForPrecompiledScriptPlugins(implicitImports: ImplicitImports) where T : Task, T : SharedAccessorsPackageAware =
-    implicitImports.list + "${sharedAccessorsPackage.get()}.*"
+fun <T> T.implicitImportsForPrecompiledScriptPlugins(
+    implicitImports: ImplicitImports
+): List<String> where T : Task, T : SharedAccessorsPackageAware =
+    implicitImports.list + "$sharedAccessorsPackage.*"
+
+
+internal
+val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
+    get() = "gradle.kotlin.dsl.plugins._${project.hashOf(classPathFiles)}"
+
+
+private
+fun Project.hashOf(classPath: FileCollection): HashCode =
+    hashOf(DefaultClassPath.of(classPath))
+
+
+private
+fun Project.hashOf(classPath: ClassPath): HashCode =
+    project.serviceOf<ClasspathHasher>().hash(classPath)

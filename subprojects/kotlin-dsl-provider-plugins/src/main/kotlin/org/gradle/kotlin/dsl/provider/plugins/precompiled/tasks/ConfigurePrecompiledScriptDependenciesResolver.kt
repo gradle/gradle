@@ -78,7 +78,3 @@ abstract class ConfigurePrecompiledScriptDependenciesResolver @Inject constructo
             "$key=\"${values.joinToString(":")}\""
         }
 }
-
-
-internal
-fun Project.implicitImports() = serviceOf<ImplicitImports>().list

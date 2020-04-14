@@ -36,28 +36,29 @@ abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenera
     @Suppress("unused")
     internal
     fun generate() {
+        val packageName = sharedAccessorsPackage
         sourceCodeOutputDir.withOutputDirectory { outputDir ->
-            val packageDir = createPackageDirIn(outputDir)
+            val packageDir = createPackageDirIn(outputDir, packageName)
             val outputFile = packageDir.resolve("PluginSpecBuilders.kt")
             writeSourceCodeForPluginSpecBuildersFor(
                 classPath,
                 outputFile,
-                packageName()
+                packageName
             )
         }
         metadataOutputDir.withOutputDirectory { outputDir ->
             outputDir.resolve("implicit-imports").writeText(
-                packageName() + ".*"
+                "$packageName.*"
             )
         }
     }
 
     private
-    fun createPackageDirIn(outputDir: File) = outputDir.resolve(packagePath()).apply { mkdirs() }
+    fun createPackageDirIn(outputDir: File, packageName: String) =
+        outputDir.resolve(packagePath(packageName)).apply { mkdirs() }
 
     private
-    fun packagePath() = packageName().split('.').joinToString("/")
+    fun packagePath(packageName: String) =
+        packageName.split('.').joinToString("/")
 
-    private
-    fun packageName() = sharedAccessorsPackage.get()
 }

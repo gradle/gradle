@@ -19,20 +19,14 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.file.FileCollection
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.CacheableTask
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.HashedClassPath
-
 import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
@@ -48,14 +42,6 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
     val implicitImports: ImplicitImports
 
 ) : DefaultTask(), SharedAccessorsPackageAware {
-
-    @get:Internal
-    internal
-    lateinit var hashedClassPath: HashedClassPath
-
-    @get:Classpath
-    val classPathFiles: FileCollection
-        get() = hashedClassPath.classPathFiles
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -73,6 +59,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 
     @TaskAction
     fun compile() {
+        val files = classPathFiles.files
         outputDir.withOutputDirectory { outputDir ->
             val scriptFiles = sourceFiles.map { it.path }
             if (scriptFiles.isNotEmpty())
@@ -84,7 +71,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                         CompiledKotlinPluginsBlock::class,
                         implicitImportsForPrecompiledScriptPlugins(implicitImports)
                     ),
-                    classPathFiles,
+                    files,
                     logger,
                     { it } // TODO: translate paths
                 )
