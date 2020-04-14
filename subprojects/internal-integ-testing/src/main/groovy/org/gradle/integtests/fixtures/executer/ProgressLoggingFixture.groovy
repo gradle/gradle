@@ -37,6 +37,10 @@ import org.gradle.test.fixtures.file.TestFile
 
 import javax.inject.Inject
 
+/**
+ * @deprecated should use build operations fixture instead.
+ */
+@Deprecated
 class ProgressLoggingFixture extends InitScriptExecuterFixture {
 
     private TestFile fixtureData
@@ -134,22 +138,27 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
         }
     }
 
+    @Deprecated
     boolean downloadProgressLogged(URI url) {
         downloadProgressLogged(url.toASCIIString())
     }
 
+    @Deprecated
     boolean downloadProgressLogged(String url) {
         return progressLogged("Download $url")
     }
 
+    @Deprecated
     boolean uploadProgressLogged(URI url) {
         uploadProgressLogged(url.toString())
     }
 
+    @Deprecated
     boolean uploadProgressLogged(String url) {
         return progressLogged("Upload $url")
     }
 
+    @Deprecated
     boolean progressLogged(String operation) {
         def lines = progressContent
         def startIndex = lines.indexOf("[START " + operation + "]")
@@ -161,10 +170,12 @@ class ProgressLoggingFixture extends InitScriptExecuterFixture {
         lines.size() >= 2
     }
 
+    @Deprecated
     boolean statusLogged(String message) {
         return progressContent.contains("[" + message + "]")
     }
 
+    @Deprecated
     boolean statusMatches(String regex) {
         return progressContent.any { it.matches("\\[" + regex + "\\]") }
     }
