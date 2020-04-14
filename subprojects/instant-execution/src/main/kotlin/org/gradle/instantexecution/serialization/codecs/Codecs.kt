@@ -264,5 +264,7 @@ class Codecs(
         bind(arrayCodec)
         bind(EnumCodec)
         bind(RegexpPatternCodec)
+
+        javaTimeTypes()
     }
 }

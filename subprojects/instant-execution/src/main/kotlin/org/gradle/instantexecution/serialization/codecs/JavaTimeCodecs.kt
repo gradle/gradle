@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,29 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.Task
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
-import org.gradle.instantexecution.serialization.logUnsupported
+import java.time.Duration
 
 
 internal
-object TaskReferenceCodec : Codec<Task> {
+fun BindingsBuilder.javaTimeTypes() {
+    bind(DurationCodec)
+}
 
-    override suspend fun WriteContext.encode(value: Task) {
-        if (value === isolate.owner.delegate) {
-            writeBoolean(true)
-        } else {
-            logUnsupported("serialize", Task::class, value.javaClass)
-            writeBoolean(false)
-        }
+
+private
+object DurationCodec : Codec<Duration> {
+
+    override suspend fun WriteContext.encode(value: Duration) {
+        // Do not use the ISO-8601 format for serialization
+        // to work around https://bugs.openjdk.java.net/browse/JDK-8054978
+        // on Java 8
+        writeLong(value.seconds)
+        writeSmallInt(value.nano)
     }
 
-    override suspend fun ReadContext.decode(): Task? =
-        if (readBoolean()) {
-            isolate.owner.delegate as Task
-        } else {
-            logUnsupported("deserialize", Task::class)
-            null
-        }
+    override suspend fun ReadContext.decode(): Duration =
+        Duration.ofSeconds(readLong(), readSmallInt().toLong())
 }
