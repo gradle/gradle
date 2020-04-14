@@ -32,6 +32,9 @@ import java.nio.file.Files;
 import java.util.Arrays;
 import java.util.Comparator;
 
+/**
+ * Allows the classes and resources of a classpath element such as a jar or directory to be visited.
+ */
 @ServiceScope(ServiceScope.Value.UserHome)
 public class ClasspathWalker {
     private final Stat stat;

@@ -23,6 +23,7 @@ import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.IoActions
+import org.gradle.internal.classpath.ClasspathBuilder
 import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -54,7 +55,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
     def setup() {
-        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new ClasspathWalker(TestFiles.fileSystem()))
+        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new ClasspathWalker(TestFiles.fileSystem()), new ClasspathBuilder())
     }
 
     def "creates JAR file for input directory"() {

@@ -21,18 +21,14 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.file.archive.ZipCopyAction;
-import org.gradle.internal.ErroringAction;
-import org.gradle.internal.IoActions;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathEntryVisitor;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.progress.PercentageProgressFormatter;
-import org.gradle.util.GFileUtils;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -43,13 +39,8 @@ import org.objectweb.asm.commons.ClassRemapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -57,29 +48,26 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 import static java.util.Arrays.asList;
 
 class RuntimeShadedJarCreator {
-
     private static final int ADDITIONAL_PROGRESS_STEPS = 2;
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
-
-    private static final int BUFFER_SIZE = 8192;
     private static final String SERVICES_DIR_PREFIX = "META-INF/services/";
     private static final String CLASS_DESC = "Ljava/lang/Class;";
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(RuntimeShadedJarCreator.class);
 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ImplementationDependencyRelocator remapper;
     private final ClasspathWalker classpathWalker;
+    private final ClasspathBuilder classpathBuilder;
 
-    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper, ClasspathWalker classpathWalker) {
+    public RuntimeShadedJarCreator(ProgressLoggerFactory progressLoggerFactory, ImplementationDependencyRelocator remapper, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder) {
         this.progressLoggerFactory = progressLoggerFactory;
         this.remapper = remapper;
         this.classpathWalker = classpathWalker;
+        this.classpathBuilder = classpathBuilder;
     }
 
     public void create(final File outputJar, final Iterable<? extends File> files) {
@@ -95,71 +83,39 @@ class RuntimeShadedJarCreator {
     }
 
     private void createFatJar(final File outputJar, final Iterable<? extends File> files, final ProgressLogger progressLogger) {
-        final File tmpFile = tempFileFor(outputJar);
-
-        IoActions.withResource(openJarOutputStream(tmpFile), new ErroringAction<ZipOutputStream>() {
-            @Override
-            protected void doExecute(ZipOutputStream jarOutputStream) throws Exception {
-                processFiles(jarOutputStream, files, progressLogger);
-                jarOutputStream.finish();
-            }
-        });
-
-        GFileUtils.moveFile(tmpFile, outputJar);
+        classpathBuilder.jar(outputJar, builder -> processFiles(builder, files, progressLogger));
     }
 
-    private File tempFileFor(File outputJar) {
-        try {
-            final File tmpFile = File.createTempFile(outputJar.getName(), ".tmp");
-            tmpFile.deleteOnExit();
-            return tmpFile;
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private ZipOutputStream openJarOutputStream(File outputJar) {
-        try {
-            ZipOutputStream outputStream = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(outputJar), BUFFER_SIZE));
-            outputStream.setLevel(0);
-            return outputStream;
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    private void processFiles(ZipOutputStream outputStream, Iterable<? extends File> files, ProgressLogger progressLogger) throws Exception {
-        byte[] buffer = new byte[BUFFER_SIZE];
+    private void processFiles(ClasspathBuilder.EntryBuilder builder, Iterable<? extends File> files, ProgressLogger progressLogger) throws IOException {
         Set<String> seenPaths = new HashSet<>();
         Map<String, List<String>> services = new LinkedHashMap<>();
 
         PercentageProgressFormatter progressFormatter = new PercentageProgressFormatter("Generating", Iterables.size(files) + ADDITIONAL_PROGRESS_STEPS);
         for (File file : files) {
             progressLogger.progress(progressFormatter.getProgress());
-            classpathWalker.visit(file, entry -> processEntry(outputStream, entry, buffer, seenPaths, services));
-
+            classpathWalker.visit(file, entry -> processEntry(builder, entry, seenPaths, services));
             progressFormatter.increment();
         }
 
-        writeServiceFiles(outputStream, services);
+        writeServiceFiles(builder, services);
         progressLogger.progress(progressFormatter.incrementAndGetProgress());
 
-        writeIdentifyingMarkerFile(outputStream);
+        writeIdentifyingMarkerFile(builder);
         progressLogger.progress(progressFormatter.incrementAndGetProgress());
     }
 
-    private void writeServiceFiles(ZipOutputStream outputStream, Map<String, List<String>> services) throws IOException {
+    private void writeServiceFiles(ClasspathBuilder.EntryBuilder builder, Map<String, List<String>> services) throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
-            writeEntry(outputStream, SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
+            writeEntry(builder, SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
         }
     }
 
-    private void writeIdentifyingMarkerFile(ZipOutputStream outputStream) throws IOException {
-        writeEntry(outputStream, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
+    private void writeIdentifyingMarkerFile(ClasspathBuilder.EntryBuilder builder) throws IOException {
+        writeEntry(builder, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
-    private void processEntry(ZipOutputStream outputStream, ClasspathEntryVisitor.Entry entry, byte[] buffer, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
+    private void processEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
         String name = entry.getName();
         if (name.equals("META-INF/MANIFEST.MF")) {
             return;
@@ -173,11 +129,11 @@ class RuntimeShadedJarCreator {
         }
 
         if (name.endsWith(".class")) {
-            processClassFile(outputStream, entry);
+            processClassFile(builder, entry);
         } else if (name.startsWith(SERVICES_DIR_PREFIX)) {
             processServiceDescriptor(entry, services);
         } else {
-            copyEntry(outputStream, entry, buffer);
+            processResource(builder, entry);
         }
     }
 
@@ -226,7 +182,7 @@ class RuntimeShadedJarCreator {
             .toArray(String[]::new);
     }
 
-    private void copyEntry(ZipOutputStream outputStream, ClasspathEntryVisitor.Entry entry, byte[] buffer) throws IOException {
+    private void processResource(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
         String name = entry.getName();
         byte[] resource = entry.getContent();
 
@@ -236,36 +192,21 @@ class RuntimeShadedJarCreator {
         if (remapper.keepOriginalResource(path)) {
             // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
             // both absolute and relative paths
-            writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, name);
+            writeEntry(builder, name, resource);
         }
 
         String remappedResourceName = path != null ? remapper.maybeRelocateResource(path) : null;
         if (remappedResourceName != null) {
             String newFileName = remappedResourceName + name.substring(i);
-            writeResourceEntry(outputStream, new ByteArrayInputStream(resource), buffer, newFileName);
+            writeEntry(builder, newFileName, resource);
         }
     }
 
-    private void writeResourceEntry(ZipOutputStream outputStream, InputStream inputStream, byte[] buffer, String resourceFileName) throws IOException {
-        outputStream.putNextEntry(newZipEntryWithFixedTime(resourceFileName));
-        pipe(inputStream, outputStream, buffer);
-        outputStream.closeEntry();
+    private void writeEntry(ClasspathBuilder.EntryBuilder builder, String name, byte[] content) throws IOException {
+        builder.put(name, content);
     }
 
-    private void writeEntry(ZipOutputStream outputStream, String name, byte[] content) throws IOException {
-        ZipEntry zipEntry = newZipEntryWithFixedTime(name);
-        outputStream.putNextEntry(zipEntry);
-        outputStream.write(content);
-        outputStream.closeEntry();
-    }
-
-    private ZipEntry newZipEntryWithFixedTime(String name) {
-        ZipEntry entry = new ZipEntry(name);
-        entry.setTime(ZipCopyAction.CONSTANT_TIME_FOR_ZIP_ENTRIES);
-        return entry;
-    }
-
-    private void processClassFile(ZipOutputStream outputStream, ClasspathEntryVisitor.Entry entry) throws IOException {
+    private void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
         String name = entry.getName();
         String className = name.substring(0, name.length() - ".class".length());
         if (isModuleInfoClass(className)) {
@@ -278,7 +219,7 @@ class RuntimeShadedJarCreator {
         String remappedClassName = remapper.maybeRelocateResource(className);
         String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
-        writeEntry(outputStream, newFileName, remappedClass);
+        writeEntry(builder, newFileName, remappedClass);
     }
 
     private byte[] remapClass(String className, byte[] bytes) {
@@ -293,14 +234,6 @@ class RuntimeShadedJarCreator {
         }
 
         return classWriter.toByteArray();
-    }
-
-    private void pipe(InputStream inputStream, OutputStream outputStream, byte[] buffer) throws IOException {
-        int read = inputStream.read(buffer);
-        while (read != -1) {
-            outputStream.write(buffer, 0, read);
-            read = inputStream.read(buffer);
-        }
     }
 
     private static class ShadingClassRemapper extends ClassRemapper {

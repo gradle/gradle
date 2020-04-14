@@ -17,6 +17,7 @@
 package org.gradle.api.internal.runtimeshaded;
 
 import org.gradle.cache.internal.GeneratedGradleJarCache;
+import org.gradle.internal.classpath.ClasspathBuilder;
 import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -36,12 +37,14 @@ public class RuntimeShadedJarFactory {
     private final GeneratedGradleJarCache cache;
     private final ProgressLoggerFactory progressLoggerFactory;
     private final ClasspathWalker classpathWalker;
+    private final ClasspathBuilder classpathBuilder;
     private final BuildOperationExecutor executor;
 
-    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, BuildOperationExecutor executor) {
+    public RuntimeShadedJarFactory(GeneratedGradleJarCache cache, ProgressLoggerFactory progressLoggerFactory, ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, BuildOperationExecutor executor) {
         this.cache = cache;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classpathWalker = classpathWalker;
+        this.classpathBuilder = classpathBuilder;
         this.executor = executor;
     }
 
@@ -52,7 +55,8 @@ public class RuntimeShadedJarFactory {
                 RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
                     progressLoggerFactory,
                     new ImplementationDependencyRelocator(type),
-                    classpathWalker
+                    classpathWalker,
+                    classpathBuilder
                 );
                 creator.create(file, classpath);
             }
