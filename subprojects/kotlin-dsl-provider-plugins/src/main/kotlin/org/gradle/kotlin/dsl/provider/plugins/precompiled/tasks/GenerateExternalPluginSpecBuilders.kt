@@ -60,5 +60,4 @@ abstract class GenerateExternalPluginSpecBuilders : ClassPathSensitiveCodeGenera
     private
     fun packagePath(packageName: String) =
         packageName.split('.').joinToString("/")
-
 }
