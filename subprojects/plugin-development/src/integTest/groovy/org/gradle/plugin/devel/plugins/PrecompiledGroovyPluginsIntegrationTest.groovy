@@ -739,6 +739,52 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
     }
 
+    def "adapter is recreated when plugin classes are recompiled"() {
+        given:
+        def cacheDir = createDir("cache-dir")
+
+        def firstDir = createDir("first-location")
+        firstDir.file("settings.gradle") << """
+            rootProject.name = "test"
+            buildCache {
+                local {
+                    directory = file("../${cacheDir.name}")
+                }
+            }
+        """
+        firstDir.file("buildSrc/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        firstDir.file("buildSrc/src/main/groovy/my-plugin.gradle") << """
+            println 'my-plugin applied'
+        """
+        firstDir.file("build.gradle") << """
+            plugins {
+                id 'my-plugin'
+            }
+        """
+
+        when:
+        def result = executer.inDirectory(firstDir).withTasks('help').withArgument("--build-cache").run()
+
+        then:
+        result.assertOutputContains('my-plugin applied')
+
+        when:
+        def secondDir = createDir("second-location")
+        firstDir.copyTo(secondDir)
+        secondDir.file("buildSrc/src/main/groovy/my-plugin.gradle") << """
+            println 'content changed'
+        """
+        result = executer.inDirectory(secondDir).withTasks('help').withArgument("--build-cache").run()
+
+        then:
+        result.assertOutputContains('my-plugin applied')
+        result.assertOutputContains('content changed')
+    }
+
     @ToBeFixedForInstantExecution
     def "precompiled script plugins tasks are cached and relocatable"() {
         given:
