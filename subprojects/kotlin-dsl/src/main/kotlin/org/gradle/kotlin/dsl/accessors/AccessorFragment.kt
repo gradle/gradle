@@ -42,10 +42,8 @@ class BytecodeFragmentScope(
     writer: ClassWriter
 ) : ClassVisitor(ASM_LEVEL, writer)
 
-
 internal
 typealias MetadataWriter = MetadataFragmentScope.() -> Unit
-
 
 internal
 data class MetadataFragmentScope(
