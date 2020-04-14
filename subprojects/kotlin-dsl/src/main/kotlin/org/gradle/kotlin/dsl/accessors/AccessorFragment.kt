@@ -52,7 +52,5 @@ data class MetadataFragmentScope(
     val signature: JvmMethodSignature,
     val writer: KotlinClassMetadata.FileFacade.Writer
 )
-
-
 internal
 typealias Fragments = Pair<String, Sequence<AccessorFragment>>
