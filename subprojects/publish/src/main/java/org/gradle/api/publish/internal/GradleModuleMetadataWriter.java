@@ -141,7 +141,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
         writeIdentity(publication.getCoordinates(), publication.getAttributes(), component, componentCoordinates, owners, jsonWriter);
-        writeCreator(publication, jsonWriter);
+        writeCreator(jsonWriter);
         writeVariants(publication, component, componentCoordinates, jsonWriter, checker);
         jsonWriter.endObject();
     }
@@ -259,7 +259,7 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeCreator(PublicationInternal publication, JsonWriter jsonWriter) throws IOException {
+    private void writeCreator(JsonWriter jsonWriter) throws IOException {
         jsonWriter.name("createdBy");
         jsonWriter.beginObject();
         jsonWriter.name("gradle");
@@ -267,7 +267,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.name("version");
         jsonWriter.value(GradleVersion.current().getVersion());
         jsonWriter.name("buildId");
-        jsonWriter.value(publication.getBuildIdentifier().getOrElse(buildInvocationScopeId.getId().asString()));
+        jsonWriter.value(buildInvocationScopeId.getId().asString());
         jsonWriter.endObject();
         jsonWriter.endObject();
     }

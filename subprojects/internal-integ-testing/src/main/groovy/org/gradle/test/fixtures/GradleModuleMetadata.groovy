@@ -43,15 +43,6 @@ class GradleModuleMetadata {
     }
 
     @Nullable
-    CreatedBy getCreatedBy() {
-        def createdBy = values.createdBy
-        if (createdBy == null) {
-            return null
-        }
-        return new CreatedBy(createdBy.gradle.version, createdBy.gradle.buildId)
-    }
-
-    @Nullable
     Coords getComponent() {
         def comp = values.component
         if (comp == null || comp.url) {
@@ -440,17 +431,6 @@ class GradleModuleMetadata {
                 assert actualAttributes == expectedAttributes
                 this
             }
-        }
-    }
-
-    @EqualsAndHashCode
-    static class CreatedBy {
-        final String gradleVersion
-        final String buildId
-
-        CreatedBy(String gradleVersion, String buildId) {
-            this.gradleVersion = gradleVersion
-            this.buildId = buildId
         }
     }
 
