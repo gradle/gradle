@@ -48,10 +48,10 @@ inline fun <reified T> ownerServiceCodec() =
 internal
 inline fun <reified T : Any> unsupported(): Codec<T> = codec(
     encode = { value ->
-        logUnsupported(T::class, value.javaClass)
+        logUnsupported("serialize", T::class, value.javaClass)
     },
     decode = {
-        logUnsupported(T::class)
+        logUnsupported("deserialize", T::class)
         null
     }
 )
