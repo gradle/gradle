@@ -490,4 +490,162 @@ task thing {
         then:
         outputContains("prop = 0")
     }
+
+    def "cannot query strict property with upstream task output directory property until producer task starts execution"() {
+        taskTypeWithOutputDirectoryProperty()
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            interface ProjectModel {
+                DirectoryProperty getProp()
+            }
+
+            task producer(type: DirProducer) {
+                output = layout.buildDir.dir("dir.out")
+            }
+
+            def thing = project.extensions.create("thing", ProjectModel)
+
+            thing.prop.disallowUnsafeRead()
+            thing.prop.set(producer.output)
+
+            try {
+                thing.prop.get()
+            } catch(IllegalStateException e) {
+                println("get failed: " + e.message)
+            }
+
+            task after {
+                dependsOn(thing.prop)
+                doLast {
+                    println("prop = " + thing.prop.get())
+                }
+            }
+
+            task before {
+                doLast {
+                    try {
+                        thing.prop.get()
+                    } catch(RuntimeException e) {
+                        println("get from task failed: " + e.message)
+                        println("get from task failed cause: " + e.cause.message)
+                    }
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+        outputContains("get failed: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get from task failed: Failed to calculate the value of extension 'thing' property 'prop'.")
+        outputContains("get from task failed cause: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
+        output.count("prop = " + file("build/dir.out")) == 1
+    }
+
+    def "cannot query strict property with upstream task output file property until producer task starts execution"() {
+        taskTypeWithOutputFileProperty()
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            interface ProjectModel {
+                RegularFileProperty getProp()
+            }
+
+            task producer(type: FileProducer) {
+                output = layout.buildDir.file("text.out")
+            }
+
+            def thing = project.extensions.create("thing", ProjectModel)
+
+            thing.prop.disallowUnsafeRead()
+            thing.prop.set(producer.output)
+
+            try {
+                thing.prop.get()
+            } catch(IllegalStateException e) {
+                println("get failed: " + e.message)
+            }
+
+            task after {
+                dependsOn(thing.prop)
+                doLast {
+                    println("prop = " + thing.prop.get())
+                }
+            }
+
+            task before {
+                doLast {
+                    try {
+                        thing.prop.get()
+                    } catch(RuntimeException e) {
+                        println("get from task failed: " + e.message)
+                        println("get from task failed cause: " + e.cause.message)
+                    }
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        succeeds("after")
+        outputContains("get failed: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get from task failed: Failed to calculate the value of extension 'thing' property 'prop'.")
+        outputContains("get from task failed cause: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
+        output.count("prop = " + file("build/text.out")) == 1
+    }
+
+    def "cannot query strict property with mapped upstream task output file property until producer task starts execution"() {
+        taskTypeWithOutputFileProperty()
+        settingsFile << "rootProject.name = 'broken'"
+        buildFile << """
+            interface ProjectModel {
+                Property<Integer> getProp()
+            }
+
+            task producer(type: FileProducer) {
+                output = layout.buildDir.file("text.out")
+                content = "123"
+            }
+
+            def thing = project.extensions.create("thing", ProjectModel)
+
+            thing.prop.disallowUnsafeRead()
+            thing.prop.set(producer.output.map { it.asFile.text as Integer })
+
+            try {
+                thing.prop.get()
+            } catch(IllegalStateException e) {
+                println("get failed: " + e.message)
+            }
+
+            task after {
+                dependsOn(thing.prop)
+                doLast {
+                    println("prop = " + thing.prop.get())
+                }
+            }
+
+            task before {
+                doLast {
+                    try {
+                        thing.prop.get()
+                    } catch(RuntimeException e) {
+                        println("get from task failed: " + e.message)
+                        println("get from task failed cause: " + e.cause.message)
+                    }
+                }
+            }
+            producer.dependsOn(before)
+        """
+
+        expect:
+        // TODO - should not generate a warning and throw an exception
+        executer.expectDocumentedDeprecationWarning("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed has been deprecated. " +
+            "This will fail with an error in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#querying_a_mapped_output_property_of_a_task_before_the_task_has_completed")
+        succeeds("after")
+        outputContains("get failed: Cannot query the value of extension 'thing' property 'prop' because configuration of root project 'broken' has not completed yet.")
+        outputContains("get from task failed: Failed to calculate the value of extension 'thing' property 'prop'.")
+        outputContains("get from task failed cause: Cannot query the value of task ':producer' property 'output' because task ':producer' has not completed yet.")
+        output.count("prop = 123") == 1
+    }
 }

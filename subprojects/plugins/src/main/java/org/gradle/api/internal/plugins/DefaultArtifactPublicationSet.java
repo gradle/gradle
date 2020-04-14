@@ -81,7 +81,7 @@ public class DefaultArtifactPublicationSet {
         }
 
         @Override
-        protected Value<Set<PublishArtifact>> calculateOwnValue() {
+        protected Value<Set<PublishArtifact>> calculateOwnValue(ValueConsumer consumer) {
             if (defaultArtifacts == null) {
                 defaultArtifacts = Sets.newLinkedHashSet();
                 currentDefault = null;

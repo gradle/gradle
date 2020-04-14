@@ -54,6 +54,9 @@ public class Providers {
     }
 
     public static <T> ProviderInternal<T> of(T value) {
+        if (value == null) {
+            throw new IllegalArgumentException();
+        }
         return new FixedValueProvider<>(value);
     }
 
@@ -83,12 +86,12 @@ public class Providers {
         }
 
         @Override
-        public T get() {
-            return value;
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return Value.of(value);
         }
 
         @Override
-        public ProviderInternal<T> withFinalValue() {
+        public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
             return this;
         }
 
@@ -123,7 +126,7 @@ public class Providers {
         }
 
         @Override
-        public Value<? extends T> calculateValue() {
+        public Value<? extends T> calculateValue(ValueConsumer consumer) {
             return value;
         }
 
@@ -139,7 +142,7 @@ public class Providers {
         }
 
         @Override
-        protected Value<T> calculateOwnValue() {
+        protected Value<T> calculateOwnValue(ValueConsumer consumer) {
             return Value.missing();
         }
 
@@ -159,12 +162,17 @@ public class Providers {
         }
 
         @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return false;
+        }
+
+        @Override
         public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
             return this;
         }
 
         @Override
-        public ProviderInternal<T> withFinalValue() {
+        public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
             return this;
         }
 

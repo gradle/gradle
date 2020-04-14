@@ -23,7 +23,7 @@ import org.gradle.api.Action;
  * A supplier of zero or more values of type {@link T}.
  */
 public interface Collector<T> extends ValueSupplier {
-    Value<Void> collectEntries(ValueCollector<T> collector, ImmutableCollection.Builder<T> dest);
+    Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest);
 
     int size();
 

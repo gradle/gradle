@@ -68,6 +68,7 @@ dependencies {
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
+    integTestRuntimeOnly(project(":codeQuality"))
 
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))

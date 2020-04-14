@@ -18,11 +18,13 @@ package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.Task
+import org.gradle.api.provider.Property
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
 import org.gradle.util.TestUtil
 import org.gradle.util.TextUtil
 import org.spockframework.util.Assert
+import spock.lang.Unroll
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
@@ -115,7 +117,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         provider.type >> null
-        provider.calculateValue() >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
+        provider.calculateValue(_) >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
 
         when:
         property.setFromAnyValue(provider)
@@ -144,8 +146,8 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         provider.type >> Map
-        provider.calculateValue() >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
-        provider.present >> true
+        provider.calculateValue(_) >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
+        provider.calculatePresence(_) >> true
         and:
         property.set(provider)
 
@@ -240,8 +242,8 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         _ * provider.type >> Map
-        _ * provider.present >> true
-        _ * provider.calculateValue() >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
+        _ * provider.calculatePresence(_) >> true
+        _ * provider.calculateValue(_) >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
         and:
         property.putAll(provider)
 
@@ -278,25 +280,25 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         when:
         property.present
         then:
-        1 * valueProvider.present >> true
-        1 * putProvider.present >> true
-        1 * putAllProvider.present >> true
+        1 * valueProvider.calculatePresence(_) >> true
+        1 * putProvider.calculatePresence(_) >> true
+        1 * putAllProvider.calculatePresence(_) >> true
         0 * _
 
         when:
         property.get()
         then:
-        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(['k1': 'v1'])
-        1 * putProvider.calculateValue() >> ValueSupplier.Value.of('v2')
-        1 * putAllProvider.calculateValue() >> ValueSupplier.Value.of(['k3': 'v3'])
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.calculateValue(_) >> ValueSupplier.Value.of('v2')
+        1 * putAllProvider.calculateValue(_) >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
 
         when:
         property.getOrNull()
         then:
-        1 * valueProvider.calculateValue() >> ValueSupplier.Value.of(['k1': 'v1'])
-        1 * putProvider.calculateValue() >> ValueSupplier.Value.of('v2')
-        1 * putAllProvider.calculateValue() >> ValueSupplier.Value.of(['k3': 'v3'])
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.calculateValue(_) >> ValueSupplier.Value.of('v2')
+        1 * putAllProvider.calculateValue(_) >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
     }
 
@@ -942,14 +944,21 @@ The value of this property is derived from: <source>""")
 
         when:
         def result = p.get()
-        def result2 = property.get()
 
         then:
-        1 * provider.calculateValue() >> ValueSupplier.Value.of("value")
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of("value")
         0 * _
 
         and:
         result == (['k1'] as Set)
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * _
+
+        and:
         result2 == [k1: "value"]
     }
 
@@ -968,15 +977,73 @@ The value of this property is derived from: <source>""")
 
         when:
         def result = p.get()
-        def result2 = property.get()
 
         then:
-        1 * provider.calculateValue() >> ValueSupplier.Value.of("value")
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of("value")
         0 * _
 
         and:
         result == "value"
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * _
+
+        and:
         result2 == [k1: "value"]
+    }
+
+    @Unroll
+    def "finalizes upstream properties when value read using #method and disallow unsafe reads"() {
+        def a = property()
+        def b = property()
+        def c = valueProperty()
+        def property = property()
+        property.disallowUnsafeRead()
+
+        property.putAll(a)
+
+        a.putAll(b)
+        a.attachOwner(owner(), displayName("<a>"))
+
+        b.attachOwner(owner(), displayName("<b>"))
+
+        property.put("c", c)
+        c.set("c")
+        c.attachOwner(owner(), displayName("<c>"))
+
+        given:
+        property."$method"()
+
+        when:
+        a.set([a: 'a'])
+
+        then:
+        def e1 = thrown(IllegalStateException)
+        e1.message == 'The value for <a> is final and cannot be changed any further.'
+
+        when:
+        b.set([b: 'b'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set('c2')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    Property<String> valueProperty() {
+        return new DefaultProperty<String>(host, String)
     }
 
     private ProviderInternal<String> brokenValueSupplier() {

@@ -59,9 +59,9 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     @Override
-    protected Value<? extends OUT> calculateOwnValue() {
+    protected Value<? extends OUT> calculateOwnValue(ValueConsumer consumer) {
         beforeRead();
-        Value<? extends IN> value = provider.calculateValue();
+        Value<? extends IN> value = provider.calculateValue(consumer);
         return mapValue(value);
     }
 

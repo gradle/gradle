@@ -47,11 +47,7 @@ public class DefaultCacheableOutputFilePropertySpec extends AbstractFileProperty
     @Override
     @Nullable
     public File getOutputFile() {
-        FileCollectionInternal files = getPropertyFiles();
-        if (files.isEmpty()) {
-            return null;
-        }
-        return files.getSingleFile();
+        return getPropertyFiles().getSingleFile();
     }
 
     @Override

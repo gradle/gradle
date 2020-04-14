@@ -85,9 +85,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void finalizeValue() {
-        if (state != State.Final) {
-            calculateFinalizedValue();
+        if (state == State.Final) {
+            return;
         }
+        if (disallowUnsafeRead) {
+            String reason = host.beforeRead(null);
+            if (reason != null) {
+                throw new IllegalStateException("Cannot finalize the value for " + displayNameForThisCollection() + " because " + reason + ".");
+            }
+        }
+        calculateFinalizedValue();
         state = State.Final;
         disallowChanges = true;
     }

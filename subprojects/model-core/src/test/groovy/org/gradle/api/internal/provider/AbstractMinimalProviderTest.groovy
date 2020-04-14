@@ -144,7 +144,7 @@ class AbstractMinimalProviderTest extends ProviderSpec<String> {
         }
 
         @Override
-        protected Value calculateOwnValue() {
+        protected Value calculateOwnValue(ValueConsumer consumer) {
             return Value.ofNullable(value)
         }
     }

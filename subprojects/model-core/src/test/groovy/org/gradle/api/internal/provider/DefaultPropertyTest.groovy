@@ -139,17 +139,13 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "can set value to a provider whose type is compatible"() {
-        def supplier = Mock(ProviderInternal)
-        def provider = Mock(ProviderInternal)
+        def supplier = supplierWithValues(1, 2, 3)
 
         given:
-        provider.asSupplier(_, _, _) >> supplier
-        supplier.calculateValue() >>> [1, 2, 3].collect { ValueSupplier.Value.ofNullable(it) }
-
         def property = propertyWithDefaultValue(Number)
 
         when:
-        property.set(provider)
+        property.set(supplier)
 
         then:
         property.get() == 1

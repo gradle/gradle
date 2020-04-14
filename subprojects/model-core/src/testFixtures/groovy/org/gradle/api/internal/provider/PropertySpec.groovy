@@ -25,6 +25,7 @@ import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.TextUtil
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -147,6 +148,29 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Cannot set the value of a property using a null provider.'
+    }
+
+    def "reports failure to query value from provider and property has display name"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.set(brokenSupplier())
+        property.attachOwner(owner(), displayName("<property>"))
+
+        when:
+        property.present
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to query the value of <property>."
+        e.cause.message == "broken!"
+
+        when:
+        property.get()
+
+        then:
+        def e2 = thrown(AbstractProperty.PropertyQueryException)
+        e2.message == "Failed to query the value of <property>."
+        e2.cause.message == "broken!"
     }
 
     def "can set untyped using null"() {
@@ -618,6 +642,142 @@ The value of this provider is derived from:
         present
         result == someValue()
         0 * _
+    }
+
+    def "reports failure to query provider value when finalizing and property has display name"() {
+        def property = propertyWithDefaultValue()
+
+        given:
+        property.set(brokenSupplier())
+        property.attachOwner(owner(), displayName("<property>"))
+        property.finalizeValueOnRead()
+
+        when:
+        property.finalizeValue()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to calculate the value of <property>."
+        e.cause.message == "broken!"
+
+        when:
+        property.present
+
+        then:
+        def e2 = thrown(AbstractProperty.PropertyQueryException)
+        e2.message == "Failed to calculate the value of <property>."
+        e2.cause.message == "broken!"
+
+        when:
+        property.get()
+
+        then:
+        def e3 = thrown(AbstractProperty.PropertyQueryException)
+        e3.message == "Failed to calculate the value of <property>."
+        e3.cause.message == "broken!"
+    }
+
+    def "does not finalize upstream property on finalize"() {
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream)
+        upstream.set(someValue())
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+        upstream.get() == someOtherValue()
+    }
+
+    def "does not finalize upstream property with no value on finalize"() {
+        def upstream = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream)
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue())
+
+        then:
+        property.orNull == null
+        upstream.get() == someOtherValue()
+    }
+
+    def "does not finalize mapped upstream property on finalize"() {
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        upstream.set(someValue())
+        property.set(upstream.map { someOtherValue() })
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue2())
+
+        then:
+        property.get() == someOtherValue()
+        upstream.get() == someOtherValue2()
+    }
+
+    def "does not finalize flatMapped upstream property on finalize"() {
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        upstream.set(someValue())
+        property.set(upstream.flatMap { supplierWithValues(someOtherValue()) })
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue2())
+
+        then:
+        property.get() == someOtherValue()
+        upstream.get() == someOtherValue2()
+    }
+
+    def "does not finalize orElse upstream property on finalize"() {
+        def upstream = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream.orElse(someValue()))
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+        upstream.get() == someOtherValue()
+    }
+
+    def "does not finalize orElse upstream properties on finalize"() {
+        def upstream1 = propertyWithNoValue()
+        def upstream2 = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream1.orElse(upstream2))
+        upstream2.set(someValue())
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream1.set(someOtherValue())
+        upstream2.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+        upstream1.get() == someOtherValue()
+        upstream2.get() == someOtherValue()
     }
 
     def "replaces provider with fixed value on next query of value when value implicitly finalized"() {
@@ -1744,6 +1904,54 @@ The value of this property is derived from:
         result2 == someValue()
     }
 
+    def "cannot read value with upstream task output until host is ready and task completed when unsafe read disallowed"() {
+        given:
+        def producer = owner()
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        upstream.set(someValue())
+        upstream.attachOwner(owner(), displayName("<upstream>"))
+        upstream.attachProducer(producer)
+
+        property.set(upstream)
+        property.attachOwner(owner(), displayName("<display-name>"))
+        property.disallowUnsafeRead()
+
+        when:
+        property.get()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * host.beforeRead(producer) >> "<task>"
+        0 * host._
+
+        and:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to calculate the value of <display-name>."
+        e.cause.message == "Cannot query the value of <upstream> because <task>."
+
+        when:
+        def result = property.get()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * host.beforeRead(producer) >> null
+        0 * host._
+
+        and:
+        result == someValue()
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * host._
+
+        and:
+        result2 == someValue()
+    }
+
     def "reports that value is unsafe to read regardless of whether a value is available or not"() {
         given:
         def property = propertyWithNoValue()
@@ -1774,22 +1982,53 @@ The value of this property is derived from:
         e3.message == "Cannot query the value of this property because <reason>."
     }
 
-    def "can read value of finalized property when host is not ready and unsafe read disallowed"() {
+    def "cannot finalize a property when host is not ready and unsafe read disallowed"() {
         given:
         def property = propertyWithDefaultValue()
         property.disallowUnsafeRead()
         property.set(someValue())
+
+        when:
         property.finalizeValue()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot finalize the value of this property because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * host._
+
+        when:
+        property.attachOwner(owner(), displayName("<property>"))
+        property.finalizeValue()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot finalize the value of <property> because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * host._
 
         when:
         def result = property.get()
 
         then:
         result == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+        0 * host._
+
+        when:
+        property.finalizeValue()
+
+        then:
         0 * host._
     }
 
-    def "cannot set value after value read when unsafe read disallowed"() {
+    def "finalizes value after read when unsafe read disallowed"() {
         given:
         def property = propertyWithDefaultValue()
         property.disallowUnsafeRead()
@@ -1818,6 +2057,269 @@ The value of this property is derived from:
         then:
         def e = thrown(IllegalStateException)
         e.message == "The value for this property is final and cannot be changed any further."
+    }
+
+    def "can finalize on next read when host is not ready when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+
+        when:
+        property.finalizeValueOnRead()
+
+        then:
+        0 * _
+
+        when:
+        def value = property.orNull
+
+        then:
+        value == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+    }
+
+    def "can disallow changes when host is not ready when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+
+        when:
+        property.disallowChanges()
+
+        then:
+        0 * _
+
+        when:
+        def value = property.orNull
+
+        then:
+        value == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+    }
+
+    @Unroll
+    def "finalizes upstream property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b)
+        property.disallowUnsafeRead()
+
+        b.set(c)
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream property with no value when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b)
+        property.disallowUnsafeRead()
+
+        b.set(c)
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["getOrNull", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream mapped property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithDefaultValue()
+        def c = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.map { someOtherValue2() })
+        property.disallowUnsafeRead()
+
+        b.set(c.map { someOtherValue() })
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream flatmapped property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithDefaultValue()
+        def c = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.flatMap { supplierWithValues(someOtherValue2()) })
+        property.disallowUnsafeRead()
+
+        b.set(c.flatMap { supplierWithValues(someOtherValue()) })
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream orElse fixed value property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.orElse(someOtherValue2()))
+        property.disallowUnsafeRead()
+
+        b.set(c)
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property.get()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream orElse properties when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.orElse(c))
+        property.disallowUnsafeRead()
+
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
     }
 
     def "reports the source of property value when value is missing and source is known"() {
@@ -2206,13 +2708,13 @@ The value of this provider is derived from:
         }
 
         @Override
-        protected Value<? extends T> calculateOwnValue() {
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return Value.missing()
         }
 
         @Override
-        Value<? extends T> calculateValue() {
-            return Value.missing().pushWhenMissing(displayName)
+        protected DisplayName getDeclaredDisplayName() {
+            return displayName
         }
     }
 

@@ -299,7 +299,7 @@ class DefaultDomainObjectCollectionTest extends AbstractDomainObjectCollectionSp
     def callsRemoveActionWhenObjectRemovedUsingIteratorNoFlushAndLastElementIsUnrealized() {
         def action = Mock(Action)
         def provider = Mock(ProviderInternal)
-        _ * provider.calculateValue() >> ValueSupplier.Value.of("c")
+        _ * provider.calculateValue(_) >> ValueSupplier.Value.of("c")
 
         container.whenObjectRemoved(action)
         container.add("a")
