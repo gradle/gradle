@@ -125,7 +125,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         return doRegister(name, implementationType, isolationScheme.parameterTypeFor(implementationType), parameters, maxUsages <= 0 ? null : maxUsages);
     }
 
-    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(String name, Class<T> implementationType, Class<P> parameterType, P parameters, @Nullable Integer maxParallelUsages) {
+    private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
+        String name,
+        Class<T> implementationType,
+        Class<P> parameterType,
+        P parameters,
+        @Nullable Integer maxParallelUsages
+    ) {
         BuildServiceProvider<T, P> provider = new BuildServiceProvider<>(name, implementationType, parameters, isolationScheme, instantiatorFactory.injectScheme(), isolatableFactory, services);
 
         DefaultServiceRegistration<T, P> registration = specInstantiator.newInstance(DefaultServiceRegistration.class, name, parameters, provider);

@@ -96,6 +96,7 @@ allprojects {
     }
 
     @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method closure fails"() {
         settingsFile << """
 gradle.${method} {
@@ -121,6 +122,7 @@ gradle.rootProject { task a }
     }
 
     @Unroll
+    @UnsupportedWithInstantExecution(iterationMatchers = ".*Gradle.buildFinished.*")
     def "produces reasonable error when Gradle.#method action fails"() {
         settingsFile << """
 def action = {
@@ -177,6 +179,7 @@ gradle.rootProject { task a }
         "buildFinished"     | "BuildResult result"
     }
 
+    @UnsupportedWithInstantExecution
     def "produces reasonable error message when build fails and Gradle.buildFinished closure also fails"() {
         buildFile << """
     gradle.buildFinished {

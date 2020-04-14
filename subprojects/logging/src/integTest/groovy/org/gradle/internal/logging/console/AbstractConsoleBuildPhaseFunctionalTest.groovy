@@ -32,6 +32,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         server.start()
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished", skip =  ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -205,6 +206,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished", skip =  ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with buildSrc build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -295,10 +297,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         gradle.waitForFinish()
     }
 
-    @ToBeFixedForInstantExecution(
-        skip = ToBeFixedForInstantExecution.Skip.UNROLLED_FAILS_IN_SUBCLASS,
-        bottomSpecs = "AutoConsoleBuildPhaseFunctionalTest"
-    )
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished", skip =  ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "shows progress bar and percent phase completion with artifact transforms"() {
         given:
         settingsFile << """

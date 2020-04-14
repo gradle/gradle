@@ -338,6 +338,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def 'org.ajoberstar.grgit plugin'() {
         given:
         GitFileRepository.init(testProjectDir.root)

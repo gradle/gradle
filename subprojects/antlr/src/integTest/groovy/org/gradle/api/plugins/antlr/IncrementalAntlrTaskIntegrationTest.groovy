@@ -18,6 +18,8 @@ package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
+import static org.gradle.integtests.fixtures.WaitAtEndOfBuildFixture.buildLogicForMinimumBuildTime
+
 class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     String antlrDependency = "org.antlr:antlr:3.5.2"
 
@@ -30,15 +32,7 @@ class IncrementalAntlrTaskIntegrationTest extends AbstractAntlrIntegrationTest {
     def test2ParserFile = file("grammar-builder/build/generated-src/antlr/main/Test2Parser.java")
 
     def setup() {
-        buildFile << """
-            def startAt = System.nanoTime()
-            gradle.buildFinished {
-                long sinceStart = (System.nanoTime() - startAt) / 1000000L
-                if (sinceStart > 0 && sinceStart < 2000) {
-                  sleep(2000 - sinceStart)
-                }
-            }
-        """
+        buildFile << buildLogicForMinimumBuildTime(2000)
     }
 
     @ToBeFixedForInstantExecution

@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
     implementation(project(":internalTesting"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy"))
     implementation(library("junit"))
@@ -51,6 +52,7 @@ dependencies {
     implementation(testLibrary("jetty"))
     implementation(testLibrary("littleproxy"))
     implementation(library("gcs"))
+    implementation(library("inject"))
     implementation(library("commons_httpclient"))
     implementation(library("joda"))
     implementation(library("jackson_core"))

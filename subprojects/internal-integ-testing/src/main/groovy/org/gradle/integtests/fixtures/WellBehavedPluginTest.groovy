@@ -128,18 +128,16 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         applyPlugin()
 
         buildFile << """
-            def configuredTasks = []
             tasks.configureEach {
-                configuredTasks << it
-            }
-
-            gradle.buildFinished {
-                def configuredTaskPaths = configuredTasks*.path
-
-                assert configuredTaskPaths == [':help']
+                println("configuring \${it.path}")
             }
         """
-        expect:
+
+        when:
         succeeds("help")
+
+        then:
+        output.count("configuring :") == 1
+        outputContains("configuring :help")
     }
 }
