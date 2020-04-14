@@ -23,6 +23,7 @@ import org.gradle.cache.PersistentCache
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.Transformer
+import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.logging.progress.ProgressLogger
@@ -51,7 +52,7 @@ class FileCacheBackedScriptClassCompilerTest extends Specification {
     final File localDir = new File("local-dir")
     final File globalDir = new File("global-dir")
     final File classesDir = new File(globalDir, "classes")
-    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, scriptCompilationHandler, Stub(ProgressLoggerFactory), classLoaderHierarchyHasher)
+    final FileCacheBackedScriptClassCompiler compiler = new FileCacheBackedScriptClassCompiler(cacheRepository, scriptCompilationHandler, Stub(ProgressLoggerFactory), classLoaderHierarchyHasher, Stub(ClasspathWalker))
     final Action verifier = Stub()
     final CompiledScript compiledScript = Stub() {
         loadClass() >> Script

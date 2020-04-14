@@ -21,8 +21,9 @@ import groovy.transform.stc.SimpleType
 import org.apache.ivy.core.settings.IvySettings
 import org.cyberneko.html.xercesbridge.XercesBridge
 import org.gradle.api.Action
-import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.IoActions
+import org.gradle.internal.classpath.ClasspathWalker
 import org.gradle.internal.installation.GradleRuntimeShadedJarDetector
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -35,12 +36,11 @@ import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.util.TraceClassVisitor
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.util.jar.JarEntry
 import java.util.jar.JarFile
-
-import spock.lang.Issue
 
 @UsesNativeServices
 @CleanupTestDirectory(fieldName = "tmpDir")
@@ -54,7 +54,7 @@ class RuntimeShadedJarCreatorTest extends Specification {
     def outputJar = tmpDir.testDirectory.file('gradle-api.jar')
 
     def setup() {
-        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new DefaultDirectoryFileTreeFactory())
+        relocatedJarCreator = new RuntimeShadedJarCreator(progressLoggerFactory, new ImplementationDependencyRelocator(RuntimeShadedJarType.API), new ClasspathWalker(TestFiles.fileSystem()))
     }
 
     def "creates JAR file for input directory"() {
@@ -421,7 +421,7 @@ org.gradle.api.internal.tasks.CompileServices"""
     private static void writeClass(TestFile outputDir, String className) {
         TestFile classFile = outputDir.createFile("${className}.class")
         ClassNode classNode = new ClassNode()
-        classNode.version = className=='module-info'?Opcodes.V9:Opcodes.V1_6
+        classNode.version = className == 'module-info' ? Opcodes.V9 : Opcodes.V1_6
         classNode.access = Opcodes.ACC_PUBLIC
         classNode.name = className
         classNode.superName = 'java/lang/Object'

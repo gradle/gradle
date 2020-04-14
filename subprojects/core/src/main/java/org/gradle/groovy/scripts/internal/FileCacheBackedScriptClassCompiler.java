@@ -19,12 +19,13 @@ import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classanalysis.AsmConstants;
+import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
@@ -56,13 +57,16 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
+    private final ClasspathWalker classpathWalker;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
-                                              ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher) {
+                                              ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
+                                              ClasspathWalker classpathWalker) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
+        this.classpathWalker = classpathWalker;
     }
 
     @Override
@@ -430,52 +434,43 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
                     "Compiling " + source.getDisplayName() + " to cross build script cache"))
                 .open();
             try {
-                final File genericClassesDir = classesDir(cache);
-                final File metadataDir = metadataDir(cache);
+                File genericClassesDir = classesDir(cache);
+                File metadataDir = metadataDir(cache);
                 remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
                 copyMetadata(metadataDir, metadataDir(remappedClassesCache));
+            } catch (Exception e) {
+                throw new GradleException(String.format("Failed to process script classes for %s.", source.getDisplayName()), e);
             } finally {
                 cache.close();
             }
         }
 
-        private void remapClasses(File scriptCacheDir, File relocalizedDir, RemappingScriptSource source) {
+        private void remapClasses(File scriptCacheDir, File relocalizedDir, RemappingScriptSource source) throws IOException {
             ScriptSource origin = source.getSource();
             String className = origin.getClassName();
             if (!relocalizedDir.exists()) {
                 relocalizedDir.mkdir();
             }
-            File[] files = scriptCacheDir.listFiles();
-            if (files != null) {
-                for (File file : files) {
-                    String renamed = file.getName();
-                    if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
-                        renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
-                    }
-                    ClassWriter cv = new ClassWriter(0);
-                    try {
-                        byte[] contents = Files.toByteArray(file);
-                        ClassReader cr = new ClassReader(contents);
-                        String originalClassName = cr.getClassName();
-                        String contentHash = Hashing.hashBytes(contents).toString();
-                        BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin, originalClassName, contentHash);
-                        cr.accept(remapper, 0);
-                        Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
-                    } catch (IOException ex) {
-                        throw UncheckedException.throwAsUncheckedException(ex);
-                    }
+            classpathWalker.visit(scriptCacheDir, entry -> {
+                String renamed = entry.getPath().getLastName();
+                if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
+                    renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
                 }
-            }
+                ClassWriter cv = new ClassWriter(0);
+                byte[] content = entry.getContent();
+                ClassReader cr = new ClassReader(content);
+                String originalClassName = cr.getClassName();
+                String contentHash = Hashing.hashBytes(content).toString();
+                BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin, originalClassName, contentHash);
+                cr.accept(remapper, 0);
+                Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
+            });
         }
 
-        private void copyMetadata(File source, File dest) {
+        private void copyMetadata(File source, File dest) throws IOException {
             if (dest.mkdir()) {
                 for (File src : source.listFiles()) {
-                    try {
-                        Files.copy(src, new File(dest, src.getName()));
-                    } catch (IOException ex) {
-                        throw UncheckedException.throwAsUncheckedException(ex);
-                    }
+                    Files.copy(src, new File(dest, src.getName()));
                 }
             }
         }
