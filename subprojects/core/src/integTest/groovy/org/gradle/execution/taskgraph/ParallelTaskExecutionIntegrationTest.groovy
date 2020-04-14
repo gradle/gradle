@@ -109,16 +109,19 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        executer.withArgument('--info')
+        executer.beforeExecute {
+            withArgument('--info')
+        }
     }
 
     void withParallelThreads(int threadCount) {
-        executer.withArgument("--max-workers=$threadCount")
+        executer.beforeExecute {
+            withArgument("--max-workers=$threadCount")
+        }
     }
 
     def "overlapping outputs prevent parallel execution"() {
         given:
-        executer.withArgument("-i")
         withParallelThreads(2)
 
         and:
@@ -211,9 +214,9 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
     def "tasks are run in parallel if there are tasks without async work running in a different project using --parallel"() {
         given:
         executer.beforeExecute {
-            executer.withArgument("--parallel")
-            withParallelThreads(3)
+            withArgument("--parallel")
         }
+        withParallelThreads(3)
 
         expect:
         2.times {
