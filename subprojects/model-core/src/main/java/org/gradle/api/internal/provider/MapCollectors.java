@@ -36,18 +36,18 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.add(key, value, dest);
             return Value.present();
         }
 
         @Override
-        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             collector.add(key, dest);
             return Value.present();
         }
@@ -90,13 +90,13 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isPresent() {
-            return providerOfValue.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return providerOfValue.calculatePresence(consumer);
         }
 
         @Override
-        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<? extends V> value = providerOfValue.calculateValue();
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<? extends V> value = providerOfValue.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
             }
@@ -105,8 +105,8 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            if (providerOfValue.isPresent()) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            if (providerOfValue.calculatePresence(consumer)) {
                 collector.add(key, dest);
                 return Value.present();
             } else {
@@ -141,18 +141,18 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return true;
         }
 
         @Override
-        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
             return Value.present();
         }
 
         @Override
-        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
             collector.addAll(entries.keySet(), dest);
             return Value.present();
         }
@@ -177,13 +177,13 @@ public class MapCollectors {
         }
 
         @Override
-        public boolean isPresent() {
-            return providerOfEntries.isPresent();
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return providerOfEntries.calculatePresence(consumer);
         }
 
         @Override
-        public Value<Void> collectEntries(MapEntryCollector<K, V> collector, Map<K, V> dest) {
-            Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue();
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+            Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
             }
@@ -192,14 +192,13 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectKeys(ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
-            Map<? extends K, ? extends V> entries = providerOfEntries.getOrNull();
-            if (entries != null) {
-                collector.addAll(entries.keySet(), dest);
-                return Value.present();
-            } else {
-                return Value.missing();
+        public Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest) {
+            Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue(consumer);
+            if (value.isMissing()) {
+                return value.asType();
             }
+            collector.addAll(value.get().keySet(), dest);
+            return Value.present();
         }
 
         @Override

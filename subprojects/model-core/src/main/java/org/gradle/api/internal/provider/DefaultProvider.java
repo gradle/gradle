@@ -61,7 +61,7 @@ public class DefaultProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    protected Value<? extends T> calculateOwnValue() {
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         try {
             return Value.ofNullable(value.call());
         } catch (Exception e) {

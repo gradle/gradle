@@ -291,7 +291,7 @@ abstract class AbstractElementSourceTest extends Specification {
         }
 
         @Override
-        protected Value<T> calculateOwnValue() {
+        protected Value<T> calculateOwnValue(ValueConsumer consumer) {
             return Value.of(value)
         }
 
@@ -323,7 +323,7 @@ abstract class AbstractElementSourceTest extends Specification {
         }
 
         @Override
-        protected Value<? extends Set<T>> calculateOwnValue() {
+        protected Value<? extends Set<T>> calculateOwnValue(ValueConsumer consumer) {
             return Value.of(value)
         }
 

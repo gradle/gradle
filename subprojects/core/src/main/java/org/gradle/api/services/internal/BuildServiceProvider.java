@@ -72,7 +72,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     @Override
-    public boolean isPresent() {
+    public boolean calculatePresence(ValueConsumer consumer) {
         return true;
     }
 
@@ -87,7 +87,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     @Override
-    protected Value<? extends T> calculateOwnValue() {
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         synchronized (this) {
             if (instance == null) {
                 // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)

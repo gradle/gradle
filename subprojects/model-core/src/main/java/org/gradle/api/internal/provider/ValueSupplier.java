@@ -34,7 +34,11 @@ public interface ValueSupplier {
      */
     ValueProducer getProducer();
 
-    boolean isPresent();
+    boolean calculatePresence(ValueConsumer consumer);
+
+    enum ValueConsumer {
+        DisallowUnsafeRead, IgnoreUnsafeRead
+    }
 
     /**
      * Carries information about the producer of a value.
@@ -218,7 +222,9 @@ public interface ValueSupplier {
         }
 
         static <T> Value<T> of(T value) {
-            assert value != null;
+            if (value == null) {
+                throw new IllegalArgumentException();
+            }
             return new Present<>(value);
         }
 
