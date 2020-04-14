@@ -32,7 +32,6 @@ data class AccessorFragment(
     val metadata: MetadataWriter,
     val signature: JvmMethodSignature
 )
-
 internal
 typealias BytecodeWriter = BytecodeFragmentScope.() -> Unit
 
