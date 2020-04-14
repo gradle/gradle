@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,20 +14,26 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.internal.classpath;
 
-import java.io.InputStream;
+import org.gradle.api.file.RelativePath;
 
-public interface ZipEntry {
+import java.io.IOException;
 
-    boolean isDirectory();
-
-    String getName();
-
-    InputStream getInputStream();
-
+public interface ClasspathEntryVisitor {
     /**
-     * The size of the content in bytes, or -1 if not known.
+     * Visits the contents of a classpath element.
      */
-    int size();
+    void visit(Entry entry) throws IOException;
+
+    interface Entry {
+        String getName();
+
+        RelativePath getPath();
+
+        /**
+         * Can be called at most once for a given entry. If not called, content is skipped.
+         */
+        byte[] getContent() throws IOException;
+    }
 }

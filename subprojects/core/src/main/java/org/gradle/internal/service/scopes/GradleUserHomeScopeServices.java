@@ -47,14 +47,15 @@ import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClasspathTransformerCacheFactory;
+import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.classpath.DefaultCachedClasspathTransformer;
 import org.gradle.internal.classpath.DefaultClasspathTransformerCacheFactory;
+import org.gradle.internal.classpath.JarCache;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.execution.timeout.impl.DefaultTimeoutHandler;
 import org.gradle.internal.file.FileAccessTimeJournal;
-import org.gradle.internal.classpath.JarCache;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.id.LongIdGenerator;
@@ -93,6 +94,7 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
         File userHomeDir = userHomeDirProvider.getGradleUserHomeDirectory();
         registration.addProvider(new CacheRepositoryServices(userHomeDir, null));
         registration.addProvider(new GradleUserHomeCleanupServices());
+        registration.add(ClasspathWalker.class);
         for (PluginServiceRegistry plugin : globalServices.getAll(PluginServiceRegistry.class)) {
             plugin.registerGradleUserHomeServices(registration);
         }
