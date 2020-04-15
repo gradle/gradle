@@ -1,7 +1,8 @@
 The Gradle team is excited to announce Gradle @version@.
 
-This release features support for [building and testing Java Modules](#java-modules) and [precompiled script plugins](#precompiled-groovy-dsl) for Groovy DSL.
-This release also has better [diagnostics for dependency management failures](#dm-variant-error), adds a [new experimental lock file format](#dm-lock-format) and [enables PMD's incremental analysis by default](#code-quality). 
+This release features highly anticipated support for [building and testing Java Modules](#java-modules), [precompiled Groovy DSL script plugins](#precompiled-groovy-dsl) for better build logic organization, and a [single lock file per project](#dm-lock-format) resulting in fewer lock files in projects using dependency locking. 
+
+There are also several other improvements and [bug fixes](#fixed-issues). 
 
 We would like to thank the following community contributors to this release of Gradle:
 <!-- 
@@ -36,7 +37,8 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 <a name="java-modules"></a>
 ## Building, testing and running Java Modules
 
-With this release, Gradle now supports the [Java Module System](https://openjdk.java.net/projects/jigsaw/) with everything you need to compile and execute tests for Java modules. You can also build Javadoc and run applications. 
+With this release, Gradle supports the [Java Module System](https://openjdk.java.net/projects/jigsaw/) with everything you need to compile and execute tests for Java modules.
+You can also build Javadoc and run applications. 
 
 While there is some overlap with Gradle's dependency management features, Java Modules offer additional features like module boundaries that are enforced by the Java runtime.
 
@@ -67,40 +69,40 @@ Also feel free to explore [the samples](samples/#java_modules).
 <a name="precompiled-groovy-dsl"></a>
 ## Precompiled Groovy DSL script plugins
 
-[Script plugins](userguide/plugins.html#sec:script_plugins) are a convenient way to split up and organize a long build script, but they have some limitations and quirks. It's difficult to share script plugins across multiple builds and write tests against them. It's also not possible to use the `plugins {}` block to apply other plugins.
-
-To address these problems, we introduced precompiled script plugins for the Kotlin DSL several releases ago. Precompiled script plugins are binary plugins that look like regular build scripts because they're written in one of Gradle's DSL languages.
-They can be published and shared just like regular binary plugins. They can be tested with [TestKit](userguide/test_kit.html). They can be applied using the `plugins {}` block and use the `plugins {}` block to apply other plugins. 
+[Script plugins](userguide/plugins.html#sec:script_plugins) are a convenient way to split up and organize a long build script, but they have some limitations and quirks. Kotlin DSL introduced precompiled script plugins that look like regular build scripts but have all of the advantages of binary plugins.
+They can:
+* be published to a private repository or the Plugin Portal, 
+* be tested using [TestKit](userguide/test_kit.html), 
+* be applied using the `plugins {}` block,
+* use the `plugins {}` block to apply other plugins. 
 
 Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL. 
 
 For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
 
 Precompiled script plugins are covered in more depth in the [user manual](userguide/custom_plugins.html#sec:precompiled_plugins).
-
-There is also a [sample](samples/sample_precompiled_script_plugin.html) available that you can download and see the feature in action.
-
-## Dependency management improvements
+There is also a [sample](samples/sample_precompiled_script_plugin.html) available that demonstrates the feature in action.
 
 <a name="dm-lock-format"></a>
-### New dependency locking file format
+## Single dependency lock file per project
 
-[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when using dynamic dependency versions. Gradle has had support for dependency locking for several years, and in this release, Gradle adds an improved dependency locking file format.
+[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when using dynamic dependency versions.
+This release adds an improved dependency locking file format that results in fewer lock files in most projects that use this feature.
+In addition, when using this format, the lock file name and location [can be configured](userguide/dependency_locking.html#configuring_the_per_project_lock_file_name_and_location).
 
-In addition, when using this format, the lock file name can be configured.
-This enables use cases where a given project may resolve different dependency graphs for the same configuration based on some project state as seen in Scala projects where the Scala version is encoded in dependency names.
-
-The format is expected to become the default lock file format in Gradle 7.0. For now, it  is required to opt-in to try out the new format.
+This format will become the default lock file format in Gradle 7.0. For now, it is required to opt-in to use it.
 
 Take a look at [the documentation](userguide/dependency_locking.html#single_lock_file_per_project) for more information and how to enable the feature.
 
 <a name="dm-variant-error"></a>
-### Better variant matching error messages
+## Better dependency variant matching error messages
 
-This release introduces new variant matching error messages for the Java ecosystem.
+Gradle provides a powerful [variant-aware](/userguide/variant_model.html) dependency management engine.
+
+This release introduces clearer variant matching error messages for the JVM ecosystem.
 
 In previous releases, these error messages could be difficult to understand and sometimes lacked enough context to figure out what to do.
-Gradle 6.4 takes a first step in improving those error messages by making them more human readable and introducing some colors to the console to highlight problems.
+Gradle 6.4 improves these error messages by making them more human-readable and introducing colors to the console to highlight problems.
 
 <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoUAAAE5CAMAAADRF6p1AAAC91BMVEUBAQEFAwABAgQGBgUCAwYH
                                 AwIEBQaqqqoBAxSbaDCJ4jMNAwICAwtJgaMRBQMpBgKicjkCBBofBwInXpIDBw4YBAJ9RhEgVoyH
@@ -469,17 +471,16 @@ Gradle 6.4 takes a first step in improving those error messages by making them m
                                 hfi1vdp51SUqS9SXyd8U8JJAV1h4ThiOvrAQ6e2isLCgoLCwoKCgoKCgoGAYGM7ppODN4jfM+Aok
                                 sRq1uwAAAABJRU5ErkJggg==">
 
-## Improvements to Java code quality plugins
+## Improvements to PMD code quality plugin
 
 <a name="code-quality"></a>
-### Incremental analysis is enabled by default (PMD)
-
-As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default. This can significantly reduce analysis time on subsequent builds.
+### Incremental analysis is enabled by default
+As of Gradle 6.4, the [PMD plugin](userguide/pmd_plugin.html) uses [incremental analysis](https://pmd.github.io/pmd-6.21.0/pmd_userdocs_incremental_analysis.html) by default.
+This can significantly reduce analysis time on subsequent builds.
 
 For builds relying on a version of PMD older than 6.0.0, you will need to [explicitly disable incremental analysis](userguide/upgrading_version_6.html#upgrade:pmd_expects_6). 
 
-### Specify number of violations required before the build fails (PMD)
-
+### Specify number of violations required before the build fails
 The [PMD plugin](userguide/pmd_plugin.html) now lets you set the number of violations before the build fails.
 This can make it easier to introduce PMD into existing projects that may initially have many violations.
  
@@ -493,14 +494,15 @@ pmd {
 
 This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
-## Security improvements
+## Security warning about using DEBUG level logging
 
-Potentially sensitive information is logged when Gradle is executed with debug level logging, such as sensitive credentials, authentication tokens or internal repository URLs. 
-This information can be unintentionally exposed when Gradle builds are executed on Continuous Integration services where build logs are publicly-accessible. See the recent update about the fixed [Plugin Portal vulnerability](https://blog.gradle.org/plugin-portal-update) for an example of this security risk.
+Potentially sensitive information is logged when Gradle is executed with debug level logging, such as sensitive credentials, authentication tokens or internal repository URLs.
+Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle.
+While debugging, this information may also be inherently useful.
+However, this information can be unintentionally exposed when Gradle builds are executed on Continuous Integration services where build logs are publicly-accessible.
+See the recent update about the fixed [Plugin Portal vulnerability](https://blog.gradle.org/plugin-portal-update) for an example of this security risk.
 
-Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle. While debugging, this information may also be inherently useful.
-
-To strike a balance between the security risks and the needs of people who may find this information useful, Gradle now warns users about the risks of using `DEBUG` level logging.
+Gradle now warns users about the risks of using `DEBUG` level logging.
 
 We recommend plugin maintainers avoid logging sensitive information if possible, and if it's not possible, that all sensitive information be logged exclusively at the `DEBUG` log level.
 
