@@ -67,10 +67,12 @@ Also feel free to explore [the samples](samples/#java_modules).
 <a name="precompiled-groovy-dsl"></a>
 ## Precompiled Groovy DSL script plugins
 
-Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL.
+[Script plugins](userguide/plugins.html#sec:script_plugins) are a convenient way to split up and organize a long build script, but they have some limitations and quirks. It's difficult to share script plugins across multiple builds and write tests against them. It's also not possible to use the `plugins {}` block to apply other plugins.
 
-Precompiled script plugins are binary plugins that are written in one of Gradle's DSL languages and look like regular build scripts.
-They can be resolved and applied using the `plugins {}` block. They can also be published and shared just like regular binary plugins.
+To address these problems, we introduced precompiled script plugins for the Kotlin DSL several releases ago. Precompiled script plugins are binary plugins that look like regular build scripts because they're written in one of Gradle's DSL languages.
+They can be published and shared just like regular binary plugins. They can be tested with [TestKit](userguide/test_kit.html). They can be applied using the `plugins {}` block and use the `plugins {}` block to apply other plugins. 
+
+Gradle now allows precompiled script plugins to be written using the Groovy DSL in addition to the Kotlin DSL. 
 
 For example, a Gradle script in `buildSrc/src/main/groovy/my-plugin.gradle` can be used as a plugin in the main project as `plugins { id 'my-plugin' }`.
 
@@ -83,13 +85,13 @@ There is also a [sample](samples/sample_precompiled_script_plugin.html) availabl
 <a name="dm-lock-format"></a>
 ### New dependency locking file format
 
-[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when dependencies use version ranges. Gradle has had support for dependency locking for several years, and in this release, Gradle has a new experimental dependency locking file format.
+[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when using dynamic dependency versions. Gradle has had support for dependency locking for several years, and in this release, Gradle has a new experimental dependency locking file format.
 With this format, Gradle generates a single lock file per project instead of a file per locked configuration to reduce the total number of lock files in a given project.
 
 In addition, when using this format, the lock file name can be configured.
 This enables use cases where a given project may resolve different dependency graphs for the same configuration based on some project state as seen in Scala projects where the Scala version is encoded in dependency names.
 
-The format is expected to become the default lock file format in Gradle 7.0. For now, the format is experimental and requires your build to opt-in to try out the new format.
+The format is expected to become the default lock file format in Gradle 7.0. For now, it  is required to opt-in to try out the new format.
 
 Take a look at [the documentation](userguide/dependency_locking.html#single_lock_file_per_project) for more information and how to enable the feature.
 
