@@ -48,6 +48,7 @@ import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeFile
 import org.gradle.internal.Factory
 import org.gradle.internal.build.event.BuildEventListenerRegistryInternal
+import org.gradle.internal.classpath.Instrumented
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
@@ -130,6 +131,7 @@ class DefaultInstantExecution internal constructor(
         if (!isInstantExecutionEnabled) return
 
         startCollectingCacheFingerprint()
+        Instrumented.setListener(SystemPropertyAccessListener(problems))
     }
 
     override fun saveScheduledWork() {
@@ -142,6 +144,7 @@ class DefaultInstantExecution internal constructor(
         }
 
         stopCollectingCacheFingerprint()
+        Instrumented.discardListener()
 
         buildOperationExecutor.withStoreOperation {
 

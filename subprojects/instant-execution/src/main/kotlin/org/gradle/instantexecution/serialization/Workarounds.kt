@@ -30,4 +30,8 @@ object Workarounds {
 
     fun isIgnoredBeanField(field: Field) =
         ignoredBeanFields.contains(field.name to field.declaringClass.name)
+
+    fun canReadSystemProperty(from: String): Boolean {
+        return from.startsWith("com.gradle.scan.plugin.internal.")
+    }
 }

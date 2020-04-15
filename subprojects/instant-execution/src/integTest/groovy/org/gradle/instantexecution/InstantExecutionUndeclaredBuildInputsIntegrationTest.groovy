@@ -16,29 +16,110 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 
 class InstantExecutionUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    def "reports undeclared use of system property from buildSrc plugin with Java implementation"() {
+    def "reports undeclared use of system property prior to task execution from buildSrc plugin with Java implementation"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
+            import ${Action.name};
             import ${Project.name};
             import ${Plugin.name};
+            import ${Task.name};
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    String isCi = System.getProperty("CI");
+                    String ci = System.getProperty("CI");
+                    System.out.println("apply CI = " + ci);
+                    project.getTasks().register("thing", t -> {
+                        t.doLast(new Action<Task>() {
+                            public void execute(Task t) {
+                                String ci2 = System.getProperty("CI");
+                                System.out.println("task CI = " + ci2);
+                            }
+                        });
+                    });
                 }
             }
         """
         buildFile << """
             apply plugin: SneakyPlugin
         """
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        run("thing")
+
+        then:
+        outputContains("apply CI = null")
+        outputContains("task CI = null")
+
+        when:
+        instantFails("thing")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("unknown property: read system property 'CI' from 'SneakyPlugin'")
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantRun("thing")
+
+        then:
+        fixture.assertStateStored()
+        outputContains("apply CI = null")
+        outputContains("task CI = null")
+
+        when:
+        instantRun("thing", "-DCI=true")
+
+        then:
+        fixture.assertStateLoaded()
+        outputContains("task CI = true")
+    }
+
+    def "plugin can use standard properties without declaring access"() {
+        file("buildSrc/src/main/java/SneakyPlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+
+            public class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("$prop = " + System.getProperty("$prop"));
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: SneakyPlugin
+        """
+        def fixture = newInstantExecutionFixture()
 
         when:
         instantRun()
 
         then:
-        outputContains("=> get property 'CI' from SneakyPlugin")
+        outputContains("$prop = ")
+
+        when:
+        instantRun()
+
+        then:
+        fixture.assertStateLoaded()
+        noExceptionThrown()
+
+        where:
+        prop << [
+            "os.name",
+            "os.version",
+            "java.version",
+            "java.vm.version",
+            "java.specification.version",
+            "line.separator",
+            "user.name",
+            "user.home"
+        ]
     }
 }
