@@ -447,26 +447,14 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             def originalDir = file('build/original')
             def backupDir = file('backup')
 
-            task backup {
-                inputs.files(originalDir)
-                outputs.dir(backupDir)
-                doLast {
-                    copy {
-                        from originalDir
-                        into backupDir
-                    }
-                }
+            task backup(type: Copy) {
+                from originalDir
+                into backupDir
             }
-            
-            task restore {
-                inputs.files(backupDir)
-                outputs.dir(originalDir)
-                doLast {
-                    copy {
-                        from backupDir
-                        into originalDir
-                    }
-                }
+
+            task restore(type: Copy) {
+                from backupDir
+                into originalDir
             }
         """
 
