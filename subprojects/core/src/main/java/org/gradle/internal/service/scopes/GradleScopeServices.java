@@ -77,7 +77,7 @@ import org.gradle.initialization.DefaultTaskExecutionPreparer;
 import org.gradle.initialization.TaskExecutionPreparer;
 import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
-import org.gradle.internal.cleanup.BuildOutputCleanupRegistry;
+import org.gradle.internal.cleanup.BuildOutputCleanupRegistryInternal;
 import org.gradle.internal.cleanup.DefaultBuildOutputCleanupRegistry;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
@@ -299,7 +299,7 @@ public class GradleScopeServices extends DefaultServiceRegistry {
         return instantiator.newInstance(DefaultBuildServicesRegistry.class, factory, instantiatorFactory, services, listenerManager, isolatableFactory, sharedResourceLeaseRegistry);
     }
 
-    protected BuildOutputCleanupRegistry createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
+    protected BuildOutputCleanupRegistryInternal createBuildOutputCleanupRegistry(FileCollectionFactory fileCollectionFactory) {
         return new DefaultBuildOutputCleanupRegistry(fileCollectionFactory);
     }
 

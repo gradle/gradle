@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
+public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistryInternal {
 
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = Sets.newHashSet();
@@ -53,6 +53,11 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
             absoluteFile = absoluteFile.getParentFile();
         }
         return false;
+    }
+
+    @Override
+    public Set<FileCollection> getRegisteredOutputs() {
+        return outputs;
     }
 
     private Set<String> getResolvedPaths() {
