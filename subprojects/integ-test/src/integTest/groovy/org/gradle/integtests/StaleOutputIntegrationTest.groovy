@@ -19,7 +19,6 @@ package org.gradle.integtests
 import org.gradle.api.internal.tasks.execution.CleanupStaleOutputsExecuter
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.ToBeImplemented
 import spock.lang.Issue
@@ -437,7 +436,6 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
         skipped(taskWithLocalState.taskPath)
     }
 
-    @ToBeFixedForInstantExecution
     def "up-to-date checks detect removed stale outputs"() {
         buildFile << """                                    
             plugins {
