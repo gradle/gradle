@@ -85,8 +85,7 @@ There is also a [sample](samples/sample_precompiled_script_plugin.html) availabl
 <a name="dm-lock-format"></a>
 ### New dependency locking file format
 
-[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when using dynamic dependency versions. Gradle has had support for dependency locking for several years, and in this release, Gradle has a new experimental dependency locking file format.
-With this format, Gradle generates a single lock file per project instead of a file per locked configuration to reduce the total number of lock files in a given project.
+[Dependency locking](userguide/dependency_locking.html) is a mechanism for creating reproducible builds even when using dynamic dependency versions. Gradle has had support for dependency locking for several years, and in this release, Gradle adds an improved dependency locking file format.
 
 In addition, when using this format, the lock file name can be configured.
 This enables use cases where a given project may resolve different dependency graphs for the same configuration based on some project state as seen in Scala projects where the Scala version is encoded in dependency names.
