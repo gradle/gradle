@@ -739,12 +739,11 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         executedAndNotSkipped(':test')
     }
 
-    @ToBeFixedForInstantExecution
     def "precompiled script plugins tasks are cached and relocatable"() {
         given:
         def cacheDir = createDir("cache-dir")
-        def firstDir = createDir("first-location")
 
+        def firstDir = createDir("first-location")
         firstDir.file("settings.gradle") << """
             rootProject.name = "test"
             buildCache {
@@ -753,53 +752,55 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
         """
-        firstDir.file("build.gradle") << """
+        firstDir.file("buildSrc/build.gradle") << """
             plugins {
                 id 'groovy-gradle-plugin'
             }
         """
-        pluginWithSampleTask("$firstDir.name/src/main/groovy/my-plugin.gradle")
-
+        firstDir.file("buildSrc/src/main/groovy/my-plugin.gradle") << """
+            println 'my-plugin applied'
+        """
+        firstDir.file("build.gradle") << """
+            plugins {
+                id 'my-plugin'
+            }
+        """
         def secondDir = createDir("second-location")
         firstDir.copyTo(secondDir)
-
         def cachedTasks = [
-                ":extractPluginRequests",
-                ":generatePluginAdapters",
-                ":compileJava",
-                ":compileGroovyPlugins"
+            ":buildSrc:extractPluginRequests",
+            ":buildSrc:generatePluginAdapters",
+            ":buildSrc:compileJava",
+            ":buildSrc:compileGroovyPlugins"
         ]
 
-        def result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
+        when:
+        result = executer.inDirectory(firstDir).withTasks('help').withArgument("--build-cache").run()
+
+        then:
+        outputContains('my-plugin applied')
         cachedTasks.forEach {
             result.assertTaskExecuted(it)
         }
 
-        result = executer.inDirectory(firstDir).withTasks("classes").withArgument("--build-cache").run()
-        cachedTasks.forEach {
-            result.assertOutputContains("$it UP-TO-DATE")
-        }
+        when:
+        result = executer.inDirectory(secondDir).withTasks('help').withArgument("--build-cache").run()
 
-        result = executer.inDirectory(secondDir).withTasks("classes").withArgument("--build-cache").run()
+        then:
+        outputContains('my-plugin applied')
         cachedTasks.forEach {
             result.assertOutputContains("$it FROM-CACHE")
         }
 
-        // changing content should invalidate cache
-        file("$secondDir.name/src/main/groovy/my-plugin.gradle").delete()
-        file("$secondDir.name/src/main/groovy/my-plugin.gradle") << """
-            plugins {
-                id 'base'
-            }
-            println 'changed content'
+        when:
+        secondDir.file("buildSrc/src/main/groovy/my-plugin.gradle") << """
+            println 'content changed'
         """
+        result = executer.inDirectory(secondDir).withTasks('help').withArgument("--build-cache").run()
 
-        result = executer.inDirectory(secondDir).withTasks("classes").withArgument("--build-cache").run()
-        cachedTasks.forEach {
-            result.assertTaskExecuted(it)
-            result.assertNotOutput("$it UP-TO-DATE")
-            result.assertNotOutput("$it FROM-CACHE")
-        }
+        then:
+        outputContains('my-plugin applied')
+        outputContains('content changed')
     }
 
     @ToBeFixedForInstantExecution

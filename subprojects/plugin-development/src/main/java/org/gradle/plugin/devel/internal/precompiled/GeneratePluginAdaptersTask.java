@@ -138,7 +138,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
 
     private void generateScriptPluginAdapter(PrecompiledGroovyScript scriptPlugin, PluginRequests pluginRequests) {
         String targetClass = scriptPlugin.getTargetClassName();
-        File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getGeneratedPluginClassName() + ".java").get().getAsFile();
+        File outputFile = getPluginAdapterSourcesOutputDirectory().file(scriptPlugin.getPluginAdapterClassName() + ".java").get().getAsFile();
 
         StringBuilder applyPlugins = new StringBuilder();
         if (!pluginRequests.isEmpty()) {
@@ -157,7 +157,7 @@ abstract class GeneratePluginAdaptersTask extends DefaultTask {
             writer.println("/**");
             writer.println(" * Precompiled " + scriptPlugin.getId() + " script plugin.");
             writer.println(" **/");
-            writer.println("public class " + scriptPlugin.getGeneratedPluginClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {");
+            writer.println("public class " + scriptPlugin.getPluginAdapterClassName() + " implements org.gradle.api.Plugin<" + targetClass + "> {");
             writer.println("    private static final String MIN_SUPPORTED_GRADLE_VERSION = \"5.0\";");
             writer.println("    public void apply(" + targetClass + " target) {");
             writer.println("        assertSupportedByCurrentGradleVersion();");

@@ -25,7 +25,6 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultSettings;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.resource.UriTextResource;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.use.PluginId;
@@ -40,6 +39,7 @@ class PrecompiledGroovyScript {
     private final Type type;
     private final PluginId pluginId;
     private final ScriptTarget scriptTarget;
+    private final String precompiledScriptClassName;
 
     private enum Type {
         PROJECT(ProjectInternal.class, SCRIPT_PLUGIN_EXTENSION, "target.getServices()"),
@@ -72,11 +72,11 @@ class PrecompiledGroovyScript {
     }
 
     PrecompiledGroovyScript(File scriptFile) {
-        TextResource scriptResource = new UriTextResource("script", scriptFile);
-        this.scriptSource = new TextResourceScriptSource(scriptResource);
         String fileName = scriptFile.getName();
         this.type = Type.getType(fileName);
         this.pluginId = type.toPluginId(fileName);
+        this.precompiledScriptClassName = toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-')));
+        this.scriptSource = new PrecompiledScriptPluginSource(scriptFile, precompiledScriptClassName);
         this.scriptTarget = new PrecompiledScriptTarget(type != Type.INIT);
     }
 
@@ -85,7 +85,7 @@ class PrecompiledGroovyScript {
     }
 
     void declarePlugin(PluginDeclaration pluginDeclaration) {
-        pluginDeclaration.setImplementationClass(getGeneratedPluginClassName());
+        pluginDeclaration.setImplementationClass(getPluginAdapterClassName());
         pluginDeclaration.setId(pluginId.getId());
     }
 
@@ -93,8 +93,8 @@ class PrecompiledGroovyScript {
         return pluginId.getId();
     }
 
-    String getGeneratedPluginClassName() {
-        return toJavaIdentifier(kebabCaseToPascalCase(pluginId.getId().replace('.', '-'))) + "Plugin";
+    String getPluginAdapterClassName() {
+        return precompiledScriptClassName + "Plugin";
     }
 
     String getClassName() {
@@ -140,4 +140,24 @@ class PrecompiledGroovyScript {
         return sb.toString();
     }
 
+    private static class PrecompiledScriptPluginSource extends TextResourceScriptSource {
+        private final File scriptFile;
+        private final String className;
+
+        public PrecompiledScriptPluginSource(File scriptFile, String className) {
+            super(new UriTextResource("script", scriptFile));
+            this.scriptFile = scriptFile;
+            this.className = "precompiled_" + className;
+        }
+
+        @Override
+        public String getClassName() {
+            return className;
+        }
+
+        @Override
+        public String getFileName() {
+            return scriptFile.getPath();
+        }
+    }
 }
