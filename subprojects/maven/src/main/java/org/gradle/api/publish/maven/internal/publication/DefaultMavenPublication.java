@@ -56,7 +56,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
-import org.gradle.api.provider.Property;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
@@ -153,7 +152,6 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     private final VersionMappingStrategyInternal versionMappingStrategy;
     private final PlatformSupport platformSupport;
     private final Set<String> silencedVariants = new HashSet<>();
-    private final Property<String> buildIdentifier;
     private MavenArtifact pomArtifact;
     private SingleOutputTaskMavenArtifact moduleMetadataArtifact;
     private TaskProvider<? extends Task> moduleDescriptorGenerator;
@@ -183,17 +181,11 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         derivedArtifacts = new DefaultPublicationArtifactSet<>(MavenArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         publishableArtifacts = new CompositePublicationArtifactSet<>(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
         pom = instantiator.newInstance(DefaultMavenPom.class, this, instantiator, objectFactory);
-        this.buildIdentifier = objectFactory.property(String.class);
     }
 
     @Override
     public String getName() {
         return name;
-    }
-
-    @Override
-    public Property<String> getBuildIdentifier() {
-        return buildIdentifier;
     }
 
     @Override
