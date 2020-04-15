@@ -191,13 +191,15 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             apply plugin: 'base'
 
             task myTask {
-                outputs.file "build/file"
-                outputs.dir "build/dir"
+                def builtFile = file('build/file')
+                def builtDir = file('build/dir')
+                outputs.file builtFile
+                outputs.dir builtDir
                 doLast {
-                    assert !file("build/file").exists()
-                    file("build/file").text = "Created"
-                    assert file("build/dir").directory
-                    assert file("build/dir").list().length == 0
+                    assert !builtFile.exists()
+                    builtFile.text = "Created"
+                    assert builtDir.directory
+                    assert builtDir.list().length == 0
                 }
             }
         """
