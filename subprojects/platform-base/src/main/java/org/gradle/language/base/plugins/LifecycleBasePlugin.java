@@ -55,12 +55,12 @@ public class LifecycleBasePlugin implements Plugin<Project> {
         final BuildOutputCleanupRegistry buildOutputCleanupRegistry = project.getServices().get(BuildOutputCleanupRegistry.class);
         buildOutputCleanupRegistry.registerOutputs(buildDir);
 
-        final Provider<Delete> clean = project.getTasks().register(CLEAN_TASK_NAME, Delete.class, cleanTask -> {
+        project.getTasks().register(CLEAN_TASK_NAME, Delete.class, cleanTask -> {
             cleanTask.setDescription("Deletes the build directory.");
             cleanTask.setGroup(BUILD_GROUP);
             cleanTask.delete(buildDir);
+            buildOutputCleanupRegistry.registerOutputs(cleanTask.getTargetFiles());
         });
-        buildOutputCleanupRegistry.registerOutputs(clean.map(cl -> cl.getTargetFiles()));
     }
 
     private void addCleanRule(Project project) {
