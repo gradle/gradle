@@ -145,7 +145,6 @@ rootProject.name = "gradle"
 // List of sub-projects that have a Groovy DSL build script.
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = hashSetOf(
-    "distributions",
     "docs",
     "performance"
 )
