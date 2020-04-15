@@ -1,5 +1,5 @@
 plugins {
-    id("org.gradle.samples.project-info")
+    id("com.example.project-info")
 }
 
 version = "1.0.2"

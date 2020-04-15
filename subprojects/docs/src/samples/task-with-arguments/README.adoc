@@ -1,19 +1,11 @@
-= Task With Arguments Sample
-
-ifndef::env-github[]
-[.download]
-- link:{zip-base-file-name}-groovy-dsl.zip[icon:download[] Groovy DSL ZIP]
-- link:{zip-base-file-name}-kotlin-dsl.zip[icon:download[] Kotlin DSL ZIP]
-endif::[]
-
 NOTE: You can open the samples inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-This sample shows how create a plugin with a task that accepts arguments.
-The project itself has no sources.
+This sample shows how to create a plugin with a task that accepts arguments.
+The plugin is packaged via an included build.
 
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[];settings.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[];settings.gradle.kts[]"]
 ====
 
 To execute the sample task:
@@ -23,7 +15,7 @@ To execute the sample task:
 =====
 [.sample-command]
 ----
-$ ./gradlew --include-build project-info projectInfo --format json
+$ ./gradlew projectInfo --format json
 {
     "projectName": "task-with-arguments"
     "version": "1.0.2"

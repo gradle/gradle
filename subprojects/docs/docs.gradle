@@ -423,7 +423,6 @@ samples {
         }
 
         taskWithArguments {
-            sampleDirectory = samplesRoot.dir("task-with-arguments")
             description = "Pass arguments to a custom task"
             category = "Plugins"
             common {

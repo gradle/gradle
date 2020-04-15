@@ -5,8 +5,8 @@ plugins {
 gradlePlugin {
     plugins {
         create("projectInfo") {
-            id = "org.gradle.samples.project-info"
-            implementationClass = "org.gradle.samples.ProjectInfoPlugin"
+            id = "com.example.project-info"
+            implementationClass = "com.example.ProjectInfoPlugin"
         }
     }
 }

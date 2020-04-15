@@ -4,7 +4,7 @@ Path
      :projectInfo
 
 Type
-     ProjectInfoTask (org.gradle.samples.ProjectInfoTask)
+     ProjectInfoTask (com.example.ProjectInfoTask)
 
 Options
      --format     Output format of the project information.
