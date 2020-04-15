@@ -97,7 +97,7 @@ Take a look at [the documentation](userguide/dependency_locking.html#single_lock
 <a name="dm-variant-error"></a>
 ## Better dependency variant matching error messages
 
-Gradle provides a powerful [variant-aware](/userguide/variant_model.html) dependency management engine.
+Gradle provides a powerful [variant-aware](userguide/variant_model.html) dependency management engine.
 
 This release introduces clearer variant matching error messages for the JVM ecosystem.
 
