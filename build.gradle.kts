@@ -53,7 +53,6 @@ buildscript {
 
 subprojects {
     version = rootProject.version
-
 }
 
 defaultTasks("assemble")
@@ -81,13 +80,6 @@ allprojects {
             url = uri("https://dl.bintray.com/kotlin/kotlin-eap")
         }
     }
-
-    // patchExternalModules lives in the root project - we need to activate normalization there, too.
-    normalization {
-        runtimeClasspath {
-            ignore("org/gradle/build-receipt.properties")
-        }
-    }
 }
 
 val runtimeUsage = objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
@@ -104,18 +96,6 @@ val coreRuntimeExtensions by configurations.creating {
     isCanBeResolved = true
     isCanBeConsumed = false
     isVisible = false
-}
-
-val externalModules by configurations.creating {
-    isVisible = false
-}
-
-/**
- * Combines the 'coreRuntime' with the patched external module jars
- */
-val runtime by configurations.creating {
-    isVisible = false
-    extendsFrom(coreRuntime)
 }
 
 val gradlePlugins by configurations.creating {
@@ -143,7 +123,6 @@ configurations {
         isVisible = false
         isCanBeResolved = false
         isCanBeConsumed = true
-        extendsFrom(externalModules)
         extendsFrom(gradlePlugins)
         attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
     }
