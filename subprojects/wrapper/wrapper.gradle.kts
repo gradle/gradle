@@ -17,7 +17,7 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import java.util.jar.Attributes
 
 plugins {
-    gradlebuild.distribution.`plugins-api-java`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
 }
 

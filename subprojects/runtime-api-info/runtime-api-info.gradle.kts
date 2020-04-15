@@ -16,7 +16,7 @@
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
 
 plugins {
-    gradlebuild.internal.java
+    gradlebuild.distribution.`core-implementation-java`
 }
 
 val runtimeShadedPath = "$buildDir/runtime-api-info"

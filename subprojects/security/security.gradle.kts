@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 plugins {
-    gradlebuild.distribution.`plugins-implementation-java`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 description = "Shared classes for projects requiring GPG support"

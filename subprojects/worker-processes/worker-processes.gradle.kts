@@ -1,5 +1,5 @@
 plugins {
-    gradlebuild.distribution.`core-api-java`
+    gradlebuild.distribution.`core-implementation-java`
     gradlebuild.classycle
 }
 

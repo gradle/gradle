@@ -174,22 +174,20 @@ configurations {
 }
 
 dependencies {
-    coreRuntime(project(":launcher"))
-    coreRuntime(project(":runtimeApiInfo"))
-    coreRuntime(project(":wrapper"))
-    coreRuntime(project(":installationBeacon"))
-    coreRuntime(project(":kotlinDsl"))
-
     subprojects {
         val subproject = this
+        plugins.withType<gradlebuild.distribution.CorePlugin> {
+            if (subproject.name !in listOf("workers", "dependencyManagement", "testKit")) {
+                coreRuntime(subproject)
+            } else {
+                // why are these core modules put into 'plugins'? (effect is that they end up in 'plugins/' in the distribution)
+                gradlePlugins(subproject)
+            }
+        }
         plugins.withType<gradlebuild.distribution.PluginsPlugin> {
             gradlePlugins(subproject)
         }
     }
-    // why are these core modules put into 'plugins'? (effect is that they end up in 'plugins/' in the distribution)
-    gradlePlugins(project(":workers"))
-    gradlePlugins(project(":dependencyManagement"))
-    gradlePlugins(project(":testKit"))
 
     coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
     coreRuntimeExtensions(project(":instantExecution"))
@@ -197,9 +195,6 @@ dependencies {
     coreRuntimeExtensions(project(":workers"))
     coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))
     coreRuntimeExtensions(project(":kotlinDslToolingBuilders"))
-
-    testRuntime(project(":apiMetadata"))
-
 }
 
 tasks.register<Install>("install") {
