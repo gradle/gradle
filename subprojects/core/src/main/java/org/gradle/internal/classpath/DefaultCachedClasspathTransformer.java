@@ -42,8 +42,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     private final PersistentCache cache;
     private final FileAccessTracker fileAccessTracker;
     private final VirtualFileSystem virtualFileSystem;
-    private final ClasspathWalker classpathWalker;
-    private final ClasspathBuilder classpathBuilder;
+    private final DecoratingTransformer decoratingTransformer;
 
     public DefaultCachedClasspathTransformer(
         CacheRepository cacheRepository,
@@ -53,11 +52,10 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathBuilder classpathBuilder,
         VirtualFileSystem virtualFileSystem
     ) {
-        this.classpathWalker = classpathWalker;
-        this.classpathBuilder = classpathBuilder;
         this.virtualFileSystem = virtualFileSystem;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
+        this.decoratingTransformer = new DecoratingTransformer(classpathWalker, classpathBuilder);
     }
 
     @Override
@@ -118,10 +116,7 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
             String name = snapshot.getType() == FileType.Directory ? original.getName() + ".jar" : original.getName();
             File transformed = new File(cacheDir, snapshot.getHash().toString() + '/' + name);
             if (!transformed.isFile()) {
-                // Unpack and rebuild the jar. Later, this will apply some transformations to the classes
-                classpathBuilder.jar(transformed, builder -> classpathWalker.visit(original, entry -> {
-                    builder.put(entry.getName(), entry.getContent());
-                }));
+                decoratingTransformer.transform(original, transformed);
             }
             fileAccessTracker.markAccessed(transformed);
             return transformed;
