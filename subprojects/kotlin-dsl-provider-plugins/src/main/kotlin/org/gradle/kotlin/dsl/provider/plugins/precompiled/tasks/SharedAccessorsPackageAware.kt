@@ -16,18 +16,16 @@
 
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.InputFiles
 import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.kotlin.dsl.support.ImplicitImports
-import org.gradle.kotlin.dsl.support.serviceOf
+import javax.inject.Inject
 
 
 interface ClassPathAware {
@@ -37,7 +35,11 @@ interface ClassPathAware {
 }
 
 
-interface SharedAccessorsPackageAware : ClassPathAware
+interface SharedAccessorsPackageAware : ClassPathAware {
+
+    @get:Inject
+    val classpathHasher: ClasspathHasher
+}
 
 
 internal
@@ -49,14 +51,9 @@ fun <T> T.implicitImportsForPrecompiledScriptPlugins(
 
 internal
 val <T> T.sharedAccessorsPackage: String where T : Task, T : SharedAccessorsPackageAware
-    get() = "gradle.kotlin.dsl.plugins._${project.hashOf(classPathFiles)}"
+    get() = "gradle.kotlin.dsl.plugins._${classpathHasher.hashOf(classPathFiles)}"
 
 
 private
-fun Project.hashOf(classPath: FileCollection): HashCode =
-    hashOf(DefaultClassPath.of(classPath))
-
-
-private
-fun Project.hashOf(classPath: ClassPath): HashCode =
-    project.serviceOf<ClasspathHasher>().hash(classPath)
+fun ClasspathHasher.hashOf(classPath: FileCollection): HashCode =
+    hash(DefaultClassPath.of(classPath))
