@@ -28,7 +28,8 @@ import java.io.File;
 public class DecoratingTransformer {
     private static final Type SYSTEM_TYPE = Type.getType(System.class);
     private static final Type STRING_TYPE = Type.getType(String.class);
-    private static final Type TRANSFORMER_TYPE = Type.getType(DecoratingTransformer.class);
+    private static final Type CLASS_TYPE = Type.getType(Class.class);
+    private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
 
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
@@ -53,12 +54,6 @@ public class DecoratingTransformer {
                 builder.put(entry.getName(), entry.getContent());
             }
         }));
-    }
-
-    // Called by generated code. This will move somewhere else
-    public static String systemProperty(String key, String consumer) {
-        System.out.println(String.format("=> get property '%s' from %s", key, consumer));
-        return System.getProperty(key);
     }
 
     private static class InstrumentingVisitor extends ClassVisitor {
@@ -93,8 +88,9 @@ public class DecoratingTransformer {
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
             if (opcode == Opcodes.INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty")) {
                 if (Type.getMethodType(descriptor).getArgumentTypes().length == 1) {
-                    visitLdcInsn(className);
-                    super.visitMethodInsn(Opcodes.INVOKESTATIC, TRANSFORMER_TYPE.getInternalName(), "systemProperty", Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE), false);
+                    // TODO - load the class literal instead of class name
+                    visitLdcInsn(Type.getObjectType(className).getClassName());
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE), false);
                     return;
                 }
             }

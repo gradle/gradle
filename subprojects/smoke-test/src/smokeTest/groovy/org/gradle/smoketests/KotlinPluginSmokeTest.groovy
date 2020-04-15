@@ -46,8 +46,9 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         [version, workers] << [
-            TestedVersions.kotlin.versions,
-            [true, false]
+//            TestedVersions.kotlin.versions,
+[TestedVersions.kotlin.last()],
+[true]
         ].combinations()
     }
 
@@ -89,10 +90,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 //        sampleName = 'android-kotlin-example-kotlin-dsl'
 
         [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
-            TestedVersions.kotlin.versions,
-            TestedVersions.androidGradle.versions,
-            [true, false],
-            ["android-kotlin-example", "android-kotlin-example-kotlin-dsl"]
+            [TestedVersions.kotlin.last()],
+            [TestedVersions.androidGradle.last()],
+            [true],
+            ["android-kotlin-example"]
         ].combinations()
     }
 
@@ -157,8 +158,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
             }
         """
         file("src/main/groovy/Groovy.groovy") << "class Groovy { }"
-        file("src/main/kotlin/Kotlin.kt")     << "class Kotlin { val groovy = Groovy() }"
-        file("src/main/java/Java.java")       << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
+        file("src/main/kotlin/Kotlin.kt") << "class Kotlin { val groovy = Groovy() }"
+        file("src/main/java/Java.java") << "class Java { private Kotlin kotlin = new Kotlin(); }" // dependency to compileJava->compileKotlin is added by Kotlin plugin
 
         when:
         def result = build(false, 'compileJava')

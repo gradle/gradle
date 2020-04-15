@@ -45,7 +45,7 @@ class AndroidPluginsSmokeTest extends AbstractSmokeTest {
     // TODO:instant-execution remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
-        return 7
+        return 30
     }
 
     @Unroll
