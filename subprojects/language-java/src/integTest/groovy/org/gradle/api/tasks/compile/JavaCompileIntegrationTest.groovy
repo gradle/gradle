@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
@@ -941,7 +940,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file('headers').assertHasDescendants("Foo.h")
     }
 
-    @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:
         buildFile << """
