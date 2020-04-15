@@ -41,7 +41,7 @@ public class AmbiguousTransformException extends VariantSelectionException {
         formatAttributes(formatter, requested);
         formatter.node("Found the following transforms");
         Map<ResolvedVariant, List<ConsumerVariantMatchResult.ConsumerVariant>> variantToTransforms = candidates.stream()
-            .collect(Collectors.toMap(candidate -> candidate.getLeft(),
+            .collect(Collectors.toMap(Pair::getLeft,
                     candidate -> Lists.newArrayList(candidate.getRight()),
                     (List<ConsumerVariantMatchResult.ConsumerVariant> orig, List<ConsumerVariantMatchResult.ConsumerVariant> add) -> {
                         orig.addAll(add);

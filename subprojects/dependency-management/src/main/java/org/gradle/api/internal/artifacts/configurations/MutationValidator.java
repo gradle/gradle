@@ -67,9 +67,6 @@ public interface MutationValidator {
      */
     void validateMutation(MutationType type);
 
-    static final MutationValidator IGNORE = new MutationValidator() {
-        @Override
-        public void validateMutation(MutationType type) {
-        }
+    MutationValidator IGNORE = type -> {
     };
 }

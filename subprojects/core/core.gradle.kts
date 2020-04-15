@@ -52,6 +52,7 @@ dependencies {
     implementation(project(":snapshots"))
     implementation(project(":execution"))
     implementation(project(":workerProcesses"))
+    implementation(project(":normalizationJava"))
 
     implementation(library("groovy"))
     implementation(library("ant"))
@@ -99,6 +100,9 @@ dependencies {
     }
     testFixturesApi(project(":execution")) {
         because("test fixtures expose OutputChangeListener")
+    }
+    testFixturesApi(project(":native")) {
+        because("test fixtures expose FileSystem")
     }
     testFixturesImplementation(project(":fileCollections"))
     testFixturesImplementation(project(":native"))

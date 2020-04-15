@@ -21,7 +21,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultTemporaryFileProviderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     DefaultTemporaryFileProvider provider
 
     def setup() {

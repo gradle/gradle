@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.TestPrecondition
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -51,7 +50,9 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 pmd "$testDependency"
             }
 
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.6" : ""}
+            pmd {
+                incrementalAnalysis = false
+            }
         """.stripIndent()
 
         then:
@@ -61,6 +62,22 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("dependencies", "--configuration", "pmd")
         output.contains "$testDependency"
     }
+
+    @ToBeFixedForInstantExecution
+    def "fails properly using older version of PMD without incremental analysis support"() {
+        given:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                pmd "net.sourceforge.pmd:pmd:5.1.1"
+            }
+        """.stripIndent()
+
+        expect:
+        fails("check")
+        failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
+    }
+
 
     private badCode() {
         // No Warnings

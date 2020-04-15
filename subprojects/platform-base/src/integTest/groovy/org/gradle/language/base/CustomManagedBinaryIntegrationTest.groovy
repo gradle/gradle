@@ -17,8 +17,9 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class CustomManagedBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
         buildFile << """
@@ -30,7 +31,6 @@ interface SampleBinary extends BinarySpec {
 """
     }
 
-    @ToBeFixedForInstantExecution
     def "custom managed binary type can be registered and created"() {
         when:
         buildWithCustomBinaryPlugin()
@@ -56,7 +56,6 @@ model {
         succeeds "checkModel"
     }
 
-    @ToBeFixedForInstantExecution
     def "can configure managed binary defined by rule method using rule DSL"() {
         when:
         buildWithCustomBinaryPlugin()

@@ -39,7 +39,7 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
     @Override
     public VersionSelector parseSelector(String selectorString) {
         if (VersionRangeSelector.ALL_RANGE.matcher(selectorString).matches()) {
-            return new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
+            return maybeCreateRangeSelector(selectorString);
         }
 
         if (selectorString.endsWith("+")) {
@@ -51,6 +51,22 @@ public class DefaultVersionSelectorScheme implements VersionSelectorScheme {
         }
 
         return new ExactVersionSelector(selectorString);
+    }
+
+    private VersionSelector maybeCreateRangeSelector(String selectorString) {
+        VersionRangeSelector rangeSelector = new VersionRangeSelector(selectorString, versionComparator.asVersionComparator(), versionParser);
+        if (isSingleVersionRange(rangeSelector)) {
+            // it's a single version range, like [1.0] or [1.0, 1.0]
+            return new ExactVersionSelector(rangeSelector.getUpperBound());
+        }
+        return rangeSelector;
+    }
+
+    private static boolean isSingleVersionRange(VersionRangeSelector rangeSelector) {
+        String lowerBound = rangeSelector.getLowerBound();
+        return lowerBound != null &&
+            lowerBound.equals(rangeSelector.getUpperBound()) &&
+            rangeSelector.isLowerInclusive() && rangeSelector.isUpperInclusive();
     }
 
     @Override

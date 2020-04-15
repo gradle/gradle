@@ -20,11 +20,8 @@ import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.integtests.language.AbstractJvmLanguageIncrementalBuildIntegrationTest
 import org.gradle.language.scala.fixtures.TestScalaComponent
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 @TestReproducibleArchives
-@Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9) // Pruning sources from previous analysis, due to incompatible CompileSetup.
 class ScalaLanguageIncrementalBuildIntegrationTest extends AbstractJvmLanguageIncrementalBuildIntegrationTest {
     TestJvmComponent testComponent = new TestScalaComponent()
 }

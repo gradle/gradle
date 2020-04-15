@@ -94,6 +94,7 @@ class ConfigurationOnDemandIntegrationTest extends AbstractIntegrationSpec {
         !output.contains("Configuration on demand is incubating")
     }
 
+    @ToBeFixedForInstantExecution
     def "follows java project dependencies"() {
         settingsFile << "include 'api', 'impl', 'util'"
         buildFile << "allprojects { apply plugin: 'java-library' } "

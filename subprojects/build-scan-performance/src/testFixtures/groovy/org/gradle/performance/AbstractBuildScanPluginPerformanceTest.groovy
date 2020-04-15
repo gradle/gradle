@@ -38,7 +38,7 @@ class AbstractBuildScanPluginPerformanceTest extends Specification {
 
     static String incomingDir = "../../incoming"
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @AutoCleanup
     @Shared

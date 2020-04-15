@@ -38,7 +38,7 @@ public class DefaultCompilationStateCacheFactory implements CompilationStateCach
         cache = cacheRepository
                 .cache(gradle, "nativeCompile")
                 .withDisplayName("native compile cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();
         PersistentIndexedCacheParameters<String, CompilationState> parameters = PersistentIndexedCacheParameters.of("nativeCompile", String.class, new CompilationStateSerializer())
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(2000, false));

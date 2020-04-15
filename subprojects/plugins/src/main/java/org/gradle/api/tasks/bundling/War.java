@@ -19,7 +19,9 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
+import org.gradle.api.internal.file.copy.RenamingCopyAction;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.Internal;
@@ -59,10 +61,11 @@ public class War extends Jar {
             FileCollection classpath = getClasspath();
             return classpath != null ? classpath.filter(File::isFile) : Collections.<File>emptyList();
         }));
-        webInf.into("", spec -> {
-            spec.from((Callable<File>) War.this::getWebXml);
-            spec.rename(name -> "web.xml");
-        });
+
+        CopySpecInternal renameSpec = webInf.addChild();
+        renameSpec.into("");
+        renameSpec.from((Callable<File>) War.this::getWebXml);
+        renameSpec.appendCachingSafeCopyAction(new RenamingCopyAction(name -> "web.xml"));
     }
 
     @Internal

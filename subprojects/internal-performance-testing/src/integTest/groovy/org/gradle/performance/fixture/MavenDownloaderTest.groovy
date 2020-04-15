@@ -16,11 +16,13 @@
 
 package org.gradle.performance.fixture
 
+import org.apache.commons.lang3.exception.ExceptionUtils
 import org.gradle.api.JavaVersion
 import org.gradle.api.UncheckedIOException
-import org.gradle.testing.internal.util.RetryUtil
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import org.junit.Assume
+import org.junit.AssumptionViolatedException
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
 import spock.lang.Specification
@@ -38,7 +40,7 @@ class MavenDownloaderTest extends Specification {
     def setup() {
         installRoot = tmpDir.newFolder()
         downloader = new MavenInstallationDownloader(installRoot)
-        if(JavaVersion.current().isJava7()) {
+        if (JavaVersion.current().isJava7()) {
             System.setProperty("https.protocols", "TLSv1.2")
         }
     }
@@ -47,9 +49,12 @@ class MavenDownloaderTest extends Specification {
     def "can download Maven distribution with version #mavenVersion"() {
         when:
         def install
-        RetryUtil.retry(3, 5000) {
-            // Retry on connection timed out
+        try {
             install = downloader.getMavenInstallation(mavenVersion)
+        } catch (Throwable e) {
+            // https://github.com/gradle/build-tool-flaky-tests/issues/112
+            Assume.assumeFalse(ExceptionUtils.getStackTrace(e).contains("Connection timed out"))
+            throw e
         }
 
         then:
@@ -64,10 +69,17 @@ class MavenDownloaderTest extends Specification {
 
     def "throws exception if Maven distribution cannot be downloaded from any repository"() {
         when:
-        downloader.getMavenInstallation('unknown')
+        try {
+            downloader.getMavenInstallation('unknown')
+        } catch (Throwable e) {
+            // https://github.com/gradle/build-tool-flaky-tests/issues/112
+            Assume.assumeFalse(ExceptionUtils.getStackTrace(e).contains("Connection timed out"))
+            throw e
+        }
 
         then:
-        def t = thrown(UncheckedIOException)
-        t.message == 'Unable to download Maven binary distribution from any of the repositories'
+        Exception t = thrown()
+        (t instanceof UncheckedIOException && t.message == 'Unable to download Maven binary distribution from any of the repositories') ||
+            t instanceof AssumptionViolatedException
     }
 }

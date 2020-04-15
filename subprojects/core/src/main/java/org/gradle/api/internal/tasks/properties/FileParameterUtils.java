@@ -20,11 +20,14 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Sets;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemLocationProperty;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.internal.tasks.PropertyFileCollection;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.FileNormalizer;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.util.PatternSet;
@@ -103,15 +106,23 @@ public class FileParameterUtils {
      *
      * Especially, values of type {@link Map} are resolved.
      */
-    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType, FileCollectionFactory fileCollectionFactory, Consumer<OutputFilePropertySpec> consumer) {
-        Object unpackedValue = DeferredUtil.unpack(value);
+    public static void resolveOutputFilePropertySpecs(String ownerDisplayName, String propertyName, PropertyValue value, OutputFilePropertyType filePropertyType,
+                                                      FileCollectionFactory fileCollectionFactory, boolean locationOnly, Consumer<OutputFilePropertySpec> consumer) {
+        Object unpackedValue = value.getUnprocessedValue();
+        unpackedValue = DeferredUtil.unpackNestableDeferred(unpackedValue);
+        if (locationOnly && unpackedValue instanceof FileSystemLocationProperty) {
+            unpackedValue = ((FileSystemLocationProperty<?>) unpackedValue).getLocationOnly();
+        }
+        if (unpackedValue instanceof Provider) {
+            unpackedValue = ((Provider<?>) unpackedValue).getOrNull();
+        }
         if (unpackedValue == null) {
             return;
         }
         if (filePropertyType == OutputFilePropertyType.DIRECTORIES || filePropertyType == OutputFilePropertyType.FILES) {
             resolveCompositeOutputFilePropertySpecs(ownerDisplayName, propertyName, unpackedValue, filePropertyType.getOutputType(), fileCollectionFactory, consumer);
         } else {
-            FileCollection outputFiles = fileCollectionFactory.resolving(unpackedValue);
+            FileCollectionInternal outputFiles = fileCollectionFactory.resolving(unpackedValue);
             DefaultCacheableOutputFilePropertySpec filePropertySpec = new DefaultCacheableOutputFilePropertySpec(propertyName, null, outputFiles, filePropertyType.getOutputType());
             consumer.accept(filePropertySpec);
         }
@@ -125,7 +136,7 @@ public class FileParameterUtils {
                     throw new IllegalArgumentException(String.format("Mapped output property '%s' has null key", propertyName));
                 }
                 String id = key.toString();
-                FileCollection outputFiles = fileCollectionFactory.resolving(entry.getValue());
+                FileCollectionInternal outputFiles = fileCollectionFactory.resolving(entry.getValue());
                 consumer.accept(new DefaultCacheableOutputFilePropertySpec(propertyName, "." + id, outputFiles, outputType));
             }
         } else {
@@ -141,12 +152,12 @@ public class FileParameterUtils {
                 }
 
                 @Override
-                public void visitGenericFileTree(FileTreeInternal fileTree) {
+                public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                     failOnInvalidOutputType(fileTree);
                 }
 
                 @Override
-                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+                public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
                     failOnInvalidOutputType(fileTree);
                 }
 

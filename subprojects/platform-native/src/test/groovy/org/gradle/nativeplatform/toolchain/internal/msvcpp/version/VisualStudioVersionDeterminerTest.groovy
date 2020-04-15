@@ -27,7 +27,7 @@ import static org.gradle.nativeplatform.toolchain.internal.msvcpp.version.Visual
 
 
 class VisualStudioVersionDeterminerTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def commandLineLocator = Mock(VisualStudioVersionLocator)
     def windowsRegistryLocator = Mock(VisualStudioVersionLocator)
     def visualCppMetadataProvider = Mock(VisualCppMetadataProvider)

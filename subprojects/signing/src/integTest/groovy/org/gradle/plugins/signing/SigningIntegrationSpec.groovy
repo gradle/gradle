@@ -209,6 +209,14 @@ abstract class SigningIntegrationSpec extends AbstractIntegrationSpec {
         m2RepoFile("${name}.pom.asc")
     }
 
+    TestFile module(String name = "sign-1.0") {
+        m2RepoFile("${name}.module")
+    }
+
+    TestFile moduleSignature(String name = "sign-1.0") {
+        m2RepoFile("${name}.module.asc")
+    }
+
     SignMethod getSignMethod() {
         return SignMethod.OPEN_GPG
     }

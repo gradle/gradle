@@ -16,7 +16,9 @@
 
 package org.gradle.api.services.internal;
 
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
@@ -30,7 +32,7 @@ import org.gradle.internal.state.Managed;
 import javax.annotation.Nullable;
 
 // TODO - complain when used at configuration time, except when opted in to this
-public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractReadOnlyProvider<T> implements Managed {
+public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServiceParameters> extends AbstractMinimalProvider<T> implements Managed {
     private final String name;
     private final Class<T> implementationType;
     private final IsolationScheme<BuildService, BuildServiceParameters> isolationScheme;
@@ -70,12 +72,12 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     @Override
-    public boolean isPresent() {
+    public boolean calculatePresence(ValueConsumer consumer) {
         return true;
     }
 
     @Override
-    public boolean immutable() {
+    public boolean isImmutable() {
         return true;
     }
 
@@ -84,30 +86,33 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         throw new UnsupportedOperationException("Build services cannot be serialized.");
     }
 
-    // TODO - rename this method
     @Override
-    public boolean isValueProducedByTask() {
-        return true;
-    }
-
-    @Nullable
-    @Override
-    public T getOrNull() {
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         synchronized (this) {
             if (instance == null) {
                 // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
                 // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
                 P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
                 // TODO - reuse this in other places
-                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(isolatedParameters, internalServices);
+                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
+                    isolatedParameters,
+                    internalServices,
+                    ImmutableList.of(LoggingOutput.class),
+                    serviceType -> false
+                );
                 try {
                     instance = Try.successful(instantiationScheme.withServices(instantiationServices).instantiator().newInstance(implementationType));
                 } catch (Exception e) {
                     instance = Try.failure(new ServiceLifecycleException("Failed to create service '" + name + "'.", e));
                 }
             }
-            return instance.get();
+            return Value.of(instance.get());
         }
+    }
+
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return ExecutionTimeValue.changingValue(this);
     }
 
     public void maybeStop() {

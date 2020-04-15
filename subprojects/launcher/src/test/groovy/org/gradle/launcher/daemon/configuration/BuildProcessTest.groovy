@@ -32,7 +32,7 @@ import java.nio.charset.Charset
 @UsesNativeServices
 class BuildProcessTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
     final SetSystemProperties systemPropertiesSet = new SetSystemProperties()
 

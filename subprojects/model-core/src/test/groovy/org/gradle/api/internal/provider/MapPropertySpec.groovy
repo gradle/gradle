@@ -17,13 +17,19 @@
 package org.gradle.api.internal.provider
 
 import com.google.common.collect.ImmutableMap
+import org.gradle.api.Task
+import org.gradle.api.provider.Property
+import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
+import org.gradle.util.TestUtil
+import org.gradle.util.TextUtil
 import org.spockframework.util.Assert
+import spock.lang.Unroll
 
 class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
     DefaultMapProperty<String, String> property() {
-        new DefaultMapProperty<String, String>(String, String)
+        new DefaultMapProperty<String, String>(host, String, String)
     }
 
     @Override
@@ -35,13 +41,6 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     DefaultMapProperty<String, String> propertyWithNoValue() {
         def p = property()
         p.set((Map) null)
-        return p
-    }
-
-    @Override
-    DefaultMapProperty<String, String> providerWithValue(Map<String, String> value) {
-        def p = property()
-        p.set(value)
         return p
     }
 
@@ -61,13 +60,28 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
     }
 
     @Override
+    Map<String, String> someOtherValue2() {
+        return ['k2': 'v2']
+    }
+
+    @Override
+    Map<String, String> someOtherValue3() {
+        return ['k3': 'v3']
+    }
+
+    @Override
     protected void setToNull(Object property) {
         property.set((Map) null)
     }
 
     @Override
+    protected void nullConvention(Object property) {
+        property.convention((Map) null)
+    }
+
+    @Override
     ManagedFactory managedFactory() {
-        return new ManagedFactories.MapPropertyManagedFactory()
+        return new ManagedFactories.MapPropertyManagedFactory(TestUtil.propertyFactory())
     }
 
     def property = property()
@@ -103,7 +117,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         provider.type >> null
-        provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
+        provider.calculateValue(_) >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
 
         when:
         property.setFromAnyValue(provider)
@@ -132,8 +146,8 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         provider.type >> Map
-        provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
-        provider.present >> true
+        provider.calculateValue(_) >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
+        provider.calculatePresence(_) >> true
         and:
         property.set(provider)
 
@@ -228,8 +242,8 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         given:
         def provider = Stub(ProviderInternal)
         _ * provider.type >> Map
-        _ * provider.present >> true
-        _ * provider.get() >>> [['k1': 'v1'], ['k2': 'v2']]
+        _ * provider.calculatePresence(_) >> true
+        _ * provider.calculateValue(_) >>> [['k1': 'v1'], ['k2': 'v2']].collect { ValueSupplier.Value.of(it) }
         and:
         property.putAll(provider)
 
@@ -266,25 +280,25 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         when:
         property.present
         then:
-        1 * valueProvider.present >> true
-        1 * putProvider.present >> true
-        1 * putAllProvider.present >> true
+        1 * valueProvider.calculatePresence(_) >> true
+        1 * putProvider.calculatePresence(_) >> true
+        1 * putAllProvider.calculatePresence(_) >> true
         0 * _
 
         when:
         property.get()
         then:
-        1 * valueProvider.get() >> ['k1': 'v1']
-        1 * putProvider.get() >> 'v2'
-        1 * putAllProvider.get() >> ['k3': 'v3']
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.calculateValue(_) >> ValueSupplier.Value.of('v2')
+        1 * putAllProvider.calculateValue(_) >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
 
         when:
         property.getOrNull()
         then:
-        1 * valueProvider.getOrNull() >> ['k1': 'v1']
-        1 * putProvider.getOrNull() >> 'v2'
-        1 * putAllProvider.getOrNull() >> ['k3': 'v3']
+        1 * valueProvider.calculateValue(_) >> ValueSupplier.Value.of(['k1': 'v1'])
+        1 * putProvider.calculateValue(_) >> ValueSupplier.Value.of('v2')
+        1 * putAllProvider.calculateValue(_) >> ValueSupplier.Value.of(['k3': 'v3'])
         0 * _
     }
 
@@ -317,7 +331,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "property has no value when adding a value provider with no value"() {
@@ -335,7 +349,23 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
+    }
+
+    def "reports the source of value provider when value is missing and source is known"() {
+        given:
+        def provider = supplierWithNoValue(String, Describables.of("<source>"))
+        property.set(['k1': 'v1'])
+        property.put('k2', 'v2')
+        property.put('k3', provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
     }
 
     def "property has no value when adding a map provider with no value"() {
@@ -353,7 +383,23 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         property.get()
         then:
         def e = thrown(IllegalStateException)
-        e.message == Providers.NULL_VALUE
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
+    }
+
+    def "reports the source of map provider when value is missing and source is known"() {
+        given:
+        def provider = supplierWithNoValue(Describables.of("<source>"))
+        property.set(['k1': 'v1'])
+        property.put('k2', 'v2')
+        property.putAll(provider)
+
+        when:
+        property.get()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == TextUtil.toPlatformLineSeparators("""Cannot query the value of ${displayName} because it has no value available.
+The value of this property is derived from: <source>""")
     }
 
     def "can set to null value to discard value"() {
@@ -451,6 +497,123 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         ex.message == "Cannot add an entry with a null value to a property of type ${type().simpleName}."
     }
 
+    def "has no producer and fixed execution time value by default"() {
+        expect:
+        assertHasKnownProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue.isEmpty()
+    }
+
+    def "has no producer and missing execution time value when element provider with no value added"() {
+        given:
+        property.putAll([a: '1', b: '2'])
+        property.put('k', supplierWithNoValue(String, displayName('thing')))
+        property.put('c', '3')
+        property.putAll(supplierWithValues([d: '4']))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer and missing execution time value when selement provider with no value added"() {
+        given:
+        property.putAll([a: '1', b: '2'])
+        property.put('k', supplierWithValues('3'))
+        property.put('c', '3')
+        property.putAll(supplierWithNoValue())
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has no producer and fixed execution time value when element added"() {
+        given:
+        property.put('a', '1')
+        property.put('b', '2')
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and fixed execution time value when elements added"() {
+        given:
+        property.putAll(a: '1')
+        property.putAll(b: '2')
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and fixed execution time value when element provider added"() {
+        given:
+        property.put('a', supplierWithValues('1'))
+        property.put('b', supplierWithValues('2'))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and fixed execution time value when elements provider added"() {
+        given:
+        property.putAll(supplierWithValues(a: '1'))
+        property.putAll(supplierWithValues(b: '2'))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == [a: '1', b: '2']
+    }
+
+    def "has no producer and changing execution time value when elements provider with changing value added"() {
+        given:
+        property.putAll(supplierWithChangingExecutionTimeValues([a: '1', b: '2'], [a: '1b']))
+        property.putAll(supplierWithValues([c: '3']))
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.changingValue.get() == [a: '1', b: '2', c: '3']
+        value.changingValue.get() == [a: '1b', c: '3']
+    }
+
+    def "has union of producer task from providers unless producer task attached"() {
+        given:
+        def task1 = Stub(Task)
+        def task2 = Stub(Task)
+        def task3 = Stub(Task)
+        def producer = Stub(Task)
+        property.set(supplierWithProducer(task1))
+        property.putAll(supplierWithProducer(task2))
+        property.put('a', supplierWithProducer(task3, '1'))
+
+        expect:
+        assertHasProducer(property, task1, task2, task3)
+
+        property.attachProducer(owner(producer))
+        assertHasProducer(property, producer)
+    }
+
     def "cannot set to empty map after value finalized"() {
         given:
         property.set(someValue())
@@ -502,7 +665,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.put('k2', Stub(ProviderInternal))
+        property.put('k2', brokenValueSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -522,7 +685,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.put('k2', Stub(ProviderInternal))
+        property.put('k2', brokenValueSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -542,7 +705,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.put('k2', Stub(ProviderInternal))
+        property.put('k2', brokenValueSupplier())
 
         then:
         def e2 = thrown(IllegalStateException)
@@ -562,7 +725,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == 'The value for this property is final and cannot be changed any further.'
 
         when:
-        property.putAll Stub(ProviderInternal)
+        property.putAll brokenSupplier()
 
         then:
         def e2 = thrown IllegalStateException
@@ -582,7 +745,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.putAll Stub(ProviderInternal)
+        property.putAll brokenSupplier()
 
         then:
         def e2 = thrown IllegalStateException
@@ -601,7 +764,7 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         e.message == 'The value for this property cannot be changed any further.'
 
         when:
-        property.putAll Stub(ProviderInternal)
+        property.putAll brokenSupplier()
         then:
         def e2 = thrown IllegalStateException
         e2.message == 'The value for this property cannot be changed any further.'
@@ -617,8 +780,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         entryProvider.get()
+
         then:
-        thrown IllegalStateException
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "entry provider has no value when key is not in map"() {
@@ -632,8 +797,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         entryProvider.get()
+
         then:
-        thrown IllegalStateException
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "entry provider tracks value of property"() {
@@ -653,6 +820,12 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         entryProvider.present
         entryProvider.get() == 'v2'
         entryProvider.getOrNull() == 'v2'
+
+        when:
+        property.set(Providers.of([:]))
+        then:
+        !entryProvider.present
+        entryProvider.getOrNull() == null
     }
 
     def "entry provider tracks value of last added entry"() {
@@ -699,8 +872,10 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         keySetProvider.get()
+
         then:
-        thrown IllegalStateException
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of this provider because it has no value available."
     }
 
     def "keySet provider tracks value of property"() {
@@ -754,7 +929,40 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
         keySetProvider.getOrNull() == ['k1', 'k2', 'k3', 'k4'] as Set
     }
 
-    def "implicitly finalizes value on read of key"() {
+    def "implicitly finalizes value on read of keys"() {
+        def provider = Mock(ProviderInternal)
+
+        given:
+        property.put('k1', provider)
+        property.implicitFinalizeValue()
+
+        when:
+        def p = property.keySet()
+
+        then:
+        0 * _
+
+        when:
+        def result = p.get()
+
+        then:
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of("value")
+        0 * _
+
+        and:
+        result == (['k1'] as Set)
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * _
+
+        and:
+        result2 == [k1: "value"]
+    }
+
+    def "implicitly finalizes value on read of entry"() {
         def provider = Mock(ProviderInternal)
 
         given:
@@ -769,15 +977,77 @@ class MapPropertySpec extends PropertySpec<Map<String, String>> {
 
         when:
         def result = p.get()
-        def result2 = property.get()
 
         then:
-        1 * provider.getOrNull() >> "value"
+        1 * provider.calculateValue(_) >> ValueSupplier.Value.of("value")
         0 * _
 
         and:
         result == "value"
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * _
+
+        and:
         result2 == [k1: "value"]
+    }
+
+    @Unroll
+    def "finalizes upstream properties when value read using #method and disallow unsafe reads"() {
+        def a = property()
+        def b = property()
+        def c = valueProperty()
+        def property = property()
+        property.disallowUnsafeRead()
+
+        property.putAll(a)
+
+        a.putAll(b)
+        a.attachOwner(owner(), displayName("<a>"))
+
+        b.attachOwner(owner(), displayName("<b>"))
+
+        property.put("c", c)
+        c.set("c")
+        c.attachOwner(owner(), displayName("<c>"))
+
+        given:
+        property."$method"()
+
+        when:
+        a.set([a: 'a'])
+
+        then:
+        def e1 = thrown(IllegalStateException)
+        e1.message == 'The value for <a> is final and cannot be changed any further.'
+
+        when:
+        b.set([b: 'b'])
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set('c2')
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    Property<String> valueProperty() {
+        return new DefaultProperty<String>(host, String)
+    }
+
+    private ProviderInternal<String> brokenValueSupplier() {
+        return brokenSupplier(String)
     }
 
     private void assertValueIs(Map<String, String> expected) {

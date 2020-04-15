@@ -24,7 +24,7 @@ import spock.lang.Unroll
 @CleanupTestDirectory
 class UserHomeInitScriptFinderTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private UserHomeInitScriptFinder finder
 
     def setup() {

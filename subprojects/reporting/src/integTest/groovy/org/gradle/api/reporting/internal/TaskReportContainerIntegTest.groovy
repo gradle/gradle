@@ -83,6 +83,7 @@ class TaskReportContainerIntegTest extends AbstractIntegrationSpec {
     }
 
     @IgnoreIf({GradleContextualExecuter.parallel})
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "task up to date when no reporting configuration change"() {
         expect:
         succeeds(task)

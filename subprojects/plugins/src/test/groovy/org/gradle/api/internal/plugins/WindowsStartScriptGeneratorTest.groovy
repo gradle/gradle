@@ -46,7 +46,7 @@ class WindowsStartScriptGeneratorTest extends Specification {
         generator.generateScript(details, destination)
 
         then:
-        destination.toString().split(TextUtil.windowsLineSeparator).length == 100
+        destination.toString().split(TextUtil.windowsLineSeparator).length == 104
     }
 
     def "defaultJvmOpts is expanded properly in windows script"() {
@@ -112,6 +112,6 @@ class WindowsStartScriptGeneratorTest extends Specification {
     private JavaAppStartScriptGenerationDetails createScriptGenerationDetails(List<String> defaultJvmOpts, String scriptRelPath) {
         final String applicationName = 'TestApp'
         final List<String> classpath = WrapUtil.toList('path/to/Jar.jar')
-        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, null, defaultJvmOpts, classpath, scriptRelPath, null)
+        return new DefaultJavaAppStartScriptGenerationDetails(applicationName, null, null, "", defaultJvmOpts, classpath, [], scriptRelPath, null)
     }
 }

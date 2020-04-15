@@ -17,7 +17,6 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
 import org.gradle.internal.execution.history.changes.AbsolutePathFingerprintCompareStrategy
 import org.gradle.internal.execution.history.changes.ChangeTypeInternal
 import org.gradle.internal.execution.history.changes.DefaultFileChange
@@ -35,7 +34,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def listener = Mock(ChangeListener)
 
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "retains order of files in the snapshot"() {
         given:
@@ -275,6 +274,6 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     }
 
     private static FileCollection files(File... files) {
-        ImmutableFileCollection.of(files)
+        TestFiles.fixed(files)
     }
 }

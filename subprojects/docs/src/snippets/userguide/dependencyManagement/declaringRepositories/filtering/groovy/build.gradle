@@ -32,6 +32,25 @@ repositories {
 }
 // end::repository-filter[]
 
+// tag::exclusive-repository-filter[]
+repositories {
+    // This repository will _not_ be searched for artifacts in my.company
+    // despite being declared first
+    jcenter()
+    exclusiveContent {
+        forRepository {
+            maven {
+                url "https://repo.mycompany.com/maven2"
+            }
+        }
+        filter {
+            // this repository *only* contains artifacts with group "my.company"
+            includeGroup "my.company"
+        }
+    }
+}
+// end::exclusive-repository-filter[]
+
 // tag::repository-snapshots[]
 repositories {
     maven {

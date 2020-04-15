@@ -130,7 +130,7 @@ task retrieve(type: Sync) {
         file("libs/test-${artifactVersion}.jar").assertIsCopyOf(module.artifactFile)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "should list a dynamic snapshot module when maven root metadata is missing but artifact metadata source is enabled"() {
         setup:
         module.publish()
@@ -139,7 +139,7 @@ task retrieve(type: Sync) {
 
         buildFile << """
 buildscript {
-      
+
     ${mavenGcsRepoDsl()}
     repositories.all {
         metadataSources {

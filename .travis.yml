@@ -1,8 +1,10 @@
 language: java
 jdk: openjdk11
-env:		
-    global:		
+env:
+    global:
         - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2
-install: ./gradlew --version
+install:
+  - ./gradlew --version
+  - echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
 script: ./gradlew --continue --init-script gradle/init-scripts/public-build-scan.init.gradle.kts sanityCheck
 if: pull_request AND head_repo != gradle/gradle

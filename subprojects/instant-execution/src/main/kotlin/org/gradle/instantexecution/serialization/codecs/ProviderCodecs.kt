@@ -21,16 +21,16 @@ import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultDirectoryVar
 import org.gradle.api.internal.file.DefaultFilePropertyFactory.DefaultRegularFileVar
 import org.gradle.api.internal.file.FilePropertyFactory
-import org.gradle.api.internal.provider.AbstractMappingProvider
 import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory.ValueSourceProvider
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.ProviderInternal
-import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.services.BuildService
@@ -43,61 +43,84 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingSharedIdentity
 import org.gradle.instantexecution.serialization.encodePreservingSharedIdentityOf
-import org.gradle.instantexecution.serialization.readList
-import org.gradle.instantexecution.serialization.writeCollection
+import org.gradle.instantexecution.serialization.logPropertyProblem
 
 
-private
-suspend fun WriteContext.writeProvider(value: ProviderInternal<*>) {
-    when {
-        value is BuildServiceProvider<*, *> || value is ValueSourceProvider<*, *> -> {
+/**
+ * This is not used directly when encoding or decoding the object graph. This codec takes care of substituting a provider whose
+ * value is known at configuration time with a fixed value.
+ */
+class FixedValueReplacingProviderCodec(valueSourceProviderFactory: ValueSourceProviderFactory, buildServiceRegistry: BuildServiceRegistryInternal) {
+    private
+    val providerWithChangingValueCodec = BindingsBackedCodec {
+        bind(ValueSourceProviderCodec(valueSourceProviderFactory))
+        bind(BuildServiceProviderCodec(buildServiceRegistry))
+        bind(BeanCodec())
+    }
+
+    suspend fun WriteContext.encodeProvider(value: ProviderInternal<*>) {
+        val state = try {
+            value.calculateExecutionTimeValue()
+        } catch (e: Exception) {
+            logPropertyProblem("serialize", e) {
+                text("value ")
+                reference(value.toString())
+                text(" failed to unpack provider")
+            }
+            writeByte(0)
+            write(BrokenValue(e))
+            return
+        }
+        encodeValue(state)
+    }
+
+    suspend fun WriteContext.encodeValue(value: ValueSupplier.ExecutionTimeValue<*>) {
+        if (value.isMissing) {
+            // Can serialize a fixed value and discard the provider
+            // TODO - should preserve information about the source, for diagnostics at execution time
             writeByte(1)
-            write(value)
-        }
-        value.isValueProducedByTask && value is AbstractMappingProvider<*, *> -> {
-            // Need to serialize the transformation and its source, as the value is not available until execution time
+        } else if (value.isFixedValue) {
+            // Can serialize a fixed value and discard the provider
+            // TODO - should preserve information about the source, for diagnostics at execution time
             writeByte(2)
-            BeanCodec().run { encode(value) }
-        }
-        else -> {
-            // Can serialize the value and discard the provider
+            write(value.fixedValue)
+        } else {
+            // Cannot write a fixed value, so write the provider itself
             writeByte(3)
-            write(unpack(value))
+            providerWithChangingValueCodec.run { encode(value.changingValue) }
+        }
+    }
+
+    suspend fun ReadContext.decodeProvider(): ProviderInternal<*> {
+        return decodeValue().toProvider()
+    }
+
+    suspend fun ReadContext.decodeValue(): ValueSupplier.ExecutionTimeValue<*> {
+        return when (readByte()) {
+            0.toByte() -> {
+                val value = read() as BrokenValue
+                ValueSupplier.ExecutionTimeValue.changingValue(DefaultProvider { value.rethrow() })
+            }
+            1.toByte() -> ValueSupplier.ExecutionTimeValue.missing()
+            2.toByte() -> ValueSupplier.ExecutionTimeValue.ofNullable(read()) // nullable because serialization may replace value with null, eg when using provider of Task
+            3.toByte() -> ValueSupplier.ExecutionTimeValue.changingValue(providerWithChangingValueCodec.run { decode() }!!.uncheckedCast())
+            else -> throw IllegalStateException("Unexpected provider value")
         }
     }
 }
 
 
-private
-suspend fun ReadContext.readProvider(): ProviderInternal<Any> =
-    when (readByte()) {
-        1.toByte() -> read()!!.uncheckedCast()
-        2.toByte() -> BeanCodec().run { decode() }!!.uncheckedCast()
-        else ->
-            when (val value = read()) {
-                is BrokenValue -> DefaultProvider<Any> { value.rethrow() }.uncheckedCast()
-                else -> Providers.ofNullable(value)
-            }
-    }
-
-
-private
-fun unpack(value: Provider<*>): Any? =
-    try {
-        value.orNull
-    } catch (e: Exception) {
-        BrokenValue(e)
-    }
-
-
-object
-ProviderCodec : Codec<ProviderInternal<*>> {
+/**
+ * Handles Provider instances seen in the object graph, and delegates to another codec that handles the value.
+ */
+class
+ProviderCodec(private val providerCodec: FixedValueReplacingProviderCodec) : Codec<ProviderInternal<*>> {
     override suspend fun WriteContext.encode(value: ProviderInternal<*>) {
         // TODO - should write the provider value type
-        writeProvider(value)
+        providerCodec.run { encodeProvider(value) }
     }
 
-    override suspend fun ReadContext.decode() = readProvider()
+    override suspend fun ReadContext.decode() = providerCodec.run { decodeProvider() }
 }
 
 
@@ -118,8 +141,7 @@ BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInter
             val implementationType = readClass().uncheckedCast<Class<BuildService<*>>>()
             val parameters = read() as BuildServiceParameters?
             val maxUsages = readInt()
-            val provider = serviceRegistry.register(name, implementationType, parameters, maxUsages)
-            provider
+            serviceRegistry.register(name, implementationType, parameters, maxUsages)
         }
 }
 
@@ -130,7 +152,7 @@ ValueSourceProviderCodec(
 ) : Codec<ValueSourceProvider<*, *>> {
 
     override suspend fun WriteContext.encode(value: ValueSourceProvider<*, *>) {
-        when (val obtainedValue = value.obtainedValueOrNull) {
+        when (value.obtainedValueOrNull) {
             null -> {
                 // source has **NOT** been used as build logic input:
                 // serialize the source
@@ -143,7 +165,7 @@ ValueSourceProviderCodec(
                 // cached state fingerprint.
                 // Currently not necessary due to the unpacking that happens
                 // to the TypeSanitizingProvider put around the ValueSourceProvider.
-                TODO("build logic input")
+                throw IllegalStateException("build logic input")
             }
         }
     }
@@ -182,89 +204,95 @@ ValueSourceProviderCodec(
 }
 
 
-object
-PropertyCodec : Codec<DefaultProperty<*>> {
+class
+PropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultProperty<*>> {
     override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
-        // TODO - should write the property type
-        writeProvider(value.provider)
+        writeClass(value.type!!)
+        providerCodec.run { encodeProvider(value.provider) }
     }
 
     override suspend fun ReadContext.decode(): DefaultProperty<*> {
-        val provider = readProvider()
-        return DefaultProperty(Any::class.java).provider(provider)
+        val type: Class<Any> = readClass().uncheckedCast()
+        val provider = providerCodec.run { decodeProvider() }
+        return propertyFactory.property(type).provider(provider)
     }
 }
 
 
 class
-DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory) : Codec<DefaultDirectoryVar> {
+DirectoryPropertyCodec(private val filePropertyFactory: FilePropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultDirectoryVar> {
     override suspend fun WriteContext.encode(value: DefaultDirectoryVar) {
-        writeProvider(value.provider)
+        providerCodec.run { encodeProvider(value.provider) }
     }
 
     override suspend fun ReadContext.decode(): DefaultDirectoryVar {
-        val provider: Provider<Directory> = readProvider().uncheckedCast()
+        val provider: Provider<Directory> = providerCodec.run { decodeProvider() }.uncheckedCast()
         return filePropertyFactory.newDirectoryProperty().value(provider) as DefaultDirectoryVar
     }
 }
 
 
 class
-RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory) : Codec<DefaultRegularFileVar> {
+RegularFilePropertyCodec(private val filePropertyFactory: FilePropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultRegularFileVar> {
     override suspend fun WriteContext.encode(value: DefaultRegularFileVar) {
-        writeProvider(value.provider)
+        providerCodec.run { encodeProvider(value.provider) }
     }
 
     override suspend fun ReadContext.decode(): DefaultRegularFileVar {
-        val provider: Provider<RegularFile> = readProvider().uncheckedCast()
+        val provider: Provider<RegularFile> = providerCodec.run { decodeProvider() }.uncheckedCast()
         return filePropertyFactory.newFileProperty().value(provider) as DefaultRegularFileVar
     }
 }
 
 
-object
-ListPropertyCodec : Codec<DefaultListProperty<*>> {
+class
+ListPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultListProperty<*>> {
     override suspend fun WriteContext.encode(value: DefaultListProperty<*>) {
-        // TODO - should write the element type
-        writeCollection(value.providers) { writeProvider(it) }
+        writeClass(value.elementType)
+        providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
     override suspend fun ReadContext.decode(): DefaultListProperty<*> {
-        val providers = readList { readProvider() }
-        return DefaultListProperty(Any::class.java).apply {
-            providers(providers.uncheckedCast())
+        val type: Class<Any> = readClass().uncheckedCast()
+        val value: ValueSupplier.ExecutionTimeValue<List<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
+        return propertyFactory.listProperty(type).apply {
+            fromState(value)
         }
     }
 }
 
 
-object
-SetPropertyCodec : Codec<DefaultSetProperty<*>> {
+class
+SetPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultSetProperty<*>> {
     override suspend fun WriteContext.encode(value: DefaultSetProperty<*>) {
-        // TODO - should write the element type
-        writeCollection(value.providers) { writeProvider(it) }
+        writeClass(value.elementType)
+        providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
     override suspend fun ReadContext.decode(): DefaultSetProperty<*> {
-        val providers = readList { readProvider() }
-        return DefaultSetProperty(Any::class.java).apply {
-            providers(providers.uncheckedCast())
+        val type: Class<Any> = readClass().uncheckedCast()
+        val value: ValueSupplier.ExecutionTimeValue<Set<Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
+        return propertyFactory.setProperty(type).apply {
+            fromState(value)
         }
     }
 }
 
 
-object
-MapPropertyCodec : Codec<DefaultMapProperty<*, *>> {
+class
+MapPropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultMapProperty<*, *>> {
     override suspend fun WriteContext.encode(value: DefaultMapProperty<*, *>) {
-        // TODO - should write the key and value types
-        writeCollection(value.providers) { writeProvider(it) }
+        writeClass(value.keyType)
+        writeClass(value.valueType)
+        providerCodec.run { encodeValue(value.calculateExecutionTimeValue()) }
     }
 
     override suspend fun ReadContext.decode(): DefaultMapProperty<*, *> {
-        val providers = readList { readProvider() }
-        return DefaultMapProperty(Any::class.java, Any::class.java).apply {
-            providers(providers.uncheckedCast())
+        val keyType: Class<Any> = readClass().uncheckedCast()
+        val valueType: Class<Any> = readClass().uncheckedCast()
+        val state: ValueSupplier.ExecutionTimeValue<Map<Any, Any>> = providerCodec.run { decodeValue() }.uncheckedCast()
+        return propertyFactory.mapProperty(keyType, valueType).apply {
+            fromState(state)
         }
     }
 }

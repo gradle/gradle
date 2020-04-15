@@ -1163,10 +1163,10 @@ task generate(type: TransformerTask) {
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
             apply plugin: 'base'
-            
+
             class CustomTask extends DefaultTask {
                 @OutputDirectory File outputDir = new File(project.buildDir, "output")
-                
+
                 @TaskAction
                 public void generate() {
                     File outputFile = new File(outputDir, "file.txt")
@@ -1241,7 +1241,7 @@ task generate(type: TransformerTask) {
             class TaskWithInputs extends DefaultTask {
                 @Input
                 String input
-            }            
+            }
         """
 
         when:
@@ -1252,19 +1252,18 @@ task generate(type: TransformerTask) {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/1224')
-    @ToBeFixedForInstantExecution
     def 'can change input properties dynamically'() {
         given:
         file('inputDir1').createDir()
         file('inputDir2').createDir()
         buildFile << '''
-    class MyTask extends DefaultTask{
+    class MyTask extends DefaultTask {
         @TaskAction
         void processFiles(IncrementalTaskInputs inputs) {
             inputs.outOfDate { }
         }
     }
-    
+
     task myTask (type: MyTask){
         project.ext.inputDirs.split(',').each { inputs.dir(it) }
         outputs.upToDateWhen { true }
@@ -1292,23 +1291,23 @@ task generate(type: TransformerTask) {
             class MyBaseTask extends DefaultTask {
                 @Input
                 private String getMyPrivateInput() { project.property('private') }
-                
+
                 @OutputFile
                 File getOutput() {
                     new File('build/output.txt')
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = getMyPrivateInput()
                 }
             }
-            
+
             class MyTask extends MyBaseTask {
                 @Input
                 private String getMyPrivateInput() { 'only private' }
             }
-            
+
             task myTask(type: MyTask)
         '''
 
@@ -1352,21 +1351,21 @@ task generate(type: TransformerTask) {
             class MyBaseTask extends DefaultTask {
                 @Input
                 private String getMyPrivateInput() { project.property('private') }
-                
+
                 @OutputFile
                 File getOutput() {
                     new File('build/output.txt')
                 }
-                
+
                 @TaskAction
                 void doStuff() {
                     output.text = getMyPrivateInput()
                 }
             }
-            
+
             class MyTask extends MyBaseTask {
             }
-            
+
             task myTask(type: MyTask)
         '''
 
@@ -1392,4 +1391,56 @@ task generate(type: TransformerTask) {
         outputFile.text == 'second'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/11805")
+    def "Groovy property annotated as @Internal with differently annotated getter emits warning about conflicting annotations"() {
+        def inputFile = file("input.txt")
+        inputFile.text = "original"
+
+        buildFile << """
+            class CustomTask extends DefaultTask {
+                    @Internal
+                    FileCollection classpath
+
+                    @InputFiles
+                    @Classpath
+                    FileCollection getClasspath() {
+                        return classpath
+                    }
+
+                    @OutputFile
+                    File outputFile
+
+                    @TaskAction
+                    void execute() {
+                        outputFile << classpath*.name.join("\\n")
+                    }
+            }
+
+            task custom(type: CustomTask) {
+                classpath = files("input.txt")
+                outputFile = file("build/output.txt")
+            }
+        """
+
+        when:
+        executer.expectDeprecationWarning()
+        run "custom"
+        then:
+        executedAndNotSkipped ":custom"
+        outputContains("Property 'classpath' annotated with @Internal should not be also annotated with @InputFiles, @Classpath. This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0.")
+
+        when:
+        executer.expectDeprecationWarning()
+        run "custom"
+        then:
+        skipped ":custom"
+
+        when:
+        executer.expectDeprecationWarning()
+        inputFile.text = "changed"
+        run "custom"
+
+        then:
+        skipped ":custom"
+    }
 }

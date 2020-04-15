@@ -31,7 +31,7 @@ import static org.gradle.ide.visualstudio.internal.DefaultVisualStudioProject.ge
 
 class DefaultVisualStudioProjectTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def component = Mock(NativeComponentSpec)
     def fileResolver = Mock(FileResolver)
     def vsProject = project("projectName")

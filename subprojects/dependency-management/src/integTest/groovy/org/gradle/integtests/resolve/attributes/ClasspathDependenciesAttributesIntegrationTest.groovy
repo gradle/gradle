@@ -16,25 +16,23 @@
 
 package org.gradle.integtests.resolve.attributes
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.objectweb.asm.ClassWriter
 import org.objectweb.asm.Opcodes
-import org.objectweb.asm.tree.ClassNode;
+import org.objectweb.asm.tree.ClassNode
 
 class ClasspathDependenciesAttributesIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     def pluginBuilder = new PluginBuilder(file('plugin'))
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly derives variants and subsequent project use of the dependency has access to derived variants'() {
         given:
@@ -101,18 +99,17 @@ task printDeps {
         outputContains 'test-plugin applied'
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     @ToBeFixedForInstantExecution
     def 'module metadata fetched through a settings useModule properly uses Java ecosystem'() {
         given:
 
         // Create module that will match only if compatibility and disambiguation rules are in place
         mavenRepo.module('test', 'dep', '1.0')
-            .variant("runtime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'embedded'])
-            .variant("conflictingRuntime", ["org.gradle.usage" : "java-runtime", 'org.gradle.dependency.bundling' : 'shadowed'])
+            .variant("runtime", ["org.gradle.usage": "java-runtime", 'org.gradle.dependency.bundling': 'embedded'])
+            .variant("conflictingRuntime", ["org.gradle.usage": "java-runtime", 'org.gradle.dependency.bundling': 'shadowed'])
             .withModuleMetadata()
             .publish()
 
@@ -166,6 +163,7 @@ repositories {
         outputContains 'test-plugin applied'
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def 'buildscript classpath resolves java-runtime variant'() {
         def otherSettings = file('other/settings.gradle')
         def otherBuild = file('other/build.gradle')
@@ -205,10 +203,8 @@ buildscript {
         succeeds()
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false"),
-        @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
-    ])
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "false")
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
     def 'show that settings classpath respects attributes and thus will use the default java-runtime value'() {
         given:
         def jarFile = file('build/lib/foo.jar')
@@ -225,11 +221,11 @@ buildscript {
     configurations.classpath {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, services.get(ObjectFactory).named(Usage, Usage.JAVA_API))
     }
-    
+
     dependencies {
         classpath 'org:bar:1.0'
     }
-}    
+}
     Class.forName('org.gradle.MyClass')
 """
 

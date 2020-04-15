@@ -25,7 +25,6 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -50,11 +49,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
         TaskContainer tasks = project.getTasks();
-        ObjectFactory objects = project.getObjects();
 
         GradleDocumentationExtension extension = project.getExtensions().getByType(GradleDocumentationExtension.class);
         generateDefaultImports(project, tasks, extension);
-        generateUserManual(project, tasks, objects, layout, extension);
+        generateUserManual(project, tasks, layout, extension);
 
         checkXrefLinksInUserManualAreValid(layout, tasks, extension);
     }
@@ -100,7 +98,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         extension.getUserManual().getResources().from(defaultImports);
     }
 
-    private void generateUserManual(Project project, TaskContainer tasks, ObjectFactory objects, ProjectLayout layout, GradleDocumentationExtension extension) {
+    private void generateUserManual(Project project, TaskContainer tasks, ProjectLayout layout, GradleDocumentationExtension extension) {
         tasks.withType(AsciidoctorTask.class).configureEach(task -> {
             if (task.getName().equals("asciidoctor")) {
                 // ignore this task
@@ -114,19 +112,24 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             // TODO: Break the paths assumed here
             TaskInputs inputs = task.getInputs();
             inputs.files(extension.getCssFiles())
-                    .withPropertyName("manual")
-                    .withPathSensitivity(PathSensitivity.RELATIVE);
+                .withPropertyName("manual")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
             inputs.dir("src/main/resources")
-                    .withPropertyName("resources")
-                    .withPathSensitivity(PathSensitivity.RELATIVE);
+                .withPropertyName("resources")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
             inputs.dir(extension.getUserManual().getSnippets())
-                    .withPropertyName("snippets")
-                    .withPathSensitivity(PathSensitivity.RELATIVE);
+                .withPropertyName("snippets")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
+
+            Provider<Directory> stylesDir = extension.getUserManual().getStagedDocumentation().dir("css");
+            inputs.dir(stylesDir)
+                .withPropertyName("stylesdir")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
 
             // TODO: Break the paths assumed here
             Map<String, Object> attributes = new HashMap<>();
             // TODO: This breaks the provider
-            attributes.put("stylesdir", extension.getUserManual().getStagedDocumentation().dir("css").get().getAsFile().getAbsolutePath());
+            attributes.put("stylesdir", stylesDir.get().getAsFile().getAbsolutePath());
             attributes.put("stylesheet", "manual.css");
             attributes.put("doctype", "book");
             attributes.put("imagesdir", "img");
@@ -200,7 +203,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.sources(new Closure(null) {
                 public Object doCall(Object ignore) {
-                    ((PatternSet)this.getDelegate()).include("userguide_single.adoc");
+                    ((PatternSet) this.getDelegate()).include("userguide_single.adoc");
                     return null;
                 }
             });
@@ -234,10 +237,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.sources(new Closure(null) {
                 public Object doCall(Object ignore) {
-                    ((PatternSet)this.getDelegate()).include("**/*.adoc");
-                    ((PatternSet)this.getDelegate()).exclude("javaProject*Layout.adoc");
-                    ((PatternSet)this.getDelegate()).exclude("userguide_single.adoc");
-                    ((PatternSet)this.getDelegate()).exclude("snippets/**/*.adoc");
+                    ((PatternSet) this.getDelegate()).include("**/*.adoc");
+                    ((PatternSet) this.getDelegate()).exclude("javaProject*Layout.adoc");
+                    ((PatternSet) this.getDelegate()).exclude("userguide_single.adoc");
+                    ((PatternSet) this.getDelegate()).exclude("snippets/**/*.adoc");
                     return null;
                 }
             });

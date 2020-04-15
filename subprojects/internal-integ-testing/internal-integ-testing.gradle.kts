@@ -41,6 +41,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
     implementation(project(":internalTesting"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy"))
     implementation(library("junit"))
@@ -51,6 +52,7 @@ dependencies {
     implementation(testLibrary("jetty"))
     implementation(testLibrary("littleproxy"))
     implementation(library("gcs"))
+    implementation(library("inject"))
     implementation(library("commons_httpclient"))
     implementation(library("joda"))
     implementation(library("jackson_core"))
@@ -93,7 +95,15 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
     mostRecentSnapshot = releasedVersions.mostRecentSnapshot
 }
 
-sourceSets.main { output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir) }
+val copyAgpVersionsInfo by tasks.registering(Copy::class) {
+    from(rootProject.layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
+    into(temporaryDir)
+}
+
+sourceSets.main {
+    output.dir(mapOf("builtBy" to prepareVersionsInfo), generatedResourcesDir)
+    output.dir(copyAgpVersionsInfo)
+}
 
 @CacheableTask
 open class PrepareVersionsInfo : DefaultTask() {

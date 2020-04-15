@@ -23,110 +23,132 @@ import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.Issue
-import spock.lang.Unroll
-
-import java.nio.charset.Charset
 
 class CopySpecIntegrationSpec extends AbstractIntegrationSpec {
 
     @Rule
     public final TestResources resources = new TestResources(testDirectoryProvider, "copyTestResources")
 
-    @Unroll
-    def "can #taskName files with #taskType task using #charsetDescription charset when filteringCharset is #isSetDescription"() {
+    def "copy task uses platform charset to filter text files by default"() {
         given:
+        file('files').createDir()
+        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
         buildScript """
-            task ($taskName, type:$taskType) {
-                from 'src'
+            task (copy, type: Copy) {
+                from 'files'
                 into 'dest'
                 expand(one: 1)
-                ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
             }
         """.stripIndent()
+        executer.beforeExecute { it.withDefaultCharacterEncoding('ISO-8859-1') }
 
         when:
-        if(platformDefaultCharset) {
-            executer.withDefaultCharacterEncoding(platformDefaultCharset)
-        }
-        run taskName
+        run 'copy'
 
         then:
-        file('dest/accents.c').readLines(readCharset)[0] == expected
+        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
 
-        where:
-        // UTF8 is the actual encoding of the file accents.c.
-        // Any byte sequence of the file accents.c is a valid ISO-8859-1 character sequence,
-        // so we can read and write it with that encoding as well.
-        taskType | platformDefaultCharset | filteringCharset | expected
-        // platform default charset is honored
-        'Copy'   | 'UTF-8'                | null             | 'éàüî 1'
-        'Copy'   | 'UTF-8'                | null             | 'éàüî 1'
-        'Sync'   | 'UTF-8'                | null             | 'éàüî 1'
-        'Sync'   | 'UTF-8'                | null             | 'éàüî 1'
-        // filtering charset is honored
-        'Copy'   | null                   | 'UTF-8'          | 'éàüî 1'
-        'Copy'   | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        'Copy'   | null                   | 'UTF-8'          | 'éàüî 1'
-        'Copy'   | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        'Sync'   | null                   | 'UTF-8'          | 'éàüî 1'
-        'Sync'   | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        'Sync'   | null                   | 'UTF-8'          | 'éàüî 1'
-        'Sync'   | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        // derived data
-        taskName = taskType.toLowerCase(Locale.US)
-        charsetDescription = filteringCharset ?: "platform default ${platformDefaultCharset ?: Charset.defaultCharset().name()}"
-        isSetDescription = filteringCharset ? 'set' : 'unset'
-        readCharset = filteringCharset ?: platformDefaultCharset
+        when:
+        run 'copy'
+
+        then:
+        skipped(':copy')
+        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
+
+        when:
+        file('files/accents.c').write('áëü $one', 'ISO-8859-1')
+        run 'copy'
+
+        then:
+        executedAndNotSkipped(':copy')
+        file('dest/accents.c').getText('ISO-8859-1') == 'áëü 1'
     }
 
-    @Unroll
-    def "can #operation files with #operation file operation using #charsetDescription charset when filteringCharset is #isSetDescription"() {
+    def "copy task uses declared charset to filter text files"() {
         given:
+        file('files').createDir()
+        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
         buildScript """
-            task ($operation) {
+            task (copy, type: Copy) {
+                from 'files'
+                into 'dest'
+                expand(one: 1)
+                filteringCharset = 'ISO-8859-1'
+            }
+        """.stripIndent()
+        executer.beforeExecute { it.withDefaultCharacterEncoding('UTF-8') }
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
+
+        when:
+        run 'copy'
+
+        then:
+        skipped(':copy')
+        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
+
+        when:
+        file('files/accents.c').write('áëü $one', 'ISO-8859-1')
+        run 'copy'
+
+        then:
+        executedAndNotSkipped(':copy')
+        file('dest/accents.c').getText('ISO-8859-1') == 'áëü 1'
+    }
+
+    def "copy action uses platform charset to filter text files by default"() {
+        given:
+        file('files').createDir()
+        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
+        buildScript """
+            task copy {
+                def fs = services.get(FileSystemOperations)
                 doLast {
-                    project.$operation {
-                        from 'src'
+                    fs.copy {
+                        from 'files'
                         into 'dest'
                         expand(one: 1)
-                        ${filteringCharset ? "filteringCharset = '$filteringCharset'" : ''}
                     }
                 }
             }
         """.stripIndent()
+        executer.beforeExecute { it.withDefaultCharacterEncoding('ISO-8859-1') }
 
         when:
-        if(platformDefaultCharset) {
-            executer.withDefaultCharacterEncoding(platformDefaultCharset)
-        }
-        run operation
+        run 'copy'
 
         then:
-        file('dest/accents.c').readLines(readCharset)[0] == expected
+        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
+    }
 
-        where:
-        // UTF8 is the actual encoding of the file accents.c.
-        // Any byte sequence of the file accents.c is a valid ISO-8859-1 character sequence,
-        // so we can read and write it with that encoding as well.
-        operation | platformDefaultCharset | filteringCharset | expected
-        // platform default charset is honored
-        'copy'    | 'UTF-8'                | null             | 'éàüî 1'
-        'copy'    | 'UTF-8'                | null             | 'éàüî 1'
-        'sync'    | 'UTF-8'                | null             | 'éàüî 1'
-        'sync'    | 'UTF-8'                | null             | 'éàüî 1'
-        // filtering charset is honored
-        'copy'    | null                   | 'UTF-8'          | 'éàüî 1'
-        'copy'    | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        'copy'    | null                   | 'UTF-8'          | 'éàüî 1'
-        'copy'    | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        'sync'    | null                   | 'UTF-8'          | 'éàüî 1'
-        'sync'    | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        'sync'    | null                   | 'UTF-8'          | 'éàüî 1'
-        'sync'    | null                   | 'ISO-8859-1'     | new String('éàüî 1'.getBytes('UTF-8'), 'ISO-8859-1')
-        // derived data
-        charsetDescription = filteringCharset ?: "platform default ${platformDefaultCharset ?: Charset.defaultCharset().name()}"
-        isSetDescription = filteringCharset ? 'set' : 'unset'
-        readCharset = filteringCharset ?: platformDefaultCharset
+    def "copy action uses declared charset to filter text files"() {
+        given:
+        file('files').createDir()
+        file('files/accents.c').write('éàüî $one', 'ISO-8859-1')
+        buildScript """
+            task copy {
+                def fs = services.get(FileSystemOperations)
+                doLast {
+                    fs.copy {
+                        from 'files'
+                        into 'dest'
+                        expand(one: 1)
+                        filteringCharset = 'ISO-8859-1'
+                    }
+                }
+            }
+        """.stripIndent()
+        executer.beforeExecute { it.withDefaultCharacterEncoding('UTF-8') }
+
+        when:
+        run 'copy'
+
+        then:
+        file('dest/accents.c').getText('ISO-8859-1') == 'éàüî 1'
     }
 
     def "can use filesMatching with List"() {

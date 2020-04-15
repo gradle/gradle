@@ -20,8 +20,8 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 
 class PerformanceTestDirectoryProvider extends TestNameTestDirectoryProvider {
-    PerformanceTestDirectoryProvider() {
+    PerformanceTestDirectoryProvider(Class<?> klass) {
         // NOTE: the space in the directory name is intentional
-        root = new TestFile(new File("build/tmp/performance-test-files"))
+        super(new TestFile(new File("build/tmp/performance-test-files")), klass)
     }
 }

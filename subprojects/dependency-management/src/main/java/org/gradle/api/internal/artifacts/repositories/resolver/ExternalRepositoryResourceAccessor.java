@@ -54,15 +54,12 @@ public class ExternalRepositoryResourceAccessor implements RepositoryResourceAcc
 
     @Override
     public RepositoryResourceAccessor withImplicitInputRecorder(final ImplicitInputRecorder registrar) {
-        return new RepositoryResourceAccessor() {
-            @Override
-            public void withResource(String relativePath, Action<? super InputStream> action) {
-                ExternalResourceName location = new ExternalResourceName(rootUri, relativePath);
-                LocallyAvailableExternalResource resource = resourceResolver.resolveResource(location);
-                registrar.register(SERVICE_TYPE, new ServiceCall(rootUriAsString + ";" + relativePath, hashFor(resource)));
-                if (resource != null) {
-                    resource.withContent(action);
-                }
+        return (relativePath, action) -> {
+            ExternalResourceName location = new ExternalResourceName(rootUri, relativePath);
+            LocallyAvailableExternalResource resource = resourceResolver.resolveResource(location);
+            registrar.register(SERVICE_TYPE, new ServiceCall(rootUriAsString + ";" + relativePath, hashFor(resource)));
+            if (resource != null) {
+                resource.withContent(action);
             }
         };
     }

@@ -4,7 +4,9 @@ buildscript {
 }
 import static org.junit.Assert.*
 
-apply plugin: 'java'
+plugins {
+    id 'java'
+}
 repositories.mavenCentral()
 dependencies.testImplementation 'junit:junit:4.+'
 test.ignoreFailures = false
@@ -15,19 +17,19 @@ class MyListener implements org.gradle.api.tasks.testing.TestListener
 {
     def events
 
-    public void beforeSuite(TestDescriptor suite) {
+    void beforeSuite(TestDescriptor suite) {
         recordAndOutput('suiteStarting: '+suite.getName())
     }
 
-    public void afterSuite(TestDescriptor suite, TestResult result) {
+    void afterSuite(TestDescriptor suite, TestResult result) {
         recordAndOutput 'suiteFinished: '+suite.getName()
     }
 
-    public void beforeTest(TestDescriptor test) {
+    void beforeTest(TestDescriptor test) {
         recordAndOutput 'testStarting: '+test.getName()
     }
 
-    public void afterTest(TestDescriptor test, TestResult result) {
+    void afterTest(TestDescriptor test, TestResult result) {
         recordAndOutput 'testFinished: '+test.getName()+', result: '+result.getResultType()
     }
 

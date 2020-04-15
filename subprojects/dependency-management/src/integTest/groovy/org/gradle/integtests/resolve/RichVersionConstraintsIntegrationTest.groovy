@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.ivy.IvyModule
 import spock.lang.IgnoreIf
@@ -526,9 +525,8 @@ class RichVersionConstraintsIntegrationTest extends AbstractModuleDependencyReso
 
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     def "should fail if 1st-level version disagrees with transitive strict version"() {
         given:
         repository {

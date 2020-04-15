@@ -58,6 +58,7 @@ public class BlockingHttpServer extends ExternalResource {
     private final Scheme scheme;
     private boolean running;
     private int clientVarCounter;
+    private String hostAlias;
 
     public BlockingHttpServer() throws IOException {
         this(120000);
@@ -66,6 +67,10 @@ public class BlockingHttpServer extends ExternalResource {
     public BlockingHttpServer(int timeoutMs) throws IOException {
         // Use an OS selected port
         this(HttpServer.create(new InetSocketAddress(0), 10), timeoutMs, Scheme.HTTP);
+    }
+
+    public void setHostAlias(String hostAlias) {
+        this.hostAlias = hostAlias;
     }
 
     protected BlockingHttpServer(HttpServer server, int timeoutMs, Scheme scheme) {
@@ -83,7 +88,11 @@ public class BlockingHttpServer extends ExternalResource {
      */
     public URI getUri() {
         try {
-            return new URI(scheme.scheme + "://" + scheme.host + ":" + getPort());
+            String host = hostAlias;
+            if (host == null) {
+                host = scheme.host;
+            }
+            return new URI(scheme.scheme + "://" + host + ":" + getPort());
         } catch (URISyntaxException e) {
             throw new RuntimeException(e);
         }

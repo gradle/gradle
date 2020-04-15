@@ -16,25 +16,41 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.internal.file.DefaultCompositeFileTree
+import org.gradle.api.file.FileVisitDetails
+import org.gradle.api.file.FileVisitor
+import org.gradle.api.internal.file.AbstractFileCollection
+import org.gradle.api.internal.file.FileCollectionBackFileTree
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.FileCollectionStructureVisitor
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.file.FileTreeInternal
+import org.gradle.api.internal.file.FilteredFileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.FilteredMinimalFileTree
+import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.api.tasks.util.PatternSet
-import org.gradle.instantexecution.extensions.uncheckedCast
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.decodePreservingIdentity
+import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readNonNull
+import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import java.io.File
+import java.nio.file.Files
 
 
 private
 sealed class FileTreeSpec
+
+
+private
+class WrappedFileCollectionTreeSpec(val collection: AbstractFileCollection) : FileTreeSpec()
 
 
 private
@@ -49,28 +65,66 @@ private
 class TarTreeSpec(val file: File) : FileTreeSpec()
 
 
+private
+class GeneratedTreeSpec(val file: File) : FileTreeSpec()
+
+
+private
+class DummyGeneratedFileTree(file: File, fileSystem: FileSystem) : GeneratedSingletonFileTree(
+    { file.parentFile },
+    file.name,
+    {},
+    { outStr ->
+        if (!file.exists()) {
+            // Generate some dummy content if the file does not exist
+            // TODO - rework this so that content is generated into some fixed workspace location and reused from there
+            file.parentFile.mkdirs()
+            file.writeText("")
+        }
+        Files.copy(file.toPath(), outStr)
+    },
+    fileSystem
+) {
+    override fun getDisplayName(): String {
+        return "generated ${file.name}"
+    }
+}
+
+
 internal
 class FileTreeCodec(
-    private val directoryFileTreeFactory: DirectoryFileTreeFactory
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val directoryFileTreeFactory: DirectoryFileTreeFactory,
+    private val fileOperations: FileOperations,
+    private val fileSystem: FileSystem
 ) : Codec<FileTreeInternal> {
 
     override suspend fun WriteContext.encode(value: FileTreeInternal) {
-        write(fileTreeRootsOf(value))
+        encodePreservingIdentityOf(value) {
+            write(rootSpecOf(value))
+        }
     }
 
-    override suspend fun ReadContext.decode(): FileTreeInternal? =
-        DefaultCompositeFileTree(
-            read()!!.uncheckedCast<List<FileTreeSpec>>().map {
+    override suspend fun ReadContext.decode(): FileTreeInternal? {
+        return decodePreservingIdentity { id ->
+            val specs = readNonNull<List<FileTreeSpec>>()
+            val fileTrees = specs.map {
                 when (it) {
-                    is DirectoryTreeSpec -> FileTreeAdapter(directoryFileTreeFactory.create(it.file, it.patterns))
-                    is ZipTreeSpec -> isolate.owner.service(FileOperations::class.java).zipTree(it.file) as FileTreeInternal
-                    is TarTreeSpec -> isolate.owner.service(FileOperations::class.java).tarTree(it.file) as FileTreeInternal
+                    is WrappedFileCollectionTreeSpec -> it.collection.asFileTree as FileTreeInternal
+                    is DirectoryTreeSpec -> fileCollectionFactory.treeOf(directoryFileTreeFactory.create(it.file, it.patterns))
+                    is GeneratedTreeSpec -> fileCollectionFactory.treeOf(DummyGeneratedFileTree(it.file, fileSystem))
+                    is ZipTreeSpec -> fileOperations.zipTree(it.file) as FileTreeInternal
+                    is TarTreeSpec -> fileOperations.tarTree(it.file) as FileTreeInternal
                 }
             }
-        )
+            val tree = fileCollectionFactory.treeOf(fileTrees)
+            isolate.identities.putInstance(id, tree)
+            tree
+        }
+    }
 
     private
-    fun fileTreeRootsOf(value: FileTreeInternal): List<FileTreeSpec> {
+    fun rootSpecOf(value: FileTreeInternal): List<FileTreeSpec> {
         val visitor = FileTreeVisitor()
         value.visitStructure(visitor)
         return visitor.roots
@@ -78,30 +132,65 @@ class FileTreeCodec(
 
     private
     class FileTreeVisitor : FileCollectionStructureVisitor {
-
-        internal
         var roots = mutableListOf<FileTreeSpec>()
+
+        override fun startVisit(source: FileCollectionInternal.Source, fileCollection: FileCollectionInternal): Boolean {
+            if (fileCollection is FileCollectionBackFileTree) {
+                roots.add(WrappedFileCollectionTreeSpec(fileCollection.collection))
+                return false
+            } else if (fileCollection is FilteredFileTree && fileCollection.patterns.isEmpty) {
+                // Optimize a common case, where fileCollection.asFileTree.matching(emptyPatterns) is used, eg in SourceTask and in CopySpec
+                // Skip applying the filters to the tree
+                fileCollection.tree.visitStructure(this)
+                return false
+            } else {
+                return true
+            }
+        }
 
         override fun visitCollection(source: FileCollectionInternal.Source, contents: Iterable<File>) = throw UnsupportedOperationException()
 
-        override fun visitGenericFileTree(fileTree: FileTreeInternal) = throw UnsupportedOperationException()
+        override fun visitGenericFileTree(fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+            // Visit the contents to create the mirror
+            sourceTree.visit(object : FileVisitor {
+                override fun visitFile(fileDetails: FileVisitDetails) {
+                    fileDetails.file
+                }
 
-        override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
-            roots.add(DirectoryTreeSpec(root, patterns))
+                override fun visitDir(dirDetails: FileVisitDetails) {
+                    dirDetails.file
+                }
+            })
+            val mirror = sourceTree.mirror
+            roots.add(DirectoryTreeSpec(mirror.dir, mirror.patterns))
         }
 
-        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal) {
+        override fun visitFileTree(root: File, patterns: PatternSet, fileTree: FileTreeInternal) {
             if (fileTree is FileTreeAdapter) {
-                val tree = fileTree.tree
-                if (tree is ZipFileTree) {
-                    roots.add(ZipTreeSpec(tree.backingFile!!))
-                    return
-                } else if (tree is TarFileTree) {
-                    roots.add(TarTreeSpec(tree.backingFile!!))
+                val sourceTree = fileTree.tree
+                if (sourceTree is GeneratedSingletonFileTree) {
+                    // TODO - should generate the file into some persistent cache dir (eg the instant execution cache dir) and/or persist enough of the generator to recreate the file
+                    // For example, for the Jar task persist the effective manifest (not all the stuff that produces it) and an action bean to generate the file from this
+                    roots.add(GeneratedTreeSpec(sourceTree.file))
                     return
                 }
             }
-            throw UnsupportedOperationException()
+            roots.add(DirectoryTreeSpec(root, patterns))
         }
+
+        override fun visitFileTreeBackedByFile(file: File, fileTree: FileTreeInternal, sourceTree: FileSystemMirroringFileTree) {
+            roots.add(toSpec(sourceTree))
+        }
+
+        private
+        fun toSpec(tree: FileSystemMirroringFileTree): FileTreeSpec =
+            when {
+                // TODO - deal with tree that is not backed by a file
+                tree is ZipFileTree && tree.backingFile != null -> ZipTreeSpec(tree.backingFile!!)
+                tree is TarFileTree && tree.backingFile != null -> TarTreeSpec(tree.backingFile!!)
+                // TODO - capture the patterns
+                tree is FilteredMinimalFileTree -> toSpec(tree.tree)
+                else -> throw UnsupportedOperationException()
+            }
     }
 }

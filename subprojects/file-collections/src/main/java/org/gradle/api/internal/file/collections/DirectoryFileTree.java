@@ -24,6 +24,8 @@ import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.file.ReproducibleFileVisitor;
 import org.gradle.api.internal.file.DefaultFileVisitDetails;
+import org.gradle.api.internal.file.FileCollectionStructureVisitor;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -34,8 +36,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -91,11 +91,6 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     }
 
     @Override
-    public Collection<DirectoryFileTree> getLocalContents() {
-        return Collections.singletonList(this);
-    }
-
-    @Override
     public DirectoryFileTree filter(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
         patternSet.copyFrom(patterns);
@@ -105,6 +100,11 @@ public class DirectoryFileTree implements MinimalFileTree, PatternFilterableFile
     @Override
     public boolean contains(File file) {
         return DirectoryTrees.contains(fileSystem, this, file) && file.isFile();
+    }
+
+    @Override
+    public void visitStructure(FileCollectionStructureVisitor visitor, FileTreeInternal owner) {
+        visitor.visitFileTree(dir, patternSet, owner);
     }
 
     @Override

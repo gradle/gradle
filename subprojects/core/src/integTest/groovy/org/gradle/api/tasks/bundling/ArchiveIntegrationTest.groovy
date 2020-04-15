@@ -17,14 +17,12 @@ package org.gradle.api.tasks.bundling
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ArchiveTestFixture
 import org.gradle.test.fixtures.archive.TarTestFixture
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import org.gradle.test.fixtures.file.TestFile
 import org.hamcrest.CoreMatchers
-import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -215,7 +213,6 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file('dest').assertHasDescendants('someDir/1.txt')
     }
 
-    @ToBeFixedForInstantExecution
     def "allows user to provide a custom resource for the tarTree"() {
         given:
         TestFile tar = file('tar-contents')
@@ -418,7 +415,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             'prefix/dir1/renamed_file1.txt',
             'prefix/renamed_file1.txt',
             'prefix/dir2/renamed_file2.txt',
+            'scripts/dir1',
             'scripts/dir2/script.sh',
+            'conf/dir1',
             'conf/dir2/config.properties')
 
         expandDir.file('prefix/dir1/renamed_file1.txt').assertContents(equalTo('[abc]'))
@@ -482,6 +481,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             'prefix/dir1/file1.txt',
             'prefix/file1.txt',
             'prefix/dir2/file2.txt',
+            'scripts/dir1',
             'scripts/dir2/script.sh')
 
         expandDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
@@ -492,6 +492,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
             'prefix/dir1/file1.txt',
             'prefix/file1.txt',
             'prefix/dir2/file2.txt',
+            'scripts/dir1',
             'scripts/dir2/script.sh')
 
         expandCompressedDir.file('prefix/dir1/file1.txt').assertContents(equalTo(randomAscii))
@@ -529,7 +530,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         then:
         def expandDir = file('expanded')
         file('build/test.tar').untarTo(expandDir)
-        expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir2/script.sh')
+        expandDir.assertHasDescendants('dir1/file1.txt', 'file1.txt', 'dir2/file2.txt', 'scripts/dir1', 'scripts/dir2/script.sh')
 
         expandDir.file('dir1/file1.txt').assertContents(equalTo('[abc]'))
     }
@@ -763,7 +764,9 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         buildFile << archiveTaskWithDuplicates(archiveType)
 
         expect:
-        executer.expectDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths.')
+        executer.expectDocumentedDeprecationWarning('Copying or archiving duplicate paths with the default duplicates strategy has been deprecated. This is scheduled to be removed in Gradle 7.0. ' +
+            'Duplicate path: "file1.txt". Explicitly set the duplicates strategy to \'DuplicatesStrategy.INCLUDE\' if you want to allow duplicate paths. ' +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#implicit_duplicate_strategy_for_copy_or_archive_tasks_has_been_deprecated")
         succeeds 'archive'
 
         where:
@@ -869,10 +872,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle#1108")
-    @ToBeFixedForInstantExecution
     def "can copy files into a different root with includeEmptyDirs=#includeEmptyDirs"() {
-        Assume.assumeFalse("This test case is not implemented when includeEmptyDirs=true", includeEmptyDirs)
-
         given:
         createZip("test.zip") {
             dir1 {
@@ -907,7 +907,7 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         includeEmptyDirs | expectedDescendants
-        true             | ["file2.txt", "file3.txt", "dir3"]
+        true             | ["file2.txt", "file3.txt", "dir2/dir3"] // dir3 is not renamed as eachFile() does not apply to directories
         false            | ["file2.txt", "file3.txt"]
     }
 
@@ -933,14 +933,14 @@ class ArchiveIntegrationTest extends AbstractIntegrationSpec {
         file(archiveFile).assertExists()
 
         where:
-        taskType | prop | archiveFile
-        "Zip"    | "version"   | "build/distributions/archive.zip"
-        "Jar"    | "version"   | "build/libs/archive.jar"
-        "Tar"    | "version"   | "build/distributions/archive.tar"
+        taskType | prop       | archiveFile
+        "Zip"    | "version"  | "build/distributions/archive.zip"
+        "Jar"    | "version"  | "build/libs/archive.jar"
+        "Tar"    | "version"  | "build/distributions/archive.tar"
 
-        "Zip"    | "baseName"   | "build/distributions/1.0.zip"
-        "Jar"    | "baseName"   | "build/libs/1.0.jar"
-        "Tar"    | "baseName"   | "build/distributions/1.0.tar"
+        "Zip"    | "baseName" | "build/distributions/1.0.zip"
+        "Jar"    | "baseName" | "build/libs/1.0.jar"
+        "Tar"    | "baseName" | "build/distributions/1.0.tar"
 
     }
 

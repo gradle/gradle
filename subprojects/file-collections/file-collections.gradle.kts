@@ -22,8 +22,6 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":baseServicesGroovy"))
     implementation(project(":coreApi"))
@@ -57,6 +55,9 @@ dependencies {
     testFixturesImplementation(project(":internalTesting"))
 
     testFixturesImplementation(library("guava"))
+
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
 java {

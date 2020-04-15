@@ -103,6 +103,11 @@ public class InMemoryCacheFactory implements CacheFactory {
         }
 
         @Override
+        public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+            return true;
+        }
+
+        @Override
         public <K, V> PersistentIndexedCache<K, V> createCache(PersistentIndexedCacheParameters<K, V> parameters) {
             assertNotClosed();
             return createCache(parameters.getCacheName(), parameters.getValueSerializer());

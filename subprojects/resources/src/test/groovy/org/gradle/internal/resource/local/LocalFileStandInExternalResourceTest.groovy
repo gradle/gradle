@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class LocalFileStandInExternalResourceTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "can apply ContentAction to file contents"() {
         def file = tmpDir.createFile("content")

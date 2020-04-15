@@ -78,8 +78,4 @@ gradle.settingsEvaluated {
     if (remoteBuildCacheEnabled(this) && !isAdoptOpenJDK11()) {
         throw GradleException("Remote cache is enabled, which requires AdoptOpenJDK 11 to perform this build. It's currently ${getBuildJavaHome()}.")
     }
-
-    if (!JavaVersion.current().isJava9Compatible) {
-        throw GradleException("JDK 9+ is required to perform this build. It's currently Java ${JavaVersion.current()} at ${getBuildJavaHome()}.")
-    }
 }

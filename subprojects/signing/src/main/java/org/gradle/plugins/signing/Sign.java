@@ -104,21 +104,6 @@ public class Sign extends DefaultTask implements SignatureSpec {
         addSignature(new Signature(publishArtifact, this, this));
     }
 
-    private void signArtifact(final PublicationArtifact publicationArtifact) {
-        if (publicationArtifactCanBeSigned(publicationArtifact)) {
-            addSignature(new Signature(publicationArtifact, publicationArtifact::getFile, null, null, this, this));
-        } else {
-            addSignature(new InvalidSignature(publicationArtifact, publicationArtifact::getFile, this));
-        }
-    }
-
-    private boolean publicationArtifactCanBeSigned(PublicationArtifact publicationArtifact) {
-        if (publicationArtifact.getFile().getName().equals("module.json")) {
-            return !String.valueOf(getProject().getVersion()).endsWith("-SNAPSHOT");
-        }
-        return true;
-    }
-
     /**
      * Configures the task to sign each of the given files
      */
@@ -171,7 +156,7 @@ public class Sign extends DefaultTask implements SignatureSpec {
             });
             publicationInternal.allPublishableArtifacts(artifact -> {
                 if (isNoSignatureArtifact(artifact)) {
-                    signArtifact(artifact);
+                    addSignature(new Signature(artifact, artifact::getFile, null, null, this, this));
                 }
             });
             publicationInternal.whenPublishableArtifactRemoved(this::removeSignature);

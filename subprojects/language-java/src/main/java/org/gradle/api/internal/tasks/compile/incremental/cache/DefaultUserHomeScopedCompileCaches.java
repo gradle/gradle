@@ -42,7 +42,7 @@ public class DefaultUserHomeScopedCompileCaches implements UserHomeScopedCompile
         cache = cacheRepository
             .cache("javaCompile")
             .withDisplayName("Java compile cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         PersistentIndexedCacheParameters<HashCode, ClasspathEntrySnapshotData> jarCacheParameters = PersistentIndexedCacheParameters.of("jarAnalysis", new HashCodeSerializer(), new ClasspathEntrySnapshotDataSerializer(interner))
             .withCacheDecorator(inMemoryCacheDecoratorFactory.decorator(20000, true));

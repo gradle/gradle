@@ -29,7 +29,17 @@ import java.lang.annotation.Target;
  * The annotated test will be skipped by the {@link org.gradle.integtests.fixtures.executer.InstantExecutionGradleExecuter}.
  */
 @Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.METHOD)
+@Target({ElementType.TYPE, ElementType.METHOD})
 @ExtensionAnnotation(UnsupportedWithInstantExecutionExtension.class)
 public @interface UnsupportedWithInstantExecution {
+
+    String because() default "";
+
+    String[] bottomSpecs() default {};
+
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
 }

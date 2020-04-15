@@ -116,4 +116,9 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact implements C
     public void setFile(File file) {
         this.file = file;
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return true;
+    }
 }

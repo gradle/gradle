@@ -25,7 +25,7 @@ import org.junit.Rule
 @CleanupTestDirectory
 class JavaHomeBasedJavaToolChainTest extends AbstractJavaToolChainTest {
     @Rule
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     JvmVersionDetector jvmVersionDetector = Stub(JvmVersionDetector) {
         getJavaVersion(_) >> {

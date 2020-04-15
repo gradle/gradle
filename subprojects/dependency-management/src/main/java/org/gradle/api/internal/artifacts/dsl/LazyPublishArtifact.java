@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dsl;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.internal.artifacts.PublishArtifactInternal;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
@@ -32,10 +33,10 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import java.io.File;
 import java.util.Date;
 
-public class LazyPublishArtifact implements PublishArtifact {
+public class LazyPublishArtifact implements PublishArtifactInternal {
     private final ProviderInternal<?> provider;
     private final String version;
-    private PublishArtifact delegate;
+    private PublishArtifactInternal delegate;
 
     public LazyPublishArtifact(Provider<?> provider) {
         this.provider = Providers.internal(provider);
@@ -107,5 +108,10 @@ public class LazyPublishArtifact implements PublishArtifact {
                 context.add(provider);
             }
         };
+    }
+
+    @Override
+    public boolean shouldBePublished() {
+        return delegate.shouldBePublished();
     }
 }

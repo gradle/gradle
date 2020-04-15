@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.ProviderInternal
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
+import org.gradle.internal.state.ModelObject
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -26,13 +28,13 @@ import spock.lang.Specification
 
 class DefaultFilePropertyFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     TestFile projectDir
     DefaultFilePropertyFactory factory
 
     def setup() {
         projectDir = tmpDir.createDir("project")
-        factory = new DefaultFilePropertyFactory(TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
+        factory = new DefaultFilePropertyFactory(Stub(PropertyHost), TestFiles.resolver(projectDir), TestFiles.fileCollectionFactory())
     }
 
     def "can create directory instance from absolute file"() {
@@ -205,35 +207,35 @@ class DefaultFilePropertyFactoryTest extends Specification {
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'No value has been specified for this property.'
+        e.message == 'Cannot query the value of this property because it has no value available.'
 
         when:
         fileProvider.get()
 
         then:
         def e2 = thrown(IllegalStateException)
-        e2.message == 'No value has been specified for this property.'
+        e2.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         dir.get()
 
         then:
         def e3 = thrown(IllegalStateException)
-        e3.message == 'No value has been specified for this property.'
+        e3.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         file.get()
 
         then:
         def e4 = thrown(IllegalStateException)
-        e4.message == 'No value has been specified for this property.'
+        e4.message == 'Cannot query the value of this provider because it has no value available.'
 
         when:
         tree.files
 
         then:
         def e5 = thrown(IllegalStateException)
-        e5.message == 'No value has been specified for this property.'
+        e5.message == 'Cannot query the value of this property because it has no value available.'
     }
 
     @SuppressWarnings("GroovyAssignabilityCheck")
@@ -266,85 +268,89 @@ class DefaultFilePropertyFactoryTest extends Specification {
         !var.present
     }
 
-    def "producer task for a directory is not known by default"() {
-        def var = factory.newDirectoryProperty()
-        def context = Mock(TaskDependencyResolveContext)
-
-        when:
-        def visited = var.maybeVisitBuildDependencies(context)
-
-        then:
-        !visited
-        0 * context._
-    }
-
     def "can specify the producer task for a directory"() {
         def var = factory.newDirectoryProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.producer
 
         then:
-        visited
-        1 * context.add(task)
-        0 * context._
+        producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     def "can discard the producer task for a directory"() {
         def var = factory.newDirectoryProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.locationOnly.producer
 
         then:
-        !visited
-        0 * context._
-    }
-
-    def "producer task for a regular file is not known by default"() {
-        def var = factory.newFileProperty()
-        def context = Mock(TaskDependencyResolveContext)
+        !producer.known
 
         when:
-        def visited = var.maybeVisitBuildDependencies(context)
+        producer.visitProducerTasks(action)
 
         then:
-        !visited
-        0 * context._
+        0 * action._
     }
 
     def "can specify the producer task for a regular file"() {
         def var = factory.newFileProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.producer
 
         then:
-        visited
-        1 * context.add(task)
-        0 * context._
+        producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        1 * action.execute(task)
+        0 * action._
     }
 
     def "can discard the producer task for a regular file"() {
         def var = factory.newFileProperty()
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+        def task = Stub(Task)
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        def action = Mock(Action)
 
         when:
-        var.attachProducer(task)
-        def visited = var.locationOnly.maybeVisitBuildDependencies(context)
+        var.attachProducer(owner)
+        def producer = var.locationOnly.producer
 
         then:
-        !visited
-        0 * context._
+        !producer.known
+
+        when:
+        producer.visitProducerTasks(action)
+
+        then:
+        0 * action._
     }
 }

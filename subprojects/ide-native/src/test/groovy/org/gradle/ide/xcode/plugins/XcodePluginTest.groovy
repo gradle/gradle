@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 class XcodePluginTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def projectDir = tmpDir.createDir("project")
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("root").build()
 

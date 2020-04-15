@@ -32,15 +32,16 @@ trait TasksWithInputsAndOutputs {
                 @OutputFile
                 final RegularFileProperty output = project.objects.fileProperty()
                 @Input
-                String content = "content" // set to empty string to delete file
-            
+                final Property<String> content = project.objects.property(String).convention("content") // set to empty string to delete file
+
                 @TaskAction
                 def go() {
                     def file = output.get().asFile
-                    if (content.empty) {
+                    def text = this.content.get()
+                    if (text.empty) {
                         file.delete()
                     } else {
-                        file.text = content
+                        file.text = text
                     }
                 }
             }
@@ -54,7 +55,7 @@ trait TasksWithInputsAndOutputs {
                 abstract val output: RegularFileProperty
                 @get:Input
                 var content = "content" // set to empty string to delete file
-            
+
                 @TaskAction
                 fun go() {
                     val file = output.get().asFile
@@ -70,21 +71,26 @@ trait TasksWithInputsAndOutputs {
 
     def taskTypeWithOutputDirectoryProperty() {
         buildFile << """
-            class DirProducer extends DefaultTask {
+            import javax.inject.Inject
+
+            abstract class DirProducer extends DefaultTask {
                 @OutputDirectory
-                final DirectoryProperty output = project.objects.directoryProperty()
+                abstract DirectoryProperty getOutput()
                 @Input
-                final ListProperty<String> names = project.objects.listProperty(String)
+                abstract ListProperty<String> getNames()
                 @Input
                 String content = "content" // set to empty string to delete directory
-            
+
+                @Inject
+                abstract FileSystemOperations getFs()
+
                 @TaskAction
                 def go() {
                     def dir = output.get().asFile
                     if (content.empty) {
-                        project.delete(dir)
+                        fs.delete { delete(dir) }
                     } else {
-                        project.delete(dir)
+                        fs.delete { delete(dir) }
                         dir.mkdirs()
                         names.get().forEach {
                             new File(dir, it).text = content
@@ -128,7 +134,7 @@ trait TasksWithInputsAndOutputs {
         """
     }
 
-    def taskTypeWithInputProperty() {
+    def taskTypeWithIntInputProperty() {
         buildFile << """
             class InputTask extends DefaultTask {
                 @Input

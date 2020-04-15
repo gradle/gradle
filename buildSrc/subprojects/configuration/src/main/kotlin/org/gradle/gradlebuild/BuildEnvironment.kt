@@ -5,14 +5,17 @@ import org.gradle.internal.os.OperatingSystem
 
 
 object BuildEnvironment {
-    val isCiServer = "CI" in System.getenv()
+
+    const val CI_ENVIRONMENT_VARIABLE = "CI"
+
+    val isCiServer = CI_ENVIRONMENT_VARIABLE in System.getenv()
     val isTravis = "TRAVIS" in System.getenv()
     val isJenkins = "JENKINS_HOME" in System.getenv()
     val jvm = org.gradle.internal.jvm.Jvm.current()
     val javaVersion = JavaVersion.current()
     val isWindows = OperatingSystem.current().isWindows
     val isSlowInternetConnection
-        get() = System.getProperty("slow.internet.connection", "false").toBoolean()
+        get() = System.getProperty("slow.internet.connection", "false")!!.toBoolean()
     val agentNum: Int
         get() {
             if (System.getenv().containsKey("USERNAME")) {

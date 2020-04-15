@@ -20,7 +20,7 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -37,9 +37,9 @@ public class GZipBuildCacheEntryPacker implements BuildCacheEntryPacker {
     }
 
     @Override
-    public PackResult pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException {
+    public PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException {
         try (GZIPOutputStream gzipOutput = new GZIPOutputStream(output)) {
-            return delegate.pack(entity, fingerprints, gzipOutput, writeOrigin);
+            return delegate.pack(entity, snapshots, gzipOutput, writeOrigin);
         }
     }
 

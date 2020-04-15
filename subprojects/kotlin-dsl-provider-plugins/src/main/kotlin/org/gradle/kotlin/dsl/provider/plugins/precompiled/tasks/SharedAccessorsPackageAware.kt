@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 import org.gradle.api.Task
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
+import org.gradle.kotlin.dsl.support.ImplicitImports
 
 
 interface SharedAccessorsPackageAware {
@@ -29,5 +30,5 @@ interface SharedAccessorsPackageAware {
 
 
 internal
-fun <T> T.implicitImportsForPrecompiledScriptPlugins() where T : Task, T : SharedAccessorsPackageAware =
-    project.implicitImports() + "${sharedAccessorsPackage.get()}.*"
+fun <T> T.implicitImportsForPrecompiledScriptPlugins(implicitImports: ImplicitImports) where T : Task, T : SharedAccessorsPackageAware =
+    implicitImports.list + "${sharedAccessorsPackage.get()}.*"

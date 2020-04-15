@@ -68,7 +68,7 @@ Note that, by default, both task type always executes every test that it detects
 `testLogging` - default: not set::
 This property represents a set of options that control which test events are logged and at what level.
 You can also configure other logging behavior via this property.
-Set https://docs.gradle.org/current/javadoc/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html[TestLoggingContainer] for more detail.
+Set link:{javadocPath}/org/gradle/api/tasks/testing/logging/TestLoggingContainer.html[TestLoggingContainer] for more detail.
 
 See link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html[XCTest] for details on all the available configuration options.
 
@@ -119,7 +119,7 @@ gradle xcTest --tests TestBundle.SomeTestClass.someSpecificMethod
 # or `gradle xcTest --tests TestBundle.SomeTestClass.someSpecificMethod` on macOS
 ```
 
-You can also combine filters defined at the command line with https://docs.gradle.org/current/userguide/command_line_interface.html#sec:continuous_build[continuous build] to re-execute a subset of tests immediately after every change to a production or test source file.
+You can also combine filters defined at the command line with <<command_line_interface.adoc#sec:continuous_build,continuous build>> to re-execute a subset of tests immediately after every change to a production or test source file.
 The following executes all tests in the ‘SomeTestClass’ test class whenever a change triggers the tests to run:
 
 ```

@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures;
 
+import com.google.common.collect.Iterables;
 import org.gradle.internal.UncheckedException;
 import org.junit.runner.Description;
 import org.junit.runner.RunWith;
@@ -442,6 +443,9 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
          */
         @Nullable
         <A extends Annotation> A getAnnotation(Class<A> type);
+
+        Annotation[] getAnnotations();
+
     }
 
     private static class TestDescriptionBackedTestDetails implements TestDetails {
@@ -465,6 +469,11 @@ public abstract class AbstractMultiTestRunner extends Runner implements Filterab
                 return annotation;
             }
             return parent.getAnnotation(type);
+        }
+
+        @Override
+        public Annotation[] getAnnotations() {
+            return Iterables.toArray(test.getAnnotations(), Annotation.class);
         }
     }
 }

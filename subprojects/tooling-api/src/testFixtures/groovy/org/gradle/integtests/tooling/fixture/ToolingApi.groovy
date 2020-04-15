@@ -203,11 +203,23 @@ class ToolingApi implements TestRule {
             }
         }
 
+        isolateFromGradleOwnBuild(connector)
+
         connector.useGradleUserHomeDir(new File(gradleUserHomeDir.path))
         connectorConfigurers.each {
             connector.with(it)
         }
         return connector
+    }
+
+    private void isolateFromGradleOwnBuild(DefaultGradleConnector connector) {
+        // override the `user.dir` property in order to isolate tests from the Gradle directory
+        def connection = connector.connect()
+        try {
+            connection.action(new SetWorkingDirectoryAction(testWorkDirProvider.testDirectory.absolutePath))
+        } finally {
+            connection.close()
+        }
     }
 
     boolean isUseClasspathImplementation() {
@@ -265,4 +277,5 @@ class ToolingApi implements TestRule {
             }
         }
     }
+
 }

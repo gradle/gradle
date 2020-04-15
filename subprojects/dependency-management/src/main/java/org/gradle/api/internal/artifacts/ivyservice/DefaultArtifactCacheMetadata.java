@@ -18,21 +18,22 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.gradle.cache.internal.CacheScopeMapping;
 import org.gradle.cache.internal.CacheVersion;
 import org.gradle.cache.internal.VersionStrategy;
-import org.gradle.internal.vfs.AdditiveCache;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.List;
 
-public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, AdditiveCache {
+public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata {
 
     public static final CacheVersion CACHE_LAYOUT_VERSION = CacheLayout.META_DATA.getVersion();
     private final File cacheDir;
     private final File transformsDir;
 
     public DefaultArtifactCacheMetadata(CacheScopeMapping cacheScopeMapping) {
-        cacheDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.ROOT.getKey(), VersionStrategy.SharedCache);
-        transformsDir = cacheScopeMapping.getBaseDirectory(null, CacheLayout.TRANSFORMS.getKey(), VersionStrategy.SharedCache);
+        this(cacheScopeMapping, null);
+    }
+
+    public DefaultArtifactCacheMetadata(CacheScopeMapping cacheScopeMapping, File baseDir) {
+        cacheDir = cacheScopeMapping.getBaseDirectory(baseDir, CacheLayout.ROOT.getKey(), VersionStrategy.SharedCache);
+        transformsDir = cacheScopeMapping.getBaseDirectory(baseDir, CacheLayout.TRANSFORMS.getKey(), VersionStrategy.SharedCache);
     }
 
     @Override
@@ -43,11 +44,6 @@ public class DefaultArtifactCacheMetadata implements ArtifactCacheMetadata, Addi
     @Override
     public File getTransformsStoreDirectory() {
         return transformsDir;
-    }
-
-    @Override
-    public List<File> getAdditiveCacheRoots() {
-        return Arrays.asList(getFileStoreDirectory(), getTransformsStoreDirectory());
     }
 
     @Override

@@ -20,14 +20,10 @@ import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.MutableBoolean;
@@ -41,15 +37,12 @@ import java.util.Set;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public abstract class AbstractFileTree extends AbstractFileCollection implements FileTreeInternal {
-
-    protected final Factory<PatternSet> patternSetFactory;
-
     public AbstractFileTree() {
-        this(PatternSets.getNonCachingPatternSetFactory());
+        super();
     }
 
     public AbstractFileTree(Factory<PatternSet> patternSetFactory) {
-        this.patternSetFactory = patternSetFactory;
+        super(patternSetFactory);
     }
 
     @Override
@@ -89,12 +82,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return matching(patternSet);
     }
 
-    @Override
-    public FileTree matching(PatternFilterable patterns) {
-        PatternSet patternSet = (PatternSet) patterns;
-        return new FilteredFileTreeImpl(this, patternSet.getAsSpec());
-    }
-
     public Map<String, File> getAsMap() {
         final Map<String, File> map = new LinkedHashMap<String, File>();
         visit(new EmptyFileVisitor() {
@@ -109,27 +96,6 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     @Override
     protected void addAsResourceCollection(Object builder, String nodeName) {
         new AntFileTreeBuilder(getAsMap()).addToAntBuilder(builder, nodeName);
-    }
-
-    /**
-     * Visits all the files of this tree.
-     */
-    protected boolean visitAll() {
-        final MutableBoolean hasContent = new MutableBoolean();
-        visit(new FileVisitor() {
-            @Override
-            public void visitDir(FileVisitDetails dirDetails) {
-                dirDetails.getFile();
-                hasContent.set(true);
-            }
-
-            @Override
-            public void visitFile(FileVisitDetails fileDetails) {
-                fileDetails.getFile();
-                hasContent.set(true);
-            }
-        });
-        return hasContent.get();
     }
 
     @Override
@@ -164,58 +130,5 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
                 visitor.execute(fileDetails);
             }
         });
-    }
-
-    @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
-        if (visitor.prepareForVisit(OTHER) != FileCollectionStructureVisitor.VisitType.NoContents) {
-            visitor.visitGenericFileTree(this);
-        }
-    }
-
-    private static class FilteredFileTreeImpl extends AbstractFileTree {
-        private final AbstractFileTree fileTree;
-        private final Spec<FileTreeElement> spec;
-
-        public FilteredFileTreeImpl(AbstractFileTree fileTree, Spec<FileTreeElement> spec) {
-            this.fileTree = fileTree;
-            this.spec = spec;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return fileTree.getDisplayName();
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(fileTree);
-        }
-
-        @Override
-        public FileTree visit(final FileVisitor visitor) {
-            fileTree.visit(new FileVisitor() {
-                @Override
-                public void visitDir(FileVisitDetails dirDetails) {
-                    if (spec.isSatisfiedBy(dirDetails)) {
-                        visitor.visitDir(dirDetails);
-                    }
-                }
-
-                @Override
-                public void visitFile(FileVisitDetails fileDetails) {
-                    if (spec.isSatisfiedBy(fileDetails)) {
-                        visitor.visitFile(fileDetails);
-                    }
-                }
-            });
-            return this;
-        }
-
-        @Override
-        public void visitStructure(FileCollectionStructureVisitor visitor) {
-            // TODO: should consider the filter
-            fileTree.visitStructure(visitor);
-        }
     }
 }

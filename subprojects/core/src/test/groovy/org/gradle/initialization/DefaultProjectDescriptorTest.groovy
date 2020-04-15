@@ -39,7 +39,7 @@ class DefaultProjectDescriptorTest extends Specification {
     final TestName testName = new TestName()
 
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     final TestFile testDirectory = tmpDir.testDirectory
 

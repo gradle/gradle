@@ -17,12 +17,14 @@
 package org.gradle.process.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 
 @IntegrationTestTimeout(180)
 class ErrorInWorkerSocketIntegrationTest extends AbstractIntegrationSpec {
     private static final String MESSAGE = 'This breaks socket connection threads in worker process deliberately'
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "worker won't hang when error occurs in socket connection"() {
         given:
         requireOwnGradleUserHomeDir()
@@ -37,36 +39,25 @@ public class Param implements Serializable {
 }
 """
 
-        file('buildSrc/src/main/java/TestWorkerProcess.java') << '''
-import org.gradle.api.Action;
-import org.gradle.process.internal.worker.WorkerControl;
-public interface TestWorkerProcess extends Action, WorkerControl {}
-'''
         file('buildSrc/src/main/java/TestWorkerProcessImpl.java') << '''
-import org.gradle.process.ExecResult;
-import org.gradle.process.internal.worker.WorkerProcess;
+import org.gradle.process.internal.worker.RequestHandler;
 
-public class TestWorkerProcessImpl implements TestWorkerProcess {
-    public WorkerProcess start() { return null; }
-    public ExecResult stop() { return null; }
-    public void execute(Object param) { } 
-}   
+public class TestWorkerProcessImpl implements RequestHandler<Object, Object> {
+    public Object run(Object param) { return null; }
+}
 '''
         buildFile << '''
 import org.gradle.process.internal.worker.WorkerProcessFactory
-import org.gradle.workers.internal.WorkerDaemonProcess
-import org.gradle.workers.internal.WorkerProtocol
-import org.gradle.workers.internal.WorkerDaemonServer
 
 task runBrokenWorker {
     doLast {
         WorkerProcessFactory workerProcessFactory = rootProject.services.get(WorkerProcessFactory)
-        def builder = workerProcessFactory.multiRequestWorker(TestWorkerProcess, Action, TestWorkerProcessImpl)
+        def builder = workerProcessFactory.multiRequestWorker(TestWorkerProcessImpl)
         builder.getJavaCommand().setWorkingDir(project.rootDir)
 
         def workerDaemonProcess = builder.build()
         workerDaemonProcess.start()
-        workerDaemonProcess.execute(new Param())
+        workerDaemonProcess.run(new Param())
     }
 }
 '''

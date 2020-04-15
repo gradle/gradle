@@ -16,7 +16,7 @@
 
 package Gradle_Promotion.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
 
 abstract class PublishRelease(task: String, requiredConfirmationCode: String, branch: String = "release", init: PublishRelease.() -> Unit = {}) : PublishGradleDistribution(
     branch = branch,

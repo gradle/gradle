@@ -27,7 +27,7 @@ import org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFramework;
 import org.gradle.buildinit.plugins.internal.modifiers.ComponentType;
 import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.util.SingleMessageLogger;
+import org.gradle.util.IncubationLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -69,7 +69,7 @@ public class PomProjectInitDescriptor implements BuildConverter {
 
     @Override
     public void generate(InitSettings initSettings) {
-        SingleMessageLogger.incubatingFeatureUsed("Maven to Gradle conversion");
+        IncubationLogger.incubatingFeatureUsed("Maven to Gradle conversion");
         File pom = fileResolver.resolve("pom.xml");
         try {
             Settings settings = settingsProvider.buildSettings();

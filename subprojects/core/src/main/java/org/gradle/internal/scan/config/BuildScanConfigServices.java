@@ -55,7 +55,8 @@ public class BuildScanConfigServices {
 
                     @Override
                     public boolean isTaskExecutingBuild() {
-                        return gradle.getBuildType() == GradleInternal.BuildType.TASKS;
+                        boolean forceTaskExecutingBuild = System.getProperty("org.gradle.internal.ide.scan") != null;
+                        return forceTaskExecutingBuild || gradle.getBuildType() == GradleInternal.BuildType.TASKS;
                     }
                 };
             }

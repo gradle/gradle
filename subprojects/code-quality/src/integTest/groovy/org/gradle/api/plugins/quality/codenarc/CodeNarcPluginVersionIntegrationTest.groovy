@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins.quality.codenarc
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage
@@ -44,6 +45,13 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
             dependencies {
                 implementation localGroovy()
             }
+
+            ${JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_14) ?
+            """
+            configurations.codenarc {
+                resolutionStrategy.force 'org.codehaus.groovy:groovy:${GroovySystem.version}'
+            }
+            """ : ""}
         """.stripIndent()
 
         writeRuleFile()
@@ -171,7 +179,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << '''
             codenarc {
                 configFile == file('config/codenarc/codenarc.xml')
-                reportFormat = 'console' 
+                reportFormat = 'console'
             }
         '''
         file('src/main/groovy/a/A.groovy') << 'package a;class A{}'
@@ -190,7 +198,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec {
         buildFile << '''
             codenarc {
                 configFile == file('config/codenarc/codenarc.xml')
-                reportFormat = 'console' 
+                reportFormat = 'console'
             }
         '''
         file('src/main/groovy/a/A.groovy') << 'package a;class A{}'

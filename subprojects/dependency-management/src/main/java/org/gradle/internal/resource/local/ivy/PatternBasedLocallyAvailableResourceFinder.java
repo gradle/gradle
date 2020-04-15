@@ -40,20 +40,17 @@ public class PatternBasedLocallyAvailableResourceFinder extends AbstractLocallyA
         return new Transformer<Factory<List<File>>, ModuleComponentArtifactMetadata>() {
             @Override
             public Factory<List<File>> transform(final ModuleComponentArtifactMetadata artifact) {
-                return new Factory<List<File>>() {
-                    @Override
-                    public List<File> create() {
-                        final List<File> files = new LinkedList<File>();
-                        if (artifact != null) {
-                            getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
-                                @Override
-                                public void visitFile(FileVisitDetails fileDetails) {
-                                    files.add(fileDetails.getFile());
-                                }
-                            });
-                        }
-                        return files;
+                return () -> {
+                    final List<File> files = new LinkedList<File>();
+                    if (artifact != null) {
+                        getMatchingFiles(artifact).visit(new EmptyFileVisitor() {
+                            @Override
+                            public void visitFile(FileVisitDetails fileDetails) {
+                                files.add(fileDetails.getFile());
+                            }
+                        });
                     }
+                    return files;
                 };
             }
 

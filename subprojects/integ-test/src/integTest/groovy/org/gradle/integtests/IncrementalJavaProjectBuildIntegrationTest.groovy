@@ -38,7 +38,7 @@ class IncrementalJavaProjectBuildIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     public void doesNotRebuildJarIfSourceHasNotChanged() {
         // Use own home dir so we don't blast the shared one when we run with -C rebuild
         executer.requireOwnGradleUserHomeDir()

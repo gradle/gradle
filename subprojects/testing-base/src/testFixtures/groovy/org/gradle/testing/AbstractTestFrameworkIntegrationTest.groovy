@@ -27,20 +27,24 @@ import spock.lang.Unroll
 import static org.gradle.integtests.fixtures.DefaultTestExecutionResult.removeParentheses
 
 abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationSpec {
+
     abstract void createPassingFailingTest()
+
     abstract void createEmptyProject()
+
     abstract void renameTests()
 
     abstract String getTestTaskName()
 
     abstract String getPassingTestCaseName()
+
     abstract String getFailingTestCaseName()
 
     String testSuite(String testSuite) {
         return testSuite
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "can listen for test results"() {
         given:
         createPassingFailingTest()
@@ -98,7 +102,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         succeeds "verifyTestResultConventions"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "test results show passing and failing tests"() {
         given:
         createPassingFailingTest()
@@ -118,7 +122,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "test results capture test output"() {
         Assume.assumeTrue(capturesTestOutput())
         given:
@@ -137,7 +141,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeTest').assertStderr(CoreMatchers.containsString("some error output"))
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "failing tests cause report url to be printed"() {
         given:
         createPassingFailingTest()
@@ -149,7 +153,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         failure.assertHasCause("There were failing tests. See the report at:")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "lack of tests produce an empty report"() {
         given:
         createEmptyProject()
@@ -161,7 +165,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertNoTestClassesExecuted()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "adding and removing tests remove old tests from reports"() {
         given:
         createPassingFailingTest()
@@ -173,7 +177,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.assertTestClassesExecuted('SomeTest', 'NewTest')
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "honors test case filter from --tests flag"() {
         given:
         createPassingFailingTest()
@@ -186,7 +190,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "honors test suite filter from --tests flag"() {
         given:
         createPassingFailingTest()
@@ -199,23 +203,26 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
         testResult.testClass('SomeOtherTest').assertTestPassed(passingTestCaseName)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "reports when no matching methods found"() {
         given:
         createPassingFailingTest()
 
         //by command line
-        when: fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
-        then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](--tests filter)")
+        when:
+        fails(testTaskName, "--tests", "${testSuite('SomeTest')}.missingMethod")
+        then:
+        failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](--tests filter)")
 
         //by build script
         when:
         buildFile << "tasks.withType(AbstractTestTask) { filter.includeTestsMatching '${testSuite('SomeTest')}.missingMethod' }"
         fails(testTaskName)
-        then: failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
+        then:
+        failure.assertHasCause("No tests found for given includes: [${testSuite('SomeTest')}.missingMethod](filter.includeTestsMatching)")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "task is out of date when --tests argument changes"() {
         given:
         createPassingFailingTest()
@@ -244,7 +251,7 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "can select multiple tests from command line #scenario"() {
         given:
         createPassingFailingTest()
@@ -271,14 +278,14 @@ abstract class AbstractTestFrameworkIntegrationTest extends AbstractIntegrationS
 
         desiredTestFilters.each { testClass, testCases ->
             testCases.collect { testCase ->
-                command.addAll([ '--tests', testSuite(testClass) + "." + removeParentheses(testCase) ])
+                command.addAll(['--tests', testSuite(testClass) + "." + removeParentheses(testCase)])
             }
         }
         return command.toArray()
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["TestNGTestFrameworkIntegrationTest", "XCTestTestFrameworkIntegrationTest"])
     def "can deduplicate test filters when #scenario"() {
         given:
         createPassingFailingTest()

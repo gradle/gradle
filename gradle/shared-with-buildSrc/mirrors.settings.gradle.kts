@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY
+import org.gradle.api.internal.GradleInternal
+import org.gradle.internal.nativeintegration.network.HostnameLookup
 
 val originalUrls: Map<String, String> = mapOf(
     "jcenter" to "https://jcenter.bintray.com/",
@@ -24,6 +27,7 @@ val originalUrls: Map<String, String> = mapOf(
     "gradle-libs" to "https://repo.gradle.org/gradle/libs",
     "gradle-releases" to "https://repo.gradle.org/gradle/libs-releases",
     "gradle-snapshots" to "https://repo.gradle.org/gradle/libs-snapshots",
+    "gradle-enterprise-plugin-rc" to "https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local",
     "kotlinx" to "https://kotlin.bintray.com/kotlinx/",
     "kotlineap" to "https://dl.bintray.com/kotlin/kotlin-eap/"
 )
@@ -34,7 +38,12 @@ val mirrorUrls: Map<String, String> =
         name to url
     } ?: emptyMap()
 
-fun isEc2Agent() = java.net.InetAddress.getLocalHost().getHostName().startsWith("ip-")
+
+fun isEc2Agent() = (gradle as GradleInternal).services.get(HostnameLookup::class.java).hostname.startsWith("ip-")
+
+fun isMacAgent() = System.getProperty("os.name").toLowerCase().contains("mac")
+
+fun ignoreMirrors() = System.getenv("IGNORE_MIRROR")?.toBoolean() ?: false
 
 fun withMirrors(handler: RepositoryHandler) {
     if ("CI" !in System.getenv() || isEc2Agent()) {
@@ -53,7 +62,16 @@ fun withMirrors(handler: RepositoryHandler) {
 
 fun normalizeUrl(url: String): String {
     val result = url.replace("https://", "http://")
-    return if (result.endsWith("/")) result else result + "/"
+    return if (result.endsWith("/")) result else "$result/"
+}
+
+if (System.getProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY) == null && !isEc2Agent() && !isMacAgent() && !ignoreMirrors()) {
+    // https://github.com/gradle/gradle-private/issues/2725
+    // https://github.com/gradle/gradle-private/issues/2951
+    System.setProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY, "https://dev12.gradle.org/artifactory/gradle-plugins/")
+    gradle.buildFinished {
+        System.clearProperty(PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY)
+    }
 }
 
 gradle.allprojects {

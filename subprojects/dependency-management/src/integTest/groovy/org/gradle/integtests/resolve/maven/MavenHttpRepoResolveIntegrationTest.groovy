@@ -370,7 +370,7 @@ task listJars {
         file('libs/projectA-1.0.jar').assertHasNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     void "fails when configured with AwsCredentials"() {
         given:
         mavenHttpRepo.module('group', 'projectA', '1.2').publish()
@@ -443,12 +443,12 @@ task listJars {
                 }
             }
             configurations { compile }
-            dependencies { 
-                compile ':name1:1.0' 
-                compile ':name2:[1.0, 2.0]' 
+            dependencies {
+                compile ':name1:1.0'
+                compile ':name2:[1.0, 2.0]'
                 compile ':name3:1.0-SNAPSHOT'
-                compile 'group1::1.0' 
-                compile 'group2::[1.0, 2.0]' 
+                compile 'group1::1.0'
+                compile 'group2::[1.0, 2.0]'
                 compile 'group3::1.0-SNAPSHOT'
                 compile 'group:name'
             }

@@ -16,22 +16,16 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.DisplayName;
-
-import java.util.Collection;
-import java.util.List;
+import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 
 /**
  * A supplier of zero or more values of type {@link T}.
  */
 public interface Collector<T> extends ValueSupplier {
-    boolean present();
-
-    void collectInto(DisplayName owner, ValueCollector<T> collector, Collection<T> dest);
-
-    boolean maybeCollectInto(ValueCollector<T> collector, Collection<T> dest);
+    Value<Void> collectEntries(ValueConsumer consumer, ValueCollector<T> collector, ImmutableCollection.Builder<T> dest);
 
     int size();
 
-    void visit(List<ProviderInternal<? extends Iterable<? extends T>>> sources);
+    void calculateExecutionTimeValue(Action<? super ExecutionTimeValue<? extends Iterable<? extends T>>> visitor);
 }

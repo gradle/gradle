@@ -16,7 +16,7 @@
 
 package org.gradle.language.c.tasks
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -68,7 +68,7 @@ class CCompileTest extends AbstractProjectBuilderSpec {
         pch.projectPath >> ":"
         pch.includeString >> "header"
         pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
-        pch.pchObjects >> ImmutableFileCollection.of()
+        pch.pchObjects >> TestFiles.empty()
         1 * cCompiler.execute({ CCompileSpec spec ->
             assert spec.sourceFiles*.name== ["sourceFile"]
             assert spec.args == ['arg']

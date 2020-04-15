@@ -43,7 +43,7 @@ class TestNGFailFastIntegrationTest extends AbstractJvmFailFastIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
     def "parallel #parallel execution with #threadCount threads, #maxWorkers workers fails fast"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers)

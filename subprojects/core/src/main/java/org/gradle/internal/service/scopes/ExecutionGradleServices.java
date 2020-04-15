@@ -23,7 +23,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.FileLockManager;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
-import org.gradle.caching.internal.command.BuildCacheCommandFactory;
+import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
@@ -94,7 +94,7 @@ public class ExecutionGradleServices {
             .cache(gradle, "buildOutputCleanup")
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Build Output Cleanup Cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .withProperties(Collections.singletonMap("gradle.version", GradleVersion.current().getVersion()))
             .open();
         return new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory);
@@ -155,7 +155,7 @@ public class ExecutionGradleServices {
             new SkipUpToDateStep<>(
             new RecordOutputsStep<>(outputFilesRepository,
             new StoreExecutionStateStep<>(
-            new CacheStep(buildCacheController, buildCacheCommandFactory, deleter,
+            new CacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener,
             new BroadcastChangingOutputsStep<>(outputChangeListener,
             new SnapshotOutputsStep<>(buildOperationExecutor, buildInvocationScopeId.getId(),
             new CreateOutputsStep<>(

@@ -98,7 +98,7 @@ class CompositeBuildMinimalConfigurationIntegrationTest extends AbstractComposit
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "configures included build only once when #action"() {
         given:
         dependency "org.test:buildB:1.0"

@@ -26,7 +26,7 @@ import spock.lang.Subject
 @Requires(TestPrecondition.NOT_WINDOWS)
 class SwiftDepsHandlerTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     File moduleSwiftDeps
     File barSource

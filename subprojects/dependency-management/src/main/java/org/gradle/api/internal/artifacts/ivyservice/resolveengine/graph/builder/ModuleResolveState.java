@@ -71,6 +71,7 @@ class ModuleResolveState implements CandidateModule {
     private boolean overriddenSelection;
     private Set<VirtualPlatformState> platformOwners;
     private boolean replaced = false;
+    private boolean changingSelection;
 
     ModuleResolveState(IdGenerator<Long> idGenerator,
                        ModuleIdentifier id,
@@ -172,6 +173,10 @@ class ModuleResolveState implements CandidateModule {
         selected.select();
     }
 
+    public boolean isChangingSelection() {
+        return changingSelection;
+    }
+
     /**
      * Changes the selected target component for this module.
      */
@@ -181,6 +186,8 @@ class ModuleResolveState implements CandidateModule {
         assert this.selected != newSelection;
         assert newSelection.getModule() == this;
 
+        changingSelection = true;
+
         // Remove any outgoing edges for the current selection
         selected.removeOutgoingEdges();
 
@@ -188,6 +195,7 @@ class ModuleResolveState implements CandidateModule {
         this.replaced = false;
 
         doRestart(newSelection);
+        changingSelection = false;
     }
 
     /**
@@ -297,7 +305,7 @@ class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public Iterable<SelectorState> getSelectors() {
+    public ModuleSelectors<SelectorState> getSelectors() {
         return selectors;
     }
 
@@ -376,7 +384,6 @@ class ModuleResolveState implements CandidateModule {
     void addPendingNode(NodeState node) {
         pendingDependencies.addNode(node);
     }
-
 
     public void maybeUpdateSelection() {
         if (replaced) {

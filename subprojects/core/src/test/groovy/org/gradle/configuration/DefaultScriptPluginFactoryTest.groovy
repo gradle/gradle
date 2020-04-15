@@ -15,21 +15,15 @@
  */
 package org.gradle.configuration
 
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectScript
-import org.gradle.api.internal.resources.ApiTextResourceAdapter
-import org.gradle.api.provider.ProviderFactory
+import org.gradle.configuration.project.DefaultCompileOperationFactory
 import org.gradle.groovy.scripts.BasicScript
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.ScriptCompiler
@@ -41,20 +35,13 @@ import org.gradle.groovy.scripts.internal.NoDataCompileOperation
 import org.gradle.internal.Factory
 import org.gradle.internal.classloader.ClasspathHasher
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.file.Deleter
-import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
-import org.gradle.internal.hash.StreamHasher
 import org.gradle.internal.logging.LoggingManagerInternal
-import org.gradle.internal.reflect.Instantiator
-import org.gradle.internal.resource.TextFileResourceLoader
-import org.gradle.internal.resource.TextUriResourceLoader
+import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceRegistry
-import org.gradle.model.internal.inspect.ModelRuleSourceDetector
 import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.management.internal.autoapply.AutoAppliedPluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
-import org.gradle.process.internal.ExecFactory
 import spock.lang.Specification
 
 class DefaultScriptPluginFactoryTest extends Specification {
@@ -64,51 +51,26 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def scriptSource = Mock(ScriptSource)
     def scriptRunner = Mock(ScriptRunner)
     def script = Mock(BasicScript)
-    def instantiator = Mock(Instantiator)
     def targetScope = Mock(ClassLoaderScope)
     def baseScope = Mock(ClassLoaderScope)
     def baseChildClassLoader = Mock(ClassLoader)
-    def scriptHandlerFactory = Mock(ScriptHandlerFactory)
     def pluginRequestApplicator = Mock(PluginRequestApplicator)
     def scriptHandler = Mock(ScriptHandlerInternal)
     def classPathScriptRunner = Mock(ScriptRunner)
     def loggingManagerFactory = Mock(Factory) as Factory<LoggingManagerInternal>
     def loggingManager = Mock(LoggingManagerInternal)
-    def fileLookup = TestFiles.fileLookup()
-    def directoryFileTreeFactory = Mock(DirectoryFileTreeFactory)
     def documentationRegistry = Mock(DocumentationRegistry)
     def classpathHasher = Mock(ClasspathHasher)
-    def providerFactory = Mock(ProviderFactory)
-    def textResourceLoader = Mock(TextFileResourceLoader)
-    def textUriResourceLoaderFactory = Mock(TextUriResourceLoader.Factory)
-    def textResourceAdapterFactory = Mock(ApiTextResourceAdapter.Factory)
-    def streamHasher = Mock(StreamHasher)
-    def fileHasher = Mock(FileHasher)
-    def execFactory = Mock(ExecFactory)
     def autoAppliedPluginHandler = Mock(AutoAppliedPluginHandler)
-    def deleter = Mock(Deleter)
+    def compileOperationsFactory = new DefaultCompileOperationFactory(documentationRegistry)
 
     def factory = new DefaultScriptPluginFactory(
+        new DefaultServiceRegistry(),
         scriptCompilerFactory,
         loggingManagerFactory,
-        instantiator,
-        scriptHandlerFactory,
-        pluginRequestApplicator,
-        TestFiles.fileSystem(),
-        fileLookup,
-        directoryFileTreeFactory,
-        documentationRegistry,
-        new ModelRuleSourceDetector(),
-        providerFactory,
-        textResourceLoader,
-        textUriResourceLoaderFactory,
-        textResourceAdapterFactory,
-        streamHasher,
-        fileHasher,
-        execFactory,
-        Stub(FileCollectionFactory),
         autoAppliedPluginHandler,
-        deleter
+        pluginRequestApplicator,
+        compileOperationsFactory
     )
 
     def setup() {

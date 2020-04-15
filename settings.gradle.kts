@@ -24,7 +24,7 @@ pluginManagement {
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.1")
+    id("com.gradle.enterprise").version("3.2.1")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
@@ -109,6 +109,7 @@ include("compositeBuilds")
 include("workers")
 include("runtimeApiInfo")
 include("persistentCache")
+include("buildCacheBase")
 include("buildCache")
 include("coreApi")
 include("versionControl")
@@ -129,9 +130,10 @@ include("kotlinDslToolingBuilders")
 include("kotlinDslTestFixtures")
 include("kotlinDslIntegTests")
 include("workerProcesses")
-include("pineapple")
+include("baseAnnotations")
 include("samples")
 include("security")
+include("normalizationJava")
 
 val upperCaseLetters = "\\p{Upper}".toRegex()
 

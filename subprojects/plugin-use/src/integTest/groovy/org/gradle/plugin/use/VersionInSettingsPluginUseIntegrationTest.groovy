@@ -33,6 +33,8 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
     MavenHttpPluginRepository pluginRepo = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
     def setup() {
+        // https://github.com/gradle/build-tool-flaky-tests/issues/49
+        executer.requireOwnGradleUserHomeDir()
         publishPlugin("1.0")
         publishPlugin("2.0")
         withSettings """
@@ -126,13 +128,13 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         settingsFile << "include 'p1', 'p2'"
 
         file("p1/build.gradle") << """
-            plugins { 
-                id '$PLUGIN_ID' 
+            plugins {
+                id '$PLUGIN_ID'
             }
             ${verifyPluginTask('1.0')}
 """
         file("p2/build.gradle") << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID' version '2.0'
             }
             ${verifyPluginTask('2.0')}
@@ -148,13 +150,13 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
         settingsFile << "include 'p1'"
 
         buildFile << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID' version '2.0'
             }
             ${verifyPluginTask('2.0')}
 """
         file("p1/build.gradle") << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID'
             }
             ${verifyPluginTask('2.0')}
@@ -173,7 +175,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
                     classpath "my:plugin:2.0"
                 }
             }
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID'
             }
 """
@@ -194,7 +196,7 @@ class VersionInSettingsPluginUseIntegrationTest extends AbstractIntegrationSpec 
             }
 """
         buildFile << """
-            plugins { 
+            plugins {
                 id '$PLUGIN_ID'
             }
 """

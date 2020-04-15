@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.internal.SystemProperties
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.GradleVersion
 
 abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpec {
 
@@ -40,12 +39,15 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
     }
 
     void expectDeprecationWarnings() {
-        executer.expectDeprecationWarning("The ${app.languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The ${app.languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["JavaLanguageIntegrationTest", "JvmApiSpecIntegrationTest"])
     def "can build binary with sources in conventional location"() {
         when:
         app.writeSources(file("src/myLib"))
@@ -75,7 +77,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(expectedOutputs)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["JavaLanguageIntegrationTest", "JvmApiSpecIntegrationTest"])
     def "generated binary includes compiled classes from all language source sets"() {
         setup:
         def extraSourceSetName = "extra${app.languageName}"
@@ -112,7 +114,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jar.hasDescendants(source1.classFile.fullPath, source2.classFile.fullPath)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["JavaLanguageIntegrationTest", "JvmApiSpecIntegrationTest"])
     def "can configure source locations for language and resource source sets"() {
         setup:
         def customSourceSetName = "my${app.languageName}"
@@ -148,7 +150,7 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["JavaLanguageIntegrationTest", "JvmApiSpecIntegrationTest"])
     def "can combine resources and sources in a single source directory"() {
         when:
         app.writeSources(file("src/myLib"))
@@ -176,16 +178,16 @@ abstract class AbstractJvmLanguageIntegrationTest extends AbstractIntegrationSpe
         succeeds "assemble"
 
         then:
-        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath as String[])
-        file("build/resources/myLib/jar").assertHasDescendants(app.resources*.fullPath as String[])
+        file("build/classes/myLib/jar").assertHasDescendants(app.expectedClasses*.fullPath)
+        file("build/resources/myLib/jar").assertHasDescendants(app.resources*.fullPath, true)
         jarFile("build/jars/myLib/jar/myLib.jar").hasDescendants(app.expectedOutputs*.fullPath as String[])
     }
 
     def excludeStatementFor(List<String> fileExtensions) {
-        fileExtensions.collect{"exclude '**/*.${it}'"}.join(SystemProperties.instance.lineSeparator)
+        fileExtensions.collect { "exclude '**/*.${it}'" }.join(SystemProperties.instance.lineSeparator)
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = ["JavaLanguageIntegrationTest", "JvmApiSpecIntegrationTest"])
     def "can configure output directories for classes and resources"() {
         when:
         app.writeSources(file("src/myLib"))

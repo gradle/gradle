@@ -18,7 +18,7 @@ package org.gradle.internal.execution.steps
 
 import com.google.common.collect.ImmutableList
 import org.gradle.caching.BuildCacheKey
-import org.gradle.caching.internal.command.BuildCacheCommandFactory
+import org.gradle.caching.internal.controller.BuildCacheCommandFactory
 import org.gradle.caching.internal.controller.BuildCacheController
 import org.gradle.caching.internal.controller.BuildCacheLoadCommand
 import org.gradle.caching.internal.controller.BuildCacheStoreCommand
@@ -27,6 +27,7 @@ import org.gradle.internal.Try
 import org.gradle.internal.execution.CurrentSnapshotResult
 import org.gradle.internal.execution.ExecutionOutcome
 import org.gradle.internal.execution.IncrementalChangesContext
+import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.UnitOfWork
 import org.gradle.internal.execution.caching.CachingDisabledReason
 import org.gradle.internal.execution.caching.CachingDisabledReasonCategory
@@ -41,8 +42,9 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
     def cachingState = Mock(CachingState)
     def loadMetadata = Mock(BuildCacheCommandFactory.LoadMetadata)
     def deleter = Mock(Deleter)
+    def outputChangeListener = Mock(OutputChangeListener)
 
-    def step = new CacheStep(buildCacheController, buildCacheCommandFactory, deleter, delegate)
+    def step = new CacheStep(buildCacheController, buildCacheCommandFactory, deleter, outputChangeListener, delegate)
     def delegateResult = Mock(CurrentSnapshotResult)
 
     @Override
@@ -77,6 +79,7 @@ class CacheStepTest extends StepSpec<IncrementalChangesContext> implements Finge
         _ * work.visitLocalState(_) >> { UnitOfWork.LocalStateVisitor visitor ->
             visitor.visitLocalStateRoot(localStateFile)
         }
+        1 * outputChangeListener.beforeOutputChange([localStateFile.getAbsolutePath()])
         1 * deleter.deleteRecursively(_) >> { File root ->
             assert root == localStateFile
             return true

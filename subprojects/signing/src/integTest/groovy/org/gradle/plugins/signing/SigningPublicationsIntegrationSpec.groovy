@@ -234,8 +234,8 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
     }
 
     @ToBeFixedForInstantExecution
-    def "disallows signing Gradle metadata if version is a snapshot"() {
-        given:
+    def "allows signing Gradle metadata if version is a snapshot"() {
+        when:
         buildFile << """
             apply plugin: 'maven-publish'
             ${keyInfo.addAsPropertiesScript()}
@@ -256,41 +256,8 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
             }
         """
 
-        when:
-        fails "signMavenPublication"
-
         then:
-        failure.assertHasCause("Signing Gradle Module Metadata is not supported for snapshot dependencies.")
-    }
-
-    @ToBeFixedForInstantExecution
-    def "with signing not required, does not fail on Gradle metadata if version is a snapshot"() {
-        given:
-        buildFile << """
-            apply plugin: 'maven-publish'
-
-            version = '1.0-SNAPSHOT'
-
-            publishing {
-                publications {
-                    maven(MavenPublication) {
-                        from components.java
-                    }
-                }
-            }
-            signing {
-                required { false }
-                sign publishing.publications.maven
-            }
-
-        """
-
-        when:
         succeeds "signMavenPublication"
-
-        then:
-        notExecuted "signMavenPublication"
-
     }
 
     @ToBeFixedForInstantExecution
@@ -398,8 +365,11 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         ivyRepoFile("ivy-${version}.xml.asc").assertExists()
         ivyRepoFile("$artifactId-${version}-source.jar").assertExists()
         ivyRepoFile("$artifactId-${version}-source.jar.asc").assertExists()
-        ivyRepoFile("$artifactId-${version}.module").assertExists()
-        ivyRepoFile("$artifactId-${version}.module.asc").assertExists()
+        ivyRepoFile("$artifactId-${version}.module").assertDoesNotExist()
+        ivyRepoFile("$artifactId-${version}.module.asc").assertDoesNotExist()
+
+        and:
+        outputContains "Publication of Gradle Module Metadata is disabled because you have configured an Ivy repository with a non-standard layout"
     }
 
     @ToBeFixedForInstantExecution
@@ -614,6 +584,122 @@ class SigningPublicationsIntegrationSpec extends SigningIntegrationSpec {
         and:
         pom().assertExists()
         pomSignature().assertDoesNotExist()
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/5136")
+    def "doesn't publish stale signatures"() {
+        buildFile << """
+            apply plugin: 'ivy-publish'
+            apply plugin: 'maven-publish'
+
+            ${keyInfo.addAsPropertiesScript()}
+
+            publishing {
+                publications {
+                    ivy(IvyPublication) {
+                        from components.java
+                        module '$artifactId'
+                    }
+                    maven(MavenPublication) {
+                        from components.java
+                        artifactId '$artifactId'
+                    }
+                }
+                repositories {
+                    maven {
+                        url "file://\$buildDir/m2Repo/"
+                    }
+                    ivy {
+                        url "file://\$buildDir/ivyRepo/"
+                        patternLayout {
+                            artifact "[artifact]-[revision](-[classifier])(.[ext])"
+                            ivy "[artifact]-[revision](-[classifier])(.[ext])"
+                        }
+                    }
+                }
+            }
+
+            signing {
+                ${signingConfiguration()}
+                sign publishing.publications
+            }
+
+            tasks.register("cleanRepo") {
+                doLast {
+                    new File("\${buildDir}/m2Repo").deleteDir()
+                    new File("\${buildDir}/ivyRepo").deleteDir()
+                }
+            }
+            def sign = project.getProperty("sign")
+            if (sign == 'skip') {
+                tasks.withType(Sign)*.onlyIf { false }
+            } else {
+                tasks.withType(Sign)*.enabled = Boolean.valueOf(sign)
+            }
+
+        """
+
+        when:
+        succeeds "publish", "-Psign=true"
+
+        then:
+        executedAndNotSkipped(":signIvyPublication", ":publishIvyPublicationToIvyRepository")
+        executedAndNotSkipped(":signMavenPublication", ":publishMavenPublicationToMavenRepository")
+
+        and:
+        pom().assertExists()
+        pomSignature().assertExists()
+        module().assertExists()
+        moduleSignature().assertExists()
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertExists()
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertExists()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertExists()
+
+        when:
+        succeeds "cleanRepo", "publish", "-Psign=false"
+
+        then:
+        skipped(":signIvyPublication")
+        skipped(":signMavenPublication")
+        executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
+        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
+
+        and:
+        pom().assertExists()
+        pomSignature().assertDoesNotExist()
+        module().assertExists()
+        moduleSignature().assertDoesNotExist()
+        m2RepoFile(jarFileName).assertExists()
+        m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile(jarFileName).assertExists()
+        ivyRepoFile("${jarFileName}.asc").assertDoesNotExist()
+        ivyRepoFile("ivy-${version}.xml").assertExists()
+        ivyRepoFile("ivy-${version}.xml.asc").assertDoesNotExist()
+
+        when:
+        succeeds "cleanRepo", "publish", "-Psign=skip"
+
+        then:
+        skipped(":signIvyPublication")
+        skipped(":signMavenPublication")
+        executedAndNotSkipped(":publishIvyPublicationToIvyRepository")
+        executedAndNotSkipped(":publishMavenPublicationToMavenRepository")
+
+        and:
+        pom().assertExists()
+        pomSignature().assertDoesNotExist()
+        module().assertExists()
+        moduleSignature().assertDoesNotExist()
         m2RepoFile(jarFileName).assertExists()
         m2RepoFile("${jarFileName}.asc").assertDoesNotExist()
         ivyRepoFile(jarFileName).assertExists()

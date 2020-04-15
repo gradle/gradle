@@ -37,7 +37,7 @@ class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescripto
     private final ComponentIdentifier componentId = new OpaqueComponentIdentifier("foo")
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
 
     def canConvert() {
         expect:

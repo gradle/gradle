@@ -53,11 +53,11 @@ public class PlatformJvmServices extends AbstractPluginServiceRegistry {
     @Override
     public void registerBuildTreeServices(ServiceRegistration registration) {
         registration.add(JavaInstallationProbe.class);
-        registration.add(DefaultJavaInstallationRegistry.class);
     }
 
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
+        registration.add(DefaultJavaInstallationRegistry.class);
         registration.addProvider(new BuildScopeServices());
     }
 

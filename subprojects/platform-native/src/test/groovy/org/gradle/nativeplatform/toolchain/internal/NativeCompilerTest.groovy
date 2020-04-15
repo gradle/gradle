@@ -42,7 +42,7 @@ import spock.lang.Unroll
 import java.util.concurrent.Executor
 
 abstract class NativeCompilerTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(tmpDirProvider.root))
     private static final String O_EXT = ".o"

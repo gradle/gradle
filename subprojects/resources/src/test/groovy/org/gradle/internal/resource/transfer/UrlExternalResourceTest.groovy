@@ -25,7 +25,7 @@ import spock.lang.Specification
 
 class UrlExternalResourceTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "can read file"() {
         def file = tmpDir.createFile("content")

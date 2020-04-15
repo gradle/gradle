@@ -16,8 +16,11 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class CustomPluginObjectFactoryIntegrationTest extends AbstractIntegrationSpec {
+
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "plugin can create unnamed instances of class using injected factory"() {
         buildFile << """
             

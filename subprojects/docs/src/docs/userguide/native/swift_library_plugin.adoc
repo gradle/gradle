@@ -286,7 +286,7 @@ Some of the most common configuration options are shown below.
 [horizontal]
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:outputFile[outputFile]:: `$buildDir/lib/main/__variant__/libModule.a`
 
-link:{groovyDslPath/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:source[source]:: `compile__Variant__Swift.objects`
+link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:source[source]:: `compile__Variant__Swift.objects`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.tasks.CreateStaticLibrary.html#org.gradle.nativeplatform.tasks.CreateStaticLibrary:staticLibArgs[staticLibArgs]:: []
 

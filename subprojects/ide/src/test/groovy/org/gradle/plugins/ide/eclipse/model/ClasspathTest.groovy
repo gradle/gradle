@@ -40,7 +40,7 @@ public class ClasspathTest extends Specification {
     private final Classpath classpath = new Classpath(new XmlTransformer(), fileReferenceFactory)
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         fileReferenceFactory.addPathVariable("USER_LIB_PATH", new File('/user/lib/path'))

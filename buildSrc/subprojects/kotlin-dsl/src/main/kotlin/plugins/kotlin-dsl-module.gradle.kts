@@ -19,10 +19,7 @@
  *
  * The assembled jar will:
  *  - be named after `base.archivesBaseName`
- *  - include all sources
  */
-
-import accessors.sourceSets
 
 plugins {
     id("kotlin-library")
@@ -30,12 +27,6 @@ plugins {
 
 // including all sources
 tasks.jar {
-    val main by sourceSets.getting
-    from(main.allSource) {
-        // prevent duplicated zip entries
-        // see https://github.com/gradle/gradle/issues/10005
-        exclude { it.file in main.resources }
-    }
     manifest.attributes.apply {
         put("Implementation-Title", "Gradle Kotlin DSL (${project.name})")
         put("Implementation-Version", archiveVersion.get())

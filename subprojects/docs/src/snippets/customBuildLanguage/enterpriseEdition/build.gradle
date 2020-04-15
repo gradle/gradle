@@ -1,4 +1,6 @@
-apply plugin: 'product'
+plugins {
+    id 'product'
+}
 
 // A custom build element. This defines the product to build
 product {

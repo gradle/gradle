@@ -17,30 +17,28 @@
 package org.gradle.process.internal
 
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.process.internal.worker.RequestHandler
 import org.gradle.process.internal.worker.WorkerProcessException
-import org.gradle.util.TextUtil
-import spock.lang.Ignore
 import spock.lang.Timeout
 
 @Timeout(120)
 class SingleRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
-    def "runs method in worker process and returns the result"() {
+    def "runs methods in worker process and returns the result"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestWorker.class)
         def worker = builder.build()
-        def result = worker.convert("abc", 12)
+        def result = worker.run(12.toLong())
 
         then:
-        result == "[abc 12]"
+        result == "[12]"
     }
 
     def "infers worker implementation classpath"() {
         given:
         def cl = compileToDirectoryAndLoad("CustomTestWorker", """
-import ${TestProtocol.name}
-class CustomTestWorker implements TestProtocol {
-    Object convert(String param1, long param2) { return new CustomResult() }
-    void doSomething() { }
+import ${RequestHandler.name}
+class CustomTestWorker implements RequestHandler<Long, Object> {
+    Object run(Long request) { return new CustomResult() }
 }
 
 class CustomResult implements Serializable {
@@ -49,9 +47,9 @@ class CustomResult implements Serializable {
 """)
 
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, cl)
+        def builder = workerFactory.singleRequestWorker(cl)
         def worker = builder.build()
-        def result = worker.convert("abc", 12)
+        def result = worker.run(12.toLong())
 
         then:
         result.toString() == "custom-result"
@@ -59,92 +57,75 @@ class CustomResult implements Serializable {
 
     def "runs method in worker process and returns null"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestWorker.class)
         def worker = builder.build()
-        def result = worker.convert(null, 12)
+        def result = worker.run(null)
 
         then:
         result == null
     }
 
-    def "runs method in worker process and returns void result"() {
-        when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
-        def worker = builder.build()
-        worker.doSomething()
-
-        then:
-        outputEventListener.toString().contains(TextUtil.toPlatformLineSeparators("[[QUIET] [system.out] <Normal>Ok, did it\n</Normal>"))
-    }
-
     def "propagates failure thrown by method in worker process"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, BrokenTestWorker.class)
+        def builder = workerFactory.singleRequestWorker(BrokenTestWorker.class)
         def worker = builder.build()
-        worker.convert("abc", 12)
+        worker.run("abc")
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Could not convert [abc, 12]'
+        e.message == 'Could not convert abc'
     }
 
-    @Ignore
-    def "can reuse worker proxy to run multiple worker processes"() {
-        when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
-        def worker = builder.build()
-        def result1 = worker.convert("abc", 12)
-        def result2 = worker.convert(null, 12)
-        def result3 = worker.convert("d", 11)
-
-        then:
-        result1 == "[abc 12]"
-        result2 == null
-        result3 == "[d 11]"
-    }
-
-    def "propagates failure to load worker implementation class"() {
+    def "reports failure to load worker implementation class"() {
         given:
         def cl = compileWithoutClasspath("CustomTestWorker", """
-import ${TestProtocol.name}
-class CustomTestWorker implements TestProtocol {
-    Object convert(String param1, long param2) { return param1 + ":" + param2 }
-    void doSomething() { }
+import ${RequestHandler.name}
+class CustomTestWorker implements RequestHandler<Long, Object> {
+    Object run(Long request) { throw new RuntimeException() }
 }
 """)
 
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, cl)
+        def builder = workerFactory.singleRequestWorker(cl)
         builder.baseName = 'broken worker'
         def worker = builder.build()
-        worker.convert("abc", 12)
+        worker.run(12.toLong())
 
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
         e.cause instanceof ClassNotFoundException
+
+        and:
+        stdout.stdOut == ""
+        stdout.stdErr == ""
     }
 
-    def "propagates failure to instantiate worker implementation instance"() {
+    def "reports failure to instantiate worker implementation instance"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestProtocol.class)
+        def builder = workerFactory.singleRequestWorker(RequestHandler.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
-        worker.convert("abc", 12)
+        worker.run("abc")
 
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
         e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type ${RequestHandler.name}."
+
+        and:
+        stdout.stdOut == ""
+        stdout.stdErr == ""
     }
 
     def "propagates failure to start worker process"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, TestWorker.class)
+        def builder = workerFactory.singleRequestWorker(TestWorker.class)
         builder.baseName = 'broken worker'
         builder.javaCommand.jvmArgs("-broken")
         def worker = builder.build()
-        worker.convert("abc", 12)
+        worker.run(12.toLong())
 
         then:
         def e = thrown(WorkerProcessException)
@@ -155,10 +136,10 @@ class CustomTestWorker implements TestProtocol {
 
     def "reports failure when worker halts handling request"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, CrashingWorker.class)
+        def builder = workerFactory.singleRequestWorker(CrashingWorker.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
-        worker.convert("halt", 0)
+        worker.run("halt-ok")
 
         then:
         def e = thrown(WorkerProcessException)
@@ -169,30 +150,15 @@ class CustomTestWorker implements TestProtocol {
 
     def "reports failure when worker crashes handling request"() {
         when:
-        def builder = workerFactory.singleRequestWorker(TestProtocol.class, CrashingWorker.class)
+        def builder = workerFactory.singleRequestWorker(CrashingWorker.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
-        worker.convert("halt", 12)
+        worker.run("halt")
 
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
         e.cause instanceof ExecException
         e.cause.message == "Process 'broken worker 1' finished with non-zero exit value 12"
-    }
-
-    @Ignore
-    def "reports failure when worker does not receive request within expected time"() {
-        expect: false
-    }
-
-    @Ignore
-    def "reports failure when worker does not connect within expected time"() {
-        expect: false
-    }
-
-    @Ignore
-    def "reports failure when worker does not stop within expected time"() {
-        expect: false
     }
 }

@@ -22,7 +22,7 @@ import spock.lang.Specification
 import spock.lang.Unroll
 
 class SingleDepthFilesFinderTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Unroll
     def "finds files for depth #depth"() {

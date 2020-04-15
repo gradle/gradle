@@ -136,11 +136,11 @@ Instead, Gradle will dynamically generate a module descriptor (without any depen
 [NOTE]
 ====
 As Gradle prefers to use modules whose descriptor has been created from real meta-data rather than being generated, flat directory repositories cannot be used to override artifacts with real meta-data from other repositories declared in the build.
-====
 
 For example, if Gradle finds only `jmxri-1.2.1.jar` in a flat directory repository, but `jmxri-1.2.1.pom` in another repository that supports meta-data, it will use the second repository to provide the module.
 
 For the use case of overriding remote artifacts with local ones consider using an Ivy or Maven repository instead whose URL points to a local directory.
+====
 
 If you only work with flat directory repositories you don't need to set all attributes of a dependency.
 
@@ -335,6 +335,7 @@ There are different use cases for it:
 
 It's even more important when considering that the declared order of repositories matter.
 
+[[sec:declaring-repository-filter]]
 === Declaring a repository filter
 
 .Declaring repository contents
@@ -351,6 +352,26 @@ By default, repositories include everything and exclude nothing:
 
 It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
 See link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[RepositoryContentDescriptor] for details.
+
+=== Declaring content exclusively found in one repository
+
+Filters declared using the <<#sec:declaring-repository-filter,repository-level content filter>> are not exclusive.
+This means that declaring that a repository _includes_ an artifact doesn't mean that the other repositories can't have it either: you must declare what every repository contains in extension.
+
+Alternatively, Gradle provides an API which lets you declare that a repository _exclusively includes_ an artifact.
+If you do so:
+
+- an artifact declared in a repository _can't_ be found in any other
+- exclusive repository content must be declared in extension (just like for <<#sec:declaring-repository-filter, repository-level content>>)
+
+.Declaring exclusive repository contents
+====
+include::sample[dir="snippets//userguide/dependencyManagement/declaringRepositories/filtering/groovy",files="build.gradle[tags=exclusive-repository-filter]"]
+include::sample[dir="snippets//userguide/dependencyManagement/declaringRepositories/filtering/kotlin",files="build.gradle.kts[tags=exclusive-repository-filter]"]
+====
+
+It is possible to filter either by explicit _group_, _module_ or _version_, either strictly or using regular expressions.
+See link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[InclusiveRepositoryContentDescriptor] for details.
 
 === Maven repository filtering
 
@@ -555,7 +576,6 @@ include::sample[dir="snippets/userguide/artifacts/defineRepository/groovy",files
 include::sample[dir="snippets/userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=authenticated-maven-repo]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/artifacts/defineRepository`** in the ‘-all’ distribution of Gradle.
 
 The following example show how to configure a repository to use only link:{javadocPath}/org/gradle/authentication/http/DigestAuthentication.html[DigestAuthentication]:
 
@@ -579,7 +599,10 @@ Authentication based on any custom HTTP header, e.g. private tokens, OAuth token
 [[sub:preemptive_authentication]]
 === Using preemptive authentication
 
-Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of a HTTP 401 response. In some cases, the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail. To get around this behavior, credentials may be sent to the server preemptively. To enable preemptive authentication simply configure your repository to explicitly use the link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication] scheme:
+Gradle's default behavior is to only submit credentials when a server responds with an authentication challenge in the form of an HTTP 401 response.
+In some cases, the server will respond with a different code (ex. for repositories hosted on GitHub a 404 is returned) causing dependency resolution to fail.
+To get around this behavior, credentials may be sent to the server preemptively.
+To enable preemptive authentication simply configure your repository to explicitly use the link:{javadocPath}/org/gradle/authentication/http/BasicAuthentication.html[BasicAuthentication] scheme:
 
 .Configure repository to use preemptive authentication
 ====
@@ -598,7 +621,6 @@ include::sample[dir="snippets/userguide/artifacts/defineRepository/groovy",files
 include::sample[dir="snippets/userguide/artifacts/defineRepository/kotlin",files="build.gradle.kts[tags=header-authenticated-maven-repo]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/artifacts/defineRepository`** in the ‘-all’ distribution of Gradle.
 
 [[sec:s3-repositories]]
 == AWS S3 repositories configuration
@@ -639,7 +661,7 @@ A proxy for S3 can be configured using the following system properties:
 * `https.proxyPort`
 * `https.proxyUser`
 * `https.proxyPassword`
-* `http.nonProxyHosts`
+* `https.nonProxyHosts`
 
 If the `org.gradle.s3.endpoint` property has been specified with a HTTP (not HTTPS) URI the following system proxy settings can be used:
 

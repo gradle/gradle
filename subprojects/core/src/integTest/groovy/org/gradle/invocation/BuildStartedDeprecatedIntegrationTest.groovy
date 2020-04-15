@@ -17,13 +17,15 @@
 package org.gradle.invocation
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution
 class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
     private static final String INIT_FILE_NAME = "init.gradle"
 
     @Unroll
-    def "shows deprecation warning when adding build listener through Gradle.addBuildListener that override the BuildAdapter#buildStarted after the build was started (#fromScript)"() {
+    def "shows deprecation warning when adding build listener through Gradle.addBuildListener that override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
             gradle.addBuildListener(new BuildAdapter() {
@@ -36,7 +38,8 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDeprecationWarning("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("The BuildListener.buildStarted(Gradle) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
         run "help"
 
         where:
@@ -47,7 +50,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "shows deprecation warning when adding build listener through Gradle.addListener that override the BuildAdapter#buildStarted after the build was started (#fromScript)"() {
+    def "shows deprecation warning when adding build listener through Gradle.addListener that override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
             gradle.addListener(new BuildAdapter() {
@@ -60,7 +63,8 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDeprecationWarning("BuildListener#buildStarted(Gradle) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("The BuildListener.buildStarted(Gradle) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
         run "help"
 
         where:
@@ -85,8 +89,10 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
         executer.usingInitScript(initScriptFile)
 
         expect:
-        executer.expectDeprecationWarning("Gradle#buildStarted(Action) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning("Gradle#buildStarted(Closure) has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("The Gradle.buildStarted(Action) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
+        executer.expectDocumentedDeprecationWarning("The Gradle.buildStarted(Closure) method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
         run "help"
 
         where:
@@ -97,7 +103,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "does not shows deprecation warning when adding build listener through Gradle.addBuildListener that does not override the BuildAdapter#buildStarted after the build was started (#fromScript)"() {
+    def "does not show deprecation warning when adding build listener through Gradle.addBuildListener that does not override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
             gradle.addBuildListener(new BuildAdapter() {
@@ -120,7 +126,7 @@ class BuildStartedDeprecatedIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "does not shows deprecation warning when adding build listener through Gradle.addListener that does not override the BuildAdapter#buildStarted after the build was started (#fromScript)"() {
+    def "does not shows deprecation warning when adding build listener through Gradle.addListener that does not override the BuildAdapter.buildStarted after the build was started (#fromScript)"() {
         def initScriptFile = file(INIT_FILE_NAME).touch()
         file(scriptFile) << """
             gradle.addListener(new BuildAdapter() {

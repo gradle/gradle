@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.repositories.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.ComponentMetadataListerDetails;
 import org.gradle.api.artifacts.ComponentMetadataSupplierDetails;
 import org.gradle.api.artifacts.ModuleIdentifier;
@@ -34,7 +33,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MetadataArtifactP
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.component.ArtifactType;
-import org.gradle.api.specs.Spec;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.action.InstantiatingAction;
 import org.gradle.internal.component.external.ivypublish.IvyModuleArtifactPublishMetadata;
@@ -235,12 +233,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     private List<ResourcePattern> filterComplete(List<ResourcePattern> ivyPatterns, final ModuleIdentifier module) {
-        return CollectionUtils.filter(ivyPatterns, new Spec<ResourcePattern>() {
-            @Override
-            public boolean isSatisfiedBy(ResourcePattern element) {
-                return element.isComplete(module);
-            }
-        });
+        return CollectionUtils.filter(ivyPatterns, element -> element.isComplete(module));
     }
 
     protected void doResolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata prescribedMetaData, BuildableModuleComponentMetaDataResolveResult result) {
@@ -368,21 +361,11 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     }
 
     public List<String> getIvyPatterns() {
-        return CollectionUtils.collect(ivyPatterns, new Transformer<String, ResourcePattern>() {
-            @Override
-            public String transform(ResourcePattern original) {
-                return original.getPattern();
-            }
-        });
+        return CollectionUtils.collect(ivyPatterns, ResourcePattern::getPattern);
     }
 
     public List<String> getArtifactPatterns() {
-        return CollectionUtils.collect(artifactPatterns, new Transformer<String, ResourcePattern>() {
-            @Override
-            public String transform(ResourcePattern original) {
-                return original.getPattern();
-            }
-        });
+        return CollectionUtils.collect(artifactPatterns, ResourcePattern::getPattern);
     }
 
     protected void setIvyPatterns(Iterable<? extends ResourcePattern> patterns) {

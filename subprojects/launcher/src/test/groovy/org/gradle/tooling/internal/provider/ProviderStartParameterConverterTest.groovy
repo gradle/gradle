@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProviderStartParameterConverterTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temp
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     def params = Stub(ProviderOperationParameters)
 
     def "allows configuring the start parameter with build arguments"() {

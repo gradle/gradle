@@ -16,7 +16,6 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
@@ -34,6 +33,8 @@ import org.gradle.api.internal.component.DefaultSoftwareComponentContainer;
 import org.gradle.api.internal.file.DefaultSourceDirectorySetFactory;
 import org.gradle.api.internal.file.DefaultTemporaryFileProvider;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.SourceDirectorySetFactory;
 import org.gradle.api.internal.file.TemporaryFileProvider;
@@ -56,6 +57,7 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.project.ant.DefaultAntLoggingAdapterFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.resources.ApiTextResourceAdapter;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
@@ -74,13 +76,13 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.instantiation.InstantiatorFactory;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.DefaultServiceRegistry;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.DefaultManagedFactoryRegistry;
 import org.gradle.internal.state.ManagedFactoryRegistry;
@@ -101,7 +103,6 @@ import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Supplier;
 
 /**
  * Contains the services for a given project.
@@ -114,14 +115,11 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         super(parent);
         this.project = project;
         this.loggingManagerInternalFactory = loggingManagerInternalFactory;
-        register(new Action<ServiceRegistration>() {
-            @Override
-            public void execute(ServiceRegistration registration) {
-                registration.add(DomainObjectContext.class, project);
-                parent.get(DependencyManagementServices.class).addDslServices(registration, project);
-                for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
-                    pluginServiceRegistry.registerProjectServices(registration);
-                }
+        register(registration -> {
+            registration.add(DomainObjectContext.class, project);
+            parent.get(DependencyManagementServices.class).addDslServices(registration, project);
+            for (PluginServiceRegistry pluginServiceRegistry : parent.getAll(PluginServiceRegistry.class)) {
+                pluginServiceRegistry.registerProjectServices(registration);
             }
         });
         addProvider(new WorkerSharedProjectScopeServices(project.getProjectDir()));
@@ -162,17 +160,12 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         );
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory) {
-        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiatorFactory.decorateLenient(), objectFactory, javaModuleDetector);
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(new Factory<File>() {
-            @Override
-            public File create() {
-                return new File(project.getBuildDir(), "tmp");
-            }
-        });
+        return new DefaultTemporaryFileProvider(() -> new File(project.getBuildDir(), "tmp"));
     }
 
     protected Factory<AntBuilder> createAntBuilderFactory() {
@@ -201,7 +194,17 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected TaskContainerInternal createTaskContainerInternal(TaskStatistics taskStatistics, BuildOperationExecutor buildOperationExecutor, CrossProjectConfigurator crossProjectConfigurator, CollectionCallbackActionDecorator decorator) {
-        return new DefaultTaskContainerFactory(get(ModelRegistry.class), get(Instantiator.class), get(ITaskFactory.class), project, get(ProjectAccessListener.class), taskStatistics, buildOperationExecutor, crossProjectConfigurator, decorator).create();
+        return new DefaultTaskContainerFactory(
+            get(ModelRegistry.class),
+            get(Instantiator.class),
+            get(ITaskFactory.class),
+            project,
+            get(ProjectAccessListener.class),
+            taskStatistics,
+            buildOperationExecutor,
+            crossProjectConfigurator,
+            decorator
+        ).create();
     }
 
     protected SoftwareComponentContainer createSoftwareComponentContainer(CollectionCallbackActionDecorator decorator) {
@@ -210,12 +213,7 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ProjectFinder createProjectFinder(final BuildStateRegistry buildStateRegistry) {
-        return new DefaultProjectFinder(buildStateRegistry, new Supplier<ProjectInternal>() {
-            @Override
-            public ProjectInternal get() {
-                return project;
-            }
-        });
+        return new DefaultProjectFinder(buildStateRegistry, () -> project);
     }
 
     protected ModelRegistry createModelRegistry(ModelRuleExtractor ruleExtractor) {
@@ -233,6 +231,10 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
             scriptClassPathResolver,
             instantiator);
         return factory.create(project.getBuildScriptSource(), project.getClassLoaderScope(), new ScriptScopedContext(project));
+    }
+
+    protected PropertyHost createPropertyHost() {
+        return new ProjectBackedPropertyHost(project);
     }
 
     private static class ScriptScopedContext implements DomainObjectContext {
@@ -284,11 +286,8 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
     }
 
     protected ServiceRegistryFactory createServiceRegistryFactory(final ServiceRegistry services) {
-        return new ServiceRegistryFactory() {
-            @Override
-            public ServiceRegistry createFor(Object domainObject) {
-                throw new UnsupportedOperationException();
-            }
+        return domainObject -> {
+            throw new UnsupportedOperationException();
         };
     }
 
@@ -328,12 +327,13 @@ public class ProjectScopeServices extends DefaultServiceRegistry {
         return new DefaultDomainObjectCollectionFactory(instantiatorFactory, services, collectionCallbackActionDecorator, MutationGuards.of(projectConfigurator));
     }
 
-    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, TaskDependencyFactory taskDependencyFactory) {
+    protected ManagedFactoryRegistry createManagedFactoryRegistry(ManagedFactoryRegistry parent, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry(parent).withFactories(
-            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
-            new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(fileResolver),
-            new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileResolver, fileCollectionFactory),
-            new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory)
+            new ManagedFactories.ConfigurableFileCollectionManagedFactory(fileCollectionFactory),
+            new org.gradle.api.internal.file.ManagedFactories.RegularFilePropertyManagedFactory(filePropertyFactory),
+            new org.gradle.api.internal.file.ManagedFactories.DirectoryManagedFactory(fileFactory),
+            new org.gradle.api.internal.file.ManagedFactories.DirectoryPropertyManagedFactory(filePropertyFactory)
         );
     }
+
 }

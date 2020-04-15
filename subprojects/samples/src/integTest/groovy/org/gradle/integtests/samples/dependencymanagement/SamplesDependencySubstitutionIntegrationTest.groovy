@@ -17,17 +17,13 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.util.Requires
 import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -35,7 +31,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run sample with all external dependencies with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -56,7 +52,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run sample with some internal projects with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 

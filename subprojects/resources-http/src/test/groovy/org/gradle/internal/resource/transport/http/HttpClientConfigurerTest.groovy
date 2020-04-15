@@ -15,23 +15,14 @@
  */
 package org.gradle.internal.resource.transport.http
 
-import com.google.common.util.concurrent.UncheckedExecutionException
 import org.apache.http.auth.AuthScope
 import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.artifacts.repositories.PasswordCredentials
-import org.gradle.internal.SystemProperties
 import org.gradle.internal.authentication.AllSchemesAuthentication
 import org.gradle.internal.credentials.DefaultHttpHeaderCredentials
 import org.gradle.internal.resource.UriTextResource
 import spock.lang.Specification
-
-import javax.net.ssl.SSLContext
-import java.util.concurrent.CountDownLatch
-import java.util.concurrent.CyclicBarrier
-import java.util.concurrent.TimeUnit
-import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicReference
 
 class HttpClientConfigurerTest extends Specification {
     public static final String REMOTE_HOST = "host"
@@ -57,46 +48,6 @@ class HttpClientConfigurerTest extends Specification {
 
     def setup() {
         basicAuthentication.addHost(REMOTE_HOST, SOME_PORT)
-    }
-
-    def "forces java.home racecondition"() {
-        final sslContextFactory = new DefaultSslContextFactory()
-        def goodSSLContext = sslContextFactory.createSslContext()
-        AtomicReference<UncheckedExecutionException> exceptionRef = new AtomicReference<>()
-        AtomicBoolean endBarrierTimedOut = new AtomicBoolean(false)
-        CyclicBarrier startBarrier = new CyclicBarrier(2)
-        CountDownLatch endBarrier = new CountDownLatch(1)
-
-        when:
-        def thread = new Thread({ ->
-            SystemProperties.getInstance().withJavaHome(new File('/foo/bar'), { ->
-                startBarrier.await(1, TimeUnit.SECONDS)
-                try {
-                    // This is expected to fail because of the bad path set above. Does not block with synchronization because in same thread.
-                    sslContextFactory.createSslContext()
-                } catch (UncheckedExecutionException e) {
-                    exceptionRef.set(e)
-                }
-                // endBarrier must time out in a proper solution, because the main thread blocks in sslContextFactory.createSslContext() below.
-                endBarrierTimedOut.set(!endBarrier.await(100, TimeUnit.MILLISECONDS))
-            })
-        })
-        thread.start()
-        startBarrier.await(1, TimeUnit.SECONDS)
-        SSLContext interestingSSLContext = null
-        try {
-            // This should not get the bad path because it cannot be executed simultaneously with the "withJavaHome" closure above.
-            interestingSSLContext = sslContextFactory.createSslContext()
-        } finally {
-            endBarrier.countDown()
-            thread.join(1000)
-        }
-
-        then:
-        endBarrierTimedOut.get()
-        interestingSSLContext != null
-        interestingSSLContext == goodSSLContext
-        exceptionRef.get().message ==~ /.*foo.bar.lib.security.cacerts.*/
     }
 
     def "configures http client with no credentials or proxy"() {

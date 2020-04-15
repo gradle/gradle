@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.repositories;
 
 import org.gradle.api.Action;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.repositories.AuthenticationContainer;
 import org.gradle.api.artifacts.repositories.PasswordCredentials;
 import org.gradle.api.credentials.Credentials;
@@ -111,11 +110,6 @@ public abstract class AbstractAuthenticationSupportedRepository extends Abstract
     }
 
     List<String> getAuthenticationSchemes() {
-        return CollectionUtils.collect(getConfiguredAuthentication(), new Transformer<String, Authentication>() {
-            @Override
-            public String transform(Authentication authentication) {
-                return Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName();
-            }
-        });
+        return CollectionUtils.collect(getConfiguredAuthentication(), authentication -> Cast.cast(AuthenticationInternal.class, authentication).getType().getSimpleName());
     }
 }

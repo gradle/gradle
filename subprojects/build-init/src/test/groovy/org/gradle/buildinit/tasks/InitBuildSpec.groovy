@@ -38,7 +38,7 @@ import static org.gradle.buildinit.plugins.internal.modifiers.BuildInitTestFrame
 @UsesNativeServices
 class InitBuildSpec extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     InitBuild init
 

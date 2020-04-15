@@ -18,6 +18,9 @@ package org.gradle.api.publish.maven
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.publish.maven.AbstractMavenPublishIntegTest
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.maven.MavenFileModule
+import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.spockframework.util.TextUtil
 import spock.lang.Issue
 
@@ -259,5 +262,120 @@ subprojects {
         output.contains(":sub2:generatePomFileForMavenPublication")
         output.contains(":sub2:publishMavenPublicationToMavenLocal")
         output.contains(":customPublish")
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/5136")
+    void "doesn't publish if main artifact is missing"() {
+        settingsFile << 'rootProject.name = "test"'
+        buildFile << """
+            apply plugin: "java-library"
+            apply plugin: "maven-publish"
+
+            group = "org.gradle"
+            version = "1.0"
+
+            jar {
+                enabled = Boolean.valueOf(project.getProperty("jarEnabled"))
+            }
+
+            publishing {
+                repositories {
+                    maven { url "\${buildDir}/repo" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+        file("src/main/java/hello/Hello.java") << """package hello;
+            public class Hello {}
+        """
+
+        when:
+        succeeds "publish", "-PjarEnabled=true"
+
+        then:
+        file("build/repo/org/gradle/test/1.0/test-1.0.jar").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0.jar.md5").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0.jar.sha1").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0.jar.sha256").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0.jar.sha512").exists()
+
+        when:
+        fails "publish", "-PjarEnabled=false"
+
+        then:
+        skipped(":jar")
+        failure.assertHasCause("Artifact test-1.0.jar wasn't produced by this build.")
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/5136")
+    void "doesn't publish stale files"() {
+        MavenFileModule publishedModule
+
+        settingsFile << 'rootProject.name = "test"'
+        buildFile << """
+            apply plugin: "java-library"
+            apply plugin: "maven-publish"
+
+            group = "org.gradle"
+            version = "1.0"
+
+            java {
+                withJavadocJar()
+            }
+
+            javadocJar {
+                enabled = Boolean.valueOf(project.getProperty("javadocEnabled"))
+            }
+
+            publishing {
+                repositories {
+                    maven { url "\${buildDir}/repo" }
+                }
+                publications {
+                    maven(MavenPublication) {
+                        from components.java
+                    }
+                }
+            }
+        """
+        file("src/main/java/hello/Hello.java") << """package hello;
+            public class Hello {}
+        """
+
+        when:
+        succeeds "publish", "-PjavadocEnabled=true"
+        publishedModule = new MavenFileRepository(new TestFile(file("build/repo"))).module("org.gradle", "test")
+
+        then:
+        file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.md5").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
+        file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
+        publishedModule.parsedModuleMetadata.variant("javadocElements") {
+            assert files*.name == ['test-1.0-javadoc.jar']
+        }
+
+        when:
+        file("build/repo").deleteDir()
+        succeeds "publish", "-PjavadocEnabled=false"
+        publishedModule = new MavenFileRepository(new TestFile(file("build/repo"))).module("org.gradle", "test")
+
+        then:
+        skipped(":javadocJar")
+        !file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar").exists()
+        !file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.md5").exists()
+        !file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.sha1").exists()
+        !file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.sha256").exists()
+        !file("build/repo/org/gradle/test/1.0/test-1.0-javadoc.jar.sha512").exists()
+        publishedModule.parsedModuleMetadata.variant("javadocElements") {
+            assert files*.name == []
+        }
     }
 }

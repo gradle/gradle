@@ -61,14 +61,14 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
 
     List<DaemonFixture> getDaemons() {
-        getAllDaemons().findAll { !daemonStoppedWithSocketExceptionOnWindows(it) || it.log.contains("Starting build in new daemon") }
+        getAllDaemons().findAll { !daemonStoppedWithSocketExceptionOnWindows(it) || it.logContains("Starting build in new daemon") }
     }
 
     List<DaemonFixture> getAllDaemons() {
         if (!daemonLogsDir.exists() || !daemonLogsDir.isDirectory()) {
             return []
         }
-        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') }.collect { daemonForLogFile(it) }
+        return daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') && !it.name.startsWith('hs_err') }.collect { daemonForLogFile(it) }
     }
 
     List<DaemonFixture> getVisible() {
@@ -94,5 +94,11 @@ class DaemonLogsAnalyzer implements DaemonsFixture {
 
     String getVersion() {
         return version
+    }
+
+    void assertNoCrashedDaemon() {
+        List<File> crashLogs = daemonLogsDir.listFiles().findAll { it.name.endsWith('.log') && it.name.startsWith('hs_err') }
+        crashLogs.each { println(it.text) }
+        assert crashLogs.empty: "Found crash los: ${crashLogs}"
     }
 }

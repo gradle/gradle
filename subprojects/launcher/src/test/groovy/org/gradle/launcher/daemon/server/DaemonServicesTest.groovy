@@ -33,7 +33,7 @@ import static java.util.Arrays.asList
 @UsesNativeServices
 class DaemonServicesTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     final DaemonServices services = new DaemonServices(new DefaultDaemonServerConfiguration("uid", tmp.testDirectory, 100, 50, false, DaemonParameters.Priority.NORMAL, asList()),
         LoggingServiceRegistry.newEmbeddableLogging(), Mock(LoggingManagerInternal), Stub(ClassPath))

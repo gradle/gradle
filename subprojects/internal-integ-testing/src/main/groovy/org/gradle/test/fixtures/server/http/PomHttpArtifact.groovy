@@ -51,4 +51,9 @@ class PomHttpArtifact extends HttpArtifact {
     TestFile getFile() {
         return backingModule.pomFile
     }
+
+    @Override
+    String getName() {
+        return backingModule.pomFile.name
+    }
 }

@@ -24,7 +24,7 @@ import org.gradle.internal.reflect.TypeValidationContext;
  * <p>
  * The store considers property annotations to belong to {@linkplain org.gradle.internal.reflect.AnnotationCategory categories}.
  * Each property can have at most one annotation per category.
- * Validation failures with a given type can be visited using {@link TypeAnnotationMetadata#visitValidationFailures(String, TypeValidationContext)}.
+ * Validation failures with a given type can be visited using {@link TypeAnnotationMetadata#visitValidationFailures(TypeValidationContext)}.
  * </p>
  *
  * <strong>Property annotation inheritance</strong>

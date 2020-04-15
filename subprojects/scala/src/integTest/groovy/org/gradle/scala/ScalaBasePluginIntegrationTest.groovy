@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 package org.gradle.scala
+
 import org.gradle.integtests.fixtures.ZincScalaCompileFixture
 import org.gradle.integtests.fixtures.MultiVersionIntegrationSpec
 import org.gradle.integtests.fixtures.TargetCoverage

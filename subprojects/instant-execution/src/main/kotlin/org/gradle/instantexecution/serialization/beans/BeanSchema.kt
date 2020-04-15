@@ -18,27 +18,71 @@ package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
 
+import org.gradle.instantexecution.problems.DisableInstantExecutionFieldTypeCheck
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.Workarounds
+import org.gradle.instantexecution.serialization.logUnsupported
 
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
+import kotlin.reflect.KClass
 
 
 internal
-fun relevantStateOf(taskType: Class<*>): List<Field> =
-    relevantTypeHierarchyOf(taskType)
+val unsupportedFieldDeclaredTypes = listOf(
+    Configuration::class
+)
+
+
+internal
+fun relevantStateOf(beanType: Class<*>): List<RelevantField> =
+    relevantTypeHierarchyOf(beanType)
         .toList()
         .flatMap(Class<*>::relevantFields)
         .onEach(Field::makeAccessible)
+        .map { RelevantField(it, unsupportedFieldTypeFor(it)) }
+
+
+internal
+class RelevantField(
+    val field: Field,
+    val unsupportedFieldType: KClass<*>?
+)
+
+
+internal
+fun IsolateContext.reportUnsupportedFieldType(
+    unsupportedType: KClass<*>,
+    action: String,
+    fieldName: String,
+    fieldValue: Any? = null
+) {
+    withPropertyTrace(PropertyKind.Field, fieldName) {
+        if (fieldValue == null) logUnsupported(action, unsupportedType)
+        else logUnsupported(action, unsupportedType, fieldValue::class.java)
+    }
+}
+
+
+internal
+fun unsupportedFieldTypeFor(field: Field): KClass<*>? =
+    field.takeUnless {
+        field.isAnnotationPresent(DisableInstantExecutionFieldTypeCheck::class.java)
+    }?.let {
+        unsupportedFieldDeclaredTypes
+            .firstOrNull { it.java.isAssignableFrom(field.type) }
+    }
 
 
 private
-fun relevantTypeHierarchyOf(taskType: Class<*>) = sequence<Class<*>> {
-    var current: Class<*>? = taskType
+fun relevantTypeHierarchyOf(beanType: Class<*>) = sequence<Class<*>> {
+    var current: Class<*>? = beanType
     while (current != null) {
         if (isRelevantDeclaringClass(current)) {
             yield(current)
@@ -72,9 +116,13 @@ val Class<*>.relevantFields: List<Field>
                 || Workarounds.isIgnoredBeanField(field)
         }
         .filter { field ->
-            field.declaringClass != AbstractTask::class.java || field.name == "actions"
+            field.declaringClass != AbstractTask::class.java || field.name in abstractTaskRelevantFields
         }
         .sortedBy { it.name }
+
+
+private
+val abstractTaskRelevantFields = listOf("actions", "enabled", "timeout", "onlyIfSpec")
 
 
 internal

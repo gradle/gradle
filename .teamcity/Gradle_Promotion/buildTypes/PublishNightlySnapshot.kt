@@ -16,7 +16,7 @@
 
 package Gradle_Promotion.buildTypes
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
 
 class PublishNightlySnapshot(uuid: String, branch: String, hour: Int) : PublishGradleDistribution(
     branch = branch,

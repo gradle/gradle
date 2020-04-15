@@ -20,6 +20,7 @@ import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GUtil
@@ -27,16 +28,17 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class ProjectPropertySettingBuildLoaderTest extends Specification {
-    @Rule public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    @Rule
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     final BuildLoader target = Mock()
     final GradleInternal gradle = Mock()
     final SettingsInternal settings = Mock()
     final ProjectInternal rootProject = Mock()
     final ProjectInternal childProject = Mock()
-    final IGradlePropertiesLoader propertiesLoader = Mock()
+    final GradleProperties gradleProperties = Mock()
     final File rootProjectDir = tmpDir.createDir('root')
     final File childProjectDir = tmpDir.createDir('child')
-    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(propertiesLoader, target)
+    final ProjectPropertySettingBuildLoader loader = new ProjectPropertySettingBuildLoader(gradleProperties, target)
     final ExtensionContainerInternal rootExtension = Mock()
     final ExtraPropertiesExtension rootProperties = Mock()
     final ExtensionContainerInternal childExtension = Mock()
@@ -56,7 +58,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "delegates to build loader"() {
         given:
-        _ * propertiesLoader.mergeProperties(!null) >> [:]
+        _ * gradleProperties.mergeProperties(!null) >> [:]
 
         when:
         loader.load(settings, gradle)
@@ -68,7 +70,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "sets project properties on each project in hierarchy"() {
         given:
-        2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
+        2 * gradleProperties.mergeProperties([:]) >> [prop: 'value']
 
         when:
         loader.load(settings, gradle)
@@ -80,7 +82,7 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
 
     def "defines extra property for unknown property"() {
         given:
-        2 * propertiesLoader.mergeProperties([:]) >> [prop: 'value']
+        2 * gradleProperties.mergeProperties([:]) >> [prop: 'value']
 
         when:
         loader.load(settings, gradle)
@@ -98,15 +100,15 @@ class ProjectPropertySettingBuildLoaderTest extends Specification {
         loader.load(settings, gradle)
 
         then:
-        1 * propertiesLoader.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
-        1 * propertiesLoader.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
+        1 * gradleProperties.mergeProperties([prop: 'rootValue']) >> [prop: 'rootValue']
+        1 * gradleProperties.mergeProperties([prop: 'childValue']) >> [prop: 'childValue']
         1 * rootProperties.set('prop', 'rootValue')
         1 * childProperties.set('prop', 'childValue')
     }
 
     def "defines project properties from Project class"() {
         given:
-        2 * propertiesLoader.mergeProperties([:]) >> [version: '1.0']
+        2 * gradleProperties.mergeProperties([:]) >> [version: '1.0']
 
         when:
         loader.load(settings, gradle)

@@ -21,7 +21,6 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.internal.file.DefaultFilePropertyFactory.FixedDirectory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.state.ManagedFactory;
 
@@ -31,15 +30,19 @@ public class ManagedFactories {
 
     public static class RegularFileManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = RegularFile.class;
-        private static final Class<?> IMPL_TYPE = DefaultFilePropertyFactory.FixedFile.class;
-        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
+        private final FileFactory fileFactory;
+
+        public RegularFileManagedFactory(FileFactory fileFactory) {
+            this.fileFactory = fileFactory;
+        }
 
         @Override
         public <T> T fromState(Class<T> type, Object state) {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultFilePropertyFactory.FixedFile((File) state));
+            return type.cast(fileFactory.file((File) state));
         }
 
         @Override
@@ -50,13 +53,12 @@ public class ManagedFactories {
 
     public static class RegularFilePropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = RegularFileProperty.class;
-        private static final Class<?> IMPL_TYPE = DefaultFilePropertyFactory.DefaultRegularFileVar.class;
-        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
-        private final FileResolver fileResolver;
+        private final FilePropertyFactory filePropertyFactory;
 
-        public RegularFilePropertyManagedFactory(FileResolver fileResolver) {
-            this.fileResolver = fileResolver;
+        public RegularFilePropertyManagedFactory(FilePropertyFactory filePropertyFactory) {
+            this.filePropertyFactory = filePropertyFactory;
         }
 
         @Override
@@ -64,7 +66,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultFilePropertyFactory.DefaultRegularFileVar(fileResolver).value((Provider<RegularFile>) state));
+            return type.cast(filePropertyFactory.newFileProperty().value((Provider<RegularFile>) state));
         }
 
         @Override
@@ -75,15 +77,12 @@ public class ManagedFactories {
 
     public static class DirectoryManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = Directory.class;
-        private static final Class<?> IMPL_TYPE = FixedDirectory.class;
-        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
-        private final FileResolver fileResolver;
-        private final FileCollectionFactory fileCollectionFactory;
+        private final FileFactory fileFactory;
 
-        public DirectoryManagedFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-            this.fileResolver = fileResolver;
-            this.fileCollectionFactory = fileCollectionFactory;
+        public DirectoryManagedFactory(FileFactory fileFactory) {
+            this.fileFactory = fileFactory;
         }
 
         @Override
@@ -91,7 +90,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new FixedDirectory((File) state, fileResolver, fileCollectionFactory));
+            return type.cast(fileFactory.dir((File) state));
         }
 
         @Override
@@ -102,15 +101,12 @@ public class ManagedFactories {
 
     public static class DirectoryPropertyManagedFactory implements ManagedFactory {
         private static final Class<?> PUBLIC_TYPE = DirectoryProperty.class;
-        private static final Class<?> IMPL_TYPE = DefaultFilePropertyFactory.DefaultDirectoryVar.class;
-        public static final int FACTORY_ID = Objects.hashCode(IMPL_TYPE.getName());
+        public static final int FACTORY_ID = Objects.hashCode(PUBLIC_TYPE.getName());
 
-        private final FileResolver fileResolver;
-        private final FileCollectionFactory fileCollectionFactory;
+        private final FilePropertyFactory filePropertyFactory;
 
-        public DirectoryPropertyManagedFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-            this.fileResolver = fileResolver;
-            this.fileCollectionFactory = fileCollectionFactory;
+        public DirectoryPropertyManagedFactory(FilePropertyFactory filePropertyFactory) {
+            this.filePropertyFactory = filePropertyFactory;
         }
 
         @Override
@@ -118,7 +114,7 @@ public class ManagedFactories {
             if (!type.isAssignableFrom(PUBLIC_TYPE)) {
                 return null;
             }
-            return type.cast(new DefaultFilePropertyFactory.DefaultDirectoryVar(fileResolver, fileCollectionFactory).value((Provider<Directory>) state));
+            return type.cast(filePropertyFactory.newDirectoryProperty().value((Provider<Directory>) state));
         }
 
         @Override

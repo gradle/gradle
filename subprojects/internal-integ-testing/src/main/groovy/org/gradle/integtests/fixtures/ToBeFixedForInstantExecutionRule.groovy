@@ -21,6 +21,9 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.iterationMatches
+
 /**
  * JUnit Rule supporting the {@link ToBeFixedForInstantExecution} annotation.
  */
@@ -29,13 +32,20 @@ class ToBeFixedForInstantExecutionRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(ToBeFixedForInstantExecution.class)
-        if (!GradleContextualExecuter.isInstant() || annotation == null) {
+        if (GradleContextualExecuter.isNotInstant() || annotation == null) {
             return base
         }
-        if (annotation.value() == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
-            return new ExpectingFailureRuleStatement(base)
+        def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
+        def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
+        if (enabledBottomSpec && enabledIteration) {
+            ToBeFixedForInstantExecution.Skip skip = annotation.skip()
+            if (skip == ToBeFixedForInstantExecution.Skip.DO_NOT_SKIP) {
+                return new ExpectingFailureRuleStatement(base)
+            } else {
+                return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
+            }
         }
-        return new UnsupportedWithInstantExecutionRule.SkippingRuleStatement(base)
+        return base
     }
 
     private static class ExpectingFailureRuleStatement extends Statement {

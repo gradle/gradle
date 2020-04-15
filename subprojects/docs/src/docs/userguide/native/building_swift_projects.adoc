@@ -87,7 +87,7 @@ The vast majority of projects rely on other projects, so managing your project's
 Dependency management is a big topic, so we will only focus on the basics for Swift projects here.
 If you’d like to dive into the details, check out the <<core_dependency_management.adoc#,introduction to dependency management>>.
 
-Gradle provides support for consuming pre-built binaries from Maven repositories published by Gradle footnote:[Unfortunately, Cocoapods repositories aren’t yet support as core features].
+Gradle provides support for consuming pre-built binaries from Maven repositories published by Gradle footnote:[Unfortunately, Cocoapods repositories aren’t yet supported as core features].
 
 We will cover how to add dependencies between projects within a multi-build project.
 

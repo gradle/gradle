@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.plugins.javascript.coffeescript
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
@@ -33,9 +32,12 @@ class CoffeeScriptBasePluginIntegrationTest extends WellBehavedPluginTest {
     def setup() {
         addApplyPluginScript(buildFile)
         addGradlePublicJsRepoScript(buildFile)
-        executer.expectDeprecationWarning("The org.gradle.coffeescript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
-        executer.expectDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.coffeescript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.rhino plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
+        executer.expectDocumentedDeprecationWarning("The org.gradle.javascript-base plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_5.html#deprecated_plugins")
     }
 
     def "can download coffeescript by default"() {

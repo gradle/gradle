@@ -49,6 +49,7 @@ class JacocoPluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "test"
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "jacoco plugin adds coverage report for test task when java plugin applied"() {
         given:
         buildFile << '''

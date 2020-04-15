@@ -22,12 +22,10 @@ import org.gradle.api.Incubating;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition;
 import org.gradle.api.attributes.AttributesSchema;
-import org.gradle.api.attributes.Bundling;
 import org.gradle.api.attributes.LibraryElements;
 import org.gradle.api.attributes.Usage;
 import org.gradle.api.file.SourceDirectorySet;
@@ -49,7 +47,6 @@ import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.compile.AbstractCompile;
-import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.JUnitXmlReport;
@@ -65,9 +62,6 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.Set;
 import java.util.concurrent.Callable;
-
-import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
-import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -180,14 +174,23 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 TaskProvider<JavaCompile> compileTask = createCompileJavaTask(sourceSet, sourceSet.getJava(), project);
                 createClassesTask(sourceSet, project);
 
-                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(new Transformer<CompileOptions, JavaCompile>() {
-                    @Override
-                    public CompileOptions transform(JavaCompile javaCompile) {
-                        return javaCompile.getOptions();
-                    }
-                }));
+                configureLibraryElements(compileTask, sourceSet, configurations, project.getObjects());
+                configureTargetPlatform(compileTask, sourceSet, configurations, pluginConvention);
+
+                JvmPluginsHelper.configureOutputDirectoryForSourceSet(sourceSet, sourceSet.getJava(), project, compileTask, compileTask.map(JavaCompile::getOptions));
             }
         });
+    }
+
+    private void configureLibraryElements(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, ObjectFactory objectFactory) {
+        Action<ConfigurationInternal> configureLibraryElements = JvmPluginsHelper.configureLibraryElementsAttributeForCompileClasspath(javaClasspathPackaging, sourceSet, compileTaskProvider, objectFactory);
+        ((ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName())).beforeLocking(configureLibraryElements);
+    }
+
+    private void configureTargetPlatform(TaskProvider<JavaCompile> compileTaskProvider, SourceSet sourceSet, ConfigurationContainer configurations, JavaPluginConvention pluginConvention) {
+        Action<ConfigurationInternal> configureDefaultTargetPlatform = JvmPluginsHelper.configureDefaultTargetPlatform(pluginConvention, false, compileTaskProvider);
+        ((ConfigurationInternal) configurations.getByName(sourceSet.getCompileClasspathConfigurationName())).beforeLocking(configureDefaultTargetPlatform);
+        ((ConfigurationInternal) configurations.getByName(sourceSet.getRuntimeClasspathConfigurationName())).beforeLocking(configureDefaultTargetPlatform);
     }
 
     private TaskProvider<JavaCompile> createCompileJavaTask(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target) {
@@ -204,6 +207,10 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                     }
                 });
                 JvmPluginsHelper.configureAnnotationProcessorPath(sourceSet, sourceDirectorySet, compileTask.getOptions(), target);
+                String generatedHeadersDir = "generated/sources/headers/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
+                compileTask.getOptions().getHeaderOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(generatedHeadersDir));
+                JavaPluginExtension javaPluginExtension = target.getExtensions().getByType(JavaPluginExtension.class);
+                compileTask.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             }
         });
     }
@@ -263,8 +270,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         String apiElementsConfigurationName = sourceSet.getApiElementsConfigurationName();
         String runtimeElementsConfigurationName = sourceSet.getRuntimeElementsConfigurationName();
         String sourceSetName = sourceSet.toString();
-        Action<ConfigurationInternal> configureDefaultTargetPlatform = configureDefaultTargetPlatform(convention);
-
 
         DeprecatableConfiguration compileConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(compileConfigurationName);
         compileConfiguration.setVisible(false);
@@ -291,16 +296,14 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         compileClasspathConfiguration.extendsFrom(compileOnlyConfiguration, implementationConfiguration);
         compileClasspathConfiguration.setDescription("Compile classpath for " + sourceSetName + ".");
         compileClasspathConfiguration.setCanBeConsumed(false);
-        compileClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
-        compileClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, javaClasspathPackaging? LibraryElements.JAR : LibraryElements.CLASSES));
-        compileClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        compileClasspathConfiguration.beforeLocking(configureDefaultTargetPlatform);
+        JvmPluginsHelper.configureAttributesForCompileClasspath(compileClasspathConfiguration, objectFactory);
 
-        DeprecatableConfiguration annotationProcessorConfiguration = (DeprecatableConfiguration) configurations.maybeCreate(annotationProcessorConfigurationName);
+        ConfigurationInternal annotationProcessorConfiguration = (ConfigurationInternal) configurations.maybeCreate(annotationProcessorConfigurationName);
         annotationProcessorConfiguration.setVisible(false);
         annotationProcessorConfiguration.setDescription("Annotation processors and their dependencies for " + sourceSetName + ".");
         annotationProcessorConfiguration.setCanBeConsumed(false);
         annotationProcessorConfiguration.setCanBeResolved(true);
+        JvmPluginsHelper.configureAttributesForRuntimeClasspath(annotationProcessorConfiguration, objectFactory);
 
         Configuration runtimeOnlyConfiguration = configurations.maybeCreate(runtimeOnlyConfigurationName);
         runtimeOnlyConfiguration.setVisible(false);
@@ -314,10 +317,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
         runtimeClasspathConfiguration.setCanBeResolved(true);
         runtimeClasspathConfiguration.setDescription("Runtime classpath of " + sourceSetName + ".");
         runtimeClasspathConfiguration.extendsFrom(runtimeOnlyConfiguration, runtimeConfiguration, implementationConfiguration);
-        runtimeClasspathConfiguration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
-        runtimeClasspathConfiguration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
-        runtimeClasspathConfiguration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
-        runtimeClasspathConfiguration.beforeLocking(configureDefaultTargetPlatform);
+        JvmPluginsHelper.configureAttributesForRuntimeClasspath(runtimeClasspathConfiguration, objectFactory);
 
         sourceSet.setCompileClasspath(compileClasspathConfiguration);
         sourceSet.setRuntimeClasspath(sourceSet.getOutput().plus(runtimeClasspathConfiguration));
@@ -336,17 +336,6 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
         compileClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName);
         runtimeClasspathConfiguration.deprecateForDeclaration(implementationConfigurationName, compileOnlyConfigurationName, runtimeOnlyConfigurationName);
-    }
-
-    private Action<ConfigurationInternal> configureDefaultTargetPlatform(final JavaPluginConvention convention) {
-        return new Action<ConfigurationInternal>() {
-            @Override
-            public void execute(ConfigurationInternal conf) {
-                if (!convention.getAutoTargetJvmDisabled()) {
-                    JavaEcosystemSupport.configureDefaultTargetPlatform(conf, convention.getTargetCompatibility());
-                }
-            }
-        };
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
@@ -408,11 +397,12 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
                 buildTask.setDescription("Assembles and tests this project and all projects that depend on it.");
                 buildTask.setGroup(BasePlugin.BUILD_GROUP);
                 buildTask.dependsOn(BUILD_TASK_NAME);
+                boolean hasIncludedBuilds = !buildTask.getProject().getGradle().getIncludedBuilds().isEmpty();
                 buildTask.doFirst(new Action<Task>() {
                     @Override
                     public void execute(Task task) {
-                        if (!task.getProject().getGradle().getIncludedBuilds().isEmpty()) {
-                            task.getProject().getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
+                        if (hasIncludedBuilds) {
+                            task.getLogger().warn("[composite-build] Warning: `" + task.getPath() + "` task does not build included builds.");
                         }
                     }
                 });

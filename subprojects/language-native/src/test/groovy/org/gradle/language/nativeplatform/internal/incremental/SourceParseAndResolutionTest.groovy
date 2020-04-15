@@ -30,7 +30,7 @@ import org.junit.Rule
 @UsesNativeServices
 class SourceParseAndResolutionTest extends SerializerSpec {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def includeDir = tmpDir.createDir("headers")
     def header = includeDir.createFile("hello.h")
     def sourceDir = tmpDir.createDir("src")
@@ -477,7 +477,7 @@ class SourceParseAndResolutionTest extends SerializerSpec {
             #define HEADER_NAME "hello.h"
             #define HEADER_ do not use this
             #define NAME do not use this
-            #define HEADER(X, Y) HEADER_ ## NAME 
+            #define HEADER(X, Y) HEADER_ ## NAME
             #include HEADER(ignore, ignore) // replaced with HEADER_NAME then "hello.h"
         """
 
@@ -699,10 +699,10 @@ class SourceParseAndResolutionTest extends SerializerSpec {
             #define FUNC1(X) X
             #define FUNC2(X) (X)
             #define ARGS ("hello.h")
-            
+
             #define HEADER_(X) X
             #define HEADER(X) HEADER_(FUNC1 FUNC2 X)
-            
+
             #include HEADER(ARGS) // replaced by FUNC1 FUNC2 ("hello.h") then FUNC1 ("hello.h")
         """
 

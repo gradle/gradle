@@ -20,7 +20,8 @@ import com.sun.security.auth.module.NTSystem
 
 class WindowsSymbolicLinkUtil {
     static void createWindowsSymbolicLink(File link, File target) {
-        assert ["cmd", "/C", "mklink", "/D", link, target].execute().waitFor() == 0
+        def extraOptions = target.isDirectory() ? ["/D"] : []
+        assert ["cmd", "/C", "mklink", *extraOptions, link, target].execute().waitFor() == 0
     }
 
     static void createWindowsJunction(File link, File target) {

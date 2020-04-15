@@ -30,7 +30,7 @@ import java.util.function.Consumer
 
 abstract class StepSpec<C extends Context> extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     final buildOperationExecutor = new TestBuildOperationExecutor()
 
     final displayName = "job ':test'"

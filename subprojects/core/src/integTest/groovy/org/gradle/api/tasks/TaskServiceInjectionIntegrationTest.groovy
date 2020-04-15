@@ -22,11 +22,8 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.process.ExecOperations
-import org.gradle.util.Requires
 import org.gradle.workers.WorkerExecutor
 import spock.lang.Unroll
-
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
     def "can construct a task with @Inject services constructor arg"() {
@@ -201,7 +198,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot use @Inject annotation on method CustomTask.getExecutor() as it is not public or protected.")
     }
 
-    @Requires(KOTLIN_SCRIPT)
     def "can construct a task in Kotlin with @Inject services constructor arg"() {
         given:
         settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"
@@ -225,7 +221,6 @@ class TaskServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
         outputContains("got it")
     }
 
-    @Requires(KOTLIN_SCRIPT)
     def "can construct a task with @Inject services and constructor args via Kotlin friendly DSL"() {
         given:
         settingsFile << "rootProject.buildFileName = 'build.gradle.kts'"

@@ -36,6 +36,7 @@ class ModuleVersionSpec {
     private final boolean mustPublish = !RemoteRepositorySpec.DEFINES_INTERACTIONS.get()
 
     private final List<Object> dependsOn = []
+    private final List<Object> excludeFromConfig = []
     private final List<Object> constraints = []
     private final List<VariantMetadataSpec> variants = []
     private final List<Closure<?>> withModule = []
@@ -157,6 +158,10 @@ class ModuleVersionSpec {
         dependsOn << coord
     }
 
+    void excludeFromConfig(String module, String conf) {
+        excludeFromConfig << [module: module, conf: conf]
+    }
+
     void constraint(coord) {
         constraints << coord
     }
@@ -200,6 +205,7 @@ class ModuleVersionSpec {
         expectGetMetadata.each {
             switch (it) {
                 case InteractionExpectation.NONE:
+                    true // workaround for groovy-2.5.10 regression: https://issues.apache.org/jira/browse/GROOVY-9424
                     break
                 case InteractionExpectation.MAYBE:
                     if (module instanceof MavenModule) {
@@ -325,6 +331,14 @@ class ModuleVersionSpec {
                 }
             }
         }
+
+        if(excludeFromConfig) {
+            excludeFromConfig.each {
+                def moduleParts = it.module.split(':') as List
+                module.excludeFromConfig(moduleParts[0], moduleParts[1], it.conf)
+            }
+        }
+
         if (constraints) {
             constraints.each {
                 if (it instanceof CharSequence) {

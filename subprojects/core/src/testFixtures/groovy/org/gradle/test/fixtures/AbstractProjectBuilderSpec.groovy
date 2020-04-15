@@ -25,11 +25,11 @@ import org.gradle.api.internal.tasks.execution.DefaultTaskExecutionContext
 import org.gradle.execution.ProjectExecutionServices
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.SetSystemProperties
 import org.gradle.util.TestUtil
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
-
 /**
  * An abstract class for writing tests using ProjectBuilder.
  * The fixture automatically takes care of deleting files creating in the temporary project directory used by the Project instance.
@@ -45,13 +45,17 @@ abstract class AbstractProjectBuilderSpec extends Specification {
     // Naming the field "temporaryFolder" since that is the default field intercepted by the
     // @CleanupTestDirectory annotation.
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    final TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
+
+    @Rule SetSystemProperties systemProperties
+
     ProjectInternal project
     ProjectExecutionServices executionServices
 
     def setup() {
         project = TestUtil.createRootProject(temporaryFolder.testDirectory)
         executionServices = new ProjectExecutionServices(project)
+        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
     }
 
     void execute(Task task) {

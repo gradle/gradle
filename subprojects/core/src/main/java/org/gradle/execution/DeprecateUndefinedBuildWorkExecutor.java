@@ -18,9 +18,9 @@ package org.gradle.execution;
 
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.resource.EmptyFileTextResource;
 import org.gradle.internal.resource.TextResource;
-import org.gradle.util.DeprecationLogger;
 
 import java.util.Collection;
 
@@ -34,7 +34,10 @@ public class DeprecateUndefinedBuildWorkExecutor implements BuildWorkExecutor {
     @Override
     public void execute(GradleInternal gradle, Collection<? super Throwable> failures) {
         if (isUndefinedBuild(gradle) && !wasInitTaskRequested(gradle.getStartParameter())) {
-            DeprecationLogger.nagUserOfDiscontinuedInvocation("Executing Gradle tasks as part of an undefined build");
+            DeprecationLogger.deprecateAction("Executing Gradle tasks as part of an undefined build")
+                .willBecomeAnErrorInGradle7()
+                .withUpgradeGuideSection(5, "executing_gradle_without_a_settings_file_has_been_deprecated")
+                .nagUser();
         }
         delegate.execute(gradle, failures);
     }

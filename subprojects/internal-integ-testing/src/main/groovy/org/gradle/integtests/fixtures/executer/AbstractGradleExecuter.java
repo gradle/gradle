@@ -25,6 +25,7 @@ import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.initialization.DefaultClassLoaderScope;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -73,8 +74,8 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
-import java.util.stream.Collectors;
 
+import static java.util.stream.Collectors.joining;
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
 import static org.gradle.integtests.fixtures.executer.AbstractGradleExecuter.CliDaemonArgument.DAEMON;
@@ -155,7 +156,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected WarningMode warningMode = WarningMode.All;
     private boolean showStacktrace = true;
     private boolean renderWelcomeMessage;
-    private boolean usePartialVfsInvalidation = true;
+    private boolean usePartialVfsInvalidation;
 
     private int expectedGenericDeprecationWarnings;
     private final List<String> expectedDeprecationWarnings = new ArrayList<>();
@@ -179,6 +180,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     protected boolean noExplicitNativeServicesDir;
     private boolean fullDeprecationStackTrace = true;
     private boolean checkDeprecations = true;
+    private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
     private DurationMeasurement durationMeasurement;
@@ -239,7 +241,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
-        usePartialVfsInvalidation = true;
+        usePartialVfsInvalidation = false;
         return this;
     }
 
@@ -725,6 +727,17 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter withReadOnlyCacheDir(File cacheDir) {
+        return withReadOnlyCacheDir(cacheDir.getAbsolutePath());
+    }
+
+    @Override
+    public GradleExecuter withReadOnlyCacheDir(String cacheDir) {
+        environmentVars.put(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, cacheDir);
+        return this;
+    }
+
+    @Override
     public GradleExecuter requireIsolatedDaemons() {
         return withDaemonBaseDir(testDirectoryProvider.getTestDirectory().file("daemon"));
     }
@@ -834,12 +847,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     private void cleanupIsolatedDaemons() {
-        for (File baseDir : isolatedDaemonBaseDirs) {
+        List<DaemonLogsAnalyzer> analyzers = new ArrayList<>();
+        for (File dir : isolatedDaemonBaseDirs) {
             try {
-                new DaemonLogsAnalyzer(baseDir, gradleVersion.getVersion()).killAll();
+                DaemonLogsAnalyzer analyzer = new DaemonLogsAnalyzer(dir, gradleVersion.getVersion());
+                analyzers.add(analyzer);
+                analyzer.killAll();
             } catch (Exception e) {
-                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + baseDir, e);
+                getLogger().warn("Problem killing isolated daemons of Gradle version " + gradleVersion + " in " + dir, e);
             }
+        }
+
+        if (checkDaemonCrash) {
+            analyzers.forEach(DaemonLogsAnalyzer::assertNoCrashedDaemon);
         }
     }
 
@@ -1166,7 +1186,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
                     throw new AssertionError(String.format("Expected the following deprecation warnings:%n%s",
                         expectedDeprecationWarnings.stream()
                             .map(warning -> " - " + warning)
-                            .collect(Collectors.joining("\n"))));
+                            .collect(joining("\n"))));
                 }
                 if (expectedGenericDeprecationWarnings > 0) {
                     throw new AssertionError(String.format("Expected %d more deprecation warnings", expectedGenericDeprecationWarnings));
@@ -1270,8 +1290,19 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     @Override
+    public GradleExecuter expectDocumentedDeprecationWarning(String warning) {
+        return expectDeprecationWarning(warning.replace("https://docs.gradle.org/current/", "https://docs.gradle.org/" + GradleVersion.current().getVersion() + "/"));
+    }
+
+    @Override
     public GradleExecuter noDeprecationChecks() {
         checkDeprecations = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter noDaemonCrashChecks() {
+        checkDaemonCrash = false;
         return this;
     }
 
@@ -1377,6 +1408,26 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         final List<String> launcherJvmArgs = new ArrayList<>();
         // Implicit JVM args that should be used to fork a JVM
         final List<String> implicitLauncherJvmArgs = new ArrayList<>();
+
+        protected Map<String, String> getEnvironmentVars() {
+            return environmentVars;
+        }
+
+        protected List<String> getArgs() {
+            return args;
+        }
+
+        protected List<String> getBuildJvmArgs() {
+            return buildJvmArgs;
+        }
+
+        protected List<String> getLauncherJvmArgs() {
+            return launcherJvmArgs;
+        }
+
+        protected List<String> getImplicitLauncherJvmArgs() {
+            return implicitLauncherJvmArgs;
+        }
     }
 
     @Override

@@ -17,13 +17,14 @@
 package org.gradle.instantexecution.serialization.beans
 
 import org.gradle.api.GradleException
+import org.gradle.instantexecution.extensions.unsafeLazy
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.IsolateContext
-import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
-import org.gradle.instantexecution.serialization.logPropertyWarning
-import org.gradle.instantexecution.serialization.service
+import org.gradle.instantexecution.serialization.logPropertyProblem
+import org.gradle.instantexecution.serialization.ownerService
 import org.gradle.instantexecution.serialization.withPropertyTrace
 import org.gradle.internal.instantiation.InstantiationScheme
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -33,6 +34,7 @@ import java.io.IOException
 import java.lang.reflect.Field
 import java.util.concurrent.Callable
 import java.util.function.Supplier
+import kotlin.reflect.KClass
 
 
 class BeanPropertyReader(
@@ -45,24 +47,29 @@ class BeanPropertyReader(
     val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
 
     private
-    val fieldSetters = relevantStateOf(beanType).map { Pair(it.name, setterFor(it)) }
+    val fieldSetters = relevantStateOf(beanType).map {
+        FieldSetter(it.field.name, it.unsupportedFieldType, setterFor(it.field))
+    }
 
     private
-    val constructorForSerialization by lazy {
+    val constructorForSerialization by unsafeLazy {
         constructors.constructorForSerialization(beanType)
     }
 
     override suspend fun ReadContext.newBean(generated: Boolean) = if (generated) {
-        val services = isolate.owner.service<ServiceRegistry>()
+        val services = ownerService<ServiceRegistry>()
         instantiationScheme.withServices(services).deserializationInstantiator().newInstance(beanType, Any::class.java)
     } else {
         constructorForSerialization.newInstance()
     }
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
-        for (field in fieldSetters) {
-            val fieldName = field.first
-            val setter = field.second
+        for (fieldSetter in fieldSetters) {
+            val fieldName = fieldSetter.fieldName
+            val setter = fieldSetter.setter
+            fieldSetter.unsupportedFieldType?.let {
+                reportUnsupportedFieldType(it, "deserialize", fieldName)
+            }
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
                 setter(bean, fieldValue)
             }
@@ -87,7 +94,7 @@ class BeanPropertyReader(
             if (isAssignableTo(type, value)) {
                 field.set(bean, value)
             } else if (value != null) {
-                logPropertyWarning("deserialize") {
+                logPropertyProblem("deserialize") {
                     text("value ")
                     reference(value.toString())
                     text(" is not assignable to ")
@@ -102,6 +109,14 @@ class BeanPropertyReader(
         type.isInstance(value) ||
             type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
 }
+
+
+private
+class FieldSetter(
+    val fieldName: String,
+    val unsupportedFieldType: KClass<*>?,
+    val setter: ReadContext.(Any, Any?) -> Unit
+)
 
 
 /**

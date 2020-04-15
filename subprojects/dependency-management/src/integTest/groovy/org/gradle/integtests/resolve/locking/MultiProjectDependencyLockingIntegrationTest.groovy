@@ -30,6 +30,7 @@ include 'first', 'second'
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'does not apply lock defined in a dependent project'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -57,7 +58,7 @@ project(':second') {
     }
 }
 """
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'])
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
 
         when:
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
@@ -72,6 +73,7 @@ project(':second') {
         outputContains('org:foo:1.1')
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'does apply lock to transitive dependencies from dependent project'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -99,7 +101,7 @@ project(':second') {
     }
 }
 """
-        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'])
+        firstLockFileFixture.createLockfile('compileClasspath', ['org:foo:1.0'], false)
 
         when:
         succeeds ':first:dependencyInsight', '--configuration', 'compileClasspath', '--dependency', 'foo'
@@ -147,6 +149,6 @@ project(':second') {
 
         then:
         outputContains('Persisted dependency lock state for configuration \':first:compileClasspath\'')
-        firstLockFileFixture.verifyLockfile('compileClasspath', ['org:foo:1.1'])
+        firstLockFileFixture.verifyLockfile('compileClasspath', ['org:foo:1.1'], false)
     }
 }

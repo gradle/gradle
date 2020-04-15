@@ -51,7 +51,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 class ConcurrentToolingApiIntegrationSpec extends Specification {
 
     @Rule final ConcurrentTestUtil concurrent = new ConcurrentTestUtil()
-    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final ToolingApi toolingApi = new ToolingApi(dist, temporaryFolder)
 

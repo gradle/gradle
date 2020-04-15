@@ -57,19 +57,21 @@ class MavenPublishVersionRangeIntegTest extends AbstractMavenPublishIntegTest {
 
         then:
         mavenModule.assertPublished()
-        mavenModule.assertApiDependencies(
-            "group:projectA:latest.release",
-            "group:projectB:latest.integration",
-            "group:projectC:1.+",
-            "group:projectD:[1.0,2.0)",
-            "group:projectE:[1.0]")
+        mavenModule.parsedModuleMetadata.variant("apiElements") {
+            dependency("group:projectA:latest.release")
+            dependency("group:projectB:latest.integration")
+            dependency("group:projectC:1.+")
+            dependency("group:projectD:[1.0,2.0)")
+            dependency("group:projectE:[1.0]")
+            noMoreDependencies()
+        }
 
         mavenModule.parsedPom.scopes.compile.assertDependsOn(
             "group:projectA:RELEASE",
             "group:projectB:LATEST",
             "group:projectC:1.+",
             "group:projectD:[1.0,2.0)",
-            "group:projectE:[1.0]"
+            "group:projectE:1.0"
         )
     }
 }

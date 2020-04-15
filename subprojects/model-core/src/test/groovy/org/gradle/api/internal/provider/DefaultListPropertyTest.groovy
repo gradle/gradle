@@ -19,11 +19,12 @@ package org.gradle.api.internal.provider
 import com.google.common.collect.ImmutableCollection
 import com.google.common.collect.ImmutableList
 import org.gradle.internal.state.ManagedFactory
+import org.gradle.util.TestUtil
 
 class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
     @Override
     DefaultListProperty<String> property() {
-        return new DefaultListProperty<String>(String)
+        return new DefaultListProperty<String>(host, String)
     }
 
     @Override
@@ -48,6 +49,6 @@ class DefaultListPropertyTest extends CollectionPropertySpec<List<String>> {
 
     @Override
     ManagedFactory managedFactory() {
-        return new ManagedFactories.ListPropertyManagedFactory()
+        return new ManagedFactories.ListPropertyManagedFactory(TestUtil.propertyFactory())
     }
 }

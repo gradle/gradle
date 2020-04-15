@@ -59,4 +59,9 @@ class MavenHttpArtifact extends HttpArtifact {
     TestFile getFile() {
         return backingArtifact.getFile()
     }
+
+    @Override
+    String getName() {
+        return backingArtifact.name
+    }
 }

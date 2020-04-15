@@ -47,7 +47,10 @@ By applying the Java Library Plugin, you get a whole host of features:
 
 This isn't sufficient to build any non-trivial Java project — at the very least, you'll probably have some file dependencies. But it means that your build script only needs the information that is specific to _your_ project.
 
-NOTE: Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
+[NOTE]
+====
+Although the properties in the example are optional, we recommend that you specify them in your projects. The compatibility options mitigate against problems with the project being built with different Java compiler versions, and the version string is important for tracking the progression of the project. The project version is also used in archive names by default.
+====
 
 The Java Library Plugin also integrates the above tasks into the standard <<base_plugin.adoc#sec:base_tasks,Base Plugin lifecycle tasks>>:
 
@@ -508,6 +511,22 @@ The support comes via the <<java_platform_plugin.adoc#,Java Platform plugin>>, w
 This plugin is the exception as it does not apply the Java Plugin.
 ====
 
+[[sec:feature_preview]]
+== Enabling Java preview features
+
+[WARNING]
+====
+Using a Java preview feature is very likely to make your code incompatible with that compiled without a feature preview. As a consequence, we strongly recommend you not to publish libraries compiled with preview features and restrict the use of feature previews to toy projects.
+====
+
+To enable Java link:https://openjdk.java.net/jeps/12[preview features] for compilation, test execution and runtime, you can use the following DSL snippet:
+
+.Enabling Java feature preview
+====
+include::sample[dir="snippets/userguide/java/preview/groovy",files="build.gradle[tags=enabling-feature-preview]"]
+include::sample[dir="snippets/userguide/java/preview/kotlin",files="build.gradle.kts[tags=enabling-feature-preview]"]
+====
+
 [[sec:building_jvm_lang]]
 == Building other JVM language projects
 
@@ -516,7 +535,10 @@ If you want to leverage the multi language aspect of the JVM, most of what was d
 Gradle itself provides <<groovy_plugin.adoc#,Groovy>> and <<scala_plugin.adoc#,Scala>> plugins.
 The plugins automatically apply support for compiling Java code and can be further enhanced by combining them with the `java-library` plugin.
 
-These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in tha `java` folder of a source set).
+[[sub:compile_deps_jvm_lang]]
+=== Compilation dependency between languages
+
+These plugins create a dependency between Groovy/Scala compilation and Java compilation (of source code in the `java` folder of a source set).
 You can change this default behavior by adjusting the classpath of the involved compile tasks as shown in the following example:
 
 .Changing the classpath of compile tasks
@@ -524,5 +546,12 @@ You can change this default behavior by adjusting the classpath of the involved 
 include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/groovy",files="build.gradle[tags=compile-task-classpath]"]
 include::sample[dir="snippets/userguide/tutorial/compileTaskClasspath/kotlin",files="build.gradle.kts[tags=compile-task-classpath]"]
 ====
+
+1. By setting the `compileGroovy` classpath to be only `sourceSets.main.compileClasspath`, we effectively remove the previous dependency on `compileJava` that was declared by having the classpath also take into consideration `sourceSets.main.java.classesDirectory`
+2. By adding `sourceSets.main.groovy.classesDirectory` to the `compileJava` `classpath`, we effectively declare a dependency on the `compileGroovy` task
+
+All of this is possible through the use of <<lazy_configuration.adoc#,directory properties>>.
+
+=== Extra language support
 
 Beyond core Gradle, there are other https://plugins.gradle.org/search?term=jvm[great plugins] for more JVM languages!

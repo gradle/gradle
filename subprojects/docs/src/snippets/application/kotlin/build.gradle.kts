@@ -6,15 +6,28 @@ plugins {
 
 version = "1.0.2"
 
+// tag::inferModulePath[]
+java {
+    modularity.inferModulePath.set(true)
+}
+// end::inferModulePath[]
+
 // tag::applicationName-conf[]
 application.applicationName = "my-app"
 // end::applicationName-conf[]
 
-// tag::mainClassName-conf[]
+// tag::mainClass-conf[]
 application {
-    mainClassName = "org.gradle.sample.Main"
+    mainClass.set("org.gradle.sample.Main")
 }
-// end::mainClassName-conf[]
+// end::mainClass-conf[]
+
+// tag::mainModule-conf[]
+application {
+    mainModule.set("org.gradle.sample.app") // name defined in module-info.java
+    mainClass.set("org.gradle.sample.Main")
+}
+// end::mainModule-conf[]
 
 // tag::application-defaultjvmargs[]
 application {
@@ -48,11 +61,3 @@ distributions {
     }
 }
 // end::distribution-spec[]
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    implementation("commons-collections:commons-collections:3.2.2")
-}

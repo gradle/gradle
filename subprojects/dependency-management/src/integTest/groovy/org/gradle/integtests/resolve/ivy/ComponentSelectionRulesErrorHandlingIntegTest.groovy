@@ -21,6 +21,8 @@ import org.gradle.test.fixtures.ivy.IvyModule
 import org.gradle.test.fixtures.maven.MavenModule
 
 class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSelectionRulesIntegrationTest {
+
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "produces sensible error when bad code is supplied in component selection rule"() {
         buildFile << """
             dependencies {
@@ -90,6 +92,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         "ComponentSelection vs, String s ->" | "Rule may not have an input parameter of type: java.lang.String."
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "produces sensible error when closure rule throws an exception"() {
         buildFile << """
             dependencies {
@@ -179,6 +182,7 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
 - Method select(java.lang.String) is not a valid rule method: First parameter of a rule method must be of type org.gradle.api.artifacts.ComponentSelection""")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "produces sensible error when rule source throws an exception"() {
         buildFile << """
             dependencies {
@@ -221,7 +225,6 @@ class ComponentSelectionRulesErrorHandlingIntegTest extends AbstractComponentSel
         failure.assertHasCause("java.lang.Exception: thrown from rule")
     }
 
-    @ToBeFixedForInstantExecution
     def "reports missing module when component selection rule requires meta-data"() {
         buildFile << """
 configurations {
@@ -273,7 +276,6 @@ Required by:
         succeeds ":checkDeps"
     }
 
-    @ToBeFixedForInstantExecution
     def "reports broken module when component selection rule requires meta-data"() {
         buildFile << """
 configurations {

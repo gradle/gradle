@@ -53,7 +53,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
 
         and:
         //starting some service on the daemon port
-        poll {
+        poll(60) {
             server.tryStart(daemon.port)
         }
 
@@ -84,7 +84,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         when:
         daemon.assertIdle()
         daemon.kill()
-        poll {
+        poll(60) {
             server.tryStart(daemon.port)
         }
 

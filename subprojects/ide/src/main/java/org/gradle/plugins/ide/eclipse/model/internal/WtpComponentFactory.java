@@ -22,8 +22,10 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.plugins.JavaPlugin;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.WbDependentModule;
@@ -34,6 +36,7 @@ import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
+import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collections;
@@ -86,7 +89,8 @@ public class WtpComponentFactory {
 
     private List<WbDependentModule> getEntriesFromConfigurations(Project project, Set<Configuration> plusConfigurations, Set<Configuration> minusConfigurations, EclipseWtpComponent wtp, String deployPath) {
         WtpDependenciesVisitor visitor = new WtpDependenciesVisitor(project, wtp, deployPath);
-        new IdeDependencySet(project.getDependencies(), plusConfigurations, minusConfigurations, artifact -> null).visit(visitor);
+        new IdeDependencySet(project.getDependencies(), ((ProjectInternal) project).getServices().get(JavaModuleDetector.class),
+            plusConfigurations, minusConfigurations, false, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
         return visitor.getEntries();
     }
 
@@ -126,7 +130,7 @@ public class WtpComponentFactory {
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact) {
+        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean asJavaModule) {
             ProjectComponentIdentifier projectId = (ProjectComponentIdentifier) artifact.getId().getComponentIdentifier();
             if (!projectId.equals(currentProjectId)) {
                 String targetProjectPath = projectDependencyBuilder.determineTargetProjectName(projectId);
@@ -135,7 +139,7 @@ public class WtpComponentFactory {
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency) {
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule) {
             if (includeLibraries()) {
                 moduleEntries.add(createWbDependentModuleEntry(artifact.getFile(), wtp.getFileReferenceFactory(), deployPath));
             }

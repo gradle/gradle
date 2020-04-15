@@ -47,7 +47,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         javaClassFile("Foo.class").exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "don't implicitly compile source files from classpath"() {
         settingsFile << "include 'a', 'b'"
         buildFile << """
@@ -82,7 +81,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3508")
-    @ToBeFixedForInstantExecution
     def "detects change in classpath order"() {
         jarWithClasses(file("lib1.jar"), Thing: "class Thing {}")
         jarWithClasses(file("lib2.jar"), Thing2: "class Thing2 {}")
@@ -219,7 +217,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         buildFile << """
             allprojects {
                 apply plugin: 'java'
-    
+
                 repositories {
                    maven { url '$mavenRepo.uri' }
                 }
@@ -230,7 +228,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             dependencies {
                 implementation project(':b')
             }
-            
+
             task checkClasspath {
                 doLast {
                     def compileClasspath = compileJava.classpath.files*.name
@@ -405,13 +403,13 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         settingsFile << "include 'a', 'b'"
         file('a/build.gradle') << """
             apply plugin: 'java'
-            
+
             dependencies {
                 implementation project(':b')
             }
-            
+
             task processDependency {
-                def lazyInputs = configurations.runtimeClasspath.incoming.artifactView { 
+                def lazyInputs = configurations.runtimeClasspath.incoming.artifactView {
                     attributes{ attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME)) }
                     attributes{ attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.${token})) }
                 }.files
@@ -441,12 +439,11 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     }
 
     @Issue("gradle/gradle#1347")
-    @ToBeFixedForInstantExecution
     def "compile classpath snapshotting ignores non-relevant elements"() {
         def buildFileWithDependencies = { String... dependencies ->
             buildFile.text = """
                 apply plugin: 'java'
-                                  
+
                 ${mavenCentralRepository()}
 
                 dependencies {
@@ -521,7 +518,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     def "compile classpath snapshotting should warn when jar on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
-            
+
             dependencies {
                implementation files('foo.jar')
             }
@@ -543,7 +540,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     def "compile classpath snapshotting on Java 8 and earlier should warn when jar on classpath has non-utf8 characters in filenames"() {
         buildFile << '''
             apply plugin: 'java'
-            
+
             dependencies {
                implementation files('broken-utf8.jar')
             }
@@ -566,19 +563,18 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     def "compile classpath snapshotting should warn when jar on classpath contains malformed class file"() {
         buildFile << '''
             apply plugin: 'java'
-            
+
             task fooJar(type:Jar) {
                 archiveFileName = 'foo.jar'
                 from file('foo.class')
             }
-            
+
             dependencies {
                implementation files(fooJar.archiveFile)
             }
-            
+
             compileJava.dependsOn(fooJar)
-            
-            
+
         '''
         file('foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
@@ -596,11 +592,11 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     def "compile classpath snapshotting should warn when class on classpath is malformed"() {
         buildFile << '''
             apply plugin: 'java'
-            
+
             dependencies {
                implementation files('classes')
             }
-            
+
         '''
         file('classes/foo.class') << 'this is clearly not a well formed class file'
         file('src/main/java/Hello.java') << 'public class Hello {}'
@@ -624,7 +620,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         buildFile << '''
             apply plugin: 'java'
-            
+
             dependencies {
                implementation project(':b')
             }
@@ -650,7 +646,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
         file('src/main/java/org/gradle/test/MyTest.java').text = """
             package org.gradle.test;
-            
+
             class MyTest {}
         """
 
@@ -678,7 +674,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file("src/main/java/module-info.java") << 'module example { exports io.example; }'
         file("src/main/java/io/example/Example.java") << '''
             package io.example;
-            
+
             public class Example {}
         '''
 
@@ -699,7 +695,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             plugins {
                 id 'java'
             }
-            
+
             compileJava {
                 options.compilerArgs = ['--module-source-path', files('src/main/java', 'src/main/moreJava').asPath]
             }
@@ -712,15 +708,15 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         '''
         file("src/main/java/example/io/example/Example.java") << '''
             package io.example;
-            
+
             import io.another.BaseExample;
-            
+
             public class Example extends BaseExample {}
         '''
         file("src/main/moreJava/another/module-info.java") << 'module another { exports io.another; }'
         file("src/main/moreJava/another/io/another/BaseExample.java") << '''
             package io.another;
-            
+
             public class BaseExample {}
         '''
 
@@ -743,7 +739,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             plugins {
                 id 'java'
             }
-            
+
             compileJava {
                 options.compilerArgs = ['--module-source-path', files('src/main/java', 'src/main/moreJava').asPath]
                 options.sourcepath = files('src/main/ignoredJava')
@@ -757,21 +753,21 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         '''
         file("src/main/java/example/io/example/Example.java") << '''
             package io.example;
-            
+
             import io.another.BaseExample;
-            
+
             public class Example extends BaseExample {}
         '''
         file("src/main/moreJava/another/module-info.java") << 'module another { exports io.another; }'
         file("src/main/moreJava/another/io/another/BaseExample.java") << '''
             package io.another;
-            
+
             public class BaseExample {}
         '''
         file("src/main/ignoredJava/ignored/module-info.java") << 'module ignored { exports io.ignored; }'
         file("src/main/ignoredJava/ignored/io/ignored/IgnoredExample.java") << '''
             package io.ignored;
-            
+
             public class IgnoredExample {}
         '''
 
@@ -792,7 +788,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     def "fails when sourcepath is set on compilerArgs"() {
         buildFile << '''
             apply plugin: 'java'
-            
+
             compileJava {
                 options.compilerArgs = ['-sourcepath', files('src/main/java').asPath]
             }
@@ -809,7 +805,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
     def "fails when processorpath is set on compilerArgs"() {
         buildFile << '''
             apply plugin: 'java'
-            
+
             compileJava {
                 options.compilerArgs = ['-processorpath', files('src/main/java').asPath]
             }
@@ -840,8 +836,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.NOT_JDK_IBM.fulfilled && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
-    @ToBeFixedForInstantExecution
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
@@ -849,13 +844,13 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         def jdk8bootClasspath = TextUtil.escapeString(jdk8.jre.homeDir.absolutePath) + "/lib/rt.jar"
         buildFile << """
             apply plugin: 'java'
-            
+
             compileJava {
-                if (project.hasProperty("java7")) {
+                if (providers.gradleProperty("java7").isPresent()) {
                     options.bootstrapClasspath = files("$jdk7bootClasspath")
-                } else if (project.hasProperty("java8")) {
+                } else if (providers.gradleProperty("java8").isPresent()) {
                     options.bootstrapClasspath = files("$jdk8bootClasspath")
-                } 
+                }
                 options.fork = true
             }
         """
@@ -905,7 +900,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         ! file("build/classes/java/main/com/foo").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "can configure custom header output"() {
         given:
         buildFile << """
@@ -924,27 +918,55 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file("build/headers/java/main/Foo.h").exists()
     }
 
-    @Requires(TestPrecondition.JDK8_OR_LATER)
+    def "can connect generated headers to input of another task"() {
+        given:
+        buildFile << """
+            apply plugin: 'java'
+
+            task copy(type: Copy) {
+                from tasks.compileJava.options.headerOutputDirectory
+                into 'headers'
+            }
+        """
+        file('src/main/java/Foo.java') << """
+            public class Foo {
+                public native void foo();
+            }
+        """
+        when:
+        succeeds "copy"
+        executed ":compileJava"
+
+        then:
+        file('headers').assertHasDescendants("Foo.h")
+    }
+
     @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:
         buildFile << """
             apply plugin: 'java'
-            compileJava.options.headerOutputDirectory = file("build/headers/java/main")
         """
-        def header = file('src/main/java/Foo.java') << """
+        def header = file('src/main/java/my/org/Foo.java') << """
+            package my.org;
+
             public class Foo {
                 public native void foo();
             }
         """
+        def generatedHeader = file("build/generated/sources/headers/java/main/my_org_Foo.h")
+
+        when:
         succeeds "compileJava"
+        then:
+        generatedHeader.isFile()
 
         when:
         header.delete()
         succeeds "compileJava"
 
         then:
-        !file("build/headers/java/main/Foo.h").exists()
+        !generatedHeader.exists()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11017")
@@ -955,11 +977,11 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         """
         file("src/main/java/com/example/Main.java") << """
             package com.example;
-            
+
             import com.example.cvs.Test;
-            
+
             public class Main {
-            
+
               public static void main(String[] args) {
                 System.out.println(new Test());
               }
@@ -967,7 +989,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         """
         file("src/main/java/com/example/cvs/Test.java") << """
             package com.example.cvs;
-            
+
             public class Test {
             }
         """

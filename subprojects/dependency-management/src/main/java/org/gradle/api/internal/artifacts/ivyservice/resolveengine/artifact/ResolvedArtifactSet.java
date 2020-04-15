@@ -70,7 +70,7 @@ public interface ResolvedArtifactSet extends TaskDependencyContainer {
      */
     interface AsyncArtifactListener {
         /**
-         * Called prior to scheduling resolution of a set of the given type.
+         * Called prior to scheduling resolution of a set of the given type. Should be called in result order.
          */
         FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source);
 

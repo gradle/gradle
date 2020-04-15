@@ -49,7 +49,11 @@ class JavaVersionSpec extends Specification {
         JavaVersion.VERSION_11.toString() == "11"
         JavaVersion.VERSION_12.toString() == "12"
         JavaVersion.VERSION_13.toString() == "13"
-        JavaVersion.VERSION_HIGHER.toString() == "14"
+        JavaVersion.VERSION_14.toString() == "14"
+        JavaVersion.VERSION_15.toString() == "15"
+        JavaVersion.VERSION_16.toString() == "16"
+        JavaVersion.VERSION_17.toString() == "17"
+        JavaVersion.VERSION_HIGHER.toString() == "18"
     }
 
     def convertsStringToVersion() {
@@ -82,6 +86,11 @@ class JavaVersionSpec extends Specification {
 
         JavaVersion.toVersion("11-ea") == JavaVersion.VERSION_11
         JavaVersion.toVersion("12-ea") == JavaVersion.VERSION_12
+        JavaVersion.toVersion("13-ea") == JavaVersion.VERSION_13
+        JavaVersion.toVersion("14-ea") == JavaVersion.VERSION_14
+        JavaVersion.toVersion("15-ea") == JavaVersion.VERSION_15
+        JavaVersion.toVersion("16-ea") == JavaVersion.VERSION_16
+        JavaVersion.toVersion("17-ea") == JavaVersion.VERSION_17
         JavaVersion.toVersion("999-ea") == JavaVersion.VERSION_HIGHER
     }
 
@@ -100,6 +109,10 @@ class JavaVersionSpec extends Specification {
         JavaVersion.forClassVersion(55) == JavaVersion.VERSION_11
         JavaVersion.forClassVersion(56) == JavaVersion.VERSION_12
         JavaVersion.forClassVersion(57) == JavaVersion.VERSION_13
+        JavaVersion.forClassVersion(58) == JavaVersion.VERSION_14
+        JavaVersion.forClassVersion(59) == JavaVersion.VERSION_15
+        JavaVersion.forClassVersion(60) == JavaVersion.VERSION_16
+        JavaVersion.forClassVersion(61) == JavaVersion.VERSION_17
         JavaVersion.forClassVersion(999) == JavaVersion.VERSION_HIGHER
     }
 

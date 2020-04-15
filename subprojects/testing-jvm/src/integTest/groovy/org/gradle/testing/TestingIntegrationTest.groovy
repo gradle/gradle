@@ -17,8 +17,8 @@ package org.gradle.testing
 
 import org.apache.commons.lang.RandomStringUtils
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -182,8 +182,8 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
 
     @Issue("https://issues.gradle.org/browse/GRADLE-2313")
     @Unroll
-    @ToBeFixedForInstantExecution
-    "can clean test after extracting class file with #framework"() {
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*useTestNG.*")
+    def "can clean test after extracting class file with #framework"() {
         when:
         ignoreWhenJUnitPlatform()
         buildFile << """
@@ -313,7 +313,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-3157")
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     def "test class detection works when '-parameters' compiler option is used (JEP 118)"() {
         when:
         buildScript """
@@ -361,7 +360,6 @@ class TestingIntegrationTest extends JUnitMultiVersionIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "tests are re-executed when set of candidate classes change"() {
         given:
         buildFile << """

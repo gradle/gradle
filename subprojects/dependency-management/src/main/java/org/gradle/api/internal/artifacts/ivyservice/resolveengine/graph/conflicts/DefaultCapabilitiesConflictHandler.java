@@ -61,9 +61,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             ModuleIdentifier rootId = null;
             final List<NodeState> candidatesForConflict = Lists.newArrayListWithCapacity(nodes.size());
             for (NodeState ns : nodes) {
-                // TODO: CC the special casing of virtual platform should go away if we can implement
-                // disambiguation of variants for a _single_ component
-                if (ns.isSelected() && !ns.isAttachedToVirtualPlatform()) {
+                if (ns.isSelected()) {
                     candidatesForConflict.add(ns);
                     if (ns.isRoot()) {
                         rootId = ns.getComponent().getId().getModule();

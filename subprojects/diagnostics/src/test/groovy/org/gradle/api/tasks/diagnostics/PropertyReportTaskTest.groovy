@@ -28,7 +28,7 @@ class PropertyReportTaskTest extends Specification {
     private PropertyReportTask task
 
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         _ * project.absoluteProjectPath("list") >> ":path"

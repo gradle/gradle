@@ -34,7 +34,7 @@ import static org.junit.Assert.assertTrue
 
 class GroovyBasePluginTest {
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     private ProjectInternal project
 
     @Before

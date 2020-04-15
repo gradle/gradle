@@ -72,10 +72,10 @@ class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
         publishPlugin """
                 // can load plugin dependent on
                 project.apply plugin: 'test-plugin-2'
-    
+
                 // Can see dependency classes
                 getClass().classLoader.loadClass('${pluginBuilder2.packageName}.TestPlugin2')
-    
+
                 project.task('pluginTask')
             """
 

@@ -85,6 +85,26 @@ public interface ProviderFactory {
     Provider<String> systemProperty(Provider<String> propertyName);
 
     /**
+     * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     *
+     * @param propertyName the name of the Gradle property
+     * @return the provider for the Gradle property, never returns null
+     * @since 6.2
+     */
+    @Incubating
+    Provider<String> gradleProperty(String propertyName);
+
+    /**
+     * Creates a {@link Provider} whose value is fetched from the Gradle property of the given name.
+     *
+     * @param propertyName the name of the Gradle property
+     * @return the provider for the Gradle property, never returns null
+     * @since 6.2
+     */
+    @Incubating
+    Provider<String> gradleProperty(Provider<String> propertyName);
+
+    /**
      * Allows lazy access to the contents of the given file.
      *
      * When the file contents are read at configuration time the file is automatically considered

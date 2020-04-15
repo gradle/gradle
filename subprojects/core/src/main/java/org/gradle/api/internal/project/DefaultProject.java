@@ -44,6 +44,7 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.GradleInternal;
@@ -72,6 +73,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
@@ -80,6 +82,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Factories;
 import org.gradle.internal.Factory;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.extensibility.NoConventionMapping;
@@ -118,7 +121,6 @@ import org.gradle.process.JavaExecSpec;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 
 import javax.annotation.Nullable;
@@ -258,6 +260,12 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     @SuppressWarnings("unused")
     static class BasicServicesRules extends RuleSource {
+        @Hidden
+        @Model
+        ProjectLayout projectLayoutService(ServiceRegistry serviceRegistry) {
+            return serviceRegistry.get(ProjectLayout.class);
+        }
+
         @Hidden
         @Model
         ObjectFactory objectFactory(ServiceRegistry serviceRegistry) {
@@ -936,6 +944,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
     }
 
     @Override
+    public PatternSet patternSet() {
+        return getFileOperations().patternSet();
+    }
+
+    @Override
     public <T> Provider<T> provider(Callable<T> value) {
         return getProviders().provider(value);
     }
@@ -1017,7 +1030,11 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private void maybeNagDeprecationOfAfterEvaluateAfterProjectIsEvaluated(String methodPrototype) {
         if (!state.isUnconfigured() && !state.isConfiguring()) {
-            DeprecationLogger.nagUserOfDiscontinuedMethodInvocation("Project#" + methodPrototype + " when the project is already evaluated", getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated());
+            DeprecationLogger.deprecateInvocation("Project." + methodPrototype + " when the project is already evaluated")
+                .withAdvice(getAdviceOnDeprecationOfAfterEvaluateAfterProjectIsEvaluated())
+                .willBecomeAnErrorInGradle7()
+                .withUpgradeGuideSection(5, "calling_project_afterevaluate_on_an_evaluated_project_has_been_deprecated")
+                .nagUser();
         }
     }
 

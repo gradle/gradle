@@ -40,7 +40,7 @@ import java.util.zip.ZipOutputStream
 
 @Category(SoakTest)
 class DependencyResolutionStressTest extends Specification {
-    @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider workspace = new TestNameTestDirectoryProvider(getClass())
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution()
     @Rule StressHttpServer server = new StressHttpServer()
     @Rule ConcurrentTestUtil concurrent = new ConcurrentTestUtil()

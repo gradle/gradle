@@ -40,8 +40,14 @@ public interface CopySpecResolver {
 
     RelativePath getDestPath();
 
+    /**
+     * Returns the source files of this copy spec.
+     */
     FileTree getSource();
 
+    /**
+     * Returns the source files of this copy spec and all of its children.
+     */
     FileTree getAllSource();
 
     Collection<? extends Action<? super FileCopyDetails>> getAllCopyActions();

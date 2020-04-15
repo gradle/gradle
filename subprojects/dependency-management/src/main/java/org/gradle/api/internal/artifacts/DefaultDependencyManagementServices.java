@@ -33,6 +33,8 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.FeaturePreviews;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.component.ComponentIdentifierFactory;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -59,6 +61,7 @@ import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModu
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradlePomModuleDescriptorParser;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionSelectorScheme;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
+import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.LocalComponentMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.LocalConfigurationMetadataBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
@@ -100,14 +103,15 @@ import org.gradle.api.internal.component.ComponentTypeRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.configuration.internal.UserCodeApplicationContext;
+import org.gradle.initialization.InternalBuildFinishedListener;
 import org.gradle.initialization.ProjectAccessListener;
 import org.gradle.internal.Try;
 import org.gradle.internal.authentication.AuthenticationSchemeRegistry;
@@ -166,7 +170,6 @@ import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor;
 import org.gradle.internal.resolve.caching.ComponentMetadataSupplierRuleExecutor;
-import org.gradle.internal.resource.cached.ExternalResourceFileStore;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.service.DefaultServiceRegistry;
@@ -426,8 +429,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return new DefaultVariantTransformRegistry(instantiatorFactory, attributesFactory, services, transformationRegistrationFactory, parameterScheme.getInstantiationScheme());
         }
 
-        DefaultUrlArtifactRepository.Factory createDefaultUrlArtifactRepositoryFactory(FileResolver fileResolver, DocumentationRegistry documentationRegistry) {
-            return new DefaultUrlArtifactRepository.Factory(fileResolver, documentationRegistry);
+        DefaultUrlArtifactRepository.Factory createDefaultUrlArtifactRepositoryFactory(FileResolver fileResolver) {
+            return new DefaultUrlArtifactRepository.Factory(fileResolver);
         }
 
         BaseRepositoryFactory createBaseRepositoryFactory(LocalMavenRepositoryLocator localMavenRepositoryLocator,
@@ -435,8 +438,7 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                                                           FileCollectionFactory fileCollectionFactory,
                                                           RepositoryTransportFactory repositoryTransportFactory,
                                                           LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder,
-                                                          ArtifactIdentifierFileStore artifactIdentifierFileStore,
-                                                          ExternalResourceFileStore externalResourceFileStore,
+                                                          FileStoreAndIndexProvider fileStoreAndIndexProvider,
                                                           VersionSelectorScheme versionSelectorScheme,
                                                           AuthenticationSchemeRegistry authenticationSchemeRegistry,
                                                           IvyContextManager ivyContextManager,
@@ -458,8 +460,8 @@ public class DefaultDependencyManagementServices implements DependencyManagement
                 fileCollectionFactory,
                 repositoryTransportFactory,
                 locallyAvailableResourceFinder,
-                artifactIdentifierFileStore,
-                externalResourceFileStore,
+                fileStoreAndIndexProvider.getArtifactIdentifierFileStore(),
+                fileStoreAndIndexProvider.getExternalResourceFileStore(),
                 new GradlePomModuleDescriptorParser(versionSelectorScheme, moduleIdentifierFactory, fileResourceRepository, metadataFactory),
                 new GradleModuleMetadataParser(attributesFactory, moduleIdentifierFactory, instantiator),
                 authenticationSchemeRegistry,
@@ -556,8 +558,17 @@ public class DefaultDependencyManagementServices implements DependencyManagement
             return instantiator.newInstance(DefaultDependencyLockingHandler.class, configurationContainer, dependencyLockingProvider);
         }
 
-        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules) {
-            return instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules());
+        DependencyLockingProvider createDependencyLockingProvider(Instantiator instantiator, FileResolver fileResolver, StartParameter startParameter, DomainObjectContext context, GlobalDependencyResolutionRules globalDependencyResolutionRules, FeaturePreviews featurePreviews, ListenerManager listenerManager, PropertyFactory propertyFactory) {
+            DefaultDependencyLockingProvider dependencyLockingProvider = instantiator.newInstance(DefaultDependencyLockingProvider.class, fileResolver, startParameter, context, globalDependencyResolutionRules.getDependencySubstitutionRules(), featurePreviews, propertyFactory);
+            if (startParameter.isWriteDependencyLocks() && featurePreviews.isFeatureEnabled(FeaturePreviews.Feature.ONE_LOCKFILE_PER_PROJECT)) {
+                listenerManager.addListener(new InternalBuildFinishedListener() {
+                    @Override
+                    public void buildFinished(GradleInternal gradle) {
+                        dependencyLockingProvider.buildFinished();
+                    }
+                });
+            }
+            return dependencyLockingProvider;
         }
 
         DependencyConstraintHandler createDependencyConstraintHandler(Instantiator instantiator, ConfigurationContainerInternal configurationContainer, DependencyFactory dependencyFactory, NamedObjectInstantiator namedObjectInstantiator, PlatformSupport platformSupport) {

@@ -16,19 +16,19 @@
 
 package org.gradle.tooling.internal.provider
 
-import org.gradle.api.execution.internal.DefaultTaskInputsListener
+import org.gradle.api.execution.internal.DefaultTaskInputsListeners
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.deployment.internal.DeploymentRegistryInternal
 import org.gradle.initialization.BuildRequestMetaData
 import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.DefaultBuildRequestContext
 import org.gradle.initialization.NoOpBuildEventConsumer
 import org.gradle.internal.buildevents.BuildStartedTime
+import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.filewatch.FileSystemChangeWaiter
 import org.gradle.internal.filewatch.FileSystemChangeWaiterFactory
-import org.gradle.internal.filewatch.PendingChangesListener
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
 import org.gradle.internal.service.ServiceRegistry
@@ -58,10 +58,9 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     def actionParameters = Stub(BuildActionParameters)
     def waiterFactory = Mock(FileSystemChangeWaiterFactory)
     def waiter = Mock(FileSystemChangeWaiter)
-    def inputsListener = new DefaultTaskInputsListener()
+    def listenerManager = new DefaultListenerManager()
+    def inputsListeners = new DefaultTaskInputsListeners(listenerManager)
     def buildSessionScopeServices = Stub(ServiceRegistry)
-    def listenerManager = Stub(ListenerManager)
-    def pendingChangesListener = Mock(PendingChangesListener)
     def deploymentRegistry = Mock(DeploymentRegistryInternal)
     def executer = executer()
 
@@ -71,7 +70,6 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
         buildSessionScopeServices.get(ListenerManager) >> listenerManager
         buildSessionScopeServices.get(BuildStartedTime) >> buildExecutionTimer
         buildSessionScopeServices.get(Clock) >> Time.clock()
-        listenerManager.getBroadcaster(PendingChangesListener) >> pendingChangesListener
         waiterFactory.createChangeWaiter(_, _, _) >> waiter
         buildSessionScopeServices.get(DeploymentRegistryInternal) >> deploymentRegistry
         waiter.isWatching() >> true
@@ -157,10 +155,10 @@ class ContinuousBuildActionExecuterTest extends ConcurrentSpec {
     }
 
     private void declareInput(File file) {
-        inputsListener.onExecute(Mock(TaskInternal), ImmutableFileCollection.of(file))
+        inputsListeners.broadcastFileSystemInputsOf(Mock(TaskInternal), TestFiles.fixed(file))
     }
 
     private ContinuousBuildActionExecuter executer() {
-        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListener, new TestStyledTextOutputFactory(), executorFactory)
+        new ContinuousBuildActionExecuter(delegate, waiterFactory, inputsListeners, new TestStyledTextOutputFactory(), executorFactory)
     }
 }

@@ -121,7 +121,6 @@ class CoffeeScriptCompileIntegrationTest extends AbstractCoffeeScriptCompileInte
         )
     }
 
-    @ToBeFixedForInstantExecution
     def "does not recompile when inputs and outputs are unchanged" () {
         given:
         withCoffeeScriptSource(assets("test.coffee"))

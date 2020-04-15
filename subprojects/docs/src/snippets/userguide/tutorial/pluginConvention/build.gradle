@@ -1,9 +1,0 @@
-apply plugin: 'java'
-
-sourceSets.main.java.outputDir = file("$buildDir/output/classes")
-
-task show {
-    doLast {
-        println relativePath(compileJava.destinationDir)
-    }
-}

@@ -52,6 +52,12 @@ class DependencyVerificationFixture {
         assert !verificationFile.exists() : "Expected verification file ${verificationFile} to be absent but it exists"
     }
 
+    void deleteMetadataFile() {
+        assertMetadataExists()
+        verificationFile.delete()
+        verifier = null
+    }
+
     void hasModules(List<String> modules, boolean strictly = true) {
         withVerifier {
             def seenModules = verificationMetadata.collect {

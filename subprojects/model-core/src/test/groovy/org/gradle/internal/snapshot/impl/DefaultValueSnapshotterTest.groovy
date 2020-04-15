@@ -19,13 +19,10 @@ package org.gradle.internal.snapshot.impl
 import org.gradle.api.Named
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.model.NamedObjectInstantiator
-import org.gradle.api.internal.provider.DefaultListProperty
 import org.gradle.api.internal.provider.DefaultMapProperty
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.DefaultSetProperty
 import org.gradle.api.internal.provider.ManagedFactories
+import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
-import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -589,11 +586,11 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated property"() {
         def originalValue = "123"
-        def original = new DefaultProperty(String)
+        def original = TestUtil.propertyFactory().property(String)
         original.set(originalValue)
 
         given:
-        1 * managedFactoryRegistry.lookup(ManagedFactories.PropertyManagedFactory.FACTORY_ID) >> new ManagedFactories.PropertyManagedFactory()
+        1 * managedFactoryRegistry.lookup(ManagedFactories.PropertyManagedFactory.FACTORY_ID) >> new ManagedFactories.PropertyManagedFactory(TestUtil.propertyFactory())
         1 * managedFactoryRegistry.lookup(ManagedFactories.ProviderManagedFactory.FACTORY_ID) >> new ManagedFactories.ProviderManagedFactory()
 
         expect:
@@ -606,11 +603,11 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated list property"() {
         def originalValue = ["123"]
-        def original = new DefaultListProperty(String)
+        def original = TestUtil.propertyFactory().listProperty(String)
         original.set(originalValue)
 
         given:
-        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.ListPropertyManagedFactory()
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.ListPropertyManagedFactory(TestUtil.propertyFactory())
 
         expect:
         def isolated = snapshotter.isolate(original)
@@ -623,11 +620,11 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated set property"() {
         def originalValue = ["123"]
-        def original = new DefaultSetProperty(String)
+        def original = TestUtil.propertyFactory().setProperty(String)
         original.set(originalValue)
 
         given:
-        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.SetPropertyManagedFactory()
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.SetPropertyManagedFactory(TestUtil.propertyFactory())
 
         expect:
         def isolated = snapshotter.isolate(original)
@@ -640,11 +637,11 @@ class DefaultValueSnapshotterTest extends Specification {
 
     def "creates isolated map property"() {
         def originalMap = [a: 1, b: 2]
-        def original = new DefaultMapProperty(String, Number)
+        def original = new DefaultMapProperty(PropertyHost.NO_OP, String, Number)
         original.set(originalMap)
 
         given:
-        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.MapPropertyManagedFactory()
+        1 * managedFactoryRegistry.lookup(_) >> new ManagedFactories.MapPropertyManagedFactory(TestUtil.propertyFactory())
 
         expect:
         def isolated = snapshotter.isolate(original)
@@ -806,7 +803,7 @@ class DefaultValueSnapshotterTest extends Specification {
         files1.from(new File("a").absoluteFile)
 
         given:
-        _ * managedFactoryRegistry.lookup(ConfigurableFileCollectionManagedFactory.FACTORY_ID) >> new ConfigurableFileCollectionManagedFactory(TestFiles.resolver(), DefaultTaskDependencyFactory.withNoAssociatedProject())
+        _ * managedFactoryRegistry.lookup(ConfigurableFileCollectionManagedFactory.FACTORY_ID) >> new ConfigurableFileCollectionManagedFactory(TestFiles.fileCollectionFactory())
 
         expect:
         def isolatedEmpty = snapshotter.isolate(empty)

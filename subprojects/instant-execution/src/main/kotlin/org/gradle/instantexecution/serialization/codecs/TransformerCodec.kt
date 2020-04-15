@@ -29,6 +29,7 @@ import org.gradle.api.internal.file.FileLookup
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withCodec
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
@@ -79,7 +80,7 @@ class DefaultTransformerCodec(
         if (isolated) {
             parametersObject = null
             val secondaryInputsHash = HashCode.fromBytes(readBinary())
-            val isolatedParameters = read() as Isolatable<TransformParameters>
+            val isolatedParameters = readNonNull<Isolatable<TransformParameters>>()
             isolatedParametersObject = DefaultTransformer.IsolatedParameters(isolatedParameters, secondaryInputsHash)
         } else {
             parametersObject = withCodec(userTypesCodec) { read() as TransformParameters? }

@@ -21,16 +21,16 @@ import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Project
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 
+import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.uncheckedCast
-import org.gradle.instantexecution.runToCompletion
+import org.gradle.instantexecution.problems.PropertyKind
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.DefaultReadContext
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.MutableIsolateContext
-import org.gradle.instantexecution.serialization.PropertyKind
-import org.gradle.instantexecution.serialization.PropertyProblem
-import org.gradle.instantexecution.serialization.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.withIsolate
 
@@ -39,6 +39,7 @@ import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.serialize.Encoder
 import org.gradle.internal.serialize.kryo.KryoBackedDecoder
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
+import org.gradle.kotlin.dsl.support.useToRun
 import org.gradle.util.TestUtil
 
 import org.hamcrest.CoreMatchers.equalTo
@@ -124,7 +125,7 @@ class UserTypesCodecTest {
         assertThat(
             "preserves identities across protocols",
             decodedSerializable.value,
-            sameInstance<Any>(decodedBean)
+            sameInstance(decodedBean)
         )
     }
 
@@ -181,7 +182,7 @@ class UserTypesCodecTest {
         val beanTrace = assertInstanceOf<PropertyTrace.Bean>(fieldTrace.trace)
         assertThat(
             beanTrace.type,
-            sameInstance<Class<*>>(bean.javaClass)
+            sameInstance(bean.javaClass)
         )
     }
 
@@ -198,6 +199,28 @@ class UserTypesCodecTest {
             problem.message.toString(),
             equalTo("objects of type 'kotlin.Pair' are not yet supported with instant execution.")
         )
+    }
+
+    @Test
+    fun `can handle anonymous enum subtypes`() {
+        EnumSuperType.values().forEach {
+            assertThat(
+                roundtrip(it),
+                sameInstance(it)
+            )
+        }
+    }
+
+    enum class EnumSuperType {
+
+        SubType1 {
+            override fun displayName() = "one"
+        },
+        SubType2 {
+            override fun displayName() = "two"
+        };
+
+        abstract fun displayName(): String
     }
 
     private
@@ -311,12 +334,10 @@ class UserTypesCodecTest {
         codec: Codec<Any?>,
         problemHandler: (PropertyProblem) -> Unit = mock()
     ) {
-        KryoBackedEncoder(outputStream).use { encoder ->
-            writeContextFor(encoder, codec, problemHandler).run {
-                withIsolateMock(codec) {
-                    runToCompletion {
-                        write(graph)
-                    }
+        writeContextFor(KryoBackedEncoder(outputStream), codec, problemHandler).useToRun {
+            withIsolateMock(codec) {
+                runToCompletion {
+                    write(graph)
                 }
             }
         }
@@ -360,7 +381,8 @@ class UserTypesCodecTest {
             decoder = KryoBackedDecoder(inputStream),
             instantiatorFactory = TestUtil.instantiatorFactory(),
             constructors = BeanConstructors(TestCrossBuildInMemoryCacheFactory()),
-            logger = mock()
+            logger = mock(),
+            problemHandler = {}
         )
 
     private
@@ -371,6 +393,7 @@ class UserTypesCodecTest {
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
         fileLookup = mock(),
+        propertyFactory = mock(),
         filePropertyFactory = mock(),
         fileResolver = mock(),
         instantiator = mock(),
@@ -389,7 +412,11 @@ class UserTypesCodecTest {
         actionScheme = mock(),
         attributesFactory = mock(),
         transformListener = mock(),
-        valueSourceProviderFactory = mock()
+        valueSourceProviderFactory = mock(),
+        patternSetFactory = mock(),
+        fileOperations = mock(),
+        fileSystem = mock(),
+        fileFactory = mock()
     )
 
     @Test
@@ -397,7 +424,7 @@ class UserTypesCodecTest {
 
         assertThat(
             Peano.fromInt(0),
-            equalTo<Peano>(Peano.Zero)
+            equalTo(Peano.Z)
         )
 
         assertThat(
@@ -410,20 +437,24 @@ class UserTypesCodecTest {
 
         companion object {
 
-            fun fromInt(n: Int): Peano = (0 until n).fold(Zero as Peano) { acc, _ -> Succ(acc) }
+            fun fromInt(n: Int): Peano = (0 until n).fold(Z as Peano) { acc, _ -> S(acc) }
         }
 
         fun toInt(): Int = sequence().count() - 1
 
-        object Zero : Peano()
+        object Z : Peano() {
+            override fun toString() = "Z"
+        }
 
-        data class Succ(val n: Peano) : Peano()
+        data class S(val n: Peano) : Peano() {
+            override fun toString() = "S($n)"
+        }
 
         private
         fun sequence() = generateSequence(this) { previous ->
             when (previous) {
-                is Zero -> null
-                is Succ -> previous.n
+                is Z -> null
+                is S -> previous.n
             }
         }
     }

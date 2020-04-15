@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.ide.idea
 
-import org.apache.commons.io.FilenameUtils
 import org.gradle.plugins.ide.AbstractSourcesAndJavadocJarsIntegrationTest
 import org.gradle.plugins.ide.fixtures.IdeaModuleFixture
 import org.gradle.test.fixtures.server.http.HttpArtifact
@@ -35,12 +34,16 @@ class IdeaSourcesAndJavadocJarsIntegrationTest extends AbstractSourcesAndJavadoc
     }
 
     @Override
-    void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath) {
+    void ideFileContainsGradleApi(String apiJarPrefix) {
+        def libraryEntry = findApiLibrary(apiJarPrefix)
+        assert libraryEntry.source.empty
+    }
+
+    IdeaModuleFixture.ImlModuleLibrary findApiLibrary(String apiJarPrefix) {
         IdeaModuleFixture iml =  parseIml("root.iml")
         def libraryEntry = iml.dependencies.libraries.find { it.jarName.startsWith(apiJarPrefix) }
         assert libraryEntry != null : "gradle API jar not found"
-        assert libraryEntry.source.size() == 1
-        assert libraryEntry.source.get(0) == "file://" + FilenameUtils.separatorsToUnix(sourcesPath)
+        return libraryEntry
     }
 
     void ideFileContainsNoSourcesAndJavadocEntry() {

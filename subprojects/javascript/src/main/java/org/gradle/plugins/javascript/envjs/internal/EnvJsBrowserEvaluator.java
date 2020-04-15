@@ -22,6 +22,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.Factory;
 import org.gradle.plugins.javascript.envjs.browser.BrowserEvaluator;
 import org.gradle.plugins.javascript.rhino.worker.internal.RhinoWorkerHandleFactory;
+import org.gradle.process.internal.worker.RequestHandler;
 
 import java.io.File;
 import java.io.IOException;
@@ -46,10 +47,9 @@ public class EnvJsBrowserEvaluator implements BrowserEvaluator {
 
     @Override
     public void evaluate(String url, Writer writer) {
-        EnvJvEvaluateProtocol evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJvEvaluateProtocol.class, EnvJsEvaluateWorker.class, logLevel, workingDir);
+        RequestHandler<EnvJsEvaluateSpec, String> evaluator = rhinoWorkerHandleFactory.create(rhinoClasspath, EnvJsEvaluateWorker.class, logLevel, workingDir);
 
-        final String result = evaluator.process(new EnvJsEvaluateSpec(envJsFactory.create(), url));
-
+        final String result = evaluator.run(new EnvJsEvaluateSpec(envJsFactory.create(), url));
         try {
             IOUtils.copy(new StringReader(result), writer);
         } catch (IOException e) {

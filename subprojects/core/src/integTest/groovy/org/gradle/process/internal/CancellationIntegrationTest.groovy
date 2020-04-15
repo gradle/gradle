@@ -116,20 +116,25 @@ class CancellationIntegrationTest extends DaemonIntegrationSpec implements Direc
         file('outputFile') << ''
         blockCode()
         buildFile << """
+            import javax.inject.Inject
+
             apply plugin: 'java'
             
             @CacheableTask
-            class MyExec extends DefaultTask {
+            abstract class MyExec extends DefaultTask {
                 @Input
                 String getInput() { "input" }
                 
                 @OutputFile
                 File getOutputFile() { new java.io.File('${fileToPath(file('outputFile'))}') }
 
+                @Inject
+                abstract ExecOperations getExecOperations()
+
                 @TaskAction
                 void action() {
                     try {
-                        def result = project.exec { commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block' }
+                        def result = execOperations.exec { commandLine '${fileToPath(Jvm.current().javaExecutable)}', '-cp', '${fileToPath(file('build/classes/java/main'))}', 'Block' }
                     } catch (Throwable t) {
                         if(!${ignored}) {
                             throw t

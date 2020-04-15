@@ -16,47 +16,17 @@
 
 package org.gradle.api.internal.file;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
-import org.gradle.util.CollectionUtils;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public abstract class AbstractBaseDirFileResolver extends AbstractFileResolver {
-    public AbstractBaseDirFileResolver(Factory<PatternSet> patternSetFactory) {
-        super(patternSetFactory);
-    }
-
     protected abstract File getBaseDir();
 
     @Override
     public String resolveAsRelativePath(Object path) {
-        List<String> basePath = Arrays.asList(StringUtils.split(getBaseDir().getAbsolutePath(), "/" + File.separator));
-        File targetFile = resolve(path);
-        List<String> targetPath = new ArrayList<String>(Arrays.asList(StringUtils.split(targetFile.getAbsolutePath(),
-                "/" + File.separator)));
-
-        // Find and remove common prefix
-        int maxDepth = Math.min(basePath.size(), targetPath.size());
-        int prefixLen = 0;
-        while (prefixLen < maxDepth && basePath.get(prefixLen).equals(targetPath.get(prefixLen))) {
-            prefixLen++;
-        }
-        basePath = basePath.subList(prefixLen, basePath.size());
-        targetPath = targetPath.subList(prefixLen, targetPath.size());
-
-        for (int i = 0; i < basePath.size(); i++) {
-            targetPath.add(0, "..");
-        }
-        if (targetPath.isEmpty()) {
-            return ".";
-        }
-        return CollectionUtils.join(File.separator, targetPath);
+        return GFileUtils.relativePathOf(resolve(path), getBaseDir());
     }
 
     @Override

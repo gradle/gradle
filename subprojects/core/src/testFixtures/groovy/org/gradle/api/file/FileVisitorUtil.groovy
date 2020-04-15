@@ -15,15 +15,20 @@
  */
 package org.gradle.api.file
 
-import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.MinimalFileTree
 
-import static org.junit.Assert.*
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class FileVisitorUtil {
     static void assertCanStopVisiting(MinimalFileTree tree) {
-        assertCanStopVisiting(new FileTreeAdapter(tree))
+        assertCanStopVisiting(new FileTreeAdapter(tree, TestFiles.patternSetFactory))
     }
 
     static void assertCanStopVisiting(FileTree tree) {
@@ -44,7 +49,7 @@ class FileVisitorUtil {
     }
 
     static void assertVisits(MinimalFileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
-        assertVisits(new FileTreeAdapter(tree), expectedFiles, expectedDirs)
+        assertVisits(new FileTreeAdapter(tree, TestFiles.patternSetFactory), expectedFiles, expectedDirs)
     }
 
     static void assertVisits(FileTree tree, Iterable<String> expectedFiles, Iterable<String> expectedDirs) {
@@ -101,7 +106,7 @@ class FileVisitorUtil {
     }
 
     static void assertVisitsPermissions(MinimalFileTree tree, Map<String, Integer> filesWithPermissions) {
-        assertVisitsPermissions(new FileTreeAdapter(tree), filesWithPermissions)
+        assertVisitsPermissions(new FileTreeAdapter(tree, TestFiles.patternSetFactory), filesWithPermissions)
     }
 
     static void assertVisitsPermissions(FileTree tree, Map<String, Integer> filesWithPermissions) {

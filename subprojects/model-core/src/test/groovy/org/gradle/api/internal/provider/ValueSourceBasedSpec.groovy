@@ -17,9 +17,11 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Action
+import org.gradle.api.internal.properties.GradleProperties
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
+import org.gradle.api.provider.ValueSourceSpec
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter
 import org.gradle.util.TestUtil
@@ -36,10 +38,11 @@ abstract class ValueSourceBasedSpec extends Specification {
         listenerManager,
         TestUtil.instantiatorFactory(),
         isolatableFactory,
+        Mock(GradleProperties),
         TestUtil.services()
     )
 
-    protected <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super org.gradle.api.provider.ValueSourceSpec<P>> configureAction) {
+    protected <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
         return valueSourceProviderFactory.createProviderOf(valueSourceType, configureAction)
     }
 }

@@ -16,7 +16,10 @@
 
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+
+import java.util.Map;
 
 public interface AttributeContainerInternal extends AttributeContainer {
 
@@ -27,4 +30,11 @@ public interface AttributeContainerInternal extends AttributeContainer {
      * @return an immutable view of this container.
      */
     ImmutableAttributes asImmutable();
+
+    /**
+     * Returns a copy of this attribute container as a map. This is an expensive
+     * operation which should be limited to cases like diagnostics which are worthy of time.
+     * @return a copy of this container, as a map.
+     */
+    Map<Attribute<?>, ?> asMap();
 }

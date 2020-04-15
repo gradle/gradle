@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableSet
 import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.internal.isolation.Isolatable
 import org.gradle.internal.snapshot.impl.BooleanValueSnapshot
 import org.gradle.internal.snapshot.impl.FileValueSnapshot
@@ -67,7 +68,7 @@ object IsolatedSetCodec : Codec<IsolatedSet> {
     }
 
     override suspend fun ReadContext.decode(): IsolatedSet {
-        val elements = read() as ImmutableSet<Isolatable<*>>
+        val elements = readNonNull<ImmutableSet<Isolatable<*>>>()
         return IsolatedSet(elements)
     }
 }
@@ -79,7 +80,7 @@ object IsolatedListCodec : Codec<IsolatedList> {
     }
 
     override suspend fun ReadContext.decode(): IsolatedList {
-        val elements = read() as ImmutableList<Isolatable<*>>
+        val elements = readNonNull<ImmutableList<Isolatable<*>>>()
         return IsolatedList(elements)
     }
 }
@@ -91,7 +92,7 @@ object IsolatedMapCodec : Codec<IsolatedMap> {
     }
 
     override suspend fun ReadContext.decode(): IsolatedMap {
-        val elements = read() as ImmutableList<MapEntrySnapshot<Isolatable<*>>>
+        val elements = readNonNull<ImmutableList<MapEntrySnapshot<Isolatable<*>>>>()
         return IsolatedMap(elements)
     }
 }
@@ -119,7 +120,7 @@ object IsolatedArrayCodec : Codec<IsolatedArray> {
 
     override suspend fun ReadContext.decode(): IsolatedArray {
         val arrayType = readClass()
-        val elements = read() as ImmutableList<Isolatable<*>>
+        val elements = readNonNull<ImmutableList<Isolatable<*>>>()
         return IsolatedArray(elements, arrayType)
     }
 }
@@ -183,7 +184,7 @@ class IsolatedManagedValueCodec(private val managedFactory: ManagedFactoryRegist
     override suspend fun ReadContext.decode(): IsolatedManagedValue {
         val targetType = readClass()
         val factoryId = readSmallInt()
-        val state = read() as Isolatable<Any>
+        val state = readNonNull<Isolatable<Any>>()
         return IsolatedManagedValue(targetType, managedFactory.lookup(factoryId), state)
     }
 }

@@ -31,7 +31,7 @@ import static org.gradle.internal.FileUtils.canonicalize
 class BuildLayoutParametersTest extends Specification {
 
     @Rule SetSystemProperties props = new SetSystemProperties()
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
 
     @Requires(TestPrecondition.NOT_EC2_AGENT)
     @Issue('https://github.com/gradle/gradle-private/issues/2876')

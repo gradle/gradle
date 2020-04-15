@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.resource.sftp
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.fixtures.server.sftp.SFTPServer
 import org.junit.Rule
@@ -26,24 +25,23 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
     @Rule final SFTPServer sftpServer = new SFTPServer(temporaryFolder)
     @Rule final BlockingHttpServer coordinator = new BlockingHttpServer()
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     def "does not attempt to reuse a client that has been disconnected"() {
         coordinator.start()
 
         buildFile << """
             ${sftpTask}
-            
+
             task firstUse(type: SftpTask) {
                 credentials = creds
             }
-            
+
             task block {
                 doLast {
                     ${coordinator.callFromBuild('sync')}
                 }
                 dependsOn firstUse
             }
-            
+
             task reuseClient(type: SftpTask) {
                 credentials = creds
                 dependsOn block
@@ -74,18 +72,18 @@ class SftpClientReuseIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.internal.resource.transport.sftp.SftpClientFactory
             import org.gradle.api.artifacts.repositories.PasswordCredentials
             import org.gradle.internal.credentials.DefaultPasswordCredentials
-            
+
             PasswordCredentials creds = new DefaultPasswordCredentials('sftp', 'sftp')
-            
+
             class SftpTask extends DefaultTask {
                 @Internal
-                PasswordCredentials credentials 
+                PasswordCredentials credentials
 
                 @Inject
                 SftpClientFactory getSftpClientFactory() {
                     throw new UnsupportedOperationException()
                 }
-                
+
                 @TaskAction
                 void sftpTest() {
                     def client = sftpClientFactory.createSftpClient(new URI("${sftpServer.uri}"), credentials)

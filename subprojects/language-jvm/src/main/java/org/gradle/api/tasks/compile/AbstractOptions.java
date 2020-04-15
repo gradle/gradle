@@ -19,7 +19,7 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.Maps;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.Serializable;

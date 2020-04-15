@@ -15,7 +15,7 @@
  */
 package org.gradle.api.file;
 
-import org.gradle.api.file.internal.FilePathUtil;
+import org.gradle.internal.file.FilePathUtil;
 
 import javax.annotation.Nullable;
 import java.io.File;

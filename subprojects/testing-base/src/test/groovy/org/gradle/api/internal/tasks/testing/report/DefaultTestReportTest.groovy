@@ -39,7 +39,7 @@ import spock.lang.Unroll
 
 class DefaultTestReportTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     BuildOperationExecutor buildOperationExecutor
     DefaultTestReport report
     final TestFile reportDir = tmpDir.file('report')

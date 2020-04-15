@@ -17,17 +17,17 @@
 package org.gradle.jvm.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.GradleVersion
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
-        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not create library or binaries when not configured"() {
         when:
         buildFile << '''
@@ -53,7 +53,6 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         !file("build").exists()
     }
 
-    @ToBeFixedForInstantExecution
     def "defines jvm library and binary model objects and lifecycle task"() {
         when:
         buildFile << '''
@@ -178,7 +177,6 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         file("build/bin/myJvmLibJar.bin").assertExists()
     }
 
-    @ToBeFixedForInstantExecution
     def "can specify additional builder tasks for binary"() {
         given:
         buildFile << '''
@@ -213,7 +211,6 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Constructing Jar 'myJvmLib:jar'")
     }
 
-    @ToBeFixedForInstantExecution
     def "can define multiple jvm libraries in single project"() {
         when:
         buildFile << '''
@@ -269,7 +266,8 @@ class JvmComponentPluginIntegrationTest extends AbstractIntegrationSpec {
         notExecuted ":myLibTwoJar"
 
         when:
-        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
         succeeds "assemble"
 
         then:

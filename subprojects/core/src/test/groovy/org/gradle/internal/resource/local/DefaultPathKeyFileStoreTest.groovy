@@ -26,7 +26,7 @@ import spock.lang.Specification
 
 @UsesNativeServices
 class DefaultPathKeyFileStoreTest extends Specification {
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
     TestFile fsBase
     PathKeyFileStore store
 

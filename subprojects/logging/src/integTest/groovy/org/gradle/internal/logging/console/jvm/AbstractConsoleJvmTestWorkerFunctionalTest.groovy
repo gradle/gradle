@@ -47,7 +47,10 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "ConsoleTestNGTestWorkerFunctionalTest"
+    )
     def "shows test class execution #description test class name in work-in-progress area of console for single project build"() {
         given:
         buildFile << testableJavaProject(testDependency(), MAX_WORKERS)
@@ -76,7 +79,10 @@ abstract class AbstractConsoleJvmTestWorkerFunctionalTest extends AbstractIntegr
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "ConsoleTestNGTestWorkerFunctionalTest"
+    )
     def "shows test class execution #description test class name in work-in-progress area of console for multi-project build"() {
         given:
         settingsFile << "include 'project1', 'project2'"

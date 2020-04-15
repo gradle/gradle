@@ -36,7 +36,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class DefaultFileContentCacheFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def listenerManager = new DefaultListenerManager()
     def virtualFileSystem = Mock(VirtualFileSystem)
     def cacheRepository = new DefaultCacheRepository(new DefaultCacheScopeMapping(tmpDir.file("user-home"), tmpDir.file("build-dir"), GradleVersion.current()), new InMemoryCacheFactory())

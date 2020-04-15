@@ -17,14 +17,21 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.model.internal.core.ModelNode
 
 class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def setup() {
         buildFile << """
-            gradle.buildFinished {
-                file("tasks.txt").text = allprojects*.tasks.flatten().grep({ it.group == "mygroup" })*.path.join("\\n")
+            def tasksFile = file("tasks.txt")
+            tasksFile.text = ''
+            gradle.taskGraph.whenReady {
+                allprojects {
+                    tasks.matching { it.group == "mygroup" }.all {
+                        tasksFile << path + '\\n'
+                    }
+                }
             }
         """
     }
@@ -80,6 +87,7 @@ class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implement
         createdTasksFor("t1") == [":t1"]
     }
 
+    @UnsupportedWithInstantExecution
     def "task container is self closed by task selection and can be later graph closed"() {
         when:
         buildFile << '''

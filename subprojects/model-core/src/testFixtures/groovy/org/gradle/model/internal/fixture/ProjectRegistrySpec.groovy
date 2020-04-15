@@ -41,7 +41,7 @@ class ProjectRegistrySpec extends AbstractProjectBuilderSpec {
     public static final StructBindingsStore STRUCT_BINDINGS_STORE
 
     @ClassRule
-    public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance()
+    public static final TestNameTestDirectoryProvider SERVICES_TEST_DIRECTORY = TestNameTestDirectoryProvider.newInstance(getClass())
 
     static {
         def services = TestUtil.create(SERVICES_TEST_DIRECTORY.testDirectory).rootProject().services

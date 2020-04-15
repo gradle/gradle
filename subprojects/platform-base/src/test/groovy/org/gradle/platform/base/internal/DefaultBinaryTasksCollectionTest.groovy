@@ -33,13 +33,14 @@ class DefaultBinaryTasksCollectionTest extends Specification {
 
     def "can create task"() {
         def action = Mock(Action)
+        def task = Stub(Task)
 
         when:
         tasks.create("foo", DefaultTask, action)
 
         then:
-        1 * taskFactory.create("foo", DefaultTask)
-        1 * action.execute(_)
+        1 * taskFactory.create("foo", DefaultTask) >> task
+        1 * action.execute(task)
     }
 
     def "provides lifecycle task for binary"() {
@@ -78,7 +79,7 @@ class DefaultBinaryTasksCollectionTest extends Specification {
         def t = thrown UnknownDomainObjectException
         t.message == "Multiple tasks with type 'Copy' found."
     }
-    
+
     def "generates a task name"() {
         given:
         binary.projectScopedName >> "myLibJar"

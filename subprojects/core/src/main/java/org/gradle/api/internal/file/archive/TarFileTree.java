@@ -23,10 +23,8 @@ import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.collections.ArchiveFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTree;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
-import org.gradle.api.internal.file.collections.MinimalFileTree;
 import org.gradle.api.resources.ResourceException;
 import org.gradle.api.resources.internal.ReadableResourceInternal;
 import org.gradle.internal.IoActions;
@@ -43,7 +41,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-public class TarFileTree implements MinimalFileTree, ArchiveFileTree {
+public class TarFileTree extends AbstractArchiveFileTree {
     private final File tarFile;
     private final ReadableResourceInternal resource;
     private final Chmod chmod;

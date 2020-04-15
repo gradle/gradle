@@ -23,7 +23,7 @@ import spock.lang.Specification
 class DownloadTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     def "downloads file"() {
         given:

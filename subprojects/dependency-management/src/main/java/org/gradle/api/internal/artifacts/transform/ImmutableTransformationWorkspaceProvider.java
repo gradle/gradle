@@ -55,7 +55,7 @@ public class ImmutableTransformationWorkspaceProvider implements TransformationW
             .withCleanup(createCleanupAction(filesOutputDirectory, fileAccessTimeJournal))
             .withCrossVersionCache(CacheBuilder.LockTarget.DefaultTarget)
             .withDisplayName("Artifact transforms cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         fileAccessTracker = new SingleDepthFileAccessTracker(fileAccessTimeJournal, filesOutputDirectory, FILE_TREE_DEPTH_TO_TRACK_AND_CLEANUP);
     }

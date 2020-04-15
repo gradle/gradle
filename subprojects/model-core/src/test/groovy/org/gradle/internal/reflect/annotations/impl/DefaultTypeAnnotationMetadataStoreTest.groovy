@@ -257,7 +257,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIgnoredPropertyWithOtherAnnotations, [
             ignoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'ignoredProperty' getter 'getIgnoredProperty()' annotated with @Ignored should not be also annotated with @Color."
+            "Property 'ignoredProperty' annotated with @Ignored should not be also annotated with @Color."
         ]
     }
 
@@ -272,7 +272,7 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         assertProperties TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations, [
             twiceIgnoredProperty: [(TYPE): Ignored]
         ], [
-            "Property 'twiceIgnoredProperty' getter 'getTwiceIgnoredProperty()' annotated with @Ignored should not be also annotated with @Ignored2."
+            "Property 'twiceIgnoredProperty' annotated with @Ignored should not be also annotated with @Ignored2."
         ]
     }
 
@@ -280,6 +280,26 @@ class DefaultTypeAnnotationMetadataStoreTest extends Specification {
         interface TypeWithIgnoredPropertyWithMultipleIgnoreAnnotations {
             @Ignored @Ignored2
             String getTwiceIgnoredProperty()
+        }
+
+    def "warns when field is ignored but there is another annotation on the getter"() {
+        expect:
+        assertProperties TypeWithIgnoredFieldAndGetterInput, [
+            ignoredByField: [(TYPE): Ignored]
+        ], [
+            "Property 'ignoredByField' annotated with @Ignored should not be also annotated with @Small."
+        ]
+    }
+
+        @SuppressWarnings("unused")
+        static class TypeWithIgnoredFieldAndGetterInput {
+            @Ignored
+            private String ignoredByField;
+
+            @Small
+            String getIgnoredByField() {
+                return ignoredByField
+            }
         }
 
     def "superclass properties are present in subclass"() {

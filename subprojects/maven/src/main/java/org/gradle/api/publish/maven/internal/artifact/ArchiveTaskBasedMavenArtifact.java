@@ -51,4 +51,9 @@ public class ArchiveTaskBasedMavenArtifact extends AbstractMavenArtifact {
     protected TaskDependencyInternal getDefaultBuildDependencies() {
         return buildDependencies;
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return archiveTask.isEnabled();
+    }
 }

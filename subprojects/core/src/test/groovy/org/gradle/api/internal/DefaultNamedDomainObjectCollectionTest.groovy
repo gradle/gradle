@@ -30,7 +30,6 @@ class DefaultNamedDomainObjectCollectionTest extends AbstractNamedDomainObjectCo
     };
 
     Instantiator instantiator = TestUtil.instantiatorFactory().decorateLenient()
-    Set<Bean> store
 
     final DefaultNamedDomainObjectCollection<Bean> container = new DefaultNamedDomainObjectCollection<Bean>(Bean, new IterationOrderRetainingSetElementSource<Bean>(), instantiator, namer, callbackActionDecorator)
     final Bean a = new BeanSub1("a")

@@ -16,10 +16,9 @@
 
 package org.gradle.integtests.resolve.rules
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 
 class ComponentMetadataRulesCachingIntegrationTest extends AbstractModuleDependencyResolveTest implements ComponentMetadataRulesSupport {
@@ -99,6 +98,41 @@ dependencies {
         succeeds 'resolve'
         outputDoesNotContain('Rule executed')
         outputDoesNotContain('See dependency')
+    }
+
+    @ToBeFixedForInstantExecution
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def 'cached rule can access PomModuleDescriptor for Maven component'() {
+        given:
+        repository {
+            'org.test:projectA:1.0'()
+        }
+
+        buildFile << """
+@CacheableRule
+class PomRule implements ComponentMetadataRule {
+    public void execute(ComponentMetadataContext context) {
+        assert context.getDescriptor(PomModuleDescriptor) != null
+        assert context.getDescriptor(PomModuleDescriptor).packaging == "jar"
+    }
+}
+
+dependencies {
+    components {
+        all(PomRule)
+    }
+}
+"""
+        when:
+        repositoryInteractions {
+            'org.test:projectA:1.0' {
+                expectResolve()
+            }
+        }
+
+        then:
+        succeeds 'resolve'
+        succeeds 'resolve'
     }
 
     @ToBeFixedForInstantExecution
@@ -270,9 +304,7 @@ dependencies {
         outputDoesNotContain('Attribute rule executed')
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @ToBeFixedForInstantExecution
     def 'can cache rules setting custom type attributes'() {
         repository {
@@ -368,7 +400,6 @@ dependencies {
         }
     }
 
-    @ToBeFixedForInstantExecution
     def 'changing rule implementation invalidates cache'() {
         repository {
             'org.test:projectA:1.0'()

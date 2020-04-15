@@ -22,8 +22,10 @@ import org.gradle.api.internal.collections.DefaultDomainObjectCollectionFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.provider.DefaultProviderFactory;
 import org.gradle.api.internal.resources.DefaultResourceHandler;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ReadableResource;
 import org.gradle.api.resources.ResourceHandler;
 import org.gradle.api.resources.TextResourceFactory;
@@ -42,6 +44,7 @@ import org.gradle.internal.service.scopes.WorkerSharedProjectScopeServices;
 import org.gradle.internal.service.scopes.WorkerSharedUserHomeScopeServices;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 import org.gradle.process.internal.ExecFactory;
+import org.gradle.process.internal.worker.RequestHandler;
 import org.gradle.process.internal.worker.request.RequestArgumentSerializers;
 
 import javax.annotation.Nonnull;
@@ -49,7 +52,7 @@ import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.io.File;
 
-public class WorkerDaemonServer implements WorkerProtocol {
+public class WorkerDaemonServer implements RequestHandler<TransportableActionExecutionSpec<?>, DefaultWorkResult> {
     private final ServiceRegistry internalServices;
     private final LegacyTypesSupport legacyTypesSupport;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
@@ -62,7 +65,7 @@ public class WorkerDaemonServer implements WorkerProtocol {
         this.legacyTypesSupport = internalServices.get(LegacyTypesSupport.class);
         this.actionExecutionSpecFactory = internalServices.get(ActionExecutionSpecFactory.class);
         this.instantiatorFactory = internalServices.get(InstantiatorFactory.class);
-        argumentSerializers.add(WorkerDaemonMessageSerializer.create());
+        argumentSerializers.register(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
     }
 
     static ServiceRegistry createWorkerDaemonServices(ServiceRegistry parent) {
@@ -75,18 +78,18 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     @Override
-    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
+    public DefaultWorkResult run(TransportableActionExecutionSpec<?> spec) {
         try {
             try (WorkerProjectServices internalServices = new WorkerProjectServices(spec.getBaseDir(), this.internalServices)) {
-                WorkerProtocol worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
-                return worker.execute(spec);
+                RequestHandler<TransportableActionExecutionSpec<?>, DefaultWorkResult> worker = getIsolatedClassloaderWorker(spec.getClassLoaderStructure(), internalServices);
+                return worker.run(spec);
             }
         } catch (Throwable t) {
             return new DefaultWorkResult(true, t);
         }
     }
 
-    private WorkerProtocol getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
+    private RequestHandler<TransportableActionExecutionSpec<?>, DefaultWorkResult> getIsolatedClassloaderWorker(ClassLoaderStructure classLoaderStructure, ServiceRegistry workServices) {
         if (classLoaderStructure instanceof FlatClassLoaderStructure) {
             return new FlatClassLoaderWorker(this.getClass().getClassLoader(), workServices, actionExecutionSpecFactory, instantiatorFactory);
         } else {
@@ -107,6 +110,11 @@ public class WorkerDaemonServer implements WorkerProtocol {
     }
 
     private static class WorkerDaemonServices extends WorkerSharedUserHomeScopeServices {
+
+        // TODO: instant-execution - deprecate workers access to ProviderFactory?
+        ProviderFactory createProviderFactory() {
+            return new DefaultProviderFactory();
+        }
 
         IsolatableSerializerRegistry createIsolatableSerializerRegistry(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
             return new IsolatableSerializerRegistry(classLoaderHierarchyHasher, managedFactoryRegistry);

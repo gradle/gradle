@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.Transformer;
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType.Repository;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.descriptor.RepositoryDescriptor;
@@ -162,12 +161,7 @@ class ResolveConfigurationResolutionBuildOperationDetails implements ResolveConf
         private final RepositoryDescriptor descriptor;
 
         private static List<Repository> transform(List<ResolutionAwareRepository> repositories) {
-            return CollectionUtils.collect(repositories, new Transformer<Repository, ResolutionAwareRepository>() {
-                @Override
-                public Repository transform(ResolutionAwareRepository repository) {
-                    return new RepositoryImpl(repository.getDescriptor());
-                }
-            });
+            return CollectionUtils.collect(repositories, repository -> new RepositoryImpl(repository.getDescriptor()));
         }
 
         private RepositoryImpl(RepositoryDescriptor descriptor) {

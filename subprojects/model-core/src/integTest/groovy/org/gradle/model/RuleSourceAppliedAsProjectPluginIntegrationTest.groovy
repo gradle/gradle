@@ -17,8 +17,9 @@
 package org.gradle.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin class can expose model rules"() {
@@ -393,7 +394,6 @@ model {
         output.contains "value: configured"
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can depend on a concrete task type"() {
         when:
         buildScript '''

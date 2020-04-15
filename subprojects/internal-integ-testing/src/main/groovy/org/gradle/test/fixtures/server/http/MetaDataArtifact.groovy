@@ -47,9 +47,15 @@ class MetaDataArtifact extends HttpArtifact implements RootMavenMetaData {
     protected TestFile getSha512File() {
         backingModule.getSha512File(file)
     }
+
     @Override
     TestFile getFile() {
         return backingModule.rootMetaDataFile
+    }
+
+    @Override
+    String getName() {
+        return backingModule.rootMetaDataFile.name
     }
 
     List<String> getVersions() {

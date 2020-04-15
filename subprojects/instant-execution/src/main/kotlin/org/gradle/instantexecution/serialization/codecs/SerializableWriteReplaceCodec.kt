@@ -21,6 +21,7 @@ import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.decodePreservingIdentity
 import org.gradle.instantexecution.serialization.encodePreservingIdentityOf
+import org.gradle.instantexecution.serialization.readNonNull
 
 import java.io.Serializable
 
@@ -47,7 +48,7 @@ class SerializableWriteReplaceCodec : EncodingProducer, Decoding {
      */
     override suspend fun ReadContext.decode(): Any? =
         decodePreservingIdentity { id ->
-            readResolve(read()!!).also { bean ->
+            readResolve(readNonNull()).also { bean ->
                 isolate.identities.putInstance(id, bean)
             }
         }

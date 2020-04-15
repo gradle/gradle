@@ -16,10 +16,9 @@
 package org.gradle.integtests.resolve.suppliers
 
 import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.HttpModule
@@ -294,7 +293,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         checkResolve "group:projectA:1.+": ["group:projectA:1.2", "didn't match version 2.0"], "group:projectB:latest.release": ["group:projectB:1.1", "didn't match version 2.2"]
     }
 
-    @ToBeFixedForInstantExecution
     def "can recover from --offline mode"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -347,12 +345,12 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
           }
           class MP implements ComponentMetadataSupplier {
             final RepositoryResourceAccessor repositoryResourceAccessor
-            
+
             @Inject
             MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
+
             static String filename = 'status.txt'
-          
+
             void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 repositoryResourceAccessor.withResource("\${id.group}/\${id.module}/\${id.version}/\${filename}") {
@@ -401,7 +399,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         failure.assertHasCause("No cached resource '${server.uri}/repo/group/projectB/2.2/status-offline.txt' available for offline mode.")
     }
 
-    @ToBeFixedForInstantExecution
     def "reports and recovers from remote failure"() {
         given:
         def supplierInteractions = withPerVersionStatusSupplier()
@@ -463,7 +460,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
             @Inject
             MP(String status) { this.status = status }
-            
+
             void execute(ComponentMetadataSupplierDetails details) {
                 if (details.id.version == "2.2") {
                     details.result.status = status
@@ -508,7 +505,6 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         succeeds 'checkDeps'
     }
 
-    @ToBeFixedForInstantExecution
     def "handles and recovers from errors in a custom metadata provider"() {
         given:
         buildFile << """
@@ -565,7 +561,7 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
             MP() {
                 throw new RuntimeException("broken")
             }
-          
+
             void execute(ComponentMetadataSupplierDetails details) {
             }
           }
@@ -594,14 +590,13 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
         failure.assertHasCause('broken')
     }
 
-    @RequiredFeatures([
-        @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
-    ])
+
+    @RequiredFeature(feature=GradleMetadataResolveRunner.REPOSITORY_TYPE, value="ivy")
     def "custom metadata provider doesn't have to do something"() {
         given:
         buildFile << """
           class MP implements ComponentMetadataSupplier {
-          
+
             void execute(ComponentMetadataSupplierDetails details) {
                 // does nothing
             }
@@ -644,15 +639,15 @@ class DynamicRevisionRemoteResolveWithMetadataSupplierIntegrationTest extends Ab
 
           @CacheableRule
           class MP implements ComponentMetadataSupplier {
-          
+
             final RepositoryResourceAccessor repositoryResourceAccessor
-            
+
             @Inject
             MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-            
+
             int calls
             Map<String, String> status = [:]
-          
+
             void execute(ComponentMetadataSupplierDetails details) {
                 def id = details.id
                 println "Providing metadata for \$id"
@@ -830,7 +825,7 @@ group:projectB:2.2;release
                     withModule('group:projectB', VerifyRule)
                 }
             }
-       
+
         """
 
         when:
@@ -911,7 +906,7 @@ group:projectB:2.2;release
             class MyAttributes {
                 public static final CUSTOM_STR = Attribute.of("custom string", String)
             }
-            
+
             configurations.conf.attributes {
                 attribute(MyAttributes.CUSTOM_STR, 'v2')
             }
@@ -959,12 +954,12 @@ group:projectB:2.2;release
 
         buildFile << """
             interface CustomType extends Named {}
-            
+
             class MyAttributes {
                 public static final CUSTOM_STR = Attribute.of("custom", String)
                 public static final CUSTOM_REAL = Attribute.of("custom", CustomType)
             }
-            
+
             configurations.conf.attributes {
                 attribute(MyAttributes.CUSTOM_REAL, objects.named(CustomType, 'v2'))
             }
@@ -1198,7 +1193,6 @@ group:projectB:2.2;release
 
     }
 
-    @ToBeFixedForInstantExecution
     def "cross-build caching is resilient to failure"() {
         def metadataFile = file("buildSrc/src/main/groovy/MP.groovy")
         executer.requireIsolatedDaemons() // because we're going to --stop
@@ -1272,17 +1266,17 @@ group:projectB:2.2;release
           import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor
           import javax.inject.Inject
           import org.gradle.api.artifacts.CacheableRule
-          
+
           ${cacheable?'@CacheableRule':''}
           class MP implements ComponentMetadataSupplier {
-          
+
             final RepositoryResourceAccessor repositoryResourceAccessor
-            
+
             @Inject
             MP(RepositoryResourceAccessor accessor) { repositoryResourceAccessor = accessor }
-          
+
             int count
-          
+
             void execute(ComponentMetadataSupplierDetails details) {
                 assert count == 0
                 def id = details.id
@@ -1347,13 +1341,13 @@ group:projectB:2.2;release
     void addDependenciesTo(TestFile buildFile) {
         buildFile << """
           import javax.inject.Inject
-     
+
           if (project.hasProperty('refreshDynamicVersions')) {
                 configurations.all {
                     resolutionStrategy.cacheDynamicVersionsFor 0, "seconds"
                 }
           }
-          
+
           dependencies {
               conf group: "group", name: "projectA", version: "1.+"
               conf group: "group", name: "projectB", version: "latest.release"

@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.repositories;
 
+import com.google.common.base.Supplier;
+import com.google.common.base.Suppliers;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.NamedDomainObjectCollection;
@@ -27,7 +29,6 @@ import org.gradle.api.artifacts.repositories.ArtifactRepository;
 import org.gradle.api.artifacts.repositories.MetadataSupplierAware;
 import org.gradle.api.artifacts.repositories.RepositoryContentDescriptor;
 import org.gradle.api.artifacts.repositories.RepositoryResourceAccessor;
-import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalRepositoryResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
 import org.gradle.api.model.ObjectFactory;
@@ -36,6 +37,7 @@ import org.gradle.internal.action.ConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRule;
 import org.gradle.internal.action.DefaultConfigurableRules;
 import org.gradle.internal.action.InstantiatingAction;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.caching.ImplicitInputsCapturingInstantiator;
@@ -53,11 +55,11 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     private Action<? super ActionConfiguration> componentMetadataSupplierRuleConfiguration;
     private Action<? super ActionConfiguration> componentMetadataListerRuleConfiguration;
     private final ObjectFactory objectFactory;
-    private final RepositoryContentDescriptorInternal repositoryContentDescriptor;
+    private Supplier<RepositoryContentDescriptorInternal> repositoryContentDescriptor = Suppliers.memoize(this::createRepositoryDescriptor);
 
     protected AbstractArtifactRepository(ObjectFactory objectFactory) {
         this.objectFactory = objectFactory;
-        this.repositoryContentDescriptor = createRepositoryDescriptor();
+
     }
 
     @Override
@@ -108,17 +110,17 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
     }
 
     protected RepositoryContentDescriptorInternal createRepositoryDescriptor() {
-        return new DefaultRepositoryContentDescriptor();
+        return new DefaultRepositoryContentDescriptor(getDisplayName());
     }
 
     @Nullable
     public Action<? super ArtifactResolutionDetails> getContentFilter() {
-        return repositoryContentDescriptor.toContentFilter();
+        return repositoryContentDescriptor.get().toContentFilter();
     }
 
     @Override
     public void content(Action<? super RepositoryContentDescriptor> configureAction) {
-        configureAction.execute(repositoryContentDescriptor);
+        configureAction.execute(repositoryContentDescriptor.get());
     }
 
     InstantiatingAction<ComponentMetadataSupplierDetails> createComponentMetadataSupplierFactory(Instantiator instantiator, IsolatableFactory isolatableFactory) {
@@ -160,11 +162,8 @@ public abstract class AbstractArtifactRepository implements ArtifactRepositoryIn
 
 
     private static <T> InstantiatingAction<T> createRuleAction(final Instantiator instantiator, final ConfigurableRule<T> rule) {
-        return new InstantiatingAction<T>(DefaultConfigurableRules.of(rule), instantiator, new InstantiatingAction.ExceptionHandler<T>() {
-            @Override
-            public void handleException(T target, Throwable throwable) {
-                throw UncheckedException.throwAsUncheckedException(throwable);
-            }
+        return new InstantiatingAction<T>(DefaultConfigurableRules.of(rule), instantiator, (target, throwable) -> {
+            throw UncheckedException.throwAsUncheckedException(throwable);
         });
     }
 }

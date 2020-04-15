@@ -17,8 +17,8 @@
 package org.gradle.kotlin.dsl.precompile
 
 import org.gradle.internal.hash.Hashing
-
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependencies
+import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
 
 import java.util.concurrent.Future
 
@@ -33,8 +33,16 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
     companion object {
 
-        fun hashOf(charSequence: CharSequence) = Hashing.hashString(charSequence).toString()
+        fun hashOf(charSequence: CharSequence) =
+            hashOfNormalisedString(convertLineSeparatorsToUnix(charSequence.toString()))
 
+        fun hashOfNormalisedString(charSequence: CharSequence) =
+            Hashing.hashString(charSequence).toString()
+
+        /**
+         * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
+         * coming from the Kotlin compiler already should.
+         */
         fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
             implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
 
@@ -44,7 +52,7 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         private
         fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
-            environment.stringList(hashOf(scriptText))
+            environment.stringList(hashOfNormalisedString(scriptText))
 
         private
         fun Environment?.stringList(key: String) =

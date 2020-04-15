@@ -17,6 +17,7 @@
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.futurePluginVersionsFile
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     `kotlin-library`
@@ -51,12 +52,6 @@ pluginBundles.forEach {
 }
 
 tasks {
-
-    // TODO:kotlin-dsl
-    verifyTestFilesCleanup {
-        enabled = false
-    }
-
     val testEnvironment by registering {
         pluginBundles.forEach {
             dependsOn("$it:publishPluginsToTestRepository")
@@ -94,4 +89,8 @@ tasks {
     processIntegTestResources {
         dependsOn(writeFuturePluginVersions)
     }
+}
+
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
 }

@@ -17,7 +17,6 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 
 class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -25,9 +24,7 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         gradleMetadataPublished
     }
 
-    @RequiredFeatures(
-        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")]
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="false")
     void "published dependency constraint is ignored when Gradle module metadata is not available"() {
         given:
         repository {
@@ -404,9 +401,8 @@ class PublishedDependencyConstraintsIntegrationTest extends AbstractModuleDepend
         }
     }
 
-    @RequiredFeatures(
-        [@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")]
-    )
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value="true")
     void "deferred selector still resolved when constraint disappears"() {
         repository {
             'org:bar:1.0'()

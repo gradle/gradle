@@ -1,4 +1,6 @@
-apply plugin: 'cpp'
+plugins {
+    id 'cpp'
+}
 
 // tag::platforms[]
 model {

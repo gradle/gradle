@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.ZipTestFixture
 import spock.lang.Issue
@@ -129,7 +128,6 @@ class ZipIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://issues.gradle.org/browse/GRADLE-1346")
-    @ToBeFixedForInstantExecution
     def "task is out of date after `into` changes"() {
         file("src/main/java/Main.java") << "public class Main {}"
         buildFile << """

@@ -16,12 +16,14 @@
 
 package org.gradle.kotlin.dsl
 
+import org.gradle.api.Action
+import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.ModuleDependency
+import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
-
 import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
 
 
@@ -42,6 +44,23 @@ private constructor(
 
     override val delegate: DependencyHandler
         get() = dependencies
+
+    @Deprecated(replaceWith = ReplaceWith("constraints"), message = "This method shouldn't be called because the most specific variant should be preferred by the Kotlin compiler", level = DeprecationLevel.HIDDEN)
+    override fun constraints(configureAction: Action<in DependencyConstraintHandler>) {
+        super.constraints(configureAction)
+    }
+
+    /**
+     * Configures dependency constraint for this project.
+     *
+     * @param configureAction the action to use to configure module metadata
+     *
+     * @since 6.3
+     */
+    @Incubating
+    fun constraints(configureAction: DependencyConstraintHandlerScope.() -> Unit) {
+        super.constraints { t -> configureAction(DependencyConstraintHandlerScope.of(t)) }
+    }
 
     /**
      * Adds a dependency to the given configuration.

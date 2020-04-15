@@ -58,7 +58,7 @@ dependencies {
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org.test:projectA:[1.1]", "org.test:projectA:1.1") {
-                    edge("org.test:projectB:[2.0]", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
+                    edge("org.test:projectB:2.0", "org.test:projectB:2.0") // Transitive version range is lost when converting to Ivy ModuleDescriptor
                 }
             }
         }

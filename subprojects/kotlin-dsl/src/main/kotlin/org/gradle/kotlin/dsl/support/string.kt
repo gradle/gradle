@@ -16,8 +16,8 @@
 
 package org.gradle.kotlin.dsl.support
 
-import org.gradle.util.TextUtil
+import org.gradle.util.TextUtil.convertLineSeparatorsToUnix
 
 
-fun String.normaliseLineSeparators() =
-    TextUtil.normaliseLineSeparators(this)
+fun String.normaliseLineSeparators(): String =
+    convertLineSeparatorsToUnix(this)

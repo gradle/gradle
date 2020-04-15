@@ -18,7 +18,6 @@ package org.gradle.internal.resource.cached;
 
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingManager;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.internal.Factory;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.serialize.Serializer;
 
@@ -56,18 +55,15 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     public V lookup(final K key) {
         assertKeyNotNull(key);
 
-        V result = artifactCacheLockingManager.useCache(new Factory<V>() {
-            @Override
-            public V create() {
-                V found = getPersistentCache().get(key);
-                if (found == null) {
-                    return null;
-                } else if (found.isMissing() || found.getCachedFile().exists()) {
-                    return found;
-                } else {
-                    clear(key);
-                    return null;
-                }
+        V result = artifactCacheLockingManager.useCache(() -> {
+            V found = getPersistentCache().get(key);
+            if (found == null) {
+                return null;
+            } else if (found.isMissing() || found.getCachedFile().exists()) {
+                return found;
+            } else {
+                clear(key);
+                return null;
             }
         });
 
@@ -79,12 +75,7 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
     }
 
     protected void storeInternal(final K key, final V entry) {
-        artifactCacheLockingManager.useCache(new Runnable() {
-            @Override
-            public void run() {
-                getPersistentCache().put(key, entry);
-            }
-        });
+        artifactCacheLockingManager.useCache(() -> getPersistentCache().put(key, entry));
     }
 
     protected void assertKeyNotNull(K key) {
@@ -101,11 +92,6 @@ public abstract class AbstractCachedIndex<K, V extends CachedItem> {
 
     public void clear(final K key) {
         assertKeyNotNull(key);
-        artifactCacheLockingManager.useCache(new Runnable() {
-            @Override
-            public void run() {
-                getPersistentCache().remove(key);
-            }
-        });
+        artifactCacheLockingManager.useCache(() -> getPersistentCache().remove(key));
     }
 }

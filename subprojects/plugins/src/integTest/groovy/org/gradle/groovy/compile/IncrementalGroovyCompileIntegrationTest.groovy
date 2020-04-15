@@ -16,7 +16,6 @@
 package org.gradle.groovy.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.junit.Rule
@@ -27,7 +26,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
     @Rule public final TestResources resources = new TestResources(testDirectoryProvider)
 
     @Test
-    public void recompilesSourceWhenPropertiesChange() {
+    void recompilesSourceWhenPropertiesChange() {
         executer.withTasks('compileGroovy').run().assertTasksSkipped(':compileJava')
 
         file('build.gradle').text += '''
@@ -40,7 +39,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void recompilesDependentClasses() {
+    void recompilesDependentClasses() {
         executer.withTasks("classes").run();
 
         // Update interface, compile should fail
@@ -51,8 +50,7 @@ class IncrementalGroovyCompileIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
-    public void failsCompilationWhenConfigScriptIsUpdated() {
+    void failsCompilationWhenConfigScriptIsUpdated() {
         // compilation passes with a config script that does nothing
         executer.withTasks('compileGroovy').run().assertTasksExecutedInOrder(":compileJava",":compileGroovy")
 

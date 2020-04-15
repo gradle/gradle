@@ -48,19 +48,20 @@ class PlayIdeaPluginBasicIntegrationTest extends PlayIdeaPluginIntegrationTest {
     def "emits deprecation warning"() {
         given:
         applyIdePlugin()
+        def documentationLink = "See https://docs.gradle.org/current/userguide/play_plugin.html for more details."
 
         when:
-        succeeds("help")
+        executer.expectDocumentedDeprecationWarning("The Play plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-application plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-javascript plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play Ide plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-ide plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-twirl plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-routes plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play Test plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-test plugin instead. ${documentationLink}")
+        executer.expectDocumentedDeprecationWarning("The Play Distribution plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-distribution plugin instead. ${documentationLink}")
 
         then:
-        outputContains("The Play plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework plugin instead.")
-        outputContains("The Play Application plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-application plugin instead.")
-        outputContains("The Play JavaScript plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-javascript plugin instead.")
-        outputContains("The Play Ide plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-ide plugin instead.")
-        outputContains("The Play Twirl plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-twirl plugin instead.")
-        outputContains("The Play Routes plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-routes plugin instead.")
-        outputContains("The Play Test plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-test plugin instead.")
-        outputContains("The Play Distribution plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consider using the org.gradle.playframework-distribution plugin instead.")
+        succeeds("help")
     }
 
     @ToBeFixedForInstantExecution

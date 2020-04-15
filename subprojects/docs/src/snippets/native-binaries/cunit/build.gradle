@@ -1,7 +1,9 @@
 // tag::complete-example[]
 // tag::terse-example[]
-apply plugin: "c"
-apply plugin: 'cunit-test-suite'
+plugins {
+    id 'c'
+    id 'cunit-test-suite'
+}
 
 model {
     flavors {

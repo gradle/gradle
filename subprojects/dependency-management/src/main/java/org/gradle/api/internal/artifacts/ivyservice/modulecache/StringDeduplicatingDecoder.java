@@ -58,6 +58,12 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
         return delegate.readSmallInt();
     }
 
+    @Nullable
+    @Override
+    public Integer readNullableSmallInt() throws IOException {
+        return delegate.readNullableSmallInt();
+    }
+
     @Override
     public boolean readBoolean() throws EOFException, IOException {
         return delegate.readBoolean();
@@ -101,6 +107,16 @@ class StringDeduplicatingDecoder implements Decoder, Closeable {
     @Override
     public void skipBytes(long count) throws EOFException, IOException {
         delegate.skipBytes(count);
+    }
+
+    @Override
+    public <T> T decodeChunked(DecodeAction<Decoder, T> decodeAction) throws EOFException, Exception {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public void skipChunked() throws EOFException, IOException {
+        throw new UnsupportedOperationException();
     }
 
     @Override

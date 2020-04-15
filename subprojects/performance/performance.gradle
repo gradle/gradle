@@ -18,7 +18,9 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 import java.util.concurrent.TimeUnit
 
-apply from: 'templates.gradle'
+plugins {
+    id 'gradlebuild.performance-templates'
+}
 
 dependencies {
     performanceTestImplementation project(":baseServices")

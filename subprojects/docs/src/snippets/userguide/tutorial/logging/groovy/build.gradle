@@ -5,7 +5,7 @@ logger.warn('A warning log message.')
 logger.lifecycle('A lifecycle info log message.')
 logger.info('An info log message.')
 logger.debug('A debug log message.')
-logger.trace('A trace log message.')
+logger.trace('A trace log message.') // Gradle never logs TRACE level logs
 // end::use-logger[]
 
 // tag::use-logger-placeholder[]

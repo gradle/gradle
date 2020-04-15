@@ -145,7 +145,9 @@ The Wrapper shell script and batch file reside in the root directory of a single
 [[sec:upgrading_wrapper]]
 == Upgrading the Gradle Wrapper
 
-Projects will typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements. One way to upgrade the Gradle version is manually change the `distributionUrl` property in the Wrapper property file. The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>. Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project. As usual you’d commit the changes to the Wrapper files to version control.
+Projects will typically want to keep up with the times and upgrade their Gradle version to benefit from new features and improvements. One way to upgrade the Gradle version is manually change the `distributionUrl` property in the Wrapper's `gradle-wrapper.properties` file. The better and recommended option is to run the `wrapper` task and provide the target Gradle version as described in <<#sec:adding_wrapper,Adding the Gradle Wrapper>>. Using the `wrapper` task ensures that any optimizations made to the Wrapper shell script or batch file with that specific Gradle version are applied to the project. As usual, you should commit the changes to the Wrapper files to version control.
+
+Note that running the wrapper task once will update `gradle-wrapper.properties` only, but leave the wrapper itself in `gradle-wrapper.jar` untouched. This is usually fine as new versions of Gradle can be run even with ancient wrapper files. If you nevertheless want *all* the wrapper files to be completely up-to-date, you'll need to run the `wrapper` task a second time.
 
 Use the Gradle `wrapper` task to generate the wrapper, specifying a version. The default is the current version. Once you have upgraded the wrapper, you can check that it's the version you expect by executing `./gradlew --version`.
 
@@ -235,13 +237,20 @@ distributionSha256Sum=371cb9fbebbe9880d147f59bab36d61eee122854ef8c9ee1ecf12b8236
 Gradle will report a build failure in case the configured checksum does not match the checksum found on the server for hosting the distribution. Checksum Verification is only performed if the configured Wrapper distribution hasn't been downloaded yet.
 
 [[wrapper_checksum_verification]]
-== Verifying the checksum of the Gradle Wrapper JAR
+== Verifying the integrity of the Gradle Wrapper JAR
 
 The Wrapper JAR is a binary file that will be executed on the computers of developers and build servers.
 As with all such files, you should be sure that it's trustworthy before executing it.
-For example, since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by committing it or submitting a pull request that seemingly only upgrades the Gradle version.
+Since the Wrapper JAR is usually checked into a project's version control system, there is the potential for a malicious actor to replace the original JAR with a modified one by submitting a pull request that seemingly only upgrades the Gradle version.
 
-In order to allow checking the integrity of the Wrapper JAR, Gradle publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs) alongside the corresponding Gradle distribution on https://services.gradle.org/.
+To verify the integrity of the Wrapper JAR, Gradle has created a link:https://github.com/marketplace/actions/gradle-wrapper-validation[GitHub Action] that automatically checks Wrapper JARs in pull requests against a list of known good checksums.
+Gradle also publishes the link:https://gradle.org/release-checksums/[checksums of all releases] (except for version 3.3 to 4.0.2, which did not generate reproducible JARs), so you can manually verify the integrity of the Wrapper JAR.
+
+=== Automatically verifying the Gradle Wrapper JAR on GitHub
+
+The link:https://github.com/marketplace/actions/gradle-wrapper-validation[GitHub Action] is released separately from Gradle, so please check its documentation for how to apply it to your project.
+
+=== Manually verifying the Gradle Wrapper JAR
 You can manually verify the checksum of the Wrapper JAR to ensure that it has not been tampered with by running the following commands on one of the major operating systems:
 
 [source,bash,subs=+attributes]
@@ -304,9 +313,8 @@ d81e0f23ade952b35e55333dd5f1821585e887c6d24305aeea2fbc8dad564b95
 
 Once you know the actual checksum, check whether it's listed on https://gradle.org/release-checksums/.
 If it is listed, you have verified the integrity of the Wrapper JAR.
-However, it belongs to a different -- probably older -- Gradle version.
-In this case, it's safe to run the `wrapper` task again to update the Wrapper JAR so it matches the Gradle version in `gradle/wrapper/gradle-wrapper.properties`.
+If the version of Gradle that generated the Wrapper JAR doesn't match the version in `gradle/wrapper/gradle-wrapper.properties`, it's safe to run the `wrapper` task again to update the Wrapper JAR.
 
-If the checksum is not listed on the page, the Wrapper JAR might be from a milestone, release candidate, or nightly build -- or it might indeed not be legitimate.
+If the checksum is not listed on the page, the Wrapper JAR might be from a milestone, release candidate, or nightly build or may have been generated by Gradle 3.3 to 4.0.2.
 You should try to find out how it was generated but treat it as untrustworthy until proven otherwise.
-If you think it was manipulated, please let the Gradle team know by sending an email to mailto:security@gradle.com[security@gradle.com].
+If you think the Wrapper JAR was compromised, please let the Gradle team know by sending an email to mailto:security@gradle.com[security@gradle.com].

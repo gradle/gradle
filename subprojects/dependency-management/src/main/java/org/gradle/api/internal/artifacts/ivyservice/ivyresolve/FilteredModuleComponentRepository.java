@@ -123,7 +123,7 @@ public class FilteredModuleComponentRepository implements ModuleComponentReposit
         public void resolveComponentMetaData(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata requestMetaData, BuildableModuleComponentMetaDataResolveResult result) {
             whenModulePresent(moduleComponentIdentifier.getModuleIdentifier(), moduleComponentIdentifier,
                     () -> delegate.resolveComponentMetaData(moduleComponentIdentifier, requestMetaData, result),
-                    () -> result.missing());
+                result::missing);
         }
 
         @Override

@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.http
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.keystore.TestKeyStore
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -79,7 +78,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         file('libs').assertHasDescendants('my-module-1.0.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "decent error message when client can't authenticate server"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerCert(server)
@@ -96,7 +94,6 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
         failure.assertThatCause(containsText("java.security.cert.CertPathValidatorException"))
     }
 
-    @ToBeFixedForInstantExecution
     def "build fails when server can't authenticate client"() {
         keyStore = TestKeyStore.init(resources.dir)
         keyStore.enableSslWithServerAndBadClientCert(server)

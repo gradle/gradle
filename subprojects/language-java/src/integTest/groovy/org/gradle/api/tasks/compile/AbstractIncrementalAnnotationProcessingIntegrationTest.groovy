@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.AnnotationProcessorFixture
 import org.gradle.language.fixtures.CompileJavaBuildOperationsFixture
 import org.gradle.test.fixtures.file.TestFile
@@ -50,7 +49,7 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
             allprojects {
                 apply plugin: 'java'
             }
-            
+
             dependencies {
                 compileOnly project(":annotation")
                 annotationProcessor project(":processor")
@@ -135,7 +134,6 @@ abstract class AbstractIncrementalAnnotationProcessingIntegrationTest extends Ab
         outputs.recompiledClasses("A", "B")
     }
 
-    @ToBeFixedForInstantExecution
     def "compilation is incremental when an empty directory is added"() {
         given:
         def a = java("class A {}")

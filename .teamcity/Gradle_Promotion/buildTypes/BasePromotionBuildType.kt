@@ -18,9 +18,9 @@ package Gradle_Promotion.buildTypes
 
 import common.Os
 import common.requiresOs
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.CheckoutMode
-import jetbrains.buildServer.configs.kotlin.v2018_2.vcs.GitVcsRoot
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.CheckoutMode
+import jetbrains.buildServer.configs.kotlin.v2019_2.vcs.GitVcsRoot
 
 abstract class BasePromotionBuildType(vcsRoot: GitVcsRoot, cleanCheckout: Boolean = true) : BuildType() {
     init {

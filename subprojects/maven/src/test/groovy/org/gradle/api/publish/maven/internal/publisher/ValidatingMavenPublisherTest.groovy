@@ -38,7 +38,7 @@ import static org.gradle.util.CollectionUtils.toSet
 
 class ValidatingMavenPublisherTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     def delegate = Mock(MavenPublisher)
     def publisher = new ValidatingMavenPublisher(delegate)
@@ -109,7 +109,7 @@ class ValidatingMavenPublisherTest extends Specification {
     def "ignores project coordinates missing from POM file that could be taken from parent POM file"() {
         given:
         def projectIdentity = makeProjectIdentity("group", "artifact", "version")
-        def pomFile = createPomFile(makeProjectIdentity(null, "artifact", null), new Action<XmlProvider>() {
+        def pomFile = createPomFile(makeProjectIdentity("group", "artifact", "version"), new Action<XmlProvider>() {
             void execute(XmlProvider xml) {
                 xml.asNode().appendNode("parent")
             }
@@ -243,9 +243,9 @@ class ValidatingMavenPublisherTest extends Specification {
 
     private def makeProjectIdentity(def groupId, def artifactId, def version) {
         return Stub(MavenProjectIdentity) {
-            getGroupId() >> Providers.of(groupId)
-            getArtifactId() >> Providers.of(artifactId)
-            getVersion() >> Providers.of(version)
+            getGroupId() >> Providers.ofNullable(groupId)
+            getArtifactId() >> Providers.ofNullable(artifactId)
+            getVersion() >> Providers.ofNullable(version)
         }
     }
 

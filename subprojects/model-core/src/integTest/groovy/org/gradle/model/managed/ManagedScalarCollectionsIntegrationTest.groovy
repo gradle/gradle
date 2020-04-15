@@ -17,8 +17,10 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ManagedScalarCollectionsIntegrationTest extends AbstractIntegrationSpec {
 
     private final static List<String> MANAGED_SCALAR_COLLECTION_TYPES = ['List', 'Set']

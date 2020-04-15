@@ -22,7 +22,9 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.WarPlugin;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ear.EarPlugin;
 import org.gradle.plugins.ide.eclipse.model.AbstractClasspathEntry;
 import org.gradle.plugins.ide.eclipse.model.AbstractLibrary;
@@ -35,6 +37,7 @@ import org.gradle.plugins.ide.eclipse.model.EclipseWtpComponent;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
+import org.gradle.plugins.ide.internal.resolver.NullGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collections;
@@ -61,7 +64,8 @@ public class WtpClasspathAttributeSupport {
 
     private static Set<File> collectFilesFromConfigs(EclipseClasspath classpath, Set<Configuration> configs, Set<Configuration> minusConfigs) {
         WtpClasspathAttributeDependencyVisitor visitor = new WtpClasspathAttributeDependencyVisitor(classpath);
-        new IdeDependencySet(classpath.getProject().getDependencies(), configs, minusConfigs, artifact -> null).visit(visitor);
+        new IdeDependencySet(classpath.getProject().getDependencies(), ((ProjectInternal) classpath.getProject()).getServices().get(JavaModuleDetector.class),
+            configs, minusConfigs, false, NullGradleApiSourcesResolver.INSTANCE).visit(visitor);
         return visitor.getFiles();
     }
 
@@ -134,12 +138,12 @@ public class WtpClasspathAttributeSupport {
         }
 
         @Override
-        public void visitProjectDependency(ResolvedArtifactResult artifact) {
+        public void visitProjectDependency(ResolvedArtifactResult artifact, boolean asJavaModule) {
 
         }
 
         @Override
-        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency) {
+        public void visitModuleDependency(ResolvedArtifactResult artifact, Set<ResolvedArtifactResult> sources, Set<ResolvedArtifactResult> javaDoc, boolean testDependency, boolean asJavaModule) {
             files.add(artifact.getFile());
         }
 

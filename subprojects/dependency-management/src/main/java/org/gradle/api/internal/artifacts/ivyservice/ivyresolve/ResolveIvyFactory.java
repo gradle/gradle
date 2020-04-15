@@ -138,7 +138,7 @@ public class ResolveIvyFactory {
             }
             moduleComponentRepository = new ErrorHandlingModuleComponentRepository(moduleComponentRepository, repositoryBlacklister);
             moduleComponentRepository = filterRepository(repository, moduleComponentRepository, resolveContextName, consumerAttributes);
-            moduleComponentRepository = dependencyVerificationOverride.overrideDependencyVerification(moduleComponentRepository);
+            moduleComponentRepository = dependencyVerificationOverride.overrideDependencyVerification(moduleComponentRepository, resolveContextName, resolutionStrategy);
             moduleResolver.add(moduleComponentRepository);
             parentModuleResolver.add(moduleComponentRepository);
         }

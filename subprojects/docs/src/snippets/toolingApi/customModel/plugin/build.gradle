@@ -1,5 +1,7 @@
-apply plugin: 'java'
-apply plugin: 'ivy-publish'
+plugins {
+    id 'java'
+    id 'ivy-publish'
+}
 
 group 'org.gradle.sample'
 version '1.0'

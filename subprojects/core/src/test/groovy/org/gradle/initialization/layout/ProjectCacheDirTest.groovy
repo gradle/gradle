@@ -33,7 +33,7 @@ import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.Marke
 
 class ProjectCacheDirTest extends Specification implements VersionSpecificCacheCleanupFixture {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def cacheDir = temporaryFolder.createDir(".gradle")
     def progressLoggerFactory = Mock(ProgressLoggerFactory)

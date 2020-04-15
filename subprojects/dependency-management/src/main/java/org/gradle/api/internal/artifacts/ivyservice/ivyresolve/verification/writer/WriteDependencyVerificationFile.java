@@ -28,6 +28,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ArtifactView;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyInternal;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.DependencyVerifyingModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ModuleComponentRepository;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ArtifactVerificationOperation;
@@ -108,7 +109,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private boolean hasMissingKeys = false;
     private boolean hasFailedVerification = false;
 
-    public WriteDependencyVerificationFile(File buildDirectory,
+    public WriteDependencyVerificationFile(File gradleDir,
                                            BuildOperationExecutor buildOperationExecutor,
                                            List<String> checksums,
                                            ChecksumService checksumService,
@@ -118,8 +119,8 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         this.buildOperationExecutor = buildOperationExecutor;
         this.checksums = checksums;
         this.checksumService = checksumService;
-        this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(buildDirectory);
-        this.keyringsFile = DependencyVerificationOverride.keyringsFile(buildDirectory);
+        this.verificationFile = DependencyVerificationOverride.dependencyVerificationsFile(gradleDir);
+        this.keyringsFile = DependencyVerificationOverride.keyringsFile(gradleDir);
         this.signatureVerificationServiceFactory = signatureVerificationServiceFactory;
         this.isDryRun = isDryRun;
         this.generatePgpInfo = checksums.contains(PGP);
@@ -158,13 +159,13 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     @Override
-    public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original) {
+    public ModuleComponentRepository overrideDependencyVerification(ModuleComponentRepository original, String resolveContextName, ResolutionStrategyInternal resolutionStrategy) {
         return new DependencyVerifyingModuleComponentRepository(original, this, generatePgpInfo);
     }
 
     @Override
     public void buildFinished(Gradle gradle) {
-
+        ensureOutputDirCreated();
         maybeReadExistingFile();
         SignatureVerificationService signatureVerificationService = signatureVerificationServiceFactory.create(
             keyringsFile,
@@ -181,6 +182,10 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
         } finally {
             signatureVerificationService.stop();
         }
+    }
+
+    public boolean ensureOutputDirCreated() {
+        return verificationFile.getParentFile().mkdirs();
     }
 
     private void serializeResult(SignatureVerificationService signatureVerificationService) throws IOException {
@@ -347,6 +352,7 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
                 }
                 if (!entry.getFile().exists()) {
                     LOGGER.warn("Cannot compute checksum for " + entry.getFile() + " because it doesn't exist. It may indicate a corrupt or tampered cache.");
+                    continue;
                 }
                 if (entry instanceof ChecksumEntry) {
                     queueChecksumVerification(queue, (ChecksumEntry) entry);
@@ -442,7 +448,12 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     }
 
     private String createHash(File file, ChecksumKind kind) {
-        return checksumService.hash(file, kind.getAlgorithm()).toString();
+        try {
+            return checksumService.hash(file, kind.getAlgorithm()).toString();
+        } catch (Exception e) {
+            LOGGER.debug("Error while snapshotting " + file, e);
+            return null;
+        }
     }
 
     private static void resolveAllConfigurationsAndForceDownload(Project p) {
@@ -494,7 +505,6 @@ public class WriteDependencyVerificationFile implements DependencyVerificationOv
     private static class PGPPublicKeyRingListBuilder implements PublicKeyResultBuilder {
         private final ImmutableList.Builder<PGPPublicKeyRing> builder = ImmutableList.builder();
 
-        @Override
         public void keyRing(PGPPublicKeyRing keyring) {
             builder.add(keyring);
         }

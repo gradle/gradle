@@ -16,8 +16,11 @@
 
 package org.gradle.gradlebuild.test.integrationtests
 
+import org.gradle.api.tasks.CacheableTask
+
 
 /**
  * A test aimed at verifying behavior under heavy load.
  */
+@CacheableTask
 abstract class SoakTest : DistributionTest()

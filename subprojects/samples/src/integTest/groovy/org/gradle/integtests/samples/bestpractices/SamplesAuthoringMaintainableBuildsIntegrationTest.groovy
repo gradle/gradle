@@ -16,17 +16,13 @@
 
 package org.gradle.integtests.samples.bestpractices
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
-import org.gradle.util.Requires
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIntegrationTest {
 
     @Rule
@@ -67,7 +63,7 @@ generateDocs - Generates the HTML documentation for this project.""")
 
     @Unroll
     @UsesSample('userguide/bestPractices/logicDuringConfiguration')
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 

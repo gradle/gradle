@@ -17,7 +17,6 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.CompilationOutputsFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
 import org.junit.Rule
 
@@ -25,7 +24,6 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
     @Rule public final Sample processing = new Sample(temporaryFolder, 'java/incrementalAnnotationProcessing')
 
-    @ToBeFixedForInstantExecution
     def "isolating annotation processors are incremental"() {
         given:
         CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("/user/build/classes"))
@@ -44,7 +42,6 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
         outputs.recompiledClasses("Entity1", "Entity1Repository", "ServiceRegistry", "Main")
     }
 
-    @ToBeFixedForInstantExecution
     def "aggregating annotation processors are incremental"() {
         given:
         CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("/user/build/classes"))

@@ -20,8 +20,8 @@ import org.gradle.caching.internal.CacheableEntity;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ import java.io.OutputStream;
 import java.util.Map;
 
 public interface BuildCacheEntryPacker {
-    PackResult pack(CacheableEntity entity, Map<String, CurrentFileCollectionFingerprint> fingerprints, OutputStream output, OriginWriter writeOrigin) throws IOException;
+    PackResult pack(CacheableEntity entity, Map<String, ? extends FileSystemSnapshot> snapshots, OutputStream output, OriginWriter writeOrigin) throws IOException;
 
     class PackResult {
         private final long entries;

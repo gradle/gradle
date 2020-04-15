@@ -8,7 +8,7 @@ plugins {
 dependencies {
     implementation(project(":cli"))
 
-    implementation(library("jsr305"))
+    implementation(project(":baseAnnotations"))
     implementation(library("commons_lang"))
 }
 

@@ -55,7 +55,7 @@ public class LoggingCachingStateBuilder extends DefaultCachingStateBuilder {
     @Override
     public void withInputFilePropertyFingerprints(Map<String, CurrentFileCollectionFingerprint> fingerprints) {
         fingerprints.forEach((propertyName, fingerprint) -> {
-            LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {}", propertyName, fingerprint.getHash());
+            LOGGER.warn("Appending input file fingerprints for '{}' to build cache key: {} - {}", propertyName, fingerprint.getHash(), fingerprint);
         });
         super.withInputFilePropertyFingerprints(fingerprints);
     }

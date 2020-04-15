@@ -1,12 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider",
-            "member": "Class org.gradle.plugins.signing.signatory.pgp.PgpSignatoryProvider",
-            "acceptation": "Introduced a new internal API interface for bridging with the security subproject",
-            "changes": [
-                "org.gradle.plugins.signing.signatory.internal.ConfigurableSignatoryProvider"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }

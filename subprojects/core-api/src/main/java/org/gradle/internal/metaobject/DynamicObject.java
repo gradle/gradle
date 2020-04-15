@@ -23,7 +23,7 @@ import groovy.lang.MissingPropertyException;
  *
  * The semantics of each method is completely up to the implementation. For example, {@link BeanDynamicObject}
  * provides a dynamic view of the functionality of an object and does not provide any decoration or extra functionality.
- * The {@link org.gradle.api.internal.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
+ * The {@link org.gradle.internal.extensibility.ExtensibleDynamicObject} implementation on the other hand does provide extra functionality.
  */
 public interface DynamicObject extends MethodAccess, PropertyAccess {
     /**

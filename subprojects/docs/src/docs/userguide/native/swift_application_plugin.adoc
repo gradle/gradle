@@ -206,7 +206,7 @@ link:{groovyDslPath}/org.gradle.language.swift.tasks.SwiftCompile.html#org.gradl
 [[sec:swift_application_link_task]]
 === `link__Variant__` Task
 
-The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.language.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
+The Swift Application Plugin adds a link:{groovyDslPath}/org.gradle.nativeplatform.tasks.LinkExecutable.html[LinkExecutable] instance for each variant of the application - e.g. `linkDebug` and `linkRelease`.
 Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,introduction to build variants>> for more information.
 Some of the most common configuration options are shown below.
 

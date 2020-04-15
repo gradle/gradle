@@ -34,14 +34,14 @@ repositories {
     maven { url '${mavenRepo.uri}' }
 }
 
-if (project.hasProperty('explicitDeps')) {
+if (System.getProperty('explicitDeps')) {
     dependencies {
         conf "org:explicit-dependency:1.0"
     }
 }
 task checkDefault {
     doLast {
-        if (project.hasProperty('resolveChild')) {
+        if (System.getProperty('resolveChild')) {
             configurations.child.resolve()
         }
 
@@ -76,13 +76,13 @@ configurations.conf.defaultDependencies { deps ->
         succeeds "checkDefault"
 
         when:
-        executer.withArgument("-PresolveChild")
+        executer.withArgument("-DresolveChild=yes")
 
         then:
         succeeds "checkDefault"
 
         when:
-        executer.withArgument("-PexplicitDeps")
+        executer.withArgument("-DexplicitDeps=yes")
 
         then:
         succeeds "checkExplicit"
@@ -135,7 +135,7 @@ project(":producer") {
         }
     }
     dependencies {
-        if (project.hasProperty('explicitDeps')) {
+        if (System.getProperty('explicitDeps')) {
             implementation "org:explicit-dependency:1.0"
         }
     }
@@ -153,7 +153,7 @@ subprojects {
 
         doLast {
             def resolvedJars = configurations.runtimeClasspath.files.collect { it.name }
-            if (project.hasProperty('explicitDeps')) {
+            if (System.getProperty('explicitDeps')) {
                 assert "explicit-dependency-1.0.jar" in resolvedJars
             } else {
                 assert "default-dependency-1.0.jar" in resolvedJars
@@ -167,7 +167,7 @@ include 'consumer', 'producer'
 """
         expect:
         // relying on explicit dependency
-        succeeds("resolve", "-PexplicitDeps")
+        succeeds("resolve", "-DexplicitDeps=yes")
 
         // relying on default dependency
         succeeds("resolve")
@@ -239,7 +239,7 @@ configurations.conf.incoming.beforeResolve {
         succeeds "checkDefault"
 
         when:
-        executer.withArgument("-PexplicitDeps")
+        executer.withArgument("-DexplicitDeps=yes")
 
         then:
         succeeds "checkExplicit"
@@ -256,7 +256,7 @@ configurations.conf.incoming.beforeResolve {
 
 
         when:
-        executer.withArgument("-PresolveChild")
+        executer.withArgument("-DresolveChild=yes")
 
         then:
         fails "checkDefault"

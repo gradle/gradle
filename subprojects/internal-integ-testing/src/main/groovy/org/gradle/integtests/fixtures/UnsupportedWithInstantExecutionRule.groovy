@@ -21,6 +21,8 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.iterationMatches
+import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecutionExtension.isEnabledBottomSpec
 import static org.junit.Assume.assumeFalse
 
 
@@ -29,10 +31,15 @@ class UnsupportedWithInstantExecutionRule implements TestRule {
     @Override
     Statement apply(Statement base, Description description) {
         def annotation = description.getAnnotation(UnsupportedWithInstantExecution.class)
-        if (!GradleContextualExecuter.isInstant() || annotation == null) {
+        if (GradleContextualExecuter.isNotInstant() || annotation == null) {
             return base
         }
-        return new SkippingRuleStatement(base)
+        def enabledBottomSpec = isEnabledBottomSpec(annotation.bottomSpecs(), { description.className.endsWith(".$it") })
+        def enabledIteration = iterationMatches(annotation.iterationMatchers(), description.methodName)
+        if (enabledBottomSpec && enabledIteration) {
+            return new SkippingRuleStatement(base)
+        }
+        return base
     }
 
     static class SkippingRuleStatement extends Statement {

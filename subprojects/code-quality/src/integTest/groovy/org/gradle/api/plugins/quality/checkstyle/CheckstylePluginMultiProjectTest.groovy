@@ -18,12 +18,9 @@ package org.gradle.api.plugins.quality.checkstyle
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 
 import static org.gradle.util.TextUtil.getPlatformLineSeparator
 
-@Requires(TestPrecondition.JDK8_OR_LATER)
 class CheckstylePluginMultiProjectTest extends AbstractIntegrationSpec {
 
     @ToBeFixedForInstantExecution

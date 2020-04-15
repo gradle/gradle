@@ -105,7 +105,7 @@ class SamplesMavenPomGenerationIntegrationTest extends AbstractSampleIntegration
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "write new pom with #dsl dsl"() {
         given:
         def pomProjectDir = sample.dir.file(dsl)

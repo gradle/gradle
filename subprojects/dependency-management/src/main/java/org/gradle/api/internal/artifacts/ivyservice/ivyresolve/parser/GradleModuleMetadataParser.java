@@ -21,7 +21,6 @@ import com.google.common.collect.Lists;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonToken;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
@@ -51,7 +50,6 @@ import org.gradle.internal.snapshot.impl.CoercingStringValueSnapshot;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -88,36 +86,33 @@ public class GradleModuleMetadataParser {
     }
 
     public void parse(final LocallyAvailableExternalResource resource, final MutableModuleComponentResolveMetadata metadata) {
-        resource.withContent(new Transformer<Void, InputStream>() {
-            @Override
-            public Void transform(InputStream inputStream) {
-                String version = null;
-                try {
-                    JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
-                    reader.beginObject();
-                    if (reader.peek() != JsonToken.NAME) {
-                        throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
-                    }
-                    String name = reader.nextName();
-                    if (!name.equals("formatVersion")) {
-                        throw new RuntimeException(String.format("The 'formatVersion' value should be the first value in a module metadata. Found '%s' instead.", name));
-                    }
-                    if (reader.peek() != JsonToken.STRING) {
-                        throw new RuntimeException("The 'formatVersion' value should have a string value.");
-                    }
-                    version = reader.nextString();
-                    consumeTopLevelElements(reader, metadata);
-                    File file = resource.getFile();
-                    if (!FORMAT_VERSION.equals(version)) {
-                        LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
-                    }
-                    return null;
-                } catch (Exception e) {
-                    if (version != null && !FORMAT_VERSION.equals(version)) {
-                        throw new MetaDataParseException("module metadata", resource, String.format("unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s.", version, FORMAT_VERSION), e);
-                    }
-                    throw new MetaDataParseException("module metadata", resource, e);
+        resource.withContent(inputStream -> {
+            String version = null;
+            try {
+                JsonReader reader = new JsonReader(new InputStreamReader(inputStream, UTF_8));
+                reader.beginObject();
+                if (reader.peek() != JsonToken.NAME) {
+                    throw new RuntimeException("Module metadata should contain a 'formatVersion' value.");
                 }
+                String name = reader.nextName();
+                if (!name.equals("formatVersion")) {
+                    throw new RuntimeException(String.format("The 'formatVersion' value should be the first value in a module metadata. Found '%s' instead.", name));
+                }
+                if (reader.peek() != JsonToken.STRING) {
+                    throw new RuntimeException("The 'formatVersion' value should have a string value.");
+                }
+                version = reader.nextString();
+                consumeTopLevelElements(reader, metadata);
+                File file = resource.getFile();
+                if (!FORMAT_VERSION.equals(version)) {
+                    LOGGER.debug("Unrecognized metadata format version '{}' found in '{}'. Parsing succeeded but it may lead to unexpected resolution results. Try upgrading to a newer version of Gradle", version, file);
+                }
+                return null;
+            } catch (Exception e) {
+                if (version != null && !FORMAT_VERSION.equals(version)) {
+                    throw new MetaDataParseException("module metadata", resource, String.format("unsupported format version '%s' specified in module metadata. This version of Gradle supports format version %s.", version, FORMAT_VERSION), e);
+                }
+                throw new MetaDataParseException("module metadata", resource, e);
             }
         });
         maybeAddEnforcedPlatformVariant(metadata);

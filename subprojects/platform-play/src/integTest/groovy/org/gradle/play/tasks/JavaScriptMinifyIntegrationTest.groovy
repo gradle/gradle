@@ -70,7 +70,6 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         hasProcessedJavaScript("test")
     }
 
-    @ToBeFixedForInstantExecution
     def "does not re-minify when inputs and outputs are unchanged"() {
         given:
         withJavaScriptSource("app/assets/test.js")
@@ -158,7 +157,6 @@ class JavaScriptMinifyIntegrationTest extends AbstractJavaScriptMinifyIntegratio
         assetsJar.countFiles("public/test2.js") == 0
     }
 
-    @ToBeFixedForInstantExecution
     def "minifies multiple javascript source sets as part of play application build" () {
         given:
         withJavaScriptSource("app/assets/test1.js")

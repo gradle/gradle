@@ -37,7 +37,7 @@ class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecific
     private static final String MOST_RECENT_RELEASE = "2.10"
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties(

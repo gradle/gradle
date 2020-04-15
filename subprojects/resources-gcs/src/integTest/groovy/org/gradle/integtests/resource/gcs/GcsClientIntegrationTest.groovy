@@ -37,7 +37,7 @@ class GcsClientIntegrationTest extends Specification {
     final String bucketName = 'org.gradle.artifacts'
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     @Rule
     final GcsServer server = new GcsServer(temporaryFolder)

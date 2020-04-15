@@ -23,15 +23,11 @@ import com.google.common.collect.Maps;
 import com.google.common.io.Files;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.Project;
-import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.javadoc.Groovydoc;
 import org.gradle.util.VersionNumber;
 
@@ -53,19 +49,15 @@ public class AntGroovydoc {
         this.ant = ant;
     }
 
-    public void execute(final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp,
-            String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate,
-            final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath, Project project) {
+    public void execute(
+        final FileCollection source, File destDir, boolean use, boolean noTimestamp, boolean noVersionStamp,
+        String windowTitle, String docTitle, String header, String footer, String overview, boolean includePrivate,
+        final Set<Groovydoc.Link> links, final Iterable<File> groovyClasspath, Iterable<File> classpath,
+        File tmpDir, FileSystemOperations fsOperations
+    ) {
 
-        final File tmpDir = new File(project.getBuildDir(), "tmp/groovydoc");
-        FileOperations fileOperations = ((ProjectInternal) project).getFileOperations();
-        fileOperations.delete(tmpDir);
-        fileOperations.copy(new Action<CopySpec>() {
-            @Override
-            public void execute(CopySpec copySpec) {
-                copySpec.from(source).into(tmpDir);
-            }
-        });
+        fsOperations.delete(spec -> spec.delete(tmpDir));
+        fsOperations.copy(spec -> spec.from(source).into(tmpDir));
 
         List<File> combinedClasspath = ImmutableList.<File>builder()
             .addAll(classpath)

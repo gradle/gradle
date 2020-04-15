@@ -40,7 +40,7 @@ public class CrossBuildFileHashCache implements Closeable {
         CacheBuilder cacheBuilder = cacheDir != null ? repository.cache(cacheDir) : repository.cache(cacheKind.cacheId);
         cache = cacheBuilder
             .withDisplayName(cacheKind.description)
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
     }
 

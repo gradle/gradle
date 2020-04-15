@@ -10,10 +10,10 @@ import common.individualPerformanceTestArtifactRules
 import common.performanceTestCommandLine
 import configurations.individualPerformanceTestJavaHome
 import configurations.killAllGradleProcesses
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.ParameterDisplay
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.ParameterDisplay
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
 
 object AdHocPerformanceScenarioLinux : BuildType({
     uuid = "a3183d81-e07d-475c-8ef6-04ed60bf4053"

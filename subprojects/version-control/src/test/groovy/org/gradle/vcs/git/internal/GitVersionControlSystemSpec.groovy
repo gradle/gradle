@@ -36,7 +36,7 @@ class GitVersionControlSystemSpec extends Specification {
     private RevCommit c1
     private RevCommit c2
 
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     GitFileRepository repo = new GitFileRepository(tmpDir.getTestDirectory())
     GitFileRepository repo2 = new GitFileRepository(tmpDir.getTestDirectory().file('other'))
     GitFileRepository submoduleRepo = new GitFileRepository("submodule", tmpDir.testDirectory)

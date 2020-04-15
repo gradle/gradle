@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.notations;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import org.gradle.api.artifacts.SelfResolvingDependency;
@@ -125,7 +126,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
         removeKotlin(apiClasspath);
 
         return (FileCollectionInternal) relocatedDepsJar(apiClasspath, "gradleApi()", RuntimeShadedJarType.API)
-            .plus(fileCollectionFactory.resolving(groovyImpl, kotlinImpl, installationBeacon));
+            .plus(fileCollectionFactory.resolving(ImmutableList.of(groovyImpl, kotlinImpl, installationBeacon)));
     }
 
     private void removeKotlin(Collection<File> apiClasspath) {

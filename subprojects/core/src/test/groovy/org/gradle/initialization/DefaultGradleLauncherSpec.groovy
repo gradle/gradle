@@ -48,11 +48,12 @@ class DefaultGradleLauncherSpec extends Specification {
 
     def exceptionAnalyserMock = Mock(ExceptionAnalyser)
     def buildCompletionListener = Mock(BuildCompletionListener.class)
+    def buildFinishedListener = Mock(InternalBuildFinishedListener.class)
     def buildServices = Mock(BuildScopeServices.class)
     def otherService = Mock(Stoppable)
     def includedBuildControllers = Mock(IncludedBuildControllers)
     def instantExecution = Mock(InstantExecution)
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def failure = new RuntimeException("main")
     def transformedException = new RuntimeException("transformed")
@@ -67,7 +68,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
-            buildCompletionListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
+            buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
             settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
     }
 

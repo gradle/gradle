@@ -107,6 +107,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.component.model.ComponentResolveMetadata;
 import org.gradle.internal.concurrent.GradleThread;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -117,7 +118,6 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.Path;
 import org.gradle.util.WrapUtil;
 
@@ -140,11 +140,8 @@ import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
-    private static final Action<Throwable> DEFAULT_ERROR_HANDLER = new Action<Throwable>() {
-        @Override
-        public void execute(Throwable throwable) {
-            throw UncheckedException.throwAsUncheckedException(throwable);
-        }
+    private static final Action<Throwable> DEFAULT_ERROR_HANDLER = throwable -> {
+        throw UncheckedException.throwAsUncheckedException(throwable);
     };
 
     private final ConfigurationResolver resolver;
@@ -180,12 +177,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private final DocumentationRegistry documentationRegistry;
 
     private final Set<MutationValidator> childMutationValidators = Sets.newHashSet();
-    private final MutationValidator parentMutationValidator = new MutationValidator() {
-        @Override
-        public void validateMutation(MutationType type) {
-            DefaultConfiguration.this.validateParentMutation(type);
-        }
-    };
+    private final MutationValidator parentMutationValidator = DefaultConfiguration.this::validateParentMutation;
     private final RootComponentMetadataBuilder rootComponentMetadataBuilder;
     private final ConfigurationsProvider configurationsProvider;
 
@@ -302,12 +294,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private static Action<Void> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
-        return new Action<Void>() {
-            @Override
-            public void execute(Void arg) {
-                mutationValidator.validateMutation(type);
-            }
-        };
+        return arg -> mutationValidator.validateMutation(type);
     }
 
     @Override
@@ -448,12 +435,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     @Override
     public Configuration defaultDependencies(final Action<? super DependencySet> action) {
         validateMutation(MutationType.DEPENDENCIES);
-        defaultDependencyActions = defaultDependencyActions.add(new Action<DependencySet>() {
-            @Override
-            public void execute(DependencySet dependencies) {
-                if (dependencies.isEmpty()) {
-                    action.execute(dependencies);
-                }
+        defaultDependencyActions = defaultDependencyActions.add(dependencies -> {
+            if (dependencies.isEmpty()) {
+                action.execute(dependencies);
             }
         });
         return this;
@@ -501,8 +485,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     @Override
-    public void visitStructure(FileCollectionStructureVisitor visitor) {
-        intrinsicFiles.visitStructure(visitor);
+    protected void visitContents(FileCollectionStructureVisitor visitor) {
+        intrinsicFiles.visitContents(visitor);
     }
 
     @Override
@@ -582,7 +566,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             } else {
                 // We don't have mutable access to the project, so we throw a deprecation warning and then continue with
                 // lenient locking.
-                DeprecationLogger.nagUserOfDeprecatedBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.  See " + documentationRegistry.getDocumentationFor("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors") + " for more details.");
+                DeprecationLogger.deprecateBehaviour("The configuration " + identityPath.toString() + " was resolved without accessing the project in a safe manner.  This may happen when a configuration is resolved from a different project.")
+                    .willBeRemovedInGradle7()
+                    .withUserManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors")
+                    .nagUser();
                 owner.getModel().withLenientState(() -> resolveExclusively(requestedState));
             }
         } else {
@@ -592,20 +579,20 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void warnIfConfigurationIsDeprecatedForResolving() {
         if (resolutionAlternatives != null) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(this.name, DeprecationLogger.ConfigurationDeprecationType.RESOLUTION, resolutionAlternatives);
+            DeprecationLogger.deprecateConfiguration(this.name).forResolution().replaceWith(resolutionAlternatives)
+                .willBecomeAnErrorInGradle7()
+                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .nagUser();
         }
     }
 
     private void resolveExclusively(InternalState requestedState) {
-        resolutionLock.withLock(new Runnable() {
-            @Override
-            public void run() {
-                if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
-                    resolveGraphIfRequired(requestedState);
-                }
-                if (requestedState == ARTIFACTS_RESOLVED) {
-                    resolveArtifactsIfRequired();
-                }
+        resolutionLock.withLock(() -> {
+            if (requestedState == GRAPH_RESOLVED || requestedState == ARTIFACTS_RESOLVED) {
+                resolveGraphIfRequired(requestedState);
+            }
+            if (requestedState == ARTIFACTS_RESOLVED) {
+                resolveArtifactsIfRequired();
             }
         });
     }
@@ -714,7 +701,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     @Override
     public ExtraExecutionGraphDependenciesResolverFactory getDependenciesResolver() {
-        return new DefaultExtraExecutionGraphDependenciesResolverFactory(() -> getResultsForBuildDependencies(), () -> getResultsForArtifacts(), new ResolveGraphAction(this), fileCollectionFactory);
+        return new DefaultExtraExecutionGraphDependenciesResolverFactory(this::getResultsForBuildDependencies, this::getResultsForArtifacts, new ResolveGraphAction(this), fileCollectionFactory);
     }
 
     private ResolverResults getResultsForBuildDependencies() {
@@ -1211,12 +1198,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         private ConfigurationFileCollection(final Set<Dependency> dependencies) {
-            this(new Spec<Dependency>() {
-                @Override
-                public boolean isSatisfiedBy(Dependency element) {
-                    return dependencies.contains(element);
-                }
-            });
+            this(dependencies::contains);
         }
 
         @Override
@@ -1248,9 +1230,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         @Override
-        public void visitStructure(FileCollectionStructureVisitor visitor) {
-            ResolvedFilesCollectingVisitor collectingVisitor = new ResolvedFileCollectionVisitor(visitor);
-            visitContents(collectingVisitor);
+        protected void visitContents(FileCollectionStructureVisitor visitor) {
+            visitContents(new ResolvedFileCollectionVisitor(visitor));
         }
 
         private void visitContents(ResolvedFilesCollectingVisitor visitor) {

@@ -1,19 +1,21 @@
 package configurations
 
+import Gradle_Check.configurations.masterReleaseBranchFilter
+import Gradle_Check.configurations.triggerExcludes
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
 import common.gradleWrapper
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
-import jetbrains.buildServer.configs.kotlin.v2018_2.Dependencies
-import jetbrains.buildServer.configs.kotlin.v2018_2.FailureAction
-import jetbrains.buildServer.configs.kotlin.v2018_2.buildSteps.script
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.ScheduleTrigger
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.VcsTrigger
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.schedule
-import jetbrains.buildServer.configs.kotlin.v2018_2.triggers.vcs
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.Dependencies
+import jetbrains.buildServer.configs.kotlin.v2019_2.FailureAction
+import jetbrains.buildServer.configs.kotlin.v2019_2.buildSteps.script
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.ScheduleTrigger
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.VcsTrigger
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.schedule
+import jetbrains.buildServer.configs.kotlin.v2019_2.triggers.vcs
 import model.CIBuildModel
 import model.Stage
 import model.StageName
@@ -29,15 +31,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
     applyDefaultSettings()
     artifactRules = "build/build-receipt.properties"
 
-    val triggerExcludes = """
-        -:.idea
-        -:.github
-        -:.teamcity
-        -:.teamcityTest
-        -:subprojects/docs/src/docs/release
-    """.trimIndent()
-    val masterReleaseFilter = model.masterAndReleaseBranches.joinToString(prefix = "+:", separator = "\n+:")
-
     features {
         publishBuildStatusToGithub(model)
     }
@@ -47,7 +40,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             quietPeriodMode = VcsTrigger.QuietPeriodMode.USE_CUSTOM
             quietPeriod = 90
             triggerRules = triggerExcludes
-            branchFilter = masterReleaseFilter
+            branchFilter = masterReleaseBranchFilter
         }
     } else if (stage.trigger != Trigger.never) {
         triggers.schedule {
@@ -65,7 +58,7 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             triggerBuild = always()
             withPendingChangesOnly = true
             param("revisionRule", "lastFinished")
-            param("branchFilter", masterReleaseFilter)
+            param("branchFilter", masterReleaseBranchFilter)
         }
     }
 
@@ -91,14 +84,6 @@ class StagePasses(model: CIBuildModel, stage: Stage, prevStage: Stage?, stagePro
             name = "CHECK_CLEAN_M2"
             executionMode = BuildStep.ExecutionMode.ALWAYS
             scriptContent = m2CleanScriptUnixLike
-        }
-        if (model.tagBuilds) {
-            gradleWrapper {
-                name = "TAG_BUILD"
-                executionMode = BuildStep.ExecutionMode.ALWAYS
-                tasks = "tagBuild"
-                gradleParams = "$defaultGradleParameters -PteamCityToken=%teamcity.user.bot-gradle.token% -PteamCityBuildId=%teamcity.build.id% -PgithubToken=%github.ci.oauth.token% ${buildScanTag("StagePasses")}"
-            }
         }
     }
 

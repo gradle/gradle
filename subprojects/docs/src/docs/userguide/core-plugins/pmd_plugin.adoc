@@ -73,4 +73,9 @@ The PMD plugin adds the following dependency configurations:
 [[sec:pmd_configuration]]
 == Configuration
 
+====
+include::sample[dir="snippets/codeQuality/groovy",files="build.gradle[tags=customize-pmd]"]
+include::sample[dir="snippets/codeQuality/kotlin",files="build.gradle.kts[tags=customize-pmd]"]
+====
+
 See the link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html[PmdExtension] class in the API documentation.

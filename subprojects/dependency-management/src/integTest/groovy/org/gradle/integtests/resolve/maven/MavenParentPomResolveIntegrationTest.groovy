@@ -207,7 +207,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('child-1.0.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "fails with reasonable message if parent module is an ivy module"() {
         given:
         def child = mavenHttpRepo.module("org", "child")

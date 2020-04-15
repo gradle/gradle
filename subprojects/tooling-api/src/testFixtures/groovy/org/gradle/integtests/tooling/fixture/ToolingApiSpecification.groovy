@@ -74,12 +74,12 @@ abstract class ToolingApiSpecification extends Specification {
         return targetDist.version.baseVersion.version
     }
 
-    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     final GradleDistribution dist = new UnderDevelopmentGradleDistribution()
     final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
     private static final ThreadLocal<GradleDistribution> VERSION = new ThreadLocal<GradleDistribution>()
 
-    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider();
+    TestDistributionDirectoryProvider temporaryDistributionFolder = new TestDistributionDirectoryProvider(getClass())
     final ToolingApi toolingApi = new ToolingApi(targetDist, temporaryFolder)
 
     @Rule
@@ -92,6 +92,12 @@ abstract class ToolingApiSpecification extends Specification {
 
     static GradleDistribution getTargetDist() {
         VERSION.get()
+    }
+
+    def setup() {
+        // this is to avoid the working directory to be the Gradle directory itself
+        // which causes isolation problems for tests. This one is for _embedded_ mode
+        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
     }
 
     DaemonsFixture getDaemonsFixture() {

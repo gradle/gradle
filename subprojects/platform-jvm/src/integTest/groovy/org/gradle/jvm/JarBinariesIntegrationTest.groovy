@@ -18,11 +18,11 @@ package org.gradle.jvm
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.GradleVersion
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
+@UnsupportedWithInstantExecution(because = "software model")
 class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """
@@ -30,7 +30,8 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
                 id 'jvm-component'
             }
         """
-        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
@@ -59,7 +60,6 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Requires(TestPrecondition.JDK8_OR_EARLIER)
-    @ToBeFixedForInstantExecution
     def "assemble task produces sensible error when there are no buildable binaries" () {
         buildFile << """
             model {
@@ -91,8 +91,10 @@ class JarBinariesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "model report should display configured components and binaries"() {
-        executer.expectDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
 
         given:
         buildFile << """

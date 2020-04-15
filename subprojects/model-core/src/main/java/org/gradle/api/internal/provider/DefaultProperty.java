@@ -21,21 +21,15 @@ import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
 
-public class DefaultProperty<T> extends AbstractProperty<T> implements Property<T> {
+public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? extends T>> implements Property<T> {
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
-    private ScalarSupplier<? extends T> convention = Providers.noValue();
-    private ScalarSupplier<? extends T> value;
 
-    public DefaultProperty(Class<T> type) {
-        applyDefaultValue();
+    public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
+        super(propertyHost);
         this.type = type;
         this.sanitizer = ValueSanitizers.forType(type);
-    }
-
-    @Override
-    protected ValueSupplier getSupplier() {
-        return value;
+        init(Providers.notDefined());
     }
 
     @Override
@@ -70,14 +64,9 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     @Override
     public void set(T value) {
         if (value == null) {
-            if (beforeReset()) {
-                this.value = convention;
-            }
-            return;
-        }
-
-        if (beforeMutate()) {
-            this.value = Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer);
+            discardValue();
+        } else {
+            setSupplier(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
     }
 
@@ -94,7 +83,7 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
     }
 
     public ProviderInternal<? extends T> getProvider() {
-        return value.asProvider();
+        return getSupplier();
     }
 
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
@@ -104,83 +93,48 @@ public class DefaultProperty<T> extends AbstractProperty<T> implements Property<
 
     @Override
     public void set(Provider<? extends T> provider) {
-        if (!beforeMutate()) {
-            return;
-        }
         if (provider == null) {
             throw new IllegalArgumentException("Cannot set the value of a property using a null provider.");
         }
         ProviderInternal<? extends T> p = Providers.internal(provider);
-        this.value = p.asSupplier(getValidationDisplayName(), type, sanitizer);
+        setSupplier(p.asSupplier(getValidationDisplayName(), type, sanitizer));
     }
 
     @Override
-    public Property<T> convention(T value) {
+    public Property<T> convention(@Nullable T value) {
         if (value == null) {
-            applyConvention(Providers.noValue());
+            setConvention(Providers.notDefined());
         } else {
-            applyConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
+            setConvention(Providers.fixedValue(getValidationDisplayName(), value, type, sanitizer));
         }
         return this;
     }
 
     @Override
     public Property<T> convention(Provider<? extends T> valueProvider) {
-        ProviderInternal<? extends T> providerInternal = Providers.internal(valueProvider);
-        ScalarSupplier<? extends T> conventionSupplier = providerInternal.asSupplier(getValidationDisplayName(), type, sanitizer);
-        applyConvention(conventionSupplier);
+        setConvention(Providers.internal(valueProvider).asSupplier(getValidationDisplayName(), type, sanitizer));
         return this;
     }
 
-    private void applyConvention(ScalarSupplier<? extends T> conventionSupplier) {
-        if (shouldApplyConvention()) {
-            this.value = conventionSupplier;
-        }
-        this.convention = conventionSupplier;
+    @Override
+    protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(ProviderInternal<? extends T> value) {
+        // Discard this property from a provider chain, as it does not contribute anything to the calculation.
+        return value.calculateExecutionTimeValue();
     }
 
     @Override
-    protected void applyDefaultValue() {
-        value = Providers.noValue();
+    protected Value<? extends T> calculateValueFrom(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+        return value.calculateValue(consumer);
     }
 
     @Override
-    protected void makeFinal() {
-        value = value.withFinalValue();
-        convention = Providers.noValue();
-    }
-
-    @Override
-    public T get() {
-        beforeRead();
-        return value.get(getDisplayName());
-    }
-
-    @Override
-    public T getOrNull() {
-        beforeRead();
-        return value.getOrNull();
-    }
-
-    @Override
-    public T getOrElse(T defaultValue) {
-        beforeRead();
-        T t = value.getOrNull();
-        if (t == null) {
-            return defaultValue;
-        }
-        return t;
-    }
-
-    @Override
-    public boolean isPresent() {
-        beforeRead();
-        return value.isPresent();
+    protected ProviderInternal<? extends T> finalValue(ProviderInternal<? extends T> value, ValueConsumer consumer) {
+        return value.withFinalValue(consumer);
     }
 
     @Override
     protected String describeContents() {
         // NOTE: Do not realize the value of the Provider in toString().  The debugger will try to call this method and make debugging really frustrating.
-        return String.format("property(%s, %s)", type, value);
+        return String.format("property(%s, %s)", type.getName(), getSupplier());
     }
 }

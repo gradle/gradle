@@ -6,8 +6,6 @@ plugins {
 }
 
 dependencies {
-    api(library("jsr305"))
-
     implementation(project(":baseServices"))
     implementation(project(":logging"))
     implementation(project(":processServices"))
@@ -31,6 +29,8 @@ dependencies {
     implementation(library("inject"))
 
     testImplementation(project(":baseServicesGroovy"))
+    testImplementation(project(":internalTesting"))
+    testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
 
     testRuntimeOnly(project(":runtimeApiInfo"))
@@ -38,6 +38,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":languageJvm")))
     testFixturesImplementation(project(":core"))
     testFixturesImplementation(project(":internalTesting"))
+    testFixturesImplementation(project(":baseServices"))
 
     integTestImplementation(library("commons_lang"))
     integTestRuntimeOnly(project(":plugins"))

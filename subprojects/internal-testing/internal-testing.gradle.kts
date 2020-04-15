@@ -35,6 +35,7 @@ dependencies {
     implementation(library("junit"))
     implementation(testLibrary("spock"))
     implementation(testLibrary("jsoup"))
+    implementation(testLibrary("testcontainers_spock"))
 
     runtimeOnly(testLibrary("bytebuddy"))
 }

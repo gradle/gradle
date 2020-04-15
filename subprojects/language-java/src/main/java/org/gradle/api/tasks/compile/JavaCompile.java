@@ -19,11 +19,12 @@ package org.gradle.api.tasks.compile;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.Project;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
+import org.gradle.api.file.ProjectLayout;
+import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.JavaToolChainFactory;
 import org.gradle.api.internal.tasks.compile.CleaningJavaCompiler;
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationReportingCompiler;
@@ -34,6 +35,7 @@ import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.api.internal.tasks.compile.incremental.IncrementalCompilerFactory;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.internal.tasks.compile.incremental.recomp.JavaRecompilationSpecProvider;
+import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.CacheableTask;
@@ -46,7 +48,10 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.jvm.DefaultModularitySpec;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.jvm.internal.toolchain.JavaToolChainInternal;
 import org.gradle.jvm.platform.JavaPlatform;
@@ -54,11 +59,12 @@ import org.gradle.jvm.platform.internal.DefaultJavaPlatform;
 import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.language.base.internal.compile.CompilerUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.work.Incremental;
 import org.gradle.work.InputChanges;
 
 import javax.inject.Inject;
+import java.io.File;
+import java.util.List;
 import java.util.concurrent.Callable;
 
 /**
@@ -77,17 +83,24 @@ import java.util.concurrent.Callable;
 public class JavaCompile extends AbstractCompile {
     private final CompileOptions compileOptions;
     private JavaToolChain toolChain;
-    private final FileCollection stableSources = getProject().files(new Callable<Object[]>() {
-        @Override
-        public Object[] call() {
-            return new Object[] {getSource(), getSources()};
-        }
-    });
+    private final FileCollection stableSources = getProject().files((Callable<Object[]>) () -> new Object[]{getSource(), getSources()});
+    private final ModularitySpec modularity;
 
     public JavaCompile() {
-        CompileOptions compileOptions = getServices().get(ObjectFactory.class).newInstance(CompileOptions.class);
-        this.compileOptions = compileOptions;
+        Project project = getProject();
+        ObjectFactory objects = project.getObjects();
+        compileOptions = objects.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
+
+        compileOptions.getJavaModuleVersion().convention(project.provider(() -> {
+            String version = project.getVersion().toString();
+            if (Project.DEFAULT_VERSION.equals(version)) {
+                return null;
+            }
+            return version;
+        }));
+
+        this.modularity = objects.newInstance(DefaultModularitySpec.class);
     }
 
     /**
@@ -109,7 +122,7 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @Internal
     protected FileTree getSources() {
-        return ImmutableFileCollection.of().getAsFileTree();
+        return getProjectLayout().files().getAsFileTree();
     }
 
     /**
@@ -142,7 +155,11 @@ public class JavaCompile extends AbstractCompile {
     @Deprecated
     @TaskAction
     protected void compile(@SuppressWarnings("deprecation") org.gradle.api.tasks.incremental.IncrementalTaskInputs inputs) {
-        DeprecationLogger.nagUserOfDeprecated("Extending the JavaCompile task", "Configure the task instead.");
+        DeprecationLogger.deprecate("Extending the JavaCompile task")
+            .withAdvice("Configure the task instead.")
+            .willBeRemovedInGradle7()
+            .undocumented()
+            .nagUser();
         compile((InputChanges) inputs);
     }
 
@@ -158,7 +175,7 @@ public class JavaCompile extends AbstractCompile {
         Compiler<JavaCompileSpec> compiler;
         if (!compileOptions.isIncremental()) {
             spec = createSpec();
-            spec.setSourceFiles(getSource());
+            spec.setSourceFiles(getStableSources());
             compiler = createCompiler(spec);
         } else {
             spec = createSpec();
@@ -169,7 +186,7 @@ public class JavaCompile extends AbstractCompile {
                 sources,
                 new JavaRecompilationSpecProvider(
                     getDeleter(),
-                    ((ProjectInternal) getProject()).getFileOperations(),
+                    getServices().get(FileOperations.class),
                     sources,
                     inputs.isIncremental(),
                     () -> inputs.getFileChanges(getStableSources()).iterator()
@@ -185,6 +202,11 @@ public class JavaCompile extends AbstractCompile {
     }
 
     @Inject
+    protected JavaModuleDetector getJavaModuleDetector() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
     protected JavaToolChainFactory getJavaToolChainFactory() {
         throw new UnsupportedOperationException();
     }
@@ -192,6 +214,11 @@ public class JavaCompile extends AbstractCompile {
     @Inject
     protected Deleter getDeleter() {
         throw new UnsupportedOperationException("Decorator takes care of injection");
+    }
+
+    @Inject
+    protected ProjectLayout getProjectLayout() {
+        throw new UnsupportedOperationException();
     }
 
     private CleaningJavaCompiler<JavaCompileSpec> createCompiler(JavaCompileSpec spec) {
@@ -210,17 +237,40 @@ public class JavaCompile extends AbstractCompile {
     }
 
     private DefaultJavaCompileSpec createSpec() {
+        List<File> sourcesRoots = CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree());
+        JavaModuleDetector javaModuleDetector = getJavaModuleDetector();
+        boolean isModule = JavaModuleDetector.isModuleSource(modularity.getInferModulePath().get(), sourcesRoots);
+
         final DefaultJavaCompileSpec spec = new DefaultJavaCompileSpecFactory(compileOptions).create();
         spec.setDestinationDir(getDestinationDirectory().getAsFile().get());
-        spec.setWorkingDir(getProject().getProjectDir());
+        spec.setWorkingDir(getProjectLayout().getProjectDirectory().getAsFile());
         spec.setTempDir(getTemporaryDir());
-        spec.setCompileClasspath(ImmutableList.copyOf(getClasspath()));
+        spec.setCompileClasspath(ImmutableList.copyOf(javaModuleDetector.inferClasspath(isModule, getClasspath())));
+        spec.setModulePath(ImmutableList.copyOf(javaModuleDetector.inferModulePath(isModule, getClasspath())));
+        if (isModule) {
+            compileOptions.setSourcepath(getProjectLayout().files(sourcesRoots));
+        }
         spec.setAnnotationProcessorPath(compileOptions.getAnnotationProcessorPath() == null ? ImmutableList.of() : ImmutableList.copyOf(compileOptions.getAnnotationProcessorPath()));
         spec.setTargetCompatibility(getTargetCompatibility());
         spec.setSourceCompatibility(getSourceCompatibility());
+
         spec.setCompileOptions(compileOptions);
-        spec.setSourcesRoots(CompilationSourceDirs.inferSourceRoots((FileTreeInternal) getStableSources().getAsFileTree()));
+        spec.setSourcesRoots(sourcesRoots);
+        if (((JavaToolChainInternal) getToolChain()).getJavaVersion().compareTo(JavaVersion.VERSION_1_8) < 0) {
+            spec.getCompileOptions().setHeaderOutputDirectory(null);
+        }
         return spec;
+    }
+
+    /**
+     * Returns the module path handling of this compile task.
+     *
+     * @since 6.4
+     */
+    @Incubating
+    @Nested
+    public ModularitySpec getModularity() {
+        return modularity;
     }
 
     /**

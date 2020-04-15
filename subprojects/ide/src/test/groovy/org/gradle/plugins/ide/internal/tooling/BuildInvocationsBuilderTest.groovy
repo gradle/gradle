@@ -34,7 +34,7 @@ import spock.lang.Unroll
 class BuildInvocationsBuilderTest extends Specification {
     @Shared
     @ClassRule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     @Shared
     def project = TestUtil.builder(temporaryFolder).withName("root").build()
     @Shared

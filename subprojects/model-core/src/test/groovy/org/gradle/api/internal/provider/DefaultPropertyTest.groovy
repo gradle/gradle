@@ -18,10 +18,15 @@ package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
 import org.gradle.internal.state.ManagedFactory
+import org.gradle.util.TestUtil
 
 class DefaultPropertyTest extends PropertySpec<String> {
     DefaultProperty<String> property() {
-        return new DefaultProperty<String>(String)
+        return propertyWithDefaultValue(String)
+    }
+
+    DefaultProperty propertyWithDefaultValue(Class type) {
+        return new DefaultProperty(host, type)
     }
 
     @Override
@@ -32,13 +37,6 @@ class DefaultPropertyTest extends PropertySpec<String> {
     @Override
     DefaultProperty<String> propertyWithDefaultValue() {
         return property()
-    }
-
-    @Override
-    DefaultProperty<String> providerWithValue(String value) {
-        def p = property()
-        p.set(value)
-        return p
     }
 
     @Override
@@ -53,12 +51,22 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     @Override
     String someOtherValue() {
-        return "value2"
+        return "other1"
+    }
+
+    @Override
+    String someOtherValue2() {
+        return "other2"
+    }
+
+    @Override
+    String someOtherValue3() {
+        return "other3"
     }
 
     @Override
     ManagedFactory managedFactory() {
-        return new ManagedFactories.PropertyManagedFactory()
+        return new ManagedFactories.PropertyManagedFactory(TestUtil.propertyFactory())
     }
 
     def "has no value by default"() {
@@ -72,20 +80,20 @@ class DefaultPropertyTest extends PropertySpec<String> {
         property.get()
 
         then:
-        def e = thrown(IllegalStateException)
-        e.message == "No value has been specified for ${displayName}."
+        def e = thrown(MissingValueException)
+        e.message == "Cannot query the value of ${displayName} because it has no value available."
     }
 
     def "toString() does not realize value"() {
         given:
         def propertyWithBadValue = property()
         propertyWithBadValue.set(new DefaultProvider<String>({
-            assert false : "never called"
+            assert false: "never called"
         }))
 
         expect:
-        propertyWithBadValue.toString() == "property(class java.lang.String, map(provider(?)))"
-        providerWithNoValue().toString() == "property(class java.lang.String, undefined)"
+        propertyWithBadValue.toString() == "property(java.lang.String, map(java.lang.String provider(?) check-type()))"
+        providerWithNoValue().toString() == "property(java.lang.String, undefined)"
     }
 
     def "can set to null value to discard value"() {
@@ -102,7 +110,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when value is set using incompatible type"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
 
         when:
         property.set(12)
@@ -116,8 +124,8 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when value set using provider whose type is known to be incompatible"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
-        def other = new DefaultProperty<Number>(Number)
+        def property = propertyWithDefaultValue(Boolean)
+        def other = propertyWithDefaultValue(Number)
 
         when:
         property.set(other)
@@ -131,17 +139,13 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "can set value to a provider whose type is compatible"() {
-        def supplier = Mock(ScalarSupplier)
-        def provider = Mock(ProviderInternal)
+        def supplier = supplierWithValues(1, 2, 3)
 
         given:
-        provider.asSupplier(_, _, _) >> supplier
-        supplier.get(_) >>> [1, 2, 3]
-
-        def property = new DefaultProperty<Number>(Number)
+        def property = propertyWithDefaultValue(Number)
 
         when:
-        property.set(provider)
+        property.set(supplier)
 
         then:
         property.get() == 1
@@ -153,7 +157,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
         def provider = new DefaultProvider({ 12 })
 
         given:
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
         property.set(provider)
 
         when:
@@ -172,7 +176,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when convention is set using incompatible value"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
 
         when:
         property.convention(12)
@@ -186,8 +190,8 @@ class DefaultPropertyTest extends PropertySpec<String> {
     }
 
     def "fails when convention is set using provider whose value is known to be incompatible"() {
-        def property = new DefaultProperty<Boolean>(Boolean)
-        def other = new DefaultProperty<Number>(Number)
+        def property = propertyWithDefaultValue(Boolean)
+        def other = propertyWithDefaultValue(Number)
 
         when:
         property.convention(other)
@@ -204,7 +208,7 @@ class DefaultPropertyTest extends PropertySpec<String> {
         def provider = new DefaultProvider({ 12 })
 
         given:
-        def property = new DefaultProperty<Boolean>(Boolean)
+        def property = propertyWithDefaultValue(Boolean)
         property.convention(provider)
 
         when:
@@ -217,9 +221,9 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
     def "mapped provider is live"() {
         def transformer = Mock(Transformer)
-        def provider = provider("abc")
+        def provider = supplierWithValues("abc")
 
-        def property = new DefaultProperty<String>(String)
+        def property = propertyWithDefaultValue(String)
 
         when:
         def p = property.map(transformer)
@@ -230,9 +234,10 @@ class DefaultPropertyTest extends PropertySpec<String> {
 
         when:
         property.set("123")
+        p.present
 
         then:
-        p.present
+        1 * transformer.transform("123") >> "present"
         0 * _
 
         when:

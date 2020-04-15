@@ -18,13 +18,10 @@ package org.gradle.integtests.resolve.attributes
 
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import spock.lang.Unroll
 
-@RequiredFeatures(
-    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-)
+@RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
 class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDependencyResolveTest {
 
     @Unroll("#outcome if component-level attribute is #requested")
@@ -40,7 +37,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             configurations {
                 conf.attributes.attribute(quality, '$requested')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -69,8 +66,8 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Required quality '$requested' and found incompatible value 'qa'"))
+            failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'canary' but:")
+            failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'qa' and the consumer needed attribute 'quality' with value '$requested'"))
         }
 
         where:
@@ -101,7 +98,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             configurations {
                 conf.attributes.attribute(quality, 'qa')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -166,7 +163,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
                 // configuration-level already has its own test
                 conf.attributes.attribute(quality, 'boo')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -225,7 +222,7 @@ class ComponentAttributesDynamicVersionIntegrationTest extends AbstractModuleDep
             configurations {
                 conf.attributes.attribute(color, 'green')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(color)
@@ -279,7 +276,7 @@ Versions rejected by attribute matching:
                 conf.attributes.attribute(color, 'green')
                 conf.attributes.attribute(shape, 'circle')
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(color)

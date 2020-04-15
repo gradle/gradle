@@ -33,7 +33,17 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
 
     @Override
     Directory someOtherValue() {
-        return baseDir.dir("dir2").get()
+        return baseDir.dir("other1").get()
+    }
+
+    @Override
+    Directory someOtherValue2() {
+        return baseDir.dir("other2").get()
+    }
+
+    @Override
+    Directory someOtherValue3() {
+        return baseDir.dir("other3").get()
     }
 
     @Override
@@ -47,13 +57,8 @@ class DirectoryPropertyTest extends FileSystemPropertySpec<Directory> {
     }
 
     @Override
-    PropertyInternal<Directory> providerWithValue(Directory value) {
-        return factory.newDirectoryProperty().value(value)
-    }
-
-    @Override
     ManagedFactory managedFactory() {
-        new ManagedFactories.DirectoryPropertyManagedFactory(resolver, fileCollectionFactory)
+        new ManagedFactories.DirectoryPropertyManagedFactory(factory)
     }
 
     def "can view directory as a file tree"() {

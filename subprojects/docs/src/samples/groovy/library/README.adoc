@@ -6,24 +6,19 @@ This sample shows how a Groovy library can be built with Gradle.
 The library has no dependencies aside from the Groovy runtime and the build has minimal configuration.
 
 ====
-include::sample[dir="samples/groovy-library/groovy",files="build.gradle[]"]
-include::sample[dir="samples/groovy-library/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 To build the library:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal]
 ----
 $ ./gradlew jar
 
-BUILD SUCCESSFUL in 6s
+BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/groovy_plugin.html[Groovy Plugin reference chapter].
 

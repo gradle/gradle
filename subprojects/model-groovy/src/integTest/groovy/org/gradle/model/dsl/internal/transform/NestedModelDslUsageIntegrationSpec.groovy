@@ -17,11 +17,13 @@
 package org.gradle.model.dsl.internal.transform
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.model.dsl.internal.NonTransformedModelDslBacking
 import spock.lang.Unroll
 
 import static org.hamcrest.CoreMatchers.containsString
 
+@UnsupportedWithInstantExecution(because = "software model")
 class NestedModelDslUsageIntegrationSpec extends AbstractIntegrationSpec {
 
     @Unroll

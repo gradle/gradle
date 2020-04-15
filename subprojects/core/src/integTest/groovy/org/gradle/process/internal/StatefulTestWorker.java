@@ -16,16 +16,13 @@
 
 package org.gradle.process.internal;
 
-public class StatefulTestWorker implements TestProtocol {
+import org.gradle.process.internal.worker.RequestHandler;
+
+public class StatefulTestWorker implements RequestHandler<String, String> {
     int counter;
 
     @Override
-    public Object convert(String param1, long param2) {
-        return param1 + ":" + (param2 + counter);
-    }
-
-    @Override
-    public void doSomething() {
-        counter++;
+    public String run(String request) {
+        return request + ":" + (++counter);
     }
 }

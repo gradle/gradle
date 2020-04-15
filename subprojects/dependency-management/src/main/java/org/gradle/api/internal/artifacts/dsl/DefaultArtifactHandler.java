@@ -25,12 +25,12 @@ import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.internal.Actions;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.metaobject.DynamicInvokeResult;
 import org.gradle.internal.metaobject.MethodAccess;
 import org.gradle.internal.metaobject.MethodMixIn;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
@@ -63,8 +63,11 @@ public class DefaultArtifactHandler implements ArtifactHandler, MethodMixIn {
 
     private void warnIfConfigurationIsDeprecated(DeprecatableConfiguration configuration) {
         if (configuration.isFullyDeprecated()) {
-            DeprecationLogger.nagUserOfReplacedConfiguration(configuration.getName(), DeprecationLogger.ConfigurationDeprecationType.ARTIFACT_DECLARATION,
-                GUtil.flattenElements(configuration.getDeclarationAlternatives(), configuration.getConsumptionAlternatives()));
+            DeprecationLogger.deprecateConfiguration(configuration.getName()).forArtifactDeclaration()
+                .replaceWith(GUtil.flattenElements(configuration.getDeclarationAlternatives(), configuration.getConsumptionAlternatives()))
+                .willBecomeAnErrorInGradle7()
+                .withUpgradeGuideSection(5, "dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations")
+                .nagUser();
         }
     }
 

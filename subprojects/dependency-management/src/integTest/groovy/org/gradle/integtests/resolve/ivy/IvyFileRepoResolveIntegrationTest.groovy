@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class IvyFileRepoResolveIntegrationTest extends AbstractDependencyResolutionTest {
     @ToBeFixedForInstantExecution
-    public void "does not cache local artifacts or metadata"() {
+    void "does not cache local artifacts or metadata"() {
         given:
         def repo = ivyRepo()
         def moduleA = repo.module('group', 'projectA', '1.2')
@@ -64,7 +64,7 @@ task retrieve(type: Sync) {
     }
 
     @ToBeFixedForInstantExecution
-    public void "does not cache resolution of dynamic versions or changing modules"() {
+    void "does not cache resolution of dynamic versions or changing modules"() {
         def repo = ivyRepo()
 
         given:
@@ -126,7 +126,6 @@ task retrieve(type: Sync) {
         jarC1.assertHasChangedSince(jarCsnapshot)
     }
 
-    @ToBeFixedForInstantExecution
     def "cannot define authentication for local file repo"() {
         given:
         def repo = ivyRepo()

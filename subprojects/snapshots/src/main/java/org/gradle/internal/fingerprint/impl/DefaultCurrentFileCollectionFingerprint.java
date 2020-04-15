@@ -118,4 +118,9 @@ public class DefaultCurrentFileCollectionFingerprint implements CurrentFileColle
             root.accept(visitor);
         }
     }
+
+    @Override
+    public String toString() {
+        return identifier + fingerprints;
+    }
 }

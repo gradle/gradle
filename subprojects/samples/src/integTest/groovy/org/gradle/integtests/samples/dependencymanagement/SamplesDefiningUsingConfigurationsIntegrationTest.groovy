@@ -17,16 +17,12 @@
 package org.gradle.integtests.samples.dependencymanagement
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
-
-@Requires(KOTLIN_SCRIPT)
 class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
@@ -38,8 +34,8 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
 
     @Unroll
     @UsesSample("userguide/dependencyManagement/definingUsingConfigurations/custom")
-    @ToBeFixedForInstantExecution
-    def "can declare and resolve custom configuration"() {
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
+    def "can declare and resolve custom configuration with #dsl dsl"() {
         setup:
         executer.inDirectory(sample.dir.file(dsl))
         executer.requireGradleDistribution() // required to avoid multiple Servlet API JARs in classpath

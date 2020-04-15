@@ -31,7 +31,7 @@ import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.VISUALCPP
 
 @Requires(TestPrecondition.CAN_INSTALL_EXECUTABLE)
 class NativeLanguageSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
-    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider testDirProvider = new TestNameTestDirectoryProvider(getClass())
     @Rule public final Sample assembler = sample(testDirProvider, 'assembler')
     @Rule public final Sample c = sample(testDirProvider, 'c')
     @Rule public final Sample cpp = sample(testDirProvider, 'cpp')

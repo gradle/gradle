@@ -17,7 +17,6 @@
 package org.gradle.build
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.GradleException
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
@@ -34,24 +33,27 @@ import java.text.SimpleDateFormat
 class BuildReceipt extends DefaultTask {
     public static final String BUILD_RECEIPT_FILE_NAME = 'build-receipt.properties'
 
-    private static final SimpleDateFormat TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyyMMddHHmmssZ')
-    private static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = new java.text.SimpleDateFormat('yyyy-MM-dd HH:mm:ss z')
-    static {
-        TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-        ISO_TIMESTAMP_FORMAT.setTimeZone(TimeZone.getTimeZone("UTC"));
-    }
+    private static final SimpleDateFormat TIMESTAMP_FORMAT = createTimestampDateFormat()
+    private static final SimpleDateFormat ISO_TIMESTAMP_FORMAT = newSimpleDateFormatUTC('yyyy-MM-dd HH:mm:ss z')
+
     private static final String UNKNOWN_TIMESTAMP = "unknown"
 
-    static Properties readBuildReceipt(File dir) {
-        File buildReceiptFile = new File(dir, BUILD_RECEIPT_FILE_NAME)
-        if (!buildReceiptFile.exists()) {
-            throw new GradleException("Can't read build receipt file '$buildReceiptFile' as it doesn't exist")
+    static SimpleDateFormat createTimestampDateFormat() {
+        newSimpleDateFormatUTC('yyyyMMddHHmmssZ')
+    }
+
+    static SimpleDateFormat newSimpleDateFormatUTC(String pattern) {
+        new SimpleDateFormat(pattern).tap {
+            setTimeZone(TimeZone.getTimeZone("UTC"))
         }
-        buildReceiptFile.withInputStream {
-            Properties p = new Properties()
-            p.load(it)
-            p
-        }
+    }
+
+    static Properties readBuildReceiptFromString(String buildReceipt) {
+        new Properties().tap { load(new StringReader(buildReceipt)) }
+    }
+
+    static File buildReceiptFileIn(File dir) {
+        new File(dir, BUILD_RECEIPT_FILE_NAME)
     }
 
     private final ObjectFactory objects
@@ -72,7 +74,7 @@ class BuildReceipt extends DefaultTask {
     final Property<String> commitId = objects.property(String)
 
     @Input
-    final Property<Boolean> snapshot = objects.property(Boolean)
+    final Property<Boolean> isSnapshot = objects.property(Boolean)
 
     @Input
     @Optional
@@ -84,7 +86,7 @@ class BuildReceipt extends DefaultTask {
     @OutputFile
     File getReceiptFile() {
         assert destinationDir != null
-        new File(destinationDir, BUILD_RECEIPT_FILE_NAME)
+        buildReceiptFileIn(destinationDir)
     }
 
     @TaskAction
@@ -93,7 +95,7 @@ class BuildReceipt extends DefaultTask {
             commitId: commitId.getOrElse("HEAD"),
             versionNumber: versionNumber.get(),
             baseVersion: baseVersion.get(),
-            isSnapshot: String.valueOf(snapshot.get()),
+            isSnapshot: String.valueOf(isSnapshot.get()),
             buildTimestamp: getBuildTimestampAsString(),
             buildTimestampIso: getBuildTimestampAsIsoString(),
         ]

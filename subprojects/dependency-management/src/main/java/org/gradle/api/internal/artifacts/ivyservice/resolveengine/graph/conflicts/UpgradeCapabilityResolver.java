@@ -23,7 +23,6 @@ import org.gradle.internal.component.external.model.CapabilityInternal;
 import org.gradle.util.VersionNumber;
 
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.Set;
 
 /**
@@ -35,13 +34,10 @@ public class UpgradeCapabilityResolver implements CapabilitiesConflictHandler.Re
     public void resolve(CapabilitiesConflictHandler.ResolutionDetails details) {
         Collection<? extends Capability> capabilityVersions = details.getCapabilityVersions();
         if (capabilityVersions.size() > 1) {
-            Set<Capability> sorted = Sets.newTreeSet(new Comparator<Capability>() {
-                @Override
-                public int compare(Capability o1, Capability o2) {
-                    VersionNumber v1 = VersionNumber.parse(o1.getVersion());
-                    VersionNumber v2 = VersionNumber.parse(o2.getVersion());
-                    return v2.compareTo(v1);
-                }
+            Set<Capability> sorted = Sets.newTreeSet((o1, o2) -> {
+                VersionNumber v1 = VersionNumber.parse(o1.getVersion());
+                VersionNumber v2 = VersionNumber.parse(o2.getVersion());
+                return v2.compareTo(v1);
             });
             sorted.addAll(capabilityVersions);
             boolean first = true;

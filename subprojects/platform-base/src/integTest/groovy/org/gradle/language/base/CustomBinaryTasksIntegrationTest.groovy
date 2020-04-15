@@ -18,9 +18,10 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Unroll
 
+@UnsupportedWithInstantExecution(because = "software model")
 class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -97,7 +98,6 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         tasksNode.sampleLibBinaryOneTask.@type[0] == 'org.gradle.api.DefaultTask'
     }
 
-    @ToBeFixedForInstantExecution
     def "can reference rule-added tasks in model"() {
         given:
         buildFile << '''
@@ -125,7 +125,6 @@ class CustomBinaryTasksIntegrationTest extends AbstractIntegrationSpec {
         succeeds "checkModel"
     }
 
-    @ToBeFixedForInstantExecution
     def "rule can declare task with type"() {
         given:
         buildFile << """

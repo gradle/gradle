@@ -40,7 +40,7 @@ import spock.lang.Specification
 
 class DefaultStaticLibraryBinarySpecTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final library = BaseComponentFixtures.createNode(NativeLibrarySpec, DefaultNativeLibrarySpec, new DefaultComponentSpecIdentifier("path", "libName"))
     def namingScheme = DefaultBinaryNamingScheme.component("main").withBinaryType("staticLibrary")
     def toolChain = Stub(NativeToolChainInternal)

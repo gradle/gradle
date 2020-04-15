@@ -192,6 +192,11 @@ public class DefaultCacheFactory implements CacheFactory, Closeable {
         }
 
         @Override
+        public <K, V> boolean cacheExists(PersistentIndexedCacheParameters<K, V> parameters) {
+            return reference.cache.cacheExists(parameters);
+        }
+
+        @Override
         public <T> T withFileLock(Factory<? extends T> action) {
             return reference.cache.withFileLock(action);
         }

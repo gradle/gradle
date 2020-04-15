@@ -17,7 +17,7 @@
 package org.gradle.caching.internal.packaging.impl;
 
 import com.google.common.base.CharMatcher;
-import org.gradle.api.file.internal.FilePathUtil;
+import org.gradle.internal.file.FilePathUtil;
 
 import java.util.Deque;
 import java.util.LinkedList;

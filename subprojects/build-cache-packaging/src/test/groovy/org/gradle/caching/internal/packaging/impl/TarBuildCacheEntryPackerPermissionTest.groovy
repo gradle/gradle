@@ -17,15 +17,14 @@
 package org.gradle.caching.internal.packaging.impl
 
 import org.gradle.internal.file.Deleter
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import spock.lang.Unroll
 
 import static org.gradle.internal.file.TreeType.FILE
 
 class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryPackerSpec {
     @Override
-    protected FileSystem createFileSystem() {
-        Mock(FileSystem)
+    protected FilePermissionAccess createFilePermissionAccess() {
+        Mock(FilePermissionAccess)
     }
 
     @Override
@@ -45,7 +44,7 @@ class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryP
         pack output, prop(FILE, sourceOutputFile)
 
         then:
-        1 * fileSystem.getUnixMode(sourceOutputFile) >> unixMode
+        1 * filePermissionAccess.getUnixMode(sourceOutputFile) >> unixMode
         _ * sourceOutputFile._
         0 * _
 
@@ -55,7 +54,7 @@ class TarBuildCacheEntryPackerPermissionTest extends AbstractTarBuildCacheEntryP
 
         then:
         targetOutputFile.text == "output"
-        1 * fileSystem.chmod(targetOutputFile, unixMode)
+        1 * filePermissionAccess.chmod(targetOutputFile, unixMode)
         _ * targetOutputFile._
         0 * _
 

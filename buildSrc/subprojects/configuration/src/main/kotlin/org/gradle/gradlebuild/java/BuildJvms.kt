@@ -16,16 +16,37 @@
 
 package org.gradle.gradlebuild.java
 
+import org.gradle.api.JavaVersion
+import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
+import org.gradle.jvm.toolchain.JavaInstallationRegistry
+
+
+const val productionJdkName = "AdoptOpenJDK 11"
 
 
 /**
  * Provides access to the different JVMs that are used to build, compile and test.
  */
-open class BuildJvms(val javaInstallations: Provider<AvailableJavaInstallations>) {
-    val buildJvm = javaInstallations.map { it.currentJavaInstallation }
+open class BuildJvms(
+    javaInstallationRegistry: JavaInstallationRegistry,
+    testJavaHome: Provider<Directory>
+) {
+    val buildJvm = javaInstallationRegistry.installationForCurrentVirtualMachine.map { JavaInstallation(true, it) }
 
-    val compileJvm = javaInstallations.map { it.javaInstallationForCompilation }
+    val compileJvm = buildJvm.map {
+        if (it.javaVersion < JavaVersion.VERSION_1_9 || it.javaVersion > JavaVersion.VERSION_11) {
+            throw IllegalStateException("Must use JDK >= 9 and <= 11 to perform compilation in this build. It's currently ${it.vendorAndMajorVersion} at ${it.javaHome}.")
+        }
+        it
+    }
 
-    val testJvm = javaInstallations.map { it.javaInstallationForTest }
+    val testJvm = javaInstallationRegistry.installationForDirectory(testJavaHome).map { JavaInstallation(false, it) }.orElse(buildJvm)
+
+    fun validateForProductionEnvironment() {
+        val buildInstallation = buildJvm.get()
+        if (buildInstallation.vendorAndMajorVersion != productionJdkName) {
+            throw IllegalStateException("Must use $productionJdkName to perform this build. Is currently ${buildInstallation.vendorAndMajorVersion} at ${buildInstallation.javaHome}.")
+        }
+    }
 }

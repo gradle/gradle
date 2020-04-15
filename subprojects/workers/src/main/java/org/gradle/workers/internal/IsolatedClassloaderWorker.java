@@ -43,7 +43,7 @@ public class IsolatedClassloaderWorker extends AbstractClassLoaderWorker {
     }
 
     @Override
-    public DefaultWorkResult execute(TransportableActionExecutionSpec<?> spec) {
+    public DefaultWorkResult run(TransportableActionExecutionSpec<?> spec) {
         GroovySystemLoader workerClasspathGroovy = groovySystemLoaderFactory.forClassLoader(workerClassLoader);
         try {
             return executeInClassLoader(spec, workerClassLoader);

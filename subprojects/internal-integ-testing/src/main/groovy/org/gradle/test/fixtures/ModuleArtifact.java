@@ -28,4 +28,11 @@ public interface ModuleArtifact {
      * Returns the local backing file of this artifact.
      */
     TestFile getFile();
+
+    /**
+     * Returns the name of this artifact
+     *
+     * This will differ from file.name only for Maven unique snapshots
+     */
+    String getName();
 }

@@ -110,6 +110,7 @@ public class JavaPropertyReflectionUtil {
     }
 
     private static String toMethodName(String prefix, String propertyName) {
+        assert !propertyName.isEmpty();
         return prefix + Character.toUpperCase(propertyName.charAt(0)) + propertyName.substring(1);
     }
 
@@ -125,10 +126,12 @@ public class JavaPropertyReflectionUtil {
         }
     }
 
+    @Nullable
     public static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType) {
         return getAnnotation(type, annotationType, true);
     }
 
+    @Nullable
     private static <A extends Annotation> A getAnnotation(Class<?> type, Class<A> annotationType, boolean checkType) {
         A annotation;
         if (checkType) {

@@ -48,12 +48,13 @@ import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.filewatch.PendingChangesManager;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -171,16 +172,16 @@ public class BuildSessionScopeServices extends DefaultServiceRegistry {
         return new CleanupActionFactory(buildOperationExecutor);
     }
 
-    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory) {
-        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory);
+    protected ExecFactory decorateExecFactory(ExecFactory execFactory, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, Instantiator instantiator, BuildCancellationToken buildCancellationToken, ObjectFactory objectFactory, JavaModuleDetector javaModuleDetector) {
+        return execFactory.forContext(fileResolver, fileCollectionFactory, instantiator, buildCancellationToken, objectFactory, javaModuleDetector);
     }
 
-    DeprecatedUsageBuildOperationProgressBroadaster createDeprecatedUsageBuildOperationProgressBroadaster(
+    DeprecatedUsageBuildOperationProgressBroadcaster createDeprecatedUsageBuildOperationProgressBroadcaster(
         Clock clock,
         BuildOperationListenerManager buildOperationListenerManager,
         CurrentBuildOperationRef currentBuildOperationRef
     ) {
-        return new DeprecatedUsageBuildOperationProgressBroadaster(
+        return new DeprecatedUsageBuildOperationProgressBroadcaster(
             clock,
             buildOperationListenerManager.getBroadcaster(),
             currentBuildOperationRef

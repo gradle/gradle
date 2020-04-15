@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.compile.processing
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.compile.incremental.processing.IncrementalAnnotationProcessorType
 import org.gradle.api.logging.Logger
 import org.gradle.cache.internal.TestFileContentCacheFactory
@@ -31,7 +31,7 @@ import static org.gradle.api.internal.tasks.compile.processing.AnnotationProcess
 
 class AnnotationProcessorDetectorTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     Logger logger = Mock(Logger) {
         0 * _
@@ -230,6 +230,6 @@ class AnnotationProcessorDetectorTest extends Specification {
     }
 
     FileCollection files(File... files) {
-        ImmutableFileCollection.of(files)
+        TestFiles.fixed(files)
     }
 }

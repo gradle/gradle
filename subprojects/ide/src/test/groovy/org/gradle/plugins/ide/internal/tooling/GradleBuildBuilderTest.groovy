@@ -35,7 +35,7 @@ import spock.lang.Specification
 class GradleBuildBuilderTest extends Specification {
     @Shared
     @ClassRule
-    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance()
+    public TestNameTestDirectoryProvider temporaryFolder = TestNameTestDirectoryProvider.newInstance(getClass())
     def builder = new GradleBuildBuilder()
     @Shared
     def project = TestUtil.builder(temporaryFolder).withName("root").build()

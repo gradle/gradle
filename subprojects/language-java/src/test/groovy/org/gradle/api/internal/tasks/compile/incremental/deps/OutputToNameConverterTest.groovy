@@ -25,7 +25,7 @@ import spock.lang.Subject
 
 class OutputToNameConverterTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
     @Subject provider = new OutputToNameConverter(temp.createDir("root/dir"))
 
     def "provides class name"() {

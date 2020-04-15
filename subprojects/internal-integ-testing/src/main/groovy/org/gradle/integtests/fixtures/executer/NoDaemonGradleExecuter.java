@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.executer;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
 import org.gradle.api.internal.file.TestFiles;
 import org.gradle.internal.Factory;
 import org.gradle.internal.jvm.Jvm;
@@ -173,6 +174,7 @@ public class NoDaemonGradleExecuter extends AbstractGradleExecuter {
                 builder.environment("JAVA_HOME", "");
                 builder.environment("GRADLE_OPTS", "");
                 builder.environment("JAVA_OPTS", "");
+                builder.environment(ArtifactCachesProvider.READONLY_CACHE_ENV_VAR, "");
 
                 GradleInvocation invocation = buildInvocation();
 

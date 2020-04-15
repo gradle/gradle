@@ -21,6 +21,8 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.logging.Logger
 import org.gradle.initialization.ClassLoaderScopeRegistry
 import org.gradle.instantexecution.ClassLoaderScopeSpec
+import org.gradle.instantexecution.problems.PropertyProblem
+import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
 import org.gradle.instantexecution.serialization.beans.BeanPropertyReader
 import org.gradle.instantexecution.serialization.beans.BeanPropertyWriter
@@ -47,7 +49,8 @@ class DefaultWriteContext(
     private
     val problemHandler: (PropertyProblem) -> Unit
 
-) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder {
+) : AbstractIsolateContext<WriteIsolate>(codec), WriteContext, Encoder by encoder, AutoCloseable {
+
     override val sharedIdentities = WriteIdentities()
 
     private
@@ -59,9 +62,15 @@ class DefaultWriteContext(
     private
     val scopes = WriteIdentities()
 
+    /**
+     * Closes the given [encoder] if it is [AutoCloseable].
+     */
+    override fun close() {
+        (encoder as? AutoCloseable)?.close()
+    }
+
     override fun beanStateWriterFor(beanType: Class<*>): BeanStateWriter =
         beanPropertyWriters.computeIfAbsent(beanType, ::BeanPropertyWriter)
-
 
     override val isolate: WriteIsolate
         get() = getIsolate()
@@ -163,7 +172,11 @@ class DefaultReadContext(
     private
     val constructors: BeanConstructors,
 
-    override val logger: Logger
+    override val logger: Logger,
+
+    private
+    val problemHandler: (PropertyProblem) -> Unit
+
 ) : AbstractIsolateContext<ReadIsolate>(codec), ReadContext, Decoder by decoder {
 
     override val sharedIdentities = ReadIdentities()
@@ -245,9 +258,8 @@ class DefaultReadContext(
                 parent.createChild(name).local(localClassPath).export(exportClassPath).lock()
             }
         } else {
-            isolate.owner.service(ClassLoaderScopeRegistry::class.java).coreAndPluginsScope
+            ownerService<ClassLoaderScopeRegistry>().coreAndPluginsScope
         }
-        Workarounds.maybeSetDefaultStaticStateIn(newScope)
         scopes.putInstance(id, newScope)
         return newScope
     }
@@ -266,7 +278,7 @@ class DefaultReadContext(
         DefaultReadIsolate(owner)
 
     override fun onProblem(problem: PropertyProblem) {
-        // ignore problems
+        problemHandler(problem)
     }
 }
 

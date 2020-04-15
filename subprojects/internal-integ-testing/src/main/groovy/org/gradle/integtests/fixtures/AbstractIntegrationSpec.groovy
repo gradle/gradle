@@ -57,7 +57,7 @@ import static org.gradle.util.Matchers.normalizedLineSeparators
 class AbstractIntegrationSpec extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     GradleDistribution distribution = new UnderDevelopmentGradleDistribution(getBuildContext())
     GradleExecuter executer = createExecuter()
@@ -424,7 +424,7 @@ class AbstractIntegrationSpec extends Specification {
         return zip
     }
 
-    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl) {
+    def createDir(String name, @DelegatesTo(value = TestWorkspaceBuilder.class, strategy = Closure.DELEGATE_FIRST) Closure cl = {}) {
         TestFile root = file(name)
         root.create(cl)
     }

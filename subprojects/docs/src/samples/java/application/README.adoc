@@ -6,27 +6,22 @@ This sample shows how a Java application can be built with Gradle.
 The application has no dependencies and the build has minimal configuration.
 
 ====
-include::sample[dir="samples/java-application/groovy",files="build.gradle[]"]
-include::sample[dir="samples/java-application/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
 ====
 
 To build and run the application:
 
-====
-[.testable-sample,dir="groovy"]
-=====
-[.sample-command]
+[listing.terminal.sample-command]
 ----
 $ ./gradlew run
 
 > Task :run
 Hello, World!
 
-BUILD SUCCESSFUL in 1s
+BUILD SUCCESSFUL
 2 actionable tasks: 2 executed
 ----
-=====
-====
 
 For more information, see link:{userManualPath}/application_plugin.html[Application Plugin reference chapter].
 

@@ -22,6 +22,7 @@ import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.provider.sources.EnvironmentVariableValueSource;
 import org.gradle.api.internal.provider.sources.FileBytesValueSource;
 import org.gradle.api.internal.provider.sources.FileTextValueSource;
+import org.gradle.api.internal.provider.sources.GradlePropertyValueSource;
 import org.gradle.api.internal.provider.sources.SystemPropertyValueSource;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.provider.Provider;
@@ -51,7 +52,7 @@ public class DefaultProviderFactory implements ProviderFactory {
         if (value == null) {
             throw new IllegalArgumentException("Value cannot be null");
         }
-        return new DefaultProvider<T>(value);
+        return new DefaultProvider<>(value);
     }
 
     @Override
@@ -76,6 +77,19 @@ public class DefaultProviderFactory implements ProviderFactory {
     public Provider<String> systemProperty(Provider<String> propertyName) {
         return of(
             SystemPropertyValueSource.class,
+            spec -> spec.getParameters().getPropertyName().set(propertyName)
+        );
+    }
+
+    @Override
+    public Provider<String> gradleProperty(String propertyName) {
+        return gradleProperty(Providers.of(propertyName));
+    }
+
+    @Override
+    public Provider<String> gradleProperty(Provider<String> propertyName) {
+        return of(
+            GradlePropertyValueSource.class,
             spec -> spec.getParameters().getPropertyName().set(propertyName)
         );
     }

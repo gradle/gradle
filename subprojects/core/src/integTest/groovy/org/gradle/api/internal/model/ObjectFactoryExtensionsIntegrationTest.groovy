@@ -16,6 +16,7 @@
 package org.gradle.api.internal.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ObjectFactoryExtensionsIntegrationTest extends AbstractIntegrationSpec {
     def "extension container of created DSL object can create type with non-annotated constructor"() {
@@ -41,6 +42,7 @@ class ObjectFactoryExtensionsIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "extension container of created DSL object can create type with multiple constructors not annotated"() {
         given:
         buildFile << """

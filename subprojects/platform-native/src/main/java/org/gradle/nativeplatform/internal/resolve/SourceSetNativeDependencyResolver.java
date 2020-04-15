@@ -19,7 +19,6 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.Buildable;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
 import org.gradle.api.internal.file.collections.MinimalFileSet;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.language.base.LanguageSourceSet;
@@ -53,23 +52,29 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         if (sourceSet instanceof HeaderExportingSourceSet) {
             return new LanguageSourceSetNativeDependencySet((HeaderExportingSourceSet) sourceSet, fileCollectionFactory);
         }
-        return new EmptyNativeDependencySet();
+        return new EmptyNativeDependencySet(fileCollectionFactory);
     }
 
     private static class EmptyNativeDependencySet implements NativeDependencySet {
+        private final FileCollectionFactory fileCollectionFactory;
+
+        public EmptyNativeDependencySet(FileCollectionFactory fileCollectionFactory) {
+            this.fileCollectionFactory = fileCollectionFactory;
+        }
+
         @Override
         public FileCollection getIncludeRoots() {
-            return ImmutableFileCollection.of();
+            return fileCollectionFactory.empty();
         }
 
         @Override
         public FileCollection getLinkFiles() {
-            return ImmutableFileCollection.of();
+            return fileCollectionFactory.empty();
         }
 
         @Override
         public FileCollection getRuntimeFiles() {
-            return ImmutableFileCollection.of();
+            return fileCollectionFactory.empty();
         }
     }
 
@@ -78,6 +83,7 @@ public class SourceSetNativeDependencyResolver implements NativeDependencyResolv
         private final FileCollectionFactory fileCollectionFactory;
 
         private LanguageSourceSetNativeDependencySet(HeaderExportingSourceSet sourceSet, FileCollectionFactory fileCollectionFactory) {
+            super(fileCollectionFactory);
             this.sourceSet = sourceSet;
             this.fileCollectionFactory = fileCollectionFactory;
         }

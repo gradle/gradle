@@ -109,14 +109,14 @@ class GradleBuildTaskIntegrationTest extends AbstractIntegrationSpec {
         run 'buildInBuild'
 
         then:
-        outputContains("${displayName} has been deprecated. This is scheduled to be removed in Gradle 7.0.")
+        outputContains("${displayName} method has been deprecated. This is scheduled to be removed in Gradle 7.0.")
 
         where:
         displayName                                | codeUnderTest
-        "StartParameter#setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
-        "StartParameter#isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
-        "StartParameter#useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
-        "StartParameter#isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
+        "StartParameter.setSearchUpwards(boolean)" | "buildInBuild.startParameter.searchUpwards = true"
+        "StartParameter.isSearchUpwards()"         | "buildInBuild.startParameter.searchUpwards"
+        "StartParameter.useEmptySettings()"        | "buildInBuild.startParameter.useEmptySettings()"
+        "StartParameter.isUseEmptySettings()"      | "buildInBuild.startParameter.useEmptySettings"
     }
 
     @ToBeFixedForInstantExecution

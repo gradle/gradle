@@ -22,11 +22,14 @@ import org.apache.tools.ant.types.Resource
 import org.apache.tools.ant.types.ResourceCollection
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.project.DefaultAntBuilder
-import static org.hamcrest.CoreMatchers.*
-import static org.junit.Assert.*
-import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.collections.FileTreeAdapter
+import org.gradle.api.internal.file.collections.MinimalFileTree
+import org.gradle.api.internal.project.DefaultAntBuilder
+
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 class AntBuilderAwareUtil {
 
@@ -45,7 +48,7 @@ class AntBuilderAwareUtil {
             assertThat(task.filenames, equalTo(filenames))
         }
 
-        types.each {FileCollection.AntType type ->
+        types.each { FileCollection.AntType type ->
             FileListTask task = ant.test {
                 set.addToAntBuilder(ant, type == FileCollection.AntType.ResourceCollection ? null : type.toString().toLowerCase(), type)
             }
@@ -54,15 +57,15 @@ class AntBuilderAwareUtil {
         }
     }
 
-    static def assertSetContains(FileCollection set, String ... filenames) {
+    static def assertSetContains(FileCollection set, String... filenames) {
         assertSetContains(set, filenames as Set)
     }
 
-    static def assertSetContainsForAllTypes(FileCollection set, String ... filenames) {
+    static def assertSetContainsForAllTypes(FileCollection set, String... filenames) {
         assertSetContains(set, filenames as Set, FileCollection.AntType.values() as List)
     }
 
-    static def assertSetContainsForAllTypes(MinimalFileTree set, String ... filenames) {
+    static def assertSetContainsForAllTypes(MinimalFileTree set, String... filenames) {
         assertSetContainsForAllTypes(new FileTreeAdapter(set), filenames)
     }
 
@@ -71,10 +74,10 @@ class AntBuilderAwareUtil {
     }
 
     static def assertSetContainsForAllTypes(MinimalFileTree set, Iterable<String> filenames) {
-        assertSetContainsForAllTypes(new FileTreeAdapter(set), filenames)
+        assertSetContainsForAllTypes(new FileTreeAdapter(set, TestFiles.patternSetFactory), filenames)
     }
 
-    static def assertSetContainsForFileSet(FileCollection set, String ... filenames) {
+    static def assertSetContainsForFileSet(FileCollection set, String... filenames) {
         assertSetContains(set, filenames as Set, [FileCollection.AntType.FileSet], false)
     }
 
@@ -82,7 +85,7 @@ class AntBuilderAwareUtil {
         assertSetContains(set, filenames, [FileCollection.AntType.FileSet], false)
     }
 
-    static def assertSetContainsForMatchingTask(FileCollection set, String ... filenames) {
+    static def assertSetContainsForMatchingTask(FileCollection set, String... filenames) {
         assertSetContains(set, filenames as Set, [FileCollection.AntType.MatchingTask], false)
     }
 
@@ -116,9 +119,9 @@ public class FileListTask extends MatchingTask {
 
     def void execute() {
         if (src) {
-            src.list().each {String dirName ->
+            src.list().each { String dirName ->
                 File dir = getProject().resolveFile(dirName);
-                getDirectoryScanner(dir).includedFiles.each {String fileName ->
+                getDirectoryScanner(dir).includedFiles.each { String fileName ->
                     assertTrue("File $fileName found multiple times", filenames.add(fileName.replace(File.separator, '/')))
                 }
             }

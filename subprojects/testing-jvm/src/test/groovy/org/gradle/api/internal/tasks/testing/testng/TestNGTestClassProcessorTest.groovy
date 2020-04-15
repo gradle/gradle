@@ -41,7 +41,7 @@ import spock.lang.Subject
 
 class TestNGTestClassProcessorTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider dir = new TestNameTestDirectoryProvider(getClass())
 
     def processor = Mock(TestResultProcessor)
 

@@ -35,8 +35,8 @@ import org.gradle.initialization.UserHomeInitScriptFinder;
 import org.gradle.internal.DefaultTaskExecutionRequest;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -305,7 +305,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return this
      */
     public StartParameter useEmptySettings() {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#useEmptySettings()");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "useEmptySettings()")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "discontinued_methods")
+            .nagUser();
         doUseEmptySettings();
         return this;
     }
@@ -322,7 +325,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * @return Whether to use empty settings or not.
      */
     public boolean isUseEmptySettings() {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#isUseEmptySettings()");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "isUseEmptySettings()")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(6, "discontinued_methods")
+            .nagUser();
         return useEmptySettings;
     }
 
@@ -413,12 +419,18 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     }
 
     public boolean isSearchUpwards() {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#isSearchUpwards()");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "isSearchUpwards()")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
+            .nagUser();
         return searchUpwards;
     }
 
     public void setSearchUpwards(boolean searchUpwards) {
-        DeprecationLogger.nagUserOfDeprecated("StartParameter#setSearchUpwards(boolean)");
+        DeprecationLogger.deprecateMethod(StartParameter.class, "setSearchUpwards(boolean)")
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "search_upwards_related_apis_in_startparameter_have_been_deprecated")
+            .nagUser();
         this.searchUpwards = searchUpwards;
     }
 
@@ -922,7 +934,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the key refresh flag.
      *
      * @param refresh If set to true, missing keys will be checked again. By default missing keys are cached for 24 hours.
-     *
      * @since 6.2
      */
     @Incubating
@@ -948,7 +959,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * out public key servers.
      *
      * @return true if keys should be exported
-     *
      * @since 6.2
      */
     @Incubating
@@ -964,7 +974,6 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * out public key servers.
      *
      * @param exportKeys set to true if keys should be exported
-     *
      * @since 6.2
      */
     @Incubating

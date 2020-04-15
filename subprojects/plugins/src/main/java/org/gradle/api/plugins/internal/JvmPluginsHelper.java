@@ -17,9 +17,9 @@ package org.gradle.api.plugins.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
+import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ConfigurationPublications;
@@ -38,13 +38,20 @@ import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.artifacts.ConfigurationVariantInternal;
+import org.gradle.api.internal.artifacts.JavaEcosystemSupport;
+import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.dsl.LazyPublishArtifact;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
+import org.gradle.api.internal.attributes.AttributeContainerInternal;
+import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.plugins.DslObject;
 import org.gradle.api.internal.tasks.DefaultSourceSetOutput;
+import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.BasePlugin;
 import org.gradle.api.plugins.JavaBasePlugin;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.TaskContainer;
@@ -53,9 +60,11 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
@@ -65,6 +74,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+
+import static org.gradle.api.attributes.Bundling.BUNDLING_ATTRIBUTE;
+import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
 
 /**
  * Helpers for Jvm plugins. They are in a separate class so that they don't leak
@@ -125,36 +137,24 @@ public class JvmPluginsHelper {
         compile.setSource(sourceSet.getJava());
 
         ConfigurableFileCollection classpath = compile.getProject().getObjects().fileCollection();
-        classpath.from(new Callable<Object>() {
-            @Override
-            public Object call() {
-                return sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory()));
-            }
-        });
+        classpath.from((Callable<Object>) () -> sourceSet.getCompileClasspath().plus(target.files(sourceSet.getJava().getClassesDirectory())));
 
-        compile.getConventionMapping().map("classpath", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return classpath;
-            }
-        });
+        compile.getConventionMapping().map("classpath", () -> classpath);
     }
 
     public static void configureAnnotationProcessorPath(final SourceSet sourceSet, SourceDirectorySet sourceDirectorySet, CompileOptions options, final Project target) {
         final ConventionMapping conventionMapping = new DslObject(options).getConventionMapping();
-        conventionMapping.map("annotationProcessorPath", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return sourceSet.getAnnotationProcessorPath();
-            }
-        });
-        final String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
-        conventionMapping.map("annotationProcessorGeneratedSourcesDirectory", new Callable<Object>() {
-            @Override
-            public Object call() {
-                return new File(target.getBuildDir(), annotationProcessorGeneratedSourcesChildPath);
-            }
-        });
+        conventionMapping.map("annotationProcessorPath", sourceSet::getAnnotationProcessorPath);
+        String annotationProcessorGeneratedSourcesChildPath = "generated/sources/annotationProcessor/" + sourceDirectorySet.getName() + "/" + sourceSet.getName();
+        options.getGeneratedSourceOutputDirectory().convention(target.getLayout().getBuildDirectory().dir(annotationProcessorGeneratedSourcesChildPath));
+    }
+
+    /***
+     * For compatibility with https://plugins.gradle.org/plugin/io.freefair.aspectj
+     */
+    public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, Provider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
+        TaskProvider<? extends AbstractCompile> taskProvider = Cast.uncheckedCast(compileTask);
+        configureOutputDirectoryForSourceSet(sourceSet, sourceDirectorySet, target, taskProvider, options);
     }
 
     public static void configureOutputDirectoryForSourceSet(final SourceSet sourceSet, final SourceDirectorySet sourceDirectorySet, final Project target, TaskProvider<? extends AbstractCompile> compileTask, Provider<CompileOptions> options) {
@@ -162,35 +162,22 @@ public class JvmPluginsHelper {
         sourceDirectorySet.getDestinationDirectory().convention(target.getLayout().getBuildDirectory().dir(sourceSetChildPath));
 
         DefaultSourceSetOutput sourceSetOutput = Cast.cast(DefaultSourceSetOutput.class, sourceSet.getOutput());
-        sourceSetOutput.addClassesDir(new Callable<File>() {
-            @Override
-            public File call() {
-                return sourceDirectorySet.getDestinationDirectory().getAsFile().get();
-            }
-        });
+        sourceSetOutput.addClassesDir(() -> sourceDirectorySet.getDestinationDirectory().getAsFile().get());
         sourceSetOutput.registerCompileTask(compileTask);
-        sourceSetOutput.getGeneratedSourcesDirs().from(options.map(new Transformer<Object, CompileOptions>() {
-            @Override
-            public Object transform(CompileOptions compileOptions) {
-                return compileOptions.getAnnotationProcessorGeneratedSourcesDirectory();
-            }
-        })).builtBy(compileTask);
+        sourceSetOutput.getGeneratedSourcesDirs().from(options.flatMap(CompileOptions::getGeneratedSourceOutputDirectory));
 
         sourceDirectorySet.compiledBy(compileTask, AbstractCompile::getDestinationDirectory);
     }
 
     public static void configureClassesDirectoryVariant(SourceSet sourceSet, Project target, String targetConfigName, final String usage) {
-        target.getConfigurations().all(new Action<Configuration>() {
-            @Override
-            public void execute(Configuration config) {
-                if (targetConfigName.equals(config.getName())) {
-                    registerClassesDirVariant(sourceSet, target.getObjects(), config);
-                }
+        target.getConfigurations().all(config -> {
+            if (targetConfigName.equals(config.getName())) {
+                registerClassesDirVariant(sourceSet, target.getObjects(), config);
             }
         });
     }
 
-    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks) {
+    public static void configureJavaDocTask(@Nullable String featureName, SourceSet sourceSet, TaskContainer tasks, JavaPluginExtension javaPluginExtension) {
         String javadocTaskName = sourceSet.getJavadocTaskName();
         if (!tasks.getNames().contains(javadocTaskName)) {
             tasks.register(javadocTaskName, Javadoc.class, javadoc -> {
@@ -198,6 +185,7 @@ public class JvmPluginsHelper {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
+                javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             });
         }
     }
@@ -241,6 +229,59 @@ public class JvmPluginsHelper {
         return null;
     }
 
+    public static void configureAttributesForCompileClasspath(ConfigurationInternal configuration, ObjectFactory objectFactory) {
+        configuration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_API));
+        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
+        configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+    }
+
+    public static void configureAttributesForRuntimeClasspath(ConfigurationInternal configuration, ObjectFactory objectFactory) {
+        configuration.getAttributes().attribute(USAGE_ATTRIBUTE, objectFactory.named(Usage.class, Usage.JAVA_RUNTIME));
+        configuration.getAttributes().attribute(Category.CATEGORY_ATTRIBUTE, objectFactory.named(Category.class, Category.LIBRARY));
+        configuration.getAttributes().attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, LibraryElements.JAR));
+        configuration.getAttributes().attribute(BUNDLING_ATTRIBUTE, objectFactory.named(Bundling.class, Bundling.EXTERNAL));
+    }
+
+    public static Action<ConfigurationInternal> configureLibraryElementsAttributeForCompileClasspath(boolean javaClasspathPackaging, SourceSet sourceSet, TaskProvider<JavaCompile> compileTaskProvider, ObjectFactory objectFactory) {
+        return conf -> {
+            AttributeContainerInternal attributes = conf.getAttributes();
+            if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
+                String libraryElements;
+                // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
+                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
+                   libraryElements = LibraryElements.JAR;
+                } else {
+                    libraryElements = LibraryElements.CLASSES;
+                }
+                attributes.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objectFactory.named(LibraryElements.class, libraryElements));
+            }
+        };
+    }
+
+    public static Action<ConfigurationInternal> configureDefaultTargetPlatform(JavaPluginConvention convention, boolean alwaysEnabled, TaskProvider<JavaCompile> compileTaskProvider) {
+        return conf -> {
+            if (alwaysEnabled || !convention.getAutoTargetJvmDisabled()) {
+                JavaCompile javaCompile = compileTaskProvider.get();
+                int majorVersion;
+                int releaseOption = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
+                if (releaseOption > 0) {
+                    majorVersion = releaseOption;
+                } else {
+                    majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
+                }
+                JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
+            }
+        };
+    }
+
+    private static int getReleaseOption(List<String> compilerArgs) {
+        int flagIndex = compilerArgs.indexOf("--release");
+        if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+            return Integer.parseInt(compilerArgs.get(flagIndex + 1));
+        }
+        return 0;
+    }
+
     /**
      * A custom artifact type which allows the getFile call to be done lazily only when the
      * artifact is actually needed.
@@ -277,6 +318,11 @@ public class JvmPluginsHelper {
         @Override
         public Date getDate() {
             return null;
+        }
+
+        @Override
+        public boolean shouldBePublished() {
+            return false;
         }
     }
 }

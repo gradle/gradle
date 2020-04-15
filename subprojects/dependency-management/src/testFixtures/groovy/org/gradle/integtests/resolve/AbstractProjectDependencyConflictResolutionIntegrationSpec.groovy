@@ -59,7 +59,10 @@ abstract class AbstractProjectDependencyConflictResolutionIntegrationSpec extend
     abstract boolean isAutoDependencySubstitution();
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "CompositeBuildProjectDependencyConflictResolutionIntegrationTest",
+        "CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionIntegrationTest"
+    ])
     def "project dependency (#projectDep) vs external dependency (#transitiveDep) resolves to winner (#winner), when preferProjectModules=#preferProjectModules and force=#force and depSubstitution=#depSubstitution"() {
         given:
         //required for composite builds

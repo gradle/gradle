@@ -25,7 +25,9 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.Named
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.FileCollectionDependency
+import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.DocsType
@@ -46,15 +48,18 @@ import org.gradle.gradlebuild.BuildEnvironment
 import org.gradle.gradlebuild.BuildEnvironment.agentNum
 import org.gradle.gradlebuild.java.AvailableJavaInstallationsPlugin
 import org.gradle.gradlebuild.java.JavaInstallation
+import org.gradle.gradlebuild.versioning.buildVersion
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.IdeaPlugin
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.process.CommandLineArgumentProvider
+import org.gradle.testretry.TestRetryPlugin
 import testLibrary
 import java.util.concurrent.Callable
 import java.util.jar.Attributes
 import kotlin.reflect.full.declaredFunctions
+import org.gradle.testing.PerformanceTest
 
 
 enum class ModuleType(val compatibility: JavaVersion = JavaVersion.VERSION_1_8) {
@@ -99,6 +104,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         apply(plugin = "groovy")
         plugins.apply(AvailableJavaInstallationsPlugin::class.java)
+        plugins.apply(TestRetryPlugin::class.java)
 
         val extension = extensions.create<UnitTestAndCompileExtension>("gradlebuildJava", this)
 
@@ -133,7 +139,9 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             withSourcesJar()
         }
         val implementation by configurations
-        val transitiveSourcesElements: Configuration by configurations.creating {
+
+        @Suppress("unused_variable")
+        val transitiveSourcesElements by configurations.creating {
             isCanBeResolved = false
             isCanBeConsumed = true
             extendsFrom(implementation)
@@ -155,6 +163,8 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         options.isFork = true
         options.encoding = "utf-8"
         options.isIncremental = true
+        options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
+        options.forkOptions.memoryMaximumSize = "1g"
         options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
@@ -166,7 +176,29 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.addGeneratedResources(gradlebuildJava: UnitTestAndCompileExtension) {
-        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class)
+        val classpathManifest = tasks.register("classpathManifest", ClasspathManifest::class) {
+            archiveBaseName.set(base.archivesBaseName)
+            generatedResourcesDir.set(gradlebuildJava.generatedResourcesDir)
+            val runtimeClasspath by configurations
+            runtimeProjectDependenciesPaths.set(
+                runtimeClasspath.allDependencies
+                    .withType<ProjectDependency>()
+                    .filter { it.dependencyProject.plugins.hasPlugin("java-base") }
+                    .map { it.dependencyProject.path }
+            )
+            runtimeNonProjectDependencies.from(
+                runtimeClasspath.fileCollection {
+                    it is ExternalDependency || it is FileCollectionDependency
+                }
+            )
+        }
+        rootProject.allprojects.forEach { p ->
+            p.afterEvaluate {
+                classpathManifest {
+                    archiveBaseNamesByProjectPath.put(p.path, p.base.archivesBaseName)
+                }
+            }
+        }
         java.sourceSets["main"].output.dir(mapOf("builtBy" to classpathManifest), gradlebuildJava.generatedResourcesDir)
         // Remove this IDEA import workaround once we completely migrated to the native IDEA import
         // See: https://github.com/gradle/gradle-private/issues/1675
@@ -206,7 +238,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Project.configureJarTasks() {
         tasks.withType<Jar>().configureEach {
-            val baseVersion: String by rootProject.extra
+            val baseVersion = rootProject.buildVersion.baseVersion
             archiveVersion.set(baseVersion)
             manifest.attributes(mapOf(
                 Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
@@ -217,6 +249,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
     private
     fun Test.configureJvmForTest() {
         val jvmForTest = project.buildJvms.testJvm.get()
+
         jvmArgumentProviders.add(createCiEnvironmentProvider(this))
         executable = jvmForTest.javaExecutable.absolutePath
         environment["JAVA_HOME"] = jvmForTest.javaHome.absolutePath
@@ -249,8 +282,12 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
             configureJvmForTest()
             addOsAsInputs()
 
-            doFirst {
-                if (BuildEnvironment.isCiServer) {
+            if (BuildEnvironment.isCiServer && this !is PerformanceTest) {
+                retry {
+                    maxRetries.set(1)
+                    maxFailures.set(10)
+                }
+                doFirst {
                     logger.lifecycle("maxParallelForks for '$path' is $maxParallelForks")
                 }
             }

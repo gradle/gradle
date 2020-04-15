@@ -18,6 +18,7 @@ package org.gradle.integtests.resolve.api
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.junit.runner.RunWith
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -472,21 +473,17 @@ task show {
         fails 'show'
 
         then:
-        failure.assertHasCause("""More than one variant of project :a matches the consumer attributes:
-  - Configuration ':a:compile' variant var1:
+        failure.assertHasCause("""The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
+  - Configuration ':a:compile' variant var1 declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found buildType 'debug' but wasn't required.
-          - Found flavor 'one' but wasn't required.
-      - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.
-  - Configuration ':a:compile' variant var2:
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides buildType 'debug' but the consumer didn't ask for it
+          - Provides flavor 'one' but the consumer didn't ask for it
+  - Configuration ':a:compile' variant var2 declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
-          - Found artifactType 'jar' but wasn't required.
-          - Found buildType 'debug' but wasn't required.
-          - Found flavor 'two' but wasn't required.
-      - Compatible attribute:
-          - Required usage 'compile' and found compatible value 'compile'.""")
+          - Provides artifactType 'jar' but the consumer didn't ask for it
+          - Provides buildType 'debug' but the consumer didn't ask for it
+          - Provides flavor 'two' but the consumer didn't ask for it""")
 
         where:
         expression                                                    | _
@@ -641,7 +638,7 @@ task show {
 allprojects {
     repositories {
         maven {
-            url '$mavenHttpRepo.uri' 
+            url '$mavenHttpRepo.uri'
             metadataSources {
                 mavenPom()
                 artifact()
@@ -708,14 +705,12 @@ ${showFailuresTask(expression)}
 
         then:
         failure.assertHasCause("Could not resolve all artifacts for configuration ':compile'.")
-        failure.assertHasCause("""Unable to find a matching variant of project :a:
+        failure.assertHasCause("""No matching variant of project :a was found. The consumer was configured to find attribute 'volume' with value '11' but:
   - Variant 'compile' capability test:a:unspecified:
-      - Incompatible attribute:
-          - Required volume '11' and found incompatible value '8'.""")
-        failure.assertHasCause("""Unable to find a matching variant of project :b:
+      - Incompatible because this component declares attribute 'volume' with value '8' and the consumer needed attribute 'volume' with value '11'""")
+        failure.assertHasCause("""No matching variant of project :b was found. The consumer was configured to find attribute 'volume' with value '11' but:
   - Variant 'compile' capability test:b:unspecified:
-      - Incompatible attribute:
-          - Required volume '11' and found incompatible value '9'.""")
+      - Incompatible because this component declares attribute 'volume' with value '9' and the consumer needed attribute 'volume' with value '11'""")
 
         where:
         expression                                                    | _
@@ -836,6 +831,7 @@ ${showFailuresTask(expression)}
         "incoming.artifactView({lenient(false)}).artifacts"           | _
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "lenient artifact view reports failure to resolve graph and artifacts"() {
         settingsFile << "include 'a', 'b'"
 
@@ -905,15 +901,16 @@ task resolveLenient {
 Searched in the following locations:
     ${m1.artifact.uri}""")
         outputContains("failure 5: Could not download broken-artifact-1.0.jar (org:broken-artifact:1.0)")
-        outputContains("""failure 6: More than one variant of project :a matches the consumer attributes:
+        outputContains("""failure 6: The consumer was configured to find attribute 'usage' with value 'compile'. However we cannot choose between the following variants of project :a:
   - Configuration ':a:default' variant v1:
       - Unmatched attribute:
-          - Required usage 'compile' but no value provided.
+          - Doesn't say anything about usage (required 'compile')
   - Configuration ':a:default' variant v2:
       - Unmatched attribute:
-          - Required usage 'compile' but no value provided.""")
+          - Doesn't say anything about usage (required 'compile')""")
     }
 
+    @ToBeFixedForInstantExecution(because = "broken file collection")
     def "successfully resolved local artifacts are built when lenient file view used as task input"() {
         settingsFile << "include 'a', 'b', 'c'"
 
@@ -936,7 +933,7 @@ configurations.compile.attributes.attribute(usage, "compile")
 project(':a') {
     task jar1(type: Jar)
     task jar2(type: Jar)
-    dependencies { 
+    dependencies {
         compile project(':c')
     }
     configurations.default.outgoing.variants {

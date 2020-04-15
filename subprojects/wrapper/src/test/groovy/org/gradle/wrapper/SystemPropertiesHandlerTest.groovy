@@ -24,7 +24,7 @@ import spock.lang.Specification
 @CleanupTestDirectory
 class SystemPropertiesHandlerTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def parsesPropertiesFile() {
         TestFile propFile = temporaryFolder.file('props')

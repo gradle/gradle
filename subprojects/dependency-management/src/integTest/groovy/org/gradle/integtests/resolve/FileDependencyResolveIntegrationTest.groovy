@@ -35,9 +35,10 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             allprojects {
                 configurations { compile }
                 task jar {
-                    doLast { 
-                        file("${project.name}.jar").text = 'content' 
-                    } 
+                    def jarFile = file("${project.name}.jar")
+                    doLast {
+                        jarFile.text = 'content'
+                    }
                 }
             }
             dependencies { 
@@ -74,10 +75,12 @@ class FileDependencyResolveIntegrationTest extends AbstractDependencyResolutionT
             allprojects {
                 configurations { compile }
                 task jar {
-                    doLast { 
-                        file("${project.name}-1.jar").text = 'content' 
-                        file("${project.name}-2.jar").text = 'content' 
-                    } 
+                    def jar1 = file("${project.name}-1.jar")
+                    def jar2 = file("${project.name}-2.jar")
+                    doLast {
+                        jar1.text = 'content'
+                        jar2.text = 'content'
+                    }
                 }
             }
             dependencies { 

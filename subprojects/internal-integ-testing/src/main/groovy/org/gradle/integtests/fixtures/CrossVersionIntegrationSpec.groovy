@@ -32,7 +32,7 @@ import static spock.lang.Retry.Mode.SETUP_FEATURE_CLEANUP
 @RunWith(CrossVersionTestRunner)
 @Retry(condition = { RetryConditions.onIssueWithReleasedGradleVersion(instance, failure) }, mode = SETUP_FEATURE_CLEANUP, count = 2)
 abstract class CrossVersionIntegrationSpec extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     private final List<GradleExecuter> executers = []
     final GradleDistribution current = new UnderDevelopmentGradleDistribution()
     static GradleDistribution previous

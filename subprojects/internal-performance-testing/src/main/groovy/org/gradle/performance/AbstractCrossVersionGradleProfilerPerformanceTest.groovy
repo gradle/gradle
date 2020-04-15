@@ -48,7 +48,7 @@ class AbstractCrossVersionGradleProfilerPerformanceTest extends Specification {
     private static def reporter = SlackReporter.wrap(resultStore)
 
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new PerformanceTestDirectoryProvider(getClass())
 
     private final IntegrationTestBuildContext buildContext = new IntegrationTestBuildContext()
 

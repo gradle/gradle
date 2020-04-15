@@ -21,6 +21,7 @@ import org.gradle.api.NonNullApi;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.api.internal.file.collections.FileSystemMirroringFileTree;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.RelativePathUtil;
 import org.slf4j.Logger;
@@ -74,12 +75,12 @@ public class CompilationSourceDirs {
         }
 
         @Override
-        public void visitGenericFileTree(FileTreeInternal fileTree) {
+        public void visitGenericFileTree(FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             cannotInferSourceRoots(fileTree);
         }
 
         @Override
-        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree) {
+        public void visitFileTreeBackedByFile(File file, FileTreeInternal fileTree, FileSystemMirroringFileTree sourceTree) {
             cannotInferSourceRoots(fileTree);
         }
 

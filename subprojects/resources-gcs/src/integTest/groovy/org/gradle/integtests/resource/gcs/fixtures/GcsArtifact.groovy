@@ -26,6 +26,11 @@ class GcsArtifact extends GcsResource implements RemoteArtifact {
     }
 
     @Override
+    String getName() {
+        return file.name
+    }
+
+    @Override
     GcsResource getMd5() {
         return new GcsResource(server, file.parentFile.file(file.name + ".md5"), repositoryPath, bucket)
     }

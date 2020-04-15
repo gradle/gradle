@@ -39,11 +39,11 @@ class WrapperChecksumVerificationTest extends AbstractWrapperIntegrationSpec {
         file('gradle/wrapper/gradle-wrapper.properties') << 'distributionSha256Sum=bad'
 
         when:
-        def failure = wrapperExecuter.runWithFailure()
+        def failure = wrapperExecuter.withStackTraceChecksDisabled().runWithFailure()
         def f = new File(file("user-home/wrapper/dists/gradle-bin").listFiles()[0], "gradle-bin.zip")
 
         then:
-        failure.error.startsWith("""
+        failure.error.contains("""
 Verification of Gradle distribution failed!
 
 Your Gradle distribution may have been tampered with.

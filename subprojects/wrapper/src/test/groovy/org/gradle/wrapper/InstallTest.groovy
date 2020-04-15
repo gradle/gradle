@@ -37,7 +37,7 @@ class InstallTest extends Specification {
     PathAssembler pathAssembler = Mock()
     PathAssembler.LocalDistribution localDistribution = Mock()
     @Rule
-    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass());
 
     public void setup() {
         downloadCalled = false

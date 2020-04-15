@@ -1,5 +1,7 @@
-apply plugin: 'java-gradle-plugin'
-apply plugin: 'idea'
+plugins {
+    id 'java-gradle-plugin'
+    id 'idea'
+}
 
 group = 'org.sample'
 version = '1.0-SNAPSHOT'

@@ -27,7 +27,7 @@ import spock.lang.Issue
 class NativeServicesIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def nativeDir = new File(executer.gradleUserHomeDir, 'native')
     def library

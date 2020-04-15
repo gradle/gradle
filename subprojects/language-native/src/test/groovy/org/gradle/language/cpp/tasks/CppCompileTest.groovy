@@ -16,7 +16,7 @@
 
 package org.gradle.language.cpp.tasks
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.WorkResult
 import org.gradle.language.base.internal.compile.Compiler
 import org.gradle.nativeplatform.platform.internal.ArchitectureInternal
@@ -65,7 +65,7 @@ class CppCompileTest extends AbstractProjectBuilderSpec {
         pch.includeString >> "header"
         pch.prefixHeaderFile >> temporaryFolder.file("prefixHeader").createFile()
         pch.objectFile >> temporaryFolder.file("pchObjectFile").createFile()
-        pch.pchObjects >> ImmutableFileCollection.of()
+        pch.pchObjects >> TestFiles.empty()
         1 * cppCompiler.execute({ CppCompileSpec spec ->
             assert spec.sourceFiles*.name == ["sourceFile"]
             assert spec.args == ['arg']

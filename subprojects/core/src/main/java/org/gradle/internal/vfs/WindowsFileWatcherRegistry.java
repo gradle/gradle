@@ -18,36 +18,25 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
-import org.gradle.internal.vfs.impl.WatchRootUtil;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.util.Set;
-import java.util.stream.Collectors;
+public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
 
-public class WindowsFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WindowsFileWatcherRegistry.class);
+    private static final int BUFFER_SIZE = 128 * 1024;
 
-    public WindowsFileWatcherRegistry(Set<Path> watchRoots) {
-        super(events -> Native.get(WindowsFileEventFunctions.class)
-            .startWatching(
-                watchRoots.stream()
-                    .map(Path::toString)
-                    .collect(Collectors.toList()),
-                (type, path) -> events.add(WatcherEvent.createEvent(type, path))
-            ));
+    public WindowsFileWatcherRegistry(ChangeHandler handler) {
+        super(
+            callback -> Native.get(WindowsFileEventFunctions.class).startWatcher(BUFFER_SIZE, callback),
+            handler
+        );
     }
 
     public static class Factory implements FileWatcherRegistryFactory {
+
         @Override
-        public FileWatcherRegistry startWatching(Set<Path> directories) {
-            Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
-            LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
-            return new WindowsFileWatcherRegistry(watchRoots);
+        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
+            return new WindowsFileWatcherRegistry(handler);
         }
     }
 }

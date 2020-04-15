@@ -15,11 +15,12 @@
  */
 package org.gradle.internal.hash;
 
-import com.google.common.io.Files;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 
 class ChecksumHasher implements FileHasher {
 
@@ -32,7 +33,15 @@ class ChecksumHasher implements FileHasher {
     @Override
     public HashCode hash(File file) {
         try {
-            return hashFunction.hashBytes(Files.toByteArray(file));
+            PrimitiveHasher hasher = hashFunction.newPrimitiveHasher();
+            byte[] buffer = new byte[4096];
+            int len;
+            try (InputStream in = new FileInputStream(file)) {
+                while ((len = in.read(buffer)) >= 0) {
+                    hasher.putBytes(buffer, 0, len);
+                }
+            }
+            return hasher.hash();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

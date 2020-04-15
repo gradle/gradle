@@ -59,4 +59,8 @@ class DefaultRootMavenMetaData implements RootMavenMetaData {
             versions << it.text()
         }
     }
+
+    String getName() {
+        return file.name
+    }
 }

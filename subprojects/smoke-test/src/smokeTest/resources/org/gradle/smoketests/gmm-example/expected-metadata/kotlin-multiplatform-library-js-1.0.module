@@ -1,0 +1,85 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../kotlin-multiplatform-library/1.0/kotlin-multiplatform-library-1.0.module",
+    "group": "example",
+    "module": "kotlin-multiplatform-library",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.1.1",
+      "buildId": "pr4n4lpg5ja6re27qc3piepc4q"
+    }
+  },
+  "variants": [
+    {
+      "name": "js-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "files": [
+        {
+          "name": "kotlin-multiplatform-library-js-1.0.jar",
+          "url": "kotlin-multiplatform-library-js-1.0.jar",
+          "size": 3771,
+          "sha512": "ce01625dccb9bbf8f988ac21ece2b4912545dd2d9f2be5f3ebf0d5894d343c150d81b822cc7d02cea83d5b69ac00c379b57429255390d82fced02b315c40cbbd",
+          "sha256": "eb7ba7d5066b14562785942fd66b83bd67566be02c5d638867e505741dc60e4a",
+          "sha1": "06079e5bf82e6af07a871f1be766f14f43d1923f",
+          "md5": "7e574193359cb4f746f1863236ece113"
+        }
+      ]
+    },
+    {
+      "name": "js-runtime",
+      "attributes": {
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-js",
+          "version": {
+            "requires": "1.3.71"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-common",
+          "version": {
+            "requires": "1.3.71"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "kotlin-multiplatform-library-js-1.0.jar",
+          "url": "kotlin-multiplatform-library-js-1.0.jar",
+          "size": 3771,
+          "sha512": "ce01625dccb9bbf8f988ac21ece2b4912545dd2d9f2be5f3ebf0d5894d343c150d81b822cc7d02cea83d5b69ac00c379b57429255390d82fced02b315c40cbbd",
+          "sha256": "eb7ba7d5066b14562785942fd66b83bd67566be02c5d638867e505741dc60e4a",
+          "sha1": "06079e5bf82e6af07a871f1be766f14f43d1923f",
+          "md5": "7e574193359cb4f746f1863236ece113"
+        }
+      ]
+    },
+    {
+      "name": "metadata-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-library-metadata/1.0/kotlin-multiplatform-library-metadata-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-library-metadata",
+        "version": "1.0"
+      }
+    }
+  ]
+}

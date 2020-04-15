@@ -161,6 +161,25 @@ public interface ResolutionStrategy {
 
 
     /**
+     * Deactivates dependency verification for this configuration.
+     * You should always be careful when disabling verification, and in particular avoid
+     * disabling it for verification of plugins, because a plugin could use this to disable
+     * verification itself.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    ResolutionStrategy disableDependencyVerification();
+
+    /**
+     * Enabled dependency verification for this configuration.
+     *
+     * @since 6.2
+     */
+    @Incubating
+    ResolutionStrategy enableDependencyVerification();
+
+    /**
      * Allows forcing certain versions of dependencies, including transitive dependencies.
      * <b>Appends</b> new forced modules to be considered when resolving dependencies.
      * <p>
@@ -251,6 +270,7 @@ public interface ResolutionStrategy {
      *
      * <p>A convenience method for {@link #cacheDynamicVersionsFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
      * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
+     *
      * @param value The number of time units
      * @param units The units
      * @since 1.0-milestone-6
@@ -263,6 +283,7 @@ public interface ResolutionStrategy {
      * <p>Gradle keeps a cache of dynamic version =&gt; resolved version (ie 2.+ =&gt; 2.3). By default, these cached values are kept for 24 hours, after which the cached entry is expired
      * and the dynamic version is resolved again.</p>
      * <p>Use this method to provide a custom expiry time after which the cached value for any dynamic version will be expired.</p>
+     *
      * @param value The number of time units
      * @param units The units
      * @since 1.0-milestone-6
@@ -274,6 +295,7 @@ public interface ResolutionStrategy {
      *
      * <p>A convenience method for {@link #cacheChangingModulesFor(int, java.util.concurrent.TimeUnit)} with units expressed as a String.
      * Units are resolved by calling the {@code valueOf(String)} method of {@link java.util.concurrent.TimeUnit} with the upper-cased string value.</p>
+     *
      * @param value The number of time units
      * @param units The units
      * @since 1.0-milestone-6
@@ -286,6 +308,7 @@ public interface ResolutionStrategy {
      * <p>Gradle caches the contents and artifacts of changing modules. By default, these cached values are kept for 24 hours,
      * after which the cached entry is expired and the module is resolved again.</p>
      * <p>Use this method to provide a custom expiry time after which the cached entries for any changing module will be expired.</p>
+     *
      * @param value The number of time units
      * @param units The units
      * @since 1.0-milestone-6
@@ -360,9 +383,7 @@ public interface ResolutionStrategy {
      * Configures the capabilities resolution strategy.
      *
      * @param action the configuration action.
-     *
      * @return this resolution strategy
-     *
      * @since 5.6
      */
     @Incubating

@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
 import org.gradle.performance.fixture.GradleProfilerCrossVersionPerformanceTestRunner
 import org.gradle.profiler.InvocationSettings
@@ -23,6 +24,7 @@ import org.gradle.profiler.mutations.ApplyAbiChangeToJavaSourceFileMutator
 import org.gradle.profiler.mutations.ApplyNonAbiChangeToJavaSourceFileMutator
 
 class AndroidTestProject {
+
     static final LARGE_ANDROID_BUILD = new AndroidTestProject(
         templateName: 'largeAndroidBuild',
         memory: '5g',
@@ -55,6 +57,10 @@ class AndroidTestProject {
 }
 
 class IncrementalAndroidTestProject extends AndroidTestProject {
+
+    private static final AndroidGradlePluginVersions AGP_VERSIONS = new AndroidGradlePluginVersions()
+    private static final String ENABLE_AGP_IDE_MODE_ARG = "-Pandroid.injected.invoked.from.ide=true"
+
     static final SANTA_TRACKER_KOTLIN = new IncrementalAndroidTestProject(
         templateName: 'santaTrackerAndroidBuild',
         memory: '1g',
@@ -71,6 +77,28 @@ class IncrementalAndroidTestProject extends AndroidTestProject {
 
     String pathToChange
     String taskToRunForChange
+
+    @Override
+    void configure(GradleProfilerCrossVersionPerformanceTestRunner runner) {
+        super.configure(runner)
+        runner.args.add(ENABLE_AGP_IDE_MODE_ARG)
+    }
+
+    @Override
+    void configure(GradleBuildExperimentSpec.GradleBuilder builder) {
+        super.configure(builder)
+        builder.invocation {
+            args.add(ENABLE_AGP_IDE_MODE_ARG)
+        }
+    }
+
+    void configureForLatestAgpVersionOfMinor(GradleProfilerCrossVersionPerformanceTestRunner runner, String lowerBound) {
+        runner.args.add("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
+    }
+
+    void configureForLatestAgpVersionOfMinor(GradleBuildExperimentSpec.GradleBuilder builder, String lowerBound) {
+        builder.invocation.args("-DagpVersion=${AGP_VERSIONS.getLatestOfMinor(lowerBound)}")
+    }
 
     void configureForAbiChange(GradleProfilerCrossVersionPerformanceTestRunner runner) {
         configure(runner)

@@ -19,23 +19,11 @@ package org.gradle.instantexecution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableSet
-import org.gradle.api.DefaultTask
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.initialization.Settings
-import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
-import org.gradle.api.internal.project.DefaultProject
-import org.gradle.api.internal.tasks.DefaultTaskContainer
-import org.gradle.api.invocation.Gradle
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.LoadProjectsBuildOperationType
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.internal.event.ListenerManager
-import org.gradle.invocation.DefaultGradle
 import org.gradle.jvm.toolchain.JavaInstallationRegistry
 import org.gradle.process.ExecOperations
 import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
@@ -45,18 +33,57 @@ import spock.lang.Unroll
 
 import javax.inject.Inject
 
+
 class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
+    def "--scan works"() {
+        given:
+        settingsKotlinFile << '''
+            plugins {
+                `gradle-enterprise`
+            }
+
+            gradleEnterprise.buildScan {
+                termsOfServiceUrl = "https://gradle.com/terms-of-service"
+                termsOfServiceAgree = "yes"
+            }
+        '''
+
+        when:
+        instantRun "help", "--scan", "-Dscan.dump"
+
+        then:
+        postBuildOutputContains("Build scan written to")
+
+        when:
+        instantRun "help", "--scan", "-Dscan.dump"
+
+        then:
+        postBuildOutputContains("Build scan written to")
+    }
 
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
-        def firstRunOutput = result.normalizedOutput.replace('Calculating task graph as no instant execution cache is available for tasks: help', '')
+        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Calculating task graph as no instant execution cache is available for tasks: help\n/, '')
 
         when:
         instantRun "help"
+        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
+            .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
 
         then:
-        firstRunOutput == result.normalizedOutput.replace('Reusing instant execution cache. This is not guaranteed to work in any way.', '')
+        firstRunOutput == secondRunOutput
+    }
+
+    private static String removeVfsLogOutput(String normalizedOutput) {
+        normalizedOutput
+            .replaceAll(/Received \d+ file system events .*\n/, '')
+            .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
+            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
+            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
+            .replaceAll(/Virtual file system .*\n/, '')
     }
 
     def "restores some details of the project structure"() {
@@ -64,6 +91,14 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         settingsFile << """
             rootProject.name = 'thing'
+            include 'a', 'b', 'c'
+            include 'a:b'
+            project(':a:b').projectDir = file('custom')
+            gradle.rootProject {
+                allprojects {
+                    task thing
+                }
+            }
         """
 
         when:
@@ -72,6 +107,8 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         def event = fixture.first(LoadProjectsBuildOperationType)
         event.result.rootProject.name == 'thing'
+        event.result.rootProject.path == ':'
+        event.result.rootProject.children.size() == 3 // All projects are created when storing
 
         when:
         instantRun "help"
@@ -79,6 +116,59 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         def event2 = fixture.first(LoadProjectsBuildOperationType)
         event2.result.rootProject.name == 'thing'
+        event2.result.rootProject.path == ':'
+        event2.result.rootProject.projectDir == testDirectory.absolutePath
+        event2.result.rootProject.children.empty // None of the child projects are created when loading, as they have no tasks scheduled
+
+        when:
+        instantRun ":a:thing"
+
+        then:
+        def event3 = fixture.first(LoadProjectsBuildOperationType)
+        event3.result.rootProject.name == 'thing'
+        event3.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        when:
+        instantRun ":a:thing"
+
+        then:
+        def event4 = fixture.first(LoadProjectsBuildOperationType)
+        event4.result.rootProject.name == 'thing'
+        event4.result.rootProject.path == ':'
+        event4.result.rootProject.projectDir == testDirectory.absolutePath
+        event4.result.rootProject.children.size() == 1 // Only project a is created when loading
+        def project1 = event4.result.rootProject.children.first()
+        project1.name == 'a'
+        project1.path == ':a'
+        project1.projectDir == file('a').absolutePath
+        project1.children.empty
+
+        when:
+        instantRun ":a:b:thing"
+
+        then:
+        def event5 = fixture.first(LoadProjectsBuildOperationType)
+        event5.result.rootProject.name == 'thing'
+        event5.result.rootProject.children.size() == 3 // All projects are created when storing
+
+        when:
+        instantRun ":a:b:thing"
+
+        then:
+        def event6 = fixture.first(LoadProjectsBuildOperationType)
+        event6.result.rootProject.name == 'thing'
+        event6.result.rootProject.path == ':'
+        event6.result.rootProject.projectDir == testDirectory.absolutePath
+        event6.result.rootProject.children.size() == 1
+        def project3 = event6.result.rootProject.children.first()
+        project3.name == 'a'
+        project3.path == ':a'
+        project3.projectDir == file('a').absolutePath
+        project3.children.size() == 1
+        def project4 = project3.children.first()
+        project4.name == 'b'
+        project4.path == ':a:b'
+        project4.projectDir == file('custom').absolutePath
     }
 
     def "does not configure build when task graph is already cached for requested tasks"() {
@@ -520,6 +610,41 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "Provider<String>" | "objects.property(String)"                | "null"
     }
 
+    def "replaces provider with fixed value"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Internal
+                Provider<String> value
+
+                @TaskAction
+                void run() {
+                    println "this.value = " + value.getOrNull()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = providers.provider {
+                    println("calculating value")
+                    'value'
+                }
+            }
+        """
+
+        when:
+        instantRun "ok"
+
+        then:
+        outputContains("calculating value")
+        outputContains("this.value = value")
+
+        when:
+        instantRun "ok"
+
+        then:
+        outputDoesNotContain("calculating value")
+        outputContains("this.value = value")
+    }
+
     @Unroll
     def "restores task fields whose value is broken #type"() {
         def instantExecution = newInstantExecutionFixture()
@@ -542,7 +667,16 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantFails "broken"
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems("field 'value' from type 'SomeTask': $problem")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        when:
         instantFails "broken"
 
         then:
@@ -552,9 +686,9 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         failure.assertHasCause("broken!")
 
         where:
-        type               | reference                    | query
-        "Provider<String>" | "project.providers.provider" | "get()"
-        "FileCollection"   | "project.files"              | "files"
+        type               | reference                    | query   | problem
+        "Provider<String>" | "project.providers.provider" | "get()" | "value 'provider(?)' failed to unpack provider"
+        "FileCollection"   | "project.files"              | "files" | "value 'file collection' failed to visit file collection"
     }
 
     @Unroll
@@ -615,10 +749,57 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "null"           | "null"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "null"           | "null"
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
+    }
+
+    @Unroll
+    def "Directory value can resolve paths after being restored"() {
+        buildFile << """
+            import ${Inject.name}
+
+            class SomeTask extends DefaultTask {
+                @Internal
+                Directory value
+                @Internal
+                final Property<Directory> propValue
+
+                @Inject
+                SomeTask(ObjectFactory objects) {
+                    propValue = objects.directoryProperty()
+                }
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                    println "value.child = " + value.dir("child")
+                    println "propValue = " + propValue.get()
+                    println "propValue.child = " + propValue.get().dir("child")
+                    println "propValue.child.mapped = " + propValue.dir("child").get()
+                }
+            }
+
+            task ok(type: SomeTask) {
+                value = layout.projectDir.dir("dir1")
+                propValue = layout.projectDir.dir("dir2")
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = ${file("dir1")}")
+        outputContains("value.child = ${file("dir1/child")}")
+        outputContains("propValue = ${file("dir2")}")
+        outputContains("propValue.child = ${file("dir2/child")}")
+        outputContains("propValue.child.mapped = ${file("dir2/child")}")
     }
 
     @Unroll
@@ -733,53 +914,50 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     }
 
     @Unroll
-    def "warns when task field references an object of type #baseType"() {
+    def "restores task fields whose value is #kind TextResource"() {
+
+        given:
+        file("resource.txt") << 'content'
+        createZip("resource.zip") {
+            file("resource.txt") << 'content'
+        }
+
+        and:
         buildFile << """
-            class SomeBean {
-                private ${baseType} badReference
-            }
 
             class SomeTask extends DefaultTask {
-                private final ${baseType} badReference
-                private final bean = new SomeBean()
 
-                SomeTask() {
-                    badReference = ${reference}
-                    bean.badReference = ${reference}
-                }
+                @Input
+                TextResource textResource = project.resources.text.$expression
 
                 @TaskAction
-                void run() {
-                    println "this.reference = " + badReference
-                    println "bean.reference = " + bean.badReference
+                def action() {
+                    println('> ' + textResource.asString())
                 }
             }
 
-            task other
-            task broken(type: SomeTask)
+            tasks.register("someTask", SomeTask)
         """
 
         when:
-        instantRun "broken"
+        instantRun 'someTask'
 
         then:
-        outputContains("instant-execution > cannot serialize object of type '${concreteType}', a subtype of '${baseType}', as these are not supported with instant execution.")
+        outputContains("> content")
 
         when:
-        instantRun "broken"
+        instantRun 'someTask'
 
         then:
-        outputContains("this.reference = null")
-        outputContains("bean.reference = null")
+        outputContains("> content")
 
         where:
-        concreteType                       | baseType                    | reference
-        DefaultProject.name                | Project.name                | "project"
-        DefaultGradle.name                 | Gradle.name                 | "project.gradle"
-        DefaultSettings.name               | Settings.name               | "project.gradle.settings"
-        DefaultTask.name                   | Task.name                   | "project.tasks.other"
-        DefaultTaskContainer.name          | TaskContainer.name          | "project.tasks"
-        DefaultConfigurationContainer.name | ConfigurationContainer.name | "project.configurations"
+        kind               | expression
+        'a string'         | 'fromString("content")'
+        'a file'           | 'fromFile("resource.txt")'
+        'an uri'           | 'fromUri(project.uri(project.file("resource.txt")))'
+        'an insecure uri'  | 'fromInsecureUri(project.uri(project.file("resource.txt")))'
+        'an archive entry' | 'fromArchiveEntry("resource.zip", "resource.txt")'
     }
 
     def "restores task abstract properties"() {
@@ -865,5 +1043,32 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
+    }
+
+    def "captures changes applied in task graph whenReady listener"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Internal
+                String value
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                }
+            }
+
+            task ok(type: SomeTask)
+
+            gradle.taskGraph.whenReady {
+                ok.value = 'value'
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = value")
     }
 }

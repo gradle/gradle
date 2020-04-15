@@ -17,7 +17,7 @@ package org.gradle.api.internal.artifacts.repositories.metadata;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
-import org.gradle.api.internal.filestore.ivy.ArtifactIdentifierFileStore;
+import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;

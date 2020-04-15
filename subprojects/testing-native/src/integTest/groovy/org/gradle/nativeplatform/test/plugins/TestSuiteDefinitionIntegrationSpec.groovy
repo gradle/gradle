@@ -18,7 +18,9 @@ package org.gradle.nativeplatform.test.plugins
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class TestSuiteDefinitionIntegrationSpec extends AbstractIntegrationSpec {
     def setup() {
         buildFile << """

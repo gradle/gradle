@@ -17,7 +17,9 @@
 package org.gradle.api.reporting.model
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelReportTaskIntegrationTest extends AbstractIntegrationSpec {
 
     def "should display the model report task options"() {

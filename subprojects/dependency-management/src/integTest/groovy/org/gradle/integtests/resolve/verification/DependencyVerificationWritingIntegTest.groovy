@@ -16,12 +16,15 @@
 
 package org.gradle.integtests.resolve.verification
 
+import org.gradle.api.internal.artifacts.ivyservice.CacheLayout
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.cache.CachingIntegrationFixture
 import org.gradle.test.fixtures.maven.MavenFileModule
 import org.gradle.test.fixtures.maven.MavenFileRepository
+import spock.lang.Issue
 import spock.lang.Unroll
 
-class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest {
+class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificationIntegTest implements CachingIntegrationFixture {
 
     def "can generate an empty verification file"() {
         when:
@@ -39,7 +42,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         hasNoModules()
 
         and:
-        outputContains("Dependency verification is an incubating feature.")
+        output.contains("Dependency verification is an incubating feature.")
     }
 
     @Unroll
@@ -49,7 +52,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         succeeds ':help'
 
         then:
-        outputContains "Invalid checksum type: 'unknown'. You must choose one or more in [md5, sha1, sha256, sha512, pgp]"
+        output.contains "Invalid checksum type: 'unknown'. You must choose one or more in [md5, sha1, sha256, sha512, pgp]"
 
         where:
         checksums << [
@@ -67,7 +70,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         succeeds ':help'
 
         then:
-        outputContains "You chose to generate ${message} checksums but they are all considered insecure. You should consider adding at least one of sha256 or sha512 or pgp."
+        output.contains "You chose to generate ${message} checksums but they are all considered insecure. You should consider adding at least one of sha256 or sha512 or pgp."
 
         where:
         checksums   | message
@@ -626,6 +629,7 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 """
     }
 
+    @ToBeFixedForInstantExecution(because = "composite builds")
     def "included build dependencies are used when generating the verification file"() {
         given:
         javaLibrary()
@@ -744,8 +748,8 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
             }
             artifact("foo-1.0.module") {
                 declaresChecksums(
-                    sha1: "0a1a9a2fa2769295b6cef64520662a9a9135e3bb",
-                    sha512: "7505ecc6796dd6d0a90a7e422d25c50a7c4b85b21b71ecb43dfca431bb3c3d2f696634c839a315333c96662f92987a9c58719748f6a2017fa5a89913870db60b"
+                    sha1: "5cb00c1d3c96a6f47cf3f4129a0db4fcd371b1ed",
+                    sha512: "fa852fb8aab53474f4e498026557806de823797398ac86402636801eebbb13bd2c53b64fbefe5c3c038a64fca3c7b70d76865c5d644e9e9c80a50b4076afe997"
                 )
             }
         }
@@ -1139,7 +1143,6 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "can use --dry-run to write a different file for comparison"() {
         given:
         javaLibrary()
@@ -1241,5 +1244,84 @@ class DependencyVerificationWritingIntegTest extends AbstractDependencyVerificat
 """
     }
 
+    def "doesn't write verification metadata for skipped configurations"() {
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        uncheckedModule("org", "bar")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+                runtimeOnly "org:bar:1.0"
+            }
+        """
+
+        when:
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        hasModules(["org:foo", "org:bar"])
+
+        when:
+        deleteMetadataFile()
+        buildFile << """
+            configurations.all {
+               resolutionStrategy.disableDependencyVerification()
+               if (name == 'compileClasspath') {
+                  resolutionStrategy.enableDependencyVerification()
+               }
+            }
+        """
+        writeVerificationMetadata()
+        run ":help"
+
+        then:
+        outputContains "Dependency verification has been disabled for configuration runtimeClasspath"
+        hasModules(["org:foo"])
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12260")
+    @Unroll
+    def "doesn't fail writing verification file if a #artifact file is missing from local store"() {
+        javaLibrary()
+        uncheckedModule("org", "foo")
+        buildFile << """
+            dependencies {
+                implementation "org:foo:1.0"
+            }
+        """
+
+        when:
+        run ":compileJava"
+
+        then:
+        noExceptionThrown()
+
+        when:
+        def group = new File(CacheLayout.FILE_STORE.getPath(metadataCacheDir), "org")
+        def module = new File(group, "foo")
+        def version = new File(module, "1.0")
+        version.eachFileRecurse {
+            if (it.name.endsWith(".${artifact}")) {
+                it.delete()
+            }
+        }
+
+        writeVerificationMetadata()
+        run ":help", "--offline"
+
+        then:
+        hasModules(["org:foo"])
+
+        and:
+        if (artifact == 'pom') {
+            // there's a technical limitation due to the code path used for regular artifacts
+            // which makes it that we don't even try to snapshot if the file is missing so we can't
+            // provide an error message
+            outputContains("Cannot compute checksum for")
+        }
+        where:
+        artifact << ['jar', 'pom']
+    }
 
 }

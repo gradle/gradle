@@ -22,7 +22,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DocumentationRegistryTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final GradleVersion gradleVersion = GradleVersion.current()
     final DocumentationRegistry registry = new DocumentationRegistry()
 
@@ -36,7 +36,7 @@ class DocumentationRegistryTest extends Specification {
         registry.getDocumentationFor('gradle_daemon', 'reusing_daemons') == "https://docs.gradle.org/${gradleVersion.version}/userguide/gradle_daemon.html#reusing_daemons"
     }
 
-    def "points users at the gradle dsl web site"() {
+    def "points users at the gradle dsl web site for specific property"() {
         expect:
         registry.getDslRefForProperty(org.gradle.api.Action.class, 'execute') == "https://docs.gradle.org/${gradleVersion.version}/dsl/org.gradle.api.Action.html#org.gradle.api.Action:execute"
     }
@@ -50,4 +50,5 @@ class DocumentationRegistryTest extends Specification {
         expect:
         registry.getTopicGuidesFor("Native") == "https://guides.gradle.org?q=Native"
     }
+
 }

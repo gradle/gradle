@@ -62,7 +62,7 @@ class WorkerExecutorLegacyApiIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    def "can control forking via forkMode with the legacy API using fork mode #isolationMode"() {
+    def "can control forking via forkMode with the legacy API using fork mode #forkMode"() {
         executer.requireIsolatedDaemons()
         executer.withWorkerDaemonsExpirationDisabled()
 

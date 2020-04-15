@@ -20,9 +20,6 @@ import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.ProjectConnection
-import org.gradle.util.Requires
-
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 @TargetGradleVersion(">=4.2")
 class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
@@ -37,9 +34,9 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     //This is not a task action, but it is logged on the same level as the actions
     def "clean stale output action has an informative name"() {
         given:
-        buildFile << """              
+        buildFile << """
             apply plugin: 'base'
-    
+
             task custom {
                 outputs.dir 'build/outputs'
                 doLast {} }
@@ -98,10 +95,10 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         given:
         buildFile << """
         task custom(type: CustomTask)
-        
+
         class CustomTask extends DefaultTask {
             @TaskAction void doSomethingAmazing() { }
-        }    
+        }
         """
 
         when:
@@ -115,7 +112,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     def "task actions defined in doFirst and doLast blocks of Groovy build scripts have informative names"() {
         given:
         buildFile << """
-            task custom { 
+            task custom {
                 doFirst {}
                 doLast {}
             }
@@ -130,11 +127,10 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.descendant('Execute doLast {} action for :custom')
     }
 
-    @Requires([KOTLIN_SCRIPT])
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts have informative names"() {
         given:
         buildFileKts << """
-            tasks { create("custom") { 
+            tasks { create("custom") {
                 doFirst {}
                 doLast {}
             }}
@@ -152,7 +148,7 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
     def "task actions defined in doFirst and doLast blocks of Groovy build scripts can be named"() {
         given:
         buildFile << """
-            task custom { 
+            task custom {
                 doFirst("A first step") {}
                 doLast("One last thing...") {}
             }
@@ -167,11 +163,10 @@ class BuildProgressTaskActionsCrossVersionSpec extends ToolingApiSpecification {
         task.descendant('Execute One last thing... for :custom')
     }
 
-    @Requires([KOTLIN_SCRIPT])
     def "task actions defined in doFirst and doLast blocks of Kotlin build scripts can be named"() {
         given:
         buildFileKts << """
-            tasks { create("custom") { 
+            tasks { create("custom") {
                 doFirst("A first step") {}
                 doLast("One last thing...") {}
             }}

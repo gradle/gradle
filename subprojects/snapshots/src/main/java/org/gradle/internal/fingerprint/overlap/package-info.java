@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-@NonNullInternalApi
+@NonNullApi
 package org.gradle.internal.fingerprint.overlap;
 
-import org.gradle.internal.NonNullInternalApi;
+import org.gradle.api.NonNullApi;

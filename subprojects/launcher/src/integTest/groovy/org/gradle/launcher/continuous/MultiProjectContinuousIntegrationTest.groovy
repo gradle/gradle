@@ -17,7 +17,6 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Ignore
 
 class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegrationTest {
@@ -29,13 +28,13 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
         settingsFile << "include 'upstream', 'downstream'"
         buildFile << """
             subprojects {
-                apply plugin: 'java'
+                apply plugin: 'java-library'
                 ${mavenCentralRepository()}
             }
 
             project(':downstream') {
                 dependencies {
-                    compile project(":upstream")
+                    implementation project(":upstream")
                 }
             }
         """
@@ -135,13 +134,12 @@ class MultiProjectContinuousIntegrationTest extends AbstractContinuousIntegratio
     }
 
     // here to put more stress on parallel execution
-    @ToBeFixedForInstantExecution
     def "reasonable sized multi-project"() {
         given:
         def extraProjectNames = (0..100).collect { "project$it" }
         extraProjectNames.each {
             settingsFile << "\n include '$it' \n"
-            buildFile << "\n project(':$it') { dependencies { compile project(':upstream') } } \n"
+            buildFile << "\n project(':$it') { dependencies { implementation project(':upstream') } } \n"
             file("${it}/src/main/java/Thing${it}.java").createFile() << """
                 class Thing${it} extends Upstream {}
             """

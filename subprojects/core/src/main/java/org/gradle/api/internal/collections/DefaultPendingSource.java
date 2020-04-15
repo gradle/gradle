@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
-import org.gradle.api.internal.provider.Collectors.*;
+import org.gradle.api.internal.provider.Collectors.ElementFromProvider;
+import org.gradle.api.internal.provider.Collectors.ElementsFromCollectionProvider;
+import org.gradle.api.internal.provider.Collectors.TypedCollector;
 import org.gradle.api.internal.provider.ProviderInternal;
 
 import java.util.Iterator;
@@ -54,8 +57,9 @@ public class DefaultPendingSource<T> implements PendingSource<T> {
         for (TypedCollector<T> collector : collectors) {
             if (flushAction != null) {
                 pending.remove(collector);
-                List<T> realized = Lists.newArrayList();
-                collector.collectInto(realized);
+                ImmutableList.Builder<T> builder = ImmutableList.builder();
+                collector.collectInto(builder);
+                List<T> realized = builder.build();
                 for (T element : realized) {
                     flushAction.execute(element);
                 }

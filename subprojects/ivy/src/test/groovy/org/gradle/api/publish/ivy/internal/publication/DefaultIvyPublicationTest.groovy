@@ -49,7 +49,7 @@ import spock.lang.Specification
 
 class DefaultIvyPublicationTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def objectFactory = TestUtil.objectFactory()

@@ -28,7 +28,7 @@ import spock.lang.Subject
 import java.util.concurrent.TimeUnit
 
 class LeastRecentlyUsedCacheCleanupTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def cacheDir = temporaryFolder.file("cache-dir").createDir()
     def cleanableStore = Stub(CleanableStore) {
         getBaseDir() >> cacheDir

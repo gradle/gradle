@@ -40,7 +40,24 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         return "assemble"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "HelpTasksPluginIntegrationTest",
+        "BuildDashboardPluginIntegrationTest",
+        "GroovyPluginGoodBehaviourTest",
+        "ScalaPluginGoodBehaviourTest",
+        "AntlrPluginIntegrationTest",
+        "PlayApplicationPluginGoodBehaviourIntegrationTest",
+        "JavaGradlePluginPluginIntegrationTest",
+        "ApplicationPluginIntegrationTest",
+        "CheckstylePluginIntegrationTest",
+        "CodeNarcPluginIntegrationTest",
+        "PmdPluginIntegrationTest",
+        "CppLibraryPluginIntegrationTest",
+        "CppApplicationPluginIntegrationTest",
+        "SwiftApplicationPluginIntegrationTest",
+        "XcodePluginIntegrationTest",
+        "IdeaPluginGoodBehaviourTest"
+    ])
     def "can apply plugin unqualified"() {
         given:
         applyPluginUnqualified()
@@ -61,7 +78,24 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         !file("build").exists()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = [
+        "HelpTasksPluginIntegrationTest",
+        "BuildDashboardPluginIntegrationTest",
+        "JavaGradlePluginPluginIntegrationTest",
+        "GroovyPluginGoodBehaviourTest",
+        "ScalaPluginGoodBehaviourTest",
+        "AntlrPluginIntegrationTest",
+        "PlayApplicationPluginGoodBehaviourIntegrationTest",
+        "ApplicationPluginIntegrationTest",
+        "CheckstylePluginIntegrationTest",
+        "CodeNarcPluginIntegrationTest",
+        "PmdPluginIntegrationTest",
+        "CppLibraryPluginIntegrationTest",
+        "CppApplicationPluginIntegrationTest",
+        "SwiftApplicationPluginIntegrationTest",
+        "XcodePluginIntegrationTest",
+        "IdeaPluginGoodBehaviourTest"
+    ])
     def "plugin can build with empty project"() {
         given:
         applyPlugin()
@@ -94,18 +128,16 @@ abstract class WellBehavedPluginTest extends AbstractPluginIntegrationTest {
         applyPlugin()
 
         buildFile << """
-            def configuredTasks = []
             tasks.configureEach {
-                configuredTasks << it
-            }
-            
-            gradle.buildFinished {
-                def configuredTaskPaths = configuredTasks*.path
-                
-                assert configuredTaskPaths == [':help']
+                println("configuring \${it.path}")
             }
         """
-        expect:
+
+        when:
         succeeds("help")
+
+        then:
+        output.count("configuring :") == 1
+        outputContains("configuring :help")
     }
 }

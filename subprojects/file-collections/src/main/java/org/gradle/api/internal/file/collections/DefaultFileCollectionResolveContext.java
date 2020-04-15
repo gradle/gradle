@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.file.collections;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileCollectionInternal;
@@ -27,8 +29,6 @@ import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.nativeintegration.services.FileSystems;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -85,7 +85,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
      * Resolves the contents of this context as a list of atomic {@link FileTree} instances.
      */
     @Override
-    public List<FileTreeInternal> resolveAsFileTrees() {
+    public ImmutableList<FileTreeInternal> resolveAsFileTrees() {
         return doResolve(fileTreeConverter);
     }
 
@@ -93,20 +93,20 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
      * Resolves the contents of this context as a list of atomic {@link FileCollection} instances.
      */
     @Override
-    public List<FileCollectionInternal> resolveAsFileCollections() {
+    public ImmutableList<FileCollectionInternal> resolveAsFileCollections() {
         return doResolve(fileCollectionConverter);
     }
 
-    private <T> List<T> doResolve(Converter<? extends T> converter) {
-        List<T> result = new ArrayList<T>();
+    private <T> ImmutableList<T> doResolve(Converter<? extends T> converter) {
+        ImmutableList.Builder<T> result = ImmutableList.builder();
         for (Object element : queue) {
             converter.convertInto(element, result);
         }
-        return result;
+        return result.build();
     }
 
     protected interface Converter<T> {
-        void convertInto(Object element, Collection<? super T> result);
+        void convertInto(Object element, ImmutableCollection.Builder<? super T> result);
     }
 
     public static class FileCollectionConverter implements Converter<FileCollectionInternal> {
@@ -117,7 +117,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         }
 
         @Override
-        public void convertInto(Object element, Collection<? super FileCollectionInternal> result) {
+        public void convertInto(Object element, ImmutableCollection.Builder<? super FileCollectionInternal> result) {
             if (element instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) element;
                 result.add(Cast.cast(FileCollectionInternal.class, fileCollection));
@@ -148,7 +148,7 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
         }
 
         @Override
-        public void convertInto(Object element, Collection<? super FileTreeInternal> result) {
+        public void convertInto(Object element, ImmutableCollection.Builder<? super FileTreeInternal> result) {
             if (element instanceof FileTree) {
                 FileTree fileTree = (FileTree) element;
                 result.add(Cast.cast(FileTreeInternal.class, fileTree));
@@ -177,12 +177,8 @@ public class DefaultFileCollectionResolveContext implements ResolvableFileCollec
             }
         }
 
-        private void convertFileToFileTree(File file, Collection<? super FileTreeInternal> result) {
-            if (file.isDirectory()) {
-                result.add(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create(), FileSystems.getDefault()), patternSetFactory));
-            } else if (file.isFile()) {
-                result.add(new FileTreeAdapter(new DefaultSingletonFileTree(file), patternSetFactory));
-            }
+        private void convertFileToFileTree(File file, ImmutableCollection.Builder<? super FileTreeInternal> result) {
+            result.add(new FileTreeAdapter(new DirectoryFileTree(file, patternSetFactory.create(), FileSystems.getDefault()), patternSetFactory));
         }
     }
 }

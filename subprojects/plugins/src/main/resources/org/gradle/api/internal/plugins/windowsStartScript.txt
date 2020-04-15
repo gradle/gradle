@@ -30,6 +30,9 @@ if "%DIRNAME%" == "" set DIRNAME=.\
 set APP_BASE_NAME=%~n0
 set APP_HOME=%DIRNAME%${appHomeRelativePath}
 
+@rem Resolve any "." and ".." in APP_HOME to make it shorter.
+for %%i in ("%APP_HOME%") do set APP_HOME=%%~fi
+
 @rem Add default JVM options here. You can also use JAVA_OPTS and ${optsEnvironmentVar} to pass JVM options to this script.
 set DEFAULT_JVM_OPTS=${defaultJvmOpts}
 
@@ -81,9 +84,10 @@ set CMD_LINE_ARGS=%*
 @rem Setup the command line
 
 set CLASSPATH=$classpath
+<% if ( mainClassName.startsWith('--module ') ) { %>set MODULE_PATH=$modulePath<% } %>
 
 @rem Execute ${applicationName}
-"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%"<% } %> -classpath "%CLASSPATH%" ${mainClassName} %CMD_LINE_ARGS%
+"%JAVA_EXE%" %DEFAULT_JVM_OPTS% %JAVA_OPTS% %${optsEnvironmentVar}% <% if ( appNameSystemProperty ) { %>"-D${appNameSystemProperty}=%APP_BASE_NAME%"<% } %> -classpath "%CLASSPATH%" <% if ( mainClassName.startsWith('--module ') ) { %>--module-path "%MODULE_PATH%" <% } %>${mainClassName} %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell

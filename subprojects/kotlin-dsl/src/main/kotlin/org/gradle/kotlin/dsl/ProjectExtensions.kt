@@ -25,6 +25,8 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 
+import org.gradle.api.initialization.dsl.ScriptHandler
+
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 import org.gradle.api.internal.file.FileCollectionInternal
 
@@ -142,6 +144,13 @@ fun <T : Task> Project.task(name: String, type: KClass<T>, configuration: T.() -
  * @param configuration the configuration block.
  */
 fun Project.repositories(configuration: RepositoryHandler.() -> Unit) =
+    repositories.configuration()
+
+
+/**
+ * Configures the repositories for the script dependencies.
+ */
+fun ScriptHandler.repositories(configuration: RepositoryHandler.() -> Unit) =
     repositories.configuration()
 
 

@@ -18,39 +18,31 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
-import org.gradle.internal.vfs.impl.WatchRootUtil;
-import org.gradle.internal.vfs.impl.WatcherEvent;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.nio.file.Path;
-import java.util.Set;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
-public class DarwinFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(DarwinFileWatcherRegistry.class);
+public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
 
-    public DarwinFileWatcherRegistry(Set<Path> watchRoots) {
-        super(events -> Native.get(OsxFileEventFunctions.class)
-            .startWatching(
-                watchRoots.stream()
-                    .map(Path::toString)
-                    .collect(Collectors.toList()),
-                // TODO Figure out a good value for this
-                300, TimeUnit.MICROSECONDS,
-                (type, path) -> events.add(WatcherEvent.createEvent(type, path))
-            ));
+    public DarwinFileWatcherRegistry(ChangeHandler handler) {
+        super(
+            callback -> Native.get(OsxFileEventFunctions.class)
+                .startWatcher(
+                    // TODO Figure out a good value for this
+                    20, TimeUnit.MICROSECONDS,
+                    callback
+                ),
+            handler
+        );
     }
 
     public static class Factory implements FileWatcherRegistryFactory {
+
         @Override
-        public FileWatcherRegistry startWatching(Set<Path> directories) {
-            Set<Path> watchRoots = WatchRootUtil.resolveRootsToWatch(directories);
-            LOGGER.warn("Watching {} directory hierarchies to track changes between builds in {} directories", watchRoots.size(), directories.size());
-            return new DarwinFileWatcherRegistry(watchRoots);
+        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
+            return new DarwinFileWatcherRegistry(handler);
         }
+
     }
 }

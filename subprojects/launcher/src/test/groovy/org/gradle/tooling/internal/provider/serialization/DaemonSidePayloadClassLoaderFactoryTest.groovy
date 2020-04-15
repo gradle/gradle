@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class DaemonSidePayloadClassLoaderFactoryTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def factory = Mock(PayloadClassLoaderFactory)
     def classpathTransformer = Mock(CachedClasspathTransformer)
 

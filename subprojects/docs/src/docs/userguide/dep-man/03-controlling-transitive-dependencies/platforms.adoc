@@ -1,7 +1,7 @@
-[[sec:using-platform-to-control-transitive-deps]]
+[[sec:sharing-dep-versions-between-projects]]
 = Sharing dependency versions between projects
 
-[[sub:sharing-dep-versions-between-projects]]
+[[sub:using-platform-to-control-transitive-deps]]
 == Using a platform to control transitive versions
 
 A <<dependency_management_terminology.adoc#sub::terminology_platform,platform>> is a special software component which can be used to control transitive dependency versions.
@@ -29,7 +29,7 @@ include::sample[dir="snippets/java-platform/recommender/kotlin/consumer",files="
 This `platform` notation is a short-hand notation which actually performs several operations under the hood:
 
 * it sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[org.gradle.category attribute] to `platform`, which means that Gradle will select the _platform_ component of the dependency.
-* it set the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[endorseStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
+* it sets the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[endorseStrictVersions] behavior by default, meaning that if the platform declares strict dependencies, they will be enforced.
 
 This means that by default, a dependency to a platform triggers the inheritance of all <<rich_versions.adoc#sec:strict-version,strict versions>> defined in that platform, which can be useful for platform authors to make sure that all consumers respect their decisions in terms of versions of dependencies.
 This can be turned off by explicitly calling the `doNotEndorseStrictVersions` method.

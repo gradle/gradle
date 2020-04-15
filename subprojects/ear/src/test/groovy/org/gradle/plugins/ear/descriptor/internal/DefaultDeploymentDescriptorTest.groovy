@@ -34,7 +34,7 @@ class DefaultDeploymentDescriptorTest extends Specification {
     private ObjectFactory objectFactory = TestUtil.objectFactory()
 
     def descriptor = new DefaultDeploymentDescriptor({ it } as FileResolver, objectFactory)
-    @Rule TestNameTestDirectoryProvider tmpDir
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "writes default descriptor"() {
         def file = tmpDir.file("out.xml")

@@ -36,7 +36,7 @@ import spock.lang.Unroll
 import static org.gradle.nativeplatform.toolchain.internal.msvcpp.ArchitectureDescriptorBuilder.*
 
 class DefaultVisualStudioLocatorTest extends Specification {
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final VisualStudioVersionLocator commandLineLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioVersionLocator windowsRegistryLocator = Mock(VisualStudioVersionLocator)
     final VisualStudioVersionLocator systemPathLocator = Mock(VisualStudioVersionLocator)

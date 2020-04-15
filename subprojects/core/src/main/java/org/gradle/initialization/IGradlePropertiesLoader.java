@@ -15,15 +15,20 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.api.internal.properties.GradleProperties;
+
 import java.io.File;
-import java.util.Map;
 
 public interface IGradlePropertiesLoader {
+
     String SYSTEM_PROJECT_PROPERTIES_PREFIX = "org.gradle.project.";
 
     String ENV_PROJECT_PROPERTIES_PREFIX = "ORG_GRADLE_PROJECT_";
 
-    Map<String, String> mergeProperties(Map<String, String> properties);
-
-    void loadProperties(File rootDir);
+    /**
+     * Loads the immutable set of Gradle properties.
+     *
+     * @since 6.2
+     */
+    GradleProperties loadGradleProperties(File rootDir);
 }

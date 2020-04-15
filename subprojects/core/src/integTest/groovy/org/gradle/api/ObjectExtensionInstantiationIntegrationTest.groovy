@@ -16,17 +16,10 @@
 
 package org.gradle.api
 
-import org.gradle.api.file.FileSystemOperations
-import org.gradle.api.file.ProjectLayout
-import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ProviderFactory
+
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.internal.execution.WorkExecutor
-import org.gradle.process.ExecOperations
+import spock.lang.Issue
 import spock.lang.Unroll
-
-import javax.inject.Inject
-
 
 class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpec {
     // Document current behaviour
@@ -383,6 +376,53 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         succeeds()
     }
 
+    def "can create instance of interface with read-only @Nested interface property"() {
+        buildFile << """
+            interface Bean {
+                Property<String> getName()
+            }
+
+            interface Thing {
+                @Nested
+                Bean getValue()
+            }
+
+            extensions.create("thing", Thing)
+            assert thing.value.toString() == "extension 'thing' property 'value'"
+            assert thing.value.name.toString() == "extension 'thing' property 'value.name'"
+            thing.value.name = 'some name'
+            assert thing.value.name.get() == 'some name'
+        """
+
+        expect:
+        succeeds()
+    }
+
+    def "@Nested property constructor can use identity information"() {
+        buildFile << """
+            abstract class Bean {
+                abstract Property<String> getName()
+
+                Bean() {
+                    println("toString() = " + this)
+                }
+            }
+
+            interface Thing {
+                @Nested
+                Bean getValue()
+            }
+
+            extensions.create("thing", Thing)
+            thing.value.name = 'some name'
+            assert thing.value.name.get() == 'some name'
+        """
+
+        expect:
+        succeeds()
+        outputContains("toString() = extension 'thing' property 'value'")
+    }
+
     def "can create instance of abstract class with mutable property"() {
         buildFile << """
             abstract class Thing {
@@ -400,185 +440,6 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
 
         expect:
         succeeds()
-    }
-
-    // Document current behaviour
-    def "can inject service and configuration as constructor args when constructor not annotated with @Inject"() {
-        buildFile << """
-            class Thing {
-                Thing(String a, ObjectFactory objects, int b) {
-                    assert a == "a"
-                    assert b == 12
-                    assert objects != null
-                }
-            }
-
-            extensions.create("thing", Thing, "a", 12)
-        """
-
-        expect:
-        succeeds()
-    }
-
-    def "can inject service using getter"() {
-        buildFile << """
-            import ${Inject.name}
-
-            class Thing {
-                Thing(String a) {
-                }
-
-                @Inject
-                ObjectFactory getObjects() { }
-            }
-
-            extensions.create("thing", Thing, "a")
-            assert thing.objects != null
-        """
-
-        expect:
-        succeeds()
-    }
-
-    def "can inject service using abstract getter"() {
-        buildFile << """
-            import ${Inject.name}
-
-            abstract class Thing {
-                Thing(String a) {
-                }
-
-                @Inject
-                abstract ObjectFactory getObjects()
-            }
-
-            extensions.create("thing", Thing, "a")
-            assert thing.objects != null
-        """
-
-        expect:
-        succeeds()
-    }
-
-    def "can use getter injected services from constructor"() {
-        buildFile << """
-            import ${Inject.name}
-
-            class Thing {
-                Thing(String a) {
-                    objects.property(String).set(a)
-                }
-
-                @Inject
-                ObjectFactory getObjects() { }
-            }
-
-            extensions.create("thing", Thing, "a")
-            assert thing.objects != null
-        """
-
-        expect:
-        succeeds()
-    }
-
-    def "can inject service using getter on interface"() {
-        buildFile << """
-            import ${Inject.name}
-
-            interface Thing {
-                @Inject
-                ObjectFactory getObjects()
-            }
-
-            extensions.create("thing", Thing)
-            assert thing.objects != null
-        """
-
-        expect:
-        succeeds()
-    }
-
-    @Unroll
-    def "service of type #serviceType is available for injection into project extension"() {
-        buildFile << """
-            class Thing {
-                ${serviceType} service
-
-                Thing(${serviceType} service) {
-                    this.service = service
-                }
-            }
-
-            extensions.create("thing", Thing)
-            assert thing.service != null
-        """
-
-        expect:
-        succeeds()
-
-        where:
-        serviceType << [
-            ObjectFactory,
-            ProjectLayout,
-            ProviderFactory,
-            WorkExecutor,
-            FileSystemOperations,
-            ExecOperations,
-        ].collect { it.name }
-    }
-
-    @Unroll
-    def "service of type #serviceType is available for injection into settings extension"() {
-        settingsFile << """
-            class Thing {
-                ${serviceType} service
-
-                Thing(${serviceType} service) {
-                    this.service = service
-                }
-            }
-
-            extensions.create("thing", Thing)
-            assert thing.service != null
-        """
-
-        expect:
-        succeeds()
-
-        where:
-        serviceType << [
-            ObjectFactory,
-            ProviderFactory,
-            FileSystemOperations,
-            ExecOperations,
-        ].collect { it.name }
-    }
-
-    @Unroll
-    def "service of type #serviceType is available for injection into gradle object extension"() {
-        settingsFile << """
-            class Thing {
-                ${serviceType} service
-
-                Thing(${serviceType} service) {
-                    this.service = service
-                }
-            }
-
-            gradle.extensions.create("thing", Thing)
-            assert gradle.thing.service != null
-        """
-
-        expect:
-        succeeds()
-
-        where:
-        serviceType << [
-            ObjectFactory,
-            ProviderFactory,
-            FileSystemOperations,
-            ExecOperations,
-        ].collect { it.name }
     }
 
     def "fails when construction parameters provided for interface"() {
@@ -615,6 +476,46 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         outputContains("display name = <display name>")
     }
 
+    def "generates a display name for settings extension"() {
+        settingsFile << """
+            class NoDisplayName { }
+            class DisplayName {
+                String toString() { return "<display name>" }
+            }
+
+            def noDisplayName = extensions.create("no-name", NoDisplayName)
+            def displayName = extensions.create("name", DisplayName)
+
+            println("no display name = \${noDisplayName}")
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("no display name = extension 'no-name'")
+        outputContains("display name = <display name>")
+    }
+
+    def "generates a display name for Gradle object extension"() {
+        settingsFile << """
+            class NoDisplayName { }
+            class DisplayName {
+                String toString() { return "<display name>" }
+            }
+
+            def noDisplayName = gradle.extensions.create("no-name", NoDisplayName)
+            def displayName = gradle.extensions.create("name", DisplayName)
+
+            println("no display name = \${noDisplayName}")
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("no display name = extension 'no-name'")
+        outputContains("display name = <display name>")
+    }
+
     def "generates a display name for extension interface"() {
         buildFile << """
             interface NoDisplayName { }
@@ -627,5 +528,23 @@ class ObjectExtensionInstantiationIntegrationTest extends AbstractIntegrationSpe
         expect:
         succeeds()
         outputContains("display name = extension 'no-name'")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11466")
+    def "extension toString() implementation can use toString() of managed property"() {
+        buildFile << """
+            abstract class DisplayName {
+                abstract Property<String> getProp()
+
+                String toString() { return "<display name> prop=" + prop }
+            }
+
+            def displayName = extensions.create("name", DisplayName)
+            println("display name = \${displayName}")
+        """
+
+        expect:
+        succeeds()
+        outputContains("display name = <display name> prop=extension 'name' property 'prop'")
     }
 }

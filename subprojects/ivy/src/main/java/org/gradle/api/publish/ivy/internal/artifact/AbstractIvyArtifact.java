@@ -21,12 +21,13 @@ import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.tasks.TaskDependency;
 
 import javax.annotation.Nullable;
 
-public abstract class AbstractIvyArtifact implements IvyArtifact {
+public abstract class AbstractIvyArtifact implements IvyArtifact, PublicationArtifactInternal {
     private final TaskDependency allBuildDependencies;
     private final DefaultTaskDependency additionalBuildDependencies;
 

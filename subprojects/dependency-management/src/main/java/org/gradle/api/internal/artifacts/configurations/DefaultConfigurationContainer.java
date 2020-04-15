@@ -120,12 +120,9 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
         this.attributesFactory = attributesFactory;
         this.projectStateRegistry = projectStateRegistry;
         this.documentationRegistry = documentationRegistry;
-        resolutionStrategyFactory = new Factory<ResolutionStrategyInternal>() {
-            @Override
-            public ResolutionStrategyInternal create() {
-                CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class, new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create());
-                return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal);
-            }
+        resolutionStrategyFactory = () -> {
+            CapabilitiesResolutionInternal capabilitiesResolutionInternal = instantiator.newInstance(DefaultCapabilitiesResolution.class, new CapabilityNotationParserFactory(false).create(), new ComponentIdentifierParserFactory().create());
+            return instantiator.newInstance(DefaultResolutionStrategy.class, globalDependencySubstitutionRules, vcsMappingsStore, componentIdentifierFactory, moduleIdentifierFactory, componentSelectorConverter, dependencyLockingProvider, capabilitiesResolutionInternal);
         };
         this.rootComponentMetadataBuilder = new DefaultRootComponentMetadataBuilder(dependencyMetaDataProvider, componentIdentifierFactory, moduleIdentifierFactory, projectFinder, localComponentMetadataBuilder, this, projectStateRegistry, dependencyLockingProvider);
     }

@@ -18,7 +18,7 @@ package org.gradle.api.publish.ivy.internal.artifact
 
 import com.google.common.collect.ImmutableSet
 import org.gradle.api.Task
-import org.gradle.api.artifacts.PublishArtifact
+import org.gradle.api.internal.artifacts.PublishArtifactInternal
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.tasks.DefaultTaskDependency
 import org.gradle.api.publish.ivy.IvyArtifact
@@ -34,7 +34,7 @@ public class IvyArtifactNotationParserFactoryTest extends AbstractProjectBuilder
     def fileNotationParser = Mock(NotationParser)
     def task = Mock(Task)
     def taskDependency = new DefaultTaskDependency(null, ImmutableSet.of(task))
-    def publishArtifact = Stub(PublishArtifact) {
+    def publishArtifact = Stub(PublishArtifactInternal) {
         getName() >> 'name'
         getExtension() >> 'extension'
         getType() >> 'type'

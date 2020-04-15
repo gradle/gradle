@@ -44,7 +44,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 conf(project(':dep')) {
                     attributes {
-                        attribute(Attribute.of('color', String), '$color')                        
+                        attribute(Attribute.of('color', String), '$color')
                     }
                 }
             }
@@ -75,7 +75,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             dependencies {
                 conf(project(':dep')) {
                     attributes {
-                        attribute(Attribute.of('color', String), 'green')                        
+                        attribute(Attribute.of('color', String), 'green')
                     }
                 }
             }
@@ -86,13 +86,11 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
         fails ':checkDeps'
 
         then:
-        failure.assertHasCause("""Unable to find a matching variant of project :dep:
+        failure.assertHasCause("""No matching variant of project :dep was found. The consumer was configured to find attribute 'color' with value 'green' but:
   - Variant 'blueVariant' capability test:dep:unspecified:
-      - Incompatible attribute:
-          - Required color 'green' and found incompatible value 'blue'.
+      - Incompatible because this component declares attribute 'color' with value 'blue' and the consumer needed attribute 'color' with value 'green'
   - Variant 'redVariant' capability test:dep:unspecified:
-      - Incompatible attribute:
-          - Required color 'green' and found incompatible value 'red'.""")
+      - Incompatible because this component declares attribute 'color' with value 'red' and the consumer needed attribute 'color' with value 'green'""")
     }
 
     def "dependency attributes override configuration attributes"() {
@@ -102,14 +100,14 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
             configurations {
                 conf {
                     attributes {
-                        attribute(Attribute.of('color', String), 'blue')                        
+                        attribute(Attribute.of('color', String), 'blue')
                     }
                 }
             }
             dependencies {
                 conf(project(':dep')) {
                     attributes {
-                        attribute(Attribute.of('color', String), 'red')                        
+                        attribute(Attribute.of('color', String), 'red')
                     }
                 }
             }

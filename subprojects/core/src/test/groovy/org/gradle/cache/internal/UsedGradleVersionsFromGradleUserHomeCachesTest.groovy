@@ -26,7 +26,7 @@ import spock.lang.Subject
 @CleanupTestDirectory
 class UsedGradleVersionsFromGradleUserHomeCachesTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def userHomeDir = temporaryFolder.createDir("user-home")
     def cacheBaseDir = userHomeDir.createDir(DefaultCacheScopeMapping.GLOBAL_CACHE_DIR_NAME)

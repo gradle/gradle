@@ -16,8 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import com.google.common.collect.ImmutableCollection;
+
 import javax.annotation.Nullable;
-import java.util.Collection;
 
 class ValidatingValueCollector<T> implements ValueCollector<T> {
     private final Class<?> collectionType;
@@ -31,7 +32,7 @@ class ValidatingValueCollector<T> implements ValueCollector<T> {
     }
 
     @Override
-    public void add(@Nullable T value, Collection<T> dest) {
+    public void add(@Nullable T value, ImmutableCollection.Builder<T> dest) {
         T sanitized = sanitizer.sanitize(value);
         if (!elementType.isInstance(sanitized)) {
             throw new IllegalArgumentException(String.format("Cannot get the value of a property of type %s with element type %s as the source value contains an element of type %s.", collectionType.getName(), elementType.getName(), value.getClass().getName()));
@@ -40,7 +41,7 @@ class ValidatingValueCollector<T> implements ValueCollector<T> {
     }
 
     @Override
-    public void addAll(Iterable<? extends T> values, Collection<T> dest) {
+    public void addAll(Iterable<? extends T> values, ImmutableCollection.Builder<T> dest) {
         for (T value : values) {
             add(value, dest);
         }

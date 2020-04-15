@@ -26,7 +26,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class PCHUtilsTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider()
+    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     def "generates a prefix header file" () {
         def headers = Lists.newArrayList()

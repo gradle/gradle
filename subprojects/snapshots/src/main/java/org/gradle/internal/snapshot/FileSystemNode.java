@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -43,12 +44,12 @@ public interface FileSystemNode {
      *
      * Complete information, like {@link CompleteFileSystemLocationSnapshot}s, are not touched nor replaced.
      */
-    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot);
+    FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * Invalidates part of the node.
      */
-    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity);
+    Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener);
 
     /**
      * The path to the parent snapshot or the root of the file system.
@@ -60,9 +61,9 @@ public interface FileSystemNode {
      */
     FileSystemNode withPathToParent(String newPathToParent);
 
-    void accept(NodeVisitor visitor);
+    void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor);
 
     interface NodeVisitor {
-        void visitNode(FileSystemNode node);
+        void visitNode(FileSystemNode node, @Nullable FileSystemNode parent);
     }
 }

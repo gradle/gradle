@@ -37,7 +37,7 @@ public class DefaultExecutionHistoryCacheAccess implements ExecutionHistoryCache
         cache = cacheRepository
                 .cache(scope, "executionHistory")
                 .withDisplayName("execution history cache")
-                .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+                .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
                 .open();
     }
 

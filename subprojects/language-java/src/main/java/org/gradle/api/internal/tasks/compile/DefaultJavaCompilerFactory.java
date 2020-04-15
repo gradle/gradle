@@ -50,17 +50,12 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
     }
 
     @Override
-    public Compiler<JavaCompileSpec> createForJointCompilation(Class<? extends CompileSpec> type) {
-        return createTargetCompiler(type, true);
-    }
-
-    @Override
     public Compiler<JavaCompileSpec> create(Class<? extends CompileSpec> type) {
-        Compiler<JavaCompileSpec> result = createTargetCompiler(type, false);
-        return new AnnotationProcessorDiscoveringCompiler<JavaCompileSpec>(new NormalizingJavaCompiler(result), processorDetector);
+        Compiler<JavaCompileSpec> result = createTargetCompiler(type);
+        return new ModuleApplicationNameWritingCompiler<>(new AnnotationProcessorDiscoveringCompiler<>(new NormalizingJavaCompiler(result), processorDetector));
     }
 
-    private Compiler<JavaCompileSpec> createTargetCompiler(Class<? extends CompileSpec> type, boolean jointCompilation) {
+    private Compiler<JavaCompileSpec> createTargetCompiler(Class<? extends CompileSpec> type) {
         if (!JavaCompileSpec.class.isAssignableFrom(type)) {
             throw new IllegalArgumentException(String.format("Cannot create a compiler for a spec with type %s", type.getSimpleName()));
         }
@@ -69,8 +64,8 @@ public class DefaultJavaCompilerFactory implements JavaCompilerFactory {
             return new CommandLineJavaCompiler(execHandleFactory);
         }
 
-        if (ForkingJavaCompileSpec.class.isAssignableFrom(type) && !jointCompilation) {
-            return new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[] {javaHomeBasedJavaCompilerFactory}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
+        if (ForkingJavaCompileSpec.class.isAssignableFrom(type)) {
+            return new DaemonJavaCompiler(workingDirProvider.getWorkingDirectory(), JdkJavaCompiler.class, new Object[]{javaHomeBasedJavaCompilerFactory}, workerDaemonFactory, forkOptionsFactory, classPathRegistry, actionExecutionSpecFactory);
         } else {
             return new JdkJavaCompiler(javaHomeBasedJavaCompilerFactory);
         }

@@ -20,13 +20,19 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import spock.lang.Unroll
 
-import static org.gradle.api.tasks.PathSensitivity.*
+import static org.gradle.api.tasks.PathSensitivity.ABSOLUTE
+import static org.gradle.api.tasks.PathSensitivity.NAME_ONLY
+import static org.gradle.api.tasks.PathSensitivity.NONE
+import static org.gradle.api.tasks.PathSensitivity.RELATIVE
 
 @Unroll
 abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
-    def "single source file renamed with #pathSensitive as input is loaded from cache: #expectSkipped"() {
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.FLAKY,
+        bottomSpecs = "CachedPathSensitivityIntegrationTest"
+    )
+    def "single source file renamed with #pathSensitive as input is loaded from cache: #expectedOutcome"() {
         given:
         file("sources/input.txt").text = "input"
 
@@ -60,8 +66,11 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         NONE          | statusForReusedOutput
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
-    def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectSkipped"() {
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.FLAKY,
+        bottomSpecs = "CachedPathSensitivityIntegrationTest"
+    )
+    def "single source file moved within hierarchy with #pathSensitive as input is loaded from cache: #expectedOutcome"() {
         given:
         file("src/data1").createDir()
         file("src/data2").createDir()
@@ -96,7 +105,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         NONE          | statusForReusedOutput
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "source file hierarchy moved with #pathSensitive as input is loaded from cache: #expectSkipped"() {
         given:
         file("src/data/input.txt").text = "input"
@@ -165,7 +174,7 @@ abstract class AbstractPathSensitivityIntegrationSpec extends AbstractIntegratio
         """
         buildFile << """
             task test(type: PathSensitiveTask) {
-                outputFile = file("output.txt")
+                outputFile = file("build/output.txt")
             }
         """
     }

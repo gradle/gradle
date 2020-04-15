@@ -27,7 +27,7 @@ import spock.lang.Specification
 class DaemonCompatibilitySpecSpec extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmp = new TestNameTestDirectoryProvider(getClass())
 
     def clientConfigure = {}
     def serverConfigure = {}

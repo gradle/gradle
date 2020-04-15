@@ -16,12 +16,21 @@
 package org.gradle.plugins.ide
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.server.http.*
+import org.gradle.test.fixtures.server.http.HttpArtifact
+import org.gradle.test.fixtures.server.http.HttpServer
+import org.gradle.test.fixtures.server.http.IvyHttpModule
+import org.gradle.test.fixtures.server.http.IvyHttpRepository
+import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Rule
+import spock.lang.IgnoreIf
 
 abstract class AbstractSourcesAndJavadocJarsIntegrationTest extends AbstractIdeIntegrationSpec {
-    @Rule HttpServer server
+    @Rule
+    HttpServer server
+
+    String groovyAllVersion = "1.3-2.5.10"
 
     def setup() {
         server.start()
@@ -296,11 +305,38 @@ dependencies {
     }
 
     @ToBeFixedForInstantExecution
-    def "sources for gradleApi() are resolved and attached when -all distribution is used"() {
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    def "does not download gradleApi() sources when sources download is disabled"() {
         given:
         requireGradleDistribution()
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+
+            idea.module.downloadSources = false
+            eclipse.classpath.downloadSources = false
+            """
+        when:
+        succeeds ideTask
+
+        then:
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
+    }
+
+    @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.noDaemon })
+    def "does not download gradleApi() sources when offline"() {
+        given:
+        requireGradleDistribution()
+        executer.withEnvironmentVars('GRADLE_REPO_OVERRIDE': "$server.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -312,18 +348,66 @@ dependencies {
             }
             """
         when:
+        args("--offline")
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+        assertSourcesDirectoryDoesNotExistInDistribution()
+        ideFileContainsGradleApi("gradle-api")
     }
 
     @ToBeFixedForInstantExecution
-    def "sources for gradleTestKit() are resolved and attached when -all distribution is used"() {
+    def "sources for localGroovy() are downloaded and attached"() {
+        given:
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached when using gradleApi()"() {
+        given:
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation gradleApi()
+            }
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "sources for localGroovy() are downloaded and attached when using gradleTestKit()"() {
         given:
         requireGradleDistribution()
-        TestFile sourcesDir = distribution.gradleHomeDir.createDir("src")
-        sourcesDir.createFile("org/gradle/Test.java").writelns("package org.gradle;", "public class Test {}")
+        def repo = givenGroovyAllExistsInGradleRepo()
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$repo.uri/")
 
         buildScript """
             apply plugin: "java"
@@ -334,12 +418,77 @@ dependencies {
                 implementation gradleTestKit()
             }
             """
+
         when:
         succeeds ideTask
 
         then:
-        ideFileContainsGradleApiWithSources("gradle-test-kit", sourcesDir.getPath())
-        ideFileContainsGradleApiWithSources("gradle-api", sourcesDir.getPath())
+        ideFileContainsEntry("groovy-all-${groovyAllVersion}.jar", ["groovy-all-${groovyAllVersion}-sources.jar"], [])
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download localGroovy() sources when sources download is disabled"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+
+            idea.module.downloadSources = false
+            eclipse.classpath.downloadSources = false
+            """
+
+        when:
+        succeeds ideTask
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    @ToBeFixedForInstantExecution
+    def "does not download localGroovy() sources when offline"() {
+        given:
+        executer.withEnvironmentVars('GRADLE_LIBS_REPO_OVERRIDE': "$server.uri/")
+
+        buildScript """
+            apply plugin: "java"
+            apply plugin: "idea"
+            apply plugin: "eclipse"
+
+            dependencies {
+                implementation localGroovy()
+            }
+            """
+
+        when:
+        args("--offline")
+        succeeds ideTask
+
+        then:
+        ideFileContainsNoSourcesAndJavadocEntry()
+    }
+
+    void assertSourcesDirectoryDoesNotExistInDistribution() {
+        gradleDistributionSrcDir().assertDoesNotExist()
+    }
+
+    private TestFile gradleDistributionSrcDir() {
+        return new TestFile(distribution.gradleHomeDir, "src")
+    }
+
+    def givenGroovyAllExistsInGradleRepo() {
+        def repo = mavenHttpRepo
+        def module = repo.module("org.gradle.groovy", "groovy-all", groovyAllVersion)
+        module.artifact(classifier: "sources")
+        module.publish()
+        module.allowAll()
+        return repo
     }
 
     private useIvyRepo(def repo) {
@@ -349,7 +498,6 @@ dependencies {
     private useMavenRepo(def repo) {
         buildFile << """repositories { maven { url "$repo.uri" } }"""
     }
-
 
     private static void addCompleteConfigurations(IvyHttpModule module) {
         module.configuration("default")
@@ -404,9 +552,14 @@ task resolve {
     void ideFileContainsEntry(String jar, String sources, String javadoc) {
         ideFileContainsEntry(jar, [sources], [javadoc])
     }
+
     abstract void ideFileContainsEntry(String jar, List<String> sources, List<String> javadoc)
-    abstract void ideFileContainsGradleApiWithSources(String apiJarPrefix, String sourcesPath)
+
+    abstract void ideFileContainsGradleApi(String apiJarPrefix)
+
     abstract void ideFileContainsNoSourcesAndJavadocEntry()
+
     abstract void expectBehaviorAfterBrokenMavenArtifact(HttpArtifact httpArtifact)
+
     abstract void expectBehaviorAfterBrokenIvyArtifact(HttpArtifact httpArtifact)
 }

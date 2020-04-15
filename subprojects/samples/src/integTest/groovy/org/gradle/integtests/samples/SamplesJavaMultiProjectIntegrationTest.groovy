@@ -20,18 +20,15 @@ package org.gradle.integtests.samples
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
 import org.junit.Rule
 import spock.lang.Unroll
 
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 import static org.hamcrest.CoreMatchers.containsString
 
-@Requires(KOTLIN_SCRIPT)
 @LeaksFileHandles
 class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     static final String SHARED_NAME = 'shared'
@@ -225,7 +222,7 @@ class SamplesJavaMultiProjectIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     def "should not use cache for project dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir).withTasks(":$API_NAME:checkProjectDependency").run()

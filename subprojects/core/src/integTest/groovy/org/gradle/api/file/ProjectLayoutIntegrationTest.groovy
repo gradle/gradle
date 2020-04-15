@@ -44,27 +44,27 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
     def "layout is available for injection"() {
         buildFile << """
             import javax.inject.Inject
-            
+
             class SomeTask extends DefaultTask {
                 @Inject
                 ProjectLayout getLayout() { null }
-                
+
                 @TaskAction
                 void go() {
-                    println "task build dir: " + layout.buildDirectory.get() 
+                    println "task build dir: " + layout.buildDirectory.get()
                 }
             }
-            
+
             class SomePlugin implements Plugin<Project> {
                 @Inject SomePlugin(ProjectLayout layout) {
                     println "plugin build dir: " + layout.buildDirectory.get()
                 }
-                
+
                 void apply(Project p) {
                     p.tasks.create("show", SomeTask)
                 }
             }
-            
+
             apply plugin: SomePlugin
             buildDir = "output"
 """
@@ -352,7 +352,9 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
 
     void maybeDeprecated(String expression) {
         if (expression.contains("configurableFiles")) {
-            executer.expectDeprecationWarning()
+            executer.expectDocumentedDeprecationWarning("The ProjectLayout.configurableFiles() method has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+                "Please use the ObjectFactory.fileCollection() method instead. " +
+                "See https://docs.gradle.org/current/userguide/lazy_configuration.html#property_files_api_reference for more details.")
         }
     }
 }

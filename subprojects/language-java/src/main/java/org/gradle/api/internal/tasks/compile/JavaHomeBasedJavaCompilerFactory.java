@@ -17,53 +17,13 @@
 package org.gradle.api.internal.tasks.compile;
 
 import org.gradle.internal.Factory;
-import org.gradle.internal.SystemProperties;
-import org.gradle.internal.jvm.Jvm;
 
 import javax.tools.JavaCompiler;
-import java.io.File;
 import java.io.Serializable;
 
 public class JavaHomeBasedJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
-    private final Factory<? extends File> currentJvmJavaHomeFactory;
-    private final Factory<? extends JavaCompiler> systemJavaCompilerFactory;
-
-    public JavaHomeBasedJavaCompilerFactory() {
-        this(new CurrentJvmJavaHomeFactory(), new SystemJavaCompilerFactory());
-    }
-
-    JavaHomeBasedJavaCompilerFactory(Factory<? extends File> currentJvmJavaHomeFactory, Factory<? extends JavaCompiler> systemJavaCompilerFactory) {
-        this.currentJvmJavaHomeFactory = currentJvmJavaHomeFactory;
-        this.systemJavaCompilerFactory = systemJavaCompilerFactory;
-    }
-
     @Override
     public JavaCompiler create() {
-        JavaCompiler compiler = findCompiler();
-
-        if (compiler == null) {
-            throw new RuntimeException("Cannot find System Java Compiler. Ensure that you have installed a JDK (not just a JRE) and configured your JAVA_HOME system variable to point to the according directory.");
-        }
-
-        return compiler;
-    }
-
-    private JavaCompiler findCompiler() {
-        File realJavaHome = currentJvmJavaHomeFactory.create();
-        return SystemProperties.getInstance().withJavaHome(realJavaHome, systemJavaCompilerFactory);
-    }
-
-    public static class CurrentJvmJavaHomeFactory implements Factory<File>, Serializable {
-        @Override
-        public File create() {
-            return Jvm.current().getJavaHome();
-        }
-    }
-
-    public static class SystemJavaCompilerFactory implements Factory<JavaCompiler>, Serializable {
-        @Override
-        public JavaCompiler create() {
-            return JdkTools.current().getSystemJavaCompiler();
-        }
+        return JdkTools.current().getSystemJavaCompiler();
     }
 }

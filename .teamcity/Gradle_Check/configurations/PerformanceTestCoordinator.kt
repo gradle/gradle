@@ -7,9 +7,9 @@ import common.checkCleanM2
 import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildStep.ExecutionMode
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildSteps
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildStep.ExecutionMode
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildSteps
 import model.CIBuildModel
 import model.PerformanceTestType
 import model.Stage
@@ -47,9 +47,8 @@ class PerformanceTestCoordinator(model: CIBuildModel, type: PerformanceTestType,
     }
 
     steps {
-        runner("GRADLE_RUNNER", "clean distributed${type.taskId}s")
+        runner("GRADLE_RUNNER", "clean :performance:distributed${type.taskId}")
         checkCleanM2()
-        tagBuild(model, true)
     }
 
     applyDefaultDependencies(model, this, true)

@@ -107,7 +107,7 @@ public abstract class DecorateReleaseNotes extends DefaultTask {
             parameters.put("baseCss", getBaseCssFile().get().getAsFile());
             parameters.put("releaseNotesCss", getReleaseNotesCssFile().get().getAsFile());
             parameters.put("releaseNotesJavascript", getReleaseNotesJavascriptFile().get().getAsFile());
-            parameters.put("jquery", getJquery().getSingleFile());
+            parameters.put("jqueryFiles", getJquery().getFiles());
 
             copySpec.filter(parameters, ReleaseNotesTransformer.class);
             copySpec.filter(Collections.singletonMap("tokens", getReplacementTokens().get()), ReplaceTokens.class);

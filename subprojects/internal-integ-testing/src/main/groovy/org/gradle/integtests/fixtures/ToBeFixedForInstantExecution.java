@@ -32,7 +32,24 @@ import java.lang.annotation.Target;
 @ExtensionAnnotation(ToBeFixedForInstantExecutionExtension.class)
 public @interface ToBeFixedForInstantExecution {
 
-    Skip value() default Skip.DO_NOT_SKIP;
+    /**
+     * Set to some {@link Skip} to skip the annotated test.
+     */
+    Skip skip() default Skip.DO_NOT_SKIP;
+
+    /**
+     * Declare to which bottom spec this annotation should be applied.
+     * Defaults to an empty array, meaning this annotation applies to all bottom specs.
+     */
+    String[] bottomSpecs() default {};
+
+    /**
+     * Declare regular expressions matching the iteration name.
+     * Defaults to an empty array, meaning this annotation applies to all iterations of the annotated feature.
+     */
+    String[] iterationMatchers() default {};
+
+    String because() default "";
 
     /**
      * Reason for skipping a test with instant execution.
@@ -45,10 +62,10 @@ public @interface ToBeFixedForInstantExecution {
         DO_NOT_SKIP,
 
         /**
-         * Use this reason on tests in super classes that fail on some subclasses.
+         * Use this reason on unrolled tests in super classes that fail on some subclasses.
          * Spock doesn't allow to override test methods and annotate them.
          */
-        FAILS_IN_SUBCLASS,
+        UNROLLED_FAILS_IN_SUBCLASS,
 
         /**
          * Use this reason on tests that fail <code>:verifyTestFilesCleanup</code> with instant execution.

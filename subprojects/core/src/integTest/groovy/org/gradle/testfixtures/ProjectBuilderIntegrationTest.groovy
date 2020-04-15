@@ -19,10 +19,22 @@ package org.gradle.testfixtures
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.MavenHttpRepository
+import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
+
 class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
+    @Rule SetSystemProperties systemProperties
     @Rule HttpServer server
+
+    def setup() {
+        System.setProperty("user.dir", temporaryFolder.testDirectory.absolutePath)
+        file("settings.gradle") << """
+            rootProject.name = 'test'
+        """
+    }
 
     def "can resolve remote dependencies"() {
         def repo = new MavenHttpRepository(server, mavenRepo)
@@ -61,5 +73,22 @@ class ProjectBuilderIntegrationTest extends AbstractIntegrationSpec {
         then:
         customGradleUserHome.exists()
         project.gradle.startParameter.gradleUserHomeDir == customGradleUserHome
+    }
+
+    def "can be used in parallel"() {
+        def threads = 5
+        def startSignal = new CountDownLatch(1)
+        def doneSignal = new CountDownLatch(threads)
+        threads.times {
+            new Thread({
+                startSignal.await()
+                ProjectBuilder.builder().build()
+                doneSignal.countDown()
+            }).start()
+        }
+        expect:
+        startSignal.countDown()
+        ProjectBuilder.builder().build() != null
+        doneSignal.await(60, TimeUnit.SECONDS)
     }
 }

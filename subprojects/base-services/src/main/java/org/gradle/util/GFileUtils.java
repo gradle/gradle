@@ -17,6 +17,7 @@ package org.gradle.util;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang.ArrayUtils;
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.internal.IoActions;
 import org.gradle.util.internal.LimitedDescription;
@@ -33,6 +34,7 @@ import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.attribute.FileTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.LinkedList;
@@ -315,5 +317,39 @@ public class GFileUtils {
         if (!dir.mkdir() && !dir.isDirectory()) {
             throw new UncheckedIOException(String.format("Failed to create directory '%s'", dir));
         }
+    }
+
+    /**
+     * Returns the path of target relative to base.
+     *
+     * @param target target file or directory
+     * @param base base directory
+     * @return the path of target relative to base.
+     */
+    public static String relativePathOf(File target, File base) {
+        String separatorChars = "/" + File.separator;
+        List<String> basePath = splitAbsolutePathOf(base, separatorChars);
+        List<String> targetPath = new ArrayList<String>(splitAbsolutePathOf(target, separatorChars));
+
+        // Find and remove common prefix
+        int maxDepth = Math.min(basePath.size(), targetPath.size());
+        int prefixLen = 0;
+        while (prefixLen < maxDepth && basePath.get(prefixLen).equals(targetPath.get(prefixLen))) {
+            prefixLen++;
+        }
+        basePath = basePath.subList(prefixLen, basePath.size());
+        targetPath = targetPath.subList(prefixLen, targetPath.size());
+
+        for (int i = 0; i < basePath.size(); i++) {
+            targetPath.add(0, "..");
+        }
+        if (targetPath.isEmpty()) {
+            return ".";
+        }
+        return CollectionUtils.join(File.separator, targetPath);
+    }
+
+    private static List<String> splitAbsolutePathOf(File baseDir, String separatorChars) {
+        return Arrays.asList(StringUtils.split(baseDir.getAbsolutePath(), separatorChars));
     }
 }

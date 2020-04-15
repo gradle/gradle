@@ -20,7 +20,6 @@ import com.google.common.collect.Sets
 import groovy.json.JsonOutput
 import groovy.transform.CompileStatic
 import org.apache.commons.io.FileUtils
-import org.gradle.api.JavaVersion
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.CacheableTask
 import org.gradle.api.tasks.Input
@@ -215,20 +214,7 @@ abstract class PerformanceTest extends DistributionTest {
             List<String> result = []
             addExecutionParameters(result)
             addDatabaseParameters(result)
-            addJava9HomeSystemProperty(result)
             return result
-        }
-
-        private void addJava9HomeSystemProperty(List<String> result) {
-            String java9Home =
-                [
-                    getProject().findProperty("java9Home"),
-                    System.getProperty("java9Home"),
-                    System.getenv("java9Home"),
-                    JavaVersion.current().isJava9Compatible() ? System.getProperty("java.home") : null
-                ].findAll().first()
-
-            addSystemPropertyIfExist(result, "java9Home", java9Home)
         }
 
         private void addExecutionParameters(List<String> result) {

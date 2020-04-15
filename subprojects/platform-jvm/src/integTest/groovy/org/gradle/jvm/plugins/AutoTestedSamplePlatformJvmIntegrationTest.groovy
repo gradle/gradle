@@ -17,8 +17,10 @@
 package org.gradle.jvm.plugins
 
 import org.gradle.integtests.fixtures.AbstractAutoTestedSamplesTest
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.junit.Test
 
+@UnsupportedWithInstantExecution(because = "software model")
 class AutoTestedSamplePlatformJvmIntegrationTest extends AbstractAutoTestedSamplesTest {
     @Test
     void runSamples() {

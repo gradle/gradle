@@ -28,17 +28,18 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.jvm.Jvm;
-import org.gradle.internal.service.scopes.BuildTree;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.toolchain.JavaDevelopmentKit;
 import org.gradle.jvm.toolchain.JavaInstallation;
 import org.gradle.jvm.toolchain.JavaInstallationRegistry;
 
 import javax.annotation.Nullable;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
-@BuildTree
+@ServiceScope(ServiceScope.Value.Build)
 public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry {
     private final JavaInstallationProbe installationProbe;
     private final ProviderFactory providerFactory;
@@ -61,13 +62,17 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     public Provider<JavaInstallation> installationForDirectory(Directory javaHomeDir) {
         // TODO - should be a value source and so a build input if queried during configuration time
         // TODO - provider should advertise the type of value it produces
+        // TODO - display name
         return providerFactory.provider(new Callable<JavaInstallation>() {
-            DefaultJavaInstallation value;
+            private DefaultJavaInstallation value;
 
             @Override
             public JavaInstallation call() {
                 if (value == null) {
                     try {
+                        if (!javaHomeDir.getAsFile().exists()) {
+                            throw new FileNotFoundException(String.format("Directory %s does not exist.", javaHomeDir.getAsFile()));
+                        }
                         value = new DefaultJavaInstallation(installationProbe.checkJdk(javaHomeDir.getAsFile()), fileCollectionFactory, fileFactory);
                     } catch (Exception e) {
                         throw new JavaInstallationDiscoveryException(String.format("Could not determine the details of Java installation in directory %s.", javaHomeDir), e);
@@ -84,7 +89,7 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     }
 
     @Contextual
-    private static class JavaInstallationDiscoveryException extends GradleException {
+    public static class JavaInstallationDiscoveryException extends GradleException {
         public JavaInstallationDiscoveryException(String message, @Nullable Throwable cause) {
             super(message, cause);
         }

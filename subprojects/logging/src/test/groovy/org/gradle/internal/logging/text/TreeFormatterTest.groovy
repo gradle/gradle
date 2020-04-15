@@ -420,7 +420,7 @@ Some thing.''')
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot append text to node.'
+        e.message == 'Cannot append text as there is no current node.'
     }
 
     def "cannot append after children finished"() {
@@ -433,7 +433,7 @@ Some thing.''')
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == 'Cannot append text to node.'
+        e.message == 'Cannot append text as there is no current node.'
     }
 
     interface Thing<T> extends List<Nested>, Map<Nested, ? extends Consumer<? super T>> {

@@ -35,7 +35,7 @@ import java.text.SimpleDateFormat
 
 class DefaultIvyModuleDescriptorWriterTest extends Specification {
 
-    private @Rule TestNameTestDirectoryProvider temporaryFolder;
+    private @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     ModuleComponentIdentifier id = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("org.test", "projectA"), "1.0")
     ComponentSelectorConverter componentSelectorConverter = Mock(ComponentSelectorConverter)
     def ivyXmlModuleDescriptorWriter = new DefaultIvyModuleDescriptorWriter(componentSelectorConverter)

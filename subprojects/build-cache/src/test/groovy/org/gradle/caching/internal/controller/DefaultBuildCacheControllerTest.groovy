@@ -79,7 +79,7 @@ class DefaultBuildCacheControllerTest extends Specification {
     def operations = new TestBuildOperationExecutor()
 
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     interface Local extends BuildCacheService, LocalBuildCacheService {}
 

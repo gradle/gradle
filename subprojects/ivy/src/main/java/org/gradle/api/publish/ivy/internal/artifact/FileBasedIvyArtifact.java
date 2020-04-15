@@ -67,4 +67,9 @@ public class FileBasedIvyArtifact extends AbstractIvyArtifact {
     public File getFile() {
         return file;
     }
+
+    @Override
+    public boolean shouldBePublished() {
+        return true;
+    }
 }

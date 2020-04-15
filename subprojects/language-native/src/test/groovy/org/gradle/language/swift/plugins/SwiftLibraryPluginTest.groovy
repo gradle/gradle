@@ -32,7 +32,7 @@ import spock.lang.Specification
 
 class SwiftLibraryPluginTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def projectDir = tmpDir.createDir("project")
     def project = ProjectBuilder.builder().withProjectDir(projectDir).withName("testLib").build()
 
@@ -266,7 +266,7 @@ class SwiftLibraryPluginTest extends Specification {
         then:
         def e = thrown(ProjectConfigurationException)
         e.cause instanceof IllegalStateException
-        e.cause.message == "The value for Swift library 'main' property 'linkage' is final and cannot be changed any further."
+        e.cause.message == "The value for property 'linkage' is final and cannot be changed any further."
     }
 
     def "output file names are calculated from module name defined on extension"() {

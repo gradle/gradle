@@ -19,7 +19,7 @@ import org.apache.commons.io.FileUtils
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.file.FileTreeInternal
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompileSpec
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.api.tasks.WorkResults
@@ -33,6 +33,7 @@ class ScalaCompileTest extends AbstractCompileTest {
 
     private scalaCompiler = Mock(Compiler)
     private scalaClasspath = Mock(FileTreeInternal)
+    private scalaCompilerPlugins = Mock(FileTreeInternal)
 
     @Override
     AbstractCompile getCompile() {
@@ -84,7 +85,7 @@ class ScalaCompileTest extends AbstractCompileTest {
 
         given:
         setUpMocksAndAttributes(scalaCompile)
-        scalaCompile.getOptions().setAnnotationProcessorPath(ImmutableFileCollection.of(file))
+        scalaCompile.getOptions().setAnnotationProcessorPath(TestFiles.fixed(file))
 
         when:
         execute(scalaCompile)
@@ -101,6 +102,8 @@ class ScalaCompileTest extends AbstractCompileTest {
         super.setUpMocksAndAttributes(compile)
         compile.setScalaClasspath(scalaClasspath)
         compile.setZincClasspath(compile.getClasspath())
+        compile.setScalaCompilerPlugins(scalaCompilerPlugins)
+        scalaCompilerPlugins.iterator() >> Collections.emptyIterator()
         BaseScalaCompileOptions options = compile.getScalaCompileOptions()
         options.getIncrementalOptions().setAnalysisFile(new File("analysisFile"))
     }

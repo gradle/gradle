@@ -16,7 +16,7 @@
 
 package org.gradle.play.tasks
 
-import org.gradle.api.internal.file.collections.ImmutableFileCollection
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.deployment.internal.Deployment
 import org.gradle.play.internal.run.PlayApplication
 import org.gradle.play.internal.run.PlayApplicationRunner
@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class PlayRunTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     PlayApplication runnerToken = Mock(PlayApplication)
     PlayToolProvider playToolProvider = Mock(PlayToolProvider)
@@ -42,7 +42,7 @@ class PlayRunTest extends Specification {
         playRun = TestUtil.create(tmpDir).task(PlayRun)
         playRun.workingDir.set(tmpDir.testDirectory)
         playRun.applicationJar = new File("application.jar")
-        playRun.runtimeClasspath = ImmutableFileCollection.of()
+        playRun.runtimeClasspath = TestFiles.empty()
         playRun.playToolProvider = playToolProvider
         runnerToken.isRunning() >> true
         runnerToken.playAppAddress >> address

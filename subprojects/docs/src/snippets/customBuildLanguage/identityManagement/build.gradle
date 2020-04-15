@@ -1,1 +1,3 @@
-apply plugin: 'product-module'
+plugins {
+    id 'product-module'
+}

@@ -23,13 +23,13 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
-import static org.gradle.cache.FileLockManager.LockMode.None
+import static org.gradle.cache.FileLockManager.LockMode.OnDemand
 import static org.gradle.cache.FileLockManager.LockMode.Shared
 import static org.gradle.cache.internal.filelock.LockOptionsBuilder.mode
 
 class DefaultCacheRepositoryTest extends Specification {
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     private final TestFile homeDir = tmpDir.createDir("home")
     private final TestFile sharedCacheDir = homeDir.file("caches")
     private final Map<String, ?> properties = [a: "value", b: "value2"]
@@ -97,11 +97,11 @@ class DefaultCacheRepositoryTest extends Specification {
 
     void canSpecifyLockModeForDirectoryCache() {
         when:
-        repository.cache("a").withLockOptions(mode(None)).open()
+        repository.cache("a").withLockOptions(mode(OnDemand)).open()
 
         then:
         1 * scopeMapping.getBaseDirectory(null, "a", VersionStrategy.CachePerVersion) >> sharedCacheDir
-        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(None), null, null) >> cache
+        1 * cacheFactory.open(sharedCacheDir, null, [:], CacheBuilder.LockTarget.DefaultTarget, mode(OnDemand), null, null) >> cache
     }
 
     void canSpecifyDisplayNameForDirectoryCache() {

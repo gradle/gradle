@@ -132,12 +132,7 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
     protected ModuleVersionResolveException createCopy() {
         try {
             String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(selector, new Factory<String>() {
-                @Override
-                public String create() {
-                    return message;
-                }
-            });
+            return getClass().getConstructor(ComponentSelector.class, Factory.class).newInstance(selector, (Factory<String>) () -> message);
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

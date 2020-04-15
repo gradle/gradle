@@ -16,14 +16,16 @@
 
 package org.gradle.launcher.daemon.server.exec;
 
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.util.IncubationLogger;
 
 public class ResetDeprecationLogger implements DaemonCommandAction {
     @Override
     public void execute(DaemonCommandExecution execution) {
         DeprecationLogger.reset();
+        IncubationLogger.reset();
         execution.proceed();
     }
 }

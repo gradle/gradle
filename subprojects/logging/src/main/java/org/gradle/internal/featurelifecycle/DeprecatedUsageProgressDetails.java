@@ -16,6 +16,7 @@
 
 package org.gradle.internal.featurelifecycle;
 
+import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
@@ -50,6 +51,14 @@ public interface DeprecatedUsageProgressDetails {
      */
     @Nullable
     String getContextualAdvice();
+
+    /**
+     * See {@link DeprecatedFeatureUsage#getDocumentationUrl()}
+     *
+     * @since 6.2
+     */
+    @Nullable
+    String getDocumentationUrl();
 
     /**
      * See {@link DeprecatedFeatureUsage#getType()}.

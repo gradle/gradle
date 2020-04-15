@@ -17,11 +17,8 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.archives.TestReproducibleArchives
 import org.gradle.test.fixtures.archive.JarTestFixture
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -311,7 +308,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         confirmDuplicateServicesPreserved()
     }
 
-    @ToBeFixedForInstantExecution
     def "changes to manifest attributes should be honoured by incremental build"() {
         given:
         def jarWithManifest = { manifest ->
@@ -403,7 +399,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
     }
 
     // Only works on Java 8, see https://bugs.openjdk.java.net/browse/JDK-7050570
-    @Requires(TestPrecondition.JDK8_OR_LATER)
     @Issue(['GRADLE-1506'])
     def "create Jar with metadata encoded using UTF-8 when platform default charset is not UTF-8"() {
         given:
@@ -646,7 +641,6 @@ class JarIntegrationTest extends AbstractIntegrationSpec {
         "'UTF-8'"       | null            | "contentCharset must not be null"
     }
 
-    @ToBeFixedForInstantExecution
     def "JAR task is skipped when compiler output is unchanged"() {
         file("src/main/java/Main.java") << "public class Main {}\n"
         buildFile << """

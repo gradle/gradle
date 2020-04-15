@@ -40,7 +40,7 @@ public class DefaultGeneratedGradleJarCache implements GeneratedGradleJarCache, 
     public DefaultGeneratedGradleJarCache(CacheRepository cacheRepository, String gradleVersion) {
         this.cache = cacheBuilderFor(cacheRepository)
             .withDisplayName(CACHE_DISPLAY_NAME)
-            .withLockOptions(mode(FileLockManager.LockMode.None))
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
             .open();
         this.gradleVersion = gradleVersion;
     }

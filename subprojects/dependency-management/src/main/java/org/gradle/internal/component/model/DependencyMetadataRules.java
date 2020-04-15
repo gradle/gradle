@@ -44,18 +44,8 @@ import java.util.List;
  * in the {@link #execute(VariantResolveMetadata, List)} method when the dependencies of a variant are needed during dependency resolution.
  */
 public class DependencyMetadataRules {
-    private static final Spec<ModuleDependencyMetadata> DEPENDENCY_FILTER = new Spec<ModuleDependencyMetadata>() {
-        @Override
-        public boolean isSatisfiedBy(ModuleDependencyMetadata dep) {
-            return !dep.isConstraint();
-        }
-    };
-    private static final Spec<ModuleDependencyMetadata> DEPENDENCY_CONSTRAINT_FILTER = new Spec<ModuleDependencyMetadata>() {
-        @Override
-        public boolean isSatisfiedBy(ModuleDependencyMetadata dep) {
-            return dep.isConstraint();
-        }
-    };
+    private static final Spec<ModuleDependencyMetadata> DEPENDENCY_FILTER = dep -> !dep.isConstraint();
+    private static final Spec<ModuleDependencyMetadata> DEPENDENCY_CONSTRAINT_FILTER = DependencyMetadata::isConstraint;
 
     private final Instantiator instantiator;
     private final NotationParser<Object, DirectDependencyMetadata> dependencyNotationParser;

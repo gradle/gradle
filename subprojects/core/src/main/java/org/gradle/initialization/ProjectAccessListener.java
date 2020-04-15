@@ -18,10 +18,10 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.project.ProjectInternal;
 
-/**
- * Internal interface, used by our configuration on demand mode.
- */
+
 public interface ProjectAccessListener {
+
     void beforeRequestingTaskByPath(ProjectInternal targetProject);
+
     void beforeResolvingProjectDependency(ProjectInternal dependencyProject);
 }

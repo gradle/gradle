@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,97 +16,38 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.test.fixtures.server.http.BlockingHttpServer
-import org.junit.Rule
-import spock.lang.IgnoreIf
-
 class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    @Rule
-    BlockingHttpServer server = new BlockingHttpServer()
-
-    // Don't run in parallel mode, as the expectation for the setup build are incorrect and running in parallel
-    // does not really make any difference to the coverage
-    @IgnoreIf({ GradleContextualExecuter.parallel})
-    def "runs tasks in different projects in parallel by default"() {
-        server.start()
-
-        given:
-        settingsFile << """
-            include 'a', 'b', 'c'
-        """
+    def "honors task up-to-date spec"() {
         buildFile << """
-            class SlowTask extends DefaultTask {
+            abstract class TaskWithComplexInputs extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                TaskWithComplexInputs() {
+                    def result = name == "never"
+                    outputs.upToDateWhen { !result }
+                }
+
                 @TaskAction
                 def go() {
-                    ${server.callFromBuildUsingExpression("project.name")}
+                    outputFile.get().asFile.text = "some-derived-value"
                 }
             }
 
-            subprojects {
-                tasks.create('slow', SlowTask)
+            task never(type: TaskWithComplexInputs) {
+                outputFile = layout.buildDirectory.file("never.txt")
             }
-            project(':a') {
-                tasks.slow.dependsOn(project(':b').tasks.slow, project(':c').tasks.slow)
-            }
-        """
-
-        when:
-        server.expectConcurrent("b")
-        server.expectConcurrent("c")
-        server.expectConcurrent("a")
-        instantRun "a:slow"
-
-        then:
-        noExceptionThrown()
-
-        when:
-        server.expectConcurrent("b", "c")
-        server.expectConcurrent("a")
-        instantRun "a:slow"
-
-        then:
-        noExceptionThrown()
-    }
-
-    // Don't run in parallel mode, as the expectation for the setup build are incorrect
-    // It could potentially be worth running this in parallel mode to demonstrate the difference between
-    // parallel and instant execution
-    @IgnoreIf({ GradleContextualExecuter.parallel})
-    def "runs tasks in same project in parallel by default"() {
-        server.start()
-
-        given:
-        buildFile << """
-            class SlowTask extends DefaultTask {
-                @TaskAction
-                def go() {
-                    ${server.callFromBuildUsingExpression("name")}
-                }
-            }
-            tasks.create('b', SlowTask)
-            tasks.create('c', SlowTask)
-            tasks.create('a', SlowTask) {
-                dependsOn('b', 'c')
+            task always(type: TaskWithComplexInputs) {
+                outputFile = layout.buildDirectory.file("always.txt")
             }
         """
 
         when:
-        // TODO - should run from the IE cache in this initial build as well, so tasks can run in parallel
-        server.expectConcurrent("b")
-        server.expectConcurrent("c")
-        server.expectConcurrent("a")
-        instantRun "a"
+        instantRun("never", "always")
+        instantRun("never", "always")
 
         then:
-        noExceptionThrown()
-
-        when:
-        server.expectConcurrent("b", "c")
-        server.expectConcurrent("a")
-        instantRun "a"
-
-        then:
-        noExceptionThrown()
+        result.assertTaskSkipped(":always")
+        result.assertTasksNotSkipped(":never")
     }
 }

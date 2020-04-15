@@ -31,6 +31,7 @@ import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.options.Option
 import org.gradle.api.tasks.testing.Test
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.DaemonTracker
+import org.gradle.kotlin.dsl.*
 import org.gradle.process.CommandLineArgumentProvider
 import java.util.concurrent.Callable
 
@@ -54,7 +55,17 @@ abstract class DistributionTest : Test() {
 
     @get:Internal
     @get:Option(option = "rerun", description = "Always rerun the task")
-    val rerun: Property<Boolean> = project.objects.property(Boolean::class.javaObjectType).convention(false)
+    val rerun: Property<Boolean> = project.objects.property<Boolean>()
+        .convention(
+            project.providers.systemProperty("idea.active")
+                .map { true }
+                .orElse(project.provider { false })
+        )
+
+    @Option(option = "no-rerun", description = "Only run the task when necessary")
+    fun setNoRerun(value: Boolean) {
+        rerun.set(!value)
+    }
 
     init {
         dependsOn(Callable { if (binaryDistributions.distributionsRequired) ":distributions:buildDists" else null })

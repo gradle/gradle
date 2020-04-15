@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.api.reporting.internal
 
 import org.gradle.api.Describable
@@ -23,7 +22,6 @@ import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileSystemLocationProperty
 import org.gradle.api.internal.CollectionCallbackActionDecorator
-import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.reflect.ObjectInstantiationException
 import org.gradle.api.reporting.Report
@@ -67,7 +65,7 @@ class DefaultReportContainerTest extends Specification {
 
     def "reports given at construction are available"() {
         when:
-        container.configure { a { } }
+        container.configure { a {} }
 
         then:
         notThrown(MissingPropertyException)
@@ -132,7 +130,7 @@ class DefaultReportContainerTest extends Specification {
     }
 
     static class TestReport extends SimpleReport {
-        final Property<Boolean> required = new DefaultProperty<>(Boolean).value(false)
+        final Property<Boolean> required = TestUtil.objectFactory().property(Boolean).value(false)
 
         TestReport(String name, Describable displayName, OutputType outputType) {
             super(name, displayName, outputType)

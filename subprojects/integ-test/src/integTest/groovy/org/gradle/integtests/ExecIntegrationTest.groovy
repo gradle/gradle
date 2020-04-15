@@ -29,7 +29,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     public final TestResources testResources = new TestResources(testDirectoryProvider)
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*javaexecTask")
     def 'can execute java with #task'() {
         given:
         buildFile << """
@@ -63,19 +63,20 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert testFile.exists()
                 }
             }
-            
+
             ${
             injectedTaskActionTask('javaexecInjectedTaskAction', '''
-                File testFile = project.file("${project.buildDir}/$name")
+                File testFile = layout.buildDirectory.file(name).get().asFile
                 execOperations.javaexec {
                     assert !(it instanceof ExtensionAware)
-                    it.classpath(project.sourceSets['main'].output.classesDirs)
+                    it.classpath(execClasspath)
                     it.main 'org.gradle.TestMain'
-                    it.args project.projectDir, testFile
+                    it.args layout.projectDirectory.asFile, testFile
                 }
                 assert testFile.exists()
             ''')
         }
+            javaexecInjectedTaskAction.execClasspath.from(project.sourceSets['main'].output.classesDirs)
         """.stripIndent()
 
         expect:
@@ -86,7 +87,7 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(iterationMatchers = ".*execTask")
     def 'can execute commands with #task'() {
         given:
         buildFile << """
@@ -120,18 +121,19 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
                     assert testFile.exists()
                 }
             }
-            
+
             ${
             injectedTaskActionTask('execInjectedTaskAction', '''
-                File testFile = project.file("${project.buildDir}/$name")
+                File testFile = layout.buildDirectory.file(name).get().asFile
                 execOperations.exec {
                     assert !(it instanceof ExtensionAware)
                     it.executable Jvm.current().getJavaExecutable()
-                    it.args '-cp', project.sourceSets['main'].runtimeClasspath.asPath, 'org.gradle.TestMain', project.projectDir, testFile
+                    it.args '-cp', execClasspath.asPath, 'org.gradle.TestMain', layout.projectDirectory.asFile, testFile
                 }
                 assert testFile.exists()
             ''')
         }
+            execInjectedTaskAction.execClasspath.from(project.sourceSets['main'].runtimeClasspath)
         """.stripIndent()
 
         expect:
@@ -143,20 +145,23 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
 
     private static String injectedTaskActionTask(String taskName, String taskActionBody) {
         return """
-            class InjectedServiceTask extends DefaultTask {
+            abstract class InjectedServiceTask extends DefaultTask {
 
-                @Internal
-                final ExecOperations execOperations
+                @Classpath
+                abstract ConfigurableFileCollection getExecClasspath()
 
                 @Inject
-                InjectedServiceTask(ExecOperations execOperations) { this.execOperations = execOperations }
+                abstract ProjectLayout getLayout()
+
+                @Inject
+                abstract ExecOperations getExecOperations()
 
                 @TaskAction
                 void myAction() {
                     $taskActionBody
                 }
-            }            
-            
+            }
+
             task $taskName(type: InjectedServiceTask) {
                 dependsOn(sourceSets.main.runtimeClasspath)
             }
@@ -213,30 +218,30 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             class JavaTestCommand implements CommandLineArgumentProvider {
                 @Internal
                 File expectedWorkingDir
-                
+
                 @Input
                 String getExpectedWorkingDirPath() {
                     return expectedWorkingDir.absolutePath
                 }
-                
+
                 @Classpath
                 FileCollection classPath
-                
+
                 @OutputFile
                 File outputFile
-            
+
                 @Override
                 Iterable<String> asArguments() {
                     ['-cp', classPath.asPath, 'org.gradle.TestMain', expectedWorkingDirPath, outputFile.absolutePath]
                 }
             }
-            
+
             task run(type: Exec) {
                 ext.testFile = file("$buildDir/out.txt")
                 argumentProviders << new JavaTestCommand(
                     expectedWorkingDir: projectDir,
                     classPath: sourceSets.main.runtimeClasspath,
-                    outputFile: testFile 
+                    outputFile: testFile
                 )
                 executable = org.gradle.internal.jvm.Jvm.current().getJavaExecutable()
                 doLast {

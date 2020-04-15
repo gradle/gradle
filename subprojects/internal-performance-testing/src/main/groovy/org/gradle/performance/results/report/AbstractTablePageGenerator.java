@@ -108,7 +108,7 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     .end();
                     div().classAttr("col p-0")
                         .attr("data-toggle", "tooltip")
-                        .title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99%.")
+                        .title("The confidence with which these two data series are different. E.g. 90% means they're different with 90% confidence. Currently we fail the test if the confidence > 99.9%.")
                         .text("Confidence");
                             i().classAttr("fa fa-info-circle").text(" ").end()
                     .end();

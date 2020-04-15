@@ -1,0 +1,214 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "example",
+    "module": "kotlin-multiplatform-android-library",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.1.1",
+      "buildId": "pr4n4lpg5ja6re27qc3piepc4q"
+    }
+  },
+  "variants": [
+    {
+      "name": "android-demoDebugApiElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "debug",
+        "com.android.build.api.attributes.VariantAttr": "demoDebug",
+        "org.gradle.example.my-own-flavor": "demo",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-demo-debug/1.0/kotlin-multiplatform-android-library-android-demo-debug-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-demo-debug",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-demoDebugRuntimeElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "debug",
+        "com.android.build.api.attributes.VariantAttr": "demoDebug",
+        "org.gradle.example.my-own-flavor": "demo",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-demo-debug/1.0/kotlin-multiplatform-android-library-android-demo-debug-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-demo-debug",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-fullDebugApiElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "debug",
+        "com.android.build.api.attributes.VariantAttr": "fullDebug",
+        "org.gradle.example.my-own-flavor": "full",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-full-debug/1.0/kotlin-multiplatform-android-library-android-full-debug-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-full-debug",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-fullDebugRuntimeElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "debug",
+        "com.android.build.api.attributes.VariantAttr": "fullDebug",
+        "org.gradle.example.my-own-flavor": "full",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-full-debug/1.0/kotlin-multiplatform-android-library-android-full-debug-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-full-debug",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-demoReleaseApiElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "release",
+        "com.android.build.api.attributes.VariantAttr": "demoRelease",
+        "org.gradle.example.my-own-flavor": "demo",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-demo/1.0/kotlin-multiplatform-android-library-android-demo-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-demo",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-demoReleaseRuntimeElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "release",
+        "com.android.build.api.attributes.VariantAttr": "demoRelease",
+        "org.gradle.example.my-own-flavor": "demo",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-demo/1.0/kotlin-multiplatform-android-library-android-demo-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-demo",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-fullReleaseApiElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "release",
+        "com.android.build.api.attributes.VariantAttr": "fullRelease",
+        "org.gradle.example.my-own-flavor": "full",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-full/1.0/kotlin-multiplatform-android-library-android-full-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-full",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "android-fullReleaseRuntimeElements",
+      "attributes": {
+        "com.android.build.api.attributes.BuildTypeAttr": "release",
+        "com.android.build.api.attributes.VariantAttr": "fullRelease",
+        "org.gradle.example.my-own-flavor": "full",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "androidJvm"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-android-full/1.0/kotlin-multiplatform-android-library-android-full-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-android-full",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "js-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-js/1.0/kotlin-multiplatform-android-library-js-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-js",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "js-runtime",
+      "attributes": {
+        "org.gradle.usage": "kotlin-runtime",
+        "org.jetbrains.kotlin.platform.type": "js"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-js/1.0/kotlin-multiplatform-android-library-js-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-js",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "linuxX64-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "linux_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-linuxx64/1.0/kotlin-multiplatform-android-library-linuxx64-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-linuxx64",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "macosX64-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.native.target": "macos_x64",
+        "org.jetbrains.kotlin.platform.type": "native"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-macosx64/1.0/kotlin-multiplatform-android-library-macosx64-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-macosx64",
+        "version": "1.0"
+      }
+    },
+    {
+      "name": "metadata-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "available-at": {
+        "url": "../../kotlin-multiplatform-android-library-metadata/1.0/kotlin-multiplatform-android-library-metadata-1.0.module",
+        "group": "example",
+        "module": "kotlin-multiplatform-android-library-metadata",
+        "version": "1.0"
+      }
+    }
+  ]
+}

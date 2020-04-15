@@ -2,6 +2,7 @@ package org.gradle.kotlin.dsl.plugins.dsl
 
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
@@ -9,6 +10,7 @@ import org.gradle.kotlin.dsl.fixtures.normalisedPath
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 
 import org.gradle.test.fixtures.file.LeaksFileHandles
+import org.gradle.util.TestPrecondition
 
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
@@ -18,6 +20,10 @@ import org.junit.Before
 import org.junit.Test
 
 
+@ToBeFixedForVfsRetention(
+    because = "https://github.com/gradle/gradle/issues/12184",
+    failsOnlyIf = TestPrecondition.WINDOWS
+)
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class KotlinDslPluginTest : AbstractPluginTest() {
 
@@ -26,6 +32,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
         requireGradleDistributionOnEmbeddedExecuter()
 
     @Test
+    @ToBeFixedForInstantExecution
     fun `warns on unexpected kotlin-dsl plugin version`() {
 
         // The test applies the in-development version of the kotlin-dsl
@@ -245,6 +252,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `by default experimental Kotlin compiler features are enabled and a warning is issued`() {
 
         withBuildExercisingSamConversionForKotlinFunctions()
@@ -273,6 +281,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `can explicitly disable experimental Kotlin compiler features warning`() {
 
         withBuildExercisingSamConversionForKotlinFunctions(

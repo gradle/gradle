@@ -41,23 +41,23 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
             )
 
         private
-        const val NULL_VALUE: Byte = -1
+        const val NULL_VALUE: Int = -1
     }
 
     private
     val encodings = HashMap<Class<*>, TaggedEncoding>()
 
     override suspend fun WriteContext.encode(value: Any?) = when (value) {
-        null -> writeByte(NULL_VALUE)
+        null -> writeSmallInt(NULL_VALUE)
         else -> taggedEncodingFor(value.javaClass).run {
-            writeByte(tag)
+            writeSmallInt(tag)
             encoding.run { encode(value) }
         }
     }
 
-    override suspend fun ReadContext.decode() = when (val tag = readByte()) {
+    override suspend fun ReadContext.decode() = when (val tag = readSmallInt()) {
         NULL_VALUE -> null
-        else -> bindings[tag.toInt()].decoding.run { decode() }
+        else -> bindings[tag].decoding.run { decode() }
     }
 
     private
@@ -77,14 +77,14 @@ class BindingsBackedCodec(private val bindings: List<Binding>) : Codec<Any?> {
 
     private
     data class TaggedEncoding(
-        val tag: Byte,
+        val tag: Int,
         val encoding: Encoding
     )
 }
 
 
 data class Binding(
-    val tag: Byte,
+    val tag: Int,
     val encoding: EncodingProducer,
     val decoding: Decoding
 ) {
@@ -128,7 +128,9 @@ class BindingsBuilder {
         bind(type, SerializerCodec(serializer))
 
     fun bind(type: Class<*>, codec: Codec<*>) {
-        require(bindings.all { it.encodingForType(type) == null })
+        require(bindings.all { it.encodingForType(type) == null }) {
+            "There's already an encoding for type '$type'"
+        }
         val codecForAny = codec.uncheckedCast<Codec<Any>>()
         val encodingProducer = producerForSubtypesOf(type, codecForAny)
         bind(encodingProducer, codecForAny)
@@ -138,11 +140,9 @@ class BindingsBuilder {
         bind(codec, codec)
 
     fun bind(encodingProducer: EncodingProducer, decoding: Decoding) {
-        val tag = bindings.size
-        require(tag < Byte.MAX_VALUE)
         bindings.add(
             Binding(
-                tag = tag.toByte(),
+                tag = bindings.size,
                 encoding = encodingProducer,
                 decoding = decoding
             )

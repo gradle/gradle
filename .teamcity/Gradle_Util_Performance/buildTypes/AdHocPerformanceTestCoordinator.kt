@@ -26,7 +26,7 @@ import common.distributedPerformanceTestParameters
 import common.gradleWrapper
 import common.performanceTestCommandLine
 import configurations.individualPerformanceTestJavaHome
-import jetbrains.buildServer.configs.kotlin.v2018_2.BuildType
+import jetbrains.buildServer.configs.kotlin.v2019_2.BuildType
 
 open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : BuildType({
     this.uuid = uuid
@@ -47,7 +47,7 @@ open class AdHocPerformanceTestCoordinator(uuid: String, id: String, os: Os) : B
             tasks = ""
             gradleParams = (
                 buildToolGradleParameters(isContinue = false) +
-                    performanceTestCommandLine(task = "clean distributedPerformanceTests", baselines = "%performance.baselines%", testJavaHome = individualPerformanceTestJavaHome(os)) +
+                    performanceTestCommandLine(task = "clean :performance:distributedPerformanceTest", baselines = "%performance.baselines%", testJavaHome = individualPerformanceTestJavaHome(os)) +
                     distributedPerformanceTestParameters("Gradle_Check_IndividualPerformanceScenarioWorkers${os.name.capitalize()}") +
                     builtInRemoteBuildCacheNode.gradleParameters(os)
                 ).joinToString(separator = " ")

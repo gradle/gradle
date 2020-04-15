@@ -17,7 +17,6 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import static org.gradle.internal.resource.transport.http.JavaSystemPropertiesHttpTimeoutSettings.SOCKET_TIMEOUT_SYSTEM_PROPERTY
 
@@ -168,7 +167,6 @@ task retrieve(type: Sync) {
         file('libs/projectA-1.5.jar').assertHasNotChangedSince(snapshot)
     }
 
-    @ToBeFixedForInstantExecution
     def "reports and recovers from broken maven-metadata.xml and directory listing"() {
         given:
         mavenHttpRepo.module('group', 'projectA', '1.0').publish()
@@ -225,7 +223,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.5.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "dynamic version reports and recovers from broken module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -267,7 +264,6 @@ task retrieve(type: Sync) {
         file('libs').assertHasDescendants('projectA-1.1.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "dynamic version reports and recovers from missing module"() {
         given:
         def repo = mavenHttpRepo("repo1")
@@ -375,7 +371,6 @@ Searched in the following locations:
         file('libs').assertHasDescendants('projectA-1.4.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "dynamic version fails on broken module in one repository when available in another repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")
@@ -413,7 +408,6 @@ Searched in the following locations:
         file('libs').assertHasDescendants('projectA-1.5.jar')
     }
 
-    @ToBeFixedForInstantExecution
     def "dynamic version fails on timeout in one repository even when available in another repository"() {
         given:
         def repo1 = mavenHttpRepo("repo1")

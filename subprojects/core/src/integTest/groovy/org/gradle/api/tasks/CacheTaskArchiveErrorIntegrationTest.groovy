@@ -88,7 +88,7 @@ class CacheTaskArchiveErrorIntegrationTest extends AbstractIntegrationSpec {
 
         remoteCache.empty
         failureHasCause "Failed to store cache entry for task ':customTask'"
-        errorOutput =~ /org.gradle.api.GradleException: Could not pack tree 'output'/
+        errorOutput =~ /${RuntimeException.name}: Could not pack tree 'output'/
     }
 
     def "corrupt archive loaded from remote cache is not copied into local cache"() {

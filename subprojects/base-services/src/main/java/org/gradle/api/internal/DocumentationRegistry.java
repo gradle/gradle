@@ -57,4 +57,5 @@ public class DocumentationRegistry {
     public String getTopicGuidesFor(String topic) {
         return String.format("https://guides.gradle.org?q=%s", topic);
     }
+
 }

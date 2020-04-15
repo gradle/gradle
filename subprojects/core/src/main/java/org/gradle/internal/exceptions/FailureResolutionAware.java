@@ -24,5 +24,5 @@ import org.gradle.internal.logging.text.StyledTextOutput;
  */
 public interface FailureResolutionAware {
 
-    public void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData);
+    void appendResolution(StyledTextOutput output, BuildClientMetaData clientMetaData);
 }

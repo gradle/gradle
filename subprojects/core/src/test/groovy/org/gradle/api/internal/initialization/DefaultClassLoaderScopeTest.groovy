@@ -38,7 +38,7 @@ class DefaultClassLoaderScopeTest extends Specification {
     DefaultClassLoaderCache classLoaderCache = new DefaultClassLoaderCache(new DefaultHashingClassLoaderFactory(classpathHasher), classpathHasher)
 
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def setup() {
         file("root/root") << "root"

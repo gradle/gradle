@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-apply plugin: 'cpp'
+plugins {
+    id 'cpp'
+}
 
 // tag::targetplatforms[]
 model {

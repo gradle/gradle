@@ -16,8 +16,6 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.PathValidation;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -31,8 +29,6 @@ public interface FileResolver extends RelativeFilePathResolver, PathToFileResolv
     URI resolveUri(Object path);
 
     NotationParser<Object, File> asNotationParser();
-
-    Factory<PatternSet> getPatternSetFactory();
 
     @Override
     FileResolver newResolver(File baseDir);

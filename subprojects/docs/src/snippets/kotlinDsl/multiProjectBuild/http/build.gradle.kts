@@ -10,7 +10,7 @@ dependencies {
 }
 
 application {
-    mainClassName = "example.App"
+    mainClass.set("example.App")
 }
 
 ratpack.baseDir = file("src/ratpack/baseDir")

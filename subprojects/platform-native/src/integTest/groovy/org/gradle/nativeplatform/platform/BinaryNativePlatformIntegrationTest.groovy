@@ -15,6 +15,7 @@
  */
 
 package org.gradle.nativeplatform.platform
+
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.SystemInfo
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
@@ -28,15 +29,12 @@ import org.gradle.nativeplatform.fixtures.binaryinfo.FileArchOnlyBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.OtoolBinaryInfo
 import org.gradle.nativeplatform.fixtures.binaryinfo.ReadelfBinaryInfo
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32
 import static org.gradle.nativeplatform.fixtures.ToolChainRequirement.SUPPORTS_32_AND_64
 
-@Requires(TestPrecondition.NOT_UNKNOWN_OS)
 class BinaryNativePlatformIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def testApp = new PlatformDetectingTestApp()
     def os = OperatingSystem.current()
@@ -409,6 +407,7 @@ model {
     }
 
     @Issue("GRADLE-3499")
+    @ToBeFixedForInstantExecution(because = ":components")
     def "can create a binary which name contains dots"() {
         when:
         buildFile << '''

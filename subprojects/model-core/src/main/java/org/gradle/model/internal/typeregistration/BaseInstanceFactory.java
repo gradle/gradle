@@ -215,11 +215,6 @@ public class BaseInstanceFactory<PUBLIC> implements InstanceFactory<PUBLIC> {
             if (Modifier.isAbstract(implementationType.getConcreteClass().getModifiers())) {
                 throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must not be abstract", implementationType, publicType));
             }
-            try {
-                implementationType.getConcreteClass().getConstructor();
-            } catch (NoSuchMethodException e) {
-                throw new IllegalArgumentException(String.format("Implementation type '%s' registered for '%s' must have a public default constructor", implementationType, publicType));
-            }
             Class<?> implementationClass = implementationType.getConcreteClass();
             ImplementationFactory<S, ?> factory = findFactory(implementationClass);
             if (factory == null) {

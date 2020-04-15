@@ -43,6 +43,7 @@ import org.gradle.api.tasks.application.CreateStartScripts;
 import org.gradle.api.tasks.bundling.AbstractArchiveTask;
 import org.gradle.api.tasks.bundling.Tar;
 import org.gradle.api.tasks.bundling.Zip;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.jvm.tasks.Jar;
@@ -62,7 +63,6 @@ import org.gradle.play.internal.distribution.DefaultPlayDistributionContainer;
 import org.gradle.play.internal.platform.PlayMajorVersion;
 import org.gradle.play.platform.PlayPlatform;
 import org.gradle.util.GUtil;
-import org.gradle.util.SingleMessageLogger;
 
 import java.io.File;
 import java.util.Collections;
@@ -84,7 +84,11 @@ public class PlayDistributionPlugin extends RuleSource {
 
     @Model
     PlayDistributionContainer distributions(Instantiator instantiator, CollectionCallbackActionDecorator collectionCallbackActionDecorator) {
-        SingleMessageLogger.nagUserOfPluginReplacedWithExternalOne("Play Distribution", "org.gradle.playframework-distribution");
+        DeprecationLogger.deprecatePlugin("Play Distribution")
+            .replaceWithExternalPlugin("org.gradle.playframework-distribution")
+            .willBeRemovedInGradle7()
+            .withUserManual("play_plugin")
+            .nagUser();
         return new DefaultPlayDistributionContainer(instantiator, collectionCallbackActionDecorator);
     }
 
@@ -130,7 +134,7 @@ public class PlayDistributionPlugin extends RuleSource {
             }
 
             final File distJarDir = new File(buildDir, "distributionJars/" + distribution.getName());
-            final String jarTaskName = "create" +  StringUtils.capitalize(distribution.getName()) + "DistributionJar";
+            final String jarTaskName = "create" + StringUtils.capitalize(distribution.getName()) + "DistributionJar";
             tasks.create(jarTaskName, Jar.class, new Action<Jar>() {
                 @Override
                 public void execute(Jar jar) {
@@ -308,7 +312,7 @@ public class PlayDistributionPlugin extends RuleSource {
         public String apply(File input) {
             calculateRenames();
             String rename = renames.get(input);
-            if (rename!=null) {
+            if (rename != null) {
                 return rename;
             }
             return input.getName();

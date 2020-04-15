@@ -22,16 +22,16 @@ import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.jcenterReposito
 
 class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "build on Groovy build with JUnit tests"() {
+    def "build on Groovy project with JUnit tests"() {
 
         def instantExecution = newInstantExecutionFixture()
 
         given:
         buildFile << """
             plugins { id 'groovy' }
-        
+
             ${jcenterRepository()}
-            
+
             dependencies {
                 implementation(localGroovy())
                 testImplementation("junit:junit:4.12")
@@ -44,7 +44,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
             import org.junit.*
             class ThingTest {
                 @Test void ok() { new Thing() }
-            } 
+            }
         """
 
         and:
@@ -73,9 +73,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         assertTestsExecuted("ThingTest", "ok")
 
         when:
-        classFile.delete()
-        testClassFile.delete()
-        testResults.delete()
+        instantRun "clean"
 
         and:
         instantRun "build"
@@ -93,23 +91,40 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         assertTestsExecuted("ThingTest", "ok")
     }
 
-    def "compileGroovy without sources nor groovy dependency is executed but skipped"() {
+    def "build on Groovy project without sources nor groovy dependency"() {
         given:
+        def instantExecution = newInstantExecutionFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
 
         when:
-        instantRun "assemble"
-        instantRun "assemble"
+        problems.withDoNotFailOnProblems()
+        instantRun "build"
 
         then:
+        instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
+            )
+            withTotalProblemsCount(2)
+            withProblemsWithStackTraceCount(2)
+        }
+
+        when:
+        instantRun "clean"
+        instantRun "build"
+
+        then:
+        instantExecution.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
         result.assertTaskSkipped(":compileGroovy")
     }
 
-    def "compileGroovy with sources but no groovy dependency is executed and fails with a reasonable error message"() {
+    def "assemble on Groovy project with sources but no groovy dependency is executed and fails with a reasonable error message"() {
         given:
+        def instantExecution = newInstantExecutionFixture()
         buildFile << """
             plugins { id 'groovy' }
         """
@@ -118,17 +133,30 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantFails "assemble"
 
         then:
+        instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'groovyClasspath' from type 'org.gradle.api.tasks.compile.GroovyCompile': value 'Groovy runtime classpath' failed to visit file collection"
+            )
+            withProblemsWithStackTraceCount(1)
+        }
+
+        and:
         result.assertTaskExecuted(":compileGroovy")
+        failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
 
         when:
         instantFails "assemble"
 
         then:
+        instantExecution.assertStateLoaded()
         result.assertTaskExecuted(":compileGroovy")
+        failureDescriptionStartsWith("Execution failed for task ':compileGroovy'.")
         failureCauseContains("Cannot infer Groovy class path because no Groovy Jar was found on class path")
     }
 }

@@ -44,6 +44,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.plugin.devel.GradlePluginDevelopmentExtension;
 import org.gradle.plugin.devel.PluginDeclaration;
 import org.gradle.plugin.devel.tasks.GeneratePluginDescriptors;
@@ -52,7 +53,6 @@ import org.gradle.plugin.devel.tasks.ValidatePlugins;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.gradle.plugin.use.resolve.internal.local.PluginPublication;
-import org.gradle.util.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.io.File;
@@ -131,7 +131,6 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
      * The description for the task validating task property annotations for the plugin.
      *
      * @since 4.0
-     *
      * @deprecated Use {@link #VALIDATE_PLUGIN_TASK_DESCRIPTION}.
      */
     @Deprecated
@@ -269,7 +268,11 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     }
 
     private static void nagAboutDeprecatedValidateTaskPropertiesTask() {
-        DeprecationLogger.nagUserOfReplacedTask(VALIDATE_TASK_PROPERTIES_TASK_NAME, VALIDATE_PLUGINS_TASK_NAME);
+        DeprecationLogger.deprecateTask(VALIDATE_TASK_PROPERTIES_TASK_NAME)
+            .replaceWith(VALIDATE_PLUGINS_TASK_NAME)
+            .willBeRemovedInGradle7()
+            .withUpgradeGuideSection(5, "plugin_validation_changes")
+            .nagUser();
     }
 
     /**

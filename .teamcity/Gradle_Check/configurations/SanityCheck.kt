@@ -1,6 +1,6 @@
 package configurations
 
-import jetbrains.buildServer.configs.kotlin.v2018_2.AbsoluteId
+import jetbrains.buildServer.configs.kotlin.v2019_2.AbsoluteId
 import model.CIBuildModel
 import model.Stage
 
@@ -16,6 +16,7 @@ class SanityCheck(model: CIBuildModel, stage: Stage) : BaseGradleBuildType(model
 
     features {
         publishBuildStatusToGithub(model)
+        triggeredOnPullRequests()
     }
 
     applyDefaults(

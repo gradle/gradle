@@ -28,7 +28,7 @@ public class WtpFacetTest extends Specification {
     private final WtpFacet facet = new WtpFacet(new XmlTransformer())
 
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def "load existing XML file"() {
         when:

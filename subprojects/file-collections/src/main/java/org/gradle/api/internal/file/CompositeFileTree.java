@@ -20,20 +20,28 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.file.collections.FileCollectionResolveContext;
-import org.gradle.api.internal.file.collections.ResolvableFileCollectionResolveContext;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.Cast;
+import org.gradle.internal.Factory;
 
 import java.util.List;
 
 import static org.gradle.api.internal.file.AbstractFileTree.fileVisitorFrom;
+import static org.gradle.util.ConfigureUtil.configure;
 
 /**
  * A {@link FileTree} that contains the union of zero or more file trees.
  */
 public abstract class CompositeFileTree extends CompositeFileCollection implements FileTreeInternal {
+    public CompositeFileTree(Factory<PatternSet> patternSetFactory) {
+        super(patternSetFactory);
+    }
+
+    public CompositeFileTree() {
+        super();
+    }
+
     @Override
     protected List<? extends FileTreeInternal> getSourceCollections() {
         return Cast.uncheckedNonnullCast(super.getSourceCollections());
@@ -46,32 +54,32 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
 
     @Override
     public FileTree matching(final Closure filterConfigClosure) {
-        return new FilteredFileTree() {
-            @Override
-            protected FileTree filter(FileTree set) {
-                return set.matching(filterConfigClosure);
-            }
-        };
+        return new FilteredFileTree(this, () -> {
+            // For backwards compatibility, run the closure each time the file tree contents are queried
+            return configure(filterConfigClosure, patternSetFactory.create());
+        });
     }
 
     @Override
     public FileTree matching(final Action<? super PatternFilterable> filterConfigAction) {
-        return new FilteredFileTree() {
-            @Override
-            protected FileTree filter(FileTree set) {
-                return set.matching(filterConfigAction);
-            }
-        };
+        return new FilteredFileTree(this, () -> {
+            // For backwards compatibility, run the action each time the file tree contents are queried
+            PatternSet patternSet = patternSetFactory.create();
+            filterConfigAction.execute(patternSet);
+            return patternSet;
+        });
     }
 
     @Override
     public FileTree matching(final PatternFilterable patterns) {
-        return new FilteredFileTree() {
-            @Override
-            protected FileTree filter(FileTree set) {
-                return set.matching(patterns);
+        return new FilteredFileTree(this, () -> {
+            if (patterns instanceof PatternSet) {
+                return (PatternSet) patterns;
             }
-        };
+            PatternSet patternSet = patternSetFactory.create();
+            patternSet.copyFrom(patterns);
+            return patternSet;
+        });
     }
 
     @Override
@@ -100,27 +108,4 @@ public abstract class CompositeFileTree extends CompositeFileCollection implemen
         return this;
     }
 
-    private abstract class FilteredFileTree extends CompositeFileTree {
-
-        protected abstract FileTree filter(FileTree set);
-
-        @Override
-        public String getDisplayName() {
-            return CompositeFileTree.this.getDisplayName();
-        }
-
-        @Override
-        public void visitContents(FileCollectionResolveContext context) {
-            ResolvableFileCollectionResolveContext nestedContext = context.newContext();
-            CompositeFileTree.this.visitContents(nestedContext);
-            for (FileTree set : nestedContext.resolveAsFileTrees()) {
-                context.add(filter(set));
-            }
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            CompositeFileTree.this.visitDependencies(context);
-        }
-    }
 }

@@ -141,9 +141,6 @@ public class ValidatingIvyPublisher implements IvyPublisher {
 
     private void checkCanPublish(String name, IvyArtifact artifact) {
         File artifactFile = artifact.getFile();
-        if (artifactFile == null || !artifactFile.exists()) {
-            throw new InvalidIvyPublicationException(name, String.format("artifact file does not exist: '%s'", artifactFile));
-        }
         if (artifactFile.isDirectory()) {
             throw new InvalidIvyPublicationException(name, String.format("artifact file is a directory: '%s'", artifactFile));
         }

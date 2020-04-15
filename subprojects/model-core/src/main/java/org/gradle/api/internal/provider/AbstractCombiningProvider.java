@@ -16,19 +16,17 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.provider.Provider;
-
 import javax.annotation.Nullable;
 
-public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractReadOnlyProvider<OUT> {
+public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractMinimalProvider<OUT> {
     private final Class<OUT> type;
-    private final Provider<? extends BASE> base;
-    private final Provider<? extends IN> provider;
+    private final ProviderInternal<? extends BASE> left;
+    private final ProviderInternal<? extends IN> right;
 
-    public AbstractCombiningProvider(Class<OUT> type, Provider<? extends BASE> base, Provider<? extends IN> provider) {
+    public AbstractCombiningProvider(Class<OUT> type, ProviderInternal<? extends BASE> left, ProviderInternal<? extends IN> right) {
         this.type = type;
-        this.base = base;
-        this.provider = provider;
+        this.left = left;
+        this.right = right;
     }
 
     @Nullable
@@ -38,22 +36,27 @@ public abstract class AbstractCombiningProvider<OUT, BASE, IN> extends AbstractR
     }
 
     @Override
-    public boolean isPresent() {
-        return base.isPresent() && provider.isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return left.calculatePresence(consumer) && right.calculatePresence(consumer);
     }
 
     @Override
-    public OUT getOrNull() {
-        if (base.isPresent() && provider.isPresent()) {
-            return map(base.get(), provider.get());
+    protected Value<OUT> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends BASE> leftValue = left.calculateValue(consumer);
+        if (leftValue.isMissing()) {
+            return leftValue.asType();
         }
-        return null;
+        Value<? extends IN> rightValue = right.calculateValue(consumer);
+        if (rightValue.isMissing()) {
+            return rightValue.asType();
+        }
+        return Value.of(map(leftValue.get(), rightValue.get()));
     }
 
     protected abstract OUT map(BASE b, IN v);
 
     @Override
     public String toString() {
-        return String.format("combine(%s, %s)", base, provider);
+        return String.format("combine(%s, %s)", left, right);
     }
 }

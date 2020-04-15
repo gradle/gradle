@@ -136,9 +136,9 @@ class RetryConditions {
         // See https://github.com/gradle/gradle-private/issues/744
         if (targetDistVersion < GradleVersion.version('3.5') && daemonsFixture != null && getRootCauseMessage(failure) == 'Build cancelled.') {
             for (daemon in daemonsFixture.daemons) {
-                if (daemon.log.contains('Could not receive message from client.')
-                    && daemon.log.contains('java.lang.NullPointerException')
-                    && daemon.log.contains('org.gradle.launcher.daemon.server.exec.LogToClient')) {
+                if (daemon.logContains('Could not receive message from client.')
+                    && daemon.logContains('java.lang.NullPointerException')
+                    && daemon.logContains('org.gradle.launcher.daemon.server.exec.LogToClient')) {
                     println "Retrying test because the dispatcher was not ready for receiving a log event. Check log of daemon with PID ${daemon.context.pid}."
                     return cleanProjectDir(specification)
                 }
@@ -178,9 +178,9 @@ class RetryConditions {
     }
 
     static daemonStoppedWithSocketExceptionOnWindows(daemon) {
-        runsOnWindowsAndJava7or8() && (daemon.log.contains("java.net.SocketException: Socket operation on nonsocket:")
-            || daemon.log.contains("java.io.IOException: An operation was attempted on something that is not a socket")
-            || daemon.log.contains("java.io.IOException: An existing connection was forcibly closed by the remote host"))
+        runsOnWindowsAndJava7or8() && (daemon.logContains("java.net.SocketException: Socket operation on nonsocket:")
+            || daemon.logContains("java.io.IOException: An operation was attempted on something that is not a socket")
+            || daemon.logContains("java.io.IOException: An existing connection was forcibly closed by the remote host"))
     }
 
     static String getRootCauseMessage(Throwable throwable) {

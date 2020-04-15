@@ -212,10 +212,10 @@ public class NamedObjectInstantiator implements ManagedFactory {
         methodVisitor.visitEnd();
 
         //
-        // Add `boolean immutable() { return true }`
+        // Add `boolean isImmutable() { return true }`
         //
 
-        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "immutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
+        methodVisitor = visitor.visitMethod(ACC_PUBLIC, "isImmutable", RETURN_BOOLEAN, null, EMPTY_STRINGS);
         methodVisitor.visitLdcInsn(true);
         methodVisitor.visitInsn(IRETURN);
         methodVisitor.visitMaxs(0, 0);

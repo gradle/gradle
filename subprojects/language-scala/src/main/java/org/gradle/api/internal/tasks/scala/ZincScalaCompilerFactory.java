@@ -59,7 +59,7 @@ public class ZincScalaCompilerFactory {
         String zincCacheName = String.format("%s compiler cache", zincCacheKey);
         final PersistentCache zincCache = cacheRepository.cache(zincCacheKey)
                 .withDisplayName(zincCacheName)
-                .withLockOptions(mode(FileLockManager.LockMode.None))
+                .withLockOptions(mode(FileLockManager.LockMode.OnDemand))
                 .open();
 
         File compilerBridgeSourceJar = findFile("compiler-bridge", scalaClasspath);

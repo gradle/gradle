@@ -37,7 +37,6 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.options.OptionValues
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.internal.reflect.TypeValidationContext
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
@@ -49,7 +48,6 @@ import static org.gradle.internal.reflect.TypeValidationContext.Severity.WARNING
 
 abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrationSpec {
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects missing annotations on Java properties"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -121,7 +119,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                         return -1;
                     }
                 }
-                
+
                 @TaskAction void execute() {}
             }
         """
@@ -136,7 +134,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "task can have property with annotation @#annotation.simpleName"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -154,7 +151,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public ${type.name} getThing() {
                     return ${value};
                 }
-                
+
                 @TaskAction void execute() {}
             }
         """
@@ -183,7 +180,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects optional primitive type #type"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -191,7 +187,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
             public class MyTask extends DefaultTask {
                 @Optional @Input
-                ${type.name} getPrimitive() { 
+                ${type.name} getPrimitive() {
                     return ${value};
                 }
 
@@ -211,28 +207,27 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         double  | 1
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "validates task caching annotations"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.artifacts.transform.*;
 
-            @CacheableTransform 
+            @CacheableTransform
             public class MyTask extends DefaultTask {
                 @Nested
-                Options getOptions() { 
+                Options getOptions() {
                     return new Options();
                 }
 
-                @CacheableTask @CacheableTransform 
+                @CacheableTask @CacheableTransform
                 public static class Options {
                     @Input
                     String getNestedThing() {
                         return "value";
                     }
                 }
-                    
+
                 @TaskAction public void execute() {}
             }
         """
@@ -245,7 +240,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects missing annotation on Groovy properties"() {
         groovyTaskSource << """
             import org.gradle.api.*
@@ -266,7 +260,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     @Input String goodNested = "good nested"
                     String badNested
                 }
-                
+
                 @TaskAction public void execute() {}
             }
         """
@@ -284,7 +278,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "no problems with Copy task"() {
         file("input.txt").text = "input"
 
@@ -301,14 +294,13 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         assertValidationSucceeds()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "does not report missing properties for Provider types"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.Provider;
             import org.gradle.api.provider.Property;
-            
+
             import java.io.File;
             import java.util.concurrent.Callable;
 
@@ -354,7 +346,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
             public class Pojo {
                 private final Boolean enabled;
-                
+
                 public Pojo(Boolean enabled) {
                     this.enabled = enabled;
                 }
@@ -371,7 +363,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "reports setters for property of mutable type #type"() {
         file("input.txt").text = "input"
 
@@ -384,17 +375,17 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
 
                 // getter and setter
                 @InputFiles @PathSensitive(PathSensitivity.NONE)
-                public ${type} getMutablePropertyWithSetter() { return mutableProperty; } 
-                public void setMutablePropertyWithSetter(${type} value) {} 
+                public ${type} getMutablePropertyWithSetter() { return mutableProperty; }
+                public void setMutablePropertyWithSetter(${type} value) {}
 
                 // just getter
                 @InputFiles @PathSensitive(PathSensitivity.NONE)
-                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; } 
+                public ${type} getMutablePropertyWithoutSetter() { return mutableProperty; }
 
                 // just setter
                 // TODO implement warning for this case: https://github.com/gradle/gradle/issues/9341
                 public void setMutablePropertyWithoutGetter() {}
-                
+
                 @TaskAction public void execute() {}
             }
         """
@@ -411,7 +402,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         RegularFileProperty.name        | "getProject().getObjects().fileProperty().fileValue(new java.io.File(\"input.txt\"))"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects problems with file inputs"() {
         file("input.txt").text = "input"
         file("input").createDir()
@@ -445,7 +435,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public Set<File> getInputFiles() {
                     return Collections.emptySet();
                 }
-                
+
                 @Input
                 public File getFile() {
                     return new File("some-file");
@@ -483,7 +473,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects problems on nested collections"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -512,7 +501,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public Iterable<Iterable<Options>> getDoubleIterableOptions() {
                     return Arrays.asList(Arrays.asList(new Options()));
                 }
-                
+
                 @Nested
                 public Map<String, Options> getMappedOptions() {
                     return Collections.singletonMap("alma", new Options());
@@ -532,18 +521,18 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                 public Iterable<NamedBean> getNamedIterable() {
                     return Arrays.asList(new NamedBean());
                 }
-                
+
                 @Nested
                 public AnnotatedList getAnnotatedList() {
                     return new AnnotatedList();
                 }
-                
+
                 public static class Options {
                     @Input
                     public String getGood() {
                         return "good";
                     }
-                
+
                     public String getNotAnnotated() {
                         return null;
                     }
@@ -554,17 +543,17 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                     public String getGood() {
                         return "good";
                     }
-                
+
                     public String getNotAnnotated() {
                         return null;
                     }
-                
+
                     @Internal
                     public String getName() {
                         return "tibor";
-                    }                
+                    }
                 }
-                
+
                 // Does not validate the type parameter of extended collection
                 // because it has annotated properties
                 public static class AnnotatedList extends ArrayList<Options> {
@@ -596,7 +585,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects annotations on private getter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -620,12 +608,12 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
                         return "good";
                     }
                 }
-                
+
                 @OutputDirectory
                 private File getOutputDir() {
                     return new File("outputDir");
                 }
-                
+
                 @TaskAction
                 public void doStuff() { }
             }
@@ -639,7 +627,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects annotations on non-property methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -676,7 +663,6 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "detects annotations on setter methods"() {
         javaTaskSource << """
             import org.gradle.api.*;
@@ -731,44 +717,41 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         )
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "reports conflicting types when property is replaced"() {
         javaTaskSource << """
             import org.gradle.api.*;
             import org.gradle.api.model.*;
             import org.gradle.api.tasks.*;
             import org.gradle.api.provider.*;
-            
+
             public class MyTask extends DefaultTask {
                 private final Property<String> newProperty = getProject().getObjects().property(String.class).convention("value");
-    
+
                 @Input
                 @ReplacedBy("newProperty")
                 public String getOldProperty() {
                     return newProperty.get();
                 }
-    
+
                 public void setOldProperty(String oldProperty) {
                     newProperty.set(oldProperty);
                 }
-    
+
                 @Input
                 public Property<String> getNewProperty() {
                     return newProperty;
                 }
-                
+
                 @TaskAction public void execute() {}
             }
         """
 
         expect:
         assertValidationFailsWith(
-            "Type 'MyTask': property 'oldProperty' getter 'getOldProperty()' annotated with @ReplacedBy should not be also annotated with @Input.": WARNING,
+            "Type 'MyTask': property 'oldProperty' annotated with @ReplacedBy should not be also annotated with @Input.": WARNING,
         )
     }
 
-
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
     def "reports both input and output annotation applied to the same property"() {
         javaTaskSource << """
             import java.io.File;

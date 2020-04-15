@@ -27,6 +27,7 @@ class MixedDependencyLockingIntegrationTest extends AbstractDependencyResolution
         settingsFile << "rootProject.name = 'mixedDepLock'"
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'can resolve locked and unlocked configurations'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -42,7 +43,7 @@ configurations {
     lockedConf {
         resolutionStrategy.activateDependencyLocking()
     }
-    
+
     unlockedConf
 }
 
@@ -52,7 +53,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -70,6 +71,7 @@ dependencies {
 
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'ignores the lockfile of a parent configuration when resolving an unlocked child configuration'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -85,7 +87,7 @@ configurations {
     lockedConf {
         resolutionStrategy.activateDependencyLocking()
     }
-    
+
     unlockedConf.extendsFrom lockedConf
 }
 
@@ -94,7 +96,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'unlockedConf', '--dependency', 'foo'
@@ -104,6 +106,7 @@ dependencies {
         outputDoesNotContain('constraint')
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def 'applies the lock file to inherited dependencies'() {
         mavenRepo.module('org', 'foo', '1.0').publish()
         mavenRepo.module('org', 'foo', '1.1').publish()
@@ -129,7 +132,7 @@ dependencies {
 }
 """
 
-        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'])
+        lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], false)
 
         when:
         succeeds 'dependencyInsight', '--configuration', 'lockedConf', '--dependency', 'foo'
@@ -169,6 +172,6 @@ dependencies {
         succeeds 'dependencies', '--configuration', 'lockedConf', '--write-locks'
 
         then:
-        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'])
+        lockfileFixture.verifyLockfile('lockedConf', ['org:foo:1.1'], false)
     }
 }

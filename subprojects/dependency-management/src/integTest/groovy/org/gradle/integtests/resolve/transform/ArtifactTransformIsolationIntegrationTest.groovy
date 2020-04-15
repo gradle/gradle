@@ -54,8 +54,6 @@ class Resolve extends Copy {
     @Internal
     final artifactType = Attribute.of('artifactType', String)
     private final ConfigurableFileCollection artifactFiles
-    @Internal
-    Configuration compileConfiguration
 
     @Inject
     Resolve(ObjectFactory objectFactory) {
@@ -70,7 +68,7 @@ class Resolve extends Copy {
     }
 
     void setArtifactTypeAttribute(String artifactTypeAttribute) {
-        artifacts = compileConfiguration.incoming.artifactView {
+        artifacts = project.configurations.compile.incoming.artifactView {
             attributes { it.attribute(artifactType, artifactTypeAttribute) }
         }.artifacts
         artifactFiles.setFrom(artifacts.artifactFiles)
@@ -157,7 +155,6 @@ class Resolve extends Copy {
             }
 
             tasks.withType(Resolve).configureEach {
-                compileConfiguration = configurations.compile
                 doLast {
                     buildScriptCounter.increment()
                 }
@@ -272,10 +269,6 @@ class Resolve extends Copy {
                     to.attribute(artifactType, 'thirdCount')
                     artifactTransform(CountRecorder) { params(counter) }
                 }
-            }
-
-            tasks.withType(Resolve).configureEach {
-                compileConfiguration = configurations.compile
             }
 
             task resolveFirst(type: Resolve) {

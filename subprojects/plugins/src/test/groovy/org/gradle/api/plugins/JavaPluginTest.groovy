@@ -321,7 +321,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn()
         task.classpath.is(project.sourceSets.main.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.main.annotationProcessorPath)
-        task.options.annotationProcessorGeneratedSourcesDirectory == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
+        task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/main')
+        task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
+        task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/main')
         task.destinationDir == project.sourceSets.main.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.main.java.files
 
@@ -349,7 +351,9 @@ class JavaPluginTest extends AbstractProjectBuilderSpec {
         task dependsOn(JavaPlugin.CLASSES_TASK_NAME)
         task.classpath.is(project.sourceSets.test.compileClasspath)
         task.options.annotationProcessorPath.is(project.sourceSets.test.annotationProcessorPath)
-        task.options.annotationProcessorGeneratedSourcesDirectory == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
+        task.options.generatedSourceOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/annotationProcessor/java/test')
+        task.options.annotationProcessorGeneratedSourcesDirectory == task.options.generatedSourceOutputDirectory.asFile.orNull
+        task.options.headerOutputDirectory.asFile.orNull == new File(project.buildDir, 'generated/sources/headers/java/test')
         task.destinationDir == project.sourceSets.test.java.destinationDirectory.get().asFile
         task.source.files == project.sourceSets.test.java.files
 

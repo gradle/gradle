@@ -16,25 +16,22 @@
 
 package org.gradle.api.internal.provider.sources;
 
-import org.gradle.api.provider.Property;
-import org.gradle.api.provider.ValueSource;
-import org.gradle.api.provider.ValueSourceParameters;
-
 import javax.annotation.Nullable;
 
-public abstract class SystemPropertyValueSource implements ValueSource<String, SystemPropertyValueSource.Parameters> {
-
-    public interface Parameters extends ValueSourceParameters {
-        Property<String> getPropertyName();
-    }
+public abstract class SystemPropertyValueSource extends AbstractPropertyValueSource {
 
     @Nullable
     @Override
     public String obtain() {
-        @Nullable String propertyName = getParameters().getPropertyName().getOrNull();
+        @Nullable String propertyName = propertyNameOrNull();
         if (propertyName == null) {
             return null;
         }
         return System.getProperty(propertyName);
+    }
+
+    @Override
+    public String getDisplayName() {
+        return String.format("system property '%s'", propertyNameOrNull());
     }
 }

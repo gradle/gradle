@@ -24,7 +24,7 @@ import spock.lang.Specification
 
 class StaleOutputCleanerTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     Deleter deleter = TestFiles.deleter()
 
     def "deletes all previous output files"() {

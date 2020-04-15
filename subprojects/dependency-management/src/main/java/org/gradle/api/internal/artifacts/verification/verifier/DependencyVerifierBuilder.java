@@ -55,19 +55,19 @@ public class DependencyVerifierBuilder {
 
     public void addChecksum(ModuleComponentArtifactIdentifier artifact, ChecksumKind kind, String value, @Nullable String origin) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
+        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
             .addChecksum(artifact, kind, value, origin);
     }
 
     public void addTrustedKey(ModuleComponentArtifactIdentifier artifact, String key) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
+        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
             .addTrustedKey(artifact, key);
     }
 
     public void addIgnoredKey(ModuleComponentArtifactIdentifier artifact, IgnoredKey key) {
         ModuleComponentIdentifier componentIdentifier = artifact.getComponentIdentifier();
-        byComponent.computeIfAbsent(componentIdentifier, id -> new ComponentVerificationsBuilder(id))
+        byComponent.computeIfAbsent(componentIdentifier, ComponentVerificationsBuilder::new)
             .addIgnoredKey(artifact, key);
     }
 

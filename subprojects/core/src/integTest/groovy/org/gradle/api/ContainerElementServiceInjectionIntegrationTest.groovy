@@ -16,9 +16,16 @@
 
 package org.gradle.api
 
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.GeneratedSubclass
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.execution.WorkExecutor
+import org.gradle.process.ExecOperations
+import spock.lang.Unroll
 
 
 class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegrationSpec {
@@ -27,7 +34,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         buildFile << """
             class Bean {
                 String name
-                
+
                 Bean(String name, ObjectFactory factory) {
                     println(factory != null ? "got it" : "NOT IT")
                     this.name = name
@@ -36,7 +43,7 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
                     assert getClass() == Bean
                 }
             }
-            
+
             def container = project.container(Bean)
             container.create("one") {
                 assert name == "one"
@@ -51,14 +58,14 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
     def "fails when container element requests unknown service"() {
         buildFile << """
             interface Unknown { }
-            
+
             class Bean {
                 String name
-                
+
                 Bean(String name, Unknown thing) {
                 }
             }
-            
+
             def container = project.container(Bean)
             container.create("one") {
                 assert name == "one"
@@ -75,21 +82,21 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         buildFile << """
             class Bean {
                 String name
-                
+
                 Bean(String name) {
                     println(factory != null ? "got it" : "NOT IT")
                     this.name = name
 
                     // is generated but not extensible
                     assert getClass() != Bean
-                    assert (this instanceof ${GeneratedSubclass.name}) 
-                    assert !(this instanceof ${ExtensionAware.name}) 
+                    assert (this instanceof ${GeneratedSubclass.name})
+                    assert !(this instanceof ${ExtensionAware.name})
                 }
-                
+
                 @javax.inject.Inject
                 ObjectFactory getFactory() { null }
             }
-            
+
             def container = project.container(Bean)
             container.create("one") {
                 assert name == "one"
@@ -105,21 +112,21 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         buildFile << """
             abstract class Bean {
                 String name
-                
+
                 Bean(String name) {
                     println(factory != null ? "got it" : "NOT IT")
                     this.name = name
 
                     // is generated but not extensible
                     assert getClass() != Bean
-                    assert (this instanceof ${GeneratedSubclass.name}) 
-                    assert !(this instanceof ${ExtensionAware.name}) 
+                    assert (this instanceof ${GeneratedSubclass.name})
+                    assert !(this instanceof ${ExtensionAware.name})
                 }
-                
+
                 @javax.inject.Inject
                 abstract ObjectFactory getFactory()
             }
-            
+
             def container = project.container(Bean)
             container.create("one") {
                 assert name == "one"
@@ -129,5 +136,38 @@ class ContainerElementServiceInjectionIntegrationTest extends AbstractIntegratio
         expect:
         succeeds()
         outputContains("got it")
+    }
+
+    @Unroll
+    def "service of type #serviceType is available for injection into project container element"() {
+        buildFile << """
+            class Bean {
+                String name
+                ${serviceType} service
+
+                Bean(String name, ${serviceType} service) {
+                    this.name = name
+                    this.service = service
+                }
+            }
+
+            def container = project.container(Bean)
+            container.create("one") {
+                assert service != null
+            }
+        """
+
+        expect:
+        succeeds()
+
+        where:
+        serviceType << [
+            ObjectFactory,
+            ProjectLayout,
+            ProviderFactory,
+            WorkExecutor,
+            FileSystemOperations,
+            ExecOperations,
+        ].collect { it.name }
     }
 }

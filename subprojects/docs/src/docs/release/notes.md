@@ -8,18 +8,6 @@ Include only their name, impactful features should be called out separately belo
  [Some person](https://github.com/some-person)
 -->
 
-<!-- 
-## 1
-
-details of 1
-
-## 2
-
-details of 2
-
-## n
--->
-
 ## Upgrade Instructions
 
 Switch your build to use Gradle @version@ by updating your wrapper:
@@ -32,16 +20,18 @@ For Java, Groovy, Kotlin and Android compatibility, see the [full compatibility 
 
 <!-- Do not add breaking changes or deprecations here! Add them to the upgrade guide instead. --> 
 
-<a name="dependency-verification"></a>
-## Dependency verification
+<!-- 
+Add release features here!
+## 1
 
-Gradle 6.2 ships with [dependency verification](userguide/dependency_verification.html).
-Dependency verification is a major step towards a safer ecosystem by making it possible to verify both the checksums and the signatures of dependencies and plugins used during a build.
+details of 1
 
-Please refer to the [userguide](userguide/dependency_verification.html) to figure out how to enable dependency verification.
+## 2
 
-We would like to give special thanks to [Vladimir Sitnikov](https://github.com/vlsi) for his feedback and inspiration.
-A lot of the work on this feature is, in particular, available to previous versions of Gradle via his [Checksum Dependency Plugin](https://github.com/vlsi/vlsi-release-plugins/tree/master/plugins/checksum-dependency-plugin).
+details of 2
+
+## n
+-->
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

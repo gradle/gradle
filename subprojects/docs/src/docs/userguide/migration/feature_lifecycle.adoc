@@ -15,7 +15,7 @@
 [[feature_lifecycle]]
 = The Feature Lifecycle
 
-Gradle is under constant development and improvement. New versions are delivered on a regular and frequent basis (approximately every 6 weeks) as described in <<#eol_support,the section on end-of-life support>>. Continuous improvement combined with frequent delivery allows new features to be made available to users early and for invaluable real world feedback to be incorporated into the development process. Getting new functionality into the hands of users regularly is a core value of the Gradle platform. At the same time, API and feature stability is taken very seriously and is also considered a core value of the Gradle platform. This is something that is engineered into the development process by design choices and automated testing, and is formalised by <<#backwards_compatibility,the section on backwards compatibility>>. 
+Gradle is under constant development and improvement. New versions are delivered on a regular and frequent basis (approximately every 6 weeks) as described in <<#eol_support,the section on end-of-life support>>. Continuous improvement combined with frequent delivery allows new features to be made available to users early and for invaluable real world feedback to be incorporated into the development process. Getting new functionality into the hands of users regularly is a core value of the Gradle platform. At the same time, API and feature stability is taken very seriously and is also considered a core value of the Gradle platform. This is something that is engineered into the development process by design choices and automated testing, and is formalised by <<#backwards_compatibility,the section on backwards compatibility>>.
 
 The Gradle _feature lifecycle_ has been designed to meet these goals. It also serves to clearly communicate to users of Gradle what the state of a feature is. The term _feature_ typically means an API or DSL method or property in this context, but it is not restricted to this definition. Command line arguments and modes of execution (e.g. the Build Daemon) are two examples of other kinds of features.
 
@@ -47,6 +47,13 @@ A feature in an incubating state may change in future Gradle versions until it i
 
 Features in incubation are clearly indicated to be so. In the source code, all methods/properties/classes that are incubating are annotated with link:{javadocPath}/org/gradle/api/Incubating.html[Incubating], which is also used to specially mark them in the DSL and API references. If an incubating feature is discussed in this User Manual, it will be explicitly said to be in the incubating state.
 
+[[feature_preview]]
+==== Feature Preview API
+
+The feature preview API allows certain incubating features to be activated by adding `enableFeaturePreview('FEATURE')` in your _settings_ file. Individual preview features will be announced in release notes.
+
+When _incubating_ features are either promoted to _public_ or removed, the feature preview flags for them become obsolete, have no effect and should be removed from the settings file.
+
 [[sec:public]]
 === Public
 
@@ -71,8 +78,8 @@ Gradle provides backwards compatibility across major versions (e.g. `1.x`, `2.x`
 [[eol_support]]
 == Release end-of-life Policy
 
-Every day, a new nightly build of Gradle is created.  This contains all of the changes that have made it through Gradle's extensive continuous integration tests during that day.  Not every nightly may contain new changes and not every nightly may be stable. 
+Every day, a new nightly build of Gradle is created.  This contains all of the changes that have made it through Gradle's extensive continuous integration tests during that day.  Not every nightly may contain new changes and not every nightly may be stable.
 
 For each minor or major release, the Gradle team creates a pre-release distribution called a release candidate (RC). When no problems are found after a short period of time (usually a week), the release candidate is promoted to a final/general availability (GA) release. If a regression is found in the release candidate, a new RC distribution is created and the process repeats.  Release candidates are supported for as long as the release window is open, but they are not intended to be used long term for production use. Bug reports are greatly appreciated during the RC phase.
 
-After a final release, the Gradle team may create additional patch releases that are intended to replace the previous final release due to an important bugfix or regression.  For instance, Gradle 5.2.1 replaces the Gradle 5.2 release.  Once a release candidate has been made, all feature development moves on to the next release.  As such, each Gradle release causes the previous release to become end-of-line (EOL) and that release will not receive any new bugfixes or feature backports. 
+After a final release, the Gradle team may create additional patch releases that are intended to replace the previous final release due to an important bugfix or regression.  For instance, Gradle 5.2.1 replaces the Gradle 5.2 release.  Once a release candidate has been made, all feature development moves on to the next release.  As such, each Gradle release causes the previous release to become end-of-line (EOL) and that release will not receive any new bugfixes or feature backports.

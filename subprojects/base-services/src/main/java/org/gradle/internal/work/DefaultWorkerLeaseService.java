@@ -395,7 +395,7 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, Parallelis
                 }
             } else {
                 if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("Build operation {} could not be started ({} worker(s) in use).", getDisplayName(), root.leasesInUse);
+                    LOGGER.debug("Build operation {} could not be started yet ({} worker(s) in use).", getDisplayName(), root.leasesInUse);
                 }
             }
             return active;

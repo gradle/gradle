@@ -16,22 +16,14 @@
 
 package org.gradle.play.plugins;
 
-import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.collections.ImmutableFileCollection;
-import org.gradle.api.internal.file.collections.LazilyInitializedFileCollection;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-
-import java.io.File;
 
 /**
  * Conventional locations and names for play plugins.
@@ -99,11 +91,15 @@ public class PlayPluginConfigurations {
         }
 
         FileCollection getChangingArtifacts() {
-            return new FilterByProjectComponentTypeFileCollection(getConfiguration(), true);
+            return filterByProjectComponentTypeFileCollection(getConfiguration(), true);
         }
 
         FileCollection getNonChangingArtifacts() {
-            return new FilterByProjectComponentTypeFileCollection(getConfiguration(), false);
+            return filterByProjectComponentTypeFileCollection(getConfiguration(), false);
+        }
+
+        private FileCollection filterByProjectComponentTypeFileCollection(Configuration configuration, boolean matchProjectComponents) {
+            return configuration.getIncoming().artifactView(viewConfiguration -> viewConfiguration.componentFilter(element -> (element instanceof ProjectComponentIdentifier) == matchProjectComponents)).getFiles();
         }
 
         void addDependency(Object notation) {
@@ -112,37 +108,6 @@ public class PlayPluginConfigurations {
 
         void addArtifact(PublishArtifact artifact) {
             configurations.getByName(name).getArtifacts().add(artifact);
-        }
-    }
-
-    private static class FilterByProjectComponentTypeFileCollection extends LazilyInitializedFileCollection {
-        private final Configuration configuration;
-        private final boolean matchProjectComponents;
-
-        private FilterByProjectComponentTypeFileCollection(Configuration configuration, boolean matchProjectComponents) {
-            this.configuration = configuration;
-            this.matchProjectComponents = matchProjectComponents;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return configuration.toString();
-        }
-
-        @Override
-        public FileCollectionInternal createDelegate() {
-            ImmutableSet.Builder<File> files = ImmutableSet.builder();
-            for (ResolvedArtifact artifact : configuration.getResolvedConfiguration().getResolvedArtifacts()) {
-                if ((artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) == matchProjectComponents) {
-                    files.add(artifact.getFile());
-                }
-            }
-            return ImmutableFileCollection.of(files.build());
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            context.add(configuration);
         }
     }
 }

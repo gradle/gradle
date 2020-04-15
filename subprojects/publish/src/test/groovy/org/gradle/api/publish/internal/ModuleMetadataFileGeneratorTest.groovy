@@ -65,7 +65,7 @@ class ModuleMetadataFileGeneratorTest extends Specification {
     }
 
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def buildId = UniqueId.generate()
     def id = DefaultModuleVersionIdentifier.newId("group", "module", "1.2")
     def projectDependencyResolver = Mock(ProjectDependencyPublicationResolver)

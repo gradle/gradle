@@ -15,12 +15,9 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import accessors.*
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
-import org.gradle.plugins.ide.eclipse.model.Classpath
-import org.gradle.plugins.ide.eclipse.model.SourceFolder
 
 plugins {
     `java-library`
@@ -88,6 +85,10 @@ dependencies {
     testImplementation(testFixtures(project(":workers")))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 gradlebuildJava {
@@ -95,16 +96,6 @@ gradlebuildJava {
 }
 
 apply(from = "buildship.gradle")
-
-eclipse {
-    classpath {
-        file.whenMerged(Action<Classpath> {
-            //**TODO
-            entries.removeAll { it is SourceFolder && it.path.contains("src/test/groovy") }
-            entries.removeAll { it is SourceFolder && it.path.contains("src/integTest/groovy") }
-        })
-    }
-}
 
 val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
 

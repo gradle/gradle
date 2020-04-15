@@ -20,6 +20,7 @@ import com.google.common.collect.Maps;
 import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.plugins.ExtraPropertiesExtension;
 import org.gradle.internal.Pair;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
@@ -29,19 +30,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+
+import static org.gradle.internal.Cast.uncheckedCast;
 
 public class ProjectPropertySettingBuildLoader implements BuildLoader {
     private static final Logger LOGGER = LoggerFactory.getLogger(ProjectPropertySettingBuildLoader.class);
 
-    private final IGradlePropertiesLoader propertiesLoader;
+    private final GradleProperties gradleProperties;
     private final BuildLoader buildLoader;
 
-    public ProjectPropertySettingBuildLoader(IGradlePropertiesLoader propertiesLoader, BuildLoader buildLoader) {
+    public ProjectPropertySettingBuildLoader(GradleProperties gradleProperties, BuildLoader buildLoader) {
         this.buildLoader = buildLoader;
-        this.propertiesLoader = propertiesLoader;
+        this.gradleProperties = gradleProperties;
     }
 
     @Override
@@ -72,7 +74,7 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         // this should really be <String, Object>, however properties loader signature expects a <String, String>
         // even if in practice it was never enforced (one can pass other property types, such as boolean) an
         // fixing the method signature would be a binary breaking change in a public API.
-        Map<String, String> mergedProperties = propertiesLoader.mergeProperties(new HashMap(projectProperties));
+        Map<String, String> mergedProperties = gradleProperties.mergeProperties(uncheckedCast(projectProperties));
         for (Map.Entry<String, String> entry : mergedProperties.entrySet()) {
             applicator.configureProperty(project, entry.getKey(), entry.getValue());
         }
@@ -87,28 +89,39 @@ public class ProjectPropertySettingBuildLoader implements BuildLoader {
         private Class<? extends Project> projectClazz;
 
         void configureProperty(Project project, String name, Object value) {
-            Class<? extends Project> clazz = project.getClass();
-            if (clazz != projectClazz) {
-                mutators.clear();
-                projectClazz = clazz;
-            }
-            Class<?> valueType = value == null ? null : value.getClass();
-            Pair<String, ? extends Class<?>> key = Pair.of(name, valueType);
-            PropertyMutator propertyMutator = mutators.get(key);
-            if (propertyMutator != null) {
-                propertyMutator.setValue(project, value);
-            } else {
-                if (!mutators.containsKey(key)) {
-                    propertyMutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
-                    mutators.put(key, propertyMutator);
-                    if (propertyMutator != null) {
-                        propertyMutator.setValue(project, value);
-                        return;
-                    }
+            if (isPossibleProperty(name)) {
+                Class<? extends Project> clazz = project.getClass();
+                if (clazz != projectClazz) {
+                    mutators.clear();
+                    projectClazz = clazz;
                 }
-                ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
-                extraProperties.set(name, value);
+                Class<?> valueType = value == null ? null : value.getClass();
+                Pair<String, ? extends Class<?>> key = Pair.of(name, valueType);
+                PropertyMutator propertyMutator = mutators.get(key);
+                if (propertyMutator != null) {
+                    propertyMutator.setValue(project, value);
+                } else {
+                    if (!mutators.containsKey(key)) {
+                        propertyMutator = JavaPropertyReflectionUtil.writeablePropertyIfExists(clazz, name, valueType);
+                        mutators.put(key, propertyMutator);
+                        if (propertyMutator != null) {
+                            propertyMutator.setValue(project, value);
+                            return;
+                        }
+                    }
+                    ExtraPropertiesExtension extraProperties = project.getExtensions().getExtraProperties();
+                    extraProperties.set(name, value);
+                }
             }
+        }
+        /**
+         * In a properties file, entries like '=' or ':' on a single line define a property with an empty string name and value.
+         * We know that no property will have an empty property name.
+         *
+         * @see java.util.Properties#load(java.io.Reader)
+         */
+        private boolean isPossibleProperty(String name) {
+            return !name.isEmpty();
         }
     }
 }

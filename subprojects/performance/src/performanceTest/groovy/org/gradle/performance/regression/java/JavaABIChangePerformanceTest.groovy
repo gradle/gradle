@@ -35,7 +35,7 @@ class JavaABIChangePerformanceTest extends AbstractCrossVersionGradleInternalPer
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['assemble']
         runner.addBuildExperimentListener(new ApplyAbiChangeToJavaSourceFileMutator(testProject.config.fileToChangeByScenario['assemble']))
-        runner.targetVersions = ["6.1-20191209153604+0000"]
+        runner.targetVersions = ["6.2-20200108160029+0000"]
         if (testProject.name().contains("GROOVY")) {
             runner.minimumBaseVersion = '5.0'
         }

@@ -19,10 +19,13 @@ package org.gradle.plugins.ide.eclipse.model;
 import com.google.common.base.Preconditions;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
+import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
 import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
@@ -323,7 +326,12 @@ public class EclipseClasspath {
         ProjectInternal projectInternal = (ProjectInternal) this.project;
         IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
         ProjectStateRegistry projectRegistry = projectInternal.getServices().get(ProjectStateRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver());
+        boolean inferModulePath = false;
+        Task compileJava = project.getTasks().findByName(JavaPlugin.COMPILE_JAVA_TASK_NAME);
+        if (compileJava instanceof JavaCompile) {
+            inferModulePath = ((JavaCompile) compileJava).getModularity().getInferModulePath().get();
+        }
+        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, projectRegistry, new DefaultGradleApiSourcesResolver(project), inferModulePath);
         return classpathFactory.createEntries();
     }
 

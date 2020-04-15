@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.jvm;
 
 import org.gradle.api.GradleException;
+import org.gradle.process.internal.ExecException;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.process.internal.ExecHandleFactory;
 
@@ -25,6 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStreamReader;
 import java.util.Collection;
+import java.util.Collections;
 
 /**
  * Uses `java_home -V` to find JVM installations
@@ -37,16 +39,21 @@ class OsXInstalledJvmLocator {
     }
 
     public Collection<JvmInstallation> findJvms() {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             ExecHandleBuilder execHandleBuilder = execHandleFactory.newExec();
             execHandleBuilder.workingDir(new File(".").getAbsoluteFile());
             execHandleBuilder.commandLine("/usr/libexec/java_home", "-V");
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             // verbose output is written to stderr for some reason
             execHandleBuilder.setErrorOutput(outputStream);
             execHandleBuilder.setStandardOutput(new ByteArrayOutputStream());
             execHandleBuilder.build().start().waitForFinish().assertNormalExitValue();
             return new OsXJavaHomeParser().parse(new InputStreamReader(new ByteArrayInputStream(outputStream.toByteArray())));
+        } catch (ExecException e) {
+            if (new String(outputStream.toByteArray()).contains("No Java runtime present")) {
+                return Collections.emptyList();
+            }
+            throw new GradleException("Could not locate installed JVMs.", e);
         } catch (Exception e) {
             throw new GradleException("Could not locate installed JVMs.", e);
         }

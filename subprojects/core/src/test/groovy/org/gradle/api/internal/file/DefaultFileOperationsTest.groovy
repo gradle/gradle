@@ -49,7 +49,7 @@ class DefaultFileOperationsTest extends Specification {
     private final FileCollectionFactory fileCollectionFactory = Mock()
     private DefaultFileOperations fileOperations = instance()
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     private DefaultFileOperations instance(FileResolver resolver = resolver) {
         instantiator.newInstance(
@@ -63,6 +63,7 @@ class DefaultFileOperationsTest extends Specification {
             resourceHandlerFactory,
             fileCollectionFactory,
             TestFiles.fileSystem(),
+            TestFiles.patternSetFactory,
             TestFiles.deleter()
         )
     }
@@ -111,7 +112,7 @@ class DefaultFileOperationsTest extends Specification {
 
         then:
         result == fileCollection
-        1 * fileCollectionFactory.resolving('a', 'b', 'c') >> fileCollection
+        1 * fileCollectionFactory.resolving(['a', 'b', 'c'] as Object[]) >> fileCollection
     }
 
     def createsFileTree() {
@@ -162,9 +163,10 @@ class DefaultFileOperationsTest extends Specification {
     }
 
     def copiesFiles() {
+        def fileCollection = Mock(ConfigurableFileCollection)
         def fileTree = Mock(FileTreeInternal)
-        fileCollectionFactory.resolving({ it.contains('file') }) >> fileTree
-        fileTree.asFileTree >> fileTree
+        fileCollectionFactory.configurableFiles() >> fileCollection
+        fileCollection.asFileTree >> fileTree
         fileTree.matching(_) >> fileTree
         resolver.resolve('dir') >> tmpDir.getTestDirectory()
 

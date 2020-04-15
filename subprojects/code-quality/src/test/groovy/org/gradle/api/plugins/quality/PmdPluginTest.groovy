@@ -21,7 +21,9 @@ import org.gradle.api.tasks.SourceSet
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.tasks.TaskDependencyMatchers.dependsOn
-import static org.hamcrest.CoreMatchers.*
+import static org.hamcrest.CoreMatchers.hasItem
+import static org.hamcrest.CoreMatchers.hasItems
+import static org.hamcrest.CoreMatchers.not
 import static spock.util.matcher.HamcrestSupport.that
 
 class PmdPluginTest extends AbstractProjectBuilderSpec {
@@ -53,6 +55,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         extension.ruleSetFiles.empty
         extension.reportsDir == project.file("build/reports/pmd")
         !extension.ignoreFailures
+        extension.maxFailures.get() == 0
         extension.rulePriority == 5
     }
 
@@ -106,8 +109,9 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert reports.xml.destination == project.file("build/reports/pmd/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("build/reports/pmd/${sourceSet.name}.html")
             assert ignoreFailures == false
+            assert maxFailures.get() == 0
             assert rulePriority == 5
-            assert incrementalAnalysis.get() == false
+            assert incrementalAnalysis.get() == true
         }
     }
 
@@ -124,8 +128,9 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.reports.xml.destination == project.file("build/reports/pmd/custom.xml")
         task.reports.html.destination == project.file("build/reports/pmd/custom.html")
         task.ignoreFailures == false
+        task.maxFailures.get() == 0
         task.rulePriority == 5
-        task.incrementalAnalysis.get() == false
+        task.incrementalAnalysis.get() == true
     }
 
     def "adds pmd tasks to check lifecycle task"() {
@@ -155,6 +160,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             ruleSetFiles = project.getLayout().files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
+            maxFailures = 17
             rulePriority = 3
         }
 
@@ -179,6 +185,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             assert reports.xml.destination == project.file("pmd-reports/${sourceSet.name}.xml")
             assert reports.html.destination == project.file("pmd-reports/${sourceSet.name}.html")
             assert ignoreFailures == true
+            assert maxFailures.get() == 17
             assert rulePriority == 3
         }
     }
@@ -191,6 +198,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
             ruleSetFiles = project.getLayout().files("my-ruleset.xml")
             reportsDir = project.file("pmd-reports")
             ignoreFailures = true
+            maxFailures = 5
             rulePriority = 3
         }
 
@@ -205,6 +213,7 @@ class PmdPluginTest extends AbstractProjectBuilderSpec {
         task.reports.html.destination == project.file("pmd-reports/custom.html")
         task.outputs.files.files == task.reports.enabled*.destination as Set
         task.ignoreFailures == true
+        task.maxFailures.get() == 5
         task.rulePriority == 3
     }
 

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.runtimeshaded;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -47,30 +46,24 @@ public class RuntimeShadedJarFactory {
     }
 
     public File get(final RuntimeShadedJarType type, final Collection<? extends File> classpath) {
-        final File jarFile = cache.get(type.getIdentifier(), new Action<File>() {
+        final File jarFile = cache.get(type.getIdentifier(), file -> executor.run(new RunnableBuildOperation() {
             @Override
-            public void execute(final File file) {
-                executor.run(new RunnableBuildOperation() {
-                    @Override
-                    public void run(BuildOperationContext context) {
-                        RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
-                            progressLoggerFactory,
-                            new ImplementationDependencyRelocator(type),
-                            directoryFileTreeFactory
-                        );
-                        creator.create(file, classpath);
-                    }
-
-                    @Override
-                    public BuildOperationDescriptor.Builder description() {
-                        return BuildOperationDescriptor
-                            .displayName("Generate " + file)
-                            .progressDisplayName("Generating " + file.getName());
-                    }
-                });
-
+            public void run(BuildOperationContext context) {
+                RuntimeShadedJarCreator creator = new RuntimeShadedJarCreator(
+                    progressLoggerFactory,
+                    new ImplementationDependencyRelocator(type),
+                    directoryFileTreeFactory
+                );
+                creator.create(file, classpath);
             }
-        });
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return BuildOperationDescriptor
+                    .displayName("Generate " + file)
+                    .progressDisplayName("Generating " + file.getName());
+            }
+        }));
         LOGGER.debug("Using Gradle runtime shaded JAR file: {}", jarFile);
         return jarFile;
     }

@@ -17,7 +17,9 @@
 package org.gradle.model.managed
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class UnmanagedCollectionPropertyIntegrationTest extends AbstractIntegrationSpec {
 
     def "managed type can have unmanaged properties of collection type with types that are not scalar types"() {

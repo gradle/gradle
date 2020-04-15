@@ -243,6 +243,23 @@ open class IvyComponentRule : ComponentMetadataRule {
 }
 // end::ivy-component-metadata-rule[]
 
+// tag::maven-packaging-component-metadata-rule[]
+open class MavenComponentRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        val descriptor = context.getDescriptor(PomModuleDescriptor::class)
+        if (descriptor != null && descriptor.packaging == "war") {
+            // ...
+        }
+    }
+}
+// end::maven-packaging-component-metadata-rule[]
+
+dependencies {
+    components {
+        all<IvyComponentRule>()
+        all<MavenComponentRule>()
+    }
+}
 
 // tag::custom-status-scheme[]
 open class CustomStatusRule : ComponentMetadataRule {
@@ -264,7 +281,7 @@ dependencies {
 
 tasks.register("compileClasspathArtifacts") {
     doLast {
-        configurations["compileClasspath"].forEach { println(it.name) }
+        configurations["compileClasspath"].filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }
 }
 tasks.register("failRuntimeClasspathResolve") {
@@ -277,6 +294,6 @@ tasks.register("runtimeClasspathArtifacts") {
         configurations["runtimeClasspath"].attributes {
             attribute(MachineArchitecture.ARCHITECTURE_ATTRIBUTE, getObjects().named("x86"))
         }
-        configurations["runtimeClasspath"].forEach { println(it.name) }
+        configurations["runtimeClasspath"].filter { !it.name.startsWith("commons-lang3") }.forEach { println(it.name) }
     }
 }

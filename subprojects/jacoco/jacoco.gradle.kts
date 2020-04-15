@@ -45,6 +45,8 @@ dependencies {
     testFixturesImplementation(testLibrary("jsoup"))
 
     testImplementation(project(":fileCollections"))
+    testImplementation(project(":internalTesting"))
+    testImplementation(project(":resources"))
     testImplementation(project(":internalIntegTesting"))
     testImplementation(testFixtures(project(":core")))
 

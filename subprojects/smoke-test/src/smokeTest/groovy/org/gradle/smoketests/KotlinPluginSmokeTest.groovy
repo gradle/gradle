@@ -19,11 +19,11 @@ package org.gradle.smoketests
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
-import org.gradle.util.Requires
+import org.gradle.testkit.runner.GradleRunner
+import org.gradle.util.GradleVersion
 import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
-import static org.gradle.util.TestPrecondition.KOTLIN_SCRIPT
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
@@ -53,7 +53,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
     @Unroll
     @ToBeFixedForInstantExecution
-    def 'kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
+    def '#sampleName kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
         given:
         AndroidHome.assertIsSet()
         useSample(sampleName)
@@ -70,7 +70,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
         }
 
         when:
-        def result = build(workers, 'clean', ':app:testDebugUnitTestCoverage')
+        def result = useAgpVersion(androidPluginVersion, runner(workers, 'clean', ':app:testDebugUnitTestCoverage')).build()
 
         then:
         result.task(':app:testDebugUnitTestCoverage').outcome == SUCCESS
@@ -97,7 +97,6 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @Requires(KOTLIN_SCRIPT)
     @ToBeFixedForInstantExecution
     def 'kotlin js #version plugin, workers=#workers'() {
         given:
@@ -113,7 +112,9 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         if (version == TestedVersions.kotlin.latest()) {
             expectDeprecationWarnings(result,
-                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. Please use the implementation configuration instead."
+                "The compile configuration has been deprecated for dependency declaration. This will fail with an error in Gradle 7.0. " +
+                    "Please use the implementation configuration instead. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_5.html#dependencies_should_no_longer_be_declared_using_the_compile_and_runtime_configurations"
             )
         }
 
@@ -125,7 +126,6 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @Requires(KOTLIN_SCRIPT)
     @ToBeFixedForInstantExecution
     def 'kotlin #kotlinVersion and groovy plugins combined'() {
         given:
@@ -172,8 +172,11 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     private BuildResult build(boolean workers, String... tasks) {
+        return runner(workers, *tasks).build()
+    }
+
+    private GradleRunner runner(boolean workers, String... tasks) {
         return runner(tasks + ["--parallel", "-Pkotlin.parallel.tasks.in.project=$workers"] as String[])
             .forwardOutput()
-            .build()
     }
 }

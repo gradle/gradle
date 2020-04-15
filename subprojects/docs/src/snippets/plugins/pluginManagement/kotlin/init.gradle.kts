@@ -1,5 +1,5 @@
-settingsEvaluated { settings ->
-    settings.pluginManagement {
+settingsEvaluated {
+    pluginManagement {
         plugins {
         }
         resolutionStrategy {

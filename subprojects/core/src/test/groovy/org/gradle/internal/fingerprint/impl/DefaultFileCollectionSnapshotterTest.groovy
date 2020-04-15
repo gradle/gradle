@@ -21,9 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.internal.file.TemporaryFileProvider
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.file.collections.DefaultSingletonFileTree
 import org.gradle.api.internal.file.collections.FileTreeAdapter
-import org.gradle.api.internal.file.collections.GeneratedSingletonFileTree
 import org.gradle.api.resources.MissingResourceException
 import org.gradle.api.resources.ReadableResource
 import org.gradle.api.resources.ResourceException
@@ -40,23 +38,21 @@ import org.junit.Rule
 import spock.lang.Specification
 
 import javax.annotation.Nullable
-import java.util.function.Consumer
 
 class DefaultFileCollectionSnapshotterTest extends Specification {
     @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def snapshotter = TestFiles.fileCollectionSnapshotter()
-    def noopAction = {} as Consumer<String>
+    def noopGenerationListener = {} as Action
 
-
-    def "snapshots a singletonFileTree as RegularFileSnapshot"() {
+    def "snapshots a tree with file as root as RegularFileSnapshot"() {
         given:
         def tempDir = tmpDir.createDir('tmpDir')
         def file = tempDir.file('testFile')
         file.text = "content"
 
         when:
-        def tree = new FileTreeAdapter(new DefaultSingletonFileTree(file), TestFiles.patternSetFactory)
+        def tree = new FileTreeAdapter(TestFiles.directoryFileTreeFactory().create(file), TestFiles.patternSetFactory)
 
         then:
         assertSingleFileTree(tree)
@@ -188,7 +184,7 @@ class DefaultFileCollectionSnapshotterTest extends Specification {
         }
 
         when:
-        def tree = new FileTreeAdapter(new GeneratedSingletonFileTree(factory, file.name, noopAction, action))
+        def tree = TestFiles.fileCollectionFactory().generated(factory, file.name, noopGenerationListener, action)
 
         then:
         assertSingleFileTree(tree)

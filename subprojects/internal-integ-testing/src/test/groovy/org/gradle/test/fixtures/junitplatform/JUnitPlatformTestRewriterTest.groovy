@@ -26,7 +26,7 @@ import spock.lang.Unroll
 class JUnitPlatformTestRewriterTest extends Specification {
 
     @Rule
-    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def 'build.gradle should be rewritten'() {
         given:
@@ -44,8 +44,8 @@ dependencies { testCompile 'junit:junit:4.12' }
     def 'modular build.gradle should be rewritten'() {
         given:
         temporaryFolder.testDirectory.file('build.gradle') << '''
-dependencies { 
-    testImplementation 'junit:junit:4.12' 
+dependencies {
+    testImplementation 'junit:junit:4.12'
 }
 compileTestJava {
     def args = ["--add-modules", "junit",
@@ -61,8 +61,8 @@ test {
 
         then:
         temporaryFolder.testDirectory.file('build.gradle').text == '''
-dependencies { 
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0','org.junit.jupiter:junit-jupiter-engine:5.1.0' 
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0','org.junit.jupiter:junit-jupiter-engine:5.1.0'
 }
 compileTestJava {
     def args = ["--add-modules", "org.junit.jupiter.api",
@@ -131,16 +131,16 @@ public class OkTest {
     public void ok() throws Exception {
         assertEquals("4.12", new org.junit.runner.JUnitCore().getVersion());
     }
-    
+
     @After
     public void broken() {
         fail("failed");
     }
-    
+
     @AfterClass
     public void clean() {
     }
-    
+
     @org.junit.AfterClass
     public void clean() {
     }
@@ -155,16 +155,16 @@ public class OkTest {
     public void ok() throws Exception {
         assertEquals("4.12", new org.junit.runner.JUnitCore().getVersion());
     }
-    
+
     @AfterEach
     public void broken() {
         fail("failed");
     }
-    
+
     @AfterAll
     public void clean() {
     }
-    
+
     @org.junit.jupiter.api.AfterAll
     public void clean() {
     }

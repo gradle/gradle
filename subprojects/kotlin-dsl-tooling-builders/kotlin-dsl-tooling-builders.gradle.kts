@@ -15,6 +15,8 @@
  */
 
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
+
 
 plugins {
     `kotlin-dsl-module`
@@ -42,6 +44,7 @@ dependencies {
 
     testImplementation(project(":kotlinDslTestFixtures"))
     integTestImplementation(project(":kotlinDslTestFixtures"))
+    integTestImplementation(project(":internalTesting"))
 
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
@@ -54,9 +57,6 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
-tasks {
-    // TODO:kotlin-dsl
-    verifyTestFilesCleanup {
-        enabled = false
-    }
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
 }

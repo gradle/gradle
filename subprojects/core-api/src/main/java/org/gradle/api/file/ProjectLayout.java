@@ -53,7 +53,7 @@ public interface ProjectLayout {
     Provider<Directory> dir(Provider<File> file);
 
     /**
-     * <p>Creates a {@link FileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
+     * <p>Creates a read-only {@link FileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
      *
      * <p>This method can also be used to create an empty collection, but the collection may not be mutated later.</p>
      *
@@ -64,7 +64,7 @@ public interface ProjectLayout {
     FileCollection files(Object... paths);
 
     /**
-     * <p>Returns a {@link ConfigurableFileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
+     * <p>Returns a mutable {@link ConfigurableFileCollection} containing the given files, as defined by {@link Project#files(Object...)}.
      *
      * <p>This method can also be used to create an empty collection, which can later be mutated to add elements.</p>
      *

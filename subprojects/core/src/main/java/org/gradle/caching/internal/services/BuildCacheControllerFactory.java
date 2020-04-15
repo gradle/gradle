@@ -107,7 +107,7 @@ public final class BuildCacheControllerFactory {
                 ));
 
                 if (!localEnabled && !remoteEnabled) {
-                    LOGGER.warn("Task output caching is enabled, but no build caches are configured or enabled.");
+                    LOGGER.warn("Using the build cache is enabled, but no build caches are configured or enabled.");
                     return NoOpBuildCacheController.INSTANCE;
                 } else {
                     BuildCacheServicesConfiguration config = toConfiguration(

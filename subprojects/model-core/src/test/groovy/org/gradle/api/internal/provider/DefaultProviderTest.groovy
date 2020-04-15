@@ -19,6 +19,8 @@ package org.gradle.api.internal.provider
 import org.gradle.api.provider.Provider
 import org.gradle.internal.state.ManagedFactory
 
+import java.util.concurrent.Callable
+
 class DefaultProviderTest extends ProviderSpec<String> {
     @Override
     DefaultProvider<String> providerWithNoValue() {
@@ -31,13 +33,28 @@ class DefaultProviderTest extends ProviderSpec<String> {
     }
 
     @Override
+    Class<String> type() {
+        return String
+    }
+
+    @Override
     String someValue() {
         return "s1"
     }
 
     @Override
     String someOtherValue() {
-        return "s2"
+        return "other1"
+    }
+
+    @Override
+    String someOtherValue2() {
+        return "other2"
+    }
+
+    @Override
+    String someOtherValue3() {
+        return "other3"
     }
 
     @Override
@@ -48,38 +65,12 @@ class DefaultProviderTest extends ProviderSpec<String> {
     def "toString() does not realize value"() {
         given:
         def providerWithBadValue = new DefaultProvider<String>({
-            assert false : "never called"
+            throw new RuntimeException()
         })
 
         expect:
         providerWithBadValue.toString() == "provider(?)"
         Providers.notDefined().toString() == "undefined"
-
-    }
-
-    def "throws exception if null value is retrieved for non-null get method"() {
-        when:
-        def provider = createProvider()
-        provider.get()
-
-        then:
-        def t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
-
-        when:
-        provider = createProvider(null)
-        provider.get()
-
-        then:
-        t = thrown(IllegalStateException)
-        t.message == "No value has been specified for this provider."
-
-        when:
-        provider = createProvider(true)
-        def value = provider.get()
-
-        then:
-        value
     }
 
     def "rethrows exception if value calculation throws exception"() {
@@ -96,11 +87,46 @@ class DefaultProviderTest extends ProviderSpec<String> {
         t == failure
     }
 
+    def "infers value type from callable implementation"() {
+        def provider = new DefaultProvider(callable)
+
+        expect:
+        provider.type == valueType
+
+        where:
+        callable                    | valueType
+        new RawCallable()           | null
+        new StringCallable()        | String
+        new ParameterizedCallable() | null
+        ({ 123 } as Callable)       | null
+    }
+
     static Provider createProvider() {
         new DefaultProvider({})
     }
 
     static Provider createProvider(value) {
         new DefaultProvider({ value })
+    }
+
+    static class RawCallable implements Callable {
+        @Override
+        Object call() throws Exception {
+            return null
+        }
+    }
+
+    static class StringCallable implements Callable<String> {
+        @Override
+        String call() throws Exception {
+            return null
+        }
+    }
+
+    static class ParameterizedCallable<T> implements Callable<List<T>> {
+        @Override
+        List<T> call() throws Exception {
+            return null
+        }
     }
 }

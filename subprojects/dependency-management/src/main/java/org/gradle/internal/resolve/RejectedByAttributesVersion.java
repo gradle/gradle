@@ -26,12 +26,7 @@ import java.util.Comparator;
 import java.util.List;
 
 public class RejectedByAttributesVersion extends RejectedVersion {
-    private static final Comparator<AttributeMatcher.MatchingDescription> DESCRIPTION_COMPARATOR = new Comparator<AttributeMatcher.MatchingDescription>() {
-        @Override
-        public int compare(AttributeMatcher.MatchingDescription o1, AttributeMatcher.MatchingDescription o2) {
-            return o1.getRequestedAttribute().getName().compareTo(o2.getRequestedAttribute().getName());
-        }
-    };
+    private static final Comparator<AttributeMatcher.MatchingDescription> DESCRIPTION_COMPARATOR = (o1, o2) -> o1.getRequestedAttribute().getName().compareTo(o2.getRequestedAttribute().getName());
     private final List<AttributeMatcher.MatchingDescription> matchingDescription;
 
     public RejectedByAttributesVersion(ModuleComponentIdentifier id, List<AttributeMatcher.MatchingDescription> matchingDescription) {

@@ -21,22 +21,27 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class RegExpNameMapper implements Transformer<String, String> {
-    private Matcher matcher;
-    private String replacement;
+    private final Pattern pattern;
+    private transient Matcher matcher;
+    private final String replacement;
 
     public RegExpNameMapper(String sourceRegEx, String replaceWith) {
         this(Pattern.compile(sourceRegEx), replaceWith);
     }
 
     public RegExpNameMapper(Pattern sourceRegEx, String replaceWith) {
-        matcher = sourceRegEx.matcher("");
+        pattern = sourceRegEx;
         replacement = replaceWith;
     }
 
     @Override
     public String transform(String source) {
+        if (matcher == null) {
+            matcher = pattern.matcher(source);
+        } else {
+            matcher.reset(source);
+        }
         String result = source;
-        matcher.reset(source);
         if (matcher.find()) {
             result = matcher.replaceFirst(replacement);
         }

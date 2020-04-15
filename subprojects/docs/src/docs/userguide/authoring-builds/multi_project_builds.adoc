@@ -81,7 +81,6 @@ Let's look at some examples with the following project tree. This is a multi-pro
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/firstExample/water`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/firstExample/water/groovy",files="settings.gradle[]"]
@@ -134,7 +133,6 @@ We are not that happy with the build script of the `water` project. It is inconv
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/addKrill/water`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/addKrill/water/groovy",files="settings.gradle[]"]
@@ -236,7 +234,6 @@ As we have said, we usually prefer to put project specific behavior into the bui
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/spreadSpecifics/water`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/spreadSpecifics/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[]"]
@@ -292,7 +289,6 @@ To show more of the power of configuration injection, let's add another project 
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/addTropical/water`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/addTropical/water/groovy",files="settings.gradle[];build.gradle[]"]
@@ -348,7 +344,6 @@ Using the project name for filtering is one option. Using <<writing_build_script
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/tropicalWithProperties/water`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/tropicalWithProperties/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[];tropicalFish/build.gradle[]"]
@@ -462,7 +457,6 @@ The examples from the last section were special, as the projects had no _Executi
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/firstMessages/messages`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/dependencies/firstMessages/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];producer/build.gradle[]"]
@@ -599,7 +593,6 @@ Gradle's multi-project features are driven by real life use cases. One good exam
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/webDist`** in the ‘-all’ distribution of Gradle.
 
 ====
 include::sample[dir="snippets/userguide/multiproject/dependencies/webDist/groovy",files="settings.gradle[];build.gradle[]"]
@@ -723,7 +716,6 @@ What if one project needs the jar produced by another project in its compile pat
 =====
 ====
 
-NOTE: The code for this example can be found at **`samples/userguide/multiproject/dependencies/java`** in the ‘-all’ distribution of Gradle.
 
 We have the projects “`shared`”, “`api`” and “`personService`”. The “`personService`” project has a lib dependency on the other two projects. The “`api`” project has a lib dependency on the “`shared`” project.
 “`services`” is also a project, but we use it just as a container. It has no build script and gets nothing injected by another build script. We use the `:` separator to define a project path. Consult the DSL documentation of link:{groovyDslPath}++/org.gradle.api.initialization.Settings.html#org.gradle.api.initialization.Settings:include(java.lang.String[])++[Settings.include(java.lang.String[\])] for more information about defining project paths.

@@ -222,7 +222,6 @@ if (project.hasProperty('skipCache')) {
         succeeds 'retrieve'
     }
 
-    @ToBeFixedForInstantExecution
     def "fails and reports type-based location if neither packaging-based or type-based artifact can be located"() {
         when:
         buildWithDependencies("compile 'group:projectA:1.0'")

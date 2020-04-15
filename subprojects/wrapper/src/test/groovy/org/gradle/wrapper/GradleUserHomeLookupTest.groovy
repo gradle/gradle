@@ -48,7 +48,6 @@ class GradleUserHomeLookupTest extends Specification {
         GradleUserHomeLookup.gradleUserHome() == new File(userDefinedDirName)
     }
 
-    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "returns Gradle user home set by environment variable"() {
         when:
         String userDefinedDirName = 'some/dir'
@@ -61,7 +60,6 @@ class GradleUserHomeLookupTest extends Specification {
         env.removeEnvironmentVariable(GradleUserHomeLookup.GRADLE_USER_HOME_ENV_KEY)
     }
 
-    @Requires(TestPrecondition.SET_ENV_VARIABLE)
     def "Gradle user home set by system property takes precedence over environment variable"() {
         when:
         String sysPropDirName = 'some/dir'

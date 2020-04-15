@@ -42,7 +42,7 @@ import static org.junit.Assert.assertTrue;
 
 public class BTreePersistentIndexedCacheTest {
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
     private final Serializer<String> stringSerializer = new DefaultSerializer<String>();
     private final Serializer<Integer> integerSerializer = new DefaultSerializer<Integer>();
     private BTreePersistentIndexedCache<String, Integer> cache;

@@ -16,11 +16,11 @@
 
 package org.gradle.model
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.longlived.PersistentBuildProcessIntegrationTest
 import org.gradle.model.internal.inspect.ModelRuleExtractor
-import org.gradle.util.GradleVersion
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def setup() {
@@ -32,8 +32,10 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
     }
 
     private void expectDeprecationWarnings() {
-        executer.expectDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The java-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
     boolean getNewRulesExtracted() {
@@ -41,7 +43,6 @@ class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationT
         match[0][1] == "true"
     }
 
-    @ToBeFixedForInstantExecution
     def "rules extracted from core plugins are reused across builds"() {
         given:
         buildFile << '''

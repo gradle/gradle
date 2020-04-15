@@ -73,6 +73,7 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     private SortOrder sortOrder = SortOrder.DEFAULT;
     private boolean failOnDynamicVersions;
     private boolean failOnChangingVersions;
+    private boolean verifyDependencies = true;
 
     private static final String ASSUME_FLUID_DEPENDENCIES = "org.gradle.resolution.assumeFluidDependencies";
 
@@ -304,6 +305,9 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
         if (isFailingOnChangingVersions()) {
             out.failOnChangingVersions();
         }
+        if (!isDependencyVerificationEnabled()) {
+            out.disableDependencyVerification();
+        }
         return out;
     }
 
@@ -334,5 +338,22 @@ public class DefaultResolutionStrategy implements ResolutionStrategyInternal {
     @Override
     public boolean isFailingOnChangingVersions() {
         return failOnChangingVersions;
+    }
+
+    @Override
+    public boolean isDependencyVerificationEnabled() {
+        return verifyDependencies;
+    }
+
+    @Override
+    public ResolutionStrategy disableDependencyVerification() {
+        verifyDependencies = false;
+        return this;
+    }
+
+    @Override
+    public ResolutionStrategy enableDependencyVerification() {
+        verifyDependencies = true;
+        return this;
     }
 }

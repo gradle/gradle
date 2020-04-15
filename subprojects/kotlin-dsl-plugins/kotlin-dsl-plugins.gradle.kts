@@ -18,8 +18,10 @@ import build.futureKotlin
 import build.kotlin
 import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
+import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.bundledGradlePlugin
+
 
 plugins {
     `kotlin-dsl-plugin-bundle`
@@ -28,7 +30,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.3.4"
+version = "1.3.6"
 
 base.archivesBaseName = "plugins"
 
@@ -45,6 +47,15 @@ val generateSources by tasks.registering(GenerateKotlinDslPluginsExtensions::cla
 
 sourceSets.main {
     kotlin.srcDir(files(generatedSourcesDir).builtBy(generateSources))
+}
+
+configurations {
+    compileOnly {
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+        }
+    }
 }
 
 dependencies {
@@ -135,6 +146,15 @@ tasks.noDaemonIntegTest {
 }
 
 // TODO:kotlin-dsl
-tasks.verifyTestFilesCleanup {
-    enabled = false
+testFilesCleanup {
+    policy.set(WhenNotEmpty.REPORT)
+}
+
+// TODO: workaround for https://github.com/gradle/gradlecom/issues/627
+//  which causes `publishPlugins` to fail with:
+//  > java.io.FileNotFoundException: .../subprojects/kotlin-dsl-plugins/src/main/java (No such file or directory)
+afterEvaluate {
+    configurations.archives.get().allArtifacts.removeIf {
+        it.name == "java"
+    }
 }

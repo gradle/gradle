@@ -26,7 +26,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import java.nio.file.Path
             import java.nio.file.Files
-            
+
             class TransformTask extends DefaultTask {
                 @InputFile
                 Path inputFile
@@ -36,14 +36,14 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 Path outputFile
                 @OutputDirectory
                 Path outputDir
-                
+
                 @TaskAction
                 def go() {
                     outputFile.toFile().text = inputFile.toFile().text
                     inputDir.toFile().listFiles().each { f -> outputDir.resolve(f.name).toFile().text = f.text }
                 }
             }
-            
+
             task transform(type: TransformTask) {
                 inputFile = file("file1.txt").toPath()
                 inputDir = file("dir1").toPath()
@@ -92,7 +92,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         buildFile << """
             import java.nio.file.Path
             import java.nio.file.Files
-            
+
             task transform {
                 def inputFile = file("file1.txt").toPath()
                 def inputDir = file("dir1").toPath()
@@ -175,8 +175,13 @@ task otherJar(type: Jar) {
     destinationDirectory = buildDir
 }
 
-configurations { archives }
-dependencies { archives files('b.jar') { builtBy jar } }
+configurations {
+    deps
+    archives {
+        extendsFrom deps
+    }
+}
+dependencies { deps files('b.jar') { builtBy jar } }
 artifacts { archives otherJar }
 '''
 

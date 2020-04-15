@@ -41,7 +41,7 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
 class DependencyClassPathNotationConverterTest extends Specification {
 
     @Rule
-    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     def instantiator = TestUtil.instantiatorFactory().decorateLenient()
     def classPathRegistry = Mock(ClassPathRegistry)

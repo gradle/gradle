@@ -16,10 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.internal.DisplayName;
+import com.google.common.collect.ImmutableCollection;
+import org.gradle.api.Action;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -27,15 +26,9 @@ import java.util.Map;
  */
 public interface MapCollector<K, V> extends ValueSupplier {
 
-    boolean present();
+    Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest);
 
-    void collectInto(DisplayName owner, MapEntryCollector<K, V> collector, Map<K, V> dest);
+    Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 
-    boolean maybeCollectInto(MapEntryCollector<K, V> collector, Map<K, V> dest);
-
-    void collectKeysInto(ValueCollector<K> collector, Collection<K> dest);
-
-    boolean maybeCollectKeysInto(ValueCollector<K> collector, Collection<K> dest);
-
-    void visit(List<ProviderInternal<? extends Map<? extends K, ? extends V>>> sources);
+    void calculateExecutionTimeValue(Action<ExecutionTimeValue<? extends Map<? extends K, ? extends V>>> visitor);
 }

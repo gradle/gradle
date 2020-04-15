@@ -20,7 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.DependencyHandler
-import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.file.ProjectLayout
 import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.tasks.testing.Test
 import org.gradle.language.scala.tasks.PlatformScalaCompile
@@ -62,11 +62,10 @@ class PlayTestPluginTest extends Specification {
 
     def "adds test related tasks per binary"() {
         given:
-        def fileResolver = Mock(FileResolver)
-        1 * fileResolver.resolve('test') >> new File('test')
-        
+        def projectLayout = Stub(ProjectLayout)
+
         when:
-        plugin.createTestTasks(taskModelMap, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), fileResolver, projectIdentifier, buildDir)
+        plugin.createTestTasks(taskModelMap, binaryContainer, new PlayPluginConfigurations(configurations, dependencyHandler), projectLayout, projectIdentifier, buildDir)
 
         then:
         1 * taskModelMap.create("compileSomeBinaryTests", PlatformScalaCompile, _)

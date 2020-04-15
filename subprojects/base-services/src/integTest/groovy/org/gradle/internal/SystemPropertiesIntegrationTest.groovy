@@ -22,32 +22,7 @@ import org.junit.Rule
 
 class SystemPropertiesIntegrationTest extends ConcurrentSpec {
     @Rule SetSystemProperties properties = new SetSystemProperties()
-    @Rule TestNameTestDirectoryProvider temporaryFolder
-
-    def "creates Java compiler for mismatching Java home directory for multiple threads concurrently"() {
-        final int threadCount = 100
-        Factory<String> factory = Mock()
-        String factoryCreationResult = 'test'
-        File originalJavaHomeDir = new File(System.properties['java.home'] as String)
-        File providedJavaHomeDir = temporaryFolder.file('my/test/java/home/toolprovider')
-
-        when:
-        async {
-            threadCount.times {
-                start {
-                    String expectedString = SystemProperties.instance.withJavaHome(providedJavaHomeDir, factory)
-                    assert factoryCreationResult == expectedString
-                }
-            }
-        }
-
-        then:
-        threadCount * factory.create() >> {
-            assert new File(System.properties['java.home'] as String) == providedJavaHomeDir
-            factoryCreationResult
-        }
-        assert new File(System.properties['java.home'] as String) == originalJavaHomeDir
-    }
+    @Rule TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
     def "sets a system property for the duration of a Factory operation"() {
         final int threadCount = 100

@@ -26,6 +26,8 @@ import java.nio.charset.Charset
 
 import static org.gradle.process.internal.JvmOptions.FILE_ENCODING_KEY
 import static org.gradle.process.internal.JvmOptions.JAVA_IO_TMPDIR_KEY
+import static org.gradle.process.internal.JvmOptions.JAVA_NET_PREFER_IPV4_KEY
+import static org.gradle.process.internal.JvmOptions.JAVA_NET_PREFER_IPV6_KEY
 import static org.gradle.process.internal.JvmOptions.JMX_REMOTE_KEY
 import static org.gradle.process.internal.JvmOptions.USER_COUNTRY_KEY
 import static org.gradle.process.internal.JvmOptions.USER_LANGUAGE_KEY
@@ -46,7 +48,7 @@ class JvmOptionsTest extends Specification {
     def "reads quoted options from String"() {
         expect:
         fromString("-Dfoo=bar -Dfoo2=\"hey buddy\" -Dfoo3=baz") ==
-            ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
+                ["-Dfoo=bar", "-Dfoo2=hey buddy", "-Dfoo3=baz"]
 
         fromString("  -Dfoo=\" bar \"  ") == ["-Dfoo= bar "]
         fromString("  -Dx=\"\"  -Dy=\"\n\" ") == ["-Dx=", "-Dy=\n"]
@@ -157,13 +159,15 @@ class JvmOptionsTest extends Specification {
         opts.immutableSystemProperties.containsKey(propKey)
 
         where:
-        propDescr                 | propKey                  | propAsArg
-        "file encoding"           | FILE_ENCODING_KEY        | "-D${FILE_ENCODING_KEY}=UTF-8"
-        "user variant"            | USER_VARIANT_KEY         | "-D${USER_VARIANT_KEY}"
-        "user language"           | USER_LANGUAGE_KEY        | "-D${USER_LANGUAGE_KEY}=en"
-        "user country"            | USER_COUNTRY_KEY         | "-D${USER_COUNTRY_KEY}=US"
-        "jmx remote"              | JMX_REMOTE_KEY           | "-D${JMX_REMOTE_KEY}"
-        "temp directory"          | JAVA_IO_TMPDIR_KEY       | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
+        propDescr        | propKey                  | propAsArg
+        "file encoding"  | FILE_ENCODING_KEY        | "-D${FILE_ENCODING_KEY}=UTF-8"
+        "user variant"   | USER_VARIANT_KEY         | "-D${USER_VARIANT_KEY}"
+        "user language"  | USER_LANGUAGE_KEY        | "-D${USER_LANGUAGE_KEY}=en"
+        "user country"   | USER_COUNTRY_KEY         | "-D${USER_COUNTRY_KEY}=US"
+        "jmx remote"     | JMX_REMOTE_KEY           | "-D${JMX_REMOTE_KEY}"
+        "temp directory" | JAVA_IO_TMPDIR_KEY       | "-D${JAVA_IO_TMPDIR_KEY}=/some/tmp/folder"
+        "prefer ipv4"    | JAVA_NET_PREFER_IPV4_KEY | "-D${JAVA_NET_PREFER_IPV4_KEY}=true"
+        "prefer ipv6"    | JAVA_NET_PREFER_IPV6_KEY | "-D${JAVA_NET_PREFER_IPV6_KEY}=true"
     }
 
     @Unroll
@@ -174,11 +178,13 @@ class JvmOptionsTest extends Specification {
         then:
         opts.allJvmArgs.contains("-D${propKey}=${propValue}".toString());
         where:
-        propDescr                 | propKey                  | propValue
-        "file encoding"           | FILE_ENCODING_KEY        | "ISO-8859-1"
-        "user country"            | USER_COUNTRY_KEY         | "en"
-        "user language"           | USER_LANGUAGE_KEY        | "US"
-        "temp directory"          | JAVA_IO_TMPDIR_KEY       | "/some/tmp/folder"
+        propDescr        | propKey            | propValue
+        "file encoding"  | FILE_ENCODING_KEY  | "ISO-8859-1"
+        "user country"   | USER_COUNTRY_KEY   | "en"
+        "user language"  | USER_LANGUAGE_KEY  | "US"
+        "temp directory" | JAVA_IO_TMPDIR_KEY | "/some/tmp/folder"
+        "prefer ipv4"    | JAVA_NET_PREFER_IPV4_KEY | "-D${JAVA_NET_PREFER_IPV4_KEY}=true"
+        "prefer ipv6"    | JAVA_NET_PREFER_IPV6_KEY | "-D${JAVA_NET_PREFER_IPV6_KEY}=true"
     }
 
     def "can enter debug mode"() {

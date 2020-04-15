@@ -64,6 +64,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
         return getSystemPropertyExecuter() == Executer.noDaemon;
     }
 
+    public static boolean isVfsRetention() {
+        return getSystemPropertyExecuter() == Executer.vfsRetention;
+    }
+
     public static boolean isDaemon() {
         return !(isNoDaemon() || isEmbedded());
     }
@@ -74,6 +78,10 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
 
     public static boolean isParallel() {
         return getSystemPropertyExecuter().executeParallel;
+    }
+
+    public static boolean isNotInstant() {
+        return !isInstant();
     }
 
     public static boolean isInstant() {
@@ -126,6 +134,7 @@ public class GradleContextualExecuter extends AbstractDelegatingGradleExecuter {
             case instant:
                 return new InstantExecutionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             case vfsRetention:
+                requireIsolatedDaemons();
                 return new VfsRetentionGradleExecuter(getDistribution(), getTestDirectoryProvider(), gradleVersion, buildContext);
             default:
                 throw new RuntimeException("Not a supported executer type: " + executerType);

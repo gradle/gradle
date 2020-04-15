@@ -16,16 +16,311 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.internal.hash.HashUtil
-import org.gradle.internal.logging.ConsoleRenderer
-import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
+import org.gradle.api.Project
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.invocation.Gradle
+import org.gradle.invocation.DefaultGradle
 import spock.lang.Unroll
 
-import javax.script.ScriptEngine
-import javax.script.ScriptEngineManager
 
 class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+
+    def "state serialization errors are reported and fail the build"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        def stateSerializationProblems = withStateSerializationProblems().store
+        def stateSerializationErrors = withStateSerializationErrors()
+        def errorSpec = problems.newErrorSpec(stateSerializationErrors.first()) {
+            withUniqueProblems(stateSerializationProblems)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        instantFails 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
+
+        then:
+        notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
+
+        and:
+        instant.assertStateStoreFailed()
+        problems.assertFailureHasError(failure, errorSpec)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(9)
+        failure.assertHasCause("BOOM")
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantFails 'taskWithStateSerializationProblems', 'taskWithStateSerializationError'
+
+        then:
+        notExecuted('taskWithStateSerializationProblems', 'taskWithStateSerializationError')
+
+        and:
+        instant.assertStateStoreFailed()
+        problems.assertFailureHasError(failure, errorSpec)
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(9)
+        failure.assertHasCause("BOOM")
+    }
+
+    def "problems are reported and fail the build by default"() {
+
+        given:
+        def instantExecution = newInstantExecutionFixture()
+        def stateSerializationProblems = withStateSerializationProblems()
+        def taskExecutionProblems = withTaskExecutionProblems()
+
+        when:
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b'
+
+        then:
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
+            withProblemsWithStackTraceCount(2)
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantRun 'taskWithStateSerializationProblems', 'a', 'b'
+
+        then:
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        instantExecution.assertStateStored()
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
+            withProblemsWithStackTraceCount(2)
+        }
+
+        when:
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b'
+
+        then:
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        instantExecution.assertStateLoaded()
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.load)
+            withProblemsWithStackTraceCount(2)
+        }
+    }
+
+    def "problems are reported and fail the build when failOnProblems is false but maxProblems is reached"() {
+
+        given:
+        def stateSerializationProblems = withStateSerializationProblems().store
+        def taskExecutionProblems = withTaskExecutionProblems()
+
+        when:
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b',
+            "-D${SystemProperties.failOnProblems}=false", "-D${SystemProperties.maxProblems}=2"
+
+        then:
+        notExecuted(':taskWithStateSerializationProblems', ':a', ':b')
+        problems.assertFailureHasTooManyProblems(failure) {
+            withUniqueProblems(stateSerializationProblems)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        when:
+        instantFails 'taskWithStateSerializationProblems', 'a', 'b',
+            "-D${SystemProperties.failOnProblems}=false", "-D${SystemProperties.maxProblems}=4"
+
+        then:
+        executed(':taskWithStateSerializationProblems', ':a', ':b')
+        problems.assertFailureHasTooManyProblems(failure) {
+            withRootCauseDescription("Execution failed for task ':b'.")
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
+            withProblemsWithStackTraceCount(2)
+        }
+    }
+
+    def "problems not causing build failure are reported"() {
+
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        def expectedProblems = withStateSerializationProblems().store
+        buildFile << """
+            taskWithStateSerializationProblems.doFirst { throw new Exception("BOOM") }
+        """
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantFails 'taskWithStateSerializationProblems'
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(0)
+        }
+
+        and:
+        failure.assertHasDescription("Execution failed for task ':taskWithStateSerializationProblems'.")
+        failure.assertHasCause("java.lang.Exception: BOOM")
+    }
+
+    private List<String> withStateSerializationErrors() {
+        buildFile << """
+            class BrokenSerializable implements java.io.Serializable {
+                private void writeObject(java.io.ObjectOutputStream out) throws IOException {
+                    throw new RuntimeException("BOOM")
+                }
+            }
+
+            task taskWithStateSerializationError {
+                inputs.property 'brokenProperty', new BrokenSerializable()
+                inputs.property 'otherBrokenProperty', new BrokenSerializable()
+            }
+        """
+        return [
+            "input property 'brokenProperty' of ':taskWithStateSerializationError': error writing value of type 'BrokenSerializable'"
+        ]
+    }
+
+    private Map<String, List<String>> withStateSerializationProblems() {
+        buildFile << """
+            task taskWithStateSerializationProblems {
+                inputs.property 'brokenProperty', project
+                inputs.property 'otherBrokenProperty', project
+            }
+        """
+        return [
+            store: [
+                "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+                "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+            ],
+            load: [
+                "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot deserialize object of type '${Project.name}' as these are not supported with instant execution.",
+                "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot deserialize object of type '${Project.name}' as these are not supported with instant execution."
+            ]
+        ]
+    }
+
+    private List<String> withTaskExecutionProblems() {
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @TaskAction
+                def action() {
+                    println("project:${'\$'}{project.name}")
+                }
+            }
+
+            tasks.register("a", MyTask)
+            tasks.register("b", MyTask)
+        """
+        return [
+            "task `:a` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported.",
+            "task `:b` of type `MyTask`: invocation of 'Task.project' at execution time is unsupported."
+        ]
+    }
+
+    @Unroll
+    def "reports #invocation access during execution"() {
+
+        def instantExecution = newInstantExecutionFixture()
+
+        given:
+        settingsFile << "rootProject.name = 'root'"
+        buildFile << """
+            abstract class MyTask extends DefaultTask {
+                @TaskAction
+                def action() {
+                    println($code)
+                }
+            }
+
+            tasks.register("a", MyTask)
+            tasks.register("b", MyTask)
+        """
+
+        and:
+        def expectedProblems = [
+            "task `:a` of type `MyTask`: invocation of '$invocation' at execution time is unsupported.",
+            "task `:b` of type `MyTask`: invocation of '$invocation' at execution time is unsupported."
+        ]
+
+        when:
+        instantFails "a", "b"
+
+        then:
+        instantExecution.assertStateStored()
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(2)
+        }
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantRun "a", "b"
+
+        then:
+        instantExecution.assertStateLoaded()
+
+        and:
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(2)
+        }
+
+        where:
+        invocation              | code
+        'Task.project'          | 'project.name'
+        'Task.dependsOn'        | 'dependsOn'
+        'Task.taskDependencies' | 'taskDependencies'
+    }
+
+    @Unroll
+    def "report build listener registration on #registrationPoint"() {
+
+        given:
+        buildFile << code
+
+        when:
+        executer.noDeprecationChecks()
+        instantFails 'help'
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        where:
+        registrationPoint         | code
+        "Gradle.addBuildListener" | "gradle.addBuildListener(new BuildAdapter())"
+        "Gradle.addListener"      | "gradle.addListener(new BuildAdapter())"
+        "Gradle.buildStarted"     | "gradle.buildStarted {}"
+        "Gradle.buildFinished"    | "gradle.buildFinished {}"
+    }
+
+    @Unroll
+    def "does not report problems on configuration listener registration on #registrationPoint"() {
+
+        given:
+        buildFile << """
+
+            class ProjectEvaluationAdapter implements ProjectEvaluationListener {
+                void beforeEvaluate(Project project) {}
+                void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            $code
+        """
+
+        expect:
+        instantRun 'help'
+
+        where:
+        registrationPoint                     | code
+        "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener"                  | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.beforeSettings"               | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"            | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"               | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                | "gradle.beforeProject {}"
+        "Gradle.afterProject"                 | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"            | "gradle.projectsEvaluated {}"
+    }
 
     def "summarizes unsupported properties"() {
         given:
@@ -61,21 +356,19 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
+        problems.withDoNotFailOnProblems()
         instantRun "c"
 
         then:
-        def reportDir = stateDirForTasks("c")
-        def reportFile = reportDir.file("instant-execution-report.html")
-        reportFile.isFile()
-        def jsFile = reportDir.file("instant-execution-report-data.js")
-        jsFile.isFile()
-        outputContains """
-            6 instant execution problems were found, 3 of which seem unique:
-              - field 'gradle' from type 'SomeBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
-              - field 'gradle' from type 'NestedBean': cannot serialize object of type 'org.gradle.invocation.DefaultGradle', a subtype of 'org.gradle.api.invocation.Gradle', as these are not supported with instant execution.
-              - field 'project' from type 'NestedBean': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.
-            See the complete report at ${clickableUrlFor(reportFile)}
-        """.stripIndent()
+        problems.assertResultHasProblems(result) {
+            withTotalProblemsCount(6)
+            withUniqueProblems(
+                "field 'gradle' from type 'SomeBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
+                "field 'gradle' from type 'NestedBean': cannot serialize object of type '${DefaultGradle.name}', a subtype of '${Gradle.name}', as these are not supported with instant execution.",
+                "field 'project' from type 'NestedBean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
+            )
+            withProblemsWithStackTraceCount(0)
+        }
     }
 
     @Unroll
@@ -108,22 +401,25 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.max-problems=$maxProblems"
+        problems.withDoNotFailOnProblems()
+        instantFails "foo", "-D${SystemProperties.maxProblems}=$maxProblems"
 
         then:
-        def reportDir = stateDirForTasks("foo")
-        def jsFile = reportDir.file("instant-execution-report-data.js")
-        numberOfProblemsIn(jsFile) == expectedNumberOfProblems
-        def problemOrProblems = expectedNumberOfProblems == 1 ? "problem was" : "problems were"
-        outputContains "$expectedNumberOfProblems instant execution $problemOrProblems found"
-        failureHasCause "Maximum number of instant execution problems has been reached"
+        def expectedProblems = (1..expectedNumberOfProblems).collect {
+            "field 'p$it' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
+        }
+        problems.assertFailureHasTooManyProblems(failure) {
+            withTotalProblemsCount(expectedNumberOfProblems)
+            withUniqueProblems(expectedProblems)
+            withProblemsWithStackTraceCount(0)
+        }
 
         where:
         maxProblems << [0, 1, 2]
         expectedNumberOfProblems = Math.max(1, maxProblems)
     }
 
-    def "can request to fail on problems"() {
+    def "can request to not fail on problems"() {
         given:
         buildFile << """
             class Bean { Project p1 }
@@ -138,33 +434,14 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         """
 
         when:
-        instantFails "foo", "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=true"
+        instantRun "foo", "-D${SystemProperties.failOnProblems}=false"
 
         then:
-        def reportDir = stateDirForTasks("foo")
-        def jsFile = reportDir.file("instant-execution-report-data.js")
-        numberOfProblemsIn(jsFile) == 1
-        outputContains "1 instant execution problem was found"
-        failureDescriptionStartsWith "Problems found while caching instant execution state"
-    }
-
-    private static int numberOfProblemsIn(File jsFile) {
-        newJavaScriptEngine().with {
-            eval(jsFile.text)
-            eval("instantExecutionProblems().length") as int
+        problems.assertResultHasProblems(result) {
+            withUniqueProblems(
+                "field 'p1' from type 'Bean': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution."
+            )
+            withProblemsWithStackTraceCount(0)
         }
-    }
-
-    private static ScriptEngine newJavaScriptEngine() {
-        new ScriptEngineManager().getEngineByName("JavaScript")
-    }
-
-    private TestFile stateDirForTasks(String... requestedTaskNames) {
-        def baseName = HashUtil.createCompactMD5(requestedTaskNames.join("/"))
-        file(".instant-execution-state/${GradleVersion.current().version}/$baseName")
-    }
-
-    private static String clickableUrlFor(File file) {
-        new ConsoleRenderer().asClickableFileUrl(file)
     }
 }

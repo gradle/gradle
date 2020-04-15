@@ -17,7 +17,6 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.language.fixtures.NonIncrementalProcessorFixture
 
 import static org.gradle.api.internal.tasks.compile.CompileJavaBuildOperationType.Result.AnnotationProcessorDetails.Type.UNKNOWN
@@ -43,7 +42,6 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.recompiledClasses("A", "AThing", "B")
     }
 
-    @ToBeFixedForInstantExecution
     def "the user is informed about non-incremental processors"() {
         def a = java "@Thing class A {}"
 
@@ -61,7 +59,6 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         }
     }
 
-    @ToBeFixedForInstantExecution
     def "compilation is incremental if the non-incremental processor is not used"() {
         def a = java "class A {}"
         java "class B {}"
@@ -75,7 +72,6 @@ class UnknownIncrementalAnnotationProcessingIntegrationTest extends AbstractIncr
         outputs.recompiledClasses("A")
     }
 
-    @ToBeFixedForInstantExecution
     def "generated files and classes are deleted when processor is removed"() {
         given:
         java "@Thing class A {}"

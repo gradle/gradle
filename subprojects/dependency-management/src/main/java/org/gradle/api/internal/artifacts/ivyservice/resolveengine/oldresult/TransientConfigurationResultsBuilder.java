@@ -29,10 +29,8 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.internal.BinaryStore;
 import org.gradle.cache.internal.Store;
-import org.gradle.internal.Factory;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.serialize.Decoder;
-import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 
@@ -72,79 +70,56 @@ public class TransientConfigurationResultsBuilder {
     }
 
     public void resolvedDependency(final Long id, final ResolvedConfigurationIdentifier details) {
-        binaryStore.write(new BinaryStore.WriteAction() {
-            @Override
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(NODE);
-                encoder.writeSmallLong(id);
-                resolvedConfigurationIdentifierSerializer.write(encoder, details);
-            }
+        binaryStore.write(encoder -> {
+            encoder.writeByte(NODE);
+            encoder.writeSmallLong(id);
+            resolvedConfigurationIdentifierSerializer.write(encoder, details);
         });
     }
 
     public void done(final Long id) {
-        binaryStore.write(new BinaryStore.WriteAction() {
-            @Override
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(ROOT);
-                encoder.writeSmallLong(id);
-            }
+        binaryStore.write(encoder -> {
+            encoder.writeByte(ROOT);
+            encoder.writeSmallLong(id);
         });
         LOG.debug("Flushing resolved configuration data in {}. Wrote root {}.", binaryStore, id);
         binaryData = binaryStore.done();
     }
 
     public void firstLevelDependency(final Long id) {
-        binaryStore.write(new BinaryStore.WriteAction() {
-            @Override
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(FIRST_LEVEL);
-                encoder.writeSmallLong(id);
-            }
+        binaryStore.write(encoder -> {
+            encoder.writeByte(FIRST_LEVEL);
+            encoder.writeSmallLong(id);
         });
     }
 
     public void parentChildMapping(final Long parent, final Long child, final int artifactId) {
-        binaryStore.write(new BinaryStore.WriteAction() {
-            @Override
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(EDGE);
-                encoder.writeSmallLong(parent);
-                encoder.writeSmallLong(child);
-                encoder.writeSmallInt(artifactId);
-            }
+        binaryStore.write(encoder -> {
+            encoder.writeByte(EDGE);
+            encoder.writeSmallLong(parent);
+            encoder.writeSmallLong(child);
+            encoder.writeSmallInt(artifactId);
         });
     }
 
     public void nodeArtifacts(final Long node, final int artifactId) {
-        binaryStore.write(new BinaryStore.WriteAction() {
-            @Override
-            public void write(Encoder encoder) throws IOException {
-                encoder.writeByte(NODE_ARTIFACTS);
-                encoder.writeSmallLong(node);
-                encoder.writeSmallInt(artifactId);
-            }
+        binaryStore.write(encoder -> {
+            encoder.writeByte(NODE_ARTIFACTS);
+            encoder.writeSmallLong(node);
+            encoder.writeSmallInt(artifactId);
         });
     }
 
     public TransientConfigurationResults load(final ResolvedGraphResults graphResults, final SelectedArtifactResults artifactResults) {
         synchronized (lock) {
-            return cache.load(new Factory<TransientConfigurationResults>() {
-                @Override
-                public TransientConfigurationResults create() {
+            return cache.load(() -> {
+                try {
+                    return binaryData.read(decoder -> deserialize(decoder, graphResults, artifactResults, buildOperationProcessor));
+                } finally {
                     try {
-                        return binaryData.read(new BinaryStore.ReadAction<TransientConfigurationResults>() {
-                            @Override
-                            public TransientConfigurationResults read(Decoder decoder) throws IOException {
-                                return deserialize(decoder, graphResults, artifactResults, buildOperationProcessor);
-                            }
-                        });
-                    } finally {
-                        try {
-                            binaryData.close();
-                        } catch (IOException e) {
-                            throw throwAsUncheckedException(e);
-                        }
+                        binaryData.close();
+                    } catch (IOException e) {
+                        throw throwAsUncheckedException(e);
                     }
                 }
             });

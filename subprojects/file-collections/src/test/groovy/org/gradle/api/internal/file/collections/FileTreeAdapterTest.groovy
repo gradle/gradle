@@ -16,12 +16,11 @@
 package org.gradle.api.internal.file.collections
 
 import org.gradle.api.Buildable
-import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.file.FileVisitor
-import org.gradle.api.internal.file.FileCollectionInternal
-import org.gradle.api.internal.file.FileCollectionStructureVisitor
+import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.tasks.util.PatternFilterable
+import org.gradle.api.tasks.util.PatternSet
 import org.gradle.util.UsesNativeServices
 import spock.lang.Specification
 
@@ -31,7 +30,7 @@ class FileTreeAdapterTest extends Specification {
         MinimalFileTree tree = Mock()
         _ * tree.displayName >> 'display name'
 
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         expect:
         adapter.toString() == 'display name'
@@ -39,7 +38,7 @@ class FileTreeAdapterTest extends Specification {
 
     def visitDelegatesToTargetTree() {
         MinimalFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
         FileVisitor visitor = Mock()
 
         when:
@@ -52,7 +51,7 @@ class FileTreeAdapterTest extends Specification {
 
     def resolveAddsTargetTreeToContext() {
         MinimalFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
         FileCollectionResolveContext context = Mock()
 
         when:
@@ -63,53 +62,10 @@ class FileTreeAdapterTest extends Specification {
         0 * _._
     }
 
-    def getAsFileTreesConvertsMirroringFileTreeByVisitingAllElementsAndReturningLocalMirror() {
-        FileSystemMirroringFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
-        DirectoryFileTreeFactory directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory()
-        DirectoryFileTree mirror = directoryFileTreeFactory.create(new File('a'))
-
-        when:
-        def result = adapter.asFileTrees
-
-        then:
-        result == [mirror]
-        1 * tree.visit(!null) >> { it[0].visitFile({} as FileVisitDetails) }
-        1 * tree.mirror >> mirror
-        0 * _._
-    }
-
-    def getAsFileTreesConvertsEmptyMirroringTree() {
-        FileSystemMirroringFileTree tree = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
-
-        when:
-        def result = adapter.asFileTrees
-
-        then:
-        result == []
-        1 * tree.visit(!null)
-        0 * _._
-    }
-
-    def getAsFileTreesConvertsLocalFileTree() {
-        LocalFileTree tree = Mock()
-        DirectoryFileTree contents = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
-
-        when:
-        def result = adapter.asFileTrees
-
-        then:
-        result == [contents]
-        1 * tree.localContents >> [contents]
-        0 * _._
-    }
-
     def visitDependenciesDelegatesToTargetTreeWhenItImplementsBuildable() {
         TestFileTree tree = Mock()
         TaskDependencyResolveContext context = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         adapter.visitDependencies(context)
@@ -121,7 +77,7 @@ class FileTreeAdapterTest extends Specification {
     def visitDependenciesDoesNotDelegateToTargetTreeWhenItDoesNotImplementBuildable() {
         MinimalFileTree tree = Mock()
         TaskDependencyResolveContext context = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         adapter.visitDependencies(context)
@@ -134,7 +90,7 @@ class FileTreeAdapterTest extends Specification {
         PatternFilterableFileTree tree = Mock()
         MinimalFileTree filtered = Mock()
         PatternFilterable filter = Mock()
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         def filteredAdapter = adapter.matching(filter)
@@ -145,10 +101,25 @@ class FileTreeAdapterTest extends Specification {
         1 * tree.filter(filter) >> filtered
     }
 
+    def matchingWrapsTargetTreeWhenItDoesNotImplementPatternFilterableFileTree() {
+        FileSystemMirroringFileTree tree = Mock()
+        PatternSet filter = Mock()
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
+
+        when:
+        def filteredAdapter = adapter.matching(filter)
+
+        then:
+        filteredAdapter instanceof FileTreeAdapter
+        filteredAdapter.tree instanceof FilteredMinimalFileTree
+        filteredAdapter.tree.tree == tree
+        filteredAdapter.tree.patterns == filter
+    }
+
     def containsDelegatesToTargetTreeWhenItImplementsRandomAccessFileCollection() {
         TestFileTree tree = Mock()
         File f = new File('a')
-        FileTreeAdapter adapter = new FileTreeAdapter(tree)
+        FileTreeAdapter adapter = new FileTreeAdapter(tree, TestFiles.patternSetFactory)
 
         when:
         def result = adapter.contains(f)
@@ -156,62 +127,6 @@ class FileTreeAdapterTest extends Specification {
         then:
         result
         1 * tree.contains(f) >> true
-    }
-
-    def visitsBackingDirectoryTree() {
-        def visitor = Mock(FileCollectionStructureVisitor)
-        def directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory()
-        def tree = directoryFileTreeFactory.create(new File("dir"))
-        def adapter = new FileTreeAdapter(tree)
-
-        when:
-        adapter.visitStructure(visitor)
-
-        then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
-        1 * visitor.visitFileTree(tree.getDir(), tree.getPatterns(), adapter)
-        0 * visitor._
-    }
-
-    def doesNotVisitsBackingDirectoryTreeWhenListenerIsNotInterested() {
-        def visitor = Mock(FileCollectionStructureVisitor)
-        def directoryFileTreeFactory = new DefaultDirectoryFileTreeFactory()
-        def tree = directoryFileTreeFactory.create(new File("dir"))
-        def adapter = new FileTreeAdapter(tree)
-
-        when:
-        adapter.visitStructure(visitor)
-
-        then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
-        0 * visitor._
-    }
-
-    def visitsSelfWhenBackingTreeIsNotDirectoryTree() {
-        def visitor = Mock(FileCollectionStructureVisitor)
-        def tree = Mock(MinimalFileTree)
-        def adapter = new FileTreeAdapter(tree)
-
-        when:
-        adapter.visitStructure(visitor)
-
-        then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.Visit
-        1 * visitor.visitGenericFileTree(adapter)
-        0 * visitor._
-    }
-
-    def doesNotVisitsSelfWhenListenerIsNotInterested() {
-        def visitor = Mock(FileCollectionStructureVisitor)
-        def tree = Mock(MinimalFileTree)
-        def adapter = new FileTreeAdapter(tree)
-
-        when:
-        adapter.visitStructure(visitor)
-
-        then:
-        1 * visitor.prepareForVisit(FileCollectionInternal.OTHER) >> FileCollectionStructureVisitor.VisitType.NoContents
-        0 * visitor._
     }
 
     interface TestFileTree extends MinimalFileTree, Buildable, RandomAccessFileCollection {

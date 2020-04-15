@@ -29,7 +29,7 @@ import spock.lang.Specification
 @UsesNativeServices
 class UbuntuJvmLocatorTest extends Specification {
 
-    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def libDir = tmpDir.file("lib")
     def fileCanonicalizer = Stub(FileCanonicalizer) {
         canonicalize(_) >> { File f -> f.canonicalFile }

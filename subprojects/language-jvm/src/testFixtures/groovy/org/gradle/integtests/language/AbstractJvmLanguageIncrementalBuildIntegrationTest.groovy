@@ -23,7 +23,6 @@ import org.gradle.integtests.fixtures.jvm.JvmSourceFile
 import org.gradle.integtests.fixtures.jvm.TestJvmComponent
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.util.GradleVersion
 
 abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends AbstractIntegrationSpec {
     abstract TestJvmComponent getTestComponent();
@@ -55,12 +54,15 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
     }
 
     def expectDeprecationWarnings() {
-        executer.expectDeprecationWarning("The ${testComponent.languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
-        executer.expectDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The ${testComponent.languageName}-lang plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-component plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
+        executer.expectDocumentedDeprecationWarning("The jvm-resources plugin has been deprecated. This is scheduled to be removed in Gradle 7.0. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FAILS_IN_SUBCLASS)
+    @ToBeFixedForInstantExecution(bottomSpecs = "JavaLanguageIncrementalBuildIntegrationTest")
     def "builds jar"() {
         when:
         expectDeprecationWarnings()
@@ -210,11 +212,11 @@ abstract class AbstractJvmLanguageIncrementalBuildIntegrationTest extends Abstra
     }
 
     def assertOutputs(List<JvmSourceFile> expectedClasses, List<JvmSourceFile> expectedResources) {
-        String[] classes = expectedClasses.collect { it.fullPath }
-        String[] resources = expectedResources.collect { it.fullPath }
+        def classes = expectedClasses.collect { it.fullPath }
+        def resources = expectedResources.collect { it.fullPath }
         file("build/classes/main/jar").assertHasDescendants(classes)
-        file("build/resources/main/jar").assertHasDescendants(resources)
-        jarFile("build/jars/main/jar/main.jar").hasDescendants(classes + resources as String[])
+        file("build/resources/main/jar").assertHasDescendants(resources, true)
+        jarFile("build/jars/main/jar/main.jar").hasDescendants((classes + resources) as String[])
         return true
     }
 

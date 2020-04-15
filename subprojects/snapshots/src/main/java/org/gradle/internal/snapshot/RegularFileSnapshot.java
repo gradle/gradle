@@ -66,12 +66,8 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visitNode(this);
-    }
-
-    @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        diffListener.nodeRemoved(this);
         return Optional.empty();
     }
 }

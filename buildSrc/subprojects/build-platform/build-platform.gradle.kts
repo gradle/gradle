@@ -28,5 +28,6 @@ dependencies {
         api("xerces:xercesImpl:2.12.0") {
             because("Maven Central and JCenter disagree on version 2.9.1 metadata")
         }
+        api("com.google.guava:guava:27.1-jre")
     }
 }

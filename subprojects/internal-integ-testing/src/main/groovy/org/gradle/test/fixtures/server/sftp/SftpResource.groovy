@@ -35,6 +35,10 @@ class SftpResource implements RemoteResource {
         return getPathOnServer()
     }
 
+    String getName() {
+        return file.name
+    }
+
     String getPathOnServer() {
         return "/${RelativePathUtil.relativePath(server.baseDir, file)}"
     }

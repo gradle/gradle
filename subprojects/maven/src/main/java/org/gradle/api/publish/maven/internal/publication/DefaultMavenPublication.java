@@ -22,7 +22,6 @@ import com.google.common.base.Strings;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
-import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.DependencyArtifact;
@@ -60,6 +59,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.publish.VersionMappingStrategy;
 import org.gradle.api.publish.internal.CompositePublicationArtifactSet;
 import org.gradle.api.publish.internal.DefaultPublicationArtifactSet;
+import org.gradle.api.publish.internal.PublicationArtifactInternal;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.internal.validation.PublicationWarningsCollector;
 import org.gradle.api.publish.internal.versionmapping.VersionMappingStrategyInternal;
@@ -67,6 +67,7 @@ import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.api.publish.maven.MavenArtifactSet;
 import org.gradle.api.publish.maven.MavenDependency;
 import org.gradle.api.publish.maven.MavenPom;
+import org.gradle.api.publish.maven.internal.artifact.AbstractMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.DefaultMavenArtifactSet;
 import org.gradle.api.publish.maven.internal.artifact.DerivedMavenArtifact;
 import org.gradle.api.publish.maven.internal.artifact.SingleOutputTaskMavenArtifact;
@@ -79,7 +80,6 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.Factory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.util.CollectionUtils;
@@ -119,6 +119,13 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
         }
         return left.compareTo(right);
     };
+    private static final Spec<MavenArtifact> PUBLISHED_ARTIFACTS = artifact -> {
+        if (!((PublicationArtifactInternal) artifact).shouldBePublished()) {
+            return false;
+        }
+        return artifact.getFile().exists();
+    };
+
     @VisibleForTesting
     public static final String INCOMPATIBLE_FEATURE = " contains dependencies that will produce a pom file that cannot be consumed by a Maven client.";
     @VisibleForTesting
@@ -556,8 +563,8 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     }
 
     @Override
-    public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, Factory<File> file) {
-        MavenArtifact artifact = new DerivedMavenArtifact(originalArtifact, file);
+    public MavenArtifact addDerivedArtifact(MavenArtifact originalArtifact, DerivedArtifact file) {
+        MavenArtifact artifact = new DerivedMavenArtifact((AbstractMavenArtifact) originalArtifact, file);
         derivedArtifacts.add(artifact);
         return artifact;
     }
@@ -611,15 +618,12 @@ public class DefaultMavenPublication implements MavenPublicationInternal {
     @Override
     public MavenNormalizedPublication asNormalisedPublication() {
         populateFromComponent();
-        DomainObjectSet<MavenArtifact> existingDerivedArtifacts = this.derivedArtifacts.matching(new Spec<MavenArtifact>() {
-            @Override
-            public boolean isSatisfiedBy(MavenArtifact artifact) {
-                return artifact.getFile().exists();
-            }
-        });
-        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, mainArtifacts, metadataArtifacts, existingDerivedArtifacts).matching(new Spec<MavenArtifact>() {
+        Set<MavenArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(MavenArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts).matching(new Spec<MavenArtifact>() {
             @Override
             public boolean isSatisfiedBy(MavenArtifact element) {
+                if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {
+                    return false;
+                }
                 if (moduleMetadataArtifact == element) {
                     // We temporarily want to allow skipping the publication of Gradle module metadata
                     return moduleMetadataArtifact.isEnabled();

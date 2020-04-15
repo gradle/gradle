@@ -42,7 +42,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "TestNGFailFastIntegrationTest"
+    )
     def "all tests run with #description"() {
         given:
         buildFile.text = generator.initBuildFile()
@@ -70,7 +73,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "TestNGFailFastIntegrationTest"
+    )
     def "stop test execution with #description"() {
         given:
         buildFile.text = generator.initBuildFile()
@@ -97,7 +103,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "TestNGFailFastIntegrationTest"
+    )
     def "ensure fail fast with forkEvery #forkEvery, maxWorkers #maxWorkers, omittedTests #testOmitted"() {
         given:
         buildFile.text = generator.initBuildFile(maxWorkers, forkEvery)
@@ -129,7 +138,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         2         | 2          | 5
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "TestNGFailFastIntegrationTest"
+    )
     def "fail fast console output shows failure"() {
         given:
         buildFile.text = generator.initBuildFile()
@@ -149,7 +161,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
     }
 
     @IgnoreIf({ GradleContextualExecuter.isParallel() })
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "TestNGFailFastIntegrationTest"
+    )
     def "fail fast console output shows test class in work-in-progress"() {
         given:
         executer.withConsole(ConsoleOutput.Rich).withArguments('--parallel', "--max-workers=$DEFAULT_MAX_WORKERS")
@@ -172,7 +187,10 @@ abstract class AbstractJvmFailFastIntegrationSpec extends AbstractIntegrationSpe
         gradleHandle.waitForFailure()
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT)
+    @ToBeFixedForInstantExecution(
+        skip = ToBeFixedForInstantExecution.Skip.LONG_TIMEOUT,
+        bottomSpecs = "TestNGFailFastIntegrationTest"
+    )
     def "fail fast works with --tests filter"() {
         given:
         buildFile.text = generator.initBuildFile()

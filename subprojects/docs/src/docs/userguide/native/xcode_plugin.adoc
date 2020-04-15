@@ -85,11 +85,11 @@ Open the Xcode workspace inside the IDE.
 [[sec:xcode_workspace_tasks]]
 === IDE Workspace Tasks
 
-`xcodeWorkspaceWorkspaceSettings` - link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
+`xcodeWorkspaceWorkspaceSettings` - link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
 +
 Generates the `__projectName__.xcworkspace` file. This task is only available on the root project.
 
-`xcodeWorkspace` - link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateXcodeProjectFileTask.html[GenerateXcodeProjectFileTask]::
+`xcodeWorkspace` - link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask.html[GenerateXcodeProjectFileTask]::
 _Depends on_: `xcodeWorkspaceWorkspaceSettings`
 +
 Generates the `__projectName__.xcworkspace` file. This task is only available on the root project.
@@ -99,15 +99,15 @@ Generates the `__projectName__.xcworkspace` file. This task is only available on
 
 Both the <<cpp_application_plugin.adoc#cpp_application_plugin,{cpp} Application Plugin>> and <<cpp_library_plugin.adoc#cpp_library_plugin,{cpp} Library Plugin>> introduce the same tasks for generating Xcode projects to be included in an Xcode workspace.
 
-`xcodeProjectWorkspaceSettings` — link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
+`xcodeProjectWorkspaceSettings` — link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateWorkspaceSettingsFileTask.html[GenerateWorkspaceSettingsFileTask]::
 +
 Generates the `__projectName__.xcodeproj/project.xcworkspace/xcshareddata/WorkspaceSettings.xcsettings` file.
 
-`xcodeScheme` — link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateSchemeFileTask.html[GenerateSchemeFileTask]::
+`xcodeScheme` — link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateSchemeFileTask.html[GenerateSchemeFileTask]::
 +
 Generates the `__projectName__.xcodeproj/xcshareddata/xcschemes/__ProjectName__.xcscheme` file.
 
-`xcodeProject` — link:{groovyDslPath}/org.gradle.api.xcode.tasks.GenerateXcodeProjectFileTask.html[GenerateXcodeProjectFileTask]::
+`xcodeProject` — link:{groovyDslPath}/org.gradle.ide.xcode.tasks.GenerateXcodeProjectFileTask.html[GenerateXcodeProjectFileTask]::
 _Depends on_: `xcodeProjectWorkspaceSettings` and `xcodeScheme` (if buildable binary present)
 +
 Generates the `__projectName__.xcodeproj/project.pbxproj` file.

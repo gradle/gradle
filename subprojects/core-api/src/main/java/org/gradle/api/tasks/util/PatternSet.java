@@ -18,11 +18,11 @@ package org.gradle.api.tasks.util;
 
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
-import org.gradle.api.Action;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.AntBuilderAware;
+import org.gradle.api.tasks.util.internal.IntersectionPatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetAntBuilderDelegate;
 import org.gradle.api.tasks.util.internal.PatternSpecFactory;
 import org.gradle.internal.typeconversion.NotationParser;
@@ -114,7 +114,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         caseSensitive = from.caseSensitive;
 
         if (from instanceof IntersectionPatternSet) {
-            PatternSet other = ((IntersectionPatternSet) from).other;
+            PatternSet other = ((IntersectionPatternSet) from).getOther();
             PatternSet otherCopy = new PatternSet(other).copyFrom(other);
             PatternSet intersectCopy = new IntersectionPatternSet(otherCopy);
             copyIncludesAndExcludes(intersectCopy, from);
@@ -159,61 +159,6 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             && (excludes == null || excludes.isEmpty())
             && (includeSpecs == null || includeSpecs.isEmpty())
             && (excludeSpecs == null || excludeSpecs.isEmpty());
-    }
-
-    private static class IntersectionPatternSet extends PatternSet {
-
-        private final PatternSet other;
-
-        public IntersectionPatternSet(PatternSet other) {
-            super(other);
-            this.other = other;
-        }
-
-        @Override
-        public Spec<FileTreeElement> getAsSpec() {
-            return Specs.intersect(super.getAsSpec(), other.getAsSpec());
-        }
-
-        @Override
-        public Object addToAntBuilder(Object node, String childNodeName) {
-            return PatternSetAntBuilderDelegate.and(node, new Action<Object>() {
-                @Override
-                public void execute(Object andNode) {
-                    IntersectionPatternSet.super.addToAntBuilder(andNode, null);
-                    other.addToAntBuilder(andNode, null);
-                }
-            });
-        }
-
-        @Override
-        public boolean isEmpty() {
-            return other.isEmpty() && super.isEmpty();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            if (!super.equals(o)) {
-                return false;
-            }
-
-            IntersectionPatternSet that = (IntersectionPatternSet) o;
-
-            return other != null ? other.equals(that.other) : that.other == null;
-        }
-
-        @Override
-        public int hashCode() {
-            int result = super.hashCode();
-            result = 31 * result + (other != null ? other.hashCode() : 0);
-            return result;
-        }
     }
 
     public Spec<FileTreeElement> getAsSpec() {

@@ -17,6 +17,7 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -79,7 +80,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     public boolean isEnabled() {
-        return generator.get().getEnabled();
+        TaskInternal task = (TaskInternal) generator.get();
+        return task.getOnlyIf().isSatisfiedBy(task);
     }
 
     private class GeneratorTaskDependency extends AbstractTaskDependency {
@@ -87,5 +89,10 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
         public void visitDependencies(TaskDependencyResolveContext context) {
             context.add(generator.get());
         }
+    }
+
+    @Override
+    public boolean shouldBePublished() {
+        return isEnabled();
     }
 }

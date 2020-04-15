@@ -29,7 +29,7 @@ class DefaultManifestMergeSpecTest extends Specification {
 
     DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec()
     @Rule
-    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     def from() {
         expect:
@@ -41,7 +41,7 @@ class DefaultManifestMergeSpecTest extends Specification {
     def mergeWithFileAndObjectManifest() {
         def fileResolver = Mock(FileResolver)
         DefaultManifest baseManifest = new DefaultManifest(fileResolver)
-        def baseMap = baseManifest.attributes + ([key1: 'value1', key2: 'value2', key3: 'value3'] as LinkedHashMap) 
+        def baseMap = baseManifest.attributes + ([key1: 'value1', key2: 'value2', key3: 'value3'] as LinkedHashMap)
         def baseSectionMap = [keysec1: 'valueSec1', keysec2: 'valueSec2', keysec3: 'valueSec3']
         baseManifest.attributes(baseMap)
         baseManifest.attributes(baseSectionMap, 'section')

@@ -21,7 +21,6 @@ import org.gradle.initialization.GradleLauncher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.work.WorkerLeaseService;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 
 public class GradleBuildController implements BuildController {
@@ -54,22 +53,12 @@ public class GradleBuildController implements BuildController {
 
     @Override
     public GradleInternal run() {
-        return doBuild(GradleInternal.BuildType.TASKS, new Action<GradleLauncher>() {
-            @Override
-            public void execute(@Nonnull GradleLauncher gradleLauncher) {
-                gradleLauncher.executeTasks();
-            }
-        });
+        return doBuild(GradleInternal.BuildType.TASKS, GradleLauncher::executeTasks);
     }
 
     @Override
     public GradleInternal configure() {
-        return doBuild(GradleInternal.BuildType.MODEL, new Action<GradleLauncher>() {
-            @Override
-            public void execute(@Nonnull GradleLauncher gradleLauncher) {
-                gradleLauncher.getConfiguredBuild();
-            }
-        });
+        return doBuild(GradleInternal.BuildType.MODEL, GradleLauncher::getConfiguredBuild);
     }
 
     private GradleInternal doBuild(final GradleInternal.BuildType buildType, final Action<? super GradleLauncher> build) {

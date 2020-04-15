@@ -1,0 +1,38 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "url": "../../kotlin-multiplatform-library-macosx64/1.0/kotlin-multiplatform-library-macosx64-1.0.module",
+    "group": "example",
+    "module": "kotlin-multiplatform-library-macosx64",
+    "version": "1.0",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "6.1.1",
+      "buildId": "pr4n4lpg5ja6re27qc3piepc4q"
+    }
+  },
+  "variants": [
+    {
+      "name": "metadata-api",
+      "attributes": {
+        "org.gradle.usage": "kotlin-api",
+        "org.jetbrains.kotlin.platform.type": "common"
+      },
+      "files": [
+        {
+          "name": "kotlin-multiplatform-library-metadata-1.0.jar",
+          "url": "kotlin-multiplatform-library-metadata-1.0.jar",
+          "size": 1026,
+          "sha512": "0528314a4128405d736d9736c2ab17d419318d9ffca4eb821cfb76fc0c8534b9b354db672161c300a799ca15b7b906c161c16cf63ab7d69ce977994ca9732de7",
+          "sha256": "5d8b2e57a1d366beba255299a7ee7df82d06dd838b5a390dfd6ed7c0089dc51c",
+          "sha1": "feab845e50c07d1ddb6c1f1cbd0e96d6133b9959",
+          "md5": "3b2e8efc39ef8e12ce24f4c5d48d982e"
+        }
+      ]
+    }
+  ]
+}

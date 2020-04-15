@@ -38,7 +38,6 @@ include::sample[dir="snippets/compositeBuilds/basic/groovy",files="my-app/build.
 include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="my-app/build.gradle.kts[]"]
 ====
 
-NOTE: The code for this example can be found at **`samples/compositeBuilds/basic`** in the ‘-all’ distribution of Gradle.
 
 [[command_line_composite]]
 === Defining a composite build via `--include-build`
@@ -79,7 +78,7 @@ include::sample[dir="snippets/compositeBuilds/basic/groovy",files="composite/bui
 include::sample[dir="snippets/compositeBuilds/basic/kotlin",files="composite/build.gradle.kts[tags=run]"]
 ====
 
-More details tasks that depend on included build tasks below.
+More details about tasks that depend on included build tasks are below.
 
 [[included_builds]]
 === Restrictions on included builds

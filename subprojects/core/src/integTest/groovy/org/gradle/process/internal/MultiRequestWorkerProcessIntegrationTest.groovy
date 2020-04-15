@@ -16,25 +16,24 @@
 
 package org.gradle.process.internal
 
+import junit.framework.AssertionFailedError
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.process.internal.worker.RequestHandler
 import org.gradle.process.internal.worker.WorkerControl
 import org.gradle.process.internal.worker.WorkerProcessException
 import org.gradle.test.fixtures.ConcurrentTestUtil
-import spock.lang.Ignore
 import spock.lang.Timeout
 
 @Timeout(120)
 class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessIntegrationSpec {
     def "runs methods in a single worker process and stops when requested"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, StatefulTestWorker.class)
+        def builder = workerFactory.multiRequestWorker(StatefulTestWorker.class)
         def worker = builder.build()
         worker.start()
-        def result1 = worker.convert("value", 1)
-        worker.doSomething()
-        def result2 = worker.convert("value", 1)
-        worker.doSomething()
-        def result3 = worker.convert("value", 1)
+        def result1 = worker.run("value")
+        def result2 = worker.run("value")
+        def result3 = worker.run("value")
         worker.stop()
 
         then:
@@ -48,7 +47,7 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
 
     def "receives memory status from worker process"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, StatefulTestWorker.class)
+        def builder = workerFactory.multiRequestWorker(StatefulTestWorker.class)
         def worker = builder.build()
         def process = worker.start()
 
@@ -63,21 +62,20 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
 
     def "propagates failure thrown by method in worker process"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, BrokenTestWorker.class)
+        def builder = workerFactory.multiRequestWorker(BrokenTestWorker.class)
         def worker = builder.build()
         worker.start()
-        worker.convert("abc", 12)
+        worker.run("abc")
 
         then:
         def e = thrown(IllegalArgumentException)
-        e.message == 'Could not convert [abc, 12]'
+        e.message == 'Could not convert abc'
 
         when:
-        worker.doSomething()
+        def result = worker.run("ok")
 
         then:
-        def f = thrown(UnsupportedOperationException)
-        f.message == 'Not implemented'
+        result == "converted"
 
         cleanup:
         worker?.stop()
@@ -86,10 +84,9 @@ class MultiRequestWorkerProcessIntegrationTest extends AbstractWorkerProcessInte
     def "infers worker implementation classpath"() {
         given:
         def cl = compileToDirectoryAndLoad("CustomTestWorker", """
-import ${TestProtocol.name}
-class CustomTestWorker implements TestProtocol {
-    Object convert(String param1, long param2) { return new CustomResult() }
-    void doSomething() { }
+import ${RequestHandler.name}
+class CustomTestWorker implements RequestHandler<Long, Object> {
+    Object run(Long request) { return new CustomResult() }
 }
 
 class CustomResult implements Serializable {
@@ -98,11 +95,10 @@ class CustomResult implements Serializable {
 """)
 
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, cl)
+        def builder = workerFactory.multiRequestWorker(cl)
         def worker = builder.build()
         worker.start()
-        def result = worker.convert("abc", 12)
-        worker.stop()
+        def result = worker.run(12.toLong())
 
         then:
         result.toString() == "custom-result"
@@ -114,24 +110,27 @@ class CustomResult implements Serializable {
     def "propagates failure to load worker implementation class"() {
         given:
         def cl = compileWithoutClasspath("CustomTestWorker", """
-import ${TestProtocol.name}
-class CustomTestWorker implements TestProtocol {
-    Object convert(String param1, long param2) { return param1 + ":" + param2 }
-    void doSomething() { }
+import ${RequestHandler.name}
+class CustomTestWorker implements RequestHandler<Long, Object> {
+    Object run(Long request) { throw new RuntimeException() }
 }
 """)
 
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, cl)
+        def builder = workerFactory.multiRequestWorker(cl)
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.start()
-        worker.convert("abc", 12)
+        worker.run(12.toLong())
 
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
         e.cause instanceof ClassNotFoundException
+
+        and:
+        stdout.stdOut == ""
+        stdout.stdErr == ""
 
         cleanup:
         worker?.stop()
@@ -139,16 +138,21 @@ class CustomTestWorker implements TestProtocol {
 
     def "propagates failure to instantiate worker implementation instance"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, TestProtocol.class)
+        def builder = workerFactory.multiRequestWorker(RequestHandler.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.start()
-        worker.convert("abc", 12)
+        worker.run("abc")
 
         then:
         def e = thrown(WorkerProcessException)
         e.message == 'Failed to run broken worker'
         e.cause instanceof ObjectInstantiationException
+        e.cause.message == "Could not create an instance of type ${RequestHandler.name}."
+
+        and:
+        stdout.stdOut == ""
+        stdout.stdErr == ""
 
         cleanup:
         worker?.stop()
@@ -156,7 +160,7 @@ class CustomTestWorker implements TestProtocol {
 
     def "propagates failure to start worker process"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, StatefulTestWorker.class)
+        def builder = workerFactory.multiRequestWorker(StatefulTestWorker.class)
         builder.baseName = 'broken worker'
         builder.javaCommand.jvmArgs("-broken")
         def worker = builder.build()
@@ -174,11 +178,11 @@ class CustomTestWorker implements TestProtocol {
 
     def "reports failure when worker halts handling request"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, CrashingWorker.class)
+        def builder = workerFactory.multiRequestWorker(CrashingWorker.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.start()
-        worker.convert("halt", 0)
+        worker.run("halt-ok")
 
         then:
         def e = thrown(WorkerProcessException)
@@ -192,11 +196,11 @@ class CustomTestWorker implements TestProtocol {
 
     def "reports failure when worker crashes handling request"() {
         when:
-        def builder = workerFactory.multiRequestWorker(TestWorkProcess.class, TestProtocol.class, CrashingWorker.class)
+        def builder = workerFactory.multiRequestWorker(CrashingWorker.class)
         builder.baseName = 'broken worker'
         def worker = builder.build()
         worker.start()
-        worker.convert("halt", 12)
+        worker.run("halt")
 
         then:
         def e = thrown(WorkerProcessException)
@@ -208,19 +212,13 @@ class CustomTestWorker implements TestProtocol {
         stopBroken(worker)
     }
 
-    @Ignore
-    def "cannot invoke method when not running"() {
-        expect: false
-    }
-
-    @Ignore
-    def "cannot invoke method after process crashes"() {
-        expect: false
-    }
-
     def stopBroken(WorkerControl workerControl) {
+        if (workerControl == null) {
+            return
+        }
         try {
-            workerControl?.stop()
+            workerControl.stop()
+            throw new AssertionFailedError("stop should fail")
         } catch (ExecException e) {
             // Ignore
         }

@@ -18,10 +18,15 @@ package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.file.DefaultFilePropertyFactory;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.file.TmpDirTemporaryFileProvider;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.api.internal.provider.DefaultPropertyFactory;
+import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.cache.FileLockManager;
@@ -96,8 +101,8 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return DefaultTaskDependencyFactory.withNoAssociatedProject();
     }
 
-    DefaultFilePropertyFactory createFilePropertyFactory(FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
-        return new DefaultFilePropertyFactory(fileResolver, fileCollectionFactory);
+    DefaultFilePropertyFactory createFilePropertyFactory(PropertyHost propertyHost, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory) {
+        return new DefaultFilePropertyFactory(propertyHost, fileResolver, fileCollectionFactory);
     }
 
     StreamHasher createStreamHasher() {
@@ -112,18 +117,22 @@ public class WorkerSharedGlobalScopeServices extends BasicGlobalScopeServices {
         return new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
     }
 
-    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, FileResolver fileResolver, FileCollectionFactory fileCollectionFactory, InstantiatorFactory instantiatorFactory, TaskDependencyFactory taskDependencyFactory) {
+    PropertyFactory createPropertyFactory(PropertyHost propertyHost) {
+        return new DefaultPropertyFactory(propertyHost);
+    }
+
+    ManagedFactoryRegistry createManagedFactoryRegistry(NamedObjectInstantiator namedObjectInstantiator, InstantiatorFactory instantiatorFactory, PropertyFactory propertyFactory, FileCollectionFactory fileCollectionFactory, FileFactory fileFactory, FilePropertyFactory filePropertyFactory) {
         return new DefaultManagedFactoryRegistry().withFactories(
             instantiatorFactory.getManagedFactory(),
-            new ConfigurableFileCollectionManagedFactory(fileResolver, taskDependencyFactory),
-            new RegularFileManagedFactory(),
-            new RegularFilePropertyManagedFactory(fileResolver),
-            new DirectoryManagedFactory(fileResolver, fileCollectionFactory),
-            new DirectoryPropertyManagedFactory(fileResolver, fileCollectionFactory),
-            new SetPropertyManagedFactory(),
-            new ListPropertyManagedFactory(),
-            new MapPropertyManagedFactory(),
-            new PropertyManagedFactory(),
+            new ConfigurableFileCollectionManagedFactory(fileCollectionFactory),
+            new RegularFileManagedFactory(fileFactory),
+            new RegularFilePropertyManagedFactory(filePropertyFactory),
+            new DirectoryManagedFactory(fileFactory),
+            new DirectoryPropertyManagedFactory(filePropertyFactory),
+            new SetPropertyManagedFactory(propertyFactory),
+            new ListPropertyManagedFactory(propertyFactory),
+            new MapPropertyManagedFactory(propertyFactory),
+            new PropertyManagedFactory(propertyFactory),
             new ProviderManagedFactory(),
             namedObjectInstantiator
         );

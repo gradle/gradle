@@ -34,7 +34,7 @@ class UriTextResourceTest extends Specification {
     private File file;
     private URI fileUri;
     @Rule
-    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider();
+    public TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass());
 
     def setup() {
         testDir = tmpDir.createDir('dir');

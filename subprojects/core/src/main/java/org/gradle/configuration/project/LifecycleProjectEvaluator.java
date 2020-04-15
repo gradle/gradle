@@ -26,8 +26,6 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.util.Path;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Notifies listeners before and after delegating to the provided delegate to the actual evaluation,
@@ -51,9 +49,6 @@ import org.slf4j.LoggerFactory;
  * @see ProjectEvaluationListener
  */
 public class LifecycleProjectEvaluator implements ProjectEvaluator {
-
-    private static final Logger LOGGER = LoggerFactory.getLogger(LifecycleProjectEvaluator.class);
-
     private final BuildOperationExecutor buildOperationExecutor;
     private final ProjectEvaluator delegate;
 

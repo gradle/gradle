@@ -26,12 +26,7 @@ import org.gradle.api.specs.Spec;
  * Instances are retained during the lifetime of a build, so should avoid retaining unnecessary state.
  */
 public interface ArtifactSet {
-    ArtifactSet NO_ARTIFACTS = new ArtifactSet() {
-        @Override
-        public ResolvedArtifactSet select(Spec<? super ComponentIdentifier> componentFilter, VariantSelector selector) {
-            return ResolvedArtifactSet.EMPTY;
-        }
-    };
+    ArtifactSet NO_ARTIFACTS = (componentFilter, selector) -> ResolvedArtifactSet.EMPTY;
 
     /**
      * Selects the artifacts of this set that meet the given criteria. Implementation should be eager where possible, so that selection happens immediately, but may be lazy.

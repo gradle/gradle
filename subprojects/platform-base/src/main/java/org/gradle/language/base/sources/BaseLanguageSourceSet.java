@@ -19,7 +19,6 @@ package org.gradle.language.base.sources;
 import org.gradle.api.Incubating;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reflect.ObjectInstantiationException;
-import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.AbstractLanguageSourceSet;
 import org.gradle.platform.base.ModelInstantiationException;
@@ -49,7 +48,7 @@ public class BaseLanguageSourceSet extends AbstractLanguageSourceSet {
         NEXT_SOURCE_SET_INFO.set(new SourceSetInfo(componentId, publicType, objectFactory));
         try {
             try {
-                return DirectInstantiator.INSTANCE.newInstance(implementationType);
+                return objectFactory.newInstance(implementationType);
             } catch (ObjectInstantiationException e) {
                 throw new ModelInstantiationException(String.format("Could not create LanguageSourceSet of type %s", publicType.getSimpleName()), e.getCause());
             }

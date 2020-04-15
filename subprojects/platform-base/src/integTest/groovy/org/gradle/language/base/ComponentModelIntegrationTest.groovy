@@ -18,6 +18,7 @@ package org.gradle.language.base
 
 import org.gradle.api.reporting.model.ModelReportOutput
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.platform.base.ApplicationSpec
 import org.gradle.platform.base.BinarySpec
 import org.gradle.platform.base.ComponentSpec
@@ -28,6 +29,7 @@ import spock.lang.Unroll
 
 import static org.gradle.util.Matchers.containsText
 
+@UnsupportedWithInstantExecution(because = "software model")
 class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTest {
 
     def "setup"() {

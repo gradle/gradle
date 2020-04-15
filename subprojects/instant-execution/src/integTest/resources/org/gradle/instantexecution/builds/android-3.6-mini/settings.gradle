@@ -1,3 +1,0 @@
-rootProject.name = 'android-3.6-minimal'
-
-include ':app'

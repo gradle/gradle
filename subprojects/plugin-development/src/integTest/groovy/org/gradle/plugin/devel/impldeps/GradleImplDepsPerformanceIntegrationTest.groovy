@@ -21,7 +21,7 @@ import org.gradle.testing.internal.util.RetryUtil
 
 class GradleImplDepsPerformanceIntegrationTest extends BaseGradleImplDepsIntegrationTest {
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "Gradle API JAR is generated in an acceptable time frame"() {
         requireOwnGradleUserHomeDir()
         buildFile << """

@@ -20,10 +20,10 @@ import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.verification.model.ChecksumKind
 import org.gradle.api.internal.artifacts.verification.model.IgnoredKey
 import org.gradle.api.internal.artifacts.verification.verifier.DependencyVerifierBuilder
-import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
+import org.gradle.util.TextUtil
 import spock.lang.Specification
 import spock.lang.Unroll
 
@@ -61,7 +61,7 @@ class DependencyVerificationsXmlWriterTest extends Specification {
     }
 
     private boolean hasNamespaceDeclaration() {
-        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:schemaLocation="https://schema.gradle.org/verification https://schema.gradle.org/verification/verification-1.0.xsd"')
+        rawContents.contains('<verification-metadata xmlns="https://schema.gradle.org/dependency-verification" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://schema.gradle.org/dependency-verification https://schema.gradle.org/dependency-verification/dependency-verification-1.0.xsd"')
     }
 
     def "can declare key servers"() {

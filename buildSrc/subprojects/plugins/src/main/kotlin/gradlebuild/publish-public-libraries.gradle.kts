@@ -16,6 +16,7 @@
 package gradlebuild
 
 import accessors.base
+import org.gradle.gradlebuild.versioning.buildVersion
 
 plugins {
     `maven-publish`
@@ -31,7 +32,7 @@ publishing {
     repositories {
         maven {
             name = "remote"
-            val libsType = if (rootProject.extra["isSnapshot"] as Boolean) "snapshots" else "releases"
+            val libsType = if (rootProject.buildVersion.isSnapshot) "snapshots" else "releases"
             url = uri("https://repo.gradle.org/gradle/libs-$libsType-local")
             credentials {
                 username = artifactoryUserName

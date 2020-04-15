@@ -166,10 +166,10 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
     /**
      * Specifies the value to use as the convention for this property. The convention is used when no value has been set for this property.
      *
-     * @param value The value.
+     * @param value The value, or {@code null} when the convention is that the property has no value.
      * @return this
      */
-    MapProperty<K, V> convention(Map<? extends K, ? extends V> value);
+    MapProperty<K, V> convention(@Nullable Map<? extends K, ? extends V> value);
 
     /**
      * Specifies the provider of the value to use as the convention for this property. The convention is used when no value has been set for this property.

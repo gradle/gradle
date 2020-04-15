@@ -16,18 +16,12 @@
 
 package org.gradle.api.internal.file;
 
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 
 import java.io.File;
 
 public class DefaultFileLookup implements FileLookup {
-    private final IdentityFileResolver fileResolver;
-
-    public DefaultFileLookup(Factory<PatternSet> patternSetFactory) {
-        this.fileResolver = new IdentityFileResolver(patternSetFactory);
-    }
+    private final IdentityFileResolver fileResolver = new IdentityFileResolver();
 
     @Override
     public FileResolver getFileResolver() {

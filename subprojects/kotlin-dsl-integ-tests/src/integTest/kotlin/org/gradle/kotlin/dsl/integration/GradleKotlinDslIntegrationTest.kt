@@ -126,6 +126,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `given a Kotlin project in buildSrc, it will be added to the compilation classpath`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -243,6 +244,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
     fun `can use Closure only APIs`() {
 
         withBuildScript("""
@@ -417,7 +419,6 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    @ToBeFixedForInstantExecution
     fun `script plugin can be applied to either Project or Settings`() {
 
         withFile("common.gradle.kts", """
@@ -742,6 +743,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
+    @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
     fun `given generic extension types they can be accessed and configured`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
@@ -810,6 +812,7 @@ class GradleKotlinDslIntegrationTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
+    @ToBeFixedForInstantExecution(because = "Task.getProject() during execution")
     fun `can use kotlin java8 inline-only methods`() {
 
         withBuildScript("""

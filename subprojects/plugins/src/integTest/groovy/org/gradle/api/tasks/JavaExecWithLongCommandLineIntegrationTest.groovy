@@ -44,7 +44,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
                 classpath extraClasspath
                 main "driver.Driver"
             }
-            
+
             task runWithJavaExec {
                 dependsOn sourceSets.main.runtimeClasspath
                 doLast {
@@ -66,7 +66,7 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         def veryLongCommandLineArgs = getLongArgs()
         buildFile << """
             extraClasspath.from('${veryLongFileNames.join("','")}')
-            
+
             run.args '${veryLongCommandLineArgs.join("','")}'
         """
 
@@ -159,7 +159,8 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
     private static List<String> getLongArgs() {
         final int maxIndividualArgLength = 65530
 
-        int maxCommandLength = OperatingSystem.current().windows ? LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS : LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_NIX
+
+        int maxCommandLength = getMaxArgs()
         List<String> result = new ArrayList<>()
         while (maxCommandLength > 0) {
             result.add('a' * maxIndividualArgLength)
@@ -167,5 +168,19 @@ class JavaExecWithLongCommandLineIntegrationTest extends AbstractIntegrationSpec
         }
 
         return result
+    }
+
+    private static int getMaxArgs() {
+        switch(OperatingSystem.current()) {
+            case OperatingSystem.WINDOWS:
+                return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_WINDOWS
+                break
+            case OperatingSystem.MAC_OS:
+                return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_OSX
+                break
+            default:
+                return LongCommandLineDetectionUtil.MAX_COMMAND_LINE_LENGTH_NIX
+                break
+        }
     }
 }

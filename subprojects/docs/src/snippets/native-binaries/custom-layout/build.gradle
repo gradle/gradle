@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-apply plugin: 'cpp'
-apply plugin: 'c'
+plugins {
+    id 'cpp'
+    id 'c'
+}
 
 // tag::binary-library[]
 model {

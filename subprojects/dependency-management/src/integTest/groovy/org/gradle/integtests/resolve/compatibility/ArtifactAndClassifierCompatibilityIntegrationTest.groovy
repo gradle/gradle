@@ -16,6 +16,7 @@
 package org.gradle.integtests.resolve.compatibility
 
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
+import spock.lang.Issue
 
 class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDependencyResolveTest {
 
@@ -166,5 +167,105 @@ class ArtifactAndClassifierCompatibilityIntegrationTest extends AbstractModuleDe
                 }
             }
         }
+    }
+
+    @Issue("gradle/gradle#11825")
+    def "dependency on both classifier and regular jar of a given module"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+                dependsOn(group: 'org', artifact:'bar', version:'1.0')
+            }
+            'org:bar:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                }
+                withoutGradleMetadata()
+            }
+        }
+
+        and:
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact()
+                expectGetArtifact(classifier: 'classy')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:foo:1.0") {
+                    module("org:bar:1.0") {
+                        artifact([:])
+                        artifact(classifier: 'classy')
+                    }
+                }
+            }
+        }
+    }
+
+    @Issue("gradle/gradle#11825")
+    def "dependency on different classifiers of a given module"() {
+        given:
+        repository {
+            'org:foo:1.0' {
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'classy')
+                dependsOn(group: 'org', artifact:'bar', version:'1.0', classifier:'other')
+            }
+            'org:bar:1.0' {
+                withModule {
+                    undeclaredArtifact(type: 'jar', classifier: 'classy')
+                    undeclaredArtifact(type: 'jar', classifier: 'other')
+                }
+                withoutGradleMetadata()
+            }
+        }
+
+        and:
+        buildFile << """
+            dependencies {
+                conf 'org:foo:1.0'
+            }
+        """
+
+        when:
+        repositoryInteractions {
+            'org:foo:1.0' {
+                expectResolve()
+            }
+            'org:bar:1.0' {
+                expectGetMetadata()
+                expectGetArtifact(classifier: 'other')
+                expectGetArtifact(classifier: 'classy')
+            }
+        }
+        succeeds "checkDep"
+
+        then:
+        resolve.expectGraph {
+            root(':', ':test:') {
+                module("org:foo:1.0") {
+                    module("org:bar:1.0") {
+                        artifact(classifier: 'other')
+                        artifact(classifier: 'classy')
+                    }
+                }
+            }
+        }
+
     }
 }

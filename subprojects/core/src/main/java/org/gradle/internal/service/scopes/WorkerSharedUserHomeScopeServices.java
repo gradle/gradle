@@ -16,37 +16,11 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.provider.DefaultProviderFactory;
-import org.gradle.api.internal.provider.DefaultValueSourceProviderFactory;
-import org.gradle.api.internal.provider.ValueSourceProviderFactory;
-import org.gradle.api.provider.ProviderFactory;
-import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
-import org.gradle.internal.instantiation.InstantiatorFactory;
-import org.gradle.internal.isolation.IsolatableFactory;
-import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.snapshot.impl.DefaultValueSnapshotter;
 import org.gradle.internal.state.ManagedFactoryRegistry;
 
 public class WorkerSharedUserHomeScopeServices {
-
-    ValueSourceProviderFactory createValueSourceProviderFactory(
-        InstantiatorFactory instantiatorFactory,
-        IsolatableFactory isolatableFactory,
-        ServiceRegistry services,
-        ListenerManager listenerManager
-    ) {
-        return new DefaultValueSourceProviderFactory(
-            listenerManager,
-            instantiatorFactory,
-            isolatableFactory,
-            services
-        );
-    }
-
-    ProviderFactory createProviderFactory(ValueSourceProviderFactory valueSourceProviderFactory) {
-        return new DefaultProviderFactory(valueSourceProviderFactory);
-    }
 
     DefaultValueSnapshotter createValueSnapshotter(ClassLoaderHierarchyHasher classLoaderHierarchyHasher, ManagedFactoryRegistry managedFactoryRegistry) {
         return new DefaultValueSnapshotter(classLoaderHierarchyHasher, managedFactoryRegistry);

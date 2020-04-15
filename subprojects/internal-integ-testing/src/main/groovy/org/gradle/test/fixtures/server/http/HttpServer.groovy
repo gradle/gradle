@@ -174,6 +174,17 @@ class HttpServer extends ServerWithExpectations implements HttpServerFixture {
         return new SendFileAction(path, srcFile, true)
     }
 
+    static class ServiceUnavailableAction extends ActionSupport {
+        ServiceUnavailableAction(String displayName) {
+            super(displayName)
+        }
+
+        @Override
+        void handle(HttpServletRequest request, HttpServletResponse response) {
+            response.sendError(503, "service unavailable")
+        }
+    }
+
     class SendFileAction extends ActionSupport {
         private final String path
         private final File srcFile

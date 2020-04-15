@@ -17,8 +17,9 @@
 package org.gradle.language.base
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 
+@UnsupportedWithInstantExecution(because = "software model")
 class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "setup"() {
@@ -47,7 +48,6 @@ class CustomComponentSourceSetIntegrationTest extends AbstractIntegrationSpec {
 """
     }
 
-    @ToBeFixedForInstantExecution
     def "source order is retained"() {
         buildFile << '''
 class Dump extends RuleSource {

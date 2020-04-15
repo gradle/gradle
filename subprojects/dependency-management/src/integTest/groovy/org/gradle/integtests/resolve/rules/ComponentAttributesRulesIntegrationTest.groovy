@@ -18,7 +18,6 @@ package org.gradle.integtests.resolve.rules
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
 import org.gradle.integtests.fixtures.RequiredFeature
-import org.gradle.integtests.fixtures.RequiredFeatures
 import org.gradle.integtests.resolve.AbstractModuleDependencyResolveTest
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import spock.lang.Unroll
@@ -51,7 +50,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
-            
+
             dependencies {
                 attributesSchema {
                     attribute(quality)
@@ -85,8 +84,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching ${variantTerm()} of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
+            failure.assertHasCause("No matching ${variantTerm()} of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'canary' and the consumer needed attribute 'quality' with value 'qa'"))
         }
 
         where:
@@ -97,9 +96,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         mutation << ['not added', 'added']
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "variant attributes take precedence over component attributes (component level = #componentLevel)"() {
         given:
@@ -158,8 +155,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         } else {
             fails ':checkDeps'
             failure.assertHasCause("Cannot choose between the following variants of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownApiVariant' but wasn't required"))
-            failure.assertThatCause(containsNormalizedString("Found org.gradle.usage 'unknownRuntimeVariant' but wasn't required"))
+            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownApiVariant' but the consumer didn't ask for it"))
+            failure.assertThatCause(containsNormalizedString("Provides org.gradle.usage 'unknownRuntimeVariant' but the consumer didn't ask for it"))
         }
 
         where:
@@ -180,7 +177,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                    attributes.attribute(quality, 'qa')
                 }
             }
-            
+
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
@@ -232,9 +229,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
 
     }
 
-    @RequiredFeatures(
-        @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
-    )
+    @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
     @Unroll
     def "published component metadata can be overwritten (fix applied = #fixApplied)"() {
         given:
@@ -245,11 +240,11 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         }
         buildFile << """
             def quality = Attribute.of("quality", String)
-            
+
             configurations {
                 conf.attributes.attribute(quality, 'qa')
             }
-            
+
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
@@ -301,8 +296,8 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
             }
         } else {
             fails ':checkDeps'
-            failure.assertHasCause("Unable to find a matching variant of org.test:module:1.0:")
-            failure.assertThatCause(containsNormalizedString("Required quality 'qa' and found incompatible value 'canary'"))
+            failure.assertHasCause("No matching variant of org.test:module:1.0 was found. The consumer was configured to find attribute 'quality' with value 'qa' but:")
+            failure.assertThatCause(containsNormalizedString("Incompatible because this component declares attribute 'quality' with value 'canary' and the consumer needed attribute 'quality' with value 'qa'"))
         }
 
         where:
@@ -316,12 +311,12 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
         }
         buildFile << """
             def quality = Attribute.of("quality", String)
-            
+
             configurations {
                 conf.attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.class, Usage.JAVA_API))
                 conf.attributes.attribute(quality, 'qa')
             }
-            
+
             class AttributeRule implements ComponentMetadataRule {
                 Attribute targetAttribute
 
@@ -410,7 +405,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                    attributes.attribute(org.gradle.api.internal.project.ProjectInternal.STATUS_ATTRIBUTE, '$status')
                 }
             }
-            
+
             class StatusRule implements ComponentMetadataRule {
                 public void execute(ComponentMetadataContext context) {
                     if (${!GradleMetadataResolveRunner.useIvy()}) {
@@ -424,7 +419,7 @@ class ComponentAttributesRulesIntegrationTest extends AbstractModuleDependencyRe
                     }
                 }
             }
-            
+
             dependencies {
                 conf 'org:test:[1,)'
                 components {

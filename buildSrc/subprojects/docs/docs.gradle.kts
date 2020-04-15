@@ -1,15 +1,16 @@
 dependencies {
     implementation(project(":configuration"))
     implementation(project(":kotlinDsl"))
+    implementation(project(":versioning"))
+
     implementation("com.vladsch.flexmark:flexmark-all:0.34.56")
     implementation("com.uwyn:jhighlight:1.0") {
         exclude(module = "servlet-api")
     }
 
-    api("com.google.guava:guava:27.1-jre")
+    api("com.google.guava:guava")
     api("org.asciidoctor:asciidoctor-gradle-plugin:1.5.10")
 
-    implementation(project(":buildPlatform"))
     implementation("org.asciidoctor:asciidoctorj:1.5.8.1")
     implementation("commons-lang:commons-lang:2.6")
     implementation("org.asciidoctor:asciidoctorj-pdf:1.5.0-alpha.16")

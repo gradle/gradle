@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.properties.PropertyWalker;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.api.tasks.FileNormalizer;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.fingerprint.AbsolutePathInputNormalizer;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
@@ -70,7 +71,6 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.work.InputChanges;
 
 import javax.annotation.Nullable;
@@ -188,7 +188,7 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
 
     @Override
     public ImmutableList<File> transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, ArtifactTransformDependencies dependencies, @Nullable InputChanges inputChanges) {
-        TransformAction transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
+        TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
         transformAction.transform(transformOutputs);
         return transformOutputs.getRegisteredOutputs();
@@ -356,7 +356,12 @@ public class DefaultTransformer extends AbstractTransformer<TransformAction<?>> 
             this.delegate = delegate;
             ImmutableList.Builder<InjectionPoint> builder = ImmutableList.builder();
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, File.class, () -> {
-                DeprecationLogger.nagUserOfDeprecated("Injecting the input artifact of a transform as a File", "Declare the input artifact as Provider<FileSystemLocation> instead.");
+                DeprecationLogger
+                    .deprecate("Injecting the input artifact of a transform as a File")
+                    .withAdvice("Declare the input artifact as Provider<FileSystemLocation> instead.")
+                    .willBeRemovedInGradle7()
+                    .withUserManual("artifact_transforms", "sec:implementing-artifact-transforms")
+                    .nagUser();
                 return inputFileProvider.get().getAsFile();
             }));
             builder.add(InjectionPoint.injectedByAnnotation(InputArtifact.class, FILE_SYSTEM_LOCATION_PROVIDER, () -> inputFileProvider));

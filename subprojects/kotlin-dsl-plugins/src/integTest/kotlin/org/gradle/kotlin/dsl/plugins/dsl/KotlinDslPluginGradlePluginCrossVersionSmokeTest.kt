@@ -16,14 +16,14 @@
 
 package org.gradle.kotlin.dsl.plugins.dsl
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
-import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
+import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.fixtures.AbstractPluginTest
 import org.gradle.test.fixtures.dsl.GradleDsl
-
 import org.gradle.test.fixtures.file.LeaksFileHandles
-
+import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers.allOf
 import org.hamcrest.CoreMatchers.containsString
 import org.junit.Assert.assertThat
@@ -32,6 +32,10 @@ import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
 
 
+@ToBeFixedForVfsRetention(
+    because = "https://github.com/gradle/gradle/issues/12184",
+    failsOnlyIf = TestPrecondition.WINDOWS
+)
 @RunWith(Parameterized::class)
 class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
@@ -46,6 +50,7 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
         @JvmStatic
         fun testedKotlinVersions() = listOf(
             embeddedKotlinVersion,
+            "1.3.60",
             "1.3.40",
             "1.3.30"
         )
@@ -58,6 +63,9 @@ class KotlinDslPluginGradlePluginCrossVersionSmokeTest(
 
         requireGradleDistributionOnEmbeddedExecuter()
         executer.noDeprecationChecks()
+        // Ignore stacktraces when the Kotlin daemon fails
+        // See https://github.com/gradle/gradle-private/issues/2936
+        executer.withStackTraceChecksDisabled()
 
         withDefaultSettingsIn("buildSrc")
         withBuildScriptIn("buildSrc", """

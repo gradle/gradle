@@ -18,7 +18,7 @@ package org.gradle.internal.installation.beacon;
 
 /**
  * This marker is used to locate the “source” Gradle distribution at runtime.
- * See {@code GradleDistributionLocator}.
+ * See {@code CurrentGradleInstallationLocator}.
  */
 @SuppressWarnings("unused")
 public interface InstallationBeacon {

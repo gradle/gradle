@@ -23,7 +23,7 @@ import spock.lang.Specification
 
 class HtmlReportRendererTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     final HtmlReportRenderer renderer = new HtmlReportRenderer()
 
     def "renders HTML to file encoded with UTF-8"() {

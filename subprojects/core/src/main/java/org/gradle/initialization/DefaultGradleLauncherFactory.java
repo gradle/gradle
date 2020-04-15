@@ -38,7 +38,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.event.ListenerManager;
-import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadaster;
+import org.gradle.internal.featurelifecycle.DeprecatedUsageBuildOperationProgressBroadcaster;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.reflect.Instantiator;
@@ -52,7 +52,7 @@ import org.gradle.internal.service.scopes.GradleUserHomeScopeServiceRegistry;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.internal.time.Time;
 import org.gradle.invocation.DefaultGradle;
-import org.gradle.util.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -114,6 +114,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         ScriptUsageLocationReporter usageLocationReporter = new ScriptUsageLocationReporter();
         listenerManager.addListener(usageLocationReporter);
+
         StartParameter startParameter = buildDefinition.getStartParameter();
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         switch (showStacktrace) {
@@ -125,8 +126,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(false);
         }
 
-        DeprecatedUsageBuildOperationProgressBroadaster deprecationWarningBuildOperationProgressBroadaster = serviceRegistry.get(DeprecatedUsageBuildOperationProgressBroadaster.class);
-        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), deprecationWarningBuildOperationProgressBroadaster);
+        DeprecatedUsageBuildOperationProgressBroadcaster deprecationWarningBuildOperationProgressBroadcaster = serviceRegistry.get(DeprecatedUsageBuildOperationProgressBroadcaster.class);
+        DeprecationLogger.init(usageLocationReporter, startParameter.getWarningMode(), deprecationWarningBuildOperationProgressBroadcaster);
 
         GradleInternal parentBuild = parent == null ? null : parent.getGradle();
 
@@ -143,6 +144,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry.get(ExceptionAnalyser.class),
             gradle.getBuildListenerBroadcaster(),
             listenerManager.getBroadcaster(BuildCompletionListener.class),
+            listenerManager.getBroadcaster(InternalBuildFinishedListener.class),
             gradle.getServices().get(BuildWorkExecutor.class),
             serviceRegistry,
             servicesToStop,

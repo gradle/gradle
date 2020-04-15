@@ -26,13 +26,14 @@ import org.gradle.api.NamedDomainObjectCollection;
 import org.gradle.api.NamedDomainObjectCollectionSchema;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Namer;
+import org.gradle.api.NonExtensible;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.plugins.DslObject;
-import org.gradle.api.internal.provider.AbstractReadOnlyProvider;
+import org.gradle.api.internal.provider.AbstractMinimalProvider;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
@@ -808,7 +809,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         return Cast.uncheckedCast(getInstantiator().newInstance(ExistingNamedDomainObjectProvider.class, this, name, new DslObject(object).getDeclaredType()));
     }
 
-    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractReadOnlyProvider<I> implements Named, NamedDomainObjectProvider<I> {
+    @NonExtensible
+    protected abstract class AbstractNamedDomainObjectProvider<I extends T> extends AbstractMinimalProvider<I> implements Named, NamedDomainObjectProvider<I> {
         private final String name;
         private final Class<I> type;
 
@@ -829,13 +831,13 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;
         }
 
         @Override
         public String toString() {
-            return String.format("provider(%s %s, %s)", getTypeDisplayName(), getName(), getType());
+            return String.format("provider(%s '%s', %s)", getTypeDisplayName(), getName(), getType());
         }
     }
 
@@ -852,7 +854,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return getOrNull() != null;
         }
 
@@ -865,8 +867,8 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public I getOrNull() {
-            return Cast.uncheckedCast(findByNameWithoutRules(getName()));
+        protected Value<I> calculateOwnValue(ValueConsumer consumer) {
+            return Value.ofNullable(Cast.uncheckedCast(findByNameWithoutRules(getName())));
         }
     }
 
@@ -886,7 +888,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public boolean isPresent() {
+        public boolean calculatePresence(ValueConsumer consumer) {
             return findDomainObject(getName()) != null;
         }
 
@@ -914,9 +916,9 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
         }
 
         @Override
-        public I getOrNull() {
+        protected Value<? extends I> calculateOwnValue(ValueConsumer consumer) {
             if (wasElementRemoved()) {
-                return null;
+                return Value.missing();
             }
             if (failure != null) {
                 throw failure;
@@ -927,7 +929,7 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
                     tryCreate();
                 }
             }
-            return object;
+            return Value.of(object);
         }
 
         protected void tryCreate() {

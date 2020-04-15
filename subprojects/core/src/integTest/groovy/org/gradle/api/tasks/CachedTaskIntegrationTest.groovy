@@ -56,11 +56,12 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
     def "task is cacheable after previous failure"() {
         buildFile << """
             task foo {
-                outputs.file("out.txt")
+                def outFile = project.file("out.txt")
+                outputs.file(outFile)
                 outputs.cacheIf { true }
                 doLast {
-                    project.file("out.txt") << "xxx"
-                    if (project.hasProperty("fail")) {
+                    outFile << "xxx"
+                    if (System.getProperty("fail")) {
                         throw new RuntimeException("Boo!")
                     }
                 }
@@ -69,7 +70,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
 
         expect:
         executer.withStackTraceChecksDisabled()
-        withBuildCache().fails "foo", "-Pfail"
+        withBuildCache().fails "foo", "-Dfail=yes"
 
         when:
         withBuildCache().run "foo"
@@ -112,7 +113,7 @@ class CachedTaskIntegrationTest extends AbstractIntegrationSpec implements Direc
         skipped ":foo"
     }
 
-    @ToBeFixedForInstantExecution(ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "displays info about loading and storing in cache"() {
         buildFile << defineCacheableTask()
         when:

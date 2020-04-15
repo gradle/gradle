@@ -16,17 +16,16 @@
 
 package org.gradle.binarycompatibility.rules
 
-import spock.lang.Unroll
+import japicmp.model.JApiChangeStatus
 import japicmp.model.JApiConstructor
 import japicmp.model.JApiField
-import japicmp.model.JApiMethod
 import japicmp.model.JApiImplementedInterface
-import japicmp.model.JApiChangeStatus
-import org.gradle.api.Incubating
-import me.champeau.gradle.japicmp.report.Violation
+import japicmp.model.JApiMethod
+import japicmp.util.Optional
 import javassist.CtClass
-
-import com.google.common.base.Optional
+import me.champeau.gradle.japicmp.report.Violation
+import org.gradle.api.Incubating
+import spock.lang.Unroll
 
 class IncubatingInternalInterfaceAddedRuleTest extends AbstractContextAwareRuleSpecification {
     IncubatingInternalInterfaceAddedRule rule = new IncubatingInternalInterfaceAddedRule(getInitializationParams())

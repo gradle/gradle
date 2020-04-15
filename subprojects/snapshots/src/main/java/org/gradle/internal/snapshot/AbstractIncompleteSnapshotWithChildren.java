@@ -31,7 +31,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
@@ -41,7 +41,7 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return SnapshotUtil.invalidateSingleChild(child, relativePath, caseSensitivity)
+                return SnapshotUtil.invalidateSingleChild(child, relativePath, caseSensitivity, diffListener)
                     .map(invalidatedChild -> withReplacedChild(childIndex, child, invalidatedChild))
                     .map(Optional::of)
                     .orElseGet(() -> {
@@ -57,19 +57,21 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot) {
+    public FileSystemNode store(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, MetadataSnapshot snapshot, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<FileSystemNode>() {
             @Override
             public FileSystemNode handleNewChild(int insertBefore) {
                 List<FileSystemNode> newChildren = new ArrayList<>(children);
-                newChildren.add(insertBefore, snapshot.asFileSystemNode(relativePath.getAsString()));
+                FileSystemNode newChild = snapshot.asFileSystemNode(relativePath.getAsString());
+                newChildren.add(insertBefore, newChild);
+                diffListener.nodeAdded(newChild);
                 return withIncompleteChildren(getPathToParent(), newChildren);
             }
 
             @Override
             public FileSystemNode handleChildOfExisting(int childIndex) {
                 FileSystemNode child = children.get(childIndex);
-                return withReplacedChild(childIndex, child, SnapshotUtil.storeSingleChild(child, relativePath, caseSensitivity, snapshot));
+                return withReplacedChild(childIndex, child, SnapshotUtil.storeSingleChild(child, relativePath, caseSensitivity, snapshot, diffListener));
             }
         });
     }
@@ -119,10 +121,9 @@ public abstract class AbstractIncompleteSnapshotWithChildren extends AbstractFil
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visitNode(this);
+    public void accept(SnapshotHierarchy.SnapshotVisitor snapshotVisitor) {
         for (FileSystemNode child : children) {
-            child.accept(visitor);
+            child.accept(snapshotVisitor);
         }
     }
 }

@@ -29,7 +29,7 @@ import spock.lang.Specification
 
 class VisualStudioProjectFileTest extends Specification {
     @Rule
-    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider()
+    final TestNameTestDirectoryProvider testDirectoryProvider = new TestNameTestDirectoryProvider(getClass())
 
     Transformer<String, File> fileNameTransformer = { it.name } as Transformer<String, File>
     def generator = new VisualStudioProjectFile(new XmlTransformer(), fileNameTransformer)

@@ -16,10 +16,10 @@
 
 package org.gradle.caching.internal.packaging.impl
 
+import groovy.transform.Immutable
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.caching.internal.CacheableEntity
-import org.gradle.caching.internal.TestCacheableTree
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.internal.MutableReference
@@ -30,7 +30,6 @@ import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.DefaultCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.DefaultStreamHasher
-import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -42,18 +41,19 @@ import static org.gradle.internal.file.TreeType.FILE
 @CleanupTestDirectory
 abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
     @Rule
-    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider()
+    TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
     def readOrigin = Stub(OriginReader)
     def writeOrigin = Stub(OriginWriter)
 
-    def fileSystem = createFileSystem()
+    def filePermissionAccess = createFilePermissionAccess()
     def deleter = createDeleter()
+    def fileSystemSupport = new DefaultTarPackerFileSystemSupport(deleter)
     def streamHasher = new DefaultStreamHasher()
     def stringInterner = new StringInterner()
-    def packer = new TarBuildCacheEntryPacker(deleter, fileSystem, streamHasher, stringInterner)
+    def packer = new TarBuildCacheEntryPacker(fileSystemSupport, filePermissionAccess, streamHasher, stringInterner)
     def virtualFileSystem = TestFiles.virtualFileSystem()
 
-    abstract protected FileSystem createFileSystem()
+    abstract protected FilePermissionAccess createFilePermissionAccess()
     abstract protected Deleter createDeleter()
 
     def pack(OutputStream output, OriginWriter writeOrigin = this.writeOrigin, TreeDefinition... treeDefs) {
@@ -122,5 +122,12 @@ abstract class AbstractTarBuildCacheEntryPackerSpec extends Specification {
             fingerprint.set(DefaultCurrentFileCollectionFingerprint.from([snapshot], strategy))
         }
         return fingerprint.get()
+    }
+
+    @Immutable(knownImmutableClasses = [File])
+    static class TestCacheableTree {
+        String name
+        TreeType type
+        File root
     }
 }

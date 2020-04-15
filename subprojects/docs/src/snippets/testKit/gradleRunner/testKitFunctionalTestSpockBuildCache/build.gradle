@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-apply plugin: 'groovy'
-apply plugin: 'java-gradle-plugin'
+plugins {
+    id 'groovy'
+    id 'java-gradle-plugin'
+}
 
 dependencies {
     testImplementation('org.spockframework:spock-core:1.3-groovy-2.4') {

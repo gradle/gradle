@@ -67,7 +67,7 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         File cacheDir = cacheScopeMapping.getBaseDirectory(projectCacheDir.getDir(), "signature-verification", VersionStrategy.CachePerVersion);
         store = repository.cache(cacheDir)
             .withDisplayName("Signature verification cache")
-            .withLockOptions(mode(FileLockManager.LockMode.None)) // Lock on demand
+            .withLockOptions(mode(FileLockManager.LockMode.OnDemand)) // Lock on demand
             .open();
         InterningStringSerializer stringSerializer = new InterningStringSerializer(new StringInterner());
         cache = store.createCache(
