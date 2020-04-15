@@ -59,7 +59,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
 
         TaskProvider<ExtractPluginRequestsTask> extractPluginRequests = tasks.register("extractPluginRequests", ExtractPluginRequestsTask.class, task -> {
             task.getScriptPlugins().convention(scriptPlugins);
-            task.getScriptFiles().from(task.getScriptPlugins().map(list -> list.stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet())));
+            task.getScriptFiles().from(scriptPluginFiles.getFiles());
             task.getExtractedPluginRequestsClassesDirectory().convention(buildDir.dir("groovy-dsl-plugins/plugin-requests"));
         });
 
@@ -71,7 +71,7 @@ class PrecompiledGroovyPluginsPlugin implements Plugin<Project> {
 
         TaskProvider<CompileGroovyScriptPluginsTask> precompilePlugins = tasks.register("compileGroovyPlugins", CompileGroovyScriptPluginsTask.class, task -> {
             task.getScriptPlugins().convention(scriptPlugins);
-            task.getScriptFiles().from(task.getScriptPlugins().map(list -> list.stream().map(p -> p.getSource().getResource().getFile()).collect(Collectors.toSet())));
+            task.getScriptFiles().from(scriptPluginFiles.getFiles());
             task.getPrecompiledGroovyScriptsOutputDirectory().convention(buildDir.dir("groovy-dsl-plugins/output/plugin-classes"));
 
             SourceDirectorySet javaSource = pluginSourceSet.getJava();

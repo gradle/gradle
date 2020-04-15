@@ -34,7 +34,7 @@ class PrecompiledGroovyScriptTest extends Specification {
     def "creates valid java classname '#javaClass' from script filename based plugin id: #filename"() {
         expect:
         def script = new PrecompiledGroovyScript(new File("/foo/bar/$filename"))
-        script.generatedPluginClassName == javaClass
+        script.pluginAdapterClassName == javaClass
 
         where:
         filename                     | javaClass
