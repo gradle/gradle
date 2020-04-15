@@ -34,12 +34,18 @@ import static org.junit.Assume.assumeThat
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
+    // TODO:instant-execution remove once fixed upstream
+    @Override
+    protected int maxInstantExecutionProblems() {
+        return 348
+    }
+
     @Unroll
     @ToBeFixedForInstantExecution
     def "can cache Santa Tracker Kotlin Android application (agp=#agpVersion)"() {
 
-        // 4.1.0 nightly has new cacheable tasks, remove this once alpha04 is out
-        assumeThat(agpVersion, not(equalTo("4.1.0-alpha03")))
+        // 4.1.0 nightly has new cacheable tasks, remove this once alpha06 is out
+        assumeThat(agpVersion, not(equalTo("4.1.0-alpha05")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
@@ -71,8 +77,8 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         def expectedResults = agpVersion.startsWith('3.6')
             ? EXPECTED_RESULTS_3_6
             : agpVersion.startsWith('4.0')
-                ? EXPECTED_RESULTS_4_0
-                : EXPECTED_RESULTS_4_1
+            ? EXPECTED_RESULTS_4_0
+            : EXPECTED_RESULTS_4_1
         verify(relocatedResult, expectedResults)
 
         when: 'clean cached build, reusing instant execution cache when enabled'
@@ -88,6 +94,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
 
     private static final EXPECTED_RESULTS_4_1 = [
         ':cityquiz:assembleDebug': SUCCESS,
+        ':cityquiz:bundleDebugClasses': FROM_CACHE,
         ':cityquiz:checkDebugDuplicateClasses': FROM_CACHE,
         ':cityquiz:compileDebugAidl': NO_SOURCE,
         ':cityquiz:compileDebugJavaWithJavac': FROM_CACHE,
@@ -97,6 +104,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':cityquiz:compileDebugSources': UP_TO_DATE,
         ':cityquiz:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':cityquiz:dexBuilderDebug': FROM_CACHE,
+        ':cityquiz:enumerateDebugClasses': FROM_CACHE,
         ':cityquiz:extractDeepLinksDebug': FROM_CACHE,
         ':cityquiz:featureDebugWriter': SUCCESS,
         ':cityquiz:generateDebugAssets': UP_TO_DATE,
@@ -119,6 +127,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':cityquiz:preDebugBuild': UP_TO_DATE,
         ':cityquiz:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':cityquiz:processDebugJavaRes': NO_SOURCE,
+        ':cityquiz:processDebugMainManifest': FROM_CACHE,
         ':cityquiz:processDebugManifest': FROM_CACHE,
         ':cityquiz:processDebugManifestForPackage': FROM_CACHE,
         ':cityquiz:processDebugResources': SUCCESS,
@@ -165,6 +174,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':common:stripDebugDebugSymbols': NO_SOURCE,
         ':common:syncDebugLibJars': FROM_CACHE,
         ':dasherdancer:assembleDebug': SUCCESS,
+        ':dasherdancer:bundleDebugClasses': FROM_CACHE,
         ':dasherdancer:checkDebugDuplicateClasses': FROM_CACHE,
         ':dasherdancer:compileDebugAidl': NO_SOURCE,
         ':dasherdancer:compileDebugJavaWithJavac': FROM_CACHE,
@@ -174,6 +184,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':dasherdancer:compileDebugSources': UP_TO_DATE,
         ':dasherdancer:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':dasherdancer:dexBuilderDebug': FROM_CACHE,
+        ':dasherdancer:enumerateDebugClasses': FROM_CACHE,
         ':dasherdancer:extractDeepLinksDebug': FROM_CACHE,
         ':dasherdancer:featureDebugWriter': SUCCESS,
         ':dasherdancer:generateDebugAssets': UP_TO_DATE,
@@ -196,6 +207,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':dasherdancer:preDebugBuild': UP_TO_DATE,
         ':dasherdancer:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':dasherdancer:processDebugJavaRes': NO_SOURCE,
+        ':dasherdancer:processDebugMainManifest': FROM_CACHE,
         ':dasherdancer:processDebugManifest': FROM_CACHE,
         ':dasherdancer:processDebugManifestForPackage': FROM_CACHE,
         ':dasherdancer:processDebugResources': SUCCESS,
@@ -241,6 +253,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':doodles-lib:stripDebugDebugSymbols': NO_SOURCE,
         ':doodles-lib:syncDebugLibJars': FROM_CACHE,
         ':gumball:assembleDebug': SUCCESS,
+        ':gumball:bundleDebugClasses': FROM_CACHE,
         ':gumball:checkDebugDuplicateClasses': FROM_CACHE,
         ':gumball:compileDebugAidl': NO_SOURCE,
         ':gumball:compileDebugJavaWithJavac': FROM_CACHE,
@@ -249,6 +262,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':gumball:compileDebugSources': UP_TO_DATE,
         ':gumball:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':gumball:dexBuilderDebug': FROM_CACHE,
+        ':gumball:enumerateDebugClasses': FROM_CACHE,
         ':gumball:extractDeepLinksDebug': FROM_CACHE,
         ':gumball:featureDebugWriter': SUCCESS,
         ':gumball:generateDebugAssets': UP_TO_DATE,
@@ -271,12 +285,14 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':gumball:preDebugBuild': UP_TO_DATE,
         ':gumball:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':gumball:processDebugJavaRes': NO_SOURCE,
+        ':gumball:processDebugMainManifest': FROM_CACHE,
         ':gumball:processDebugManifest': FROM_CACHE,
         ':gumball:processDebugManifestForPackage': FROM_CACHE,
         ':gumball:processDebugResources': SUCCESS,
         ':gumball:processManifestDebugForFeature': FROM_CACHE,
         ':gumball:stripDebugDebugSymbols': NO_SOURCE,
         ':jetpack:assembleDebug': SUCCESS,
+        ':jetpack:bundleDebugClasses': FROM_CACHE,
         ':jetpack:checkDebugDuplicateClasses': FROM_CACHE,
         ':jetpack:compileDebugAidl': NO_SOURCE,
         ':jetpack:compileDebugJavaWithJavac': FROM_CACHE,
@@ -286,6 +302,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':jetpack:compileDebugSources': UP_TO_DATE,
         ':jetpack:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':jetpack:dexBuilderDebug': FROM_CACHE,
+        ':jetpack:enumerateDebugClasses': FROM_CACHE,
         ':jetpack:extractDeepLinksDebug': FROM_CACHE,
         ':jetpack:featureDebugWriter': SUCCESS,
         ':jetpack:generateDebugAssets': UP_TO_DATE,
@@ -308,12 +325,14 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':jetpack:preDebugBuild': UP_TO_DATE,
         ':jetpack:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':jetpack:processDebugJavaRes': NO_SOURCE,
+        ':jetpack:processDebugMainManifest': FROM_CACHE,
         ':jetpack:processDebugManifest': FROM_CACHE,
         ':jetpack:processDebugManifestForPackage': FROM_CACHE,
         ':jetpack:processDebugResources': SUCCESS,
         ':jetpack:processManifestDebugForFeature': FROM_CACHE,
         ':jetpack:stripDebugDebugSymbols': NO_SOURCE,
         ':memory:assembleDebug': SUCCESS,
+        ':memory:bundleDebugClasses': FROM_CACHE,
         ':memory:checkDebugDuplicateClasses': FROM_CACHE,
         ':memory:compileDebugAidl': NO_SOURCE,
         ':memory:compileDebugJavaWithJavac': FROM_CACHE,
@@ -322,6 +341,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':memory:compileDebugSources': UP_TO_DATE,
         ':memory:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':memory:dexBuilderDebug': FROM_CACHE,
+        ':memory:enumerateDebugClasses': FROM_CACHE,
         ':memory:extractDeepLinksDebug': FROM_CACHE,
         ':memory:featureDebugWriter': SUCCESS,
         ':memory:generateDebugAssets': UP_TO_DATE,
@@ -344,12 +364,14 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':memory:preDebugBuild': UP_TO_DATE,
         ':memory:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':memory:processDebugJavaRes': NO_SOURCE,
+        ':memory:processDebugMainManifest': FROM_CACHE,
         ':memory:processDebugManifest': FROM_CACHE,
         ':memory:processDebugManifestForPackage': FROM_CACHE,
         ':memory:processDebugResources': SUCCESS,
         ':memory:processManifestDebugForFeature': FROM_CACHE,
         ':memory:stripDebugDebugSymbols': NO_SOURCE,
         ':penguinswim:assembleDebug': SUCCESS,
+        ':penguinswim:bundleDebugClasses': FROM_CACHE,
         ':penguinswim:checkDebugDuplicateClasses': FROM_CACHE,
         ':penguinswim:compileDebugAidl': NO_SOURCE,
         ':penguinswim:compileDebugJavaWithJavac': FROM_CACHE,
@@ -358,6 +380,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':penguinswim:compileDebugSources': UP_TO_DATE,
         ':penguinswim:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':penguinswim:dexBuilderDebug': FROM_CACHE,
+        ':penguinswim:enumerateDebugClasses': FROM_CACHE,
         ':penguinswim:extractDeepLinksDebug': FROM_CACHE,
         ':penguinswim:featureDebugWriter': SUCCESS,
         ':penguinswim:generateDebugAssets': UP_TO_DATE,
@@ -380,6 +403,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':penguinswim:preDebugBuild': UP_TO_DATE,
         ':penguinswim:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':penguinswim:processDebugJavaRes': NO_SOURCE,
+        ':penguinswim:processDebugMainManifest': FROM_CACHE,
         ':penguinswim:processDebugManifest': FROM_CACHE,
         ':penguinswim:processDebugManifestForPackage': FROM_CACHE,
         ':penguinswim:processDebugResources': SUCCESS,
@@ -425,6 +449,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':playgames:stripDebugDebugSymbols': NO_SOURCE,
         ':playgames:syncDebugLibJars': FROM_CACHE,
         ':presenttoss:assembleDebug': SUCCESS,
+        ':presenttoss:bundleDebugClasses': FROM_CACHE,
         ':presenttoss:checkDebugDuplicateClasses': FROM_CACHE,
         ':presenttoss:compileDebugAidl': NO_SOURCE,
         ':presenttoss:compileDebugJavaWithJavac': FROM_CACHE,
@@ -433,6 +458,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':presenttoss:compileDebugSources': UP_TO_DATE,
         ':presenttoss:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':presenttoss:dexBuilderDebug': FROM_CACHE,
+        ':presenttoss:enumerateDebugClasses': FROM_CACHE,
         ':presenttoss:extractDeepLinksDebug': FROM_CACHE,
         ':presenttoss:featureDebugWriter': SUCCESS,
         ':presenttoss:generateDebugAssets': UP_TO_DATE,
@@ -455,12 +481,14 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':presenttoss:preDebugBuild': UP_TO_DATE,
         ':presenttoss:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':presenttoss:processDebugJavaRes': NO_SOURCE,
+        ':presenttoss:processDebugMainManifest': FROM_CACHE,
         ':presenttoss:processDebugManifest': FROM_CACHE,
         ':presenttoss:processDebugManifestForPackage': FROM_CACHE,
         ':presenttoss:processDebugResources': SUCCESS,
         ':presenttoss:processManifestDebugForFeature': FROM_CACHE,
         ':presenttoss:stripDebugDebugSymbols': NO_SOURCE,
         ':rocketsleigh:assembleDebug': SUCCESS,
+        ':rocketsleigh:bundleDebugClasses': FROM_CACHE,
         ':rocketsleigh:checkDebugDuplicateClasses': FROM_CACHE,
         ':rocketsleigh:compileDebugAidl': NO_SOURCE,
         ':rocketsleigh:compileDebugJavaWithJavac': FROM_CACHE,
@@ -470,6 +498,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':rocketsleigh:compileDebugSources': UP_TO_DATE,
         ':rocketsleigh:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':rocketsleigh:dexBuilderDebug': FROM_CACHE,
+        ':rocketsleigh:enumerateDebugClasses': FROM_CACHE,
         ':rocketsleigh:extractDeepLinksDebug': FROM_CACHE,
         ':rocketsleigh:featureDebugWriter': SUCCESS,
         ':rocketsleigh:generateDebugAssets': UP_TO_DATE,
@@ -492,6 +521,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':rocketsleigh:preDebugBuild': UP_TO_DATE,
         ':rocketsleigh:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':rocketsleigh:processDebugJavaRes': NO_SOURCE,
+        ':rocketsleigh:processDebugMainManifest': FROM_CACHE,
         ':rocketsleigh:processDebugManifest': FROM_CACHE,
         ':rocketsleigh:processDebugManifestForPackage': FROM_CACHE,
         ':rocketsleigh:processDebugResources': SUCCESS,
@@ -509,6 +539,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':santa-tracker:compileDebugSources': UP_TO_DATE,
         ':santa-tracker:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':santa-tracker:dexBuilderDebug': FROM_CACHE,
+        ':santa-tracker:enumerateDebugClasses': FROM_CACHE,
         ':santa-tracker:extractDeepLinksDebug': FROM_CACHE,
         ':santa-tracker:generateDebugAssets': UP_TO_DATE,
         ':santa-tracker:generateDebugBuildConfig': FROM_CACHE,
@@ -534,6 +565,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':santa-tracker:preBuild': UP_TO_DATE,
         ':santa-tracker:preDebugBuild': FROM_CACHE,
         ':santa-tracker:processDebugJavaRes': NO_SOURCE,
+        ':santa-tracker:processDebugMainManifest': FROM_CACHE,
         ':santa-tracker:processDebugManifest': FROM_CACHE,
         ':santa-tracker:processDebugManifestForPackage': FROM_CACHE,
         ':santa-tracker:processDebugResources': SUCCESS,
@@ -542,6 +574,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':santa-tracker:validateSigningDebug': FROM_CACHE,
         ':santa-tracker:writeDebugModuleMetadata': SUCCESS,
         ':snowballrun:assembleDebug': SUCCESS,
+        ':snowballrun:bundleDebugClasses': FROM_CACHE,
         ':snowballrun:checkDebugDuplicateClasses': FROM_CACHE,
         ':snowballrun:compileDebugAidl': NO_SOURCE,
         ':snowballrun:compileDebugJavaWithJavac': FROM_CACHE,
@@ -550,6 +583,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':snowballrun:compileDebugSources': UP_TO_DATE,
         ':snowballrun:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':snowballrun:dexBuilderDebug': FROM_CACHE,
+        ':snowballrun:enumerateDebugClasses': FROM_CACHE,
         ':snowballrun:extractDeepLinksDebug': FROM_CACHE,
         ':snowballrun:featureDebugWriter': SUCCESS,
         ':snowballrun:generateDebugAssets': UP_TO_DATE,
@@ -572,6 +606,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':snowballrun:preDebugBuild': UP_TO_DATE,
         ':snowballrun:processApplicationManifestDebugForBundle': FROM_CACHE,
         ':snowballrun:processDebugJavaRes': NO_SOURCE,
+        ':snowballrun:processDebugMainManifest': FROM_CACHE,
         ':snowballrun:processDebugManifest': FROM_CACHE,
         ':snowballrun:processDebugManifestForPackage': FROM_CACHE,
         ':snowballrun:processDebugResources': SUCCESS,
@@ -621,6 +656,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':tracker:stripDebugDebugSymbols': NO_SOURCE,
         ':tracker:syncDebugLibJars': FROM_CACHE,
         ':wearable:assembleDebug': SUCCESS,
+        ':wearable:bundleDebugClasses': FROM_CACHE,
         ':wearable:checkDebugDuplicateClasses': FROM_CACHE,
         ':wearable:compileDebugAidl': NO_SOURCE,
         ':wearable:compileDebugJavaWithJavac': FROM_CACHE,
@@ -630,6 +666,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':wearable:compileDebugSources': UP_TO_DATE,
         ':wearable:createDebugCompatibleScreenManifests': FROM_CACHE,
         ':wearable:dexBuilderDebug': FROM_CACHE,
+        ':wearable:enumerateDebugClasses': FROM_CACHE,
         ':wearable:extractDeepLinksDebug': FROM_CACHE,
         ':wearable:generateDebugAssets': UP_TO_DATE,
         ':wearable:generateDebugBuildConfig': FROM_CACHE,
@@ -652,6 +689,7 @@ class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrac
         ':wearable:preBuild': UP_TO_DATE,
         ':wearable:preDebugBuild': UP_TO_DATE,
         ':wearable:processDebugJavaRes': NO_SOURCE,
+        ':wearable:processDebugMainManifest': FROM_CACHE,
         ':wearable:processDebugManifest': FROM_CACHE,
         ':wearable:processDebugManifestForPackage': FROM_CACHE,
         ':wearable:processDebugResources': SUCCESS,
