@@ -1159,7 +1159,6 @@ task generate(type: TransformerTask) {
     }
 
     @Issue("gradle/gradle#1168")
-    @ToBeFixedForInstantExecution
     def "task is not up-to-date when it has overlapping outputs"() {
         buildFile << """
             apply plugin: 'base'
