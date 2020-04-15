@@ -498,7 +498,7 @@ This was contributed by [Matthew Duggan](https://github.com/mduggan).
 
 Potentially sensitive information is logged when Gradle is executed with debug level logging, such as sensitive credentials, authentication tokens or internal repository URLs.
 Much of this logging occurs deep in components of the JVM and other libraries outside the control of Gradle.
-While debugging, this information may also be inherently useful.
+While debugging, this information may be inherently useful.
 However, this information can be unintentionally exposed when Gradle builds are executed on Continuous Integration services where build logs are publicly-accessible.
 See the recent update about the fixed [Plugin Portal vulnerability](https://blog.gradle.org/plugin-portal-update) for an example of this security risk.
 
