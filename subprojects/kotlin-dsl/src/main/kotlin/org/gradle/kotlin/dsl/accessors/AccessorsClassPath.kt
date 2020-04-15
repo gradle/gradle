@@ -16,21 +16,40 @@
 
 package org.gradle.kotlin.dsl.accessors
 
+import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.Project
+import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.cache.internal.CacheKeyBuilder
 
 import org.gradle.cache.internal.CacheKeyBuilder.CacheKeySpec
+import org.gradle.caching.internal.CacheableEntity
 
 import org.gradle.internal.classanalysis.AsmConstants.ASM_LEVEL
 
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
+import org.gradle.internal.execution.CachingResult
+import org.gradle.internal.execution.ExecutionRequestContext
+import org.gradle.internal.execution.InputChangesContext
+import org.gradle.internal.execution.UnitOfWork
+import org.gradle.internal.execution.WorkExecutor
+import org.gradle.internal.execution.history.ExecutionHistoryStore
+import org.gradle.internal.execution.history.changes.InputChangesInternal
+import org.gradle.internal.file.TreeType
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionFingerprint
+import org.gradle.internal.fingerprint.FileCollectionSnapshotter
+import org.gradle.internal.fingerprint.impl.OutputFileCollectionFingerprinter
 
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
 import org.gradle.internal.hash.Hashing
+import org.gradle.internal.snapshot.CompositeFileSystemSnapshot
+import org.gradle.internal.snapshot.FileSystemSnapshot
+import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 
-import org.gradle.kotlin.dsl.cache.ScriptCache
 import org.gradle.kotlin.dsl.codegen.fileHeaderFor
 import org.gradle.kotlin.dsl.codegen.kotlinDslPackageName
 
@@ -57,6 +76,7 @@ import org.jetbrains.org.objectweb.asm.signature.SignatureVisitor
 
 import java.io.Closeable
 import java.io.File
+import java.util.Optional
 
 
 fun projectAccessorsClassPath(project: Project, classPath: ClassPath): AccessorsClassPath =
@@ -67,20 +87,128 @@ fun projectAccessorsClassPath(project: Project, classPath: ClassPath): Accessors
 
 
 private
-fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath) =
-    configuredProjectSchemaOf(project)?.let { projectSchema ->
+fun buildAccessorsClassPathFor(project: Project, classPath: ClassPath): AccessorsClassPath? {
+    val workExecutor: WorkExecutor<ExecutionRequestContext, CachingResult> = project.serviceOf()
+    val cacheKeyBuilder: CacheKeyBuilder = project.serviceOf()
+    val workspaceProvider: KotlinDslWorkspaceProvider = project.serviceOf()
+    return configuredProjectSchemaOf(project)?.let { projectSchema ->
         // TODO:accessors make cache key computation more efficient
-        cachedAccessorsClassPathFor(project, cacheKeyFor(projectSchema, classPath)) { srcDir, binDir ->
-            withAsynchronousIO(project) {
-                buildAccessorsFor(
-                    projectSchema,
-                    classPath,
-                    srcDir = srcDir,
-                    binDir = binDir
-                )
-            }
+        val cacheKeySpec = cacheKeyFor(projectSchema, classPath)
+        val cacheKey = cacheKeyBuilder.build(cacheKeySpec)
+        workspaceProvider.withWorkspace(cacheKey) { workspace, executionHistoryStore ->
+            val sourcesOutputDir = File(workspace, "sources")
+            val classesOutputDir = File(workspace, "classes")
+            val work = GenerateProjectAccessors(
+                project,
+                projectSchema,
+                classPath,
+                cacheKey,
+                sourcesOutputDir,
+                classesOutputDir,
+                executionHistoryStore,
+                project.serviceOf(),
+                project.serviceOf(),
+                project.serviceOf()
+            )
+            workExecutor.execute(object : ExecutionRequestContext {
+                override fun getWork() = work
+                override fun getRebuildReason() = Optional.of("REBUILD")
+            })
+            AccessorsClassPath(
+                DefaultClassPath.of(classesOutputDir),
+                DefaultClassPath.of(sourcesOutputDir)
+            )
         }
     }
+}
+
+
+class GenerateProjectAccessors(
+    private val project: Project,
+    private val projectSchema: TypedProjectSchema,
+    private val classPath: ClassPath,
+    private val cacheKey: String,
+    private val sourcesOutputDir: File,
+    private val classesOutputDir: File,
+    private val executionHistoryStore: ExecutionHistoryStore,
+    private val fileCollectionFactory: FileCollectionFactory,
+    private val fileCollectionSnapshotter: FileCollectionSnapshotter,
+    private val outputFingerprinter: OutputFileCollectionFingerprinter
+) : UnitOfWork {
+
+    companion object {
+        const val CACHE_KEY_INPUT_PROPERTY = "cacheKey"
+        const val SOURCES_OUTPUT_PROPERTY = "sources"
+        const val CLASSES_OUTPUT_PROPERTY = "classes"
+    }
+
+    override fun execute(inputChanges: InputChangesInternal?, context: InputChangesContext): UnitOfWork.WorkResult {
+        withAsynchronousIO(project) {
+            buildAccessorsFor(
+                projectSchema,
+                classPath,
+                srcDir = sourcesOutputDir,
+                binDir = classesOutputDir
+            )
+        }
+        return UnitOfWork.WorkResult.DID_WORK
+    }
+
+    override fun getIdentity() = cacheKey
+
+    override fun getDisplayName(): String = "Kotlin project accessor generator for $project"
+
+    override fun markExecutionTime(): Long = 0
+
+    override fun getExecutionHistoryStore(): Optional<ExecutionHistoryStore> = Optional.of(executionHistoryStore)
+
+    override fun validate(validationContext: UnitOfWork.WorkValidationContext) = Unit
+
+    override fun getChangingOutputs(): Optional<out Iterable<String>> =
+        Optional.of(listOf(sourcesOutputDir.absolutePath, classesOutputDir.absolutePath))
+
+    override fun fingerprintAndFilterOutputSnapshots(
+        afterPreviousExecutionOutputFingerprints: ImmutableSortedMap<String, FileCollectionFingerprint>,
+        beforeExecutionOutputSnapshots: ImmutableSortedMap<String, FileSystemSnapshot>,
+        afterExecutionOutputSnapshots: ImmutableSortedMap<String, FileSystemSnapshot>,
+        hasDetectedOverlappingOutputs: Boolean
+    ): ImmutableSortedMap<String, CurrentFileCollectionFingerprint> = ImmutableSortedMap.copyOf(
+        afterExecutionOutputSnapshots.mapValues { (_, value) -> outputFingerprinter.fingerprint(ImmutableList.of(value)) }
+    )
+
+    override fun snapshotOutputsBeforeExecution(): ImmutableSortedMap<String, FileSystemSnapshot> = snapshotOutputs()
+
+    override fun snapshotOutputsAfterExecution(): ImmutableSortedMap<String, FileSystemSnapshot> = snapshotOutputs()
+
+    private
+    fun snapshotOutputs(): ImmutableSortedMap<String, FileSystemSnapshot> {
+        val sourceSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(sourcesOutputDir))
+        val classesSnapshots: List<FileSystemSnapshot> = fileCollectionSnapshotter.snapshot(fileCollectionFactory.fixed(classesOutputDir))
+        return ImmutableSortedMap.of(
+            SOURCES_OUTPUT_PROPERTY, CompositeFileSystemSnapshot.of(sourceSnapshots),
+            CLASSES_OUTPUT_PROPERTY, CompositeFileSystemSnapshot.of(classesSnapshots))
+    }
+
+    override fun visitImplementations(visitor: UnitOfWork.ImplementationVisitor) {
+        visitor.visitImplementation(GenerateProjectAccessors::class.java)
+    }
+
+    override fun visitInputProperties(visitor: UnitOfWork.InputPropertyVisitor) {
+        visitor.visitInputProperty(CACHE_KEY_INPUT_PROPERTY, cacheKey)
+    }
+
+    override fun visitInputFileProperties(visitor: UnitOfWork.InputFilePropertyVisitor) = Unit
+
+    override fun visitOutputProperties(visitor: UnitOfWork.OutputPropertyVisitor) {
+        visitor.visitOutputProperty(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
+        visitor.visitOutputProperty(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
+    }
+
+    override fun visitOutputTrees(visitor: CacheableEntity.CacheableTreeVisitor) {
+        visitor.visitOutputTree(SOURCES_OUTPUT_PROPERTY, TreeType.DIRECTORY, sourcesOutputDir)
+        visitor.visitOutputTree(CLASSES_OUTPUT_PROPERTY, TreeType.DIRECTORY, classesOutputDir)
+    }
+}
 
 
 data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
@@ -92,37 +220,6 @@ data class AccessorsClassPath(val bin: ClassPath, val src: ClassPath) {
     operator fun plus(other: AccessorsClassPath) =
         AccessorsClassPath(bin + other.bin, src + other.src)
 }
-
-
-internal
-fun cachedAccessorsClassPathFor(
-    project: Project,
-    cacheKeySpec: CacheKeySpec,
-    builder: (File, File) -> Unit
-): AccessorsClassPath {
-
-    val cacheDir =
-        scriptCacheOf(project)
-            .cacheDirFor(cacheKeySpec) { baseDir ->
-                builder(
-                    accessorsSourceDir(baseDir),
-                    accessorsClassesDir(baseDir)
-                )
-            }
-
-    return AccessorsClassPath(
-        DefaultClassPath.of(accessorsClassesDir(cacheDir)),
-        DefaultClassPath.of(accessorsSourceDir(cacheDir))
-    )
-}
-
-
-private
-fun accessorsSourceDir(baseDir: File) = baseDir.resolve("src")
-
-
-private
-fun accessorsClassesDir(baseDir: File) = baseDir.resolve("classes")
 
 
 private
@@ -142,10 +239,6 @@ fun schemaFor(project: Project): TypedProjectSchema =
 private
 fun projectSchemaProviderOf(project: Project) =
     project.serviceOf<ProjectSchemaProvider>()
-
-
-private
-fun scriptCacheOf(project: Project) = project.serviceOf<ScriptCache>()
 
 
 fun IO.buildAccessorsFor(
