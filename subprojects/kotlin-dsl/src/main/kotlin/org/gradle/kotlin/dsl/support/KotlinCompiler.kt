@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
@@ -156,8 +157,10 @@ fun compileKotlinScriptModuleTo(
 ) {
     // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
     // See https://youtrack.jetbrains.com/issue/KT-35394
-    withSystemProperty(KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY, "false") {
-
+    SystemProperties.getInstance().withSystemProperty(
+        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
+        "false"
+    ) {
         withRootDisposable {
 
             withCompilationExceptionHandler(messageCollector) {
@@ -233,18 +236,6 @@ inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
         return action(rootDisposable)
     } finally {
         dispose(rootDisposable)
-    }
-}
-
-
-private
-inline fun withSystemProperty(propertyName: String, propertyValue: String, action: () -> Unit) {
-    val previousValue = System.setProperty(propertyName, propertyValue)
-    try {
-        action()
-    } finally {
-        if (previousValue != null) System.setProperty(propertyName, propertyValue)
-        else System.clearProperty(propertyName)
     }
 }
 
