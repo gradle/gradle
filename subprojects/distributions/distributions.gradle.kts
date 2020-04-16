@@ -176,10 +176,10 @@ tasks.withType<IntegrationTest>().configureEach {
 }
 
 fun ConfigurationContainer.docsResolver(type: String): NamedDomainObjectContainerCreatingDelegateProvider<Configuration> =
-    NamedDomainObjectContainerCreatingDelegateProvider.of(this) {
+    creating {
         isVisible = false
         isCanBeResolved = true
         isCanBeConsumed = false
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named("docs"))
         attributes.attribute(Attribute.of("type", String::class.java), type)
-    }.also {  }
+    }

@@ -177,7 +177,7 @@ open class GradleDistributionPlugin : Plugin<Project> {
 
     private
     fun ConfigurationContainer.bucket(vararg extends: Configuration): NamedDomainObjectContainerCreatingDelegateProvider<Configuration> =
-        NamedDomainObjectContainerCreatingDelegateProvider.of(this) {
+        creating {
             isCanBeResolved = false
             isCanBeConsumed = false
             isVisible = false
@@ -186,7 +186,7 @@ open class GradleDistributionPlugin : Plugin<Project> {
 
     private
     fun Project.resolver(vararg extends: Configuration): NamedDomainObjectContainerCreatingDelegateProvider<Configuration> =
-        NamedDomainObjectContainerCreatingDelegateProvider.of(this.configurations) {
+        configurations.creating {
             attributes {
                 attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
                 attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
