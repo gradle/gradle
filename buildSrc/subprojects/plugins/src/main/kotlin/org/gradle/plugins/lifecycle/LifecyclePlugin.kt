@@ -98,12 +98,12 @@ class LifecyclePlugin : Plugin<Project> {
 
     private
     fun Project.sharedDependencyAndQualityConfigs() {
+        // TODO remove this cross project configuration by declaring dependency coordinates as fields in a Kotlin object and the versions in the platform directly
         apply(from = "gradle/dependencies.gradle")
         apply(from = "gradle/test-dependencies.gradle")
         apply(from = "gradle/remove-teamcity-temp-property.gradle") // https://github.com/gradle/gradle-private/issues/2463
         allprojects {
             apply(plugin = "gradlebuild.dependencies-metadata-rules")
-            apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
         }
     }
 

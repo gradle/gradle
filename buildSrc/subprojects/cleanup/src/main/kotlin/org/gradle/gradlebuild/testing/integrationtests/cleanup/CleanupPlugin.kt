@@ -43,6 +43,7 @@ class CleanupPlugin : Plugin<Project> {
             this.tracker.set(tracker)
         }
 
+        // TODO find another solution here to avoid reaching into another project. Maybe the CI job should do 'killExistingProcessesStartedByGradle' first directly.
         if (BuildEnvironment.isCiServer) {
             tasks {
                 val cleanTask = named("clean") {

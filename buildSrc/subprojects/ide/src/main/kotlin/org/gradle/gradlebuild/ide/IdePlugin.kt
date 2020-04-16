@@ -83,9 +83,7 @@ open class IdePlugin : Plugin<Project> {
     private
     fun Project.configureIdeaForRootProject() {
         apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
-        allprojects {
-            apply(plugin = "idea")
-        }
+        apply(plugin = "idea")
         tasks.named("idea") {
             doFirst {
                 throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij")
@@ -176,10 +174,12 @@ open class IdePlugin : Plugin<Project> {
         }
     }
 
+    // TODO this can be removed if we *always* delegate to Gradle
     private
     fun ProjectSettings.configureSyncTasks(subprojects: Set<Project>) {
         subprojects.forEach { subproject ->
             subproject.run {
+                apply(plugin = "idea")
                 afterEvaluate {
                     taskTriggers {
                         val classpathManifest = tasks.findByName("classpathManifest")
@@ -281,22 +281,22 @@ val Project.rootExcludeDirs
         file("buildSrc/.gradle"))
 
 
-fun IdeaProject.settings(configuration: ProjectSettings.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+fun IdeaProject.settings(configuration: ProjectSettings.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.taskTriggers(configuration: TaskTriggersConfig.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+fun ProjectSettings.taskTriggers(configuration: TaskTriggersConfig.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.compiler(configuration: IdeaCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+fun ProjectSettings.compiler(configuration: IdeaCompilerConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> kotlin.Unit) = (this as ExtensionAware).configure(configuration)
+fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
+fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
     this.apply(configuration)
 }
 

@@ -81,7 +81,7 @@ fun Project.setBuildVersion() {
         }
     }
 
-    project.allprojects {
+    allprojects {
         group = "org.gradle"
         version = versionNumber
     }
