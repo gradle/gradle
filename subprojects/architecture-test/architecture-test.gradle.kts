@@ -4,22 +4,16 @@ plugins {
     gradlebuild.internal.java
 }
 
+configurations {
+    testRuntimeClasspath.get().extendsFrom(fullGradleRuntimeClasspath.get())
+}
+
 dependencies {
     testImplementation(project(":baseServices"))
     testImplementation(project(":modelCore"))
 
     testImplementation(testLibrary("archunit_junit4"))
     testImplementation(library("guava"))
-
-    rootProject.subprojects {
-        val subproject = this.path
-        plugins.withType<gradlebuild.distribution.CorePlugin> {
-            testRuntimeOnly(project(subproject))
-        }
-        plugins.withType<gradlebuild.distribution.PluginsPlugin> {
-            testRuntimeOnly(project(subproject))
-        }
-    }
 }
 
 tasks.withType<Test> {
