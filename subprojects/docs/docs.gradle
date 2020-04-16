@@ -164,7 +164,6 @@ samples {
             target = "application"
         }
 
-
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
