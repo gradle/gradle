@@ -33,8 +33,8 @@ dependencies {
     integTestImplementation(project(":internalTesting"))
     integTestImplementation("com.squareup.okhttp3:mockwebserver:3.9.1")
 }
-configurations.integTestRuntimeOnly.get().withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
 val pluginBundles = listOf(
@@ -51,8 +51,7 @@ tasks {
         }
     }
 
-    val integTestTasks: DomainObjectCollection<IntegrationTest> by project.extra
-    integTestTasks.configureEach {
+    withType<IntegrationTest>().configureEach {
         dependsOn(testEnvironment)
     }
 

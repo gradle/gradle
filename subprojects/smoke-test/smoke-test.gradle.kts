@@ -38,12 +38,6 @@ val smokeTestRuntimeOnly: Configuration by configurations.getting {
 val smokeTestCompileClasspath: Configuration by configurations.getting
 val smokeTestRuntimeClasspath: Configuration by configurations.getting
 
-configurations {
-    partialDistribution.get().extendsFrom(
-        get(smokeTest.runtimeClasspathConfigurationName)
-    )
-}
-
 dependencies {
     smokeTestImplementation(project(":baseServices"))
     smokeTestImplementation(project(":coreApi"))
@@ -62,9 +56,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":versionControl")))
 }
-configurations["smokeTestRuntimeOnly"].withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
-}
+smokeTestRuntimeClasspath.extendsFrom(configurations.fullGradleRuntime.get())
 
 fun SmokeTest.configureForSmokeTest() {
     group = "Verification"

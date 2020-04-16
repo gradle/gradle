@@ -127,9 +127,7 @@ bundledGradlePlugin(
 
 
 // testing ------------------------------------------------------------
-
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     dependsOn("publishPluginsToTestRepository")
 }
 

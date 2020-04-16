@@ -81,7 +81,9 @@ fun Project.setBuildVersion() {
         }
     }
 
-    project.version = versionNumber
+    project.allprojects {
+        version = versionNumber
+    }
 
     registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 

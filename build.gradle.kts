@@ -14,30 +14,26 @@
  * limitations under the License.
  */
 
-import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.UpdateAgpVersions
 import org.gradle.gradlebuild.UpdateBranchStatus
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiAggregateReportTask
 import org.gradle.gradlebuild.buildquality.incubation.IncubatingApiReportTask
-import org.gradle.plugins.install.Install
 
 plugins {
+    base                  // basePluginConvention.distsDirName is used for the location of the distribution, might move this to "subprojects/distributions/build/..."
     gradlebuild.lifecycle // this needs to be applied first
-    `java-base`
     gradlebuild.`ci-reporting`
     gradlebuild.security
-    gradlebuild.install
     gradlebuild.cleanup
     gradlebuild.buildscan
-    gradlebuild.`build-version`
     gradlebuild.minify
     gradlebuild.wrapper
     gradlebuild.ide
-    gradlebuild.`quick-check`
-    gradlebuild.`update-versions`
+    gradlebuild.`build-version`
+    gradlebuild.`update-versions`             // Release process: Update 'released-versions.json' to latest Release Snapshots, RCs and Releases
     gradlebuild.`dependency-vulnerabilities`
-    gradlebuild.`add-verify-production-environment-task`
-    gradlebuild.`generate-subprojects-info`
+    gradlebuild.`generate-subprojects-info`  // CI: Generate subprojects information for the CI testing pipeline fan out
+    gradlebuild.`quick-check`                // Local development: Add `quickCheck` task for a checkstyle etc. only run on all changed files before commit
 }
 
 buildscript {
@@ -50,14 +46,6 @@ buildscript {
         }
     }
 }
-
-subprojects {
-    version = rootProject.version
-}
-
-defaultTasks("assemble")
-
-base.archivesBaseName = "gradle"
 
 allprojects {
     group = "org.gradle"
@@ -82,137 +70,10 @@ allprojects {
     }
 }
 
-val runtimeUsage = objects.named(Usage::class.java, Usage.JAVA_RUNTIME)
-
-val coreRuntime by configurations.creating {
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    isVisible = false
-}
-
-val coreRuntimeExtensions by configurations.creating {
-    attributes.attribute(Usage.USAGE_ATTRIBUTE, runtimeUsage)
-    isCanBeResolved = true
-    isCanBeConsumed = false
-    isVisible = false
-}
-
-val gradlePlugins by configurations.creating {
-    isVisible = false
-}
-
-val testRuntime by configurations.creating {
-    extendsFrom(coreRuntime)
-    extendsFrom(gradlePlugins)
-}
-
-// TODO: These should probably be all collapsed into a single variant
-configurations {
-    create("gradleApiMetadataElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        extendsFrom(coreRuntime)
-        extendsFrom(gradlePlugins)
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "metadata")
-    }
-}
-configurations {
-    create("gradleApiRuntimeElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        extendsFrom(gradlePlugins)
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
-    }
-}
-configurations {
-    create("gradleApiCoreElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        extendsFrom(coreRuntime)
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core")
-    }
-}
-configurations {
-    create("gradleApiCoreExtensionsElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        extendsFrom(coreRuntime)
-        extendsFrom(coreRuntimeExtensions)
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
-    }
-}
-configurations {
-    create("gradleApiPluginElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        extendsFrom(gradlePlugins)
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
-    }
-}
-configurations {
-    create("gradleApiReceiptElements") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "build-receipt")
-
-        // TODO: Update BuildReceipt to retain dependency information by using Provider
-        val createBuildReceipt = tasks.named("createBuildReceipt", BuildReceipt::class.java)
-        val receiptFile = createBuildReceipt.map {
-            it.receiptFile
-        }
-        outgoing.artifact(receiptFile) {
-            builtBy(createBuildReceipt)
-        }
-    }
-}
-
-dependencies {
-    subprojects {
-        val subproject = this
-        plugins.withType<gradlebuild.distribution.CorePlugin> {
-            if (subproject.name !in listOf("workers", "dependencyManagement", "testKit")) {
-                coreRuntime(subproject)
-            } else {
-                // why are these core modules put into 'plugins'? (effect is that they end up in 'plugins/' in the distribution)
-                gradlePlugins(subproject)
-            }
-        }
-        plugins.withType<gradlebuild.distribution.PluginsPlugin> {
-            gradlePlugins(subproject)
-        }
-    }
-
-    coreRuntimeExtensions(project(":dependencyManagement")) //See: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES
-    coreRuntimeExtensions(project(":instantExecution"))
-    coreRuntimeExtensions(project(":pluginUse"))
-    coreRuntimeExtensions(project(":workers"))
-    coreRuntimeExtensions(project(":kotlinDslProviderPlugins"))
-    coreRuntimeExtensions(project(":kotlinDslToolingBuilders"))
-}
-
-tasks.register<Install>("install") {
-    description = "Installs the minimal distribution"
-    group = "build"
-    with(distributionImage("binDistImage"))
-}
-
-tasks.register<Install>("installAll") {
-    description = "Installs the full distribution"
-    group = "build"
-    with(distributionImage("allDistImage"))
-}
-
 tasks.register("packageBuild") {
     description = "Build production distros and smoke test them"
     group =  "build"
-    dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+    dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
         ":distributions:integTest", ":docs:check", ":docs:checkSamples")
 }
 
@@ -221,7 +82,7 @@ subprojects {
         tasks.register("promotionBuild") {
             description = "Build production distros, smoke test them and publish"
             group = "publishing"
-            dependsOn(":verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+            dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
                 ":distributions:integTest", ":docs:check", "publish")
         }
     }
@@ -234,9 +95,6 @@ tasks.register<UpdateAgpVersions>("updateAgpVersions") {
     minimumSupportedMinor.set("3.4")
     propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
 }
-
-fun distributionImage(named: String) =
-    project(":distributions").property(named) as CopySpec
 
 val allIncubationReports = tasks.register<IncubatingApiAggregateReportTask>("allIncubationReports") {
     val allReports = collectAllIncubationReports()
@@ -261,4 +119,3 @@ allprojects {
         fileMode = Integer.parseInt("0644", 8)
     }
 }
-

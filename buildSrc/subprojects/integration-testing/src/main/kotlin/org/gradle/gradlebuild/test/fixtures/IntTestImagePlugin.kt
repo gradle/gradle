@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@ package org.gradle.gradlebuild.test.fixtures
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.attributes.Attribute
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.attributes.Category
 import org.gradle.api.attributes.LibraryElements
 import org.gradle.api.attributes.Usage
+import org.gradle.api.file.FileCollection
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.Sync
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.gradlebuild.test.integrationtests.DistributionTest
@@ -43,7 +46,14 @@ import java.util.concurrent.Callable
 open class IntTestImagePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        val intTestImage = tasks.register("intTestImage", Sync::class) {
+        // core modules that actually end up in 'plugins/'
+        val coreRuntimeExtensionProjects = listOf(
+            "workers",
+            "dependencyManagement",
+            "testKit"
+        )
+
+        val intTestImage = tasks.register<Sync>("intTestImage") {
             group = "Verification"
             into(file("$buildDir/integ test"))
         }
@@ -52,82 +62,43 @@ open class IntTestImagePlugin : Plugin<Project> {
             dependsOn(intTestImage)
         }
 
-        val partialDistribution by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            }
-            isCanBeResolved = true
-            isCanBeConsumed = false
+        // Buckets
+        val apiBucket by configurations.bucket()
+        val coreRuntime by configurations.bucket()
+        val bundledPluginsRuntime by configurations.bucket()
+        val fullGradleRuntime by configurations.bucket(coreRuntime, bundledPluginsRuntime)
+        val coreRuntimeExtensions by configurations.bucket()
+
+        val gradleApi by resolver(apiBucket)
+        val coreRuntimeClasspath by resolver(coreRuntime)
+        val bundledPluginsRuntimeClasspath by resolver(bundledPluginsRuntime)
+        val fullGradleRuntimeClasspath by resolver(fullGradleRuntime)
+
+        val gradleScripts by resolver()
+        gradleScripts.attributes {
+            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named("start-scripts"))
         }
 
-        val gradleRuntimeSource by configurations.creating {
-            isVisible = false
-            isCanBeResolved = false
-            isCanBeConsumed = false
-        }
-        val coreGradleRuntimeExtensions by configurations.creating {
-            extendsFrom(gradleRuntimeSource)
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                attribute(Attribute.of("org.gradle.api", String::class.java), "core-ext")
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            }
-            isVisible = false
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
-        val coreGradleRuntime by configurations.creating {
-            extendsFrom(gradleRuntimeSource)
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                attribute(Attribute.of("org.gradle.api", String::class.java), "core")
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            }
-            isVisible = false
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
-        val builtInGradlePlugins by configurations.creating {
-            extendsFrom(gradleRuntimeSource)
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage.JAVA_RUNTIME))
-                attribute(Attribute.of("org.gradle.api", String::class.java), "plugins")
-                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            }
-            isVisible = false
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
-        val gradleDocumentation by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "docs"))
-            }
-            isVisible = false
-            isCanBeResolved = false
-            isCanBeConsumed = false
-        }
-        val gradleScripts by configurations.creating {
-            attributes {
-                attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class.java, "start-scripts"))
-            }
-            isVisible = false
-            isCanBeResolved = true
-            isCanBeConsumed = false
-        }
-        // TODO: Model these as publications of different types of distributions, collapse the number of variants exposed by the root project
-        // and eliminate duplication with distributions.gradle
         dependencies {
-            gradleRuntimeSource.withDependencies {
-                gradleRuntimeSource(project(":"))
-                gradleRuntimeSource(project(":apiMetadata"))
-            }
-            gradleDocumentation.withDependencies {
-                gradleDocumentation(project(":docs"))
+            rootProject.subprojects {
+                val subproject = this
+                subproject.plugins.withId("gradlebuild.distribution.core") {
+                    if (subproject.name !in coreRuntimeExtensionProjects) {
+                        coreRuntime(subproject)
+                    } else {
+                        bundledPluginsRuntime(subproject)
+                        coreRuntimeExtensions(subproject)
+                    }
+                }
+                subproject.plugins.withId("gradlebuild.distribution.plugins") {
+                    bundledPluginsRuntime(subproject)
+                    if (subproject.name in coreRuntimeExtensionProjects) {
+                        coreRuntimeExtensions(subproject)
+                    }
+                }
+                subproject.plugins.withId("gradlebuild.distribution.api") {
+                    apiBucket(subproject)
+                }
             }
             gradleScripts.withDependencies {
                 gradleScripts(project(":launcher"))
@@ -137,7 +108,7 @@ open class IntTestImagePlugin : Plugin<Project> {
         if (useAllDistribution) {
             val unpackedPath = layout.buildDirectory.dir("tmp/unpacked-all-distribution")
 
-            val unpackAllDistribution = tasks.register("unpackAllDistribution", Sync::class) {
+            val unpackAllDistribution = tasks.register<Sync>("unpackAllDistribution") {
                 dependsOn(":distributions:allZip")
                 // TODO: This should be modelled as a publication
                 from(Callable {
@@ -153,41 +124,85 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
-            afterEvaluate {
-                if (!project.configurations["default"].allArtifacts.isEmpty()) {
-                    dependencies {
-                        partialDistribution(this@afterEvaluate)
+            intTestImage.configure {
+                into("bin") {
+                    from(gradleScripts)
+                    fileMode = Integer.parseInt("0755", 8)
+                }
+
+                into("lib") {
+                    from(coreRuntimeClasspath)
+                    into("plugins") {
+                        from(Callable { partialDistributionPluginsClasspath(bundledPluginsRuntimeClasspath) - coreRuntimeClasspath })
                     }
                 }
 
-                intTestImage.configure {
-                    into("bin") {
-                        from(gradleScripts)
-                        fileMode = Integer.parseInt("0755", 8)
-                    }
+                preserve {
+                    include("samples/**")
+                }
 
-                    val runtimeClasspathConfigurations = (coreGradleRuntimeExtensions + partialDistribution)
-
-                    val libsThisProjectDoesNotUse = (coreGradleRuntime + builtInGradlePlugins) - runtimeClasspathConfigurations
-
-                    into("lib") {
-                        from(coreGradleRuntime - libsThisProjectDoesNotUse)
-                        into("plugins") {
-                            from(builtInGradlePlugins - coreGradleRuntime - libsThisProjectDoesNotUse)
-                        }
-                    }
-
-                    preserve {
-                        include("samples/**")
-                    }
-
-                    doLast {
-                        ant.withGroovyBuilder {
-                            "chmod"("dir" to "$destinationDir/bin", "perm" to "ugo+rx", "includes" to "**/*")
-                        }
+                doLast {
+                    ant.withGroovyBuilder {
+                        "chmod"("dir" to "$destinationDir/bin", "perm" to "ugo+rx", "includes" to "**/*")
                     }
                 }
             }
         }
     }
+
+    private
+    fun Project.partialDistributionPluginsClasspath(bundledPluginsRuntimeClasspath: Configuration): FileCollection {
+        // Essentials that are always needed to run proper Gradle build (Related: DynamicModulesClassPathProvider.GRADLE_EXTENSION_MODULES / GRADLE_OPTIONAL_EXTENSION_MODULES)
+        val essentialRuntimeExtensions = listOf(
+            ":instantExecution",
+            ":pluginUse",
+            ":kotlinDslProviderPlugins",
+            ":kotlinDslToolingBuilders")
+
+        val partialDistributionPluginsClasspath by resolver()
+
+        configurations.forEach { conf ->
+            // this is an approximation as we build only one distribution per project: this collects all test runtime classpathes
+            if (conf.isTestRuntimeClasspath()) {
+                partialDistributionPluginsClasspath.extendsFrom(conf)
+            }
+        }
+
+        dependencies {
+            // Runtime essentials that are not part of the core
+            essentialRuntimeExtensions.forEach { partialDistributionPluginsClasspath(project(it)) }
+            // My own dependencies (includes core dependencies, which we will substract)
+            partialDistributionPluginsClasspath(this)
+        }
+
+        val dependenciesNotBelongingToGradle = partialDistributionPluginsClasspath - bundledPluginsRuntimeClasspath
+        return partialDistributionPluginsClasspath - dependenciesNotBelongingToGradle
+    }
+
+    private
+    fun ConfigurationContainer.bucket(vararg extends: Configuration): NamedDomainObjectContainerCreatingDelegateProvider<Configuration> =
+        NamedDomainObjectContainerCreatingDelegateProvider.of(this) {
+            isCanBeResolved = false
+            isCanBeConsumed = false
+            isVisible = false
+            extends.forEach { extendsFrom(it) }
+        }
+
+    private
+    fun Project.resolver(vararg extends: Configuration): NamedDomainObjectContainerCreatingDelegateProvider<Configuration> =
+        NamedDomainObjectContainerCreatingDelegateProvider.of(this.configurations) {
+            attributes {
+                attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+                attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+                attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
+            }
+            isCanBeResolved = true
+            isCanBeConsumed = false
+            isVisible = false
+            extends.forEach { extendsFrom(it) }
+        }
+
+    private
+    fun Configuration.isTestRuntimeClasspath() = isCanBeResolved && name.endsWith(
+        JavaPlugin.TEST_RUNTIME_CLASSPATH_CONFIGURATION_NAME.substring(1))
 }

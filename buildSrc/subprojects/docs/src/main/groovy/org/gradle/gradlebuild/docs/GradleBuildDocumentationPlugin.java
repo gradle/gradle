@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.SourceDirectorySet;
@@ -89,8 +88,7 @@ public class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
         extension.getRenderedDocumentation().from(stageDocs);
 
-        Configuration gradleApiRuntime = project.getConfigurations().create("gradleApiRuntime");
-        extension.getClasspath().from(gradleApiRuntime);
+        extension.getClasspath().from(project.getConfigurations().getByName("gradleApi"));
 
         // TODO: This should not reach across project boundaries
         for (Project subproject : project.getRootProject().getSubprojects()) {

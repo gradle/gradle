@@ -60,8 +60,8 @@ dependencies {
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 }
-configurations.integTestRuntimeOnly.get().withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
 tasks {

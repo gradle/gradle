@@ -1,5 +1,5 @@
 /*
- * Copyright 2012 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.versioning.buildVersion
+import org.gradle.plugins.install.Install
 
 plugins {
     gradlebuild.internal.java
+    gradlebuild.`add-verify-production-environment-task`
+    gradlebuild.install
     gradlebuild.`binary-compatibility`
 }
 
@@ -39,54 +43,12 @@ tasks.named("clean").configure {
     delete(tasks.withType<AbstractArchiveTask>())
 }
 
-configurations {
-    create("dists")
-
-    create("buildReceipt") {
-        isVisible = false
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        extendsFrom(configurations["gradleRuntimeSource"])
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.api", String::class.java), "build-receipt")
-    }
-
-    create("gradleFullDocs") {
-        isVisible = false
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        extendsFrom(configurations["gradleDocumentation"])
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named("docs"))
-        attributes.attribute(Attribute.of("type", String::class.java), "full-docs")
-    }
-
-    create("gradleGettingStarted") {
-        isVisible = false
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        extendsFrom(configurations["gradleDocumentation"])
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named("docs"))
-        attributes.attribute(Attribute.of("type", String::class.java), "getting-started")
-    }
-
-    create("minimalRuntime") {
-        isVisible = false
-        isCanBeResolved = false
-        isCanBeConsumed = true
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(Bundling.BUNDLING_ATTRIBUTE, objects.named(Bundling.EXTERNAL))
-            attribute(Attribute.of("org.gradle.runtime", String::class.java), "minimal")
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-        }
-    }
-}
+val gradleFullDocs by configurations.docsResolver("full-docs")
+val gradleGettingStarted by configurations.docsResolver("getting-started")
 
 dependencies {
-    "minimalRuntime"(project(":core"))
-    "minimalRuntime"(project(":dependencyManagement"))
-    "minimalRuntime"(project(":platformJvm"))
+    gradleFullDocs(project(":docs"))
+    gradleGettingStarted(project(":docs"))
 
     testImplementation(testFixtures(project(":core")))
 
@@ -96,12 +58,13 @@ dependencies {
     integTestImplementation(library("guava"))
     integTestImplementation(library("commons_io"))
     integTestImplementation(library("ant"))
+
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
-ext["zipRootFolder"] = "gradle-$version"
+val zipRootFolder = "gradle-$version"
 
-ext["binDistImage"] = copySpec {
+val binDistImage = copySpec {
     from("$rootDir/LICENSE")
     from("src/toplevel")
     into("bin") {
@@ -109,70 +72,68 @@ ext["binDistImage"] = copySpec {
         fileMode = Integer.parseInt("0755", 8)
     }
     into("lib") {
-        from(configurations.coreGradleRuntime)
+        from(configurations.coreRuntimeClasspath)
         into("plugins") {
-            from(configurations["builtInGradlePlugins"] - configurations["coreGradleRuntime"])
+            from(configurations.bundledPluginsRuntimeClasspath.get() - configurations.coreRuntimeClasspath.get())
         }
     }
 }
 
-ext["binWithDistDocImage"] = copySpec {
-    with(ext["binDistImage"] as CopySpec)
-    from(configurations["gradleGettingStarted"])
+val binWithDistDocImage = copySpec {
+    with(binDistImage)
+    from(gradleGettingStarted)
 }
 
-ext["allDistImage"] = copySpec {
-    with(ext["binWithDistDocImage"] as CopySpec)
+val allDistImage = copySpec {
+    with(binWithDistDocImage)
     // TODO: Change this to a src publication too
     rootProject.subprojects {
         val subproject = this
-        subproject.plugins.withId("gradlebuild.java-library") { // TODO do not include internal projects here?
+        subproject.plugins.withId("gradlebuild.java-library") {
             into("src/${subproject.projectDir.name}") {
                 from(subproject.sourceSets.main.get().allSource)
             }
         }
     }
     into("docs") {
-        from(configurations["gradleFullDocs"])
+        from(gradleFullDocs)
         exclude("samples/**")
     }
 }
 
-ext["docsDistImage"] = copySpec {
+val docsDistImage = copySpec {
     from("$rootDir/LICENSE")
     from("src/toplevel")
     into("docs") {
-        from(configurations["gradleFullDocs"])
+        from(gradleFullDocs)
     }
 }
 
 val allZip = tasks.register<Zip>("allZip") {
     archiveClassifier.set("all")
-    into(ext["zipRootFolder"]) {
-        with(ext["allDistImage"] as CopySpec)
+    into(zipRootFolder) {
+        with(allDistImage)
     }
 }
 
 val binZip = tasks.register<Zip>("binZip") {
     archiveClassifier.set("bin")
-    into(ext["zipRootFolder"]) {
-        with(ext["binWithDistDocImage"] as CopySpec)
+    into(zipRootFolder) {
+        with(binWithDistDocImage)
     }
 }
 
 val srcZip = tasks.register<Zip>("srcZip") {
     archiveClassifier.set("src")
-    into(ext["zipRootFolder"]) {
+    into(zipRootFolder) {
         from(rootProject.file("gradlew")) {
             fileMode = Integer.parseInt("0755", 8)
         }
         from(rootProject.projectDir) {
-            val spec = this
-            // TODO: Maybe make this some kind of publication too.
             listOf("buildSrc", "buildSrc/subprojects/*", "subprojects/*").forEach {
-                spec.include("$it/*.gradle")
-                spec.include("$it/*.gradle.kts")
-                spec.include("$it/src/")
+                include("$it/*.gradle")
+                include("$it/*.gradle.kts")
+                include("$it/src/")
             }
             include("gradle.properties")
             include("buildSrc/gradle.properties")
@@ -192,8 +153,8 @@ val srcZip = tasks.register<Zip>("srcZip") {
 
 val docsZip = tasks.register<Zip>("docsZip") {
     archiveClassifier.set("docs")
-    into(ext["zipRootFolder"]) {
-        with(ext["docsDistImage"] as CopySpec)
+    into(zipRootFolder) {
+        with(docsDistImage)
     }
 }
 
@@ -201,23 +162,29 @@ tasks.register("buildDists") {
     dependsOn(allZip, binZip, srcZip, docsZip)
 }
 
-tasks.register<Zip>("outputsZip") {
-    archiveFileName.set("outputs.zip")
-    from(configurations["buildReceipt"])
-    from(allZip)
-    from(binZip)
-    from(srcZip)
+tasks.register<Install>("install") {
+    description = "Installs the minimal distribution"
+    group = "build"
+    with(binDistImage)
 }
 
-artifacts {
-    add("dists", allZip)
-    add("dists", binZip)
-    add("dists", srcZip)
+tasks.register<Install>("installAll") {
+    description = "Installs the full distribution"
+    group = "build"
+    with(allDistImage)
 }
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     binaryDistributions.distributionsRequired = true
     systemProperty("org.gradle.public.api.includes", PublicApi.includes.joinToString(separator = ":"))
     systemProperty("org.gradle.public.api.excludes", PublicApi.excludes.joinToString(separator = ":"))
 }
+
+fun ConfigurationContainer.docsResolver(type: String): NamedDomainObjectContainerCreatingDelegateProvider<Configuration> =
+    NamedDomainObjectContainerCreatingDelegateProvider.of(this) {
+        isVisible = false
+        isCanBeResolved = true
+        isCanBeConsumed = false
+        attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named("docs"))
+        attributes.attribute(Attribute.of("type", String::class.java), type)
+    }.also {  }

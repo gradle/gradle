@@ -18,7 +18,7 @@ import org.gradle.internal.os.OperatingSystem
 import java.util.Properties
 
 plugins {
-    `java`
+    java
     `kotlin-dsl` apply false
     id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1" apply false
 }

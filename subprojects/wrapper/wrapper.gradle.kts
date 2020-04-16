@@ -57,7 +57,6 @@ tasks.register<Jar>("executableJar") {
     })
 }
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     binaryDistributions.binZipRequired = true
 }

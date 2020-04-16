@@ -54,12 +54,6 @@ open class MinifyPlugin : Plugin<Project> {
                         attributes.attribute(minified, java.lang.Boolean.FALSE)
                     }
                     registerTransform(Minify::class) {
-                        /*
-                         * TODO Why do I have to add artifactType=jar here? According to
-                         * the declaration above, it's the only artifact type for which
-                         * minified=false anyway. If I don't add this, the transform chain
-                         * in binary-compatibility.gradle no longer works.
-                         */
                         from.attribute(minified, false).attribute(artifactType, "jar")
                         to.attribute(minified, true).attribute(artifactType, "jar")
                         parameters {

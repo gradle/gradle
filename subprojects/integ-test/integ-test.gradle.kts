@@ -45,15 +45,14 @@ dependencies {
     integTestImplementation(testFixtures(project(":diagnostics")))
     integTestImplementation(testFixtures(project(":platformNative")))
 }
-configurations.integTestRuntimeOnly.get().withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
-configurations.crossVersionTestRuntimeOnly.get().withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
+configurations.crossVersionTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     libsRepository.required = true
 }
 

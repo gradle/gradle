@@ -31,8 +31,8 @@ dependencies {
     performanceTestImplementation(project(":internalIntegTesting"))
 }
 // so that all Gradle features are available
-configurations.performanceTestRuntimeOnly.get().withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
+configurations.performanceTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
 val generateTemplate = tasks.register<JvmProjectGeneratorTask>("javaProject") {

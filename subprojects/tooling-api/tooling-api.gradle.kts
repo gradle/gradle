@@ -92,9 +92,7 @@ dependencies {
 
 apply(from = "buildship.gradle")
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     binaryDistributions.binZipRequired = true
     libsRepository.required = true
 }

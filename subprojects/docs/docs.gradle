@@ -43,14 +43,6 @@ configurations {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
         attributes.attribute(Attribute.of("type", String), "getting-started")
     }
-
-    gradleApiRuntime {
-        visible = false
-        canBeResolved = true
-        canBeConsumed = false
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.api", String), "runtime")
-    }
 }
 
 dependencies {
@@ -76,8 +68,6 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-
-    gradleApiRuntime project(":")
 }
 
 asciidoctorj {

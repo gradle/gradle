@@ -21,12 +21,11 @@ dependencies {
     }
     integTestImplementation(testFixtures(project(":core")))
 }
-configurations.integTestRuntimeOnly.get().withDependencies {
-    addAll(rootProject.configurations.testRuntime.get().allDependencies)
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     libsRepository.required = true
 }
 

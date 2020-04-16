@@ -32,10 +32,7 @@ dependencies {
     performanceTestImplementation(testFixtures(project(":toolingApi")))
 }
 // so that all Gradle features are available
-configurations.performanceTestRuntimeOnly.withDependencies {
-    it.addAll(rootProject.configurations.testRuntime.allDependencies)
+configurations.performanceTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime)
 }
 
-configurations.partialDistribution {
-    exclude(group: "org.gradle.profiler", module: "gradle-profiler")
-}

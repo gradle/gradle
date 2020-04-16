@@ -23,7 +23,6 @@ fun Project.addDependenciesAndConfigurations(testType: TestType) {
     configurations {
         getByName("${prefix}TestImplementation") { extendsFrom(configurations["testImplementation"]) }
         getByName("${prefix}TestRuntimeOnly") { extendsFrom(configurations["testRuntimeOnly"]) }
-        getByName("partialDistribution") { extendsFrom(configurations["${prefix}TestRuntimeClasspath"]) }
     }
 
     dependencies {

@@ -90,7 +90,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         java.targetCompatibility = JavaVersion.VERSION_1_8
         java.sourceCompatibility = JavaVersion.VERSION_1_8
         afterEvaluate {
-            val jdkForCompilation = rootProject.buildJvms.compileJvm.get()
+            val jdkForCompilation = buildJvms.compileJvm.get()
 
             tasks.withType<JavaCompile>().configureEach {
                 configureCompileTask(this, options, jdkForCompilation)
