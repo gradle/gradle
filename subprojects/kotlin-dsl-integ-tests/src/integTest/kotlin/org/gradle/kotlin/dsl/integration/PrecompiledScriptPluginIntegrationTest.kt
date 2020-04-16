@@ -218,27 +218,28 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
+        withSettings("""
+            $defaultSettingsScript
+
+            include("consumer", "producer")
+        """)
+
+        withBuildScript("""
+            plugins {
+                `java-library`
+                `kotlin-dsl` apply false
+            }
+
+            allprojects {
+                $repositoriesBlock
+            }
+
+            dependencies {
+                api(project(":consumer"))
+            }
+        """)
+
         withFolders {
-            withFile("settings.gradle.kts", """
-                $defaultSettingsScript
-
-                include("consumer", "producer")
-            """)
-
-            withFile("build.gradle.kts", """
-                plugins {
-                    `java-library`
-                    `kotlin-dsl` apply false
-                }
-
-                allprojects {
-                    $repositoriesBlock
-                }
-
-                dependencies {
-                    api(project(":consumer"))
-                }
-            """)
 
             "consumer" {
                 withFile("build.gradle.kts", """
@@ -289,10 +290,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
         }
 
         existing("producer/src/main/kotlin/changing-producer-plugin.gradle.kts").run {
-            java.nio.file.Files.move(
-                toPath(),
-                resolveSibling("changed-producer-plugin.gradle.kts").toPath()
-            )
+            renameTo(resolveSibling("changed-producer-plugin.gradle.kts"))
         }
 
         build("assemble").run {
