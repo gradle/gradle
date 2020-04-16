@@ -31,7 +31,6 @@ plugins {
     gradlebuild.ide
     gradlebuild.`build-version`
     gradlebuild.`update-versions`             // Release process: Update 'released-versions.json' to latest Release Snapshots, RCs and Releases
-    gradlebuild.`dependency-vulnerabilities`
     gradlebuild.`generate-subprojects-info`  // CI: Generate subprojects information for the CI testing pipeline fan out
     gradlebuild.`quick-check`                // Local development: Add `quickCheck` task for a checkstyle etc. only run on all changed files before commit
 }

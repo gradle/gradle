@@ -9,7 +9,6 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":profiling"))
 
-    implementation("org.owasp:dependency-check-gradle:3.1.0")
     implementation("org.codenarc:CodeNarc:1.5") {
         exclude(group = "org.codehaus.groovy")
     }
@@ -30,10 +29,6 @@ gradlePlugin {
         register("classycle") {
             id = "gradlebuild.classycle"
             implementationClass = "org.gradle.gradlebuild.buildquality.classycle.ClassyclePlugin"
-        }
-        register("dependencyVulnerabilities") {
-            id = "gradlebuild.dependency-vulnerabilities"
-            implementationClass = "org.gradle.gradlebuild.buildquality.DependencyVulnerabilitiesPlugin"
         }
         register("taskPropertyValidation") {
             id = "gradlebuild.task-properties-validation"
