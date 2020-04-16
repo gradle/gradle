@@ -16,7 +16,8 @@
 
 package org.gradle.integtests.resolve
 
-
+import org.gradle.integtests.fixtures.GradleMetadataResolveRunner
+import org.gradle.integtests.fixtures.RequiredFeature
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.IgnoreIf
 import spock.lang.Issue
@@ -444,6 +445,98 @@ task check(type: Sync) {
                             // 'd' is NOT excluded, because the exclude in 'a:a:1.0 --depends-on--> b:b:1.0' only excludes 'e'
                             module("d:d:1.0")
                         }
+                    }
+                }
+            }
+        }
+    }
+
+    @RequiredFeature(feature = GradleMetadataResolveRunner.REPOSITORY_TYPE, value = "maven")
+    def 'dependency with same selector but different excludes is taken into account'() {
+        given:
+        repository {
+            'org.test:platform:1.0' {
+                constraint('org.test:depA:1.0')
+                asPlatform()
+            }
+
+            'org.test:depA:1.0'()
+            'org.test:depB:1.0' {
+                dependsOn  'org.test:depA'
+            }
+            'org.test:depC:1.0' {
+                dependsOn 'org.test:depB:1.0'
+            }
+            'org.test:depD:1.0' {
+                dependsOn  group:'org.test', artifact: 'depC', version: '1.0', exclusions: [[module: 'depA']]
+            }
+            'org.test:depE:1.0' {
+                dependsOn  'org.test:depC:1.0'
+            }
+            'org.test:depF:1.0' {
+                dependsOn  'org.test:depE:1.0'
+            }
+        }
+
+        repositoryInteractions {
+            'org.test:platform:1.0' {
+                expectGetMetadata()
+            }
+            'org.test:depA:1.0' {
+                expectResolve()
+            }
+            'org.test:depB:1.0' {
+                expectResolve()
+            }
+            'org.test:depC:1.0' {
+                expectResolve()
+            }
+            'org.test:depD:1.0' {
+                expectResolve()
+            }
+            'org.test:depE:1.0' {
+                expectResolve()
+            }
+            'org.test:depF:1.0' {
+                expectResolve()
+            }
+        }
+
+        buildFile << """
+            configurations {
+                conf.dependencies.clear()
+            }
+
+            dependencies {
+                conf(platform('org.test:platform:1.0'))
+                conf 'org.test:depD:1.0'
+                conf 'org.test:depF:1.0'
+            }
+"""
+        when:
+        succeeds 'checkDeps'
+
+        then:
+        def plainMaven = !isGradleMetadataPublished()
+        resolve.expectGraph {
+            root(":", ":test:") {
+                module('org.test:platform:1.0') {
+                    if (plainMaven) {
+                        configuration("platform-runtime")
+                    }
+                    noArtifacts()
+                    constraint('org.test:depA:1.0')
+                }
+                module('org.test:depD:1.0') {
+                    module('org.test:depC:1.0') {
+                        module('org.test:depB:1.0') {
+                            module('org.test:depA:1.0')
+                        }
+                    }
+                }
+                module('org.test:depF:1.0') {
+                    module('org.test:depE:1.0') {
+                        edge('org.test:depC:1.0', 'org.test:depC:1.0')
                     }
                 }
             }

@@ -54,7 +54,6 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final ResolveState resolveState;
-    private final ExcludeSpec transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
     private final boolean isConstraint;
@@ -63,6 +62,7 @@ class EdgeState implements DependencyGraphEdge {
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
+    private ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
@@ -414,5 +414,17 @@ class EdgeState implements DependencyGraphEdge {
 
     DependencyState getDependencyState() {
         return dependencyState;
+    }
+
+    public void updateTransitiveExcludes(ExcludeSpec newResolutionFilter) {
+        if (isConstraint) {
+            // Constraint do not carry excludes on a path
+            return;
+        }
+        transitiveExclusions = newResolutionFilter;
+        cachedExclusions = null;
+        for (NodeState targetNode : targetNodes) {
+            targetNode.updateTransitiveExcludes();
+        }
     }
 }
