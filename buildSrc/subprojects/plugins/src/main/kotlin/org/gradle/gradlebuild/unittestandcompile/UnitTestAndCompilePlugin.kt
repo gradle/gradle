@@ -260,6 +260,12 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
 
     private
     fun Project.configureTests() {
+        normalization {
+            runtimeClasspath {
+                // Ignore the build receipt as it is not relevant for tests and changes between each execution
+                ignore("org/gradle/build-receipt.properties")
+            }
+        }
         tasks.withType<Test>().configureEach {
             maxParallelForks = project.maxParallelForks
 
