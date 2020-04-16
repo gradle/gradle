@@ -145,9 +145,15 @@ open class CapabilityRule @Inject constructor(
 
 class CapabilitySpec {
     lateinit var name: String
-    private lateinit var providedBy: Set<String>
-    private lateinit var selected: String
-    private var upgrade: String? = null
+
+    private
+    lateinit var providedBy: Set<String>
+
+    private
+    lateinit var selected: String
+
+    private
+    var upgrade: String? = null
 
     internal
     fun configure(components: ComponentMetadataHandler, configurations: ConfigurationContainer) {
