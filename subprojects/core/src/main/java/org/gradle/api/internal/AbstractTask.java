@@ -98,6 +98,10 @@ import java.util.concurrent.Callable;
 
 import static org.gradle.util.GUtil.uncheckedCall;
 
+/**
+ * @deprecated This class will be removed in Gradle 7.0. Please use {@link org.gradle.api.DefaultTask} instead.
+ */
+@Deprecated
 public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private static final Logger BUILD_LOGGER = Logging.getLogger(Task.class);
     private static final ThreadLocal<TaskInfo> NEXT_INSTANCE = new ThreadLocal<TaskInfo>();

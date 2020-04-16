@@ -372,10 +372,10 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         // Problem is exposed by Java compiler
         file("buildSrc/src/main/java/AbstractCustomTask.java") << """
             import org.gradle.api.file.ConfigurableFileCollection;
-            import org.gradle.api.internal.AbstractTask;
+            import org.gradle.api.DefaultTask;
             import org.gradle.api.tasks.InputFiles;
 
-            abstract class AbstractCustomTask extends AbstractTask {
+            abstract class AbstractCustomTask extends DefaultTask {
                 private final ConfigurableFileCollection sourceFiles = getProject().files();
 
                 @InputFiles
