@@ -437,7 +437,9 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "up-to-date checks detect removed stale outputs"() {
-        buildFile << """                                    
+
+        given:
+        buildFile << """
             plugins {
                 id 'base'
             }
@@ -456,9 +458,15 @@ class StaleOutputIntegrationTest extends AbstractIntegrationSpec {
             }
         """
 
+        and:
         def original = file('build/original/original.txt')
         original.text = "Original"
         def backup = file('backup/original.txt')
+
+        and:
+        executer.beforeExecute {
+            withArgument("--max-workers=1")
+        }
 
         when:
         run 'backup', 'restore'
