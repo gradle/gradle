@@ -31,7 +31,6 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.compileKotlinScriptModuleTo
 import org.gradle.kotlin.dsl.support.scriptDefinitionFromTemplate
-import java.util.jar.JarFile
 import javax.inject.Inject
 
 
@@ -59,14 +58,6 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
 
     @TaskAction
     fun compile() {
-        val files = classPathFiles.files
-        files.filter { it.name == "producer.jar" }.forEach { jarFile ->
-            JarFile(jarFile).use {
-                it.entries().asSequence().map { it.name }.forEach {
-                    println(" => $it")
-                }
-            }
-        }
         outputDir.withOutputDirectory { outputDir ->
             val scriptFiles = sourceFiles.map { it.path }
             if (scriptFiles.isNotEmpty())
@@ -78,7 +69,7 @@ abstract class CompilePrecompiledScriptPluginPlugins @Inject constructor(
                         CompiledKotlinPluginsBlock::class,
                         implicitImportsForPrecompiledScriptPlugins(implicitImports)
                     ),
-                    files,
+                    classPathFiles,
                     logger,
                     { it } // TODO: translate paths
                 )
