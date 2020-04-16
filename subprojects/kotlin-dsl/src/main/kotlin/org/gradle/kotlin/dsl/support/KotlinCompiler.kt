@@ -153,25 +153,30 @@ fun compileKotlinScriptModuleTo(
     classPath: Iterable<File>,
     messageCollector: LoggingMessageCollector
 ) {
-    withRootDisposable {
+    // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
+    // See https://youtrack.jetbrains.com/issue/KT-35394
+    withSystemProperty("kotlin.environment.keepalive", "false") {
 
-        withCompilationExceptionHandler(messageCollector) {
+        withRootDisposable {
 
-            val configuration = compilerConfigurationFor(messageCollector).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, false)
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                addScriptingCompilerComponents()
-                addScriptDefinition(scriptDef)
-                scriptFiles.forEach { addKotlinSourceRoot(it) }
-                classPath.forEach { addJvmClasspathRoot(it) }
+            withCompilationExceptionHandler(messageCollector) {
+
+                val configuration = compilerConfigurationFor(messageCollector).apply {
+                    put(RETAIN_OUTPUT_IN_MEMORY, false)
+                    put(OUTPUT_DIRECTORY, outputDirectory)
+                    setModuleName(moduleName)
+                    addScriptingCompilerComponents()
+                    addScriptDefinition(scriptDef)
+                    scriptFiles.forEach { addKotlinSourceRoot(it) }
+                    classPath.forEach { addJvmClasspathRoot(it) }
+                }
+                val environment = kotlinCoreEnvironmentFor(configuration).apply {
+                    HasImplicitReceiverCompilerPlugin.apply(project)
+                }
+
+                compileBunchOfSources(environment)
+                    || throw ScriptCompilationException(messageCollector.errors)
             }
-            val environment = kotlinCoreEnvironmentFor(configuration).apply {
-                HasImplicitReceiverCompilerPlugin.apply(project)
-            }
-
-            compileBunchOfSources(environment)
-                || throw ScriptCompilationException(messageCollector.errors)
         }
     }
 }
@@ -227,6 +232,18 @@ inline fun <T> withRootDisposable(action: Disposable.() -> T): T {
         return action(rootDisposable)
     } finally {
         dispose(rootDisposable)
+    }
+}
+
+
+private
+inline fun withSystemProperty(propertyName: String, propertyValue: String, action: () -> Unit) {
+    val previousValue = System.setProperty(propertyName, propertyValue)
+    try {
+        action()
+    } finally {
+        if (previousValue != null) System.setProperty(propertyName, propertyValue)
+        else System.clearProperty(propertyName)
     }
 }
 
