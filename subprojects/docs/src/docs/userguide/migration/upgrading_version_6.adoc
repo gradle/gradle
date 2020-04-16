@@ -72,7 +72,6 @@ By default, this attribute was set to what you configured in `java.targetCompati
 If that was not configured, it was set to the current Java version running Gradle.
 Changing the version of a particular compile task, e.g. `javaCompile.targetCompatibility` had no effect on that attribute, leading to wrong information if the attribute was not adjusted manually.
 This is now fixed and the attribute defaults to the setting of the compile task that is associated with the sources from which the published jar is built.
-In addition, there is a new `release` property (`java.release.set(...)` or `javaCompile.release.set(...)`) which can be used for Java versions 9+ and takes precedence over the `targetCompatibility` setting.
 
 ==== Ivy repositories with custom layouts
 
