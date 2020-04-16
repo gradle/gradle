@@ -72,6 +72,7 @@ include("internalTesting")
 include("internalIntegTesting")
 include("internalPerformanceTesting")
 include("internalAndroidPerformanceTesting")
+include("internalBuildReports")
 include("performance")
 include("buildScanPerformance")
 include("javascript")
@@ -167,11 +168,7 @@ for (project in rootProject.children) {
     }
 }
 
-val ignoredFeatures = setOf<FeaturePreviews.Feature>()
-
 FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive && feature !in ignoredFeatures) {
-        enableFeaturePreview(feature.name)
-    }
+    if (feature.isActive) { enableFeaturePreview(feature.name) }
 }
 

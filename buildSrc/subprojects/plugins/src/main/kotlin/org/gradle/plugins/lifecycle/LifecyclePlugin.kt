@@ -73,7 +73,11 @@ class LifecyclePlugin : Plugin<Project> {
             plugins.withId("gradlebuild.cross-version-tests") {
                 tasks.configureCICrossVersionTestDistributionLifecycleTasks()
             }
+            plugins.withId("gradlebuild.publish-public-libraries") {
+                tasks.registerPublishLibrariesPromotionTasks()
+            }
         }
+        tasks.registerDistributionsPromotionTasks()
     }
 
     private
@@ -135,9 +139,34 @@ class LifecyclePlugin : Plugin<Project> {
             description = "Run all basic checks (without tests) - to be run locally and on CI for early feedback"
             group = "verification"
             dependsOn(
-                "compileAll", ":docs:checkstyleApi", "codeQuality", ":allIncubationReportsZip",
+                "compileAll", ":docs:checkstyleApi", "codeQuality", ":internalBuildReports:allIncubationReportsZip",
                 ":distributions:checkBinaryCompatibility", ":docs:javadocAll",
                 ":architectureTest:test", ":toolingApi:toolingApiShadedJar")
+        }
+    }
+
+    /**
+     * Task that are called by the (currently separate) promotion build running on CI.
+     */
+    private
+    fun TaskContainer.registerDistributionsPromotionTasks() {
+        register("packageBuild") {
+            description = "Build production distros and smoke test them"
+            group = "build"
+            dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+                ":distributions:integTest", ":docs:check", ":docs:checkSamples")
+        }
+    }
+    /**
+     * Task that are called by the (currently separate) promotion build running on CI.
+     */
+    private
+    fun TaskContainer.registerPublishLibrariesPromotionTasks() {
+        register("promotionBuild") {
+            description = "Build production distros, smoke test them and publish"
+            group = "publishing"
+            dependsOn(":distributions:verifyIsProductionBuildEnvironment", ":distributions:buildDists",
+                ":distributions:integTest", ":docs:check", "publish")
         }
     }
 

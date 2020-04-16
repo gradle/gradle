@@ -26,11 +26,6 @@ plugins {
     gradlebuild.`binary-compatibility`
 }
 
-// Remove any pre-configured archives
-configurations.all {
-    artifacts.clear()
-}
-
 tasks.withType<AbstractArchiveTask>().configureEach {
     archiveBaseName.set("gradle")
     archiveVersion.set(rootProject.buildVersion.baseVersion)

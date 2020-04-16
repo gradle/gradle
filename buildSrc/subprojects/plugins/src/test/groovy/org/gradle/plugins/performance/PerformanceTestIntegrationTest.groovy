@@ -5,7 +5,6 @@ class PerformanceTestIntegrationTest extends AbstractIntegrationTest {
         buildFile << """
             plugins {
                 id 'java-library'
-                id 'gradlebuild.int-test-image'
                 id 'gradlebuild.performance-test'
             }
             subprojects {

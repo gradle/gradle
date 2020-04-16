@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild
+package org.gradle.gradlebuild.versioning
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.RegularFileProperty

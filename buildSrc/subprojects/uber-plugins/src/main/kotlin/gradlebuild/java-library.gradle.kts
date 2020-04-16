@@ -19,10 +19,12 @@ import org.gradle.kotlin.dsl.*
 
 plugins {
     `java-library`
+    id("gradlebuild.minify")
+    id("gradlebuild.reproducible-archives")
     id("gradlebuild.unittest-and-compile")
     id("gradlebuild.test-fixtures")
     id("gradlebuild.distribution-testing")
-    id("gradlebuild.int-test-image")
+    id("gradlebuild.gradle-distribution")
     id("gradlebuild.incubation-report")
     id("gradlebuild.task-properties-validation")
 }

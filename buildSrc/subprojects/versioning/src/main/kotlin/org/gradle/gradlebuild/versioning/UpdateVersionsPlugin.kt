@@ -24,6 +24,7 @@ import com.google.gson.Gson
 import org.gradle.kotlin.dsl.*
 import java.net.URL
 
+
 class UpdateVersionsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val releasedVersionsJsonFile = file("released-versions.json")
@@ -48,6 +49,14 @@ class UpdateVersionsPlugin : Plugin<Project> {
                 val versionInfo = Gson().fromJson(jsonText, VersionBuildTimeInfo::class.java)
                 ReleasedVersion(versionInfo.version, versionInfo.buildTime)
             })
+        }
+
+        tasks.register<UpdateBranchStatus>("updateBranchStatus")
+
+        tasks.register<UpdateAgpVersions>("updateAgpVersions") {
+            comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
+            minimumSupportedMinor.set("3.4")
+            propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
         }
     }
 }
