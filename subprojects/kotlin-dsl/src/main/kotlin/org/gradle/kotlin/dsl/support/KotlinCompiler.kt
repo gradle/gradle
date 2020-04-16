@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -155,7 +156,7 @@ fun compileKotlinScriptModuleTo(
 ) {
     // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
     // See https://youtrack.jetbrains.com/issue/KT-35394
-    withSystemProperty("kotlin.environment.keepalive", "false") {
+    withSystemProperty(KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY, "false") {
 
         withRootDisposable {
 
