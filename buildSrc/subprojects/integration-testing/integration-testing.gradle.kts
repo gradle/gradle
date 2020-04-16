@@ -23,9 +23,9 @@ gradlePlugin {
             id = "gradlebuild.integration-tests"
             implementationClass = "org.gradle.gradlebuild.test.integrationtests.IntegrationTestsPlugin"
         }
-        register("intTestImage") {
-            id = "gradlebuild.int-test-image"
-            implementationClass = "org.gradle.gradlebuild.test.fixtures.IntTestImagePlugin"
+        register("gradleDistribution") {
+            id = "gradlebuild.gradle-distribution"
+            implementationClass = "org.gradle.gradlebuild.test.fixtures.GradleDistributionPlugin"
         }
         register("testFixtures") {
             id = "gradlebuild.test-fixtures"

@@ -33,17 +33,12 @@ import java.util.concurrent.Callable
 
 
 /**
- * Test Fixtures Plugin.
- *
- * Configures the Project as a test fixtures producer if `src/testFixtures` is a directory:
- * - adds a new `testFixtures` source set which should contain utilities/fixtures to assist in unit testing
- *   classes from the main source set,
- * - the test fixtures are automatically made available to the test classpath.
- *
- * Configures the Project as a test fixtures consumer according to the `testFixtures` extension configuration.
+ * This plugin adds the ability to build and use a Gradle distribution that may
+ * be reduced to contain only the parts of Gradle needed for integration testing
+ * the project that applies this plugin (partial distribution aka Integration Test Image).
  */
 @Suppress("unused")
-open class IntTestImagePlugin : Plugin<Project> {
+open class GradleDistributionPlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
         // core modules that actually end up in 'plugins/'
@@ -57,7 +52,6 @@ open class IntTestImagePlugin : Plugin<Project> {
             group = "Verification"
             into(file("$buildDir/integ test"))
         }
-
         tasks.withType<DistributionTest>().configureEach {
             dependsOn(intTestImage)
         }
@@ -124,6 +118,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                 from(unpackedPath.get().dir("gradle-$version"))
             }
         } else {
+            val partialDistributionPluginsClasspath = partialDistributionPluginsClasspath(bundledPluginsRuntimeClasspath)
             intTestImage.configure {
                 into("bin") {
                     from(gradleScripts)
@@ -133,7 +128,7 @@ open class IntTestImagePlugin : Plugin<Project> {
                 into("lib") {
                     from(coreRuntimeClasspath)
                     into("plugins") {
-                        from(Callable { partialDistributionPluginsClasspath(bundledPluginsRuntimeClasspath) - coreRuntimeClasspath })
+                        from(partialDistributionPluginsClasspath - coreRuntimeClasspath)
                     }
                 }
 
@@ -161,18 +156,19 @@ open class IntTestImagePlugin : Plugin<Project> {
 
         val partialDistributionPluginsClasspath by resolver()
 
-        configurations.forEach { conf ->
+        configurations.all {
             // this is an approximation as we build only one distribution per project: this collects all test runtime classpathes
-            if (conf.isTestRuntimeClasspath()) {
-                partialDistributionPluginsClasspath.extendsFrom(conf)
+            if (isTestRuntimeClasspath()) {
+                partialDistributionPluginsClasspath.extendsFrom(this)
             }
         }
-
         dependencies {
-            // Runtime essentials that are not part of the core
-            essentialRuntimeExtensions.forEach { partialDistributionPluginsClasspath(project(it)) }
-            // My own dependencies (includes core dependencies, which we will substract)
-            partialDistributionPluginsClasspath(this)
+            partialDistributionPluginsClasspath.withDependencies {
+                // Runtime essentials that are not part of the core
+                essentialRuntimeExtensions.forEach { partialDistributionPluginsClasspath(project(it)) }
+                // My own dependencies (includes core dependencies, which we will substract)
+                partialDistributionPluginsClasspath(this@partialDistributionPluginsClasspath)
+            }
         }
 
         val dependenciesNotBelongingToGradle = partialDistributionPluginsClasspath - bundledPluginsRuntimeClasspath
