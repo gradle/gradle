@@ -66,7 +66,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
 
         Class<P> parametersType = extractParametersTypeOf(valueSourceType);
-        P parameters = paramsInstantiator.newInstance(parametersType);
+        P parameters = parametersType != null
+            ? paramsInstantiator.newInstance(parametersType)
+            : null;
 
         // TODO - consider deferring configuration
         configureParameters(parameters, configureAction);
@@ -94,11 +96,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
         Class<P> parametersType,
-        P isolatedParameters
+        @Nullable P isolatedParameters
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
-        services.add(parametersType, isolatedParameters);
         services.add(GradleProperties.class, gradleProperties);
+        if (isolatedParameters != null) {
+            services.add(parametersType, isolatedParameters);
+        }
         return instantiatorFactory
             .injectScheme()
             .withServices(services)
@@ -106,16 +110,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             .newInstance(valueSourceType);
     }
 
-    @NotNull
+    @Nullable
     private <T, P extends ValueSourceParameters> Class<P> extractParametersTypeOf(Class<? extends ValueSource<T, P>> valueSourceType) {
-        Class<P> parametersType = isolationScheme.parameterTypeFor(valueSourceType, 1);
-        if (parametersType == null) {
-            throw new IllegalArgumentException();
-        }
-        return parametersType;
+        return isolationScheme.parameterTypeFor(valueSourceType, 1);
     }
 
-    private <P extends ValueSourceParameters> void configureParameters(P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
+    private <P extends ValueSourceParameters> void configureParameters(@Nullable P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
         DefaultValueSourceSpec<P> valueSourceSpec = specInstantiator.newInstance(
             DefaultValueSourceSpec.class,
             parameters
@@ -253,13 +253,14 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private final Try<T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
+        @Nullable
         private final P parameters;
 
         public DefaultObtainedValue(
             Try<T> value,
             Class<? extends ValueSource<T, P>> valueSourceType,
             Class<P> parametersType,
-            P parameters
+            @Nullable P parameters
         ) {
             this.value = value;
             this.valueSourceType = valueSourceType;

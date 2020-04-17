@@ -23,6 +23,8 @@ import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
 import org.gradle.internal.Try;
 
+import javax.annotation.Nullable;
+
 /**
  * Service to create providers from {@link ValueSource}s.
  *
@@ -61,6 +63,7 @@ public interface ValueSourceProviderFactory {
 
             Class<P> getValueSourceParametersType();
 
+            @Nullable
             P getValueSourceParameters();
         }
     }

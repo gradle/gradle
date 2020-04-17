@@ -86,6 +86,15 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         ((Managed) provider).isImmutable()
     }
 
+    def "value source with no parameters"() {
+
+        given:
+        def provider = createProviderOf(NoParameters) {}
+
+        expect:
+        provider.get() == 42
+    }
+
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
 
         interface Parameters extends ValueSourceParameters {
@@ -95,6 +104,14 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         @Override
         String obtain() {
             return getParameters().getValue().getOrNull()
+        }
+    }
+
+    static abstract class NoParameters implements ValueSource<Integer, ValueSourceParameters.None> {
+
+        @Override
+        Integer obtain() {
+            return 42
         }
     }
 }
