@@ -20,13 +20,15 @@ import org.gradle.performance.ResultSpecification
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Shared
 
 import static org.gradle.performance.measure.Duration.minutes
 
+@Ignore
 class CrossVersionResultsStoreTest extends ResultSpecification {
     @Rule TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
+    @Rule SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.mysql.url": "jdbc:h2:" + tmpDir.testDirectory)
     final dbFile = tmpDir.file("results")
 
     @Shared long now = Calendar.getInstance().time.time

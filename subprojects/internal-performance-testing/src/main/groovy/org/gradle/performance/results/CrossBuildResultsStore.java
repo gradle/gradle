@@ -19,7 +19,7 @@ package org.gradle.performance.results;
 public class CrossBuildResultsStore extends BaseCrossBuildResultsStore<CrossBuildPerformanceResults> {
 
     public CrossBuildResultsStore() {
-        super("cross-build-results");
+        super("cross_build_results");
     }
 
     @Override
