@@ -87,7 +87,12 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
     enum SystemPropertySource {
         COMMAND_LINE,
         GRADLE_PROPERTIES,
-        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR
+        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR;
+
+        @Override
+        String toString() {
+            name().toLowerCase().replace('_', ' ')
+        }
     }
 
     @Unroll
