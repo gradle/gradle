@@ -41,7 +41,6 @@ import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.jetbrains.kotlin.backend.common.push
 import org.junit.Test
 import java.io.InputStream
 import java.io.OutputStream
@@ -109,11 +108,11 @@ class InstantExecutionFingerprintCheckerTest {
             PlaybackReadContext(values.toList())
 
         override fun writeSmallInt(value: Int) {
-            values.push(value)
+            values.add(value)
         }
 
         override suspend fun write(value: Any?) {
-            values.push(value)
+            values.add(value)
         }
 
         override val sharedIdentities: WriteIdentities

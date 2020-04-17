@@ -87,7 +87,12 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
     enum SystemPropertySource {
         COMMAND_LINE,
         GRADLE_PROPERTIES,
-        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR
+        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR;
+
+        @Override
+        String toString() {
+            name().toLowerCase().replace('_', ' ')
+        }
     }
 
     @Unroll
@@ -501,6 +506,62 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         operator    | operatorType       | usage
         "getOrElse" | "String"           | "build logic input"
         "orElse"    | "Provider<String>" | "task input"
+    }
+
+    def "can define and use custom value source in a Groovy script"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class IsSystemPropertySet implements ValueSource<Boolean, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getPropertyName()
+                }
+                @Override Boolean obtain() {
+                    System.getProperty(parameters.getPropertyName().get()) != null
+                }
+            }
+
+            def isCi = providers.of(IsSystemPropertySet) {
+                parameters {
+                    propertyName = "ci"
+                }
+            }
+            if (isCi.get()) {
+                tasks.register("build") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("build") {
+                    doLast { println("NOT CI") }
+                }
+            }
+        """
+
+        when:
+        instantRun "build"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "build"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateLoaded()
+
+        when:
+        instantRun "build", "-Dci=true"
+
+        then:
+        output.count("ON CI") == 1
+        output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
+        instant.assertStateStored()
     }
 
     private static String getGreetTask() {
