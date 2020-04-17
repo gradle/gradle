@@ -42,9 +42,7 @@ class ProjectLifecycleFixture extends InitScriptExecuterFixture {
                 void beforeEvaluate(Project project) {}
            }
            gradle.addListener(listener)
-           buildFinished {
-               gradle.removeListener(listener)
-           }"""
+       """
     }
 
     void afterBuild() {

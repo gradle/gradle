@@ -211,6 +211,7 @@ public class LocalTaskNode extends TaskNode {
                             value,
                             filePropertyType,
                             fileCollectionFactory,
+                            true,
                             outputFilePropertySpec -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()))
                         )
                     );

@@ -49,6 +49,10 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
                 //downgrade version:
                 pmd "$testDependency"
             }
+
+            pmd {
+                incrementalAnalysis = false
+            }
         """.stripIndent()
 
         then:
@@ -58,6 +62,22 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         succeeds("dependencies", "--configuration", "pmd")
         output.contains "$testDependency"
     }
+
+    @ToBeFixedForInstantExecution
+    def "fails properly using older version of PMD without incremental analysis support"() {
+        given:
+        buildFile << """
+            dependencies {
+                //downgrade version:
+                pmd "net.sourceforge.pmd:pmd:5.1.1"
+            }
+        """.stripIndent()
+
+        expect:
+        fails("check")
+        failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
+    }
+
 
     private badCode() {
         // No Warnings

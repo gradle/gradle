@@ -18,7 +18,7 @@ package org.gradle.api.reporting.model
 /**
  *
  * Represents a node of a hierarchical report
- * Extends from groovy's {@code groovy.util.Node} and hence GPath expressions can be used to search and identify report nodes and values.
+ * Extends from groovy's {@code groovy.util.Node} and hence GPath expressions can be used to search and identify report nodes nd values.
  *
  * See https://www.groovy-lang.org/processing-xml.html#_gpath
  *

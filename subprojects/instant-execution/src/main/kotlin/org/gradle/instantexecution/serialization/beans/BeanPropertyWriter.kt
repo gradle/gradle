@@ -44,9 +44,13 @@ class BeanPropertyWriter(
      * Serializes a bean by serializing the value of each of its fields.
      */
     override suspend fun WriteContext.writeStateOf(bean: Any) {
-        for (field in relevantFields) {
+        for (relevantField in relevantFields) {
+            val field = relevantField.field
             val fieldName = field.name
             val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
+            relevantField.unsupportedFieldType?.let {
+                reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
+            }
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
     }
@@ -70,8 +74,9 @@ class BeanPropertyWriter(
 
 
 /**
- * Returns whether the given property could be written. A property can only be written when there's
- * a suitable [Codec] for its [value].
+ * Writes a bean property.
+ *
+ * A property can only be written when there's a suitable [Codec] for its [value].
  */
 suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: PropertyKind) {
     withPropertyTrace(kind, name) {

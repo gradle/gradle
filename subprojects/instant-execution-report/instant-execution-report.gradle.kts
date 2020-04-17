@@ -15,7 +15,7 @@
  */
 
 plugins {
-    id("kotlin2js")
+    gradlebuild.internal.`kotlin-js`
 }
 
 dependencies {

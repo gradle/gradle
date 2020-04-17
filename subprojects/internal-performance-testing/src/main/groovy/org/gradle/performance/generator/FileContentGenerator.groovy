@@ -263,14 +263,14 @@ abstract class FileContentGenerator {
                 cleanBuild {
                   tasks = ["clean", "build"]
                   maven {
-                    targets = ["clean", "test", "package", "-T", "4"]
+                    targets = ["clean", "package", "-T", "4"]
                   }
                 }
 
                 cleanBuildCached {
                   tasks = ["clean", "build"]
                   maven {
-                    targets = ["clean", "test", "package", "-T", "4"]
+                    targets = ["clean", "package", "-T", "4"]
                   }
                   gradle-args = ["--build-cache"]
                 }

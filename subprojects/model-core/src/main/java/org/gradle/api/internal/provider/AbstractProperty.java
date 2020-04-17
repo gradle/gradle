@@ -16,14 +16,15 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.state.ModelObject;
+import org.jetbrains.annotations.NotNull;
 
 import javax.annotation.Nullable;
 
@@ -51,13 +52,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public boolean isPresent() {
-        beforeRead();
-        return getSupplier().isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        beforeRead(producer, consumer);
+        try {
+            return getSupplier().calculatePresence(consumer);
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
     }
 
     @Override
-    public void attachOwner(ModelObject owner, DisplayName displayName) {
+    public void attachOwner(@Nullable ModelObject owner, DisplayName displayName) {
         this.displayName = displayName;
     }
 
@@ -107,13 +116,44 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return value;
     }
 
-    @Override
-    protected Value<? extends T> calculateOwnValue() {
-        beforeRead();
-        return calculateOwnValue(value);
+    protected Value<? extends T> calculateOwnValueNoProducer(ValueConsumer consumer) {
+        beforeRead(null, consumer);
+        return doCalculateValue(consumer);
     }
 
-    protected abstract Value<? extends T> calculateOwnValue(S value);
+    @Override
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        beforeRead(producer, consumer);
+        return doCalculateValue(consumer);
+    }
+
+    @NotNull
+    private Value<? extends T> doCalculateValue(ValueConsumer consumer) {
+        try {
+            return calculateValueFrom(value, consumer);
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to query the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+    }
+
+    protected abstract Value<? extends T> calculateValueFrom(S value, ValueConsumer consumer);
+
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        beforeRead(producer, ValueConsumer.IgnoreUnsafeRead);
+        ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
+        if (getProducerTask() == null) {
+            return value;
+        } else {
+            return value.withChangingContent();
+        }
+    }
+
+    protected abstract ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(S value);
 
     /**
      * Returns a diagnostic string describing the current source of value of this property. Should not realize the value.
@@ -131,36 +171,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
+    public ValueProducer getProducer() {
         Task task = getProducerTask();
         if (task != null) {
-            visitor.execute(task);
+            return ValueProducer.task(task);
         } else {
-            getSupplier().visitProducerTasks(visitor);
-        }
-    }
-
-    @Override
-    public boolean isValueProducedByTask() {
-        return getSupplier().isValueProducedByTask();
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        Task task = getProducerTask();
-        if (task != null) {
-            context.add(task);
-            return true;
-        } else {
-            return getSupplier().maybeVisitBuildDependencies(context);
+            return getSupplier().getProducer();
         }
     }
 
     @Override
     public void finalizeValue() {
-        if (state.isNotFinal()) {
-            value = finalValue(value);
-            state = state.finalState();
+        if (state.shouldFinalize(getDisplayName(), producer)) {
+            finalizeNow(ValueConsumer.IgnoreUnsafeRead);
         }
     }
 
@@ -180,12 +203,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.finalizeOnNextGet();
     }
 
-    // Should be on the public API. Was not made public for the 6.3 release
     public void disallowUnsafeRead() {
         state.disallowUnsafeRead();
     }
 
-    protected abstract S finalValue(S value);
+    protected abstract S finalValue(S value, ValueConsumer consumer);
 
     protected void setSupplier(S supplier) {
         assertCanMutate();
@@ -200,12 +222,27 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     /**
      * Call prior to reading the value of this property.
      */
-    protected void beforeRead() {
-        state.beforeRead(getDisplayName());
-        if (state.isFinalizeOnRead()) {
-            value = finalValue(value);
-            state = state.finalState();
+    protected void beforeRead(ValueConsumer consumer) {
+        beforeRead(producer, consumer);
+    }
+
+    private void beforeRead(@Nullable ModelObject effectiveProducer, ValueConsumer consumer) {
+        if (state.maybeFinalizeOnRead(getDisplayName(), effectiveProducer, consumer)) {
+            finalizeNow(state.forUpstream(consumer));
         }
+    }
+
+    private void finalizeNow(ValueConsumer consumer) {
+        try {
+            value = finalValue(value, state.forUpstream(consumer));
+        } catch (Exception e) {
+            if (displayName != null) {
+                throw new PropertyQueryException(String.format("Failed to calculate the value of %s.", displayName), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
+        state = state.finalState();
     }
 
     /**
@@ -261,8 +298,15 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
     }
 
+    @Contextual
+    public static class PropertyQueryException extends RuntimeException {
+        public PropertyQueryException(String message, Throwable cause) {
+            super(message, cause);
+        }
+    }
+
     private static abstract class FinalizationState<S> {
-        public abstract boolean isNotFinal();
+        public abstract boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer);
 
         public abstract FinalizationState<S> finalState();
 
@@ -282,15 +326,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         public abstract S implicitValue();
 
-        public abstract void beforeRead(DisplayName displayName);
-
-        public abstract boolean isFinalizeOnRead();
+        public abstract boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer);
 
         public abstract void beforeMutate(DisplayName displayName);
+
+        public abstract ValueConsumer forUpstream(ValueConsumer consumer);
     }
 
     private static class NonFinalizedValue<S> extends FinalizationState<S> {
-
         private final PropertyHost host;
         private boolean explicitValue;
         private boolean finalizeOnNextGet;
@@ -303,7 +346,19 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public boolean isNotFinal() {
+        public boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer) {
+            if (disallowUnsafeRead) {
+                String reason = host.beforeRead(producer);
+                if (reason != null) {
+                    TreeFormatter formatter = new TreeFormatter();
+                    formatter.node("Cannot finalize the value of ");
+                    formatter.append(displayName.getDisplayName());
+                    formatter.append(" because ");
+                    formatter.append(reason);
+                    formatter.append(".");
+                    throw new IllegalStateException(formatter.toString());
+                }
+            }
             return true;
         }
 
@@ -313,14 +368,9 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
-        public boolean isFinalizeOnRead() {
-            return finalizeOnNextGet;
-        }
-
-        @Override
-        public void beforeRead(DisplayName displayName) {
-            if (disallowUnsafeRead) {
-                String reason = host.beforeRead();
+        public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
+            if (disallowUnsafeRead || consumer == ValueConsumer.DisallowUnsafeRead) {
+                String reason = host.beforeRead(producer);
                 if (reason != null) {
                     TreeFormatter formatter = new TreeFormatter();
                     formatter.node("Cannot query the value of ");
@@ -330,6 +380,16 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
                     formatter.append(".");
                     throw new IllegalStateException(formatter.toString());
                 }
+            }
+            return finalizeOnNextGet || consumer == ValueConsumer.DisallowUnsafeRead;
+        }
+
+        @Override
+        public ValueConsumer forUpstream(ValueConsumer consumer) {
+            if (disallowUnsafeRead) {
+                return ValueConsumer.DisallowUnsafeRead;
+            } else {
+                return consumer;
             }
         }
 
@@ -394,7 +454,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     private static class FinalizedValue<S> extends FinalizationState<S> {
         @Override
-        public boolean isNotFinal() {
+        public boolean shouldFinalize(DisplayName displayName, @Nullable ModelObject producer) {
             return false;
         }
 
@@ -410,16 +470,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         public void disallowUnsafeRead() {
-            // Finalized so read is safe
+            // Finalized already so read is safe
         }
 
         @Override
-        public void beforeRead(DisplayName displayName) {
-            // Value is available
-        }
-
-        @Override
-        public boolean isFinalizeOnRead() {
+        public boolean maybeFinalizeOnRead(DisplayName displayName, @Nullable ModelObject producer, ValueConsumer consumer) {
+            // Already finalized
             return false;
         }
 
@@ -429,33 +485,42 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         }
 
         @Override
+        public ValueConsumer forUpstream(ValueConsumer consumer) {
+            throw unexpected();
+        }
+
+        @Override
         public S explicitValue(S value) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public S explicitValue(S value, S defaultValue) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public S applyConvention(S value, S convention) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public S implicitValue() {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         public FinalizationState<S> finalState() {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
         }
 
         @Override
         void setConvention(S convention) {
-            throw new UnsupportedOperationException("Should not be called");
+            throw unexpected();
+        }
+
+        private UnsupportedOperationException unexpected() {
+            return new UnsupportedOperationException("This property is in an unexpected state.");
         }
     }
 }

@@ -49,11 +49,77 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         outputContains("Module Version: 1.0-beta2")
     }
 
+    def "runs a module accessing resources using the module path with the application plugin"() {
+        given:
+        buildFile.text = buildFile.text.replace('java-library', 'application')
+        buildFile << """
+            application {
+                mainClass.set('consumer.MainModule')
+                mainModule.set('consumer')
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        def mainClass = consumingModuleClass('moda.ModaClass')
+        mainClass.text = mainClass.text.replace('.run()', '.run(); MainModule.class.getModule().getResourceAsStream("data.txt").readAllBytes()')
+        file('src/main/resources/data.txt').text = "some data"
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
+    // This test demonstrated the current behavior for how a module compilation of sources in one 'source directory set' and be patched with the result of another.
+    // If we add higher level modeling concepts for the relationship between the compile steps on one source set, the '--patch-module' arguments could maybe be derived automatically.
+    def "runs a module accessing classes from separate compilation step using the module path with the application plugin"() {
+        given:
+        buildFile.text = buildFile.text.replace('java-library', 'application')
+        buildFile << """
+            apply plugin: 'groovy'
+            application {
+                mainClass.set('consumer.MainModule')
+                mainModule.set('consumer')
+            }
+            dependencies {
+                implementation localGroovy()
+            }
+            // compile Groovy first
+            compileGroovy {
+                classpath = sourceSets.main.compileClasspath
+            }
+            // We need to patch the previously compiled classes (by the Groovy compile) into the module
+            def patchArgs = ['--patch-module', "consumer=\${compileGroovy.destinationDirectory.getAsFile().get().path}"]
+            compileJava {
+                options.compilerArgs = patchArgs
+                classpath += files(sourceSets.main.groovy.classesDirectory)
+            }
+        """
+        publishJavaModule('moda')
+        consumingModuleInfo('requires moda')
+        file('src/main/groovy/consumer/GroovyInterface.groovy') << """
+            package consumer;
+
+            interface GroovyInterface { }
+        """
+        def mainClass = consumingModuleClass('moda.ModaClass')
+        mainClass.text = mainClass.text.replace('MainModule {', 'MainModule implements GroovyInterface {')
+
+        when:
+        succeeds ':run'
+
+        then:
+        outputContains("Module Name: consumer")
+        outputContains("Module Version: 1.0-beta2")
+    }
+
     def "runs a module using the module path with main class defined in compile task"() {
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
             }
@@ -77,7 +143,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
         given:
         buildFile << """
             task run(type: JavaExec) {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
                 classpath = files(jar) + configurations.runtimeClasspath
                 mainModule.set('consumer')
                 mainClass.set('consumer.MainModule')
@@ -102,7 +168,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 dependsOn jar
                 doLast {
                     project.javaexec {
-                        modularClasspathHandling.inferModulePath.set(true)
+                        modularity.inferModulePath.set(true)
                         classpath = files(jar) + configurations.runtimeClasspath
                         mainModule.set('consumer')
                     }
@@ -131,7 +197,7 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
                 dependsOn jar
                 doLast {
                     project.javaexec {
-                        modularClasspathHandling.inferModulePath.set(true)
+                        modularity.inferModulePath.set(true)
                         classpath = files(jar) + configurations.runtimeClasspath
                         mainModule.set('consumer')
                         mainClass.set('consumer.MainModule')

@@ -34,6 +34,7 @@ import java.io.IOException
 import java.lang.reflect.Field
 import java.util.concurrent.Callable
 import java.util.function.Supplier
+import kotlin.reflect.KClass
 
 
 class BeanPropertyReader(
@@ -46,7 +47,9 @@ class BeanPropertyReader(
     val instantiationScheme: InstantiationScheme = instantiatorFactory.decorateScheme()
 
     private
-    val fieldSetters = relevantStateOf(beanType).map { Pair(it.name, setterFor(it)) }
+    val fieldSetters = relevantStateOf(beanType).map {
+        FieldSetter(it.field.name, it.unsupportedFieldType, setterFor(it.field))
+    }
 
     private
     val constructorForSerialization by unsafeLazy {
@@ -61,9 +64,12 @@ class BeanPropertyReader(
     }
 
     override suspend fun ReadContext.readStateOf(bean: Any) {
-        for (field in fieldSetters) {
-            val fieldName = field.first
-            val setter = field.second
+        for (fieldSetter in fieldSetters) {
+            val fieldName = fieldSetter.fieldName
+            val setter = fieldSetter.setter
+            fieldSetter.unsupportedFieldType?.let {
+                reportUnsupportedFieldType(it, "deserialize", fieldName)
+            }
             readPropertyValue(PropertyKind.Field, fieldName) { fieldValue ->
                 setter(bean, fieldValue)
             }
@@ -103,6 +109,14 @@ class BeanPropertyReader(
         type.isInstance(value) ||
             type.isPrimitive && JavaReflectionUtil.getWrapperTypeForPrimitiveType(type).isInstance(value)
 }
+
+
+private
+class FieldSetter(
+    val fieldName: String,
+    val unsupportedFieldType: KClass<*>?,
+    val setter: ReadContext.(Any, Any?) -> Unit
+)
 
 
 /**

@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 configurations {
@@ -40,10 +38,6 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 
     add("reports", "jquery:jquery.min:3.4.1@js")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir

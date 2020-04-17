@@ -14,17 +14,11 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `kotlin-library`
+    gradlebuild.internal.kotlin
 }
 
 description = "Kotlin DSL Test Fixtures"
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
 
 dependencies {
     api(project(":kotlinDsl"))

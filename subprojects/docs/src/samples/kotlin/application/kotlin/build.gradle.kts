@@ -1,13 +1,13 @@
 plugins {
     application
-    kotlin("jvm") version "1.3.71"
+    kotlin("jvm") version "1.3.72"
 }
 
 version = "1.0.2"
 group = "org.gradle.sample"
 
 application {
-    mainClassName = "org.gradle.sample.app.MainKt"
+    mainClass.set("org.gradle.sample.app.MainKt")
 }
 
 repositories {

@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.file
 
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -306,40 +306,40 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
 
     void elementsProviderHasNoDependenciesWhenThisHasNoDependencies() {
         def collection = new TestFileCollection()
-        def context = Mock(TaskDependencyResolveContext)
-
-        ProviderInternal elements = collection.elements
+        def action = Mock(Action)
+        def elements = collection.elements
 
         when:
-        def visited = elements.maybeVisitBuildDependencies(context)
+        def producer = elements.producer
+        producer.visitProducerTasks(action)
 
         then:
-        visited
-        1 * context.add(collection)
-        0 * context._
+        producer.known
+        0 * action._
 
         expect:
-        !elements.valueProducedByTask
+        !elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
     void elementsProviderHasSameDependenciesAsThis() {
         def collection = new TestFileCollectionWithDependency()
-        def context = Mock(TaskDependencyResolveContext)
+        def action = Mock(Action)
         def task = Mock(TaskInternal)
         _ * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(task) }
 
-        ProviderInternal elements = collection.elements
+        def elements = collection.elements
 
         when:
-        def visited = elements.maybeVisitBuildDependencies(context)
+        def producer = elements.producer
+        producer.visitProducerTasks(action)
 
         then:
-        visited
-        1 * context.add(collection)
-        0 * context._
+        producer.known
+        1 * action.execute(task)
+        0 * action._
 
         expect:
-        elements.valueProducedByTask
+        elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
     void "visits self when listener requests contents"() {

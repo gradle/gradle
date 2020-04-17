@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    id 'java-library'
+    id 'gradlebuild.distribution.core-api-java'
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
@@ -45,14 +43,6 @@ configurations {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
         attributes.attribute(Attribute.of("type", String), "getting-started")
     }
-
-    gradleApiRuntime {
-        visible = false
-        canBeResolved = true
-        canBeConsumed = false
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.api", String), "runtime")
-    }
 }
 
 dependencies {
@@ -78,12 +68,6 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-
-    gradleApiRuntime project(":")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 asciidoctorj {
@@ -111,6 +95,7 @@ samples {
         springBootWebApplication
         gradlePluginInJava
         precompiledScriptPlugin
+        buildSrcPluginJavaModuleTransform
 
         javaApplication
         javaListLibrary
@@ -147,6 +132,22 @@ samples {
             target = "utilities"
         }
 
+        javaModuleInfoForListLibrary {
+            target = "list"
+        }
+        javaModuleInfoForUtilitiesLibrary {
+            target = "utilities"
+        }
+        javaModuleInfoForApplication {
+            target = "application"
+        }
+        javaJunit5ModuleInfoForUtilitiesLibrary {
+            target = "utilities"
+        }
+        javaJunit5ModuleInfoForApplication {
+            target = "application"
+        }
+
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
@@ -166,6 +167,8 @@ samples {
         kotlinApplication
         kotlinListLibrary
         kotlinUtilitiesLibrary
+
+        projectInfoPlugin
     }
 
     publishedSamples {
@@ -258,6 +261,65 @@ samples {
                 from(templates.javaJunit5TestForListLibrary)
             }
         }
+        javaModulesMultiProject {
+            sampleDirectory = samplesRoot.dir("java/modules-multi-project")
+            displayName = "Java Modules"
+            description = "Build Java Modules and a modular Java application."
+            category = "Java Modules"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaModuleInfoForListLibrary)
+                from(templates.javaModuleInfoForUtilitiesLibrary)
+                from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+            }
+        }
+        javaModulesMultiProjectWithIntegrationTests {
+            sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
+            displayName = "Java Modules with Blackbox Tests"
+            description = "Build Java Modules with blackbox integration tests."
+            category = "Java Modules"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaModuleInfoForListLibrary)
+                from(templates.javaModuleInfoForUtilitiesLibrary)
+                from(templates.javaModuleInfoForApplication)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+
+                from(templates.javaJunit5IntegrationTestForApplication)
+                from(templates.javaJunit5ModuleInfoForApplication)
+                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
+                from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
+            }
+        }
+        javaModulesWithTransform {
+            sampleDirectory = samplesRoot.dir("java/modules-with-transform")
+            displayName = "Java Modules with Legacy Libraries"
+            description = "Build a modular Java application that integrates legacy libraries."
+            category = "Java Modules"
+            common {
+                from(templates.buildSrcPluginJavaModuleTransform)
+            }
+        }
+        jvmMultiProjectWithCodeCoverage {
+            sampleDirectory = samplesRoot.dir("jvm-multi-project-with-code-coverage")
+            displayName = "Reporting code coverage with JaCoCo"
+            description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
+            category = "Java"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+                from(templates.javaJunit5TestForApplication)
+                from(templates.javaJunit5TestForListLibrary)
+            }
+        }
         javaLibraryPublishing {
             sampleDirectory = samplesRoot.dir("java/library-publishing")
             description = "Publish a Java library to a binary repository."
@@ -331,11 +393,8 @@ samples {
         }
 
         precompiledScriptPlugin {
-            description = "Use Kotlin DSL in a precompiled script plugin."
+            description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
             category = "Build organization"
-            common {
-                from(templates.precompiledScriptPlugin)
-            }
         }
 
         gradlePlugin {
@@ -343,6 +402,14 @@ samples {
             category = "Build organization"
             common {
                 from(templates.gradlePluginInJava)
+            }
+        }
+
+        taskWithArguments {
+            description = "Pass arguments to a custom task"
+            category = "Plugins"
+            common {
+                from(templates.projectInfoPlugin)
             }
         }
     }
@@ -360,6 +427,16 @@ tasks.named("checkAsciidoctorSampleContents") {
 
 tasks.named("generateWrapperForSamples") {
     gradleVersion = project.version
+}
+
+// TODO add some kind of test precondition support in sample test conf
+tasks.named("docsTest") {
+    // Do not execute Java Module tests on JVM < 9
+    if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
+        filter {
+            excludeTestsMatching "org.gradle.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
+        }
+    }
 }
 
 // Publications for the docs subproject:

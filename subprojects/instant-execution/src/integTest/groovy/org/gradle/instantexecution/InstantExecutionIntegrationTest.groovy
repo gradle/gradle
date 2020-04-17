@@ -65,24 +65,25 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
     def "instant execution for help on empty project"() {
         given:
         instantRun "help"
-        def firstRunOutput = result.normalizedOutput
+        def firstRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Calculating task graph as no instant execution cache is available for tasks: help\n/, '')
-            .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
-            .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
-            .replaceAll(/Virtual file system .*\n/, '')
 
         when:
         instantRun "help"
-        def secondRunOutput = result.normalizedOutput
+        def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
             .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
+
+        then:
+        firstRunOutput == secondRunOutput
+    }
+
+    private static String removeVfsLogOutput(String normalizedOutput) {
+        normalizedOutput
             .replaceAll(/Received \d+ file system events .*\n/, '')
             .replaceAll(/Spent \d+ ms processing file system events since last build\n/, '')
             .replaceAll(/Watching \d+ (directory hierarchies to track changes between builds in \d+ directories|directories to track changes between builds)\n/, '')
             .replaceAll(/Spent \d+ ms registering watches for file system events\n/, '')
             .replaceAll(/Virtual file system .*\n/, '')
-
-        then:
-        firstRunOutput == secondRunOutput
     }
 
     def "restores some details of the project structure"() {
@@ -748,10 +749,13 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         "RegularFileProperty"         | "objects.fileProperty()"              | "null"           | "null"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "[]"             | "[]"
         "ListProperty<String>"        | "objects.listProperty(String)"        | "['abc']"        | ['abc']
+        "ListProperty<String>"        | "objects.listProperty(String)"        | "null"           | "null"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "[]"             | "[]"
         "SetProperty<String>"         | "objects.setProperty(String)"         | "['abc']"        | ['abc']
+        "SetProperty<String>"         | "objects.setProperty(String)"         | "null"           | "null"
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "[:]"            | [:]
         "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "['abc': 'def']" | ['abc': 'def']
+        "MapProperty<String, String>" | "objects.mapProperty(String, String)" | "null"           | "null"
     }
 
     @Unroll
@@ -1039,5 +1043,32 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         then:
         outputContains("thisTask = true")
         outputContains("bean.owner = true")
+    }
+
+    def "captures changes applied in task graph whenReady listener"() {
+        buildFile << """
+            class SomeTask extends DefaultTask {
+                @Internal
+                String value
+
+                @TaskAction
+                void run() {
+                    println "value = " + value
+                }
+            }
+
+            task ok(type: SomeTask)
+
+            gradle.taskGraph.whenReady {
+                ok.value = 'value'
+            }
+        """
+
+        when:
+        instantRun "ok"
+        instantRun "ok"
+
+        then:
+        outputContains("value = value")
     }
 }

@@ -43,6 +43,7 @@ import org.gradle.internal.operations.CallableBuildOperation
 
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Details
 import org.gradle.internal.scripts.CompileScriptBuildOperationType.Result
+import org.gradle.internal.scripts.ScriptExecutionListener
 
 import org.gradle.kotlin.dsl.accessors.pluginSpecBuildersClassPath
 
@@ -98,7 +99,8 @@ class StandardKotlinScriptEvaluator(
     private val scriptCache: ScriptCache,
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
-    private val buildOperationExecutor: BuildOperationExecutor
+    private val buildOperationExecutor: BuildOperationExecutor,
+    private val scriptExecutionListener: ScriptExecutionListener
 ) : KotlinScriptEvaluator {
 
     override fun evaluate(
@@ -170,6 +172,10 @@ class StandardKotlinScriptEvaluator(
                     })
                 }
             })
+
+        override fun onScriptClassLoaded(scriptSource: ScriptSource, specializedProgram: Class<*>) {
+            scriptExecutionListener.onScriptClassLoaded(scriptSource, specializedProgram)
+        }
 
         override fun setupEmbeddedKotlinFor(scriptHost: KotlinScriptHost<*>) {
             setupEmbeddedKotlinForBuildscript(scriptHost.scriptHandler)

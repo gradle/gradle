@@ -167,7 +167,7 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasCause("The value for this file collection cannot be changed.")
     }
 
-    def "can write but cannot read strict project file collection instance before afterEvaluate starts"() {
+    def "can write but cannot read strict project file collection instance before project configuration completes"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
         buildFile << """
@@ -182,29 +182,46 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
             try {
                 thing.prop.files
             } catch(IllegalStateException e) {
-                println("get files failed with: \${e.message}")
+                println("get files failed with: " + e.message)
             }
 
+            def elements = thing.prop.elements
             try {
-                thing.prop.elements.get()
+                elements.get()
             } catch(IllegalStateException e) {
-                println("get failed with: \${e.message}")
+                println("get elements failed with: " + e.message)
             }
 
-            thing.prop.from = "some-file"
+            thing.prop.from = "some-file-1"
 
             afterEvaluate {
-                println("value = \${thing.prop.files}")
+                thing.prop.from = ["some-file-2"]
                 try {
-                    thing.prop.from("ignore me")
+                    thing.prop.files
                 } catch(IllegalStateException e) {
-                    println("set after read failed with: \${e.message}")
+                    println("get files in afterEvaluate failed with: " + e.message)
+                }
+                try {
+                    thing.prop.elements.get()
+                } catch(IllegalStateException e) {
+                    println("get elements in afterEvaluate failed with: " + e.message)
                 }
             }
 
             task show {
+                // Task graph calculation is ok
+                dependsOn {
+                    println("value = " + thing.prop.files)
+                    println("elements = " + thing.prop.elements.get())
+                    try {
+                        thing.prop.from = 'ignore me'
+                    } catch(IllegalStateException e) {
+                        println("set after read failed with: " + e.message)
+                    }
+                }
                 doLast {
-                    println("value = \${thing.prop.files}")
+                    println("value = " + thing.prop.files)
+                    println("elements = " + thing.prop.elements.get())
                 }
             }
         """
@@ -214,13 +231,16 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
         run("show")
 
         then:
-        outputContains("get files failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not finished yet.")
-        outputContains("get failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not finished yet.")
+        outputContains("get files failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get files in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
+        outputContains("get elements in afterEvaluate failed with: Cannot query the value for this file collection because configuration of root project 'broken' has not completed yet.")
         outputContains("set after read failed with: The value for this file collection is final and cannot be changed.")
-        output.count("value = [${file('some-file')}]") == 2
+        output.count("value = [${file('some-file-2')}]") == 2
+        output.count("elements = [${file('some-file-2')}]") == 2
     }
 
-    def "can change value of strict file collection after afterEvaluate starts and before the value has been read"() {
+    def "can change value of strict file collection after project configuration completes and before the value has been read"() {
         given:
         settingsFile << 'rootProject.name = "broken"'
         buildFile << """
@@ -231,19 +251,18 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
             project.extensions.create('thing', ProjectModel.class)
             thing.prop.disallowUnsafeRead()
 
-            afterEvaluate {
-                thing.prop.from("some-file")
-                println("value = \${thing.prop.files}")
-                try {
-                    thing.prop.from("ignore me")
-                } catch(IllegalStateException e) {
-                    println("set failed with: \${e.message}")
-                }
-            }
-
             task show {
+                dependsOn {
+                    thing.prop.from("some-file")
+                    println("value = " + thing.prop.files)
+                    try {
+                        thing.prop.from("ignore me")
+                    } catch(IllegalStateException e) {
+                        println("set failed with: " + e.message)
+                    }
+                }
                 doLast {
-                    println("value = \${thing.prop.files}")
+                    println("value = " + thing.prop.files)
                 }
             }
         """
@@ -253,6 +272,44 @@ class FileCollectionLifecycleIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         outputContains("set failed with: The value for this file collection is final and cannot be changed.")
+        output.count("value = [${file('some-file')}]") == 2
+    }
+
+    def "cannot finalize a strict file collection before project configuration completes"() {
+        given:
+        settingsFile << 'rootProject.name = "broken"'
+        buildFile << """
+            interface ProjectModel {
+                ConfigurableFileCollection getProp()
+            }
+
+            project.extensions.create('thing', ProjectModel.class)
+            thing.prop.disallowUnsafeRead()
+
+            try {
+                thing.prop.finalizeValue()
+            } catch(IllegalStateException e) {
+                println("finalize failed with: " + e.message)
+            }
+
+            thing.prop.from("some-file")
+
+            task show {
+                dependsOn {
+                    thing.prop.finalizeValue()
+                    println("value = " + thing.prop.files)
+                }
+                doLast {
+                    println("value = " + thing.prop.files)
+                }
+            }
+        """
+
+        when:
+        run("show")
+
+        then:
+        outputContains("finalize failed with: Cannot finalize the value for this file collection because configuration of root project 'broken' has not completed yet.")
         output.count("value = [${file('some-file')}]") == 2
     }
 

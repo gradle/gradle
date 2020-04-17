@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import org.gradle.build.ReproduciblePropertiesWriter
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import java.util.Properties
 
 plugins {
-    `java-library`
+    gradlebuild.internal.java
 }
 
 dependencies {
@@ -41,6 +40,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":launcher"))
     implementation(project(":internalTesting"))
+    implementation(project(":buildEvents"))
 
     implementation(library("groovy"))
     implementation(library("junit"))
@@ -51,6 +51,7 @@ dependencies {
     implementation(testLibrary("jetty"))
     implementation(testLibrary("littleproxy"))
     implementation(library("gcs"))
+    implementation(library("inject"))
     implementation(library("commons_httpclient"))
     implementation(library("joda"))
     implementation(library("jackson_core"))
@@ -78,10 +79,6 @@ dependencies {
 
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir

@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-
 import javax.annotation.Nullable;
 
 class OrElseProvider<T> extends AbstractMinimalProvider<T> {
@@ -36,35 +34,26 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        // TODO - this isn't quite right. The value isn't produced by a task when left always has a value and its value is not produced by a task
-        return left.isValueProducedByTask() || right.isValueProducedByTask();
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        if (left.isValueProducedByTask() && !left.maybeVisitBuildDependencies(context)) {
-            return false;
+    public ValueProducer getProducer() {
+        if (left.isPresent()) {
+            return left.getProducer();
+        } else {
+            return right.getProducer();
         }
-        if (!left.isValueProducedByTask() && left.isPresent()) {
-            return left.maybeVisitBuildDependencies(context);
-        }
-        // TODO - this isn't quite right. We shouldn't build right's inputs when left always has a value, but that value is produced by a task
-        return right.maybeVisitBuildDependencies(context);
     }
 
     @Override
-    public boolean isPresent() {
-        return left.isPresent() || right.isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return left.calculatePresence(consumer) || right.calculatePresence(consumer);
     }
 
     @Override
-    protected Value<? extends T> calculateOwnValue() {
-        Value<? extends T> leftValue = left.calculateValue();
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> leftValue = left.calculateValue(consumer);
         if (!leftValue.isMissing()) {
             return leftValue;
         }
-        Value<? extends T> rightValue = right.calculateValue();
+        Value<? extends T> rightValue = right.calculateValue(consumer);
         if (!rightValue.isMissing()) {
             return rightValue;
         }

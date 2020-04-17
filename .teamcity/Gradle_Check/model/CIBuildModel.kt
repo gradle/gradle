@@ -9,7 +9,6 @@ import common.Os
 import common.builtInRemoteBuildCacheNode
 import configurations.BuildDistributions
 import configurations.CompileAll
-import configurations.DependenciesCheck
 import configurations.FunctionalTest
 import configurations.Gradleception
 import configurations.SanityCheck
@@ -271,11 +270,6 @@ enum class SpecificBuild {
     InstantSmokeTestsMaxJavaVersion {
         override fun create(model: CIBuildModel, stage: Stage): BuildType {
             return SmokeTests(model, stage, JvmCategory.MAX_VERSION, "instantSmokeTest")
-        }
-    },
-    DependenciesCheck {
-        override fun create(model: CIBuildModel, stage: Stage): BuildType {
-            return DependenciesCheck(model, stage)
         }
     };
 

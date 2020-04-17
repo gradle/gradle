@@ -18,13 +18,17 @@ package org.gradle.instantexecution.serialization.codecs
 
 import org.gradle.api.Project
 import org.gradle.api.Script
+import org.gradle.api.artifacts.ArtifactView
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraintSet
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.artifacts.LenientConfiguration
 import org.gradle.api.artifacts.ResolutionStrategy
+import org.gradle.api.artifacts.ResolvableDependencies
+import org.gradle.api.artifacts.ResolvedArtifact
 import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.api.artifacts.dsl.ComponentModuleMetadataHandler
 import org.gradle.api.artifacts.dsl.DependencyConstraintHandler
@@ -33,6 +37,11 @@ import org.gradle.api.artifacts.dsl.DependencyLockingHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery
 import org.gradle.api.artifacts.repositories.ArtifactRepository
+import org.gradle.api.artifacts.result.ArtifactResolutionResult
+import org.gradle.api.artifacts.result.ArtifactResult
+import org.gradle.api.artifacts.result.ComponentResult
+import org.gradle.api.artifacts.result.ResolutionResult
+import org.gradle.api.artifacts.result.ResolvedVariantResult
 import org.gradle.api.artifacts.type.ArtifactTypeContainer
 import org.gradle.api.attributes.AttributeMatchingStrategy
 import org.gradle.api.attributes.AttributesSchema
@@ -82,11 +91,13 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<SourceSetContainer>())
     bind(unsupported<SourceSet>())
 
-    // Dependency Resolution Services
+    // Dependency Resolution Types
     bind(unsupported<ConfigurationContainer>())
     bind(unsupported<ResolutionStrategy>())
     bind(unsupported<ResolvedConfiguration>())
     bind(unsupported<LenientConfiguration>())
+    bind(unsupported<ResolvableDependencies>())
+    bind(unsupported<ResolutionResult>())
     bind(unsupported<DependencyConstraintSet>())
     bind(unsupported<RepositoryHandler>())
     bind(unsupported<ArtifactRepository>())
@@ -103,4 +114,11 @@ fun BindingsBuilder.unsupportedTypes() {
     bind(unsupported<DependencySet>())
     bind(unsupported<Dependency>())
     bind(unsupported<DependencyLockingHandler>())
+    bind(unsupported<ResolvedDependency>())
+    bind(unsupported<ResolvedArtifact>())
+    bind(unsupported<ArtifactView>())
+    bind(unsupported<ArtifactResolutionResult>())
+    bind(unsupported<ComponentResult>())
+    bind(unsupported<ArtifactResult>())
+    bind(unsupported<ResolvedVariantResult>())
 }

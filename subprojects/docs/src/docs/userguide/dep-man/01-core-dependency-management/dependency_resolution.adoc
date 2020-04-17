@@ -73,11 +73,11 @@ Out of these versions, it will select the _highest_ one.
 As you have seen, Gradle supports a concept of <<rich_versions.adoc#,rich version declaration>>, so what is the highest version depends on the way versions were declared:
 
 * If no ranges are involved, then the highest version that is not rejected will be selected.
-** If a strictly is lower than that version, selection will fail.
+** If a version declared as `strictly` is lower than that version, selection will fail.
 * If ranges are involved:
 ** If there is a non range version that falls within the specified ranges or is higher than their upper bound, it will be selected.
 ** If there are only ranges, the highest _existing_ version of the range with the highest upper bound will be selected.
-** If a strictly is lower than that version, selection will fail.
+** If a version declared as `strictly` is lower than that version, selection will fail.
 
 Note that in the case where ranges come into play, Gradle requires metadata to determine which versions do exist for the considered range.
 This causes an intermediate lookup for metadata, as described in <<#sec:how-gradle-downloads-deps>>.
@@ -134,7 +134,7 @@ Given a required dependency, with a version, Gradle attempts to resolve the depe
 
 [NOTE]
 ====
-The last point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
+The penultimate point above is what can make the integration with <<declaring_repositories.adoc#sec:case-for-maven-local,Maven Local>> problematic.
 As it is a cache for Maven, it will sometimes miss some artifacts of a given module.
 If Gradle is sourcing such a module from Maven Local, it will consider the missing artifacts to be missing altogether.
 ====

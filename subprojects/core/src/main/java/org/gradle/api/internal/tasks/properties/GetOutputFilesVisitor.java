@@ -39,7 +39,7 @@ public class GetOutputFilesVisitor extends PropertyVisitor.Adapter {
     @Override
     public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
         hasDeclaredOutputs = true;
-        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, specs::add);
+        FileParameterUtils.resolveOutputFilePropertySpecs(ownerDisplayName, propertyName, value, filePropertyType, fileCollectionFactory, false, specs::add);
     }
 
     public ImmutableSortedSet<OutputFilePropertySpec> getFileProperties() {

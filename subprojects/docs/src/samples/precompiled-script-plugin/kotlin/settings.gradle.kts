@@ -1,4 +1,3 @@
-
 rootProject.name = "plugin-user"
 
-includeBuild("plugin/")
+includeBuild("plugin")

@@ -32,6 +32,7 @@ class DependencyInsightReportVariantDetailsIntegrationTest extends AbstractInteg
     }
 
     @Unroll
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows selected variant details"() {
         given:
         settingsFile << "include 'a', 'b', 'c'"
@@ -154,6 +155,7 @@ org:middle:1.0 FAILED
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows the target configuration name as variant display name for external dependencies which are not variant-aware"() {
         given:
         def leaf = mavenRepo.module('org', 'leaf', '1.0').publish()
@@ -194,6 +196,7 @@ org:leaf:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "shows missing attributes when the target variant doesn't have any of its own"() {
         given:
         def leaf = mavenRepo.module('org', 'leaf', '1.0').publish()
@@ -237,6 +240,7 @@ org:leaf:1.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
     def "correctly reports attributes declared on dependencies"() {
         given:
         mavenRepo.module('org', 'testA', '1.0').publish()

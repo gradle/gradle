@@ -17,6 +17,8 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
+import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.file.DirectoryTree;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileSystemLocation;
@@ -281,18 +283,43 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         }
 
         @Override
-        public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-            context.add(collection);
-            return true;
+        public ValueProducer getProducer() {
+            return new ValueProducer() {
+                @Override
+                public boolean isKnown() {
+                    return true;
+                }
+
+                @Override
+                public boolean isProducesDifferentValueOverTime() {
+                    return false;
+                }
+
+                @Override
+                public void visitProducerTasks(Action<? super Task> visitor) {
+                    for (Task dependency : collection.getBuildDependencies().getDependencies(null)) {
+                        visitor.execute(dependency);
+                    }
+                }
+            };
         }
 
         @Override
-        public boolean isValueProducedByTask() {
+        public ExecutionTimeValue<Set<FileSystemLocation>> calculateExecutionTimeValue() {
+            ExecutionTimeValue<Set<FileSystemLocation>> value = ExecutionTimeValue.fixedValue(get());
+            if (contentsAreBuiltByTask()) {
+                return value.withChangingContent();
+            } else {
+                return value;
+            }
+        }
+
+        private boolean contentsAreBuiltByTask() {
             return !collection.getBuildDependencies().getDependencies(null).isEmpty();
         }
 
         @Override
-        public Set<FileSystemLocation> get() {
+        protected Value<Set<FileSystemLocation>> calculateOwnValue(ValueConsumer consumer) {
             // TODO - visit the contents of this collection instead.
             // This is just a super simple implementation for now
             Set<File> files = collection.getFiles();
@@ -300,7 +327,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
             for (File file : files) {
                 builder.add(new DefaultFileSystemLocation(file));
             }
-            return builder.build();
+            return Value.of(builder.build());
         }
     }
 

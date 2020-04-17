@@ -43,7 +43,7 @@ public interface TaskExecutionGraphInternal extends TaskExecutionGraph {
     void addNodes(Collection<? extends Node> nodes);
 
     /**
-     * Does the work to populate the task graph based on tasks that have been added. Does not fire events.
+     * Does the work to populate the task graph based on tasks that have been added. Fires events and no further tasks should be added.
      */
     void populate();
 

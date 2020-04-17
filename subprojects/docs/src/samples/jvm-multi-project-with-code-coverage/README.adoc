@@ -1,0 +1,40 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how to test Java projects with link:https://www.jacoco.org/jacoco/[JaCoCo] in Gradle.
+
+To collect code coverage across multiple subprojects, we need to setup two aspects.
+First, the projects that run the tests and collect the code coverage data:
+
+====
+include::sample[dir="groovy",files="list/build.gradle[]"]
+include::sample[dir="kotlin",files="list/build.gradle.kts[]"]
+====
+
+Whether you apply the plugin directly to all subprojects and make use of a `subprojects {}` block is up to you.
+
+The build is setup to run tests using link:https://junit.org/junit5[JUnit5] and we apply the `jacoco` plugin to collect the code coverage.
+With the plugin applied, it automatically attaches itself to the `test` task to collect the code coverage.
+Please refer to the link:{userManualPath}/jacoco_plugin.html[JaCoCo chapter] for more details on the plugin configuration.
+
+Second, to generate a report spanning all our tested projects, we introduce a new task on the root project (or an aggregator subproject if you like) that takes care of setting up the reports, where jacoco can find the source files and which projects to collect the coverage data from.
+
+====
+include::sample[dir="groovy",files="build.gradle[tags=coverageTask]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=coverageTask]"]
+====
+
+Using the approach above using `subproject.plugins.withType(JacocoPlugin)` avoids any ordering issues as to when the plugin is applied to the subprojects.
+This is important as the `test` tasks need to be enhanced by the `JacocoPlugin` to generate reports for the coverage data.
+See also link:{userManualPath}/task_configuration_avoidance.html[Task Configuration Avoidance] for more information about delayed configuration.
+
+Running the tests and generate the report:
+
+[listing.terminal.sample-command]
+----
+$ ./gradlew codeCoverageReport
+
+BUILD SUCCESSFUL
+10 actionable tasks: 10 executed
+----
+
+For more information, see link:{userManualPath}/java_testing.html[Testing in Java project chapter].

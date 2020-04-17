@@ -29,6 +29,7 @@ import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.initialization.IncludedBuild;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.MutationGuards;
 import org.gradle.api.internal.SettingsInternal;
@@ -304,6 +305,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
             .nagUser();
+        notifyListenerRegistration("Gradle.buildStarted", closure);
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildStarted", closure));
     }
 
@@ -313,6 +315,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
             .willBeRemovedInGradle7()
             .withUpgradeGuideSection(5, "apis_buildlistener_buildstarted_and_gradle_buildstarted_have_been_deprecated")
             .nagUser();
+        notifyListenerRegistration("Gradle.buildStarted", action);
         buildListenerBroadcast.add("buildStarted", action);
     }
 
@@ -362,11 +365,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
 
     @Override
     public void buildFinished(Closure closure) {
+        notifyListenerRegistration("Gradle.buildFinished", closure);
         buildListenerBroadcast.add(new ClosureBackedMethodInvocationDispatch("buildFinished", closure));
     }
 
     @Override
     public void buildFinished(Action<? super BuildResult> action) {
+        notifyListenerRegistration("Gradle.buildFinished", action);
         buildListenerBroadcast.add("buildFinished", action);
     }
 
@@ -379,7 +384,13 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     }
 
     private void addListener(String registrationPoint, Object listener) {
+        notifyListenerRegistration(registrationPoint, listener);
         getListenerManager().addListener(getListenerBuildOperationDecorator().decorateUnknownListener(registrationPoint, listener));
+    }
+
+    private void notifyListenerRegistration(String registrationPoint, Object listener) {
+        getListenerManager().getBroadcaster(BuildScopeListenerRegistrationListener.class)
+            .onBuildScopeListenerRegistration(listener, registrationPoint, this);
     }
 
     @Override

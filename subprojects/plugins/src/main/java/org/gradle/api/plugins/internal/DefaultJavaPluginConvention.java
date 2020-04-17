@@ -21,13 +21,11 @@ import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer;
 import org.gradle.api.java.archives.Manifest;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPluginConvention;
-import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.HasPublicType;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.api.reporting.ReportingExtension;
@@ -53,7 +51,6 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     private JavaVersion srcCompat;
     private JavaVersion targetCompat;
-    private Provider<Integer> internalReleaseFlagProperty = Providers.notDefined();
 
     private boolean autoTargetJvm = true;
 
@@ -63,10 +60,6 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
         docsDirName = "docs";
         testResultsDirName = TestingBasePlugin.TEST_RESULTS_DIR_NAME;
         testReportDirName = TestingBasePlugin.TESTS_DIR_NAME;
-    }
-
-    void internalReleaseFlagProperty(Provider<Integer> release) {
-        this.internalReleaseFlagProperty = release;
     }
 
     @Override
@@ -100,7 +93,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public JavaVersion getSourceCompatibility() {
-        return internalReleaseFlagProperty.isPresent() ? JavaVersion.toVersion(internalReleaseFlagProperty.get()) : srcCompat != null ? srcCompat : JavaVersion.current();
+        return srcCompat != null ? srcCompat : JavaVersion.current();
     }
 
     @Override
@@ -115,7 +108,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public JavaVersion getTargetCompatibility() {
-        return internalReleaseFlagProperty.isPresent() ? JavaVersion.toVersion(internalReleaseFlagProperty.get()) : targetCompat != null ? targetCompat : getSourceCompatibility();
+        return targetCompat != null ? targetCompat : getSourceCompatibility();
     }
 
     @Override
@@ -130,7 +123,7 @@ public class DefaultJavaPluginConvention extends JavaPluginConvention implements
 
     @Override
     public Manifest manifest() {
-        return manifest(Actions.doNothing());
+        return manifest(Actions.<Manifest>doNothing());
     }
 
     @Override

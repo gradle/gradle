@@ -20,21 +20,11 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
-        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
-    }
-
-    // No plugin marker for plugin RC - can be removed when going to a final version
-    resolutionStrategy {
-        eachPlugin {
-            if (requested.id.id == "com.gradle.enterprise") {
-                useModule("com.gradle:gradle-enterprise-gradle-plugin:${requested.version}")
-            }
-        }
     }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.2-rc-1")
+    id("com.gradle.enterprise").version("3.2.1")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
@@ -82,6 +72,7 @@ include("internalTesting")
 include("internalIntegTesting")
 include("internalPerformanceTesting")
 include("internalAndroidPerformanceTesting")
+include("internalBuildReports")
 include("performance")
 include("buildScanPerformance")
 include("javascript")
@@ -155,7 +146,6 @@ rootProject.name = "gradle"
 // List of sub-projects that have a Groovy DSL build script.
 // The intent is for this list to diminish until it disappears.
 val groovyBuildScriptProjects = hashSetOf(
-    "distributions",
     "docs",
     "performance"
 )
@@ -178,11 +168,7 @@ for (project in rootProject.children) {
     }
 }
 
-val ignoredFeatures = setOf<FeaturePreviews.Feature>()
-
 FeaturePreviews.Feature.values().forEach { feature ->
-    if (feature.isActive && feature !in ignoredFeatures) {
-        enableFeaturePreview(feature.name)
-    }
+    if (feature.isActive) { enableFeaturePreview(feature.name) }
 }
 

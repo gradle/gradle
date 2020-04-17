@@ -23,6 +23,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
@@ -89,7 +90,10 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
             } else if (dependency instanceof ProviderInternal) {
                 // When a Provider is used as a task dependency (rather than as a task input), need to unpack the value
                 ProviderInternal<?> provider = (ProviderInternal<?>) dependency;
-                if (!provider.maybeVisitBuildDependencies(context)) {
+                ValueSupplier.ValueProducer producer = provider.getProducer();
+                if (producer.isKnown()) {
+                    producer.visitProducerTasks(context);
+                } else {
                     // The provider does not know how to produce the value, so use the value instead
                     queue.addFirst(provider.get());
                 }

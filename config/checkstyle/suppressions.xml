@@ -93,4 +93,5 @@
 
     <!-- Ignore all checks for the generated sources of org.gradle.samples plugin -->
     <suppress checks=".*" files=".*[/\\]subprojects[/\\]docs[/\\]build[/\\]generated-source-sets[/\\].+" />
+    <suppress checks=".*" files=".*[/\\]buildSrc[/\\].*[/\\]groovy-dsl-plugins[/\\].+" />
 </suppressions>

@@ -131,7 +131,7 @@ So if our code would be more dynamic, and we would forget to cover the error cas
 
 This is only an example to illustrate potential pitfalls.
 In practice, larger libraries or frameworks can bring in a huge set of dependencies.
-If those libraries fail to declare features sepratly and can only be consumed in a "all or nothing" fashion, excludes can be a valid method to reduce the library to the feature set actually required.
+If those libraries fail to declare features separately and can only be consumed in a "all or nothing" fashion, excludes can be a valid method to reduce the library to the feature set actually required.
 
 On the upside, Gradle's exclude handling is, in contrast to Maven, taking the whole dependency graph into account.
 So if there are multiple dependencies on a library, excludes are only exercised if all dependencies agree on them.
@@ -163,9 +163,9 @@ You may consider to look into the following features:
   By this, you tell Gradle that a dependency between two modules is never needed — i.e. the metadata was wrong — and therefore should *never* be considered.
   If you are developing a library, you have to be aware that this information is not published, and so sometimes an _exclude_ can be the better alternative.
 - <<dependency_capability_conflict.adoc#,Resolving mutually exclusive dependency conflicts>>:
-  Another situation that you often see solved by excludes is that two dependencies can not be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).
+  Another situation that you often see solved by excludes is that two dependencies cannot be used together because they represent two implementations of the same thing (the same <<dependency_capability_conflict.adoc#sub:capabilities,capability>>).
   A popular example are clashing logging API implementations (like `log4j` and `log4j-over-slf4j`) or modules that have different coordinates in different versions (like `com.google.collections` and `guava`).
   In this case, if this information is not known to Gradle, it is recommended to add the missing capability information via component metadata rules as described in the <<dependency_capability_conflict.adoc#sub:declaring-component-capabilities,declaring component capabilities>> section.
-  Even if you are developing a library, and your consumers will have to deal with resolving the conflict again, it is often the right solution to leave the decssion to the final consumers of libraries.
+  Even if you are developing a library, and your consumers will have to deal with resolving the conflict again, it is often the right solution to leave the decision to the final consumers of libraries.
   I.e. you as a library author should not have to decide which logging implementation your consumers use in the end.
 

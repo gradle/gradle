@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 description = "API extraction for Java"
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
     gradlebuild.`publish-public-libraries`
     gradlebuild.`strict-compile`
@@ -32,8 +30,4 @@ dependencies {
 
     testImplementation(project(":baseServices"))
     testImplementation(project(":internalTesting"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }

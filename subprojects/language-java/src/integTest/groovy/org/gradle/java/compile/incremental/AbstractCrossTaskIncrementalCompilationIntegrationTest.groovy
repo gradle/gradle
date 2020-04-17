@@ -716,7 +716,6 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.recompiledClasses("A")
     }
 
-    @ToBeFixedForInstantExecution
     def "deletion of a jar with duplicate class causes recompilation"() {
         file("api/src/main/${language.name}/org/junit/Assert.${language.name}") << "package org.junit; public class Assert {}"
         source impl: ["class A extends org.junit.Assert {}"]

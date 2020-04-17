@@ -110,7 +110,7 @@ public class DefaultMutableVersionConstraint extends AbstractVersionConstraint i
 
     @Override
     public void strictly(String version) {
-        updateVersions(null, version, version);
+        updateVersions(preferredVersion, version, version);
     }
 
     @Override

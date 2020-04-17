@@ -35,6 +35,7 @@ import org.gradle.internal.Try
 import org.gradle.internal.component.AmbiguousVariantSelectionException
 import org.gradle.internal.component.NoMatchingVariantSelectionException
 import org.gradle.internal.component.model.AttributeMatcher
+import org.gradle.internal.component.model.AttributeMatchingExplanationBuilder
 import org.gradle.internal.operations.BuildOperationQueue
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.operations.TestBuildOperationExecutor
@@ -47,7 +48,9 @@ import static org.gradle.util.TextUtil.toPlatformLineSeparators
 class DefaultArtifactTransformsTest extends Specification {
     def matchingCache = Mock(ConsumerProvidedVariantFinder)
     def producerSchema = Mock(AttributesSchemaInternal)
-    def consumerSchema = Mock(AttributesSchemaInternal)
+    def consumerSchema = Mock(AttributesSchemaInternal) {
+        getConsumerDescribers() >> []
+    }
     def attributeMatcher = Mock(AttributeMatcher)
     def dependenciesResolver = Stub(ExtraExecutionGraphDependenciesResolverFactory)
     def transformationNodeRegistry = Mock(TransformationNodeRegistry)
@@ -68,7 +71,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1]
+        attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1]
 
         expect:
         def result = transforms.variantSelector(typeAttributes("classes"), true, dependenciesResolver).select(set)
@@ -91,7 +94,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("jar")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(variants, typeAttributes("classes")) >> [variant1, variant2]
+        attributeMatcher.matches(variants, typeAttributes("classes"), _ as AttributeMatchingExplanationBuilder) >> [variant1, variant2]
         attributeMatcher.isMatching(_, _, _) >> true
 
         when:
@@ -100,13 +103,9 @@ class DefaultArtifactTransformsTest extends Specification {
 
         then:
         def e = thrown(AmbiguousVariantSelectionException)
-        e.message == toPlatformLineSeparators("""More than one variant of <component> matches the consumer attributes:
-  - <variant1>:
-      - Compatible attribute:
-          - Required artifactType 'classes' and found compatible value 'classes'.
-  - <variant2>:
-      - Compatible attribute:
-          - Required artifactType 'classes' and found compatible value 'jar'.""")
+        e.message == toPlatformLineSeparators("""The consumer was configured to find attribute 'artifactType' with value 'classes'. However we cannot choose between the following variants of <component>:
+  - <variant1> declares attribute 'artifactType' with value 'classes'
+  - <variant2> declares attribute 'artifactType' with value 'jar'""")
     }
 
     private ResolvedVariant resolvedVariant() {
@@ -146,7 +145,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.attributes >> typeAttributes("dll")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(_, _) >> []
+        attributeMatcher.matches(_, _, _) >> []
 
         matchingCache.collectConsumerVariants(typeAttributes("jar"), targetAttributes) >> { AttributeContainerInternal from, AttributeContainerInternal to ->
             match(to, transformation, 1)
@@ -200,7 +199,7 @@ class DefaultArtifactTransformsTest extends Specification {
         variant2.asDescribable() >> Describables.of('<variant2>')
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(_, _) >> []
+        attributeMatcher.matches(_, _, _) >> []
 
         matchingCache.collectConsumerVariants(_, _) >> { AttributeContainerInternal from, AttributeContainerInternal to ->
                 match(to, Stub(Transformation), 1)
@@ -240,7 +239,7 @@ Found the following transforms:
         variant2.attributes >> typeAttributes("classes")
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(_, _) >> []
+        attributeMatcher.matches(_, _, _) >> []
 
         matchingCache.collectConsumerVariants(_, _) >> new ConsumerVariantMatchResult(0)
 
@@ -265,7 +264,7 @@ Found the following transforms:
         variant2.asDescribable() >> Describables.of('<variant2>')
 
         consumerSchema.withProducer(producerSchema) >> attributeMatcher
-        attributeMatcher.matches(_, _) >> []
+        attributeMatcher.matches(_, _, _) >> []
 
         matchingCache.collectConsumerVariants(_, _) >> new ConsumerVariantMatchResult(0)
 
@@ -275,13 +274,11 @@ Found the following transforms:
 
         then:
         def e = thrown(NoMatchingVariantSelectionException)
-        e.message == toPlatformLineSeparators("""No variants of <component> match the consumer attributes:
+        e.message == toPlatformLineSeparators("""No variants of  match the consumer attributes:
   - <variant1>:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'jar'.
+      - Incompatible because this component declares attribute 'artifactType' with value 'jar' and the consumer needed attribute 'artifactType' with value 'dll'
   - <variant2>:
-      - Incompatible attribute:
-          - Required artifactType 'dll' and found incompatible value 'classes'.""")
+      - Incompatible because this component declares attribute 'artifactType' with value 'classes' and the consumer needed attribute 'artifactType' with value 'dll'""")
     }
 
     def visit(ResolvedArtifactSet set) {

@@ -52,7 +52,6 @@ class WrapperPlugin : Plugin<Project> {
             group = "wrapper"
         }
 
-        // TODO Avoid late configuration
         tasks.register(configureWrapperTaskName) {
             doLast {
                 val jsonText = URL("https://services.gradle.org/versions/$label").readText()

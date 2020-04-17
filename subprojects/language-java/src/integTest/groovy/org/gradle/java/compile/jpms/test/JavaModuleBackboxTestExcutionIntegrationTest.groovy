@@ -16,6 +16,10 @@
 
 package org.gradle.java.compile.jpms.test
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.util.Requires
+import org.gradle.util.TextUtil
+
 class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTestingIntegrationTest {
 
     def "runs JUnit4 blackbox test as module using the module path"() {
@@ -29,6 +33,36 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
         consumingModuleClass()
         testModuleInfo('requires consumer', 'requires junit')
         testModuleClass('org.junit.Assert.assertEquals("consumer", consumer.MainModule.class.getModule().getName())')
+
+        then:
+        succeeds ':test'
+    }
+
+    // This test shows how to wire up the tests such that all modules run as Jars, so that resources form other folders than 'classes' are part of the corresponding module.
+    // When we add more conveniences for setting up additional test sets, we should consider to make this the default setup (or add an option to set it up like this).
+    def "can access resources in a blackbox test using the module path"() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation 'junit:junit:4.13'
+                testImplementation project(path) // depend on the main variant of the project
+            }
+            def testJarTask = tasks.register(sourceSets.test.jarTaskName, Jar) {
+                archiveClassifier = 'tests'
+                from sourceSets.test.output
+            }
+            test {
+                // Make sure we run the 'Jar' containing the tests (and not just the 'classes' folder) so that test resources are also part of the test module
+                classpath = configurations[sourceSets.test.runtimeClasspathConfigurationName] + files(testJarTask)
+            }
+        """
+
+        when:
+        consumingModuleInfo('exports consumer')
+        consumingModuleClass()
+        testModuleInfo('requires consumer', 'requires junit')
+        file('src/test/resources/data.txt').text = "some data"
+        testModuleClass('org.junit.Assert.assertNotNull("File data.txt not found!", this.getClass().getModule().getResourceAsStream("data.txt"))')
 
         then:
         succeeds ':test'
@@ -74,4 +108,28 @@ class JavaModuleBackboxTestExcutionIntegrationTest extends AbstractJavaModuleTes
         succeeds ':test'
     }
 
+    // This documents the current behavior.
+    // In all places where we support Java Modules, we do not check if we actually run on Java 9 or later.
+    // Instead, we just let javac/java/javadoc fail. We could improve by checking ourselves and throwing a different error.
+    // But we should do that in all places then.
+    @Requires(adhoc = { AvailableJavaHomes.getJdk8() })
+    def "fails testing a Java module on Java 8"() {
+        given:
+        buildFile << """
+            dependencies { testImplementation 'junit:junit:4.13' }
+            test {
+                executable = '${TextUtil.escapeString(AvailableJavaHomes.getJdk8().javaExecutable)}'
+            }
+        """
+        // Test workers that die very quickly after startup can cause an unexpected stack trace sometimes
+        executer.withStackTraceChecksDisabled()
+
+        when:
+        testModuleInfo('requires junit')
+        testModuleClass('')
+
+        then:
+        fails "test"
+        failure.assertHasErrorOutput('Unrecognized option: --module')
+    }
 }

@@ -26,6 +26,7 @@ import org.gradle.api.distribution.Distribution;
 import org.gradle.api.distribution.DistributionContainer;
 import org.gradle.api.distribution.plugins.DistributionPlugin;
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.plugins.internal.DefaultApplicationPluginConvention;
 import org.gradle.api.plugins.internal.DefaultJavaApplication;
 import org.gradle.api.tasks.JavaExec;
@@ -135,14 +136,20 @@ public class ApplicationPlugin implements Plugin<Project> {
             run.setDescription("Runs this project as a JVM application");
             run.setGroup(APPLICATION_GROUP);
 
-            JavaPluginConvention javaPluginConvention = project.getConvention().getPlugin(JavaPluginConvention.class);
-            run.setClasspath(javaPluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
+            FileCollection runtimeClasspath = project.files().from((Callable<FileCollection>) () -> {
+                if (run.getMainModule().isPresent()) {
+                    return jarsOnlyRuntimeClasspath(project);
+                } else  {
+                    return runtimeClasspath(project);
+                }
+            });
+            run.setClasspath(runtimeClasspath);
             run.getMainModule().set(pluginExtension.getMainModule());
             run.getMainClass().set(pluginExtension.getMainClass());
             run.getConventionMapping().map("jvmArgs", pluginConvention::getApplicationDefaultJvmArgs);
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-            run.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
+            run.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
     }
 
@@ -150,7 +157,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     private void addCreateScriptsTask(Project project, JavaApplication pluginExtension, ApplicationPluginConvention pluginConvention) {
         project.getTasks().register(TASK_START_SCRIPTS_NAME, CreateStartScripts.class, startScripts -> {
             startScripts.setDescription("Creates OS specific scripts to run the project as a JVM application.");
-            startScripts.setClasspath(project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME)));
+            startScripts.setClasspath(jarsOnlyRuntimeClasspath(project));
 
             startScripts.getMainModule().set(pluginExtension.getMainModule());
             startScripts.getMainClass().set(pluginExtension.getMainClass());
@@ -164,8 +171,16 @@ public class ApplicationPlugin implements Plugin<Project> {
             startScripts.getConventionMapping().map("defaultJvmOpts", pluginConvention::getApplicationDefaultJvmArgs);
 
             JavaPluginExtension javaPluginExtension = project.getExtensions().getByType(JavaPluginExtension.class);
-            startScripts.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
+            startScripts.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
         });
+    }
+
+    private FileCollection runtimeClasspath(Project project) {
+        return project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+    }
+
+    private FileCollection jarsOnlyRuntimeClasspath(Project project) {
+        return project.getTasks().getAt(JavaPlugin.JAR_TASK_NAME).getOutputs().getFiles().plus(project.getConfigurations().getByName(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME));
     }
 
     private CopySpec configureDistribution(Project project, Distribution mainDistribution, ApplicationPluginConvention pluginConvention) {

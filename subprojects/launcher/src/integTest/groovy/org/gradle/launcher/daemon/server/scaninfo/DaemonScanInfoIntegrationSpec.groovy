@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.server.scaninfo
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -102,7 +101,6 @@ class DaemonScanInfoIntegrationSpec extends DaemonIntegrationSpec {
         continuous << [true, false]
     }
 
-    @ToBeFixedForInstantExecution
     def "daemon expiration listener is implicitly for the current build only"() {
         given:
         buildFile << """

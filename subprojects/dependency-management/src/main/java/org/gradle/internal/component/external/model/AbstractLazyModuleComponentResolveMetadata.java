@@ -26,6 +26,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.internal.component.external.descriptor.Configuration;
 import org.gradle.internal.component.model.ConfigurationMetadata;
+import org.gradle.internal.component.model.ExcludeMetadata;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 
@@ -128,7 +129,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
                 }
             }
             if (baseName == null || base instanceof ModuleConfigurationMetadata) {
-                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules);
+                ConfigurationMetadata configurationMetadata = new LazyRuleAwareWithBaseConfigurationMetadata(additionalVariant.getName(), (ModuleConfigurationMetadata) base, getId(), getAttributes(), variantMetadataRules, constructVariantExcludes(base));
                 builder.add(configurationMetadata);
             }
         }
@@ -186,6 +187,13 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
             Configuration parent = configurationDefinitions.get(parentName);
             populateHierarchy(parent, accumulator);
         }
+    }
+
+    private ImmutableList<ExcludeMetadata> constructVariantExcludes(ConfigurationMetadata base) {
+        if(base == null) {
+            return ImmutableList.of();
+        }
+        return base.getExcludes();
     }
 
     /**

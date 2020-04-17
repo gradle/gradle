@@ -714,7 +714,7 @@ The plugin achieves this by doing the following:
  * Applies the link:https://kotlinlang.org/docs/reference/using-gradle.html#targeting-the-jvm[Kotlin Plugin], which adds support for compiling Kotlin source files.
  * Adds the `kotlin-stdlib-jdk8`, `kotlin-reflect` and `gradleKotlinDsl()` dependencies to the `compileOnly` and `testImplementation` configurations, which allows you to make use of those Kotlin libraries and the Gradle API in your Kotlin code.
  * Configures the Kotlin compiler with the same settings that are used for Kotlin DSL scripts, ensuring consistency between your build logic and those scripts.
- * Enables support for <<kotdsl:precompiled_plugins,precompiled script plugins>>.
+ * Enables support for <<custom_plugins#sec:precompiled_plugins,precompiled script plugins>>.
 
 [CAUTION]
 .Avoid specifying a version for the `kotlin-dsl` plugin
@@ -738,55 +738,6 @@ You can silence the warning by setting the `experimentalWarning` property of the
 .Disabling the warning about the use of experimental Kotlin compiler features
 ====
 include::sample[dir="snippets/kotlinDsl/kotlinDslPlugin",files="buildSrc/build.gradle.kts[tags=disable-experimental-warning]"]
-====
-
-[[kotdsl:precompiled_plugins]]
-=== Precompiled script plugins
-
-In addition to normal Kotlin source files that go under `src/main/kotlin` by convention, the Kotlin DSL Plugin also allows you to provide your build logic as precompiled script plugins.
-You write these as `*.gradle.kts` files in that same `src/main/kotlin` directory.
-
-Precompiled script plugins are Kotlin DSL scripts that are compiled as part of a regular Kotlin source set and then placed on the build classpath or packaged in a binary plugin, depending on what type of project they're in.
-For all intents and purposes, they _are_ binary plugins, particularly as they can be applied by plugin ID, just like a normal plugin.
-In fact, the Kotlin DSL Plugin generates plugin metadata for them thanks to integration with the <<java_gradle_plugin#java_gradle_plugin,Gradle Plugin Development Plugin>>. 
-
-[NOTE]
-====
-Precompiled script plugins built with Gradle 6.0 cannot be used with earlier versions of Gradle. This limitation will be lifted in a future version of Gradle.
-====
-
-So, to apply a precompiled script plugin, you need to know its ID.
-That is derived from its filename (minus the `.gradle.kts` extension) and its (optional) package declaration.
-
-For example, the script `src/main/kotlin/java-library-convention.gradle.kts` would have a plugin ID of `java-library-convention` (assuming it has no package declaration).
-Likewise, `src/main/kotlin/my/java-library-convention.gradle.kts` would result in a plugin ID of `my.java-library-convention` as long as it has a package declaration of `my`.
-
-To demonstrate how you can implement and use a precompiled script plugin, let's walk through an example based on a `buildSrc` project.
-
-First, you need a `buildSrc/build.gradle.kts` file that applies the Kotlin DSL Plugin:
-
-.Applying the Kotlin DSL Plugin to the `buildSrc` project
-====
-include::sample[dir="snippets/kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/build.gradle.kts[tags=apply]"]
-====
-
-We recommend that you also create a `buildSrc/settings.gradle.kts` file, which you may leave empty.
-
-Next, create a new `java-library-convention.gradle.kts` file in the `buildSrc/src/main/kotlin` directory and set its contents to the following:
-
-.Creating a simple script plugin
-====
-include::sample[dir="snippets/kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
-====
-
-This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
-Note that this will actually apply the plugins to the main project, i.e. the one that applies the precompiled script plugin
-
-Finally, apply the script plugin to the root project as follows:
-
-.Applying the precompiled script plugin to the main project
-====
-include::sample[dir="snippets/kotlinDsl/precompiledScriptPlugins/inBuildSrc",files="build.gradle.kts[]"]
 ====
 
 

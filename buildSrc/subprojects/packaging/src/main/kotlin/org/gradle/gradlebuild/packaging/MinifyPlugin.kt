@@ -43,42 +43,33 @@ open class MinifyPlugin : Plugin<Project> {
                 "it.unimi.dsi.fastutil.ints.IntSets"
             )
         )
-
-        allprojects {
-            plugins.withId("java-base") {
-                dependencies {
-                    attributesSchema {
-                        attribute(minified)
-                    }
-                    artifactTypes.getByName("jar") {
-                        attributes.attribute(minified, java.lang.Boolean.FALSE)
-                    }
-                    registerTransform(Minify::class) {
-                        /*
-                         * TODO Why do I have to add artifactType=jar here? According to
-                         * the declaration above, it's the only artifact type for which
-                         * minified=false anyway. If I don't add this, the transform chain
-                         * in binary-compatibility.gradle no longer works.
-                         */
-                        from.attribute(minified, false).attribute(artifactType, "jar")
-                        to.attribute(minified, true).attribute(artifactType, "jar")
-                        parameters {
-                            keepClassesByArtifact = keepPatterns
-                        }
+        plugins.withId("java-base") {
+            dependencies {
+                attributesSchema {
+                    attribute(minified)
+                }
+                artifactTypes.getByName("jar") {
+                    attributes.attribute(minified, java.lang.Boolean.FALSE)
+                }
+                registerTransform(Minify::class) {
+                    from.attribute(minified, false).attribute(artifactType, "jar")
+                    to.attribute(minified, true).attribute(artifactType, "jar")
+                    parameters {
+                        keepClassesByArtifact = keepPatterns
                     }
                 }
+            }
+            afterEvaluate {
                 configurations.all {
-                    afterEvaluate {
-                        // everywhere where we resolve, prefer the minified version
-                        if (isCanBeResolved && !isCanBeConsumed) {
+                    // everywhere where we resolve, prefer the minified version
+                    if (isCanBeResolved && !isCanBeConsumed) {
+                        attributes.attribute(minified, true)
+                    }
+                    // local projects are already minified
+                    if (isCanBeConsumed && !isCanBeResolved) {
+                        if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
+                                && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL) {
                             attributes.attribute(minified, true)
-                        }
-                        // local projects are already minified
-                        if (isCanBeConsumed && !isCanBeResolved) {
-                            if (attributes.getAttribute(Category.CATEGORY_ATTRIBUTE)?.name == Category.LIBRARY
-                                    && attributes.getAttribute(Bundling.BUNDLING_ATTRIBUTE)?.name == Bundling.EXTERNAL) {
-                                attributes.attribute(minified, true)
-                            }
                         }
                     }
                 }

@@ -32,7 +32,7 @@ import org.gradle.cache.internal.DefaultCacheRepository
 import org.gradle.cache.internal.DefaultCacheScopeMapping
 import org.gradle.cache.internal.TestFileContentCacheFactory
 import org.gradle.internal.id.LongIdGenerator
-import org.gradle.internal.jpms.JavaModuleDetector
+import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.inspection.CachingJvmVersionDetector
 import org.gradle.internal.jvm.inspection.DefaultJvmVersionDetector
 import org.gradle.internal.logging.LoggingManagerInternal

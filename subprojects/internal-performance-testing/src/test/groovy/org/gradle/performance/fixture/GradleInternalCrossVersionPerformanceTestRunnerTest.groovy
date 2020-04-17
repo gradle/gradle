@@ -41,7 +41,7 @@ class GradleInternalCrossVersionPerformanceTestRunnerTest extends ResultSpecific
 
     @Rule
     SetSystemProperties systemProperties = new SetSystemProperties(
-        'org.gradle.performance.db.url': "jdbc:h2:${tmpDir.testDirectory}"
+        'org.gradle.performance.db.mysql.url': "jdbc:h2:${tmpDir.testDirectory}"
     )
 
     final buildContext = IntegrationTestBuildContext.INSTANCE

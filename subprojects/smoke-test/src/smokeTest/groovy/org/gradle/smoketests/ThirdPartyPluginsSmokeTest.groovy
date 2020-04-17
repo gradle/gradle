@@ -16,7 +16,9 @@
 
 package org.gradle.smoketests
 
+import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -29,6 +31,9 @@ import spock.lang.Unroll
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assume.assumeThat
 
 class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
@@ -333,6 +338,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://plugins.gradle.org/plugin/org.ajoberstar.grgit')
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def 'org.ajoberstar.grgit plugin'() {
         given:
         GitFileRepository.init(testProjectDir.root)
@@ -437,6 +443,12 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
+
+        if (GradleContextualExecuter.isInstant()) {
+            // errorprone plugin use a task that has a Configuration field on Java 8
+            assumeThat(JavaVersion.current().majorVersion, not(equalTo("8")))
+        }
+
         given:
         buildFile << """
             plugins {

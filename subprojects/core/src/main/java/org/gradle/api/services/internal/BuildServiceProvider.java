@@ -16,7 +16,9 @@
 
 package org.gradle.api.services.internal;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.provider.AbstractMinimalProvider;
+import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.internal.Try;
@@ -70,7 +72,7 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
     }
 
     @Override
-    public boolean isPresent() {
+    public boolean calculatePresence(ValueConsumer consumer) {
         return true;
     }
 
@@ -84,21 +86,20 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
         throw new UnsupportedOperationException("Build services cannot be serialized.");
     }
 
-    // TODO - rename this method
     @Override
-    public boolean isValueProducedByTask() {
-        return true;
-    }
-
-    @Override
-    protected Value<? extends T> calculateOwnValue() {
+    protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         synchronized (this) {
             if (instance == null) {
                 // TODO - extract some shared infrastructure to take care of instantiation (eg which services are visible, strict vs lenient, decorated or not?)
                 // TODO - should hold the project lock to do the isolation. Should work the same way as artifact transforms (a work node does the isolation, etc)
                 P isolatedParameters = isolatableFactory.isolate(parameters).isolate();
                 // TODO - reuse this in other places
-                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(isolatedParameters, internalServices);
+                ServiceLookup instantiationServices = isolationScheme.servicesForImplementation(
+                    isolatedParameters,
+                    internalServices,
+                    ImmutableList.of(LoggingOutput.class),
+                    serviceType -> false
+                );
                 try {
                     instance = Try.successful(instantiationScheme.withServices(instantiationServices).instantiator().newInstance(implementationType));
                 } catch (Exception e) {
@@ -107,6 +108,11 @@ public class BuildServiceProvider<T extends BuildService<P>, P extends BuildServ
             }
             return Value.of(instance.get());
         }
+    }
+
+    @Override
+    public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+        return ExecutionTimeValue.changingValue(this);
     }
 
     public void maybeStop() {

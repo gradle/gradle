@@ -23,10 +23,8 @@ import org.gradle.build.remote.VersionType
 import com.google.gson.Gson
 import org.gradle.kotlin.dsl.*
 import java.net.URL
-import java.util.concurrent.Callable
 
 
-// TODO Don't use Gson for Json. Extract
 class UpdateVersionsPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
         val releasedVersionsJsonFile = file("released-versions.json")
@@ -36,8 +34,7 @@ class UpdateVersionsPlugin : Plugin<Project> {
             group = "Versioning"
         }
 
-        tasks.register("updateReleasedVersions", UpdateReleasedVersions::class) {
-            // TODO
+        tasks.register<UpdateReleasedVersions>("updateReleasedVersions") {
             val currentReleasedVersionProperty = project.findProperty("currentReleasedVersion")
             val value =
                 if (currentReleasedVersionProperty != null) ReleasedVersion(currentReleasedVersionProperty.toString(), project.findProperty("currentReleasedVersionBuildTimestamp").toString())
@@ -45,13 +42,21 @@ class UpdateVersionsPlugin : Plugin<Project> {
             currentReleasedVersion.set(value)
         }
 
-        tasks.register("updateReleasedVersionsToLatestNightly", UpdateReleasedVersions::class) {
-            currentReleasedVersion.set(project.providers.provider(Callable {
+        tasks.register<UpdateReleasedVersions>("updateReleasedVersionsToLatestNightly") {
+            currentReleasedVersion.set(project.provider {
                 val jsonText = URL("https://services.gradle.org/versions/${VersionType.NIGHTLY.type}").readText()
                 println(jsonText)
                 val versionInfo = Gson().fromJson(jsonText, VersionBuildTimeInfo::class.java)
                 ReleasedVersion(versionInfo.version, versionInfo.buildTime)
-            }))
+            })
+        }
+
+        tasks.register<UpdateBranchStatus>("updateBranchStatus")
+
+        tasks.register<UpdateAgpVersions>("updateAgpVersions") {
+            comment.set(" Generated - Update by running `./gradlew updateAgpVersions`")
+            minimumSupportedMinor.set("3.4")
+            propertiesFile.set(layout.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
         }
     }
 }

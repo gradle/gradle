@@ -19,7 +19,6 @@ package org.gradle.api.internal.provider;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 
@@ -31,31 +30,182 @@ import java.util.List;
  */
 public interface ValueSupplier {
     /**
-     * Visits the build dependencies of this supplier, if possible.
-     *
-     * @return true if the dependencies have been added (possibly none), false if the build dependencies are unknown.
+     * Visits the producer of the value for this supplier. This might be one or more tasks, some external location, nothing (for a fixed value) or might unknown.
      */
-    boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context);
+    ValueProducer getProducer();
+
+    boolean calculatePresence(ValueConsumer consumer);
+
+    enum ValueConsumer {
+        DisallowUnsafeRead, IgnoreUnsafeRead
+    }
 
     /**
-     * Visits the tasks that produce the <em>content</em> of the value of this supplier, if any.
-     *
-     * At some point, this method can {@link #maybeVisitBuildDependencies(TaskDependencyResolveContext)} could be merged.
+     * Carries information about the producer of a value.
      */
-    void visitProducerTasks(Action<? super Task> visitor);
+    interface ValueProducer {
+        NoProducer NO_PRODUCER = new NoProducer();
+        UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
+
+        boolean isKnown();
+
+        boolean isProducesDifferentValueOverTime();
+
+        void visitProducerTasks(Action<? super Task> visitor);
+
+        default void visitContentProducerTasks(Action<? super Task> visitor) {
+            visitProducerTasks(visitor);
+        }
+
+        default ValueProducer plus(ValueProducer producer) {
+            if (this == NO_PRODUCER) {
+                return producer;
+            }
+            if (producer == NO_PRODUCER) {
+                return this;
+            }
+            if (producer == this) {
+                return this;
+            }
+            return new PlusProducer(this, producer);
+        }
+
+        static ValueProducer noProducer() {
+            return NO_PRODUCER;
+        }
+
+        static ValueProducer unknown() {
+            return UNKNOWN_PRODUCER;
+        }
+
+        static ValueProducer externalValue() {
+            return new ExternalValueProducer();
+        }
+
+        /**
+         * Value and its contents are produced by task.
+         */
+        static ValueProducer task(Task task) {
+            return new TaskProducer(task, true);
+        }
+
+        /**
+         * Value is produced from the properties of the task, and carries an implicit dependency on the task
+         */
+        static ValueProducer taskState(Task task) {
+            return new TaskProducer(task, false);
+        }
+    }
+
+    class ExternalValueProducer implements ValueProducer {
+        @Override
+        public boolean isKnown() {
+            return true;
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return true;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+    }
+
+    class TaskProducer implements ValueProducer {
+        private final Task task;
+        private boolean content;
+
+        public TaskProducer(Task task, boolean content) {
+            this.task = task;
+            this.content = content;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return true;
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            visitor.execute(task);
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            if (content) {
+                visitor.execute(task);
+            }
+        }
+    }
+
+    class PlusProducer implements ValueProducer {
+        private final ValueProducer left;
+        private final ValueProducer right;
+
+        public PlusProducer(ValueProducer left, ValueProducer right) {
+            this.left = left;
+            this.right = right;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return left.isKnown() && right.isKnown();
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return left.isProducesDifferentValueOverTime() || right.isProducesDifferentValueOverTime();
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            left.visitProducerTasks(visitor);
+            right.visitProducerTasks(visitor);
+        }
+    }
+
+    class UnknownProducer implements ValueProducer {
+        @Override
+        public boolean isKnown() {
+            return false;
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+    }
+
+    class NoProducer implements ValueProducer {
+        @Override
+        public boolean isKnown() {
+            return true;
+        }
+
+        @Override
+        public boolean isProducesDifferentValueOverTime() {
+            return false;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+        }
+    }
 
     /**
-     * Returns true when the <em>value</em> of this supplier is produced by a task. The <em>value</em> is the object returned the query methods.
-     * This is distinct from the <em>content</em>, which is the state of the value or the thing that the value points to. For example, for a file property, the file path
-     * represents the value of the property, and the content of the file on the file system represents the content of the property.
-     *
-     * <p>Note that a task producing the value of this supplier is not necessarily the same as a task producing the <em>content</em> of
-     * the value of this supplier.
+     * Carries either a value or some diagnostic information about where the value would have come from, had it been present.
      */
-    boolean isValueProducedByTask();
-
-    boolean isPresent();
-
     interface Value<T> {
         Value<Object> MISSING = new Missing<>();
         Value<Void> SUCCESS = new Present<>(null);
@@ -72,7 +222,9 @@ public interface ValueSupplier {
         }
 
         static <T> Value<T> of(T value) {
-            assert value != null;
+            if (value == null) {
+                throw new IllegalArgumentException();
+            }
             return new Present<>(value);
         }
 
@@ -102,7 +254,7 @@ public interface ValueSupplier {
     class Present<T> implements Value<T> {
         private final T result;
 
-        public Present(T result) {
+        private Present(T result) {
             this.result = result;
         }
 
@@ -150,11 +302,11 @@ public interface ValueSupplier {
     class Missing<T> implements Value<T> {
         private final List<DisplayName> path;
 
-        public Missing() {
+        private Missing() {
             this.path = ImmutableList.of();
         }
 
-        public Missing(List<DisplayName> path) {
+        private Missing(List<DisplayName> path) {
             this.path = path;
         }
 
@@ -212,6 +364,175 @@ public interface ValueSupplier {
             builder.addAll(path);
             builder.addAll(other.path);
             return new Missing<>(builder.build());
+        }
+    }
+
+    /**
+     * Represents either a missing value, a fixed value with fixed contents, a fixed value with changing contents, or a changing value (with changing contents).
+     */
+    abstract class ExecutionTimeValue<T> {
+        private static final MissingExecutionTimeValue MISSING = new MissingExecutionTimeValue();
+
+        public boolean isMissing() {
+            return false;
+        }
+
+        public boolean isFixedValue() {
+            return false;
+        }
+
+        public boolean isChangingValue() {
+            return false;
+        }
+
+        /**
+         * A fixed value may have changing contents. For example, a task output file whose location is known at configuration time.
+         */
+        public boolean hasChangingContent() {
+            return false;
+        }
+
+        public T getFixedValue() throws IllegalStateException {
+            throw new IllegalStateException();
+        }
+
+        public ProviderInternal<T> getChangingValue() throws IllegalStateException {
+            throw new IllegalStateException();
+        }
+
+        public Value<T> toValue() throws IllegalStateException {
+            throw new IllegalStateException();
+        }
+
+        public abstract ProviderInternal<T> toProvider();
+
+        public abstract ExecutionTimeValue<T> withChangingContent();
+
+        public static <T> ExecutionTimeValue<T> missing() {
+            return Cast.uncheckedCast(MISSING);
+        }
+
+        public static <T> ExecutionTimeValue<T> fixedValue(T value) {
+            assert value != null;
+            return new FixedExecutionTimeValue<>(value, false);
+        }
+
+        public static <T> ExecutionTimeValue<T> ofNullable(@Nullable T value) {
+            if (value == null) {
+                return missing();
+            } else {
+                return fixedValue(value);
+            }
+        }
+
+        public static <T> ExecutionTimeValue<T> value(Value<T> value) {
+            if (value.isMissing()) {
+                return missing();
+            } else {
+                return fixedValue(value.get());
+            }
+        }
+
+        public static <T> ExecutionTimeValue<T> changingValue(ProviderInternal<T> provider) {
+            return new ChangingExecutionTimeValue<>(provider);
+        }
+    }
+
+    class MissingExecutionTimeValue extends ExecutionTimeValue<Object> {
+        @Override
+        public boolean isMissing() {
+            return true;
+        }
+
+        @Override
+        public ProviderInternal<Object> toProvider() {
+            return Providers.notDefined();
+        }
+
+        @Override
+        public ExecutionTimeValue<Object> withChangingContent() {
+            return this;
+        }
+
+        @Override
+        public Value<Object> toValue() {
+            return Value.missing();
+        }
+    }
+
+    class FixedExecutionTimeValue<T> extends ExecutionTimeValue<T> {
+        private final T value;
+        private final boolean changingContent;
+
+        private FixedExecutionTimeValue(T value, boolean changingContent) {
+            this.value = value;
+            this.changingContent = changingContent;
+        }
+
+        @Override
+        public boolean isFixedValue() {
+            return true;
+        }
+
+        @Override
+        public boolean hasChangingContent() {
+            return changingContent;
+        }
+
+        @Override
+        public T getFixedValue() {
+            return value;
+        }
+
+        @Override
+        public Value<T> toValue() {
+            return Value.of(value);
+        }
+
+        @Override
+        public ProviderInternal<T> toProvider() {
+            if (changingContent) {
+                return new Providers.FixedValueWithChangingContentProvider<>(value);
+            }
+            return Providers.of(value);
+        }
+
+        @Override
+        public ExecutionTimeValue<T> withChangingContent() {
+            return new FixedExecutionTimeValue<>(value, true);
+        }
+    }
+
+    class ChangingExecutionTimeValue<T> extends ExecutionTimeValue<T> {
+        private final ProviderInternal<T> provider;
+
+        private ChangingExecutionTimeValue(ProviderInternal<T> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public boolean isChangingValue() {
+            return true;
+        }
+
+        @Override
+        public boolean hasChangingContent() {
+            return true;
+        }
+
+        @Override
+        public ProviderInternal<T> getChangingValue() {
+            return provider;
+        }
+
+        @Override
+        public ProviderInternal<T> toProvider() {
+            return provider;
+        }
+
+        @Override
+        public ExecutionTimeValue<T> withChangingContent() {
+            return this;
         }
     }
 }

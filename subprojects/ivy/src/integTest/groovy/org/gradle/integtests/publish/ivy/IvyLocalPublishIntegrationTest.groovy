@@ -88,6 +88,7 @@ uploadArchives {
     }
 
     @Issue("GRADLE-1811")
+    @ToBeFixedForInstantExecution(because = ":uploadArchives")
     def canGenerateTheIvyXmlWithoutPublishing() {
         //this is more like documenting the current behavior.
         //Down the road we should add explicit task to create ivy.xml file

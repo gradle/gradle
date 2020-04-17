@@ -46,7 +46,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
         when:
         fixture.applyChange()
-        if (isKotlinBuildSrc && isSourceChange) {
+        if (isKotlinBuildSrc) {
             problems.withDoNotFailOnProblems()
         }
         instantRun()
@@ -63,12 +63,12 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         instant.assertStateLoaded()
 
         where:
-        [language_, change_] << [BuildSrcLanguage.values(), BuildSrcChange.values()].combinations()
+//        [language_, change_] << [BuildSrcLanguage.values(), BuildSrcChange.values()].combinations()
+        [language_, change_] << [[BuildSrcLanguage.KOTLIN], [BuildSrcChange.CHANGE_SOURCE]].combinations()
         language = language_ as BuildSrcLanguage
         change = change_ as BuildSrcChange
 
         isKotlinBuildSrc = language == BuildSrcLanguage.KOTLIN
-        isSourceChange = change in [BuildSrcChange.ADD_SOURCE, BuildSrcChange.CHANGE_SOURCE]
     }
 
     private instantRun() {

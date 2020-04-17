@@ -196,21 +196,21 @@ However, if that configuration happens to be resolved in the future at a time wh
 
 == Single lock file per project
 
-Gradle now supports an improved lock file format.
+Gradle supports an improved lock file format.
 The goal is to have only a single lock file per project, which contains the lock state for all configurations of said project.
-By default the file is named `gradle.lockfile` and is located inside the project directory.
+By default, the file is named `gradle.lockfile` and is located inside the project directory.
 The lock state for the buildscript itself is found in a file named `buildscript-gradle.lockfile` inside the project directory.
 
-The main benefit is a substantial reduction in the number of lock files compared to the existing format.
+The main benefit is a substantial reduction in the number of lock files compared to the format requiring one lockfile per locked configuration.
 
-This format is experimental and requires opt-in.
+This format requires a migration for existing locking users and is thus opt-in.
 
 [NOTE]
 ====
 The objective is to default to this single lock file per project in Gradle 7.0.
 ====
 
-The new format can be activated by enabling the matching <<feature_lifecycle#feature_preview, feature preview>>:
+The format can be activated by enabling the matching <<feature_lifecycle#feature_preview, feature preview>>:
 
 .Single lock file per project activation
 ====
@@ -235,10 +235,10 @@ include::{samplesPath}/userguide/dependencyManagement/dependencyLocking/lockingS
 ----
 
 * Each line still represents a single dependency in the `group:artifact:version` notation
-* Each line then lists all configurations that contain the given dependency
+* It then lists all configurations that contain the given dependency
 * The last line of the file lists all empty configurations, that is configurations known to have no dependencies
 
-=== Migrating to the new file format
+=== Migrating to the single lockfile per project format
 
 Once you have activated the feature preview (see above), you can simply follow the documentation for <<#lock_all_configurations_in_one_build_execution, writing>> or <<#selectively_updating_lock_state_entries, updating>> dependency lock state.
 
@@ -259,7 +259,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/dependencyLocking/l
 [[locking_limitations]]
 == Locking limitations
 
-* Locking can not yet be applied to source dependencies.
+* Locking cannot yet be applied to source dependencies.
 
 == Nebula locking plugin
 

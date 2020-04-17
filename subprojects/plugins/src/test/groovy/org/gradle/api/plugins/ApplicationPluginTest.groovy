@@ -54,7 +54,7 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
         then:
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         task instanceof JavaExec
-        task.classpath.from as List == [project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath]
+        task.classpath.from.files == [project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].runtimeClasspath.files]
         task TaskDependencyMatchers.dependsOn('classes')
     }
 
@@ -160,13 +160,13 @@ class ApplicationPluginTest extends AbstractProjectBuilderSpec {
     void "module path handling is configured for all tasks"() {
         when:
         plugin.apply(project)
-        project.extensions.getByType(JavaPluginExtension).modularClasspathHandling.inferModulePath.set(true)
+        project.extensions.getByType(JavaPluginExtension).modularity.inferModulePath.set(true)
 
         then:
-        project.tasks.getByName("compileJava").modularClasspathHandling.inferModulePath.get()
-        project.tasks.getByName("compileTestJava").modularClasspathHandling.inferModulePath.get()
-        project.tasks.getByName("test").modularClasspathHandling.inferModulePath.get()
-        project.tasks.getByName("run").modularClasspathHandling.inferModulePath.get()
-        project.tasks.getByName("startScripts").modularClasspathHandling.inferModulePath.get()
+        project.tasks.getByName("compileJava").modularity.inferModulePath.get()
+        project.tasks.getByName("compileTestJava").modularity.inferModulePath.get()
+        project.tasks.getByName("test").modularity.inferModulePath.get()
+        project.tasks.getByName("run").modularity.inferModulePath.get()
+        project.tasks.getByName("startScripts").modularity.inferModulePath.get()
     }
 }

@@ -104,7 +104,7 @@ include::sample[dir="snippets/ivy-publish/descriptor-customization/kotlin",files
 
 In this example we are simply adding a 'description' element to the generated Ivy dependency descriptor, but this hook allows you to modify any aspect of the generated descriptor. For example, you could replace the version range for a dependency with the actual version used to produce the build.
 
-You can also add arbitrary XML to the descriptor file via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html#org.gradle.api.publish.ivy.IvyModuleDescriptorSpec:withXml(org.gradle.api.Action)[IvyModuleDescriptorSpec.withXml(org.gradle.api.Action)], but you can not use it to modify any part of the module identifier (organisation, module, revision).
+You can also add arbitrary XML to the descriptor file via link:{groovyDslPath}/org.gradle.api.publish.ivy.IvyModuleDescriptorSpec.html#org.gradle.api.publish.ivy.IvyModuleDescriptorSpec:withXml(org.gradle.api.Action)[IvyModuleDescriptorSpec.withXml(org.gradle.api.Action)], but you cannot use it to modify any part of the module identifier (organisation, module, revision).
 
 CAUTION: It is possible to modify the descriptor in such a way that it is no longer a valid Ivy module descriptor, so care must be taken when using this feature.
 

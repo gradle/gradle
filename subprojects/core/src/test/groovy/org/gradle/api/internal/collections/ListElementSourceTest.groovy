@@ -495,7 +495,7 @@ class ListElementSourceTest extends AbstractIterationOrderRetainingElementSource
         }
 
         @Override
-        protected Value<List<T>> calculateOwnValue() {
+        protected Value<List<T>> calculateOwnValue(ValueConsumer consumer) {
             return Value.of(value)
         }
 

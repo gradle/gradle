@@ -16,4 +16,6 @@ dependencies {
     runtimeOnly 'org.slf4j:slf4j-simple:1.7.10'
 }
 
-mainClassName = 'org.gradle.sample.Main'
+application {
+    mainClass = 'org.gradle.sample.Main'
+}

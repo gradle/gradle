@@ -1,0 +1,12 @@
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        projectInfo {
+            id = 'com.example.project-info'
+            implementationClass = 'com.example.ProjectInfoPlugin'
+        }
+    }
+}

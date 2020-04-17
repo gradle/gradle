@@ -78,7 +78,7 @@ abstract class PmdInvoker {
                             ruleSets = ['basic']
                         }
                         if (incrementalAnalysis) {
-                            assertUnsupportedIncrementalAnalysis()
+                            assertUnsupportedIncrementalAnalysis(version)
                         }
                     } else if (version < VersionNumber.parse("6.0.0")) {
                         // 5.x
@@ -86,7 +86,7 @@ abstract class PmdInvoker {
                             ruleSets = ['java-basic']
                         }
                         if (incrementalAnalysis) {
-                            assertUnsupportedIncrementalAnalysis()
+                            assertUnsupportedIncrementalAnalysis(version)
                         }
                     } else {
                         // 6.+
@@ -167,8 +167,8 @@ abstract class PmdInvoker {
                 return VersionNumber.parse(Cast.castNullable(String.class, versionField.get(null)))
             }
 
-            private void assertUnsupportedIncrementalAnalysis() {
-                throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer")
+            private void assertUnsupportedIncrementalAnalysis(VersionNumber version) {
+                throw new GradleException("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD " + version + " or disable incremental analysis.")
             }
         })
     }

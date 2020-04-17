@@ -65,7 +65,7 @@ fun BuildType.applyDefaultSettings(os: Os = Os.linux, timeout: Int = 30, vcsRoot
         subprojects/*/build/tmp/test files/** => test-files
         subprojects/*/build/tmp/test files/** => test-files
         build/errorLogs/** => errorLogs
-        build/reports/incubation/** => incubation-reports
+        subprojects/internal-build-reports/build/reports/incubation/all-incubating.html => incubation-reports
         build/reports/dependency-verification/** => dependency-verification-reports
     """.trimIndent()
 

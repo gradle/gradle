@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
-import java.util.concurrent.TimeUnit
-
-apply from: 'templates.gradle'
+plugins {
+    id 'gradlebuild.internal.java'
+    id 'gradlebuild.performance-templates'
+}
 
 dependencies {
     performanceTestImplementation project(":baseServices")
@@ -32,15 +30,9 @@ dependencies {
     performanceTestImplementation libraries.commons_compress.coordinates
     performanceTestImplementation testLibraries.jetty
     performanceTestImplementation(testFixtures(project(":toolingApi")))
-
-    // so that all Gradle features are available
-    performanceTestRuntimeOnly allTestRuntimeDependencies
+}
+// so that all Gradle features are available
+configurations.performanceTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime)
 }
 
-configurations.partialDistribution {
-    exclude(group: "org.gradle.profiler", module: "gradle-profiler")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}

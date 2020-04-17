@@ -17,7 +17,7 @@
 package org.gradle.internal.scan.eob
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -37,17 +37,16 @@ class BuildScanEndOfBuildNotifierIntegrationTest extends AbstractIntegrationSpec
                 println "failure is null: \${it.failure == null}"
             }
             // user logic registered _after_ listener registered
-            gradle.buildFinished {
-                println "build finished"
+            gradle.projectsEvaluated {
+                println "projects evaluated"
             }
         """
 
         run()
 
         then:
+        output.contains("projects evaluated")
         output.matches("""(?s).*
-build finished
-
 BUILD SUCCESSFUL in [ \\dms]+
 1 actionable task: 1 executed
 failure is null: true
@@ -63,22 +62,23 @@ failure is null: true
                 System.err.println "notified"
             }
             // user logic registered _after_ listener registered
-            gradle.buildFinished {
-                println "build finished"
-                System.err.println "build finished"
+            gradle.projectsEvaluated {
+                println "projects evaluated"
+                System.err.println "projects evaluated"
             }
         """
 
         runAndFail("t")
 
         then:
+        outputContains("projects evaluated")
         output.matches("""(?s).*
-build finished
 1 actionable task: 1 executed
 failure message: Execution failed for task ':t'.
 .*""")
 
-        result.error.matches("""(?s)build finished
+        errorOutput.contains("projects evaluated")
+        result.error.matches("""(?s)projects evaluated
 
 FAILURE: Build failed with an exception.
 .*
@@ -88,7 +88,7 @@ notified
     }
 
     @Issue("https://github.com/gradle/gradle/issues/7511")
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution
     def "can observe failed build after failure in included build buildFinished action"() {
         when:
         settingsFile << """

@@ -21,6 +21,8 @@ public class EclipsePluginConstants {
     public static final String DEFAULT_PROJECT_OUTPUT_PATH = "bin/default";
     public static final String TEST_SOURCES_ATTRIBUTE_KEY = "test";
     public static final String TEST_SOURCES_ATTRIBUTE_VALUE = "true";
+    public static final String MODULE_ATTRIBUTE_KEY = "module";
+    public static final String MODULE_ATTRIBUTE_VALUE = "true";
 
     // TODO The scope information is superseded by test attributes. We can delete the corresponding code bits once we make sure that the majority of Buildship users use test sources.
     public static final String GRADLE_USED_BY_SCOPE_ATTRIBUTE_NAME = "gradle_used_by_scope";

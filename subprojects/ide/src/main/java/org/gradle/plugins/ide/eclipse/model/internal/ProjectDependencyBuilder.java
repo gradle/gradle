@@ -18,6 +18,7 @@ package org.gradle.plugins.ide.eclipse.model.internal;
 
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.plugins.ide.eclipse.internal.EclipsePluginConstants;
 import org.gradle.plugins.ide.eclipse.internal.EclipseProjectMetadata;
 import org.gradle.plugins.ide.eclipse.model.FileReference;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
@@ -30,11 +31,14 @@ public class ProjectDependencyBuilder {
         this.ideArtifactRegistry = ideArtifactRegistry;
     }
 
-    public ProjectDependency build(ProjectComponentIdentifier componentIdentifier, FileReference publication, TaskDependency buildDependencies) {
+    public ProjectDependency build(ProjectComponentIdentifier componentIdentifier, FileReference publication, TaskDependency buildDependencies, boolean asJavaModule) {
         ProjectDependency dependency = buildProjectDependency(determineTargetProjectPath(componentIdentifier));
         dependency.setPublication(publication);
         if (buildDependencies != null) {
             dependency.buildDependencies(buildDependencies);
+        }
+        if (asJavaModule) {
+            dependency.getEntryAttributes().put(EclipsePluginConstants.MODULE_ATTRIBUTE_KEY, EclipsePluginConstants.MODULE_ATTRIBUTE_VALUE);
         }
         return dependency;
     }

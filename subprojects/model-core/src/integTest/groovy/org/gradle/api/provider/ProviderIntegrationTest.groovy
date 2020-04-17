@@ -20,14 +20,12 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String DEFAULT_TEXT = 'default'
     public static final String CUSTOM_TEXT = 'custom'
 
-    @ToBeFixedForInstantExecution
     def "can create provider and retrieve immutable value"() {
         given:
         buildFile << """

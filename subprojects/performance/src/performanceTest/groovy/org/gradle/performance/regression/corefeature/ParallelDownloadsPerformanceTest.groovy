@@ -25,6 +25,7 @@ import org.gradle.performance.measure.MeasuredOperation
 import org.mortbay.jetty.Handler
 import org.mortbay.jetty.servlet.Context
 import org.mortbay.jetty.webapp.WebAppContext
+import spock.lang.Ignore
 
 import javax.servlet.Filter
 import javax.servlet.FilterChain
@@ -35,6 +36,7 @@ import javax.servlet.ServletResponse
 import javax.servlet.http.HttpServletRequest
 import java.util.concurrent.atomic.AtomicInteger
 
+@Ignore
 class ParallelDownloadsPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest implements WithExternalRepository {
     private final static String TEST_PROJECT_NAME = 'springBootApp'
 

@@ -29,7 +29,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         given:
         def instant = newInstantExecutionFixture()
-        def stateSerializationProblems = withStateSerializationProblems()
+        def stateSerializationProblems = withStateSerializationProblems().store
         def stateSerializationErrors = withStateSerializationErrors()
         def errorSpec = problems.newErrorSpec(stateSerializationErrors.first()) {
             withUniqueProblems(stateSerializationProblems)
@@ -77,7 +77,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         then:
         executed(':taskWithStateSerializationProblems', ':a', ':b')
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
             withProblemsWithStackTraceCount(2)
         }
 
@@ -89,7 +89,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         executed(':taskWithStateSerializationProblems', ':a', ':b')
         instantExecution.assertStateStored()
         problems.assertResultHasProblems(result) {
-            withUniqueProblems(taskExecutionProblems + stateSerializationProblems)
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
             withProblemsWithStackTraceCount(2)
         }
 
@@ -100,7 +100,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         executed(':taskWithStateSerializationProblems', ':a', ':b')
         instantExecution.assertStateLoaded()
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems(taskExecutionProblems)
+            withUniqueProblems(taskExecutionProblems + stateSerializationProblems.load)
             withProblemsWithStackTraceCount(2)
         }
     }
@@ -108,7 +108,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
     def "problems are reported and fail the build when failOnProblems is false but maxProblems is reached"() {
 
         given:
-        def stateSerializationProblems = withStateSerializationProblems()
+        def stateSerializationProblems = withStateSerializationProblems().store
         def taskExecutionProblems = withTaskExecutionProblems()
 
         when:
@@ -139,7 +139,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         given:
         settingsFile << "rootProject.name = 'test'"
-        def expectedProblems = withStateSerializationProblems()
+        def expectedProblems = withStateSerializationProblems().store
         buildFile << """
             taskWithStateSerializationProblems.doFirst { throw new Exception("BOOM") }
         """
@@ -177,7 +177,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         ]
     }
 
-    private List<String> withStateSerializationProblems() {
+    private Map<String, List<String>> withStateSerializationProblems() {
         buildFile << """
             task taskWithStateSerializationProblems {
                 inputs.property 'brokenProperty', project
@@ -185,8 +185,14 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             }
         """
         return [
-            "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
-            "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+            store: [
+                "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+                "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot serialize object of type '${DefaultProject.name}', a subtype of '${Project.name}', as these are not supported with instant execution.",
+            ],
+            load: [
+                "input property 'brokenProperty' of ':taskWithStateSerializationProblems': cannot deserialize object of type '${Project.name}' as these are not supported with instant execution.",
+                "input property 'otherBrokenProperty' of ':taskWithStateSerializationProblems': cannot deserialize object of type '${Project.name}' as these are not supported with instant execution."
+            ]
         ]
     }
 
@@ -261,6 +267,59 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         'Task.project'          | 'project.name'
         'Task.dependsOn'        | 'dependsOn'
         'Task.taskDependencies' | 'taskDependencies'
+    }
+
+    @Unroll
+    def "report build listener registration on #registrationPoint"() {
+
+        given:
+        buildFile << code
+
+        when:
+        executer.noDeprecationChecks()
+        instantFails 'help'
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
+            withProblemsWithStackTraceCount(1)
+        }
+
+        where:
+        registrationPoint         | code
+        "Gradle.addBuildListener" | "gradle.addBuildListener(new BuildAdapter())"
+        "Gradle.addListener"      | "gradle.addListener(new BuildAdapter())"
+        "Gradle.buildStarted"     | "gradle.buildStarted {}"
+        "Gradle.buildFinished"    | "gradle.buildFinished {}"
+    }
+
+    @Unroll
+    def "does not report problems on configuration listener registration on #registrationPoint"() {
+
+        given:
+        buildFile << """
+
+            class ProjectEvaluationAdapter implements ProjectEvaluationListener {
+                void beforeEvaluate(Project project) {}
+                void afterEvaluate(Project project, ProjectState state) {}
+            }
+
+            $code
+        """
+
+        expect:
+        instantRun 'help'
+
+        where:
+        registrationPoint                     | code
+        "Gradle.addProjectEvaluationListener" | "gradle.addProjectEvaluationListener(new ProjectEvaluationAdapter())"
+        "Gradle.addListener"                  | "gradle.addListener(new ProjectEvaluationAdapter())"
+        "Gradle.beforeSettings"               | "gradle.beforeSettings {}"
+        "Gradle.settingsEvaluated"            | "gradle.settingsEvaluated {}"
+        "Gradle.projectsLoaded"               | "gradle.projectsLoaded {}"
+        "Gradle.beforeProject"                | "gradle.beforeProject {}"
+        "Gradle.afterProject"                 | "gradle.afterProject {}"
+        "Gradle.projectsEvaluated"            | "gradle.projectsEvaluated {}"
     }
 
     def "summarizes unsupported properties"() {

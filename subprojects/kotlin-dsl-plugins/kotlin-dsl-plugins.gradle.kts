@@ -19,24 +19,18 @@ import build.kotlin
 import codegen.GenerateKotlinDslPluginsExtensions
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import plugins.bundledGradlePlugin
 
-
 plugins {
-    `kotlin-dsl-plugin-bundle`
+    gradlebuild.portalplugin.kotlin
 }
 
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 group = "org.gradle.kotlin"
-version = "1.3.6"
+version = "1.3.7"
 
 base.archivesBaseName = "plugins"
-
-gradlebuildJava {
-    moduleType = ModuleType.PORTAL_PLUGINS
-}
 
 val generatedSourcesDir = layout.buildDirectory.dir("generated-sources/kotlin")
 
@@ -133,9 +127,7 @@ bundledGradlePlugin(
 
 
 // testing ------------------------------------------------------------
-
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     dependsOn("publishPluginsToTestRepository")
 }
 

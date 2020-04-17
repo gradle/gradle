@@ -17,5 +17,5 @@ dependencies {
 // end::use-tooling-api[]
 
 application {
-    mainClassName = "org.gradle.sample.Main"
+    mainClass.set("org.gradle.sample.Main")
 }

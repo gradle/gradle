@@ -19,7 +19,6 @@ package org.gradle.internal.snapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.util.Optional;
 
 /**
@@ -67,12 +66,8 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     @Override
-    public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
-        visitor.visitNode(this, parent);
-    }
-
-    @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
+        diffListener.nodeRemoved(this);
         return Optional.empty();
     }
 }

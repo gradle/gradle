@@ -19,16 +19,16 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.model.ReplacedBy;
-import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.concurrent.Callable;
 
 /**
@@ -39,12 +39,10 @@ public abstract class AbstractCompile extends SourceTask {
     private FileCollection classpath;
     private String sourceCompatibility;
     private String targetCompatibility;
-    private Property<Integer> release;
 
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
         this.destinationDirectory.convention(getProject().getProviders().provider(new BackwardCompatibilityOutputDirectoryConvention()));
-        this.release = getProject().getObjects().property(Integer.class);
     }
 
     /**
@@ -108,21 +106,6 @@ public abstract class AbstractCompile extends SourceTask {
     }
 
     /**
-     * Configure the minimal Java release version for this compile task (--release compiler flag)
-     *
-     * If set, it will take precedences over the {@link #getSourceCompatibility()} and {@link #getTargetCompatibility()} settings,
-     * which will have no effect in that case.
-     *
-     * @since 6.4
-     */
-    @Incubating
-    @Input
-    @Optional
-    public Property<Integer> getRelease() {
-        return release;
-    }
-
-    /**
      * Returns the Java language level to use to compile the source files.
      *
      * @return The source language level.
@@ -162,22 +145,32 @@ public abstract class AbstractCompile extends SourceTask {
 
     /**
      * Convention to fall back to the 'destinationDir' output for backwards compatibility with plugins that extend AbstractCompile and override the deprecated methods.
+     *
+     * TODO - move this into the class decoration
      */
     private class BackwardCompatibilityOutputDirectoryConvention implements Callable<Directory> {
         private boolean recursiveCall;
 
         @Override
         public Directory call() throws Exception {
+            Method getter = GeneratedSubclasses.unpackType(AbstractCompile.this).getMethod("getDestinationDir");
+            if (getter.getDeclaringClass() == AbstractCompile.class) {
+                // Subclass has not overridden the getter, so ignore
+                return null;
+            }
+
+            // Subclass has overridden the getter, so call it
+
             if (recursiveCall) {
-                // Already quering AbstractCompile.getDestinationDirectory() and not by a subclass implementation of that method.
+                // Already querying AbstractCompile.getDestinationDirectory()
                 // In that case, this convention should not be used.
                 return null;
             }
             recursiveCall = true;
             File legacyValue;
             try {
-                // If we are not in an error case, this will most likely call a subclass implementation of getDestinationDir().
-                // In the Kotlin plugin, the subclass manages it's own field which will be used here.
+                // This will call a subclass implementation of getDestinationDir(), which possibly will not call the overridden getter
+                // In the Kotlin plugin, the subclass manages its own field which will be used here.
                 legacyValue = getDestinationDir();
             } finally {
                 recursiveCall = false;

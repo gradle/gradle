@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.provider
 
-
+import org.gradle.api.Action
 import org.gradle.api.Task
 import org.gradle.api.Transformer
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.state.Managed
 import org.gradle.internal.state.ModelObject
 import org.gradle.util.TextUtil
+import spock.lang.Unroll
 
 import java.util.concurrent.Callable
 
@@ -148,6 +148,29 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == 'Cannot set the value of a property using a null provider.'
+    }
+
+    def "reports failure to query value from provider and property has display name"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.set(brokenSupplier())
+        property.attachOwner(owner(), displayName("<property>"))
+
+        when:
+        property.present
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to query the value of <property>."
+        e.cause.message == "broken!"
+
+        when:
+        property.get()
+
+        then:
+        def e2 = thrown(AbstractProperty.PropertyQueryException)
+        e2.message == "Failed to query the value of <property>."
+        e2.cause.message == "broken!"
     }
 
     def "can set untyped using null"() {
@@ -619,6 +642,142 @@ The value of this provider is derived from:
         present
         result == someValue()
         0 * _
+    }
+
+    def "reports failure to query provider value when finalizing and property has display name"() {
+        def property = propertyWithDefaultValue()
+
+        given:
+        property.set(brokenSupplier())
+        property.attachOwner(owner(), displayName("<property>"))
+        property.finalizeValueOnRead()
+
+        when:
+        property.finalizeValue()
+
+        then:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to calculate the value of <property>."
+        e.cause.message == "broken!"
+
+        when:
+        property.present
+
+        then:
+        def e2 = thrown(AbstractProperty.PropertyQueryException)
+        e2.message == "Failed to calculate the value of <property>."
+        e2.cause.message == "broken!"
+
+        when:
+        property.get()
+
+        then:
+        def e3 = thrown(AbstractProperty.PropertyQueryException)
+        e3.message == "Failed to calculate the value of <property>."
+        e3.cause.message == "broken!"
+    }
+
+    def "does not finalize upstream property on finalize"() {
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream)
+        upstream.set(someValue())
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+        upstream.get() == someOtherValue()
+    }
+
+    def "does not finalize upstream property with no value on finalize"() {
+        def upstream = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream)
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue())
+
+        then:
+        property.orNull == null
+        upstream.get() == someOtherValue()
+    }
+
+    def "does not finalize mapped upstream property on finalize"() {
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        upstream.set(someValue())
+        property.set(upstream.map { someOtherValue() })
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue2())
+
+        then:
+        property.get() == someOtherValue()
+        upstream.get() == someOtherValue2()
+    }
+
+    def "does not finalize flatMapped upstream property on finalize"() {
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        upstream.set(someValue())
+        property.set(upstream.flatMap { supplierWithValues(someOtherValue()) })
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue2())
+
+        then:
+        property.get() == someOtherValue()
+        upstream.get() == someOtherValue2()
+    }
+
+    def "does not finalize orElse upstream property on finalize"() {
+        def upstream = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream.orElse(someValue()))
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+        upstream.get() == someOtherValue()
+    }
+
+    def "does not finalize orElse upstream properties on finalize"() {
+        def upstream1 = propertyWithNoValue()
+        def upstream2 = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+        property.set(upstream1.orElse(upstream2))
+        upstream2.set(someValue())
+
+        given:
+        property.finalizeValue()
+
+        when:
+        upstream1.set(someOtherValue())
+        upstream2.set(someOtherValue())
+
+        then:
+        property.get() == someValue()
+        upstream1.get() == someOtherValue()
+        upstream2.get() == someOtherValue()
     }
 
     def "replaces provider with fixed value on next query of value when value implicitly finalized"() {
@@ -1709,7 +1868,7 @@ The value of this property is derived from:
         property.get()
 
         then:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
 
         and:
         def e = thrown(IllegalStateException)
@@ -1720,7 +1879,7 @@ The value of this property is derived from:
         property.get()
 
         then:
-        1 * host.beforeRead() >> "<reason>"
+        1 * host.beforeRead(null) >> "<reason>"
 
         and:
         def e2 = thrown(IllegalStateException)
@@ -1730,7 +1889,55 @@ The value of this property is derived from:
         def result = property.get()
 
         then:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
+
+        and:
+        result == someValue()
+
+        when:
+        def result2 = property.get()
+
+        then:
+        0 * host._
+
+        and:
+        result2 == someValue()
+    }
+
+    def "cannot read value with upstream task output until host is ready and task completed when unsafe read disallowed"() {
+        given:
+        def producer = owner()
+        def upstream = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        upstream.set(someValue())
+        upstream.attachOwner(owner(), displayName("<upstream>"))
+        upstream.attachProducer(producer)
+
+        property.set(upstream)
+        property.attachOwner(owner(), displayName("<display-name>"))
+        property.disallowUnsafeRead()
+
+        when:
+        property.get()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * host.beforeRead(producer) >> "<task>"
+        0 * host._
+
+        and:
+        def e = thrown(AbstractProperty.PropertyQueryException)
+        e.message == "Failed to calculate the value of <display-name>."
+        e.cause.message == "Cannot query the value of <upstream> because <task>."
+
+        when:
+        def result = property.get()
+
+        then:
+        1 * host.beforeRead(null) >> null
+        1 * host.beforeRead(producer) >> null
+        0 * host._
 
         and:
         result == someValue()
@@ -1749,7 +1956,7 @@ The value of this property is derived from:
         given:
         def property = propertyWithNoValue()
         property.disallowUnsafeRead()
-        _ * host.beforeRead() >> "<reason>"
+        _ * host.beforeRead(null) >> "<reason>"
 
         when:
         property.get()
@@ -1775,22 +1982,53 @@ The value of this property is derived from:
         e3.message == "Cannot query the value of this property because <reason>."
     }
 
-    def "can read value of finalized property when host is not ready and unsafe read disallowed"() {
+    def "cannot finalize a property when host is not ready and unsafe read disallowed"() {
         given:
         def property = propertyWithDefaultValue()
         property.disallowUnsafeRead()
         property.set(someValue())
+
+        when:
         property.finalizeValue()
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot finalize the value of this property because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * host._
+
+        when:
+        property.attachOwner(owner(), displayName("<property>"))
+        property.finalizeValue()
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "Cannot finalize the value of <property> because <reason>."
+
+        and:
+        1 * host.beforeRead(null) >> "<reason>"
+        0 * host._
 
         when:
         def result = property.get()
 
         then:
         result == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+        0 * host._
+
+        when:
+        property.finalizeValue()
+
+        then:
         0 * host._
     }
 
-    def "cannot set value after value read when unsafe read disallowed"() {
+    def "finalizes value after read when unsafe read disallowed"() {
         given:
         def property = propertyWithDefaultValue()
         property.disallowUnsafeRead()
@@ -1808,7 +2046,7 @@ The value of this property is derived from:
         def result = property.get()
 
         then:
-        1 * host.beforeRead() >> null
+        1 * host.beforeRead(null) >> null
 
         and:
         result == someValue()
@@ -1819,6 +2057,269 @@ The value of this property is derived from:
         then:
         def e = thrown(IllegalStateException)
         e.message == "The value for this property is final and cannot be changed any further."
+    }
+
+    def "can finalize on next read when host is not ready when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+
+        when:
+        property.finalizeValueOnRead()
+
+        then:
+        0 * _
+
+        when:
+        def value = property.orNull
+
+        then:
+        value == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+    }
+
+    def "can disallow changes when host is not ready when unsafe read disallowed"() {
+        given:
+        def property = propertyWithDefaultValue()
+        property.disallowUnsafeRead()
+        property.set(someValue())
+
+        when:
+        property.disallowChanges()
+
+        then:
+        0 * _
+
+        when:
+        def value = property.orNull
+
+        then:
+        value == someValue()
+
+        and:
+        1 * host.beforeRead(null) >> null
+    }
+
+    @Unroll
+    def "finalizes upstream property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b)
+        property.disallowUnsafeRead()
+
+        b.set(c)
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream property with no value when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b)
+        property.disallowUnsafeRead()
+
+        b.set(c)
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["getOrNull", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream mapped property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithDefaultValue()
+        def c = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.map { someOtherValue2() })
+        property.disallowUnsafeRead()
+
+        b.set(c.map { someOtherValue() })
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream flatmapped property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithDefaultValue()
+        def c = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.flatMap { supplierWithValues(someOtherValue2()) })
+        property.disallowUnsafeRead()
+
+        b.set(c.flatMap { supplierWithValues(someOtherValue()) })
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream orElse fixed value property when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithNoValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.orElse(someOtherValue2()))
+        property.disallowUnsafeRead()
+
+        b.set(c)
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property.get()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
+    }
+
+    @Unroll
+    def "finalizes upstream orElse properties when value read using #method and unsafe read disallowed"() {
+        def b = propertyWithNoValue()
+        def c = propertyWithDefaultValue()
+        def property = propertyWithDefaultValue()
+
+        property.set(b.orElse(c))
+        property.disallowUnsafeRead()
+
+        b.attachOwner(owner(), displayName("<b>"))
+
+        c.set(someValue())
+        c.attachOwner(owner(), displayName("<c>"))
+        c.disallowUnsafeRead()
+
+        given:
+        property."$method"()
+
+        when:
+        b.set(someOtherValue3())
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'The value for <b> is final and cannot be changed any further.'
+
+        when:
+        c.set(someOtherValue3())
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == 'The value for <c> is final and cannot be changed any further.'
+
+        where:
+        method << ["get", "finalizeValue", "isPresent"]
     }
 
     def "reports the source of property value when value is missing and source is known"() {
@@ -1900,118 +2401,173 @@ The value of this provider is derived from:
   - <c>""")
     }
 
-    def "producer task for a property is not known when property has a fixed value"() {
-        def context = Mock(TaskDependencyResolveContext)
+    def "has no producer task and missing execution time value when property has no value"() {
         def property = propertyWithNoValue()
-        property.set(someValue())
 
-        when:
-        def known = property.maybeVisitBuildDependencies(context)
-
-        then:
-        !known
-        0 * context._
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
     }
 
-    def "can define producer task for a property"() {
-        def task = Mock(Task)
-        def context = Mock(TaskDependencyResolveContext)
+    def "has no producer task and fixed execution time value when property has a fixed value"() {
         def property = propertyWithNoValue()
         property.set(someValue())
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        !value.hasChangingContent()
+        value.fixedValue == someValue()
+    }
+
+    def "can attach a producer task to property"() {
+        def task = Mock(Task)
+        def property = propertyWithNoValue()
+        property.set(someValue())
+
+        expect:
+        assertHasNoProducer(property)
+
+        when:
         property.attachProducer(owner(task))
 
+        then:
+        assertHasProducer(property, task)
+
         when:
-        def known = property.maybeVisitBuildDependencies(context)
+        setToNull(property)
 
         then:
-        known
-        1 * context.add(task)
-        0 * context._
+        assertHasProducer(property, task)
     }
 
-    def "has build dependencies when value is provider with producer task"() {
+    def "producer task of upstream provider is ignored when producer task attached to property"() {
+        def task = Mock(Task)
+        def upstream = Mock(Task)
+        def property = propertyWithNoValue()
+        property.set(supplierWithProducer(upstream))
+
+        expect:
+        assertHasProducer(property, upstream)
+
+        when:
+        property.attachProducer(owner(task))
+
+        then:
+        assertHasProducer(property, task)
+    }
+
+    def "has no producer task and missing execution time value when value is provider with no value"() {
+        def provider = supplierWithNoValue()
+        def property = propertyWithNoValue()
+        property.set(provider)
+
+        expect:
+        assertHasNoProducer(property)
+        def value = property.calculateExecutionTimeValue()
+        value.isMissing()
+    }
+
+    def "has producer task and fixed execution time value when value is provider with producer task and fixed value"() {
         def task = Stub(Task)
-        def provider = supplierWithProducer(task)
-        def context = Mock(TaskDependencyResolveContext)
+        def provider = supplierWithProducer(task, someValue())
         def property = propertyWithNoValue()
         property.set(provider)
 
-        when:
-        def known = property.maybeVisitBuildDependencies(context)
-
-        then:
-        known
-        1 * context.add(task)
-        0 * context._
+        expect:
+        assertHasProducer(property, task)
+        def value = property.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.hasChangingContent()
+        value.fixedValue == someValue()
     }
 
-    def "has content producer when producer task attached"() {
-        def task = Mock(Task)
-        def property = propertyWithDefaultValue()
+    def "has producer task and changing execution time value when value is provider with producer task and changing value"() {
+        def task = Stub(Task)
+        def provider = supplierWithProducerAndChangingExecutionTimeValue(task, someValue(), someOtherValue())
+        def property = propertyWithNoValue()
+        property.set(provider)
 
         expect:
-        assertContentIsNotProducedByTask(property)
-        !property.valueProducedByTask
+        assertHasProducer(property, task)
+        def value = property.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.hasChangingContent()
+        value.changingValue.get() == someValue()
+        value.changingValue.get() == someOtherValue()
+    }
+
+    def "mapped value has changing execution time value when producer task attached to original property"() {
+        def task = Mock(Task)
+        def property = propertyWithDefaultValue()
+        property.set(someValue())
+        def mapped = property.map { someOtherValue() }
+
+        expect:
+        assertHasNoProducer(mapped)
+        def value = mapped.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == someOtherValue()
 
         property.attachProducer(owner(task))
 
-        assertContentIsProducedByTask(property, task)
-        !property.valueProducedByTask
+        assertHasProducer(mapped, task)
+        def value2 = mapped.calculateExecutionTimeValue()
+        value2.isChangingValue()
+        value2.changingValue.get() == someOtherValue()
     }
 
-    def "has content producer when value is provider with content producer"() {
-        def task = Mock(Task)
-        def provider = supplierWithProducer(task)
-
-        def property = propertyWithNoValue()
-        property.set(provider)
-
-        expect:
-        assertContentIsProducedByTask(property, task)
-        !property.valueProducedByTask
-    }
-
-    def "mapped value has value producer when producer task attached to original property"() {
+    def "mapped value has no execution time value when producer task attached to original property with no value"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
+        setToNull(property)
         def mapped = property.map { it }
 
         expect:
-        assertContentIsNotProducedByTask(mapped)
-        !mapped.valueProducedByTask
+        assertHasNoProducer(mapped)
+        mapped.calculateExecutionTimeValue().isMissing()
 
         property.attachProducer(owner(task))
 
-        assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        assertHasProducer(mapped, task)
+        mapped.calculateExecutionTimeValue().isMissing()
     }
 
     def "chain of mapped value has value producer when producer task attached to original property"() {
         def task = Mock(Task)
         def property = propertyWithDefaultValue()
-        def mapped = property.map { it }.map { it }.map { it }
+        property.set(someValue())
+        def mapped = property.map { it }.map { it }.map { someOtherValue() }
 
         expect:
-        assertContentIsNotProducedByTask(mapped)
-        !mapped.valueProducedByTask
+        assertHasNoProducer(mapped)
+        def value = mapped.calculateExecutionTimeValue()
+        value.isFixedValue()
+        value.fixedValue == someOtherValue()
 
         property.attachProducer(owner(task))
 
-        assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        assertHasProducer(mapped, task)
+        def value2 = mapped.calculateExecutionTimeValue()
+        value2.isChangingValue()
+        value2.changingValue.get() == someOtherValue()
     }
 
     def "mapped value has value producer when value is provider with content producer"() {
         def task = Mock(Task)
-        def provider = supplierWithProducer(task)
+        def provider = supplierWithProducer(task, someValue())
 
         def property = propertyWithNoValue()
         property.set(provider)
-        def mapped = property.map { it }
+        def mapped = property.map { someOtherValue() }
 
         expect:
-        assertContentIsProducedByTask(mapped, task)
-        mapped.valueProducedByTask
+        assertHasProducer(mapped, task)
+        def value = mapped.calculateExecutionTimeValue()
+        value.isChangingValue()
+        value.changingValue.get() == someOtherValue()
     }
 
     def "fails when property has multiple producers attached"() {
@@ -2050,10 +2606,10 @@ The value of this provider is derived from:
         property.attachProducer(owner)
 
         when:
-        property.maybeVisitBuildDependencies(Stub(TaskDependencyResolveContext))
+        property.producer.visitProducerTasks(Stub(Action))
 
         then:
-        def e =  thrown(IllegalStateException)
+        def e = thrown(IllegalStateException)
         e.message == "This property is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it."
     }
 
@@ -2081,18 +2637,6 @@ The value of this provider is derived from:
         property.set(someOtherValue())
         copy.getOrNull() == null
         copy2.get() == someValue()
-    }
-
-    void assertContentIsNotProducedByTask(ProviderInternal<?> provider) {
-        def producers = []
-        provider.visitProducerTasks { producers.add(it) }
-        assert producers.isEmpty()
-    }
-
-    void assertContentIsProducedByTask(ProviderInternal<?> provider, Task task) {
-        def producers = []
-        provider.visitProducerTasks { producers.add(it) }
-        assert producers == [task]
     }
 
     ModelObject owner() {
@@ -2137,8 +2681,16 @@ The value of this provider is derived from:
         return ProviderTestUtil.withValues(values)
     }
 
-    ProviderInternal<T> supplierWithProducer(Task producer) {
-        return ProviderTestUtil.withProducer(type(), producer)
+    ProviderInternal<T> supplierWithChangingExecutionTimeValues(T... values) {
+        return ProviderTestUtil.withChangingExecutionTimeValues(values)
+    }
+
+    ProviderInternal<T> supplierWithProducer(Task producer, T... values) {
+        return ProviderTestUtil.withProducer(type(), producer, values)
+    }
+
+    ProviderInternal<T> supplierWithProducerAndChangingExecutionTimeValue(Task producer, T... values) {
+        return ProviderTestUtil.withProducerAndChangingExecutionTimeValue(type(), producer, values)
     }
 
     class NoValueProvider<T> extends AbstractMinimalProvider<T> {
@@ -2156,13 +2708,13 @@ The value of this provider is derived from:
         }
 
         @Override
-        protected Value<? extends T> calculateOwnValue() {
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             return Value.missing()
         }
 
         @Override
-        Value<? extends T> calculateValue() {
-            return Value.missing().pushWhenMissing(displayName)
+        protected DisplayName getDeclaredDisplayName() {
+            return displayName
         }
     }
 

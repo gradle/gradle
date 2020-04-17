@@ -17,6 +17,7 @@
 package org.gradle.java.compile.jpms
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.maven.MavenModule
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -41,7 +42,7 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
                 maven { url '${mavenRepo.uri}' }
             }
             java {
-                modularClasspathHandling.inferModulePath.set(true)
+                modularity.inferModulePath.set(true)
             }
         """
     }
@@ -58,8 +59,9 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
         mavenRepo.module('org', name, '1.0').mainArtifact(content: autoModuleJar(name)).publish()
     }
 
-    protected consumingModuleClass(String... dependencies) {
-        file('src/main/java/consumer/MainModule.java').text = """
+    protected TestFile consumingModuleClass(String... dependencies) {
+        def file = file('src/main/java/consumer/MainModule.java')
+        file.text = """
             package consumer;
 
             public class MainModule {
@@ -71,13 +73,14 @@ abstract class AbstractJavaModuleIntegrationTest extends AbstractIntegrationSpec
                     return "protected name";
                 }
 
-                public static void main(String[] args) {
+                public static void main(String[] args) throws Exception {
                     new MainModule().run();
                     System.out.println("Module Name: " + MainModule.class.getModule().getName());
                     System.out.println("Module Version: " + MainModule.class.getModule().getDescriptor().version().get());
                 }
             }
         """
+        file
     }
 
     protected consumingModuleInfo(String... statements) {

@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
-import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -67,14 +66,6 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
         visitor.postVisitDirectory(this);
     }
 
-    @Override
-    public void accept(NodeVisitor visitor, @Nullable FileSystemNode parent) {
-        visitor.visitNode(this, parent);
-        for (CompleteFileSystemLocationSnapshot child : children) {
-            child.accept(visitor, this);
-        }
-    }
-
     @VisibleForTesting
     public List<CompleteFileSystemLocationSnapshot> getChildren() {
         return children;
@@ -89,20 +80,39 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     }
 
     @Override
-    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity) {
+    public Optional<FileSystemNode> invalidate(VfsRelativePath relativePath, CaseSensitivity caseSensitivity, SnapshotHierarchy.NodeDiffListener diffListener) {
         return SnapshotUtil.handleChildren(children, relativePath, caseSensitivity, new SnapshotUtil.ChildHandler<Optional<FileSystemNode>>() {
             @Override
             public Optional<FileSystemNode> handleNewChild(int insertBefore) {
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
+                children.forEach(diffListener::nodeAdded);
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), children));
             }
 
             @Override
             public Optional<FileSystemNode> handleChildOfExisting(int childIndex) {
+                diffListener.nodeRemoved(CompleteDirectorySnapshot.this);
                 CompleteFileSystemLocationSnapshot foundChild = children.get(childIndex);
                 int childPathLength = foundChild.getPathToParent().length();
-                Optional<FileSystemNode> invalidated = childPathLength == relativePath.length()
+                boolean completeChildRemoved = childPathLength == relativePath.length();
+                Optional<FileSystemNode> invalidated = completeChildRemoved
                     ? Optional.empty()
-                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity);
+                    : foundChild.invalidate(relativePath.suffixStartingFrom(childPathLength + 1), caseSensitivity, new SnapshotHierarchy.NodeDiffListener() {
+                    @Override
+                    public void nodeRemoved(FileSystemNode node) {
+                        // the parent already has been removed. No children need to be removed.
+                    }
+
+                    @Override
+                    public void nodeAdded(FileSystemNode node) {
+                        diffListener.nodeAdded(node);
+                    }
+                });
+                children.forEach(child -> {
+                    if (child != foundChild) {
+                        diffListener.nodeAdded(child);
+                    }
+                });
                 return Optional.of(new PartialDirectorySnapshot(getPathToParent(), getChildren(childIndex, invalidated)));
             }
 

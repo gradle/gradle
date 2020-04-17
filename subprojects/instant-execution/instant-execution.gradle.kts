@@ -1,13 +1,11 @@
 import build.futureKotlin
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    `kotlin-library`
+    gradlebuild.distribution.`plugins-implementation-kotlin`
 }
 
 tasks {
-
     withType<KotlinCompile>().configureEach {
         kotlinOptions {
             freeCompilerArgs += listOf(
@@ -87,8 +85,4 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }

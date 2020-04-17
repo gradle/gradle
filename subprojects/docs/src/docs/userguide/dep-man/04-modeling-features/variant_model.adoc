@@ -38,7 +38,7 @@ In both cases, Gradle performs _variant aware selection_.
 == Configuration and variant attributes
 
 Local components expose variants as _outgoing configurations_, which are <<declaring_dependencies.adoc#sec:resolvable-consumable-configs,consumable configurations>>.
-When dependency resolution happens, the engine will select one variant of an outgoing component by selecting one of its _consumable configurations).
+When dependency resolution happens, the engine will select one variant of an outgoing component by selecting one of its _consumable configurations_.
 
 [NOTE]
 ====
@@ -62,7 +62,7 @@ This is where attributes come into play: their role is to perform the selection 
 ====
 For external components, the terminology is to use the word _variants_, not _configurations_. Configurations are a super-set of variants.
 
-This means that an external component provide _variants_, which also have attributes.
+This means that an external component provides _variants_, which also have attributes.
 However, sometimes the term _configuration_ may leak into the DSL for historical reasons, or because you use Ivy which also has this concept of _configuration_.
 ====
 
@@ -169,7 +169,7 @@ The variant _name_ is there mostly for debugging purposes and to get a nicer dis
 The name, in particular, doesn't participate in the _id_ of a variant: only its attributes do.
 That is to say that to search for a particular variant, one _must_ rely on its attributes, _not_ its name.
 
-There are no restriction on the number of variants a component can expose.
+There are no restrictions on the number of variants a component can expose.
 Traditionally, a component would expose an API and an implementation, but we may, for example, want to expose the test fixtures of a component too.
 It is also possible to expose _different APIs_ for different consumers (think about different environments, like Linux vs Windows).
 ====
@@ -252,18 +252,18 @@ An ambiguous variant selection looks somewhat like the following:
               - Unmatched attribute:
                   - Found org.gradle.category 'library' but wasn't required.
               - Compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-                  - Required org.gradle.jvm.version '11' and found compatible value '11'.
-                  - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-                  - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+                  - Provides org.gradle.dependency.bundling 'external'
+                  - Provides org.gradle.jvm.version '11'
+                  - Required org.gradle.libraryelements 'classes' and found value 'jar'.
+                  - Provides 'java-api'
           - Variant 'feature2ApiElements' capability org.test:test-capability:1.0:
               - Unmatched attribute:
                   - Found org.gradle.category 'library' but wasn't required.
               - Compatible attributes:
-                  - Required org.gradle.dependency.bundling 'external' and found compatible value 'external'.
-                  - Required org.gradle.jvm.version '11' and found compatible value '11'.
-                  - Required org.gradle.libraryelements 'classes' and found compatible value 'jar'.
-                  - Required org.gradle.usage 'java-api' and found compatible value 'java-api'.
+                  - Provides org.gradle.dependency.bundling 'external'
+                  - Provides org.gradle.jvm.version '11'
+                  - Required org.gradle.libraryelements 'classes' and found value 'jar'.
+                  - Provides org.gradle.usage 'java-api'
 ----
 
 As can be seen, all _compatible_ candidate variants are displayed, with their attributes.
@@ -290,20 +290,20 @@ A no matching variant error looks somewhat like the following:
   - Configuration ':lib:compile':
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attribute:
-          - Required usage 'api' and found compatible value 'api'.
+      - Other compatible attribute:
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant debug:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found buildType 'debug' but wasn't required.
-          - Required usage 'api' and found compatible value 'api'.
+          - Provides usage 'api'
   - Configuration ':lib:compile' variant release:
       - Incompatible attribute:
           - Required artifactType 'dll' and found incompatible value 'jar'.
-      - Other attributes:
+      - Other compatible attributes:
           - Found buildType 'release' but wasn't required.
-          - Required usage 'api' and found compatible value 'api'.
+          - Provides usage 'api'
 ----
 
 As can be seen, _all_ candidate variants are displayed, with their attributes.
@@ -335,7 +335,7 @@ See the {metadata-file-spec}[Gradle Module Metadata specification] for more info
 
 Modules published on a Maven repository are converted into variant-aware modules.
 A particularity of Maven modules is that there is no way to know what kind of component is published.
-In particular, there's no way to make the difference between a BOM representing a _platform_, and a BOM used as a super-POM..
+In particular, there's no way to make the difference between a BOM representing a _platform_, and a BOM used as a super-POM.
 Sometimes, it is even possible for a POM file to act both as a platform _and_ a library.
 
 As a consequence, Maven modules are derived into 6 distinct variants, which allows Gradle users to explain precisely what they depend on:
@@ -383,6 +383,6 @@ Dependencies and artifacts of the variants are taken from the underlying configu
 If not all consumed ivy modules follow this pattern, the rule can be adjusted or only applied to a selected set of modules.
 
 For all ivy modules without variants, Gradle falls back to legacy configuration selection (i.e. Gradle does _not_ perform variant aware resolution for these modules).
-This means the either the `default` configuration or the configuration explicitly defined in the dependency to the corresponding module is selected.
+This means either the `default` configuration or the configuration explicitly defined in the dependency to the corresponding module is selected.
 (Note that explicit configuration selection is only possible from build scripts or ivy metadata, and should be avoided in favor of variant selection.)
 

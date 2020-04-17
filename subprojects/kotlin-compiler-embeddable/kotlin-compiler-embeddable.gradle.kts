@@ -2,19 +2,14 @@ import build.CheckKotlinCompilerEmbeddableDependencies
 import build.PatchKotlinCompilerEmbeddable
 import build.futureKotlin
 import build.kotlinVersion
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `kotlin-library`
+    gradlebuild.distribution.`core-implementation-kotlin`
 }
 
 description = "Kotlin Compiler Embeddable - patched for Gradle"
 
 base.archivesBaseName = "kotlin-compiler-embeddable-$kotlinVersion-patched-for-gradle"
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
 
 dependencies {
     api(futureKotlin("stdlib"))

@@ -41,7 +41,7 @@ fun performanceTestCommandLine(task: String, baselines: String, extraParameters:
         "$task --baselines $baselines $extraParameters",
         "-x prepareSamples",
         "-Porg.gradle.performance.branchName=%teamcity.build.branch%",
-        "-Porg.gradle.performance.db.url=%performance.db.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
+        "-Porg.gradle.performance.db.mysql.url=%performance.db.mysql.url% -Porg.gradle.performance.db.username=%performance.db.username% -Porg.gradle.performance.db.password=%performance.db.password.tcagent%",
         "-PteamCityToken=%teamcity.user.bot-gradle.token%",
         "-PtestJavaHome=$testJavaHome"
 )

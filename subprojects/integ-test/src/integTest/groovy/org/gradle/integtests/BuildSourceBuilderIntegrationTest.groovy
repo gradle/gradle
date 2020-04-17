@@ -59,7 +59,6 @@ class BuildSourceBuilderIntegrationTest extends AbstractIntegrationSpec {
             def listener = new TraceListener(pid: pid, timer: timer)
             def manager = gradle.services.get(BuildOperationListenerManager)
             manager.addListener(listener)
-            gradle.buildFinished { manager.removeListener(listener) }
             
             class TraceListener implements BuildOperationListener {
                 Long pid

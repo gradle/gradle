@@ -22,7 +22,7 @@ package org.gradle.api.tasks.application;
  * <pre class='autoTested'>
  * task createStartScripts(type: CreateStartScripts) {
  *   outputDir = file('build/sample')
- *   mainClassName = 'org.gradle.test.Main'
+ *   mainClass = 'org.gradle.test.Main'
  *   applicationName = 'myApp'
  *   classpath = files('path/to/some.jar')
  * }

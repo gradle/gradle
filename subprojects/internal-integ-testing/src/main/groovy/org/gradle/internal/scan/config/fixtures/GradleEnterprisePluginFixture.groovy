@@ -107,9 +107,7 @@ class GradleEnterprisePluginFixture {
 
         def builder = new PluginBuilder(projectDir.file('plugin-' + AutoAppliedGradleEnterprisePlugin.ID.id))
         builder.addSettingsPlugin("""
-            settings.gradle.buildFinished {
-                println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'
-            }
+            println '${PUBLISHING_BUILD_SCAN_MESSAGE_PREFIX}${runtimeVersion}'
 """, GRADLE_ENTERPRISE_PLUGIN_ID, GRADLE_ENTERPRISE_PLUGIN_CLASS_SIMPLE_NAME)
 
         builder.addPlugin("""

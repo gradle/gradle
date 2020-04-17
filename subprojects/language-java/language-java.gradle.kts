@@ -1,8 +1,7 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.classycle
 }
 
@@ -61,10 +60,6 @@ dependencies {
 
     // TODO - get rid of this cycle
     integTestRuntimeOnly(project(":plugins"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 classycle {

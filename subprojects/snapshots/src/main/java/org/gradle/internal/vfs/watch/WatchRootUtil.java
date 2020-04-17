@@ -16,28 +16,24 @@
 
 package org.gradle.internal.vfs.watch;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.vfs.SnapshotHierarchy;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 
-import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
 
 public class WatchRootUtil {
     /**
      * Filters out directories whose ancestor is also among the watched directories.
      */
-    public static Set<Path> resolveRootsToWatch(Set<String> directories) {
+    public static Set<Path> resolveRootsToWatch(Set<Path> directories) {
         Set<Path> roots = new HashSet<>();
         directories.stream()
-            .map(Paths::get)
             .sorted(Comparator.comparingInt(Path::getNameCount))
             .filter(path -> {
                 Path parent = path;
@@ -57,62 +53,36 @@ public class WatchRootUtil {
     }
 
     /**
-     * Resolves the directories to watch from a snapshot hierarchy - the current state of the VFS.
+     * Resolves the directories to watch for a snapshot.
      *
      * The directories to watch are
-     * - roots of completed directory snapshots
-     * - parents of complete snapshots
+     * - root for a complete directory snapshot
+     * - parent dir for complete snapshots
      * - the first existing parent directory for a missing file snapshot
-     *
-     * @param watchFilter returns true for paths which shouldn't be watched
-     * @param mustWatchDirectories directories which always should be watched. Will be part of the result.
      */
-    public static Set<String> resolveDirectoriesToWatch(SnapshotHierarchy root, Predicate<String> watchFilter, Collection<File> mustWatchDirectories) {
-        Set<String> watchedDirectories = mustWatchDirectories.stream()
-            .map(File::getAbsolutePath)
-            .collect(Collectors.toSet());
-        root.visitSnapshots((snapshot, rootOfCompleteHierarchy) -> {
-            // We don't watch things that shouldn't be watched
-            if (!watchFilter.test(snapshot.getAbsolutePath())) {
-                return;
-            }
+    public static ImmutableList<Path> getDirectoriesToWatch(CompleteFileSystemLocationSnapshot snapshot) {
+        Path path = Paths.get(snapshot.getAbsolutePath());
 
-            // For directory entries we watch the directory itself,
-            // so we learn about new children spawning. If the directory
-            // has children, it would be watched through them already.
-            // This is here to make sure we also watch empty directories.
-            if (snapshot.getType() == FileType.Directory) {
-                watchedDirectories.add(snapshot.getAbsolutePath());
-            }
+        // For existing files and directories we watch the parent directory,
+        // so we learn if the entry itself disappears or gets modified.
+        // In case of a missing file we need to find the closest existing
+        // ancestor to watch so we can learn if the missing file respawns.
+        Path ancestorToWatch;
+        switch (snapshot.getType()) {
+            case RegularFile:
+            case Directory:
+                ancestorToWatch = path.getParent();
+                break;
+            case Missing:
+                ancestorToWatch = findFirstExistingAncestor(path);
+                break;
+            default:
+                throw new AssertionError();
+        }
+        return snapshot.getType() == FileType.Directory
+            ? ImmutableList.of(ancestorToWatch, path)
+            : ImmutableList.of(ancestorToWatch);
 
-            // For paths, where the parent is also a complete directory snapshot,
-            // we already will be watching the parent directory.
-            // So no need to search for it.
-            if (!rootOfCompleteHierarchy) {
-                return;
-            }
-
-            Path path = Paths.get(snapshot.getAbsolutePath());
-
-            // For existing files and directories we watch the parent directory,
-            // so we learn if the entry itself disappears or gets modified.
-            // In case of a missing file we need to find the closest existing
-            // ancestor to watch so we can learn if the missing file respawns.
-            Path ancestorToWatch;
-            switch (snapshot.getType()) {
-                case RegularFile:
-                case Directory:
-                    ancestorToWatch = path.getParent();
-                    break;
-                case Missing:
-                    ancestorToWatch = findFirstExistingAncestor(path);
-                    break;
-                default:
-                    throw new AssertionError();
-            }
-            watchedDirectories.add(ancestorToWatch.toString());
-        });
-        return watchedDirectories;
     }
 
     private static Path findFirstExistingAncestor(Path path) {

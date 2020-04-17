@@ -96,6 +96,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         }
     }
 
+    @ToBeFixedForInstantExecution
     def 'projectsLoaded listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -174,6 +175,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(parent, settingsPluginAppId, 'settings plugin', expectedGradleOps)
     }
 
+    @ToBeFixedForInstantExecution
     def 'projectsEvaluated listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -500,6 +502,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(rootAfterEvaluated, rootOtherScriptAppId, 'other script', expectedProjectOps)
     }
 
+    @ToBeFixedForInstantExecution
     def 'taskGraph whenReady action listeners are attributed to the correct registrant'() {
         given:
         def addGradleListeners = { String source ->
@@ -700,6 +703,7 @@ class ExecuteUserLifecycleListenerBuildOperationIntegrationTest extends Abstract
         verifyHasChildren(subAfterEvaluated, initOtherScriptAppId, 'script file allprojects', [expectedOp('Project.afterEvaluate', 'project.afterEvaluate(Closure)')])
     }
 
+    @ToBeFixedForInstantExecution
     def 'decorated listener can be removed'() {
         given:
         initFile << """

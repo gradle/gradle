@@ -23,7 +23,7 @@ import org.gradle.util.Requires
 import spock.lang.Unroll
 
 import static org.gradle.api.JavaVersion.VERSION_1_8
-import static org.gradle.api.JavaVersion.VERSION_1_9
+import static org.gradle.api.JavaVersion.VERSION_11
 
 @Unroll
 class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpec {
@@ -41,11 +41,11 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
             "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_6.html#upgrading_jvm_plugins")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_1_9) })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk(VERSION_1_8) && AvailableJavaHomes.getJdk(VERSION_11) })
     @ToBeFixedForInstantExecution
     def "compile is out of date when changing the java version"() {
         def jdk8 = AvailableJavaHomes.getJdk(VERSION_1_8)
-        def jdk9 = AvailableJavaHomes.getJdk(VERSION_1_9)
+        def jdk11 = AvailableJavaHomes.getJdk(VERSION_11)
 
         def scalaFixture = new LanguageScalaCompilationFixture(temporaryFolder.testDirectory)
         scalaFixture.baseline()
@@ -67,7 +67,7 @@ class UpToDatePlatformScalaCompileIntegrationTest extends AbstractIntegrationSpe
 
         when:
         expectDeprecationWarnings()
-        executer.withJavaHome(jdk9.javaHome)
+        executer.withJavaHome(jdk11.javaHome)
         run 'compileMainJarMainScala'
         then:
         executedAndNotSkipped(':compileMainJarMainScala')

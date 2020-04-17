@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.ContextualMultiVersionTest
 import org.gradle.integtests.fixtures.MultiVersionSpecRunner
 import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.integtests.fixtures.daemon.JavaGarbageCollector
 import org.gradle.launcher.daemon.server.health.DaemonMemoryStatus
@@ -73,6 +74,7 @@ class GarbageCollectionMonitoringIntegrationTest extends DaemonIntegrationSpec {
         daemons.daemon.log.contains(DAEMON_STOPPING_IMMEDIATELY_MESSAGE)
     }
 
+    @ToBeFixedForInstantExecution(because = "Gradle.buildFinished")
     def "expires daemon when heap leaks while daemon is idle"() {
         def initial = 256
         def max = 512

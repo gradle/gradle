@@ -563,10 +563,10 @@ application {
     mainModule.set('org.gradle.test.main')
 }
 compileJava {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 startScripts {
-    modularClasspathHandling.inferModulePath.set(true)
+    modularity.inferModulePath.set(true)
 }
 """
     }
@@ -597,7 +597,6 @@ rootProject.name = 'sample'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/1923")
-    @ToBeFixedForInstantExecution
     def "not up-to-date if classpath changes"() {
         given:
         succeeds("startScripts")
@@ -650,5 +649,27 @@ rootProject.name = 'sample'
         then:
         file('build/install/sample/').allDescendants() == ["not-the-root/bin/sample", "not-the-root/bin/sample.bat", "not-the-root/lib/sample.jar"] as Set
         assert file("build/install/sample/not-the-root/bin/sample").permissions == "rwxr-xr-x"
+    }
+
+    @ToBeFixedForInstantExecution
+    def "runs the classes folder for traditional applications"() {
+        when:
+        succeeds("run")
+
+        then:
+        executed(':compileJava', ':processResources', ':classes', ':run')
+    }
+
+    @Requires(TestPrecondition.JDK9_OR_LATER)
+    @ToBeFixedForInstantExecution
+    def "runs the jar for modular applications"() {
+        given:
+        configureMainModule()
+
+        when:
+        succeeds("run")
+
+        then:
+        executed(':compileJava', ':processResources', ':classes', ':jar', ':run')
     }
 }

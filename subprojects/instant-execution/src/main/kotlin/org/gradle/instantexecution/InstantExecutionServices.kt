@@ -21,6 +21,7 @@ import org.gradle.instantexecution.initialization.InstantExecutionProblemsListen
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
 
@@ -29,6 +30,12 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerGlobalServices(registration: ServiceRegistration) {
         registration.run {
             add(BeanConstructors::class.java)
+        }
+    }
+
+    override fun registerBuildTreeServices(registration: ServiceRegistration) {
+        registration.run {
+            add(BuildTreeListenerManager::class.java)
         }
     }
 
@@ -51,3 +58,8 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
         }
     }
 }
+
+
+class BuildTreeListenerManager(
+    val service: ListenerManager
+)

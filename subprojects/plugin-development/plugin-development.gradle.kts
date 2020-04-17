@@ -15,10 +15,9 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
@@ -44,6 +43,8 @@ dependencies {
     implementation(project(":publish"))
     implementation(project(":messaging"))
     implementation(project(":workers"))
+    implementation(project(":modelGroovy"))
+    implementation(project(":resources"))
 
     implementation(library("slf4j_api"))
     implementation(library("groovy"))
@@ -66,10 +67,11 @@ dependencies {
     integTestRuntimeOnly(project(":toolingApiBuilders"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
-}
+    integTestRuntimeOnly(project(":codeQuality"))
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":apiMetadata"))
 }
 
 testFilesCleanup {

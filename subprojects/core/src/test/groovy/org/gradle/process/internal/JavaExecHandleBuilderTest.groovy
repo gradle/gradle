@@ -19,7 +19,7 @@ import org.gradle.api.internal.file.AbstractFileCollection
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.initialization.DefaultBuildCancellationToken
-import org.gradle.internal.jpms.JavaModuleDetector
+import org.gradle.internal.jvm.JavaModuleDetector
 import org.gradle.internal.jvm.Jvm
 import org.gradle.util.TestUtil
 import spock.lang.Issue
@@ -69,7 +69,7 @@ class JavaExecHandleBuilderTest extends Specification {
 
         then:
         String executable = Jvm.current().getJavaExecutable().getAbsolutePath()
-        commandLine == [executable,  '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
+        commandLine == [executable, '-Dprop=value', 'jvm1', 'jvm2', '-Xms64m', '-Xmx1g', fileEncodingProperty(expectedEncoding), *localeProperties(), '-cp', "$jar1$File.pathSeparator$jar2", 'mainClass', 'arg1', 'arg2']
 
         where:
         inputEncoding | expectedEncoding
@@ -117,7 +117,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(jar1)
 
         when:
-        builder.setClasspath(fileCollectionFactory.resolving(jar2, builder.getClasspath()))
+        builder.setClasspath(fileCollectionFactory.resolving([jar2, builder.getClasspath()]))
 
         then:
         builder.commandLine.contains("$jar2$File.pathSeparator$jar1".toString())
@@ -131,7 +131,7 @@ class JavaExecHandleBuilderTest extends Specification {
 
         when:
         // turn off module support:
-        builder.modularClasspathHandling.inferModulePath.set(false)
+        builder.modularity.inferModulePath.set(false)
 
         then:
         !builder.getAllArguments().contains('--module')
@@ -144,7 +144,7 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(new File("file1.jar").canonicalFile)
 
         when:
-        builder.modularClasspathHandling.inferModulePath.set(true)
+        builder.modularity.inferModulePath.set(true)
         builder.getAllArguments()
 
         then:
@@ -160,10 +160,12 @@ class JavaExecHandleBuilderTest extends Specification {
         JavaModuleDetector moduleDetector = Mock(JavaModuleDetector) {
             inferModulePath(_, _) >> new AbstractFileCollection() {
                 String getDisplayName() { '' }
+
                 Set<File> getFiles() { [moduleJar] }
             }
             inferClasspath(_, _) >> new AbstractFileCollection() {
                 String getDisplayName() { '' }
+
                 Set<File> getFiles() { [libJar] }
             }
         }
@@ -175,15 +177,17 @@ class JavaExecHandleBuilderTest extends Specification {
         builder.classpath(libJar, moduleJar)
 
         when:
-        builder.modularClasspathHandling.inferModulePath.set(true)
+        builder.modularity.inferModulePath.set(true)
 
         then:
         builder.getAllArguments().findAll { !it.startsWith('-Duser.') } == ['-Dfile.encoding=UTF-8', '-cp', libJar.name, '--module-path', moduleJar.name, '--module', 'mainModule/mainClass']
     }
 
     def "detects null entries early"() {
-        when: builder.args(1, null)
-        then: thrown(IllegalArgumentException)
+        when:
+        builder.args(1, null)
+        then:
+        thrown(IllegalArgumentException)
     }
 
     private String fileEncodingProperty(String encoding = Charset.defaultCharset().name()) {

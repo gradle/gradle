@@ -1,7 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.classycle
 }
 
@@ -42,10 +40,6 @@ dependencies {
 
     integTestImplementation(library("commons_lang"))
     integTestRuntimeOnly(project(":plugins"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 classycle {

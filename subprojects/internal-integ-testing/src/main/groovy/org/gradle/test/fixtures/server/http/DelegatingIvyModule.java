@@ -179,6 +179,12 @@ public abstract class DelegatingIvyModule<T extends IvyModule> implements IvyMod
     }
 
     @Override
+    public T excludeFromConfig(String group, String module, String conf) {
+        backingModule.excludeFromConfig(group, module, conf);
+        return t();
+    }
+
+    @Override
     public T dependencyConstraint(Module module) {
         backingModule.dependencyConstraint(module);
         return t();

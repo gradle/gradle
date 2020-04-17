@@ -23,10 +23,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
@@ -34,18 +32,22 @@ import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATE;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
-public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
+public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
 
-    public AbstractEventDrivenFileWatcherRegistry(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        this.watcher = createWatcher(roots, watcherCreator, handler);
+    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
+        this.watcher = createWatcher(watcherCreator, handler);
     }
 
-    private FileWatcher createWatcher(Set<Path> roots, FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        FileWatcher watcher = watcherCreator.createWatcher(new FileWatcherCallback() {
+    public FileWatcher getWatcher() {
+        return watcher;
+    }
+
+    private FileWatcher createWatcher(FileWatcherCreator watcherCreator, ChangeHandler handler) {
+        return watcherCreator.createWatcher(new FileWatcherCallback() {
             @Override
             public void pathChanged(Type type, String path) {
                 handleEvent(type, path, handler);
@@ -58,10 +60,6 @@ public class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegist
                 handler.handleLostState();
             }
         });
-        roots.stream()
-            .map(Path::toFile)
-            .forEach(watcher::startWatching);
-        return watcher;
     }
 
     private void handleEvent(FileWatcherCallback.Type type, String path, ChangeHandler handler) {

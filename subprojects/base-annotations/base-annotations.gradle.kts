@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-    gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
     gradlebuild.`strict-compile`
+    gradlebuild.classycle
 }
 
 description = "Common shared annotations"
+
+// We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     api(library("jsr305")) { version { require(libraryVersion("jsr305")) } }
 }
 
-gradlebuildJava {
-    // We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
-    moduleType = ModuleType.WORKER
-}

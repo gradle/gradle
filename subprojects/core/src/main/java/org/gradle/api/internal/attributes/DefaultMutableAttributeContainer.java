@@ -16,10 +16,13 @@
 
 package org.gradle.api.internal.attributes;
 
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.internal.Cast;
 
+import java.util.Map;
 import java.util.Set;
 
 class DefaultMutableAttributeContainer implements AttributeContainerInternal {
@@ -108,6 +111,15 @@ class DefaultMutableAttributeContainer implements AttributeContainerInternal {
             }
             return attributes;
         }
+    }
+
+    @Override
+    public Map<Attribute<?>, ?> asMap() {
+        Map<Attribute<?>, ?> map = Maps.newLinkedHashMap();
+        for (Attribute<?> attribute : keySet()) {
+            map.put(attribute, Cast.uncheckedCast(getAttribute(attribute)));
+        }
+        return map;
     }
 
     @Override

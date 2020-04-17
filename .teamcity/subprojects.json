@@ -434,6 +434,13 @@
     "crossVersionTests": false
   },
   {
+    "dirName": "internal-build-reports",
+    "name": "internalBuildReports",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "dirName": "model-core",
     "name": "modelCore",
     "unitTests": true,
@@ -557,7 +564,7 @@
     "name": "pluginDevelopment",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": false
+    "crossVersionTests": true
   },
   {
     "dirName": "core-api",

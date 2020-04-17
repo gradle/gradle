@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
 import org.gradle.api.Transformer;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.provider.Provider;
 
 import javax.annotation.Nullable;
@@ -40,17 +37,17 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public boolean isPresent() {
-        return backingProvider().isPresent();
+    public boolean calculatePresence(ValueConsumer consumer) {
+        return backingProvider(consumer).calculatePresence(consumer);
     }
 
     @Override
-    protected Value<? extends S> calculateOwnValue() {
-        Value<? extends T> value = provider.calculateValue();
+    protected Value<? extends S> calculateOwnValue(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return value.asType();
         }
-        return doMapValue(value.get()).calculateValue();
+        return doMapValue(value.get()).calculateValue(consumer);
     }
 
     private ProviderInternal<? extends S> doMapValue(T value) {
@@ -61,8 +58,8 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
         return Providers.internal(result);
     }
 
-    public ProviderInternal<? extends S> backingProvider() {
-        Value<? extends T> value = provider.calculateValue();
+    private ProviderInternal<? extends S> backingProvider(ValueConsumer consumer) {
+        Value<? extends T> value = provider.calculateValue(consumer);
         if (value.isMissing()) {
             return Providers.notDefined();
         }
@@ -70,19 +67,13 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
-        backingProvider().visitProducerTasks(visitor);
+    public ValueProducer getProducer() {
+        return backingProvider(ValueConsumer.IgnoreUnsafeRead).getProducer();
     }
 
     @Override
-    public boolean isValueProducedByTask() {
-        // Need the content in order to transform it to produce the value of this provider, so if the content is built by tasks, the value is also built by tasks
-        return backingProvider().isValueProducedByTask() || !getProducerTasks().isEmpty();
-    }
-
-    @Override
-    public boolean maybeVisitBuildDependencies(TaskDependencyResolveContext context) {
-        return backingProvider().maybeVisitBuildDependencies(context);
+    public ExecutionTimeValue<? extends S> calculateExecutionTimeValue() {
+        return backingProvider(ValueConsumer.IgnoreUnsafeRead).calculateExecutionTimeValue();
     }
 
     @Override

@@ -36,6 +36,7 @@ class ModuleVersionSpec {
     private final boolean mustPublish = !RemoteRepositorySpec.DEFINES_INTERACTIONS.get()
 
     private final List<Object> dependsOn = []
+    private final List<Object> excludeFromConfig = []
     private final List<Object> constraints = []
     private final List<VariantMetadataSpec> variants = []
     private final List<Closure<?>> withModule = []
@@ -155,6 +156,10 @@ class ModuleVersionSpec {
 
     void dependsOn(coord) {
         dependsOn << coord
+    }
+
+    void excludeFromConfig(String module, String conf) {
+        excludeFromConfig << [module: module, conf: conf]
     }
 
     void constraint(coord) {
@@ -326,6 +331,14 @@ class ModuleVersionSpec {
                 }
             }
         }
+
+        if(excludeFromConfig) {
+            excludeFromConfig.each {
+                def moduleParts = it.module.split(':') as List
+                module.excludeFromConfig(moduleParts[0], moduleParts[1], it.conf)
+            }
+        }
+
         if (constraints) {
             constraints.each {
                 if (it instanceof CharSequence) {

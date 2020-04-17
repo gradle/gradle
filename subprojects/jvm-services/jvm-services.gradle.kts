@@ -1,12 +1,9 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
-/**
- * JVM invocation and inspection abstractions.
- */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
 }
+
+description = "JVM invocation and inspection abstractions"
 
 dependencies {
     implementation(project(":baseServices"))
@@ -20,8 +17,3 @@ dependencies {
     testImplementation(library("slf4j_api"))
     testImplementation(testFixtures(project(":core")))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-

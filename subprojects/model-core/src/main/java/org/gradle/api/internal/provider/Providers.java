@@ -54,6 +54,9 @@ public class Providers {
     }
 
     public static <T> ProviderInternal<T> of(T value) {
+        if (value == null) {
+            throw new IllegalArgumentException();
+        }
         return new FixedValueProvider<>(value);
     }
 
@@ -83,18 +86,34 @@ public class Providers {
         }
 
         @Override
-        public T get() {
-            return value;
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return Value.of(value);
         }
 
         @Override
-        public ProviderInternal<T> withFinalValue() {
+        public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
             return this;
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.fixedValue(value);
         }
 
         @Override
         public String toString() {
             return String.format("fixed(%s, %s)", getType(), value);
+        }
+    }
+
+    public static class FixedValueWithChangingContentProvider<T> extends FixedValueProvider<T> {
+        public FixedValueWithChangingContentProvider(T value) {
+            super(value);
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return super.calculateExecutionTimeValue().withChangingContent();
         }
     }
 
@@ -107,7 +126,7 @@ public class Providers {
         }
 
         @Override
-        public Value<? extends T> calculateValue() {
+        public Value<? extends T> calculateValue(ValueConsumer consumer) {
             return value;
         }
 
@@ -123,8 +142,13 @@ public class Providers {
         }
 
         @Override
-        protected Value<T> calculateOwnValue() {
+        protected Value<T> calculateOwnValue(ValueConsumer consumer) {
             return Value.missing();
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.missing();
         }
 
         @Override
@@ -138,12 +162,17 @@ public class Providers {
         }
 
         @Override
+        public boolean calculatePresence(ValueConsumer consumer) {
+            return false;
+        }
+
+        @Override
         public ProviderInternal<T> asSupplier(DisplayName owner, Class<? super T> targetType, ValueSanitizer<? super T> sanitizer) {
             return this;
         }
 
         @Override
-        public ProviderInternal<T> withFinalValue() {
+        public ProviderInternal<T> withFinalValue(ValueConsumer consumer) {
             return this;
         }
 

@@ -13,14 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {

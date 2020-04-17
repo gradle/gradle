@@ -17,33 +17,15 @@
 package org.gradle.kotlin.dsl.provider.plugins.precompiled.tasks
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Internal
-
 import org.gradle.internal.classpath.ClassPath
-import org.gradle.internal.hash.HashCode
-
-import org.gradle.kotlin.dsl.provider.plugins.precompiled.HashedClassPath
+import org.gradle.internal.classpath.DefaultClassPath
 
 
-abstract class ClassPathSensitiveTask : DefaultTask() {
-
-    @get:Internal
-    internal
-    lateinit var hashedClassPath: HashedClassPath
-
-    @get:Classpath
-    val classPathFiles: FileCollection
-        get() = hashedClassPath.classPathFiles
+abstract class ClassPathSensitiveTask : DefaultTask(), ClassPathAware {
 
     @get:Internal
     protected
     val classPath: ClassPath
-        get() = hashedClassPath.classPath
-
-    @get:Internal
-    protected
-    val classPathHash: HashCode
-        get() = hashedClassPath.hash
+        get() = DefaultClassPath.of(classPathFiles)
 }

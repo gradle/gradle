@@ -1125,7 +1125,6 @@ dependencies { implementation 'com.google.guava:guava:21.0' }
     }
 
     @Issue('https://github.com/gradle/gradle/issues/9380')
-    @ToBeFixedForInstantExecution
     def 'can move source sets'() {
         given:
         buildFile << "sourceSets.main.${language.name}.srcDir 'src/other/${language.name}'"

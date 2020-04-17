@@ -1,6 +1,4 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -17,7 +15,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
 
 dependencies {
@@ -33,6 +31,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":platformBase"))
     implementation(project(":platformJvm"))
+    implementation(project(":languageJvm"))
     implementation(project(":languageJava"))
     implementation(project(":languageScala"))
     implementation(project(":scala"))
@@ -65,10 +64,6 @@ dependencies {
 
     integTestImplementation(testLibrary("jetty"))
     integTestRuntimeOnly(project(":testKit"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

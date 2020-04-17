@@ -85,9 +85,16 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void finalizeValue() {
-        if (state != State.Final) {
-            calculateFinalizedValue();
+        if (state == State.Final) {
+            return;
         }
+        if (disallowUnsafeRead) {
+            String reason = host.beforeRead(null);
+            if (reason != null) {
+                throw new IllegalStateException("Cannot finalize the value for " + displayNameForThisCollection() + " because " + reason + ".");
+            }
+        }
+        calculateFinalizedValue();
         state = State.Final;
         disallowChanges = true;
     }
@@ -111,7 +118,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
     }
 
-    // Should be on the public API. Was not made public for the 6.3 release
     public void disallowUnsafeRead() {
         disallowUnsafeRead = true;
         finalizeValueOnRead();
@@ -199,7 +205,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void visitContents(FileCollectionResolveContext context) {
         if (disallowUnsafeRead && state != State.Final) {
-            String reason = host.beforeRead();
+            String reason = host.beforeRead(null);
             if (reason != null) {
                 throw new IllegalStateException("Cannot query the value for " + displayNameForThisCollection() + " because " + reason + ".");
             }

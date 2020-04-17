@@ -64,7 +64,7 @@ import org.gradle.api.tasks.compile.JavaCompile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
-import org.gradle.internal.jpms.JavaModuleDetector;
+import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 import org.gradle.util.TextUtil;
 
@@ -185,7 +185,7 @@ public class JvmPluginsHelper {
                 javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
                 javadoc.setClasspath(sourceSet.getOutput().plus(sourceSet.getCompileClasspath()));
                 javadoc.setSource(sourceSet.getAllJava());
-                javadoc.getModularClasspathHandling().getInferModulePath().convention(javaPluginExtension.getModularClasspathHandling().getInferModulePath());
+                javadoc.getModularity().getInferModulePath().convention(javaPluginExtension.getModularity().getInferModulePath());
             });
         }
     }
@@ -248,7 +248,7 @@ public class JvmPluginsHelper {
             if (!attributes.contains(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE)) {
                 String libraryElements;
                 // If we are compiling a module, we require JARs of all dependencies as they may potentially include an Automatic-Module-Name
-                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularClasspathHandling().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
+                if (javaClasspathPackaging || JavaModuleDetector.isModuleSource(compileTaskProvider.get().getModularity().getInferModulePath().get(), CompilationSourceDirs.inferSourceRoots((FileTreeInternal) sourceSet.getJava().getAsFileTree()))) {
                    libraryElements = LibraryElements.JAR;
                 } else {
                     libraryElements = LibraryElements.CLASSES;
@@ -263,14 +263,23 @@ public class JvmPluginsHelper {
             if (alwaysEnabled || !convention.getAutoTargetJvmDisabled()) {
                 JavaCompile javaCompile = compileTaskProvider.get();
                 int majorVersion;
-                if (javaCompile.getRelease().isPresent()) {
-                    majorVersion = javaCompile.getRelease().get();
+                int releaseOption = getReleaseOption(javaCompile.getOptions().getCompilerArgs());
+                if (releaseOption > 0) {
+                    majorVersion = releaseOption;
                 } else {
                     majorVersion = Integer.parseInt(JavaVersion.toVersion(javaCompile.getTargetCompatibility()).getMajorVersion());
                 }
                 JavaEcosystemSupport.configureDefaultTargetPlatform(conf, majorVersion);
             }
         };
+    }
+
+    private static int getReleaseOption(List<String> compilerArgs) {
+        int flagIndex = compilerArgs.indexOf("--release");
+        if (flagIndex != -1 && flagIndex + 1 < compilerArgs.size()) {
+            return Integer.parseInt(compilerArgs.get(flagIndex + 1));
+        }
+        return 0;
     }
 
     /**
