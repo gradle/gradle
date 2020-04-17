@@ -24,7 +24,7 @@ import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistryInternal {
+public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegistry {
 
     private final FileCollectionFactory fileCollectionFactory;
     private final Set<FileCollection> outputs = Sets.newHashSet();
