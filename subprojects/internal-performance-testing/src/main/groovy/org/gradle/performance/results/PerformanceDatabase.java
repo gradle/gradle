@@ -68,7 +68,7 @@ public class PerformanceDatabase {
 
     public String getUrl() {
         String defaultUrl = "jdbc:h2:" + System.getProperty("user.home") + "/.gradle-performance-test-data";
-        String baseUrl = System.getProperty("org.gradle.performance.db.url", defaultUrl);
+        String baseUrl = System.getProperty("org.gradle.performance.db.mysql.url", defaultUrl);
         StringBuilder url = new StringBuilder(baseUrl);
         if (!baseUrl.endsWith("/")) {
             url.append('/');

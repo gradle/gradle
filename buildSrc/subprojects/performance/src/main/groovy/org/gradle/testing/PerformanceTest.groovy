@@ -171,7 +171,7 @@ abstract class PerformanceTest extends DistributionTest {
 
     @Input
     String getDatabaseUrl() {
-        return databaseParameters.get("org.gradle.performance.db.url")
+        return databaseParameters.get("org.gradle.performance.db.mysql.url")
     }
 
     @Internal

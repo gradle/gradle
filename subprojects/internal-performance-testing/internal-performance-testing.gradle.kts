@@ -70,7 +70,7 @@ dependencies {
     implementation(testFixtures(project(":core")))
     implementation(testFixtures(project(":toolingApi")))
 
-    runtimeOnly("com.h2database:h2:1.4.192")
+    runtimeOnly("mysql:mysql-connector-java:8.0.17")
 }
 
 gradlebuildJava {

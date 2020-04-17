@@ -19,32 +19,8 @@ package org.gradle.performance.results;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Statement;
 
 class DataBaseSchemaUtil {
-    private static final String[] REMOVED_COLUMNS = new String[] {
-        "heapUsageBytes",
-        "totalHeapUsageBytes",
-        "maxHeapUsageBytes",
-        "maxUncollectedHeapBytes",
-        "maxCommittedHeapBytes",
-        "compileTotalTime",
-        "gcTotalTime",
-        "executionTime",
-        "configurationTime"
-    };
-
-    static void removeOutdatedColumnsFromTestDB(Connection connection, Statement statement) throws SQLException {
-        for (String removedColumn : REMOVED_COLUMNS) {
-            if (columnExists(connection, "TESTOPERATION", removedColumn.toUpperCase())) {
-                statement.execute("alter table testOperation drop column " + removedColumn);
-            }
-            if (columnExists(connection, "TESTEXECUTION", removedColumn.toUpperCase())) {
-                statement.execute("alter table testExecution drop column " + removedColumn);
-            }
-        }
-    }
-
     static boolean columnExists(Connection connection, String table, String column) throws SQLException {
         ResultSet columns = null;
         boolean exists;
