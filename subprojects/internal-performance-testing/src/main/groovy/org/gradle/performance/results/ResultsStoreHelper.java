@@ -20,10 +20,9 @@ import com.google.common.collect.ImmutableList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ResultsStoreHelper {
     public static final String SYSPROP_PERFORMANCE_TEST_CHANNEL = "org.gradle.performance.execution.channel";
@@ -36,33 +35,20 @@ public class ResultsStoreHelper {
         return Collections.emptyList();
     }
 
-    /**
-     * MySQL doesn't support array type. So array in H2 `1,2,3` will be a string like '(1,2,3)'
-     */
-    public static String toArray(List<String> list) {
-        return list == null ? null : "(" + String.join(",", list) + ")";
+    public static String[] toArray(List<String> list) {
+        return list == null ? null : list.toArray(new String[0]);
     }
 
-    public static List<String> toList(Object[] objects) {
-        return Stream.of(objects).map(Object::toString).map(String::trim).collect(Collectors.toList());
-    }
-
-    /**
-     * MySQL doesn't support array type. So array in H2 `1,2,3` will be a string like '(1,2,3)'
-     */
     public static List<String> toList(Object object) {
-        if (object == null) {
+        Object[] value = (Object[]) object;
+        if (value == null) {
             return null;
         }
-        if (object instanceof String) {
-            String str = object.toString();
-            if (str.startsWith("(") && str.endsWith(")")) {
-                return toList(str.substring(1, str.length() - 1).split(","));
-            } else {
-                return toList(str.split(","));
-            }
+        List<String> result = new ArrayList<>(value.length);
+        for (Object aValue : value) {
+            result.add(aValue.toString());
         }
-        return toList((Object[]) object);
+        return result;
     }
 
     public static String determineChannel() {
