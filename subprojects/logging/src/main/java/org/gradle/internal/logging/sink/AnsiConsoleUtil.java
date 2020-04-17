@@ -36,7 +36,7 @@ import static org.fusesource.jansi.internal.Kernel32.SetConsoleMode;
  * @see <a href="https://github.com/gradle/gradle/issues/882">Original issue (gradle/gradle#882)</a>
  * @see <a href="https://github.com/fusesource/jansi/issues/69">Issue in 3rd party library (fusesource/jansi#69)</a>
  */
-public final class AnsiConsoleUtil {
+final class AnsiConsoleUtil {
     private static final int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
     private static final int DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
 
@@ -55,7 +55,7 @@ public final class AnsiConsoleUtil {
     /**
      * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/AnsiConsole.java#L48-L54">Method copied over from AnsiConsole.wrapOutputStream</a>
      */
-    public static OutputStream wrapOutputStream(final OutputStream stream) {
+    static OutputStream wrapOutputStream(final OutputStream stream) {
         try {
             return wrapOutputStream(stream, STDOUT_FILENO);
         } catch (Throwable ignore) {
@@ -66,7 +66,7 @@ public final class AnsiConsoleUtil {
     /**
      * @see <a href="https://github.com/fusesource/jansi/blob/eeda18cb05122abe48b284dca969e2c060a0c009/jansi/src/main/java/org/fusesource/jansi/AnsiConsole.java#L64-L119">Method copied over from AnsiConsole.wrapOutputStream</a>
      */
-    public static OutputStream wrapOutputStream(final OutputStream stream, int fileno) {
+    private static OutputStream wrapOutputStream(final OutputStream stream, int fileno) {
 
         // If the jansi.passthrough property is set, then don't interpret
         // any of the ansi sequences.
@@ -89,7 +89,7 @@ public final class AnsiConsoleUtil {
                 return new FilterOutputStream(stream) {
                     @Override
                     public void close() throws IOException {
-                        write(AnsiOutputStream.REST_CODE);
+                        write(AnsiOutputStream.RESET_CODE);
                         flush();
 
                         // Reset console mode
@@ -133,7 +133,7 @@ public final class AnsiConsoleUtil {
         return new FilterOutputStream(stream) {
             @Override
             public void close() throws IOException {
-                write(AnsiOutputStream.REST_CODE);
+                write(AnsiOutputStream.RESET_CODE);
                 flush();
                 super.close();
             }
