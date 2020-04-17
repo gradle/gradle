@@ -30,7 +30,7 @@ plugins {
     gradlebuild.ide                          // Local development: Tweak IDEA import
     gradlebuild.`update-versions`            // Local development: Convenience tasks to update versions in this build: 'released-versions.json', 'agp-versions.properties', ...
     gradlebuild.wrapper                      // Local development: Convenience tasks to update the wrapper (like 'nightlyWrapper')
-    gradlebuild.`quick-check`                // Local development: Convenience tasks task `quickCheck` for running checkstyle/codenarc only on changed files before commit
+    gradlebuild.`quick-check`                // Local development: Convenience task `quickCheck` for running checkstyle/codenarc only on changed files before commit
 }
 
 buildscript {

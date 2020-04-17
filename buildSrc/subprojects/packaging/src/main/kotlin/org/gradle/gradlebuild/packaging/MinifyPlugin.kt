@@ -59,8 +59,8 @@ open class MinifyPlugin : Plugin<Project> {
                     }
                 }
             }
-            configurations.all {
-                afterEvaluate {
+            afterEvaluate {
+                configurations.all {
                     // everywhere where we resolve, prefer the minified version
                     if (isCanBeResolved && !isCanBeConsumed) {
                         attributes.attribute(minified, true)
