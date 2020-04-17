@@ -17,6 +17,7 @@
 package org.gradle.instantexecution.fingerprint
 
 import org.gradle.api.Describable
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -83,5 +84,5 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
-        } ?: "a build logic input of type '${valueSource.javaClass.simpleName}' has changed"
+        } ?: "a build logic input of type '${unpackType(valueSource).simpleName}' has changed"
 }
