@@ -33,6 +33,15 @@ Some plugins will break with this new version of Gradle, for example because the
 . Run `gradle wrapper --gradle-version {gradleVersion}` to update the project to {gradleVersion}.
 . Try to run the project and debug any errors using the <<troubleshooting.adoc#troubleshooting, Troubleshooting Guide>>.
 
+[[changes_6.5]]
+== Upgrading from 6.4
+
+=== Potential breaking changes
+
+==== Updates to bundled Gradle dependencies
+
+- Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.72[Kotlin 1.3.72].
+
 [[changes_6.4]]
 == Upgrading from 6.3
 
