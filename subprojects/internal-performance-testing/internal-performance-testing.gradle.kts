@@ -71,10 +71,6 @@ dependencies {
     runtimeOnly("mysql:mysql-connector-java:8.0.17")
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
-
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val reportResources = tasks.register<Copy>("reportResources") {
