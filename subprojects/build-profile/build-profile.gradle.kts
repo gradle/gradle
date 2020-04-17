@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-implementation-java`
     gradlebuild.classycle
 }
 
@@ -30,17 +28,11 @@ dependencies {
     implementation(project(":core"))
 
     implementation(library("guava"))
-    
+
     testImplementation(project(":internalTesting"))
 
     integTestImplementation(project(":buildOption"))
     integTestImplementation(testLibrary("jsoup"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-java {
-    gradlebuildJava {
-        moduleType = ModuleType.CORE
-    }
 }

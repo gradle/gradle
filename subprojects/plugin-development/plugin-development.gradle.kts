@@ -15,10 +15,9 @@
  */
 
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
@@ -73,10 +72,6 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
     integTestRuntimeOnly(project(":apiMetadata"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

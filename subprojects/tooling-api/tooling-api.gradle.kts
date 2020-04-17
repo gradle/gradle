@@ -17,10 +17,9 @@
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 import org.gradle.build.BuildReceipt
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
     gradlebuild.`shaded-jar`
 }
@@ -91,15 +90,9 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 apply(from = "buildship.gradle")
 
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     binaryDistributions.binZipRequired = true
     libsRepository.required = true
 }

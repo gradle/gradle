@@ -22,7 +22,6 @@ import org.gradle.binarycompatibility.CleanAcceptedApiChanges
 import org.gradle.binarycompatibility.transforms.ExplodeZipAndFindJars
 import org.gradle.binarycompatibility.transforms.FindGradleClasspath
 import org.gradle.binarycompatibility.transforms.FindGradleJar
-import org.gradle.gradlebuild.ProjectGroups
 import org.gradle.gradlebuild.PublicApi
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE
@@ -59,10 +58,18 @@ configurations {
         extendsFrom baseline
         attributes.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
+    currentClasspath {
+        canBeConsumed = false
+        canBeResolved = true
+        description = "Classpath to check binary compatibility against"
+        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+    }
 }
 
-def projects = ProjectGroups.INSTANCE.getPublicProjects(project).collect { it.archivesBaseName - 'gradle-' }
-
+def configurationsContainer = configurations
+def apiSourceFolders = files()
+def oldArchivesFiles = files()
+def newArchivesFiles = files()
 dependencies {
     baseline "gradle:gradle:${compatibilityBaselineVersion}@zip"
 
@@ -77,52 +84,41 @@ dependencies {
         to.attribute(ARTIFACT_TYPE, 'gradle-classpath')
     }
 
-    projects.each { projectName ->
-        // This transform uses the result of the exploded zip extraction
-        // and returns a single jar file based on the lookup project name
-        registerTransform(FindGradleJar) {
-            from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
-            to.attribute(ARTIFACT_TYPE, projectName)
-            parameters {
-                target = projectName
+    rootProject.subprojects { subproject ->
+        plugins.withId('gradlebuild.distribution.api') {
+            apiSourceFolders.from(subproject.sourceSets.main.allJava.sourceDirectories)
+            if (subproject.plugins.hasPlugin("kotlin")) {
+                apiSourceFolders.from(subproject.sourceSets.main.kotlin.sourceDirectories)
             }
+            newArchivesFiles.from(subproject.jar)
+            // TODO: Current classpath should be derived from the other "Gradle runtime" sources like api-metadata, runtime-api, distribution building, etc...
+            currentClasspath project(subproject.path)
+
+            // This transform uses the result of the exploded zip extraction
+            // and returns a single jar file based on the lookup project name
+            def projectName = subproject.archivesBaseName - 'gradle-'
+            registerTransform(FindGradleJar) {
+                from.attribute(ARTIFACT_TYPE, 'gradle-libs-dir')
+                to.attribute(ARTIFACT_TYPE, projectName)
+                parameters {
+                    target = projectName
+                }
+            }
+            def appendixName = projectName.split('-')*.capitalize().join('')
+            def baselineConf = configurationsContainer.create("japicmp-baseline-${appendixName}") {
+                extendsFrom configurationsContainer.baseline
+                attributes.attribute(ARTIFACT_TYPE, projectName)
+            }
+            oldArchivesFiles.from(baselineConf)
         }
     }
-}
-
-def baselineConfigurations = []
-projects.each { projectName ->
-    def appendixName = projectName.split('-')*.capitalize().join('')
-    baselineConfigurations << configurations.create("japicmp-baseline-${appendixName}") {
-        extendsFrom configurations.baseline
-        attributes.attribute(ARTIFACT_TYPE, projectName)
-    }
-}
-
-configurations {
-    currentClasspath {
-        canBeConsumed = false
-        canBeResolved = true
-        description = "Classpath to check binary compatibility against"
-        attributes.attribute(USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
-    }
-}
-
-dependencies {
-    // TODO: Current classpath should be derived from the other "Gradle runtime" sources like api-metadata, runtime-api, distribution building, etc...
-    currentClasspath ProjectGroups.INSTANCE.getPublicProjects(project)
 }
 
 def buildVersion = rootProject.buildVersion
 def baseVersion = buildVersion.baseVersion
 def isSnapshot = buildVersion.isSnapshot
 def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", JapicmpTask) {
-    dependsOn ProjectGroups.INSTANCE.getPublicProjects(project).jar
-
-    Set<File> apiSourceFolders = ProjectGroups.INSTANCE.getPublicJavaProjects(project).collectMany { Project p ->
-        p.sourceSets.main.allJava.srcDirs + (p.plugins.hasPlugin("kotlin") ? p.sourceSets.main.kotlin.srcDirs : [])
-    }
-
+    inputs.files(configurations.currentClasspath)
     inputs.property('acceptedViolations', acceptedViolations.toAcceptedChangesMap())
     inputs.property("baseline.version", compatibilityBaselineVersion)
     inputs.property("currentVersion", baseVersion)
@@ -130,8 +126,8 @@ def checkBinaryCompatibility = tasks.register("checkBinaryCompatibility", Japicm
 
     oldClasspath = configurations.baselineClasspath
     newClasspath = configurations.currentClasspath
-    oldArchives = files(baselineConfigurations)
-    newArchives = files(ProjectGroups.INSTANCE.getPublicProjects(project).jar)
+    oldArchives = oldArchivesFiles
+    newArchives = newArchivesFiles
 
     // binary breaking change checking setup
     onlyModified = false

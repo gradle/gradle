@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2012 the original author or authors.
  *
@@ -16,20 +14,15 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
-    // DynamicObjectAware and DynamicObjectUtil should move to org.gradle.internal.metaobject (but it breaks third-party plugins)
-    // gradlebuild.classycle
+    gradlebuild.distribution.`core-api-java`
+    // gradlebuild.classycle <- DynamicObjectAware and DynamicObjectUtil should move to org.gradle.internal.metaobject (but it breaks third-party plugins)
 }
 
 dependencies {
     implementation(project(":baseServices"))
-    
+
     implementation(library("groovy"))
     implementation(library("guava"))
 
     testImplementation(testFixtures(project(":core")))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }

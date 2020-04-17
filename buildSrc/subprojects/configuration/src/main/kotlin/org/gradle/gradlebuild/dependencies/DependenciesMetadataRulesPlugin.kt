@@ -26,17 +26,14 @@ import org.gradle.api.artifacts.ComponentMetadataRule
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.dsl.ComponentMetadataHandler
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.withModule
 import org.gradle.kotlin.dsl.extra
 import java.io.File
-import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
 import kotlin.reflect.KClass
 
 
 open class DependenciesMetadataRulesPlugin : Plugin<Project> {
-    companion object {
-        val warnedAboutCapabilities = AtomicBoolean()
-    }
 
     override fun apply(project: Project): Unit = project.run {
         applyAutomaticUpgradeOfCapabilities()
@@ -106,10 +103,10 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
             capabilities = extra["capabilities"] as List<CapabilitySpec>
         } else {
             val capabilitiesFile = gradle.rootProject.file("gradle/dependency-management/capabilities.json")
-            if (capabilitiesFile.exists()) {
-                capabilities = readCapabilities(capabilitiesFile)
+            capabilities = if (capabilitiesFile.exists()) {
+                readCapabilities(capabilitiesFile)
             } else {
-                capabilities = emptyList()
+                emptyList()
             }
             extra["capabilities"] = capabilities
         }
@@ -120,20 +117,16 @@ open class DependenciesMetadataRulesPlugin : Plugin<Project> {
 
     private
     fun readCapabilities(source: File): List<CapabilitySpec> {
-        val gson = Gson()
-        val reader = JsonReader(source.reader(Charsets.UTF_8))
-        try {
+        JsonReader(source.reader(Charsets.UTF_8)).use { reader ->
             reader.isLenient = true
-            return gson.fromJson<List<CapabilitySpec>>(reader)
-        } finally {
-            reader.close()
+            return Gson().fromJson(reader)
         }
     }
 }
 
 
 inline
-fun <reified T> Gson.fromJson(json: JsonReader) = this.fromJson<T>(json, object : TypeToken<T>() {}.type)
+fun <reified T> Gson.fromJson(json: JsonReader): T = this.fromJson(json, object : TypeToken<T>() {}.type)
 
 
 open class CapabilityRule @Inject constructor(
@@ -152,8 +145,14 @@ open class CapabilityRule @Inject constructor(
 
 class CapabilitySpec {
     lateinit var name: String
+
+    private
     lateinit var providedBy: Set<String>
+
+    private
     lateinit var selected: String
+
+    private
     var upgrade: String? = null
 
     internal
@@ -172,18 +171,18 @@ class CapabilitySpec {
 
     private
     fun ComponentMetadataHandler.declareSyntheticCapability(provider: String, version: String) {
-        withModule(provider, CapabilityRule::class.java, {
+        withModule(provider, CapabilityRule::class.java) {
             params(name)
             params(version)
-        })
+        }
     }
 
     private
     fun ComponentMetadataHandler.declareCapabilityPreference(module: String) {
-        withModule(module, CapabilityRule::class.java, {
+        withModule<CapabilityRule>(module) {
             params(name)
             params("${providedBy.size + 1}")
-        })
+        }
     }
 
     /**
@@ -206,7 +205,7 @@ class CapabilitySpec {
 
 
 open class DependencyRemovalByNameRule @Inject constructor(
-    val moduleToRemove: Set<String>
+    private val moduleToRemove: Set<String>
 ) : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
@@ -219,7 +218,7 @@ open class DependencyRemovalByNameRule @Inject constructor(
 
 
 open class DependencyRemovalByGroupRule @Inject constructor(
-    val groupsToRemove: Set<String>
+    private val groupsToRemove: Set<String>
 ) : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
@@ -232,7 +231,7 @@ open class DependencyRemovalByGroupRule @Inject constructor(
 
 
 open class KeepDependenciesByNameRule @Inject constructor(
-    val moduleToKeep: Set<String>
+    private val moduleToKeep: Set<String>
 ) : ComponentMetadataRule {
     override fun execute(context: ComponentMetadataContext) {
         context.details.allVariants {
@@ -263,9 +262,9 @@ open class MavenDependencyCleaningRule : ComponentMetadataRule {
 
 
 fun ComponentMetadataHandler.withLibraryDependencies(module: String, kClass: KClass<out ComponentMetadataRule>, modulesToRemove: Set<String>) {
-    withModule(module, kClass.java, {
+    withModule(module, kClass.java) {
         params(modulesToRemove)
-    })
+    }
 }
 
 
@@ -291,17 +290,6 @@ open class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
                     add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
-            }
-        }
-    }
-}
-
-
-open class ExcludeDependencies : ComponentMetadataRule {
-    override fun execute(context: ComponentMetadataContext) {
-        context.details.allVariants {
-            withDependencies {
-                clear()
             }
         }
     }

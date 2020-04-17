@@ -81,7 +81,10 @@ fun Project.setBuildVersion() {
         }
     }
 
-    project.version = versionNumber
+    allprojects {
+        group = "org.gradle"
+        version = versionNumber
+    }
 
     registerBuildReceiptTask(versionNumber, baseVersion, isSnapshot, buildTimestamp)
 

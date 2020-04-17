@@ -18,6 +18,7 @@ package org.gradle.binarycompatibility
 
 import japicmp.model.JApiChangeStatus
 import me.champeau.gradle.japicmp.JapicmpTask
+import org.gradle.api.file.FileCollection
 import org.gradle.binarycompatibility.filters.AnonymousClassesFilter
 import org.gradle.binarycompatibility.filters.KotlinInternalFilter
 import org.gradle.binarycompatibility.rules.AcceptedRegressionsRulePostProcess
@@ -38,7 +39,7 @@ class BinaryCompatibilityHelper {
     static setupJApiCmpRichReportRules(
         JapicmpTask japicmpTask,
         AcceptedApiChanges acceptedViolations,
-        Set<File> sourceRoots,
+        FileCollection sourceRoots,
         String currentVersion
     ) {
         japicmpTask.tap {

@@ -1,9 +1,8 @@
 import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.internal.java
     gradlebuild.classycle
 }
 
@@ -20,21 +19,13 @@ dependencies {
         exclude(group = "org.codehaus.groovy", module = "groovy-all")
         exclude(module = "slf4j-simple")
     }
-
-    val allTestRuntimeDependencies: DependencySet by rootProject.extra
-    allTestRuntimeDependencies.forEach {
-        integTestRuntimeOnly(it)
-    }
     integTestImplementation(testFixtures(project(":core")))
-
+}
+configurations.integTestRuntimeClasspath {
+    extendsFrom(configurations.fullGradleRuntime.get())
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
-
-val integTestTasks: DomainObjectCollection<IntegrationTest> by extra
-integTestTasks.configureEach {
+tasks.withType<IntegrationTest>().configureEach {
     libsRepository.required = true
 }
 

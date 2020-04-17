@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package gradlebuild.distribution
 
-package gradlebuild
-
-if (file("src/main/java").isDirectory) {
-    apply(plugin = "gradlebuild.api-parameter-names-index")
+plugins {
+    id("gradlebuild.kotlin-library")
+    id("gradlebuild.distribution.plugins")
+    id("gradlebuild.distribution.implementation")
+    id("gradlebuild.api-parameter-names-index")
 }

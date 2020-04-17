@@ -1,8 +1,7 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     gradlebuild.`strict-compile`
     gradlebuild.classycle
 }
@@ -13,7 +12,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":resources"))
     implementation(project(":resourcesHttp"))
-    
+
     implementation(library("slf4j_api"))
     implementation(library("guava"))
     implementation(library("nativePlatform"))
@@ -38,10 +37,6 @@ dependencies {
     integTestImplementation(testLibrary("littleproxy"))
     integTestImplementation(testLibrary("jetty"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

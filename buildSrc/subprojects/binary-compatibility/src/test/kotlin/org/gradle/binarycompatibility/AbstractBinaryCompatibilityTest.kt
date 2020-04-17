@@ -234,7 +234,7 @@ abstract class AbstractBinaryCompatibilityTest {
                         BinaryCompatibilityHelper.setupJApiCmpRichReportRules(
                             this,
                             AcceptedApiChanges.parse("{acceptedApiChanges:[]}"),
-                            setOf(rootProject.file("v2/src/main/kotlin")),
+                            rootProject.files("v2/src/main/kotlin"),
                             "2.0"
                         )
                     }

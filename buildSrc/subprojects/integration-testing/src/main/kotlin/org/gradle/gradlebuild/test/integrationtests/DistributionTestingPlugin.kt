@@ -55,14 +55,14 @@ class DistributionTestingPlugin : Plugin<Project> {
             )
             addSetUpAndTearDownActions(project)
         }
-        rootProject.project(":toolingApi").afterEvaluate {
-            this@run.tasks.withType<DistributionTest>().configureEach {
-                gradleInstallationForTest.toolingApiShadedJarDir.set(dirWorkaround(providers, layout, objects) {
-                    // TODO Refactor to not reach into tasks of another project
-                    val toolingApiShadedJar: ShadedJar by tasks
-                    toolingApiShadedJar.jarFile.get().asFile.parentFile
-                })
-            }
+
+        tasks.withType<DistributionTest>().configureEach {
+            gradleInstallationForTest.toolingApiShadedJarDir.set(dirWorkaround(providers, layout, objects) {
+                // TODO Refactor to not reach into tasks of another project
+                val toolingApi = rootProject.project(":toolingApi")
+                val toolingApiShadedJar: ShadedJar by toolingApi.tasks
+                toolingApiShadedJar.jarFile.get().asFile.parentFile
+            })
         }
     }
 

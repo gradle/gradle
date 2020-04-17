@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `kotlin-library`
+    gradlebuild.internal.kotlin
     gradlebuild.classycle
 }
 
@@ -36,10 +34,6 @@ dependencies {
     integTestImplementation(testLibrary("jetty"))
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 tasks.integTest {

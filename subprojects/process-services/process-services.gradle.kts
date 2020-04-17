@@ -1,11 +1,11 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /**
  * Process execution abstractions.
  */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseServices"))
@@ -21,8 +21,3 @@ dependencies {
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
-}
-

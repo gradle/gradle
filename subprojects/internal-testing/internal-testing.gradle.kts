@@ -13,10 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.internal.java
     gradlebuild.classycle
 }
 
@@ -38,8 +36,4 @@ dependencies {
     implementation(testLibrary("testcontainers_spock"))
 
     runtimeOnly(testLibrary("bytebuddy"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }

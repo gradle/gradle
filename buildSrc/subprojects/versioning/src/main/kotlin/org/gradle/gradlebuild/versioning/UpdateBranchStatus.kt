@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,12 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.gradlebuild
+package org.gradle.gradlebuild.versioning
 
 import org.gradle.api.DefaultTask
+import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.performance.determineCurrentBranch
 
 
 /**
@@ -39,4 +39,7 @@ open class UpdateBranchStatus : DefaultTask() {
     fun publishBranchStatus(branch: String) {
         project.execAndGetStdout("git", "push", "origin", "$branch:green-$branch")
     }
+
+    private
+    fun Project.determineCurrentBranch() = System.getenv("BUILD_BRANCH") ?: execAndGetStdout("git", "rev-parse", "--abbrev-ref", "HEAD")
 }

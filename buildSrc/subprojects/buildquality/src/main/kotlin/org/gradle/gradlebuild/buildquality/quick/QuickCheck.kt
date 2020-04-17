@@ -29,12 +29,12 @@ import java.util.concurrent.Callable
 
 class QuickCheckPlugin : Plugin<Project> {
     override fun apply(project: Project) {
-        project.tasks.register("quickCheck", QuickCheckTask::class.java)
+        project.tasks.register<QuickCheckTask>("quickCheck")
     }
 }
 
 
-abstract class QuickCheckTask() : DefaultTask() {
+abstract class QuickCheckTask : DefaultTask() {
     @TaskAction
     fun execute() {
         if (System.getenv("IGNORE_QUICK_CHECK") != null) {
@@ -48,9 +48,6 @@ abstract class QuickCheckTask() : DefaultTask() {
         checks.forEach { it.runCheck(project, it.filter(changedFiles)) }
     }
 
-    //    A       buildSrc/subprojects/buildquality/src/main/kotlin/org/gradle/gradlebuild/buildquality/quick/QuickCheck.kt
-    //    M       gradle.properties
-    //    D       gradle/Check.java
     private
     fun getChangedFiles(): List<String> =
         project.execAndGetStdout("git", "diff", "--cached", "--name-status", "HEAD")

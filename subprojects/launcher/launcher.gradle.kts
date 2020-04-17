@@ -1,9 +1,8 @@
 import org.gradle.build.GradleStartScriptGenerator
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
 }
 
@@ -74,10 +73,6 @@ dependencies {
 val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
 dependencies {
     integTestRuntimeOnly(files(toolsJar))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 tasks.jar {

@@ -27,4 +27,4 @@ data class BuildVersion(
 
 
 val Project.buildVersion
-    get() = extensions.getByName<BuildVersion>("buildVersion")
+    get() = extensions.findByType() ?: BuildVersion("", true)

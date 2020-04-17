@@ -1,5 +1,3 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 /*
  * Copyright 2014 the original author or authors.
  *
@@ -16,7 +14,7 @@ import org.gradle.gradlebuild.unittestandcompile.ModuleType
  * limitations under the License.
  */
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
     // Cannot use strict compile because JDK 7 doesn't recognize
     // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
     // in the context of a delegation pattern
@@ -53,8 +51,3 @@ dependencies {
     testFixturesImplementation(library("slf4j_api"))
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-

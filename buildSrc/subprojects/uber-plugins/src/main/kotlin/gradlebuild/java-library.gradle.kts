@@ -15,11 +15,22 @@
  */
 package gradlebuild
 
-apply(plugin = "gradlebuild.unittest-and-compile")
-apply(plugin = "gradlebuild.test-fixtures")
-apply(plugin = "gradlebuild.distribution-testing")
-apply(plugin = "gradlebuild.int-test-image")
-apply(plugin = "gradlebuild.incubation-report")
+import org.gradle.kotlin.dsl.*
+
+plugins {
+    `java-library`
+    id("gradlebuild.repositories")
+    id("gradlebuild.minify")
+    id("gradlebuild.reproducible-archives")
+    id("gradlebuild.unittest-and-compile")
+    id("gradlebuild.test-fixtures")
+    id("gradlebuild.distribution-testing")
+    id("gradlebuild.gradle-distribution")
+    id("gradlebuild.incubation-report")
+    id("gradlebuild.task-properties-validation")
+}
+
+apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")
 
 if (file("src/integTest").isDirectory) {
     apply(plugin = "gradlebuild.integration-tests")

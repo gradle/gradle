@@ -1,6 +1,5 @@
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
+    gradlebuild.internal.java
     application
 }
 
@@ -15,10 +14,6 @@ dependencies {
     implementation(project(":baseServices"))
     implementation(project(":toolingApi"))
     androidTools("com.android.tools.build:gradle:3.0.0")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 application {

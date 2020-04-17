@@ -15,10 +15,8 @@
  * limitations under the License.
  */
 
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    id 'java-library'
+    id 'gradlebuild.distribution.core-api-java'
     // TODO: Apply asciidoctor in documentation plugin instead.
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
@@ -45,14 +43,6 @@ configurations {
         attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "docs"))
         attributes.attribute(Attribute.of("type", String), "getting-started")
     }
-
-    gradleApiRuntime {
-        visible = false
-        canBeResolved = true
-        canBeConsumed = false
-        attributes.attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage, Usage.JAVA_RUNTIME))
-        attributes.attribute(Attribute.of("org.gradle.api", String), "runtime")
-    }
 }
 
 dependencies {
@@ -78,12 +68,6 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-
-    gradleApiRuntime project(":")
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 asciidoctorj {

@@ -14,11 +14,10 @@
  * limitations under the License.
  */
 import org.gradle.build.ReproduciblePropertiesWriter
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 import java.util.Properties
 
 plugins {
-    `java-library`
+    gradlebuild.internal.java
 }
 
 dependencies {
@@ -80,10 +79,6 @@ dependencies {
 
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(project(":workers"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir

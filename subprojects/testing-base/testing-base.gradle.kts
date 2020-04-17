@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
-    `java-library`
+    gradlebuild.distribution.`plugins-api-java`
 }
+
+gradlebuildJava.usedInWorkers()
 
 dependencies {
     implementation(project(":baseServices"))
@@ -60,8 +60,3 @@ dependencies {
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
-
-gradlebuildJava {
-    moduleType = ModuleType.WORKER
-}
-

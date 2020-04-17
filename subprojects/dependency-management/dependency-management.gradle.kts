@@ -16,10 +16,9 @@
 
 import accessors.java
 import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `java-library`
+    gradlebuild.distribution.`core-api-java`
 }
 
 dependencies {
@@ -122,10 +121,6 @@ dependencies {
         because("Groovy compiler bug leaks internals")
     }
     crossVersionTestRuntimeOnly(project(":maven"))
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
 }
 
 testFilesCleanup {

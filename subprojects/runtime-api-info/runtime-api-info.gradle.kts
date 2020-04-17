@@ -14,22 +14,14 @@
  * limitations under the License.
  */
 import org.gradle.api.internal.runtimeshaded.PackageListGenerator
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
+
+plugins {
+    gradlebuild.distribution.`core-implementation-java`
+}
 
 val runtimeShadedPath = "$buildDir/runtime-api-info"
 
 configurations {
-    create("gradleApiRuntime") {
-        isVisible = false
-        isCanBeResolved = true
-        isCanBeConsumed = false
-        attributes {
-            attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements.JAR))
-            attribute(Attribute.of("org.gradle.api", String::class.java), "runtime")
-        }
-    }
     create("testKitPackages") {
         isVisible = false
         isCanBeResolved = true
@@ -43,16 +35,11 @@ configurations {
 }
 
 dependencies {
-    "gradleApiRuntime"(project(":"))
     "testKitPackages"(project(":testKit"))
 }
 
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
-}
-
 val generateGradleApiPackageList by tasks.registering(PackageListGenerator::class) {
-    classpath = configurations["gradleApiRuntime"]
+    classpath = configurations["gradleApi"]
     outputFile = file("$runtimeShadedPath/api-relocated.txt")
 }
 

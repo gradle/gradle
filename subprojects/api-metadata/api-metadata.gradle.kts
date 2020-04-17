@@ -1,12 +1,7 @@
 import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
-
 plugins {
+    gradlebuild.distribution.`core-implementation-java`
     gradlebuild.`api-metadata`
-}
-
-gradlebuildJava {
-    moduleType = ModuleType.INTERNAL
 }
 
 apiMetadata {

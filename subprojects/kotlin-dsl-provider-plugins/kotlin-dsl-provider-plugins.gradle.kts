@@ -15,18 +15,12 @@
  */
 
 import build.futureKotlin
-import org.gradle.gradlebuild.unittestandcompile.ModuleType
 
 plugins {
-    `kotlin-dsl-module`
+    gradlebuild.distribution.`plugins-implementation-kotlin`
 }
 
 description = "Kotlin DSL Provider Plugins"
-
-gradlebuildJava {
-    moduleType = ModuleType.CORE
-}
-
 
 dependencies {
     implementation(project(":kotlinDsl"))

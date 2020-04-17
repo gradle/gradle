@@ -24,7 +24,7 @@
  * Ideally we wound be able to say "lock down all the versions of the dependencies resolved for the distribution"
  */
 plugins {
-    `java-platform`
+    gradlebuild.platform
 }
 dependencies {
     constraints {
