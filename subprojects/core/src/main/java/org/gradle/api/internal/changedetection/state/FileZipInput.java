@@ -30,8 +30,11 @@ import java.util.Iterator;
 import java.util.function.Supplier;
 import java.util.zip.ZipFile;
 
-class FileZipInput implements ZipInput {
+public class FileZipInput implements ZipInput {
 
+    /**
+     * Creates a stream of the entries in the given zip file. Caller is responsible for closing the return value.
+     */
     public static ZipInput create(File file) {
         if (isZipFileSafeToUse()) {
             return new FileZipInput(file);

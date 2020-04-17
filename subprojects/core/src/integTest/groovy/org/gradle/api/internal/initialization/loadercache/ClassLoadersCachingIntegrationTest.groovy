@@ -343,6 +343,9 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
     def "changing non root buildsript classpath does affect child projects"() {
         when:
         settingsFile << "include 'a', 'a:a'"
+        createJarWithProperties("thing.jar")
+        createJarWithProperties("a/thing.jar")
+        createJarWithProperties("a/a/thing.jar")
         addIsCachedCheck()
         addIsCachedCheck("a")
         addIsCachedCheck("a/a")
@@ -414,7 +417,6 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
 
         then:
         isCached("a")
-        isNotCached("a:a") // cached in cross-build cache
-
+        isNotCached("a:a")
     }
 }

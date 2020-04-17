@@ -164,7 +164,6 @@ samples {
             target = "application"
         }
 
-
         groovyApplication
         groovyListLibrary
         groovyUtilitiesLibrary
@@ -184,6 +183,8 @@ samples {
         kotlinApplication
         kotlinListLibrary
         kotlinUtilitiesLibrary
+
+        projectInfoPlugin
     }
 
     publishedSamples {
@@ -417,6 +418,14 @@ samples {
             category = "Build organization"
             common {
                 from(templates.gradlePluginInJava)
+            }
+        }
+
+        taskWithArguments {
+            description = "Pass arguments to a custom task"
+            category = "Plugins"
+            common {
+                from(templates.projectInfoPlugin)
             }
         }
     }

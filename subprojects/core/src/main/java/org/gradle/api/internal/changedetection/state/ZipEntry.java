@@ -26,5 +26,8 @@ public interface ZipEntry {
 
     InputStream getInputStream();
 
+    /**
+     * The size of the content in bytes, or -1 if not known.
+     */
     int size();
 }

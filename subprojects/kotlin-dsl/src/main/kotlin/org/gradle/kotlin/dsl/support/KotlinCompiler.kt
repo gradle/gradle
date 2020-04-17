@@ -16,9 +16,11 @@
 
 package org.gradle.kotlin.dsl.support
 
+import org.gradle.internal.SystemProperties
 import org.gradle.internal.io.NullOutputStream
 
 import org.jetbrains.kotlin.cli.common.CLIConfigurationKeys
+import org.jetbrains.kotlin.cli.common.KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY
 
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoot
 import org.jetbrains.kotlin.cli.common.config.addKotlinSourceRoots
@@ -153,25 +155,32 @@ fun compileKotlinScriptModuleTo(
     classPath: Iterable<File>,
     messageCollector: LoggingMessageCollector
 ) {
-    withRootDisposable {
+    // Don't keep the Kotlin compiler environment alive as it might hold onto stale data.
+    // See https://youtrack.jetbrains.com/issue/KT-35394
+    SystemProperties.getInstance().withSystemProperty(
+        KOTLIN_COMPILER_ENVIRONMENT_KEEPALIVE_PROPERTY,
+        "false"
+    ) {
+        withRootDisposable {
 
-        withCompilationExceptionHandler(messageCollector) {
+            withCompilationExceptionHandler(messageCollector) {
 
-            val configuration = compilerConfigurationFor(messageCollector).apply {
-                put(RETAIN_OUTPUT_IN_MEMORY, false)
-                put(OUTPUT_DIRECTORY, outputDirectory)
-                setModuleName(moduleName)
-                addScriptingCompilerComponents()
-                addScriptDefinition(scriptDef)
-                scriptFiles.forEach { addKotlinSourceRoot(it) }
-                classPath.forEach { addJvmClasspathRoot(it) }
+                val configuration = compilerConfigurationFor(messageCollector).apply {
+                    put(RETAIN_OUTPUT_IN_MEMORY, false)
+                    put(OUTPUT_DIRECTORY, outputDirectory)
+                    setModuleName(moduleName)
+                    addScriptingCompilerComponents()
+                    addScriptDefinition(scriptDef)
+                    scriptFiles.forEach { addKotlinSourceRoot(it) }
+                    classPath.forEach { addJvmClasspathRoot(it) }
+                }
+                val environment = kotlinCoreEnvironmentFor(configuration).apply {
+                    HasImplicitReceiverCompilerPlugin.apply(project)
+                }
+
+                compileBunchOfSources(environment)
+                    || throw ScriptCompilationException(messageCollector.errors)
             }
-            val environment = kotlinCoreEnvironmentFor(configuration).apply {
-                HasImplicitReceiverCompilerPlugin.apply(project)
-            }
-
-            compileBunchOfSources(environment)
-                || throw ScriptCompilationException(messageCollector.errors)
         }
     }
 }
