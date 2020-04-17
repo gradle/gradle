@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
@@ -30,6 +31,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.jetbrains.annotations.NotNull;
@@ -65,15 +67,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     @Override
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
 
-        Class<P> parametersType = extractParametersTypeOf(valueSourceType);
-        P parameters = parametersType != null
-            ? paramsInstantiator.newInstance(parametersType)
-            : null;
+        try {
+            Class<P> parametersType = extractParametersTypeOf(valueSourceType);
+            P parameters = parametersType != null
+                ? paramsInstantiator.newInstance(parametersType)
+                : null;
 
-        // TODO - consider deferring configuration
-        configureParameters(parameters, configureAction);
+            // TODO - consider deferring configuration
+            configureParameters(parameters, configureAction);
 
-        return instantiateValueSourceProvider(valueSourceType, parametersType, parameters);
+            return instantiateValueSourceProvider(valueSourceType, parametersType, parameters);
+        } catch (GradleException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GradleException(couldNotCreateProviderOf(valueSourceType), e);
+        }
     }
 
     @Override
@@ -121,6 +129,14 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             parameters
         );
         configureAction.execute(valueSourceSpec);
+    }
+
+    private String couldNotCreateProviderOf(Class<?> valueSourceType) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Could not create provider for value source ");
+        formatter.appendType(valueSourceType);
+        formatter.append(".");
+        return formatter.toString();
     }
 
     @NonExtensible

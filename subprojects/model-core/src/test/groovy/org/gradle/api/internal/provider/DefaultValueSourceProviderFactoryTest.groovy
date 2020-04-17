@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.GradleException
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
@@ -86,13 +87,25 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         ((Managed) provider).isImmutable()
     }
 
-    def "value source with no parameters"() {
+    def "parameterless value source can be used"() {
 
         given:
         def provider = createProviderOf(NoParameters) {}
 
         expect:
         provider.get() == 42
+    }
+
+    def "parameterless value source parameters cannot be configured"() {
+        when:
+        createProviderOf(NoParameters) {
+            it.parameters { }
+        }
+
+        then:
+        def e = thrown(GradleException)
+        e.message == 'Could not create provider for value source DefaultValueSourceProviderFactoryTest.NoParameters.'
+        e.cause.message == 'Value is null'
     }
 
     static abstract class EchoValueSource implements ValueSource<String, Parameters> {
