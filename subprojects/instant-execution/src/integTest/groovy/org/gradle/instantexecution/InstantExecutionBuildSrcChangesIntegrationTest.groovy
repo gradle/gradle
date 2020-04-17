@@ -70,6 +70,66 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         isKotlinBuildSrc = language == BuildSrcLanguage.KOTLIN
     }
 
+    @Unroll
+    def "invalidates cache upon change to #inputName used by buildSrc"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        file("buildSrc/build.gradle.kts").text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class IsCi : ValueSource<String, ValueSourceParameters.None> {
+                override fun obtain(): String? = System.getProperty("ci")
+            }
+
+            val isCi = $inputExpression
+            tasks {
+                if (isCi.isPresent) {
+                    register("run") {
+                        doLast { println("ON CI") }
+                    }
+                } else {
+                    register("run") {
+                        doLast { println("NOT CI") }
+                    }
+                }
+                assemble {
+                    dependsOn("run")
+                }
+            }
+        """
+        buildFile << """
+            task assemble
+        """
+
+        when:
+        instantRun "assemble"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "assemble"
+
+        then: "buildSrc doesn't build"
+        output.count("CI") == 0
+        instant.assertStateLoaded()
+
+        when:
+        instantRun "assemble", "-Dci=true"
+
+        then:
+        output.count("ON CI") == 1
+        instant.assertStateStored()
+
+        where:
+        inputName             | inputExpression
+        'custom value source' | 'providers.of(IsCi::class) {}'
+        'system property'     | 'providers.systemProperty("ci")'
+    }
+
     private instantRun() {
         instantRun TASK_NAME
     }
