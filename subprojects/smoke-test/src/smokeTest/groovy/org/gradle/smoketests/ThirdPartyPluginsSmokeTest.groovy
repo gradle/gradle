@@ -249,6 +249,7 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             plugins {
+                id "application"
                 id "org.springframework.boot" version "${TestedVersions.springBoot}"
             }
         """.stripIndent()
@@ -262,13 +263,24 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
         """.stripIndent()
 
         when:
-        def result = runner('build').build()
-        println(result.output)
+        def buildResult = runner('build').build()
 
         then:
-        result.task(':buildEnvironment').outcome == SUCCESS
+        buildResult.task(':build').outcome == SUCCESS
 
-        expectNoDeprecationWarnings(result)
+        // https://github.com/spring-projects/spring-boot/issues/20759
+        expectDeprecationWarnings(buildResult,
+            "Property 'mainClassName' is annotated with @Optional that is not allowed for @Internal properties. " +
+                "This behaviour has been deprecated and is scheduled to be removed in Gradle 7.0. " +
+                "See https://docs.gradle.org/${GradleVersion.current().version}/userguide/more_about_tasks.html#sec:up_to_date_checks for more details.")
+
+        when:
+        def runResult = runner('bootRun').build()
+
+        then:
+        runResult.task(':bootRun').outcome == SUCCESS
+
+        expectNoDeprecationWarnings(runResult)
     }
 
     @Issue('https://plugins.gradle.org/plugin/com.bmuschko.tomcat')
