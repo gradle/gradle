@@ -44,6 +44,10 @@ dependencies {
     testFixturesImplementation(project(":baseServices"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

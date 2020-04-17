@@ -149,6 +149,10 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
 tasks.test {
     setForkEvery(200)
 }

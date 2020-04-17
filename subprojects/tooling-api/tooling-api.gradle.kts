@@ -90,6 +90,10 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/tooling/**"))
+}
+
 apply(from = "buildship.gradle")
 
 tasks.withType<IntegrationTest>().configureEach {

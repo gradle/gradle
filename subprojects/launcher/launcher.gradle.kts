@@ -3,7 +3,6 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 dependencies {

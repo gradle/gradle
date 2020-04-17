@@ -50,7 +50,6 @@ open class ClassyclePlugin : Plugin<Project> {
             )
             classycle { dependsOn(sourceSetTask) }
             tasks.named("check") { dependsOn(sourceSetTask) }
-            tasks.named("codeQuality") { dependsOn(sourceSetTask) }
         }
     }
 }

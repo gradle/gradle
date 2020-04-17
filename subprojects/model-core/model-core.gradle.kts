@@ -17,7 +17,6 @@
 import build.kotlinVersion
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 dependencies {

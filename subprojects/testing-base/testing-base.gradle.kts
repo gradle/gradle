@@ -60,3 +60,7 @@ dependencies {
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
+}

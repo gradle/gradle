@@ -75,6 +75,12 @@ dependencies {
     testFixturesImplementation(project(":dependencyManagement"))
 }
 
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/api/publication/maven/internal/**",
+        "org/gradle/api/artifacts/maven/**"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

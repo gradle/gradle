@@ -46,3 +46,7 @@ dependencies {
     testImplementation(project(":kotlinDslTestFixtures"))
     testImplementation(testLibrary("mockito_kotlin2"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/kotlin/dsl/provider/plugins/precompiled/tasks/**"))
+}

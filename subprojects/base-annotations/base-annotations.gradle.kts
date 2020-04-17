@@ -17,7 +17,6 @@ plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
     gradlebuild.`strict-compile`
-    gradlebuild.classycle
 }
 
 description = "Common shared annotations"

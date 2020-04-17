@@ -16,7 +16,6 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
-    gradlebuild.classycle
     gradlebuild.`strict-compile`
 }
 

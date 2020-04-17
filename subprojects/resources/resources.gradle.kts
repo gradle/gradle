@@ -1,6 +1,5 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 description = "A set of general-purpose resource abstractions"

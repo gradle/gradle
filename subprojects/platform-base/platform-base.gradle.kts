@@ -33,3 +33,7 @@ dependencies {
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesApi(testFixtures(project(":diagnostics")))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}

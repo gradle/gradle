@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 description = "Utilities for parsing command line arguments"

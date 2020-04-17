@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`core-api-kotlin`
-    gradlebuild.classycle
     gradlebuild.`strict-compile`
 }
 

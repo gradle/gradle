@@ -86,6 +86,10 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
 val wrapperJarDir = file("$buildDir/generated-resources/wrapper-jar")
 evaluationDependsOn(":wrapper")
 val wrapperJar by tasks.registering(Copy::class) {

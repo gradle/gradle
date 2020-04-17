@@ -15,8 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`core-api-java`
-    // Some cycles have been inherited from the time these classes were in :core
-    // gradlebuild.classycle
 }
 
 dependencies {
@@ -56,4 +54,9 @@ dependencies {
 
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+}
+
+classycle {
+    // Some cycles have been inherited from the time these classes were in :core
+    excludePatterns.set(listOf("org/gradle/api/internal/file/collections/"))
 }

@@ -19,7 +19,6 @@ plugins {
     // @SuppressWarnings("deprecation"), used in org.gradle.internal.resource.transport.http.HttpClientHelper.AutoClosedHttpResponse
     // in the context of a delegation pattern
     // gradlebuild.`strict-compile`
-    gradlebuild.classycle
 }
 
 dependencies {

@@ -64,6 +64,13 @@ dependencies {
 
 }
 
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/api/reporting/model/internal/*",
+        "org/gradle/api/reporting/dependencies/internal/*",
+        "org/gradle/api/plugins/internal/*"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

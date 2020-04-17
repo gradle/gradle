@@ -40,6 +40,10 @@ dependencies {
     add("reports", "jquery:jquery.min:3.4.1@js")
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/reporting/internal/**"))
+}
+
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val reportResources by tasks.registering(Copy::class) {
