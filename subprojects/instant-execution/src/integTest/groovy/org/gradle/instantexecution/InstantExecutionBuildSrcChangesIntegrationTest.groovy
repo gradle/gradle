@@ -118,16 +118,23 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         instant.assertStateLoaded()
 
         when:
-        instantRun "assemble", "-Dci=true"
+        if (inputName == 'gradle.properties') {
+            file('gradle.properties').text = 'ci=true'
+            instantRun "assemble"
+        } else {
+            instantRun "assemble", inputArgument
+        }
 
         then:
         output.count("ON CI") == 1
         instant.assertStateStored()
 
         where:
-        inputName             | inputExpression
-        'custom value source' | 'providers.of(IsCi::class) {}'
-        'system property'     | 'providers.systemProperty("ci")'
+        inputName             | inputExpression                  | inputArgument
+        'custom value source' | 'providers.of(IsCi::class) {}'   | '-Dci=true'
+        'system property'     | 'providers.systemProperty("ci")' | '-Dci=true'
+        'Gradle property'     | 'providers.gradleProperty("ci")' | '-Pci=true'
+        'gradle.properties'   | 'providers.gradleProperty("ci")' | ''
     }
 
     private instantRun() {
