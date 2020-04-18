@@ -80,7 +80,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
             import org.gradle.api.provider.*
 
             abstract class IsCi : ValueSource<String, ValueSourceParameters.None> {
-                override fun obtain(): String? = System.getProperty("ci")
+                override fun obtain(): String? = System.getProperty("test_is_ci")
             }
 
             val isCi = $inputExpression
@@ -119,7 +119,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
         when:
         if (inputName == 'gradle.properties') {
-            file('gradle.properties').text = 'ci=true'
+            file('gradle.properties').text = 'test_is_ci=true'
             instantRun "assemble"
         } else {
             instantRun "assemble", inputArgument
@@ -130,11 +130,11 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
         instant.assertStateStored()
 
         where:
-        inputName             | inputExpression                  | inputArgument
-        'custom value source' | 'providers.of(IsCi::class) {}'   | '-Dci=true'
-        'system property'     | 'providers.systemProperty("ci")' | '-Dci=true'
-        'Gradle property'     | 'providers.gradleProperty("ci")' | '-Pci=true'
-        'gradle.properties'   | 'providers.gradleProperty("ci")' | ''
+        inputName             | inputExpression                          | inputArgument
+        'custom value source' | 'providers.of(IsCi::class) {}'           | '-Dtest_is_ci=true'
+        'system property'     | 'providers.systemProperty("test_is_ci")' | '-Dtest_is_ci=true'
+        'Gradle property'     | 'providers.gradleProperty("test_is_ci")' | '-Ptest_is_ci=true'
+        'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''
     }
 
     private instantRun() {
