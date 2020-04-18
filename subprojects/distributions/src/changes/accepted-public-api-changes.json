@@ -1,12 +1,3 @@
 {
-    "acceptedApiChanges": [
-        {
-            "type": "org.gradle.api.tasks.JavaExec",
-            "member": "Method org.gradle.api.tasks.JavaExec.getProviderFactory()",
-            "acceptation": "[WIP]",
-            "changes": [
-                "Method has been removed"
-            ]
-        }
-    ]
+    "acceptedApiChanges": []
 }
