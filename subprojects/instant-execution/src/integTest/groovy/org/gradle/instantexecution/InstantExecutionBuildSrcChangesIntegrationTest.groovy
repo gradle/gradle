@@ -22,6 +22,8 @@ import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Unroll
 
+import static org.junit.Assume.assumeFalse
+
 class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     private static final String TASK_NAME = "greet"
@@ -72,6 +74,8 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
     @Unroll
     def "invalidates cache upon change to #inputName used by buildSrc"() {
+
+        assumeFalse('wip', inputName == 'gradle.properties')
 
         given:
         def instant = newInstantExecutionFixture()
