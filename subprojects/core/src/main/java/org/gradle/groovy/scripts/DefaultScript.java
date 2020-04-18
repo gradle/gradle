@@ -189,6 +189,11 @@ public abstract class DefaultScript extends BasicScript {
     }
 
     @Override
+    public FileTree zipTree(Map<String, ?> args) {
+        return fileOperations.zipTree(args);
+    }
+
+    @Override
     public FileTree tarTree(Object tarPath) {
         return fileOperations.tarTree(tarPath);
     }
