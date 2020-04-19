@@ -23,7 +23,6 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
@@ -117,11 +116,11 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
-        this.mainModule = objectFactory.property(String.class);
-        this.mainClass = objectFactory.property(String.class);
-        this.classpath = getFileCollectionFactory().configurableFiles("classpath");
-        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        execResult = getObjectFactory().property(ExecResult.class);
+        mainModule = objectFactory.property(String.class);
+        mainClass = objectFactory.property(String.class);
+        classpath = objectFactory.fileCollection();
+        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        execResult = objectFactory.property(ExecResult.class);
 
         javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
         javaExecHandleBuilder.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
@@ -147,11 +146,6 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     @Inject
     protected DslExecActionFactory getDslExecActionFactory() {
-        throw new UnsupportedOperationException();
-    }
-
-    @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
         throw new UnsupportedOperationException();
     }
 

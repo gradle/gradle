@@ -293,6 +293,66 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         files.empty
     }
 
+    def canAppendContentsToEmptyCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1, file2)
+
+        when:
+        collection.from = collection + src
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+    }
+
+    def canAppendContentsToCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file2)
+
+        when:
+        collection.from = "src1"
+        collection.from = collection + src
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src1") >> file1
+        files as List == [file1, file2]
+    }
+
+    def canPrependContentsToEmptyCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1, file2)
+
+        when:
+        collection.from = src + collection
+        def files = collection.files
+
+        then:
+        files as List == [file1, file2]
+    }
+
+    def canPrependContentsToCollectionUsingPlusOperator() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src = containing(file1)
+
+        when:
+        collection.from = "src2"
+        collection.from = src + collection
+        def files = collection.files
+
+        then:
+        _ * fileResolver.resolve("src2") >> file2
+        files as List == [file1, file2]
+    }
+
     def elementsProviderTracksChangesToContent() {
         given:
         def file1 = new File("1")

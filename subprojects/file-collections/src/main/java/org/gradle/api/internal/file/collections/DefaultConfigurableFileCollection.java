@@ -17,9 +17,12 @@
 package org.gradle.api.internal.file.collections;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.CompositeFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
+import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -140,7 +143,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Iterable<?> path) {
         if (assertMutable()) {
-            value = value.setFrom(resolver, path);
+            value = value.setFrom(this, resolver, path);
         }
     }
 
@@ -234,7 +237,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         boolean remove(Object source);
 
-        ValueCollector setFrom(PathToFileResolver resolver, Iterable<?> path);
+        ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path);
 
         ValueCollector setFrom(PathToFileResolver resolver, Object[] paths);
 
@@ -256,8 +259,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(PathToFileResolver resolver, Iterable<?> path) {
-            return new UnresolvedItemsCollector(resolver, path);
+        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path) {
+            return new UnresolvedItemsCollector(owner, resolver, path);
         }
 
         @Override
@@ -275,9 +278,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         private final PathToFileResolver resolver;
         private final Set<Object> items = new LinkedHashSet<>();
 
-        public UnresolvedItemsCollector(PathToFileResolver resolver, Iterable<?> item) {
+        public UnresolvedItemsCollector(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> item) {
             this.resolver = resolver;
-            items.add(item);
+            setFrom(owner, resolver, item);
         }
 
         public UnresolvedItemsCollector(PathToFileResolver resolver, Object[] item) {
@@ -304,9 +307,23 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(PathToFileResolver resolver, Iterable<?> path) {
+        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path) {
+            ImmutableSet<Object> oldItems = ImmutableSet.copyOf(items);
             items.clear();
-            items.add(path);
+            if (path instanceof UnionFileCollection) {
+                // Unpack to deal with DSL syntax: collection += someFiles
+                Set<FileCollection> sources = ((UnionFileCollection) path).getSources();
+                for (FileCollection source : sources) {
+                    if (source != owner) {
+                        items.add(source);
+                    } else {
+                        // else collection.contents = a + collection + b -> replace collection with its old elements
+                        items.addAll(oldItems);
+                    }
+                }
+            } else {
+                items.add(path);
+            }
             return this;
         }
 
@@ -342,7 +359,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector setFrom(PathToFileResolver resolver, Iterable<?> path) {
+        public ValueCollector setFrom(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, Iterable<?> path) {
             throw new UnsupportedOperationException("Should not be called");
         }
 
