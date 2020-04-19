@@ -143,6 +143,34 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         file("merge.txt").text == "one,two"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12832")
+    def "can use += convenience in Groovy DSL to add elements to file collection when property has legacy setter"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            class LegacyTask extends InputFilesTask {
+                void setInFiles(def c) {
+                    inFiles.from = c
+                }
+            }
+
+            def files1 = files('a.txt')
+            def files2 = files('b.txt')
+            task merge(type: LegacyTask) {
+                inFiles += files1
+                inFiles += files2
+                outFile = file("merge.txt")
+            }
+        """
+        file('a.txt').text = 'a'
+        file('b.txt').text = 'b'
+
+        when:
+        run("merge")
+
+        then:
+        file("merge.txt").text == 'a,b'
+    }
+
     def "can subtract the elements of another file collection"() {
         given:
         file('files/a/one.txt').createFile()
