@@ -88,6 +88,7 @@ class GradleBuildPerformanceTest extends Specification {
             }
         }
         runner.testGroup = 'gradle build'
+        runner.testClassName = getClass().getName()
     }
 
     def "help on the gradle build comparing the build"() {
