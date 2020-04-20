@@ -33,7 +33,7 @@ const val installPathProperty = "gradle_installPath"
 class InstallPlugin : Plugin<Project> {
     override fun apply(project: Project) {
         val extension = project.extensions.create("installation", InstallationExtension::class.java)
-        val installDir = project.layout.projectDirectory.dir(project.provider { project.findProperty(installPathProperty)?.toString() })
+        val installDir = project.rootProject.layout.projectDirectory.dir(project.provider { project.findProperty(installPathProperty)?.toString() })
         extension.installDirectory.set(installDir)
 
         val installTasks = project.tasks.withType(Install::class.java)
