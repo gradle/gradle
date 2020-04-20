@@ -134,9 +134,6 @@ public class KotlinCompatibilityTest {
     public static final ArchRule consistent_nullable_annotations_on_internal_api = classes().that(are(not(gradlePublicApi()))).should(haveAccessorsWithSymmetricalNullableAnnotations(IGNORED_INTERNAL_API_PROPERTIES));
 
     private static ArchCondition<JavaClass> haveAccessorsWithSymmetricalNullableAnnotations(final Multimap<String, String> exclusions) {
-        if (true) {
-            throw new RuntimeException("This is flaky");
-        }
         return new ArchCondition<JavaClass>("have accessors with symmetrical @Nullable annotations") {
             @Override
             public void check(JavaClass item, ConditionEvents events) {
