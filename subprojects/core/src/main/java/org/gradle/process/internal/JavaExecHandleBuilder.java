@@ -343,6 +343,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
 
     @Override
     public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
+        // we need to create a new file collection container to avoid cycles. See: https://github.com/gradle/gradle/issues/8755
         ConfigurableFileCollection newClasspath = fileCollectionFactory.configurableFiles("classpath");
         newClasspath.setFrom(classpath);
         this.classpath = newClasspath;

@@ -19,6 +19,7 @@ package org.gradle.api.file
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import spock.lang.Ignore
 import spock.lang.Issue
 import spock.lang.Unroll
 
@@ -158,6 +159,35 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
             task merge(type: LegacyTask) {
                 inFiles += files1
                 inFiles += files2
+                outFile = file("merge.txt")
+            }
+        """
+        file('a.txt').text = 'a'
+        file('b.txt').text = 'b'
+
+        when:
+        run("merge")
+
+        then:
+        file("merge.txt").text == 'a,b'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12832")
+    @Ignore // This currently causes a stack overflow error
+    def "can compose and filter a file collection that includes the collection it replaces"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            class LegacyTask extends InputFilesTask {
+                void setInFiles(def c) {
+                    inFiles.from = c
+                }
+            }
+
+            def files1 = files('a.txt')
+            def files2 = files('b.txt')
+            task merge(type: LegacyTask) {
+                inFiles = files1
+                inFiles = files(inFiles, files2).filter { f -> f.name.endsWith('.txt') }
                 outFile = file("merge.txt")
             }
         """
