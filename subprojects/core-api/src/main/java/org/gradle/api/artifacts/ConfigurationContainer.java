@@ -49,7 +49,9 @@ import org.gradle.internal.HasInternalProtocol;
  * An example showing how to refer to a given configuration by name
  * in order to get hold of all dependencies (e.g. jars, but only)
  * <pre class='autoTested'>
- *   apply plugin: 'java' //so that I can use 'implementation', 'compileClasspath' configuration
+ *   plugins {
+ *       id 'java' //so that I can use 'implementation', 'compileClasspath' configuration
+ *   }
  *
  *   dependencies {
  *       implementation 'org.slf4j:slf4j-api:1.7.26'
@@ -65,7 +67,9 @@ import org.gradle.internal.HasInternalProtocol;
  *
  * An example showing how to declare and configure configurations
  * <pre class='autoTested'>
- * apply plugin: 'java' //so that I can use 'implementation', 'testImplementation' configurations
+ * plugins {
+ *     id 'java' // so that I can use 'implementation', 'testImplementation' configurations
+ * }
  *
  * configurations {
  *   //adding a configuration:

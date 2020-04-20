@@ -38,7 +38,9 @@ import java.util.regex.Pattern;
  * <p>Example usage:
  *
  * <pre class='autoTested'>
- *     apply plugin: "scala"
+ *     plugins {
+ *         id 'scala'
+ *     }
  *
  *     repositories {
  *         mavenCentral()

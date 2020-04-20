@@ -40,7 +40,9 @@ public abstract class JavaPluginConvention {
      * is configured to exclude some package from compilation.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java'
+     * plugins {
+     *     id 'java'
+     * }
      *
      * sourceSets {
      *   main {

@@ -26,7 +26,9 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  * <p>A C source set contains a set of source files, together with an optional set of exported header files.</p>
  *
  * <pre class='autoTested'>
- * apply plugin: "c"
+ * plugins {
+ *     id 'c'
+ * }
  *
  * model {
  *     components {

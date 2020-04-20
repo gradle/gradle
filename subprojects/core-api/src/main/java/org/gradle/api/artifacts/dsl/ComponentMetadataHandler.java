@@ -33,7 +33,9 @@ import org.gradle.api.artifacts.ComponentMetadataRule;
  *
  * <p>Example shows a basic way of removing certain transitive dependencies from one of our dependencies.</p>
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * repositories {
  *     mavenCentral()
