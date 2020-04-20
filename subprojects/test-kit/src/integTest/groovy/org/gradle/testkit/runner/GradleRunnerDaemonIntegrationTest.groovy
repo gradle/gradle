@@ -76,6 +76,7 @@ class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest 
             .usingProjectDirectory(testDirectory)
             .withGradleUserHomeDir(testKitDir)
             .withDaemonBaseDir(defaultDaemonDir) // simulate default, our fixtures deviate from the default
+            .withWarningMode(null)
             .run()
 
         then:
