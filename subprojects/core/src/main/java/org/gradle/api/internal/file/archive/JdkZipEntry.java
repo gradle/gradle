@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.file.archive;
 
+import com.google.common.io.ByteStreams;
+
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.function.Supplier;
 
@@ -37,6 +40,18 @@ class JdkZipEntry implements ZipEntry {
     @Override
     public String getName() {
         return entry.getName();
+    }
+
+    @Override
+    public byte[] getContent() throws IOException {
+        int size = size();
+        if (size >= 0) {
+            byte[] content = new byte[size];
+            ByteStreams.readFully(getInputStream(), content);
+            return content;
+        } else {
+            return ByteStreams.toByteArray(getInputStream());
+        }
     }
 
     @Override

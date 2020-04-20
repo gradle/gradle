@@ -1,5 +1,5 @@
 /*
- * Copyright 2019 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.changedetection.state;
+package org.gradle.api.internal.file.archive;
 
+import java.io.IOException;
 import java.io.InputStream;
 
 public interface ZipEntry {
@@ -24,6 +25,14 @@ public interface ZipEntry {
 
     String getName();
 
+    /**
+     * This method or {@link #getInputStream()} can be called at most once per entry.
+     */
+    byte[] getContent() throws IOException;
+
+    /**
+     * This method or {@link #getContent()} can be called at most once per entry.
+     */
     InputStream getInputStream();
 
     /**
