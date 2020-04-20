@@ -187,10 +187,14 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
     static class Runner extends AbstractMultiTestRunner {
 
-        private static final Map<Class<? extends Annotation>, TestKitFeature> TESTKIT_FEATURES = [
-            (InspectsExecutedTasks): TestKitFeature.CAPTURE_BUILD_RESULT_TASKS,
-            (InspectsBuildOutput): TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG,
-            (InjectsPluginClasspath): TestKitFeature.PLUGIN_CLASSPATH_INJECTION
+        private static final Map<Class<? extends Annotation>, GradleVersion> MINIMUM_VERSIONS_BY_ANNOTATIONS = [
+            (InspectsExecutedTasks): TestKitFeature.CAPTURE_BUILD_RESULT_TASKS.since,
+            (InspectsBuildOutput): TestKitFeature.CAPTURE_BUILD_RESULT_OUTPUT_IN_DEBUG.since,
+            (InjectsPluginClasspath): TestKitFeature.PLUGIN_CLASSPATH_INJECTION.since,
+            (CustomDaemonDirectory): CUSTOM_DAEMON_DIR_SUPPORT_VERSION,
+            (WithNoSourceTaskOutcome): NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION,
+            (CustomEnvironmentVariables): ENVIRONMENT_VARIABLES_SUPPORT_VERSION,
+            (InspectsGroupedOutput): INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION
         ]
 
         private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
@@ -218,11 +222,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             switch (version) {
                 case 'all':
                     crossVersion = true
-                    return [
-                        TestedGradleDistribution.forVersion(getMinCompatibleVersion()),
-                        TestedGradleDistribution.mostRecentFinalRelease(),
-                        TestedGradleDistribution.UNDER_DEVELOPMENT
-                    ] as SortedSet
+                    return (getMinCompatibleVersions().collect { TestedGradleDistribution.forVersion(it) } +
+                        TestedGradleDistribution.mostRecentFinalRelease() +
+                        TestedGradleDistribution.UNDER_DEVELOPMENT) as SortedSet
                 case 'current': return [
                     TestedGradleDistribution.UNDER_DEVELOPMENT
                 ] as Set
@@ -249,14 +251,23 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        private GradleVersion getMinCompatibleVersion() {
-            List<GradleVersion> testedFeatures = TESTKIT_FEATURES.keySet().findAll {
-                target.getAnnotation(it)
-            }.collect {
-                TESTKIT_FEATURES[it].since
+        private Set<GradleVersion> getMinCompatibleVersions() {
+
+            GradleVersion minSpecVersion = MINIMUM_VERSIONS_BY_ANNOTATIONS.keySet()
+                .findAll { annotation -> target.getAnnotation(annotation) }
+                .collect { MINIMUM_VERSIONS_BY_ANNOTATIONS[it] }
+                .max()
+                ?: MIN_TESTED_VERSION
+
+            Set<GradleVersion> minFeatureVersions = target.getDeclaredMethods().collect { feature ->
+                MINIMUM_VERSIONS_BY_ANNOTATIONS.keySet()
+                    .findAll { annotation -> feature.getAnnotation(annotation) }
+                    .collect { MINIMUM_VERSIONS_BY_ANNOTATIONS[it] }
+                    .max()
+                    ?: MIN_TESTED_VERSION
             }
 
-            !testedFeatures.empty ? testedFeatures.min() : MIN_TESTED_VERSION
+            return ((minFeatureVersions + minSpecVersion) as SortedSet).tailSet(MIN_TESTED_VERSION)
         }
 
         @Sortable(includes = ['gradleVersion'])
@@ -341,15 +352,15 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
                 def gradleVersion = testedGradleDistribution.gradleVersion
 
-                if (testDetails.getAnnotation(InjectsPluginClasspath) && gradleVersion < TESTKIT_FEATURES[InjectsPluginClasspath].since) {
+                if (testDetails.getAnnotation(InjectsPluginClasspath) && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InjectsPluginClasspath]) {
                     return false
                 }
 
-                if (testDetails.getAnnotation(InspectsBuildOutput) && debug && gradleVersion < TESTKIT_FEATURES[InspectsBuildOutput].since) {
+                if (testDetails.getAnnotation(InspectsBuildOutput) && debug && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InspectsBuildOutput]) {
                     return false
                 }
 
-                if (testDetails.getAnnotation(InspectsExecutedTasks) && gradleVersion < TESTKIT_FEATURES[InspectsExecutedTasks].since) {
+                if (testDetails.getAnnotation(InspectsExecutedTasks) && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InspectsExecutedTasks]) {
                     return false
                 }
 
