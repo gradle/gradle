@@ -72,7 +72,7 @@ public class TaskFactory implements ITaskFactory {
                 .nagUser();
             implType = DefaultTask.class;
         } else {
-            DeprecationLogger.deprecate("Registering a task with a subtype of AbstractTask")
+            DeprecationLogger.deprecate("Registering a task with a type that directly extends AbstractTask")
                 .willBecomeAnErrorInGradle7()
                 .withUpgradeGuideSection(6, "abstract_task_deprecated")
                 .nagUser();
