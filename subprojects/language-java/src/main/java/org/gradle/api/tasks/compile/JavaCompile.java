@@ -71,7 +71,9 @@ import java.util.concurrent.Callable;
  * Compiles Java source files.
  *
  * <pre class='autoTested'>
- *     apply plugin: 'java'
+ *     plugins {
+ *         id 'java'
+ *     }
  *
  *     tasks.withType(JavaCompile) {
  *         //enable compilation in a separate daemon process

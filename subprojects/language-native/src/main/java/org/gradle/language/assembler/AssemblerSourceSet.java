@@ -23,7 +23,9 @@ import org.gradle.model.Managed;
  * A set of assembly language sources.
  *
  * <pre class='autoTested'>
- * apply plugin: "assembler"
+ * plugins {
+ *     id 'assembler'
+ * }
  *
  * model {
  *     components {

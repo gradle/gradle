@@ -46,8 +46,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Typically you don't have to configure this model directly because Gradle configures it for you.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'idea'
+ * plugins {
+ *     id 'java'
+ *     id 'idea'
+ * }
  *
  * //for the sake of this example, let's introduce a 'performanceTestCompile' configuration
  * configurations {
@@ -118,8 +120,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Examples of advanced configuration:
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'idea'
+ * plugins {
+ *     id 'java'
+ *     id 'idea'
+ * }
  *
  * idea {
  *   module {
@@ -250,8 +254,10 @@ public class IdeaModule {
      * <p>
      * Example how to use scopes property to enable 'performanceTestCompile' dependencies in the output *.iml file:
      * <pre class='autoTested'>
-     * apply plugin: 'java'
-     * apply plugin: 'idea'
+     * plugins {
+     *     id 'java'
+     *     id 'idea'
+     * }
      *
      * configurations {
      *   performanceTestCompile

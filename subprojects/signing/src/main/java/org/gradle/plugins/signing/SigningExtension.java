@@ -538,7 +538,9 @@ public class SigningExtension {
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
      * <pre class='autoTestedWithDeprecations'>
-     * apply plugin: 'maven'
+     * plugins {
+     *     id 'maven'
+     * }
      *
      * uploadArchives {
      *   repositories {
@@ -591,7 +593,9 @@ public class SigningExtension {
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
      * <pre class='autoTestedWithDeprecations'>
-     * apply plugin: 'maven'
+     * plugins {
+     *     id 'maven'
+     * }
      *
      * uploadArchives {
      *   repositories {

@@ -64,8 +64,10 @@ import org.gradle.internal.HasInternalProtocol;
  * <h4>Example of publishing a java component with an added source jar and custom module description</h4>
  *
  * <pre class='autoTested'>
- * apply plugin: "java"
- * apply plugin: "ivy-publish"
+ * plugins {
+ *     id 'java'
+ *     id 'ivy-publish'
+ * }
  *
  * task sourceJar(type: Jar) {
  *   from sourceSets.main.allJava
@@ -131,8 +133,10 @@ public interface IvyPublication extends Publication {
      *
      * The following example demonstrates how to publish the 'java' component to a ivy repository.
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'ivy-publish'
+     * }
      *
      * publishing {
      *   publications {
@@ -152,8 +156,10 @@ public interface IvyPublication extends Publication {
      *
      * The following example demonstrates how to add a "testCompile" configuration, and a "testRuntime" configuration that extends it.
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'ivy-publish'
+     * }
      *
      * publishing {
      *   publications {
@@ -194,7 +200,9 @@ public interface IvyPublication extends Publication {
      *
      * The following example demonstrates the addition of various custom artifacts.
      * <pre class='autoTested'>
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'ivy-publish'
+     * }
      *
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "source"
@@ -229,7 +237,9 @@ public interface IvyPublication extends Publication {
      * This method also accepts the configure action as a closure argument, by type coercion.
      *
      * <pre class='autoTested'>
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'ivy-publish'
+     * }
      *
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "source"
@@ -274,8 +284,10 @@ public interface IvyPublication extends Publication {
      *
      * For example, to exclude the dependencies declared by a component and instead use a custom set of artifacts:
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'ivy-publish'
+     * }
      *
      * task sourceJar(type: Jar) {
      *   archiveClassifier = "source"
@@ -337,8 +349,10 @@ public interface IvyPublication extends Publication {
      *
      * For example, to use resolved versions for runtime dependencies:
      * <pre class='autoTested'>
-     * apply plugin: "java"
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'java'
+     *     id 'ivy-publish'
+     * }
      *
      * publishing {
      *   publications {

@@ -44,7 +44,9 @@ public interface PublishingExtension {
      * Configures the container of possible repositories to publish to.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'publishing'
+     * plugins {
+     *     id 'publishing'
+     * }
      *
      * publishing {
      *   repositories {
@@ -86,7 +88,9 @@ public interface PublishingExtension {
      * Actual publication implementations and the ability to create them are provided by different plugins. The “publishing” plugin itself does not provide any publication types.
      * For example, given that the 'maven-publish' plugin provides a {@link org.gradle.api.publish.maven.MavenPublication} type, you can create a publication like:
      * <pre class='autoTested'>
-     * apply plugin: 'maven-publish'
+     * plugins {
+     *     id 'maven-publish'
+     * }
      *
      * publishing {
      *   publications {

@@ -58,7 +58,9 @@ import java.util.Map;
  * Similar to {@link org.gradle.api.tasks.Exec}, but starts a JVM with the given classpath and application class.
  * </p>
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * task runApp(type: JavaExec) {
  *   classpath = sourceSets.main.runtimeClasspath

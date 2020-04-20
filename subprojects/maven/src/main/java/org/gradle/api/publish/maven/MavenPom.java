@@ -150,7 +150,9 @@ public interface MavenPom {
      * Allows configuration of the POM, after it has been generated according to the input data.
      *
      * <pre class='autoTested'>
-     * apply plugin: "maven-publish"
+     * plugins {
+     *     id 'maven-publish'
+     * }
      *
      * publishing {
      *   publications {

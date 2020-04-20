@@ -24,7 +24,9 @@ import org.gradle.api.DomainObjectSet;
  * Being a {@link DomainObjectSet}, a {@code MavenArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link MavenArtifact}s.
  *
  * <pre class='autoTested'>
- * apply plugin: 'maven-publish'
+ * plugins {
+ *     id 'maven-publish'
+ * }
  *
  * def publication = publishing.publications.create("name", MavenPublication)
  * def artifacts = publication.artifacts
