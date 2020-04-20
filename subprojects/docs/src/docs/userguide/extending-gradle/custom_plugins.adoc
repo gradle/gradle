@@ -307,6 +307,23 @@ include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuild
 include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="build.gradle.kts[]"]
 ====
 
+=== Applying external plugins in precompiled script plugins
+In order to apply an external plugin in a precompiled script plugin,
+it has to be added to the plugin project's implementation classpath in the plugin's build file.
+====
+include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+====
+
+It can then be applied in the precompiled script plugin.
+====
+include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+====
+
+The plugin version in this case is defined in the dependency declaration.
+
+This limitation will be removed in future versions of Gradle.
 
 [[sec:writing_tests_for_your_plugin]]
 == Writing tests for your plugin
