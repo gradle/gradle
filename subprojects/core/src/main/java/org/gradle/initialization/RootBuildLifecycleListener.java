@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal;
  *
  * A root build may contain zero or more nested builds, such as `buildSrc` or included builds.
  *
- * This listener type is available to session services up to global services.
+ * This listener type is available to services from build tree up to global services.
  */
 public interface RootBuildLifecycleListener {
     /**

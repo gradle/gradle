@@ -179,8 +179,12 @@ final class InstantExecutionProblemsFixture {
         HasInstantExecutionProblemsSpec spec
     ) {
         // assert !(result instanceof ExecutionFailure)
-        assertHasConsoleSummary(result.output, spec)
-        assertProblemsHtmlReport(result.output, rootDir, spec)
+        if (spec.hasProblems()) {
+            assertHasConsoleSummary(result.output, spec)
+            assertProblemsHtmlReport(result.output, rootDir, spec)
+        } else {
+            assertNoProblemsSummary(result.output)
+        }
     }
 
     HasInstantExecutionProblemsSpec newProblemsSpec(
@@ -419,6 +423,11 @@ class HasInstantExecutionProblemsSpec {
     HasInstantExecutionProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
         this.uniqueProblems.clear()
         this.uniqueProblems.addAll(uniqueProblems)
+        return this
+    }
+
+    HasInstantExecutionProblemsSpec withProblem(String problem) {
+        uniqueProblems.add(problem)
         return this
     }
 
