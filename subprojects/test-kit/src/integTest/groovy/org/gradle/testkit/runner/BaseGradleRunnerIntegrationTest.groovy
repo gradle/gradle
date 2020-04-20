@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
@@ -50,6 +51,7 @@ import org.junit.Rule
 import org.junit.runner.RunWith
 import spock.lang.Retry
 
+import javax.annotation.Nullable
 import java.lang.annotation.Annotation
 
 import static org.gradle.integtests.fixtures.RetryConditions.onIssueWithReleasedGradleVersion
@@ -122,7 +124,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static boolean isCompatibleVersion(String minCompatibleVersion) {
-        gradleVersion.baseVersion.compareTo(GradleVersion.version(minCompatibleVersion)) >= 0
+        gradleVersion.baseVersion >= GradleVersion.version(minCompatibleVersion)
     }
 
     String getReleasedGradleVersion() {
@@ -167,12 +169,12 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     static String determineMinimumVersionThatRunsOnCurrentJavaVersion(String desiredGradleVersion) {
         if (JavaVersion.current().isJava11Compatible()) {
             def compatibleVersion = GradleVersion.version("4.8.1") // see https://github.com/gradle/gradle/issues/4860
-            if (GradleVersion.version(desiredGradleVersion).compareTo(compatibleVersion) < 0) {
+            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
                 return compatibleVersion.version
             }
         } else if (JavaVersion.current().isJava9Compatible()) {
             def compatibleVersion = GradleVersion.version("4.3.1") // see https://github.com/gradle/gradle/issues/2992
-            if (GradleVersion.version(desiredGradleVersion).compareTo(compatibleVersion) < 0) {
+            if (GradleVersion.version(desiredGradleVersion) < compatibleVersion) {
                 return compatibleVersion.version
             }
         }
@@ -225,7 +227,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             }
         }
 
-        private void addExecutions(releasedDist, TestedGradleDistribution testedGradleDistribution) {
+        private void addExecutions(@Nullable GradleDistribution releasedDist, TestedGradleDistribution testedGradleDistribution) {
             if (releasedDist && !releasedDist.worksWith(Jvm.current())) {
                 add(new IgnoredGradleRunnerExecution(testedGradleDistribution, 'does not work with current JVM'))
             } else if (releasedDist && !releasedDist.isToolingApiTargetJvmSupported(Jvm.current().javaVersion)) {
@@ -327,30 +329,24 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             protected void before() {
                 super.before()
                 BaseGradleRunnerIntegrationTest.debug = debug
-                BaseGradleRunnerIntegrationTest.gradleVersion = testedGradleDistribution.gradleVersion
-                BaseGradleRunnerIntegrationTest.gradleProvider = testedGradleDistribution.gradleProvider
+                gradleVersion = testedGradleDistribution.gradleVersion
+                gradleProvider = testedGradleDistribution.gradleProvider
             }
 
             @Override
             protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
                 def gradleVersion = testedGradleDistribution.gradleVersion
 
-                if (testDetails.getAnnotation(InjectsPluginClasspath)) {
-                    if (gradleVersion < TESTKIT_FEATURES[InjectsPluginClasspath].since) {
-                        return false
-                    }
+                if (testDetails.getAnnotation(InjectsPluginClasspath) && gradleVersion < TESTKIT_FEATURES[InjectsPluginClasspath].since) {
+                    return false
                 }
 
-                if (testDetails.getAnnotation(InspectsBuildOutput)) {
-                    if (debug && gradleVersion < TESTKIT_FEATURES[InspectsBuildOutput].since) {
-                        return false
-                    }
+                if (testDetails.getAnnotation(InspectsBuildOutput) && debug && gradleVersion < TESTKIT_FEATURES[InspectsBuildOutput].since) {
+                    return false
                 }
 
-                if (testDetails.getAnnotation(InspectsExecutedTasks)) {
-                    if (gradleVersion < TESTKIT_FEATURES[InspectsExecutedTasks].since) {
-                        return false
-                    }
+                if (testDetails.getAnnotation(InspectsExecutedTasks) && gradleVersion < TESTKIT_FEATURES[InspectsExecutedTasks].since) {
+                    return false
                 }
 
                 if (testDetails.getAnnotation(NoDebug) && debug) {
@@ -361,15 +357,11 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     return false
                 }
 
-                if (testDetails.getAnnotation(CustomDaemonDirectory)) {
-                    if (gradleVersion < BaseGradleRunnerIntegrationTest.CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
-                        return false
-                    }
+                if (testDetails.getAnnotation(CustomDaemonDirectory) && gradleVersion < CUSTOM_DAEMON_DIR_SUPPORT_VERSION) {
+                    return false
                 }
-                if (testDetails.getAnnotation(WithNoSourceTaskOutcome)) {
-                    if (gradleVersion < BaseGradleRunnerIntegrationTest.NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION) {
-                        return false
-                    }
+                if (testDetails.getAnnotation(WithNoSourceTaskOutcome) && gradleVersion < NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION) {
+                    return false
                 }
 
                 true
