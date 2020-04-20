@@ -18,11 +18,13 @@ package org.gradle.testkit.runner
 
 import org.gradle.integtests.fixtures.executer.DaemonGradleExecuter
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.junit.Rule
 
 @NoDebug
+@LeaksFileHandles
 class GradleRunnerDaemonIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
     def setup() {
