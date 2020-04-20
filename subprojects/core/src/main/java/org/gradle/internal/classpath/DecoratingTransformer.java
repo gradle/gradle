@@ -49,10 +49,10 @@ public class DecoratingTransformer {
                 byte[] bytes = classWriter.toByteArray();
                 builder.put(entry.getName(), bytes);
             } else if (!entry.getName().equals("META-INF/MANIFEST.MF")) {
-                // Discard the manifest
-                // TODO - filter the manifest to remove digests for instrumented classes
                 builder.put(entry.getName(), entry.getContent());
             }
+            // Else - discard the manifest
+            // TODO - filter the manifest to remove digests for instrumented classes
         }));
     }
 

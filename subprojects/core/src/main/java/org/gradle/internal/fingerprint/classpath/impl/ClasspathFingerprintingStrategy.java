@@ -23,7 +23,6 @@ import org.gradle.api.internal.cache.StringInterner;
 import org.gradle.api.internal.changedetection.state.ResourceFilter;
 import org.gradle.api.internal.changedetection.state.ResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
-import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHasher;
 import org.gradle.api.internal.changedetection.state.ZipHasher;
 import org.gradle.internal.Factory;
 import org.gradle.internal.file.FileType;
@@ -85,7 +84,7 @@ public class ClasspathFingerprintingStrategy extends AbstractFingerprintingStrat
         this.zipHasherConfigurationHash = hasher.hash();
     }
 
-    public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, RuntimeClasspathResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    public static ClasspathFingerprintingStrategy runtimeClasspath(ResourceFilter classpathResourceFilter, ResourceHasher runtimeClasspathResourceHasher, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         return new ClasspathFingerprintingStrategy("CLASSPATH", USE_FILE_HASH, runtimeClasspathResourceHasher, classpathResourceFilter, cacheService, stringInterner);
     }
 

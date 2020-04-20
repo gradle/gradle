@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.state;
 
-import com.google.common.io.ByteStreams;
+import org.gradle.api.internal.file.archive.ZipEntry;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -67,13 +67,7 @@ public class AbiExtractingClasspathResourceHasher implements ResourceHasher {
         if (!isClassFile(zipEntry.getName())) {
             return null;
         }
-        byte[] content;
-        if (zipEntry.size() >= 0) {
-            content = new byte[zipEntry.size()];
-            ByteStreams.readFully(zipEntry.getInputStream(), content);
-        } else {
-            content = ByteStreams.toByteArray(zipEntry.getInputStream());
-        }
+        byte[] content = zipEntry.getContent();
         return hashClassBytes(content);
     }
 
