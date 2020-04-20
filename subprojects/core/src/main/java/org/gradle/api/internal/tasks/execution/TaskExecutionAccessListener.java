@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.execution;
 
-import org.gradle.api.Task;
+import org.gradle.api.internal.TaskInternal;
 
 
 public interface TaskExecutionAccessListener {
@@ -24,10 +24,10 @@ public interface TaskExecutionAccessListener {
     /**
      * Called when accessing the project during task execution.
      */
-    void onProjectAccess(String invocationDescription, Task task);
+    void onProjectAccess(String invocationDescription, TaskInternal task);
 
     /**
      * Called when accessing task dependencies during task execution.
      */
-    void onTaskDependenciesAccess(String invocationDescription, Task task);
+    void onTaskDependenciesAccess(String invocationDescription, TaskInternal task);
 }
