@@ -55,6 +55,11 @@ public class DefaultBuildOutputCleanupRegistry implements BuildOutputCleanupRegi
         return false;
     }
 
+    @Override
+    public Set<FileCollection> getRegisteredOutputs() {
+        return outputs;
+    }
+
     private Set<String> getResolvedPaths() {
         if (resolvedPaths == null) {
             doResolvePaths();

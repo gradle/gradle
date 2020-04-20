@@ -19,7 +19,7 @@ package org.gradle.integtests
 import groovy.transform.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.StaleOutputJavaProject
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -127,7 +127,7 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
 
     // We register the output directory before task execution and would have deleted output files at the end of configuration.
     @Issue("https://github.com/gradle/gradle/issues/821")
-    @ToBeFixedForInstantExecution
+    @UnsupportedWithInstantExecution
     def "production class files are removed even if output directory is reconfigured during execution phase"() {
         given:
         def javaProject = new StaleOutputJavaProject(testDirectory)
@@ -276,7 +276,6 @@ class StaleOutputHistoryLossIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/821")
-    @ToBeFixedForInstantExecution
     def "task history is deleted"() {
         def javaProject = new StaleOutputJavaProject(testDirectory)
         buildFile << "apply plugin: 'java'"

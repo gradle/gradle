@@ -17,7 +17,6 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 
@@ -41,7 +40,6 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
         executed(":build")
     }
 
-    @ToBeFixedForInstantExecution
     def "can build when source dir is removed"() {
         when:
         file("src/main/java/Thing.java") << "class Thing {}"
