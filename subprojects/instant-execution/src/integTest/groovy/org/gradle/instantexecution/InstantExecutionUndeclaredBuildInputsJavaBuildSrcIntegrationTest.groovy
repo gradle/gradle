@@ -16,51 +16,34 @@
 
 package org.gradle.instantexecution
 
-
+import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.Task
 
-class InstantExecutionUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-
-    def "plugin can use standard properties without declaring access"() {
+class InstantExecutionUndeclaredBuildInputsJavaBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
+    @Override
+    void pluginDefinition() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
+            import ${Action.name};
             import ${Project.name};
             import ${Plugin.name};
+            import ${Task.name};
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    System.out.println("$prop = " + System.getProperty("$prop"));
+                    String ci = System.getProperty("CI");
+                    System.out.println("apply CI = " + ci);
+                    project.getTasks().register("thing", t -> {
+                        t.doLast(new Action<Task>() {
+                            public void execute(Task t) {
+                                String ci2 = System.getProperty("CI");
+                                System.out.println("task CI = " + ci2);
+                            }
+                        });
+                    });
                 }
             }
         """
-        buildFile << """
-            apply plugin: SneakyPlugin
-        """
-        def fixture = newInstantExecutionFixture()
-
-        when:
-        instantRun()
-
-        then:
-        outputContains("$prop = ")
-
-        when:
-        instantRun()
-
-        then:
-        fixture.assertStateLoaded()
-        noExceptionThrown()
-
-        where:
-        prop << [
-            "os.name",
-            "os.version",
-            "java.version",
-            "java.vm.version",
-            "java.specification.version",
-            "line.separator",
-            "user.name",
-            "user.home"
-        ]
     }
 }
