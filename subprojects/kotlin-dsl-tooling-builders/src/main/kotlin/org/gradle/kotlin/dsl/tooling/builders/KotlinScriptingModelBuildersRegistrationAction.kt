@@ -33,8 +33,10 @@ class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
             register(KotlinDslScriptsModelBuilder)
             register(KotlinBuildScriptTemplateModelBuilder)
         }
-        project.tasks.apply {
-            register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+        if (project.parent == null) {
+            project.tasks.apply {
+                register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
+            }
         }
     }
 }
