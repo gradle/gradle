@@ -168,9 +168,8 @@ class GradleRunnerMechanicalFailureIntegrationTest extends BaseGradleRunnerInteg
 
         and:
         def output = OutputScrapingExecutionResult.from(t.message, "")
-        def taskHeader = gradleVersion >= GradleVersion.version("4.0") ? "> Task :helloWorld" : ":helloWorld"
+        def taskHeader = gradleVersion >= GradleVersion.version("4.0") ? "\n> Task :helloWorld" : ":helloWorld"
         output.normalizedOutput == """An error occurred executing build with args '${runner.arguments.join(' ')}' in directory '$testDirectory.canonicalPath'. Output before error:
-
 $taskHeader
 Hello world!
 """
