@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
+import org.gradle.testkit.runner.fixtures.InspectsGroupedOutput
+import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.FAILED
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
@@ -83,13 +85,16 @@ class GradleRunnerBuildFailureIntegrationTest extends BaseGradleRunnerIntegratio
     }
 
     @InspectsBuildOutput
+    @InspectsGroupedOutput
     @InspectsExecutedTasks
     def "exposes result when build is expected to fail but does not"() {
         given:
         buildScript helloWorldTask()
 
         when:
-        def runner = runner('helloWorld', '--warning-mode=none')
+        def runner = gradleVersion >= GradleVersion.version("4.5")
+            ? runner('helloWorld', '--warning-mode=none')
+            : runner('helloWorld')
         runner.buildAndFail()
 
         then:

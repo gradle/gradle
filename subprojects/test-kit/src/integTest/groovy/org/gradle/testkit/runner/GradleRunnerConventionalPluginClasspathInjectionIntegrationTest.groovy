@@ -19,6 +19,7 @@ package org.gradle.testkit.runner
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.PluginUnderTest
+import org.gradle.util.GradleVersion
 import org.gradle.util.UsesNativeServices
 
 import static org.gradle.testkit.runner.internal.PluginUnderTestMetadataReading.IMPLEMENTATION_CLASSPATH_PROP_KEY
@@ -56,7 +57,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
             |Plugin [id: 'com.company.helloworld'] was not found in any of the following sources:
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
-            |- Plugin Repositories (plugin dependency must include a version number for this source)
+            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
 
@@ -79,7 +80,7 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
             |
             |- Gradle Core Plugins (plugin is not in 'org.gradle' namespace)
             |- Gradle TestKit (classpath: ${explicitClasspath*.absolutePath.join(File.pathSeparator)})
-            |- Plugin Repositories (plugin dependency must include a version number for this source)
+            |- $pluginRepositoriesDisplayName (plugin dependency must include a version number for this source)
         """.stripMargin().trim())
     }
 
@@ -120,4 +121,9 @@ class GradleRunnerConventionalPluginClasspathInjectionIntegrationTest extends Ba
         t.message == "Plugin metadata file '${pluginUnderTest.metadataFile.toURI().toURL()}' does not contain expected property named '$IMPLEMENTATION_CLASSPATH_PROP_KEY'".toString()
     }
 
+    private static String getPluginRepositoriesDisplayName() {
+        return gradleVersion >= GradleVersion.version("4.4")
+            ? "Plugin Repositories"
+            : "Gradle Central Plugin Repository"
+    }
 }
