@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.scenario;
 
+import org.gradle.api.Incubating;
 import org.gradle.api.Named;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
@@ -24,6 +25,12 @@ import java.io.File;
 import java.util.function.Consumer;
 
 
+/**
+ * A step of a {@link GradleScenario}.
+ *
+ * @since 6.5
+ */
+@Incubating
 public interface GradleScenarioStep extends Named {
 
     GradleScenarioStep withRunnerCustomization(Consumer<GradleRunner> runner);

@@ -14,6 +14,11 @@
  * limitations under the License.
  */
 
+/**
+ * Support for executing scenarios of Gradle builds for the purpose of testing build logic.
+ *
+ * @see org.gradle.testkit.scenario.GradleScenario
+ */
 @NonNullApi
 package org.gradle.testkit.scenario;
 

@@ -16,6 +16,7 @@
 
 package org.gradle.testkit.scenario;
 
+import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.scenario.internal.DefaultGradleScenario;
 
@@ -24,6 +25,12 @@ import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
+/**
+ * Runs a scenario of several Gradle builds, allowing inspection of the outcome.
+ *
+ * @since 6.5
+ */
+@Incubating
 public abstract class GradleScenario {
 
     public static GradleScenario create() {

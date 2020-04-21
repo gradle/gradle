@@ -16,7 +16,15 @@
 
 package org.gradle.testkit.scenario;
 
+import org.gradle.api.Incubating;
 
+
+/**
+ * Builder for steps of a {@link GradleScenario}.
+ *
+ * @since 6.5
+ */
+@Incubating
 public interface GradleScenarioSteps {
 
     GradleScenarioStep named(String name);

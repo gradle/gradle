@@ -16,8 +16,16 @@
 
 package org.gradle.testkit.scenario;
 
+import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.BuildResult;
 
+
+/**
+ * The result of running a {@link GradleScenario}.
+ *
+ * @since 6.5
+ */
+@Incubating
 public interface ScenarioResult {
 
     BuildResult ofStep(String name);
