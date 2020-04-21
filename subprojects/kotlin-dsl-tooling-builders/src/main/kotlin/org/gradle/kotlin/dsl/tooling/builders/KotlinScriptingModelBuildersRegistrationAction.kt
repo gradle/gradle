@@ -28,15 +28,14 @@ import org.gradle.tooling.provider.model.ToolingModelBuilderRegistry
 class KotlinScriptingModelBuildersRegistrationAction : ProjectConfigureAction {
 
     override fun execute(project: ProjectInternal) {
-        project.serviceOf<ToolingModelBuilderRegistry>().apply {
-            register(KotlinBuildScriptModelBuilder)
-            register(KotlinDslScriptsModelBuilder)
-            register(KotlinBuildScriptTemplateModelBuilder)
-        }
+
+        val builders = project.serviceOf<ToolingModelBuilderRegistry>()
+        builders.register(KotlinBuildScriptModelBuilder)
+        builders.register(KotlinBuildScriptTemplateModelBuilder)
+
         if (project.parent == null) {
-            project.tasks.apply {
-                register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
-            }
+            builders.register(KotlinDslScriptsModelBuilder)
+            project.tasks.register(KotlinDslModelsParameters.PREPARATION_TASK_NAME)
         }
     }
 }
