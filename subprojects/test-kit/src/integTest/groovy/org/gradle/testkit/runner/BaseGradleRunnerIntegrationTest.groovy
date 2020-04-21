@@ -267,7 +267,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     ?: MIN_TESTED_VERSION
             }
 
-            return ((minFeatureVersions + minSpecVersion) as SortedSet).tailSet(MIN_TESTED_VERSION)
+            def minVersions = minFeatureVersions + minSpecVersion
+            minVersions.remove(TestedGradleDistribution.UNDER_DEVELOPMENT.gradleVersion.baseVersion)
+            return (minVersions as SortedSet).tailSet(MIN_TESTED_VERSION)
         }
 
         @Sortable(includes = ['gradleVersion'])
@@ -350,7 +352,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
 
             @Override
             protected boolean isTestEnabled(AbstractMultiTestRunner.TestDetails testDetails) {
-                def gradleVersion = testedGradleDistribution.gradleVersion
+                def gradleVersion = testedGradleDistribution.gradleVersion.baseVersion
 
                 if (testDetails.getAnnotation(InjectsPluginClasspath) && gradleVersion < MINIMUM_VERSIONS_BY_ANNOTATIONS[InjectsPluginClasspath]) {
                     return false
