@@ -45,6 +45,10 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/testkit/runner/internal/**"))
+}
+
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
     // TestKit multi version tests are not using JUnit categories

@@ -16,7 +16,6 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
  */
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    gradlebuild.classycle
 }
 
 val integTestRuntimeResources by configurations.creating {

@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`plugins-implementation-java`
-    gradlebuild.classycle
 }
 
 description = "Provides high-level insights into a Gradle build (--profile)"

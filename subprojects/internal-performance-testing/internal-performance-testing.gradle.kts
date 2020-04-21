@@ -16,7 +16,6 @@
 import accessors.java
 plugins {
     gradlebuild.internal.java
-    gradlebuild.classycle
 }
 
 val reports by configurations.creating

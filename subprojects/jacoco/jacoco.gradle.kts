@@ -51,3 +51,9 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
+
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/internal/jacoco/*",
+        "org/gradle/testing/jacoco/plugins/*"))
+}

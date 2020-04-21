@@ -44,5 +44,8 @@ dependencies {
     testFixturesImplementation(testLibrary("jetty"))
     testFixturesImplementation(testFixtures(project(":core")))
     testFixturesImplementation(project(":internalIntegTesting"))
+}
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/plugins/signing/type/pgp/**"))
 }

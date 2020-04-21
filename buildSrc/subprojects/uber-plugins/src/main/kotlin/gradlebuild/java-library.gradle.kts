@@ -28,6 +28,7 @@ plugins {
     id("gradlebuild.gradle-distribution")
     id("gradlebuild.incubation-report")
     id("gradlebuild.task-properties-validation")
+    id("gradlebuild.classycle")
 }
 
 apply(from = "$rootDir/gradle/shared-with-buildSrc/code-quality-configuration.gradle.kts")

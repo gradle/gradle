@@ -1,7 +1,6 @@
 plugins {
     gradlebuild.distribution.`plugins-implementation-java`
     gradlebuild.`strict-compile`
-    gradlebuild.classycle
 }
 
 dependencies {

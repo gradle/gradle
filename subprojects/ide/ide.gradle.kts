@@ -66,6 +66,15 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 }
 
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/plugins/ide/internal/*",
+        "org/gradle/plugins/ide/eclipse/internal/*",
+        "org/gradle/plugins/ide/idea/internal/*",
+        "org/gradle/plugins/ide/eclipse/model/internal/*",
+        "org/gradle/plugins/ide/idea/model/internal/*"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

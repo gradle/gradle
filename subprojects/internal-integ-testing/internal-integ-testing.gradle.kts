@@ -81,6 +81,10 @@ dependencies {
     testRuntimeOnly(project(":workers"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
 val generatedResourcesDir = gradlebuildJava.generatedResourcesDir
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {

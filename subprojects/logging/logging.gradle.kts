@@ -1,6 +1,5 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 description = "Logging infrastructure"

@@ -16,7 +16,6 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.`strict-compile`
-    gradlebuild.classycle
 }
 
 description = "Execution engine that takes a unit of work and makes it happen"

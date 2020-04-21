@@ -42,3 +42,7 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
     testRuntimeOnly(testFixtures(project(":security")))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/plugins/signing/**"))
+}

@@ -42,3 +42,7 @@ dependencies {
     testFixturesImplementation(project(":coreApi"))
     testFixturesImplementation(project(":baseServices"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/plugins/quality/internal/*"))
+}

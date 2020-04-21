@@ -41,3 +41,7 @@ dependencies {
 
     testRuntimeOnly(project(":runtimeApiInfo"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/plugins/javascript/coffeescript/**"))
+}

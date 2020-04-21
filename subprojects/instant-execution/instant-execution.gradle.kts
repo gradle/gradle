@@ -86,3 +86,7 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/instantexecution/**"))
+}

@@ -123,6 +123,10 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":maven"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

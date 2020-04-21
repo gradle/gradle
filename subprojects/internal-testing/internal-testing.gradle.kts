@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.internal.java
-    gradlebuild.classycle
 }
 
 dependencies {

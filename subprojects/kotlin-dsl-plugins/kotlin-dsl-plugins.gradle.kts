@@ -92,6 +92,9 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
+classycle {
+    excludePatterns.set(listOf("org/gradle/kotlin/dsl/plugins/base/**"))
+}
 
 // plugins ------------------------------------------------------------
 

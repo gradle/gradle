@@ -125,6 +125,7 @@ fun GroovyBuilderScope.withFilesetOf(classesDirs: FileCollection, excludePattern
             excludePatterns.forEach { excludePattern ->
                 "exclude"("name" to excludePattern)
             }
+            "exclude"("name" to "META-INF/**")
         }
     }
 

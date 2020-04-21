@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.internal.kotlin
-    gradlebuild.classycle
 }
 
 dependencies {
