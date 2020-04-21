@@ -31,7 +31,7 @@ class JavaConfigurationPerformanceTest extends AbstractCrossVersionGradleProfile
         runner.testProject = testProject
         runner.gradleOpts = ["-Xms${testProject.daemonMemory}", "-Xmx${testProject.daemonMemory}"]
         runner.tasksToRun = ['help']
-        runner.targetVersions = ["6.4-20200407232121+0000"]
+        runner.targetVersions = ["6.5-branch-pull_12511_head-20200421091455+0000"]
 
         when:
         def result = runner.run()
