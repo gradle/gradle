@@ -244,13 +244,17 @@ class ThirdPartyPluginsSmokeTest extends AbstractSmokeTest {
     }
 
     @Issue('https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-gradle-plugin')
-    @ToBeFixedForInstantExecution(because = ":buildEnvironment")
+    @ToBeFixedForInstantExecution(because = "plugin uses task conventions")
     def 'spring boot plugin'() {
         given:
         buildFile << """
             plugins {
                 id "application"
                 id "org.springframework.boot" version "${TestedVersions.springBoot}"
+            }
+
+            bootRun {
+                sourceResources sourceSets.main
             }
         """.stripIndent()
 
