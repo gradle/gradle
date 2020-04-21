@@ -18,11 +18,11 @@ package org.gradle.internal.logging.sink;
 
 import org.fusesource.jansi.AnsiOutputStream;
 import org.fusesource.jansi.WindowsAnsiOutputStream;
+import org.gradle.internal.os.OperatingSystem;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.util.Locale;
 
 import static org.fusesource.jansi.internal.CLibrary.STDOUT_FILENO;
 import static org.fusesource.jansi.internal.CLibrary.isatty;
@@ -40,14 +40,12 @@ final class AnsiConsoleUtil {
     private static final int ENABLE_VIRTUAL_TERMINAL_PROCESSING = 0x0004;
     private static final int DISABLE_NEWLINE_AUTO_RETURN = 0x0008;
 
-    static final boolean IS_WINDOWS = System.getProperty("os.name").toLowerCase(Locale.ENGLISH).contains("win");
+    private static final boolean IS_XTERM = environmentVariableStartsWith("TERM", "xterm");
+    private static final boolean IS_MINGW_XTERM = IS_XTERM && environmentVariableStartsWith("MSYSTEM", "MINGW");
 
-    private static final boolean IS_XTERM = System.getenv("TERM") != null && System.getenv("TERM").startsWith("xterm");
-
-    private static final boolean IS_MINGW_XTERM = IS_WINDOWS
-        && System.getenv("MSYSTEM") != null
-        && System.getenv("MSYSTEM").startsWith("MINGW")
-        && IS_XTERM;
+    private static boolean environmentVariableStartsWith(String name, String pattern) {
+        return System.getenv(name) != null && System.getenv(name).startsWith(pattern);
+    }
 
     private AnsiConsoleUtil() {
     }
@@ -80,7 +78,7 @@ final class AnsiConsoleUtil {
             return new AnsiOutputStream(stream);
         }
 
-        if (IS_WINDOWS && !IS_MINGW_XTERM) {
+        if (OperatingSystem.current().isWindows() && !IS_MINGW_XTERM) {
             final long stdOutputHandle = GetStdHandle(STD_OUTPUT_HANDLE);
             final int[] mode = new int[1];
             if (stdOutputHandle != INVALID_HANDLE_VALUE
