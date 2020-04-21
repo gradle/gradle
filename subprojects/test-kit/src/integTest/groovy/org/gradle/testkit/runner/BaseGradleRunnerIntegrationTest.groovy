@@ -37,6 +37,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.CustomEnvironmentVariables
 import org.gradle.testkit.runner.fixtures.Debug
+import org.gradle.testkit.runner.fixtures.GradleRunnerScenario
 import org.gradle.testkit.runner.fixtures.InjectsPluginClasspath
 import org.gradle.testkit.runner.fixtures.InspectsBuildOutput
 import org.gradle.testkit.runner.fixtures.InspectsExecutedTasks
@@ -69,6 +70,7 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
     public static final GradleVersion NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION = GradleVersion.version("3.4")
     public static final GradleVersion ENVIRONMENT_VARIABLES_SUPPORT_VERSION = GradleVersion.version("3.5")
     public static final GradleVersion INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION = GradleVersion.version("5.0")
+    public static final GradleVersion SCENARIO_SUPPORT_VERSION = GradleVersion.version("6.5")
 
     // Context set by multi run infrastructure
     public static GradleVersion gradleVersion
@@ -194,7 +196,8 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
             (CustomDaemonDirectory): CUSTOM_DAEMON_DIR_SUPPORT_VERSION,
             (WithNoSourceTaskOutcome): NO_SOURCE_TASK_OUTCOME_SUPPORT_VERSION,
             (CustomEnvironmentVariables): ENVIRONMENT_VARIABLES_SUPPORT_VERSION,
-            (InspectsGroupedOutput): INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION
+            (InspectsGroupedOutput): INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION,
+            (GradleRunnerScenario): SCENARIO_SUPPORT_VERSION
         ]
 
         private static final IntegrationTestBuildContext BUILD_CONTEXT = new IntegrationTestBuildContext()
@@ -384,6 +387,9 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
                     return false
                 }
                 if (testDetails.getAnnotation(InspectsGroupedOutput) && gradleVersion < INSPECTS_GROUPED_OUTPUT_SUPPORT_VERSION) {
+                    return false
+                }
+                if (testDetails.getAnnotation(GradleRunnerScenario) && gradleVersion < SCENARIO_SUPPORT_VERSION) {
                     return false
                 }
 
