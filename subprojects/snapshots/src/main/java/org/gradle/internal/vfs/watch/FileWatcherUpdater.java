@@ -22,7 +22,7 @@ import org.gradle.internal.snapshot.SnapshotHierarchy;
 import java.io.File;
 import java.util.Collection;
 
-public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListener {
+public interface FileWatcherUpdater {
     /**
      * Changes the must watch directories, e.g. when the same daemon is used on a different project.
      *
@@ -31,10 +31,9 @@ public interface FileWatcherUpdater extends SnapshotHierarchy.SnapshotDiffListen
     void updateMustWatchDirectories(Collection<File> updatedWatchDirectories);
 
     /**
-     * {@inheritDoc}
+     * Updates the watchers according to the changes {@link CompleteFileSystemLocationSnapshot}s during an update of {@link SnapshotHierarchy}.
      *
      * @throws WatchingNotSupportedException when the native watchers can't be updated.
      */
-    @Override
     void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
 }

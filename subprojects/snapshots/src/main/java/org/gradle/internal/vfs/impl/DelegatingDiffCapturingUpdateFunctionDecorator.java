@@ -45,8 +45,7 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
         SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
         return root -> {
             SnapshotHierarchy newRoot = updateFunction.update(root, diffListener);
-            diffListener.publishSnapshotDiff(currentListener);
-            return newRoot;
+            return diffListener.publishSnapshotDiff(currentListener, newRoot);
         };
     }
 
