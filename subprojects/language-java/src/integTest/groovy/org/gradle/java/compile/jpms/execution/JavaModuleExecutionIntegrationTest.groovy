@@ -25,6 +25,10 @@ class JavaModuleExecutionIntegrationTest extends AbstractJavaModuleCompileIntegr
             dependencies {
                 implementation 'org:moda:1.0'
             }
+            tasks.withType(JavaCompile).configureEach {
+                // use the project's version as module version
+                options.javaModuleVersion = provider { project.version }
+            }
         """
     }
 
