@@ -91,16 +91,7 @@ public class JavaCompile extends AbstractCompile {
         ObjectFactory objects = project.getObjects();
         compileOptions = objects.newInstance(CompileOptions.class);
         CompilerForkUtils.doNotCacheIfForkingViaExecutable(compileOptions, getOutputs());
-
-        compileOptions.getJavaModuleVersion().convention(project.provider(() -> {
-            String version = project.getVersion().toString();
-            if (Project.DEFAULT_VERSION.equals(version)) {
-                return null;
-            }
-            return version;
-        }));
-
-        this.modularity = objects.newInstance(DefaultModularitySpec.class);
+        modularity = objects.newInstance(DefaultModularitySpec.class);
     }
 
     /**

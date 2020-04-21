@@ -315,14 +315,13 @@ For more details on declaring module dependencies, please refer to https://www.o
 
 The Java module system supports additional more fine granular encapsulation concepts than Gradle itself currently does.
 For example, you explicitly need to declare which packages are part of your API and which are only visible inside your module.
-Some of these capabilities might be added to Gradle itself in future version.
+Some of these capabilities might be added to Gradle itself in future versions.
 For now, please refer to https://www.oracle.com/corporate/features/understanding-java-9-modules.html[documentation on the Java Module System] to learn how to use these features in Java Modules.
 
 === Declaring module versions
 
 Java Modules also have a version that is encoded as part of the module identity in the `module-info.class` file.
 This version can be inspected when a module is running.
-If the gradle project has a version configured, this version is used by default.
 
 .Declare the module version in the build script or directly as compile task option
 ====
