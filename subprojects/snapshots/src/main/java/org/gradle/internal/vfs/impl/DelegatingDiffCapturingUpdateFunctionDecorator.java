@@ -19,20 +19,27 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 
-import javax.annotation.Nullable;
+import javax.annotation.CheckReturnValue;
 import java.util.function.Predicate;
 
 public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotHierarchy.DiffCapturingUpdateFunctionDecorator {
 
     private final Predicate<String> watchFilter;
     private SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener;
+    private ErrorHandler errorHandler;
 
     public DelegatingDiffCapturingUpdateFunctionDecorator(Predicate<String> watchFilter) {
         this.watchFilter = watchFilter;
     }
 
-    public void setSnapshotDiffListener(@Nullable SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
+    public void setSnapshotDiffListener(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, ErrorHandler errorHandler) {
         this.snapshotDiffListener = snapshotDiffListener;
+        this.errorHandler = errorHandler;
+    }
+
+    public void stopListening() {
+        this.snapshotDiffListener = null;
+        this.errorHandler = null;
     }
 
     @Override
@@ -45,9 +52,12 @@ public class DelegatingDiffCapturingUpdateFunctionDecorator implements SnapshotH
         SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener(watchFilter);
         return root -> {
             SnapshotHierarchy newRoot = updateFunction.update(root, diffListener);
-            diffListener.publishSnapshotDiff(currentListener);
-            return newRoot;
+            return errorHandler.handleErrors(newRoot, () -> diffListener.publishSnapshotDiff(currentListener));
         };
     }
 
+    public interface ErrorHandler {
+        @CheckReturnValue
+        SnapshotHierarchy handleErrors(SnapshotHierarchy currentRoot, Runnable runnable);
+    }
 }
