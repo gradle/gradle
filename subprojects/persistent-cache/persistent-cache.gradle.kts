@@ -45,7 +45,3 @@ dependencies {
 gradlebuildJava {
     moduleType = ModuleType.CORE
 }
-
-tasks.withType<ValidatePlugins>().configureEach {
-    enabled = false
-}
