@@ -120,6 +120,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             inputs.dir(extension.getUserManual().getSnippets())
                 .withPropertyName("snippets")
                 .withPathSensitivity(PathSensitivity.RELATIVE);
+            inputs.dir(extension.getUserManual().getSamples())
+                .withPropertyName("samples")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
 
             Provider<Directory> stylesDir = extension.getUserManual().getStagedDocumentation().dir("css");
             inputs.dir(stylesDir)
@@ -178,6 +181,10 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             });
 
             task.from(extension.getUserManual().getSnippets(), sub -> sub.into("snippets"));
+            task.from(extension.getUserManual().getSamples(), sub -> {
+                sub.into("samples");
+                sub.exclude("**/*.adoc");
+            });
             task.from(extension.getCssFiles(), sub -> sub.into("css"));
             task.from(extension.getUserManual().getRoot().dir("img"), sub -> {
                 sub.include("**/*.png", "**/*.gif", "**/*.jpg");
@@ -286,6 +293,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
             // TODO: These should be generated too
             userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
+            userManual.getSamples().convention(layout.getProjectDirectory().dir("src/samples"));
             userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
             userManual.getRenderedDocumentation().from(userguide);
         });
