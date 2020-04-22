@@ -16,12 +16,12 @@
 
 package org.gradle.testkit.scenario;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.scenario.internal.DefaultGradleScenario;
 
 import java.io.File;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 
 
@@ -31,22 +31,19 @@ import java.util.function.Supplier;
  * @since 6.5
  */
 @Incubating
-public abstract class GradleScenario {
+public interface GradleScenario {
 
-    public static GradleScenario create() {
+    static GradleScenario create() {
         return new DefaultGradleScenario();
     }
 
-    protected GradleScenario() {
-    }
+    GradleScenario withBaseDirectory(File temporaryDirectory);
 
-    public abstract GradleScenario withBaseDirectory(File temporaryDirectory);
+    GradleScenario withWorkspace(Action<File> workspaceBuilder);
 
-    public abstract GradleScenario withWorkspace(Consumer<File> workspaceBuilder);
+    GradleScenario withRunnerFactory(Supplier<GradleRunner> runnerFactory);
 
-    public abstract GradleScenario withRunnerFactory(Supplier<GradleRunner> runnerFactory);
+    GradleScenario withSteps(Action<GradleScenarioSteps> steps);
 
-    public abstract GradleScenario withSteps(Consumer<GradleScenarioSteps> steps);
-
-    public abstract ScenarioResult run();
+    ScenarioResult run();
 }

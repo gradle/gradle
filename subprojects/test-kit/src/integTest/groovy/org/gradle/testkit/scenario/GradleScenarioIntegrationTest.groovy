@@ -18,17 +18,18 @@ package org.gradle.testkit.scenario
 
 import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.TaskOutcome
+import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.gradle.testkit.runner.fixtures.GradleRunnerScenario
 
 
 @GradleRunnerScenario
 class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
-    def "can create and run an ad-hoc scenario"() {
+    def "can create and run an ad-hoc scenario comprised of several steps"() {
 
         given:
         def scenario = GradleScenario.create()
-            .withBaseDirectory(testDirectory)
+            .withBaseDirectory(testDirectory.file("scenario-base-dir"))
             .withRunnerFactory {
                 runner()
                     .forwardOutput()
@@ -47,24 +48,21 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
                 }
             }
             .withSteps {
+
                 it.named("store")
-                    .withRunnerCustomization {
-                        it.withArguments(it.arguments + "assemble")
-                    }
+                    .withTasks("assemble")
                     .withResult {
                         assert it.task(":compileJava").outcome == TaskOutcome.SUCCESS
                     }
+
                 it.named("load-up-to-date")
-                    .withRunnerCustomization {
-                        it.withArguments(it.arguments + "assemble")
-                    }
+                    .withTasks("assemble")
                     .withResult {
                         assert it.task(":compileJava").outcome == TaskOutcome.UP_TO_DATE
                     }
+
                 it.named("load-incremental")
-                    .withRunnerCustomization {
-                        it.withArguments(it.arguments + "assemble")
-                    }
+                    .withTasks("assemble")
                     .withWorkspaceMutation { root ->
                         new File(root, "src/main/java/Foo.java").text = '''
                             public class Foo {
@@ -75,14 +73,12 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
                     .withResult {
                         assert it.task(":compileJava").outcome == TaskOutcome.SUCCESS
                     }
+
                 it.named("clean")
-                    .withRunnerCustomization {
-                        it.withArguments("clean")
-                    }
+                    .withTasks("clean")
+
                 it.named("load-clean")
-                    .withRunnerCustomization {
-                        it.withArguments(it.arguments + "assemble")
-                    }
+                    .withTasks("assemble")
                     .withResult {
                         assert it.task(":compileJava").outcome == TaskOutcome.SUCCESS
                     }
@@ -92,7 +88,6 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
         def result = scenario.run()
 
         then:
-        result != null
         result.ofStep("store").tap {
             assert task(":compileJava").outcome == TaskOutcome.SUCCESS
         }
@@ -102,5 +97,45 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
         result.ofStep("load-clean").tap {
             assert task(":compileJava").outcome == TaskOutcome.SUCCESS
         }
+    }
+
+    def "build failure stops scenario run"() {
+
+        given:
+        def scenario = GradleScenario.create()
+            .withBaseDirectory(testDirectory.file("scenario-base"))
+            .withRunnerFactory { runner().forwardOutput() }
+            .withWorkspace { file(it).file('settings.gradle') << '' }
+            .withSteps {
+                it.named("first").withTasks("help")
+                it.named("second").withTasks("doesNotExists")
+            }
+
+        when:
+        scenario.run()
+
+        then:
+        thrown(UnexpectedBuildFailure)
+    }
+
+    def "expected build failure does not stop scenario run"() {
+
+        given:
+        def scenario = GradleScenario.create()
+            .withBaseDirectory(testDirectory.file("scenario-base"))
+            .withRunnerFactory { runner().forwardOutput() }
+            .withWorkspace { file(it).file('settings.gradle') << '' }
+            .withSteps {
+                it.named("first").withTasks("help")
+                it.named("second").withTasks("doesNotExists").withFailure()
+            }
+
+        when:
+        def result = scenario.run()
+
+        then:
+        noExceptionThrown()
+        result.ofStep('first').task(":help").outcome == TaskOutcome.SUCCESS
+        result.ofStep('second').output.contains("Task 'doesNotExists' not found in root project 'scenario-base'.")
     }
 }

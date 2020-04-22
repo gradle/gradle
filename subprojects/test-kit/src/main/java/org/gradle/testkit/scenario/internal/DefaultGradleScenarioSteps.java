@@ -19,22 +19,20 @@ package org.gradle.testkit.scenario.internal;
 import org.gradle.testkit.scenario.GradleScenarioStep;
 import org.gradle.testkit.scenario.GradleScenarioSteps;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 
 
 public class DefaultGradleScenarioSteps implements GradleScenarioSteps {
 
-    private final List<DefaultGradleScenarioStep> steps = new ArrayList<>();
+    private final LinkedHashMap<String, DefaultGradleScenarioStep> steps = new LinkedHashMap<>();
 
     @Override
     public GradleScenarioStep named(String name) {
-        DefaultGradleScenarioStep step = new DefaultGradleScenarioStep(name);
-        steps.add(step);
-        return step;
+        return steps.computeIfAbsent(name, n -> new DefaultGradleScenarioStep(name));
     }
 
-    List<DefaultGradleScenarioStep> getSteps() {
-        return steps;
+    Collection<DefaultGradleScenarioStep> getSteps() {
+        return steps.values();
     }
 }

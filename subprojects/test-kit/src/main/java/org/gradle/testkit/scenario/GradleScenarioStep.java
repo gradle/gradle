@@ -16,13 +16,14 @@
 
 package org.gradle.testkit.scenario;
 
+import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
+import org.gradle.internal.Actions;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 
 import java.io.File;
-import java.util.function.Consumer;
 
 
 /**
@@ -33,11 +34,15 @@ import java.util.function.Consumer;
 @Incubating
 public interface GradleScenarioStep extends Named {
 
-    GradleScenarioStep withRunnerCustomization(Consumer<GradleRunner> runner);
+    GradleScenarioStep withRunnerCustomization(Action<GradleRunner> runnerCustomization);
 
-    GradleScenarioStep withWorkspaceMutation(Consumer<File> workspaceMutator);
+    GradleScenarioStep withTasks(String... tasks);
 
-    GradleScenarioStep withResult(Consumer<BuildResult> resultConsumer);
+    GradleScenarioStep withWorkspaceMutation(Action<File> workspaceMutation);
 
-    GradleScenarioStep withFailure(Consumer<BuildResult> failureConsumer);
+    GradleScenarioStep withResult(Action<BuildResult> resultConsumer);
+
+    GradleScenarioStep withFailure(Action<BuildResult> failureConsumer);
+
+    GradleScenarioStep withFailure();
 }

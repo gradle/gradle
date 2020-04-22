@@ -16,27 +16,25 @@
 
 package org.gradle.testkit.scenario.internal;
 
+import org.gradle.api.Action;
+import org.gradle.internal.Actions;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.scenario.GradleScenarioStep;
 
-import javax.annotation.Nullable;
 import java.io.File;
-import java.util.function.Consumer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class DefaultGradleScenarioStep implements GradleScenarioStep {
 
     private final String name;
-
-    private Consumer<GradleRunner> runner = runner -> {
-    };
-
-    private Consumer<File> workspaceMutator;
-
-    private Consumer<BuildResult> resultConsumer;
-
-    private Consumer<BuildResult> failureConsumer;
+    private final List<Action<GradleRunner>> runnerCustomizations = new ArrayList<>();
+    private final List<Action<File>> workspaceMutations = new ArrayList<>();
+    private final List<Action<BuildResult>> resultActions = new ArrayList<>();
+    private final List<Action<BuildResult>> failureActions = new ArrayList<>();
 
     public DefaultGradleScenarioStep(String name) {
         this.name = name;
@@ -48,51 +46,74 @@ public class DefaultGradleScenarioStep implements GradleScenarioStep {
     }
 
     @Override
-    public GradleScenarioStep withRunnerCustomization(Consumer<GradleRunner> runner) {
-        this.runner = runner;
+    public GradleScenarioStep withRunnerCustomization(Action<GradleRunner> runnerCustomization) {
+        this.runnerCustomizations.add(runnerCustomization);
         return this;
     }
 
     @Override
-    public GradleScenarioStep withWorkspaceMutation(Consumer<File> workspaceMutator) {
-        this.workspaceMutator = workspaceMutator;
+    public GradleScenarioStep withTasks(String... tasks) {
+        return withRunnerCustomization(runner -> {
+            List<String> args = new ArrayList<>(runner.getArguments());
+            args.addAll(Arrays.asList(tasks));
+            runner.withArguments(args);
+        });
+    }
+
+    @Override
+    public GradleScenarioStep withWorkspaceMutation(Action<File> workspaceMutation) {
+        this.workspaceMutations.add(workspaceMutation);
         return this;
     }
 
     @Override
-    public GradleScenarioStep withResult(Consumer<BuildResult> resultConsumer) {
-        if (failureConsumer != null) {
+    public GradleScenarioStep withResult(Action<BuildResult> resultConsumer) {
+        if (!failureActions.isEmpty()) {
             throw new IllegalStateException("This scenario step expect a build failure, can't also expect a success");
         }
-        this.resultConsumer = resultConsumer;
+        this.resultActions.add(resultConsumer);
         return this;
     }
 
     @Override
-    public GradleScenarioStep withFailure(Consumer<BuildResult> failureConsumer) {
-        if (resultConsumer != null) {
+    public GradleScenarioStep withFailure(Action<BuildResult> failureConsumer) {
+        if (!resultActions.isEmpty()) {
             throw new IllegalStateException("This scenario step expect a build success, can't also expect a failure");
         }
-        this.failureConsumer = failureConsumer;
+        this.failureActions.add(failureConsumer);
         return this;
     }
 
-    Consumer<GradleRunner> getRunner() {
-        return runner;
+    @Override
+    public GradleScenarioStep withFailure() {
+        return withFailure(Actions.doNothing());
     }
 
-    @Nullable
-    Consumer<File> getWorkspaceMutator() {
-        return workspaceMutator;
+    void customizeRunner(GradleRunner runner) {
+        for (Action<GradleRunner> customization : runnerCustomizations) {
+            customization.execute(runner);
+        }
     }
 
-    @Nullable
-    Consumer<BuildResult> getResultConsumer() {
-        return resultConsumer;
+    void mutateWorkspace(File root) {
+        for (Action<File> mutation : workspaceMutations) {
+            mutation.execute(root);
+        }
     }
 
-    @Nullable
-    Consumer<BuildResult> getFailureConsumer() {
-        return failureConsumer;
+    boolean expectsFailure() {
+        return !failureActions.isEmpty();
+    }
+
+    void consumeResult(BuildResult result) {
+        for (Action<BuildResult> resultAction : resultActions) {
+            resultAction.execute(result);
+        }
+    }
+
+    void consumeFailure(BuildResult result) {
+        for (Action<BuildResult> failureAction : failureActions) {
+            failureAction.execute(result);
+        }
     }
 }
