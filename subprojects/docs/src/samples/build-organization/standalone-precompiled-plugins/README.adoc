@@ -1,0 +1,17 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+TODO:
+This sample shows multiple things. Explain them:
+
+* bundle multiple precompiled plugins
+* using classes from main source set
+* using external plugin within precompiled plugin
+* applying precompiled plugin to another precompiled plugin
+* functional testing of the plugin behavior
+
+====
+include::sample[dir="groovy",files="build.gradle[]"]
+include::sample[dir="kotlin",files="build.gradle.kts[]"]
+====
+
+For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

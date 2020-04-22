@@ -94,7 +94,6 @@ samples {
         javaAndroidApplication
         springBootWebApplication
         gradlePluginInJava
-        precompiledScriptPlugin
         buildSrcPluginJavaModuleTransform
 
         javaApplication
@@ -394,6 +393,11 @@ samples {
 
         precompiledScriptPlugin {
             description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
+            category = "Build organization"
+        }
+        standalonePrecompiledScriptPlugins {
+            sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
+            description = "Bundle and publish multiple precompiled script plugins."
             category = "Build organization"
         }
 

@@ -1,0 +1,30 @@
+plugins {
+    id 'com.example.java-convention'
+}
+
+sourceSets {
+    integrationTest {
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+    }
+}
+
+def integrationTest = tasks.register('integrationTest', Test) {
+    it.shouldRunAfter(test)
+
+    it.testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    it.classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+def readmeCheck = tasks.register('readmeCheck', com.example.ReadmeVerificationTask) {
+    it.readme.set(file("$rootProject.rootDir/README.md"))
+    it.readmePatterns.set(['^## Service API$'])
+}
+
+tasks.named('check') { it.dependsOn(integrationTest, readmeCheck) }
+
