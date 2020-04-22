@@ -22,9 +22,13 @@ import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
@@ -36,40 +40,82 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
+    private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(4096);
+    private final Thread eventConsumerThread;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
 
+    private volatile boolean consumeEvents = true;
+    private volatile boolean stopping = false;
+
     public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        this.watcher = createWatcher(watcherCreator, handler);
+        this.watcher = createWatcher(watcherCreator);
+        this.eventConsumerThread = createAndStartEventConsumerThread(handler);
+    }
+
+    private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
+        Thread thread = new Thread(() -> {
+            try {
+                while (consumeEvents) {
+                    FileEvent nextEvent = fileEvents.take();
+                    if (!stopping) {
+                        if (nextEvent.lostState) {
+                            handler.handleLostState();
+                        } else {
+                            handler.handleChange(nextEvent.type, nextEvent.path);
+                        }
+                    }
+                }
+            } catch (InterruptedException e) {
+                // stop thread
+            }
+        });
+        thread.setDaemon(true);
+        thread.setName("File watcher consumer");
+        thread.start();
+        return thread;
     }
 
     public FileWatcher getWatcher() {
         return watcher;
     }
 
-    private FileWatcher createWatcher(FileWatcherCreator watcherCreator, ChangeHandler handler) {
+    private FileWatcher createWatcher(FileWatcherCreator watcherCreator) {
         return watcherCreator.createWatcher(new FileWatcherCallback() {
             @Override
             public void pathChanged(Type type, String path) {
-                handleEvent(type, path, handler);
+                FileEvent event;
+                if (type == FileWatcherCallback.Type.UNKNOWN) {
+                    fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
+                    event = FileEvent.lostState();
+                } else {
+                    fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
+                    event = FileEvent.changed(convertType(type), Paths.get(path));
+                }
+                boolean addedToQueue = fileEvents.offer(event);
+                if (!addedToQueue) {
+                    LOGGER.warn("Gradle file event buffer overflow, dropping state");
+                    signalLostState();
+                }
             }
 
             @Override
             public void reportError(Throwable ex) {
                 LOGGER.error("Error while receiving file changes", ex);
                 fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(ex));
-                handler.handleLostState();
+                signalLostState();
+            }
+
+            private void signalLostState() {
+                fileEvents.clear();
+                try {
+                    fileEvents.put(FileEvent.lostState());
+                } catch (InterruptedException e) {
+                    //noinspection ResultOfMethodCallIgnored
+                    Thread.interrupted();
+                    throw new RuntimeException(e);
+                }
             }
         });
-    }
-
-    private void handleEvent(FileWatcherCallback.Type type, String path, ChangeHandler handler) {
-        if (type == FileWatcherCallback.Type.UNKNOWN) {
-            fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
-            handler.handleLostState();
-        } else {
-            fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
-            handler.handleChange(convertType(type), Paths.get(path));
-        }
     }
 
     private static Type convertType(FileWatcherCallback.Type type) {
@@ -94,11 +140,37 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
 
     @Override
     public void close() throws IOException {
-        watcher.close();
+        stopping = true;
+        try {
+            watcher.close();
+        } finally {
+            consumeEvents = false;
+            eventConsumerThread.interrupt();
+        }
     }
 
     protected interface FileWatcherCreator {
         FileWatcher createWatcher(FileWatcherCallback callback);
+    }
+
+    private static class FileEvent {
+        final Path path;
+        final FileWatcherRegistry.Type type;
+        final boolean lostState;
+
+        public static FileEvent lostState() {
+            return new FileEvent(null, null, true);
+        }
+
+        public static FileEvent changed(Type type, Path path) {
+            return new FileEvent(path, type, false);
+        }
+
+        private FileEvent(@Nullable Path path, @Nullable FileWatcherRegistry.Type type, boolean lostState) {
+            this.path = path;
+            this.type = type;
+            this.lostState = lostState;
+        }
     }
 
     private static class MutableFileWatchingStatistics implements FileWatchingStatistics {
