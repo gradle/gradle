@@ -61,7 +61,9 @@ dependencies {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/api/internal/tasks/scala/**"))
+    excludePatterns.set(listOf("org/gradle/api/internal/tasks/scala/**",
+        // Unable to change package of public API
+        "org/gradle/api/tasks/ScalaRuntime*"))
 }
 
 tasks.named<Test>("integTest") {
