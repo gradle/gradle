@@ -34,6 +34,7 @@ class InstantExecutionUndeclaredBuildInputsJavaBuildSrcIntegrationTest extends A
                 public void apply(Project project) {
                     String ci = System.getProperty("CI");
                     System.out.println("apply CI = " + ci);
+                    System.out.println("apply CI2 = " + System.getProperty("CI2"));
                     project.getTasks().register("thing", t -> {
                         t.doLast(new Action<Task>() {
                             public void execute(Task t) {

@@ -15,20 +15,24 @@
  */
 package org.gradle.groovy.scripts.internal;
 
-import com.google.common.io.Files;
 import groovy.lang.Script;
 import org.codehaus.groovy.ast.ClassNode;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
+import org.gradle.api.file.RelativePath;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classanalysis.AsmConstants;
-import org.gradle.internal.classpath.ClasspathWalker;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
+import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.internal.classpath.DefaultClassPath;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.HashUtil;
+import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
@@ -36,7 +40,6 @@ import org.gradle.model.dsl.internal.transform.RuleVisitor;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
-import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.MethodVisitor;
@@ -47,6 +50,7 @@ import java.io.Closeable;
 import java.io.File;
 import java.io.IOException;
 import java.net.URI;
+import java.util.List;
 
 /**
  * A {@link ScriptClassCompiler} which compiles scripts to a cache directory, and loads them from there.
@@ -57,16 +61,16 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
     private final ProgressLoggerFactory progressLoggerFactory;
     private final CacheRepository cacheRepository;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
-    private final ClasspathWalker classpathWalker;
+    private final CachedClasspathTransformer classpathTransformer;
 
     public FileCacheBackedScriptClassCompiler(CacheRepository cacheRepository, ScriptCompilationHandler scriptCompilationHandler,
                                               ProgressLoggerFactory progressLoggerFactory, ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
-                                              ClasspathWalker classpathWalker) {
+                                              CachedClasspathTransformer classpathTransformer) {
         this.cacheRepository = cacheRepository;
         this.scriptCompilationHandler = scriptCompilationHandler;
         this.progressLoggerFactory = progressLoggerFactory;
         this.classLoaderHierarchyHasher = classLoaderHierarchyHasher;
-        this.classpathWalker = classpathWalker;
+        this.classpathTransformer = classpathTransformer;
     }
 
     @Override
@@ -97,19 +101,21 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         // Both caches can be closed directly after use because:
         // For 1, if the script changes or its compile classpath changes, a different directory will be used
         // For 2, if the script changes, a different cache is used. If the classpath changes, the cache is invalidated, but classes are remapped to 1. anyway so never directly used
-        PersistentCache remappedClassesCache = cacheRepository.cache("scripts-remapped/" + source.getClassName() + "/" + sourceHash + "/" + classpathHash)
-            .withDisplayName(dslId + " remapped class cache for " + sourceHash)
-            .withInitializer(new ProgressReportingInitializer(progressLoggerFactory, new RemapBuildScriptsAction<>(remapped, classpathHash, sourceHash, dslId, classLoader, operation, verifier, scriptBaseClass),
+        final PersistentCache cache = cacheRepository.cache("scripts/" + sourceHash + "/" + classpathHash)
+            .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
+            .withInitializer(new ProgressReportingInitializer(
+                progressLoggerFactory,
+                new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
                 "Compiling script into cache",
-                "Compiling " + source.getFileName() + " into local compilation cache"))
+                "Compiling " + source.getDisplayName()))
             .open();
         try {
-            File remappedClassesDir = classesDir(remappedClassesCache);
-            File remappedMetadataDir = metadataDir(remappedClassesCache);
-
-            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClassesDir, remappedMetadataDir, operation, scriptBaseClass);
+            File genericClassesDir = classesDir(cache, operation);
+            File metadataDir = metadataDir(cache);
+            File remappedClassesDir = remapClasses(genericClassesDir, remapped);
+            return scriptCompilationHandler.loadFromDir(source, sourceHashCode, targetScope, remappedClassesDir, metadataDir, operation, scriptBaseClass);
         } finally {
-            remappedClassesCache.close();
+            cache.close();
         }
     }
 
@@ -117,12 +123,44 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         return new EmptyCompiledScript<>(operation);
     }
 
+    private File remapClasses(File genericClassesDir, RemappingScriptSource source) {
+        ScriptSource origin = source.getSource();
+        String className = origin.getClassName();
+        ClassPath transformed = classpathTransformer.transform(DefaultClassPath.of(genericClassesDir), CachedClasspathTransformer.StandardTransform.BuildLogic, new CachedClasspathTransformer.Transform() {
+            @Override
+            public void applyConfigurationTo(Hasher hasher) {
+                hasher.putString(FileCacheBackedScriptClassCompiler.class.getSimpleName());
+                hasher.putInt(1); // transformation version
+                hasher.putString(className);
+            }
+
+            @Override
+            public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor) throws IOException {
+                String renamed = entry.getPath().getLastName();
+                if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
+                    renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
+                }
+                byte[] content = entry.getContent();
+                ClassReader cr = new ClassReader(content);
+                String originalClassName = cr.getClassName();
+                String contentHash = Hashing.hashBytes(content).toString();
+                BuildScriptRemapper remapper = new BuildScriptRemapper(visitor, origin, originalClassName, contentHash);
+                return Pair.of(entry.getPath().getParent().append(true, renamed), remapper);
+            }
+        });
+        List<File> transformedFiles = transformed.getAsFiles();
+        if (transformedFiles.size() != 1) {
+            throw new IllegalStateException("Expected a single classpath entry, found: " + transformedFiles);
+        }
+        return transformedFiles.get(0);
+    }
+
     @Override
     public void close() {
     }
 
-    private File classesDir(PersistentCache cache) {
-        return new File(cache.getBaseDir(), "classes");
+    private File classesDir(PersistentCache cache, CompileOperation<?> operation) {
+        return new File(cache.getBaseDir(), operation.getId());
     }
 
     private File metadataDir(PersistentCache cache) {
@@ -133,23 +171,23 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
         private final Action<? super ClassNode> verifier;
         private final Class<? extends Script> scriptBaseClass;
         private final ClassLoader classLoader;
-        private final CompileOperation<?> transformer;
+        private final CompileOperation<?> operation;
         private final ScriptSource source;
 
-        public <T extends Script> CompileToCrossBuildCacheAction(ScriptSource source, ClassLoader classLoader, CompileOperation<?> transformer,
+        public <T extends Script> CompileToCrossBuildCacheAction(ScriptSource source, ClassLoader classLoader, CompileOperation<?> operation,
                                                                  Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
             this.source = source;
             this.classLoader = classLoader;
-            this.transformer = transformer;
+            this.operation = operation;
             this.verifier = verifier;
             this.scriptBaseClass = scriptBaseClass;
         }
 
         @Override
         public void execute(PersistentCache cache) {
-            File classesDir = classesDir(cache);
+            File classesDir = classesDir(cache, operation);
             File metadataDir = metadataDir(cache);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, transformer, scriptBaseClass, verifier);
+            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir, operation, scriptBaseClass, verifier);
         }
     }
 
@@ -396,82 +434,6 @@ public class FileCacheBackedScriptClassCompiler implements ScriptClassCompiler, 
             @Override
             public void visitFrame(int type, int nLocal, Object[] local, int nStack, Object[] stack) {
                 super.visitFrame(type, nLocal, remap(nLocal, local), nStack, remap(nStack, stack));
-            }
-        }
-    }
-
-    private class RemapBuildScriptsAction<M, T extends Script> implements Action<PersistentCache> {
-        private final String classpathHash;
-        private final String sourceHash;
-        private final String dslId;
-        private final ScriptSource source;
-        private final RemappingScriptSource remapped;
-        private final ClassLoader classLoader;
-        private final CompileOperation<M> operation;
-        private final Action<? super ClassNode> verifier;
-        private final Class<T> scriptBaseClass;
-
-        public RemapBuildScriptsAction(RemappingScriptSource remapped, String classpathHash, String sourceHash, String dslId, ClassLoader classLoader, CompileOperation<M> operation, Action<? super ClassNode> verifier, Class<T> scriptBaseClass) {
-            this.classpathHash = classpathHash;
-            this.sourceHash = sourceHash;
-            this.dslId = dslId;
-            this.remapped = remapped;
-            this.source = remapped.getSource();
-            this.classLoader = classLoader;
-            this.operation = operation;
-            this.verifier = verifier;
-            this.scriptBaseClass = scriptBaseClass;
-        }
-
-        @Override
-        public void execute(final PersistentCache remappedClassesCache) {
-            final PersistentCache cache = cacheRepository.cache("scripts/" + sourceHash + "/" + dslId + "/" + classpathHash)
-                .withDisplayName(dslId + " generic class cache for " + source.getDisplayName())
-                .withInitializer(new ProgressReportingInitializer(
-                    progressLoggerFactory,
-                    new CompileToCrossBuildCacheAction(remapped, classLoader, operation, verifier, scriptBaseClass),
-                    "Compiling script into cache",
-                    "Compiling " + source.getDisplayName() + " to cross build script cache"))
-                .open();
-            try {
-                File genericClassesDir = classesDir(cache);
-                File metadataDir = metadataDir(cache);
-                remapClasses(genericClassesDir, classesDir(remappedClassesCache), remapped);
-                copyMetadata(metadataDir, metadataDir(remappedClassesCache));
-            } catch (Exception e) {
-                throw new GradleException(String.format("Failed to process script classes for %s.", source.getDisplayName()), e);
-            } finally {
-                cache.close();
-            }
-        }
-
-        private void remapClasses(File scriptCacheDir, File relocalizedDir, RemappingScriptSource source) throws IOException {
-            ScriptSource origin = source.getSource();
-            String className = origin.getClassName();
-            if (!relocalizedDir.exists()) {
-                relocalizedDir.mkdir();
-            }
-            classpathWalker.visit(scriptCacheDir, entry -> {
-                String renamed = entry.getPath().getLastName();
-                if (renamed.startsWith(RemappingScriptSource.MAPPED_SCRIPT)) {
-                    renamed = className + renamed.substring(RemappingScriptSource.MAPPED_SCRIPT.length());
-                }
-                ClassWriter cv = new ClassWriter(0);
-                byte[] content = entry.getContent();
-                ClassReader cr = new ClassReader(content);
-                String originalClassName = cr.getClassName();
-                String contentHash = Hashing.hashBytes(content).toString();
-                BuildScriptRemapper remapper = new BuildScriptRemapper(cv, origin, originalClassName, contentHash);
-                cr.accept(remapper, 0);
-                Files.write(cv.toByteArray(), new File(relocalizedDir, renamed));
-            });
-        }
-
-        private void copyMetadata(File source, File dest) throws IOException {
-            if (dest.mkdir()) {
-                for (File src : source.listFiles()) {
-                    Files.copy(src, new File(dest, src.getName()));
-                }
             }
         }
     }

@@ -33,7 +33,9 @@ class SystemPropertyAccessListener(
         "os.version",
         "java.version",
         "java.vm.version",
+        "java.runtime.version",
         "java.specification.version",
+        "java.home",
         "line.separator",
         "user.name",
         "user.home"

@@ -23,7 +23,9 @@ import org.gradle.cache.PersistentCache
 import org.gradle.cache.internal.CacheScopeMapping
 import org.gradle.cache.internal.UsedGradleVersions
 import org.gradle.internal.Factory
+import org.gradle.internal.Pair
 import org.gradle.internal.file.FileAccessTimeJournal
+import org.gradle.internal.hash.Hasher
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -31,8 +33,8 @@ import spock.lang.Ignore
 import spock.lang.Specification
 import spock.lang.Subject
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.BuildLogic
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.Other
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None
 
 class DefaultCachedClasspathTransformerTest extends Specification {
     @Rule
@@ -40,7 +42,6 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     def testDir = testDirectoryProvider.testDirectory
 
     def cachedDir = testDir.file("cached")
-    def otherStore = testDir.file("other-store").createDir()
     def cache = Stub(PersistentCache) {
         getBaseDir() >> cachedDir
         useCache(_) >> { Factory f -> f.create() }
@@ -69,12 +70,12 @@ class DefaultCachedClasspathTransformerTest extends Specification {
     @Subject
     DefaultCachedClasspathTransformer transformer = new DefaultCachedClasspathTransformer(cacheRepository, cacheFactory, fileAccessTimeJournal, classpathWalker, classpathBuilder, virtualFileSystem)
 
-    def "skips missing file when usage is unknown"() {
+    def "skips missing file when transform is none"() {
         given:
         def classpath = DefaultClassPath.of(testDir.file("missing"))
 
         when:
-        def cachedClasspath = transformer.transform(classpath, Other)
+        def cachedClasspath = transformer.transform(classpath, None)
 
         then:
         cachedClasspath.empty
@@ -83,7 +84,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         0 * fileAccessTimeJournal._
     }
 
-    def "skips missing file when usage is for build logic"() {
+    def "skips missing file when tranform is build logic"() {
         given:
         def classpath = DefaultClassPath.of(testDir.file("missing"))
 
@@ -97,7 +98,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         0 * fileAccessTimeJournal._
     }
 
-    def "copies file to cache when usage is unknown"() {
+    def "copies file to cache when transform is none"() {
         given:
         def file = testDir.file("thing.jar")
         jar(file)
@@ -105,7 +106,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         def cachedFile = testDir.file("cached/o_d3714f1fd48ab27e701a9c39545ae221/thing.jar")
 
         when:
-        def cachedClasspath = transformer.transform(classpath, Other)
+        def cachedClasspath = transformer.transform(classpath, None)
 
         then:
         cachedClasspath.asFiles == [cachedFile]
@@ -115,16 +116,16 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         0 * fileAccessTimeJournal._
     }
 
-    def "reuses file from cache when usage is unknown"() {
+    def "reuses file from cache when transform is none"() {
         given:
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
         def cachedFile = testDir.file("cached/o_d3714f1fd48ab27e701a9c39545ae221/thing.jar")
-        transformer.transform(classpath, Other)
+        transformer.transform(classpath, None)
 
         when:
-        def cachedClasspath = transformer.transform(classpath, Other)
+        def cachedClasspath = transformer.transform(classpath, None)
 
         then:
         cachedClasspath.asFiles == [cachedFile]
@@ -134,17 +135,17 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         0 * fileAccessTimeJournal._
     }
 
-    def "copies file to cache when content has changed and usage is unknown"() {
+    def "copies file to cache when content has changed and transform is none"() {
         given:
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
         def cachedFile = testDir.file("cached/o_d3714f1fd48ab27e701a9c39545ae221/thing.jar")
-        transformer.transform(classpath, Other)
+        transformer.transform(classpath, None)
         modifiedJar(file)
 
         when:
-        def cachedClasspath = transformer.transform(classpath, Other)
+        def cachedClasspath = transformer.transform(classpath, None)
 
         then:
         cachedClasspath.asFiles == [cachedFile]
@@ -154,14 +155,14 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         0 * fileAccessTimeJournal._
     }
 
-    def "reuses directory from its original location when usage is unknown"() {
+    def "reuses directory from its original location when transform is none"() {
         given:
         def dir = testDir.file("thing.dir")
         classesDir(dir)
         def classpath = DefaultClassPath.of(dir)
 
         when:
-        def cachedClasspath = transformer.transform(classpath, Other)
+        def cachedClasspath = transformer.transform(classpath, None)
 
         then:
         cachedClasspath.asFiles == [dir]
@@ -170,18 +171,28 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         0 * fileAccessTimeJournal._
     }
 
-    def "copies file to cache when usage is build logic"() {
+    def "copies file to cache when transform is build logic"() {
         given:
         def file = testDir.file("thing.jar")
         jar(file)
         def classpath = DefaultClassPath.of(file)
-        def cachedFile = testDir.file("cached/d3714f1fd48ab27e701a9c39545ae221/thing.jar")
+        def cachedFile = testDir.file("cached/349f8baba38535e2ce3916f4d42f83ee/thing.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
 
         then:
         cachedClasspath.asFiles == [cachedFile]
+
+        and:
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * fileAccessTimeJournal._
+
+        when:
+        def cachedClasspath2 = transformer.transform(classpath, BuildLogic)
+
+        then:
+        cachedClasspath2.asFiles == [cachedFile]
 
         and:
         1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
@@ -193,7 +204,7 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         def dir = testDir.file("thing.dir")
         classesDir(dir)
         def classpath = DefaultClassPath.of(dir)
-        def cachedFile = testDir.file("cached/e4553fe2db8be0424bd4f03b28c711a3/thing.dir.jar")
+        def cachedFile = testDir.file("cached/33fbc773e43e04aa1837a9e4e20be853/thing.dir.jar")
 
         when:
         def cachedClasspath = transformer.transform(classpath, BuildLogic)
@@ -204,6 +215,51 @@ class DefaultCachedClasspathTransformerTest extends Specification {
         and:
         1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
         0 * fileAccessTimeJournal._
+
+        when:
+        def cachedClasspath2 = transformer.transform(classpath, BuildLogic)
+
+        then:
+        cachedClasspath2.asFiles == [cachedFile]
+
+        and:
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * fileAccessTimeJournal._
+    }
+
+    def "applies transform to file"() {
+        given:
+        def transform = Mock(CachedClasspathTransformer.Transform)
+        def file = testDir.file("thing.jar")
+        jar(file)
+        def classpath = DefaultClassPath.of(file)
+        def cachedFile = testDir.file("cached/1a0547a447cfc594a350aa4dbb30ae3d/thing.jar")
+
+        when:
+        def cachedClasspath = transformer.transform(classpath, BuildLogic, transform)
+
+        then:
+        cachedClasspath.asFiles == [cachedFile]
+
+        and:
+        1 * transform.applyConfigurationTo(_) >> { Hasher hasher -> hasher.putInt(123) }
+        1 * transform.apply(_, _) >> { entry, visitor ->
+            assert entry.name == "a.class"
+            Pair.of(entry.path, visitor)
+        }
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * _
+
+        when:
+        def cachedClasspath2 = transformer.transform(classpath, BuildLogic, transform)
+
+        then:
+        cachedClasspath2.asFiles == [cachedFile]
+
+        and:
+        1 * transform.applyConfigurationTo(_) >> { Hasher hasher -> hasher.putInt(123) }
+        1 * fileAccessTimeJournal.setLastAccessTime(cachedFile.parentFile, _)
+        0 * _
     }
 
     @Ignore
