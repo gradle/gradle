@@ -27,7 +27,10 @@ public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherR
 
     public WindowsFileWatcherRegistry(ChangeHandler handler) {
         super(
-            callback -> Native.get(WindowsFileEventFunctions.class).startWatcher(BUFFER_SIZE, callback),
+            eventQueue -> Native.get(WindowsFileEventFunctions.class)
+                .newWatcher(eventQueue)
+                .withBufferSize(BUFFER_SIZE)
+                .start(),
             handler
         );
     }

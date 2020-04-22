@@ -51,7 +51,9 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
 
     public LinuxFileWatcherRegistry(ChangeHandler handler) {
         super(
-            callback -> Native.get(LinuxFileEventFunctions.class).startWatcher(callback),
+            eventQueue -> Native.get(LinuxFileEventFunctions.class)
+                .newWatcher(eventQueue)
+                .start(),
             handler
         );
     }
