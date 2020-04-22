@@ -16,24 +16,14 @@
 
 package org.gradle.instantexecution
 
-import groovy.transform.CompileStatic
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-
-class InstantExecutionUndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
+class InstantExecutionUndeclaredBuildInputsDynamicGroovyDslIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
     @Override
     void pluginDefinition() {
-        file("buildSrc/src/main/groovy/SneakyPlugin.groovy") << """
-            import ${Project.name}
-            import ${Plugin.name}
-            import ${CompileStatic.name}
-
-            @CompileStatic
+        buildFile << """
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     def ci = System.getProperty("CI")
                     println("apply CI = " + ci)
-                    println("apply CI2 = " + System.getProperty("CI2"))
                     project.tasks.register("thing") { t ->
                         t.doLast {
                             def ci2 = System.getProperty("CI")
@@ -42,6 +32,8 @@ class InstantExecutionUndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest e
                     }
                 }
             }
+
+            println("apply CI2 = " + System.getProperty("CI2"))
         """
     }
 }

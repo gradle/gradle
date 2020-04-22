@@ -20,11 +20,14 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
+import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.GradleVersion
 import org.junit.Rule
 import spock.lang.Issue
+
+import java.util.regex.Pattern
 
 class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
@@ -55,24 +58,23 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'module1.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(settingsWithBuildScriptsUseProjectName('core', 'module1'))
         }
 
         when:
         run 'help'
 
         then:
-        def settingsHash = uniqueRemapped('settings')
-        def coreHash = uniqueRemapped('core')
-        def module1Hash = uniqueRemapped('module1')
-
-        and:
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
-        coreHash == module1Hash
-        hasCachedScripts(settingsHash, coreHash)
+        def scripts = scriptDetails()
+        scripts.size() == 3
+        hasScript("settings", scripts)
+        hasScript(":core", scripts)
+        hasScript(":module1", scripts)
+        eachScriptIsUnique(scripts)
+        scriptCacheSize() == 4 // classpath + body for settings and for the 2 identical scripts
     }
 
+    @ToBeFixedForInstantExecution
     def "identical build files are compiled once for distinct invocations"() {
         given:
         root {
@@ -82,7 +84,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'module1.gradle'(this.simpleBuild())
             }
-            'settings.gradle'(settings('core', 'module1'))
+            'settings.gradle'(settingsWithBuildScriptsUseProjectName('core', 'module1'))
         }
 
         when:
@@ -90,19 +92,15 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         executer.requireDaemon()
         executer.requireIsolatedDaemons()
         run 'help'
+        def before = scriptDetails()
+
         run 'help'
 
         then:
-        def settingsHash = uniqueRemapped('settings')
-        def coreHash = uniqueRemapped('core')
-        def module1Hash = uniqueRemapped('module1')
-
-        and:
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
-        coreHash == module1Hash
-        hasCachedScripts(settingsHash, coreHash)
-        getCompileClasspath(coreHash, 'proj').length == 1
+        def scripts = scriptDetails()
+        scripts.size() == 3
+        scriptsAreReused(before, scripts)
+        scriptCacheSize() == 4 // classpath + body for settings and for the 2 identical scripts
     }
 
     def "can have two build files with same contents and file name"() {
@@ -114,21 +112,20 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'("include 'core', 'module1'")
+            'settings.gradle'(settings('core', 'module1'))
         }
 
         when:
         run 'help'
 
         then:
-        def settingsHash = uniqueRemapped('settings')
-        def buildHashes = hasRemapped('build')
-
-        and:
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
-        buildHashes.size() == 2 // two build.gradle files in different dirs
-        hasCachedScripts(settingsHash, *buildHashes)
+        def scripts = scriptDetails()
+        scripts.size() == 3
+        hasScript("settings", scripts)
+        hasScript(":core", scripts)
+        hasScript(":module1", scripts)
+        eachScriptIsUnique(scripts)
+        scriptCacheSize() == 4 // classpath and body for for settings and for the 2 identical scripts
     }
 
     def "can have two build files with different contents and same file name"() {
@@ -138,23 +135,46 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
                 'build.gradle'(this.simpleBuild())
             }
             module1 {
-                'build.gradle'(this.simpleBuild('different contents'))
+                'build.gradle'(this.simpleBuild('// different contents'))
             }
-            'settings.gradle'("include 'core', 'module1'")
+            'settings.gradle'(settings('core', 'module1'))
         }
 
         when:
         run 'help'
 
         then:
-        def settingsHash = uniqueRemapped('settings')
-        def buildHashes = hasRemapped('build')
+        def scripts = scriptDetails()
+        scripts.size() == 3
+        hasScript("settings", scripts)
+        hasScript(":core", scripts)
+        hasScript(":module1", scripts)
+        eachScriptIsUnique(scripts)
+        scriptCacheSize() == 6 // classpath + body for settings and for each build.gradle file
+    }
 
-        and:
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 3 // one for settings, one for each build.gradle file
-        buildHashes.size() == 2 // two build.gradle files in different dirs
-        hasCachedScripts(settingsHash, *buildHashes)
+    def "reuses scripts when build file changes in a way that does not affect behaviour"() {
+        given:
+        root {
+            core {
+                'build.gradle'(this.simpleBuild())
+            }
+            module1 {
+                'build.gradle'(this.simpleBuild())
+            }
+            'settings.gradle'(settings('core', 'module1'))
+        }
+        run 'help'
+        def before = scriptDetails()
+
+        when:
+        file('module1/build.gradle').text = simpleBuild('// different')
+        run 'help'
+
+        then:
+        def scripts = scriptDetails()
+        scriptsAreReused(before, scripts)
+        scriptCacheSize() == 6 // classpath + body for settings and for each build.gradle file
     }
 
     def "cache size increases when build file changes"() {
@@ -166,21 +186,19 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module1 {
                 'build.gradle'(this.simpleBuild())
             }
-            'settings.gradle'("include 'core', 'module1'")
+            'settings.gradle'(settings('core', 'module1'))
         }
         run 'help'
+        def before = scriptDetails()
 
         when:
-        file('module1/build.gradle').text = simpleBuild('different contents')
+        file('module1/build.gradle').text = simpleBuild('println("different")')
         run 'help'
 
         then:
-        def settingsHash = uniqueRemapped('settings')
-        def buildHashes = hasRemapped('build')
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 3 // one for settings, one for each build.gradle file
-        buildHashes.size() == 3 // two build.gradle files in different dirs + one new build.gradle
-        hasCachedScripts(settingsHash, *buildHashes)
+        def scripts = scriptDetails()
+        scriptHasChanged(":module1", before, scripts)
+        scriptCacheSize() == 6 // classpath + body for settings and for each build.gradle file
     }
 
     def "remapping scripts doesn't mix up classes with same name"() {
@@ -221,27 +239,22 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
             module2 {
                 'module2.gradle'(this.taskThrowingError())
             }
-            'settings.gradle'(settings('module1', 'module2'))
+            'settings.gradle'(settingsWithBuildScriptsUseProjectName('module1', 'module2'))
         }
 
         when:
         fails 'module1:someTask'
 
         then:
-        def settingsHash = uniqueRemapped('settings')
-        def module1Hash = uniqueRemapped('module1')
-        def module2Hash = uniqueRemapped('module2')
-
-        and:
-        remappedCacheSize() == 3 // one for each build script
-        scriptCacheSize() == 2 // one for settings, one for the 2 identical scripts
-        module1Hash == module2Hash
-        hasCachedScripts(settingsHash, module1Hash)
+        def scripts = scriptDetails()
+        scripts.size() == 3
+        eachScriptIsUnique(scripts)
+        scriptCacheSize() == 4 // classpath + body for settings and for the 2 identical scripts
 
         and:
         def module1File = file("module1/module1.gradle")
         failure.assertHasFileName("Build file '$module1File'")
-        failure.assertHasLineNumber(4)
+        failure.assertHasLineNumber(5)
 
         when:
         fails 'module2:someTask'
@@ -249,7 +262,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         then:
         def module2File = file("module2/module2.gradle")
         failure.assertHasFileName("Build file '$module2File'")
-        failure.assertHasLineNumber(4)
+        failure.assertHasLineNumber(5)
     }
 
     @ToBeFixedForInstantExecution
@@ -260,20 +273,24 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         root {
             'build.gradle'(this.applyFromRemote(server))
         }
-        server.expect(server.get("shared.gradle").send("println 'Echo'"))
+        server.expect(server.get("shared.gradle").send("""
+            ${instrument('"shared"')}
+            println 'Echo'
+        """))
 
         when:
         run 'tasks'
 
         then:
         outputContains 'Echo'
-        def buildHash = uniqueRemapped('build')
-        def sharedHash = uniqueRemapped('shared')
 
         and:
-        remappedCacheSize() == 2 // one for each build script
-        scriptCacheSize() == 2 // one for each build script
-        hasCachedScripts(buildHash, sharedHash)
+        def scripts = scriptDetails()
+        scripts.size() == 2
+        hasScript(":", scripts)
+        hasScript("shared", scripts)
+        eachScriptIsUnique(scripts)
+        scriptCacheSize() == 4 // classpath + body for each build script
     }
 
     @ToBeFixedForInstantExecution
@@ -286,36 +303,36 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         }
         def buildHash
         def sharedHash
-        server.expect(server.get("shared.gradle").send("println 'Echo 0'"))
+        server.expect(server.get("shared.gradle").send("""
+            ${instrument('"shared"')}
+            println 'Echo 0'
+        """))
 
         when:
         run 'tasks'
-        buildHash = uniqueRemapped('build')
-        sharedHash = uniqueRemapped('shared')
 
         then:
         outputContains 'Echo 0'
 
         and:
-        remappedCacheSize() == 2 // one for each build script
-        scriptCacheSize() == 2 // one for each build script
-        hasCachedScripts(buildHash, sharedHash)
+        def before = scriptDetails()
 
         when:
         server.expect(server.head("shared.gradle"))
-        server.expect(server.get("shared.gradle").send("println 'Echo 1'"))
+        server.expect(server.get("shared.gradle").send("""
+            ${instrument('"shared"')}
+            println 'Echo 1'
+        """))
 
         run 'tasks'
-        buildHash = uniqueRemapped('build')
-        def sharedHashs = hasRemapped('shared')
 
         then:
         outputContains 'Echo 1'
 
         and:
-        remappedCacheSize() == 2 // one for each build script
-        scriptCacheSize() == 3 // one for each build script of this invocation + 1 from the previous invocation
-        hasCachedScripts(buildHash, *sharedHashs)
+        def scripts = scriptDetails()
+        scriptHasChanged("shared", before, scripts)
+        scriptCacheSize() == 6 // classpath + body for each build script of this invocation + 1 from the previous invocation
     }
 
     @Issue("GRADLE-2795")
@@ -323,13 +340,13 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         server.start()
 
         given:
-        buildFile << """
+        buildFile << simpleBuild("""
 task someLongRunningTask {
     doLast {
         ${server.callFromBuild("running")}
     }
 }
-"""
+""")
         def handle = server.expectAndBlock("running")
 
         when:
@@ -337,60 +354,57 @@ task someLongRunningTask {
         handle.waitForAllPendingCalls()
 
         then:
-        remappedCacheSize() == 1 // build.gradle
-        scriptCacheSize() == 1 // build.gradle
-        hasCachedScripts(uniqueRemapped('build'))
+        def before
+        ConcurrentTestUtil.poll {
+            // Output is delivered asynchronously, so wait until the details are available
+            before = scriptDetails(longRunning.standardOutput)
+            assert !before.isEmpty()
+        }
+        scriptCacheSize() == 2 // classpath + body for build.gradle
 
         when:
         buildFile << """
 task fastTask { }
 """
 
-        executer.withTasks("fastTask").run()
+        def fast = executer.withTasks("fastTask").run()
         assert longRunning.isRunning()
         handle.releaseAll()
         longRunning.waitForExit()
 
         then:
-        remappedCacheSize() == 1 // build.gradle
-        scriptCacheSize() == 2 // build.gradle version 1, build.gradle version 2
-        hasCachedScripts(*hasRemapped('build'))
+        def scripts = scriptDetails(fast.output)
+        scriptHasChanged(":", before, scripts)
+        scriptCacheSize() == 4 // classpath + body for build.gradle version 1, build.gradle version 2
     }
 
     @ToBeFixedForInstantExecution
     def "build script is recompiled when project's classpath changes"() {
         createJarWithProperties("lib/foo.jar", [source: 1])
         root {
-            'build.gradle'('''
+            'build.gradle'(simpleBuild('''
                 buildscript {
                     dependencies {
                         classpath files('lib/foo.jar')
                     }
                 }
-            ''')
+            '''))
         }
 
         when:
         run 'help'
 
         then:
-        def coreHash = uniqueRemapped('build')
-        remappedCacheSize() == 1
-        scriptCacheSize() == 1
-        hasCachedScripts(coreHash)
-        getCompileClasspath(coreHash, 'proj').length == 1
+        def before = scriptDetails()
 
         when:
-        sleep(1000)
         createJarWithProperties("lib/foo.jar", [target: 2])
         run 'help'
-        coreHash = uniqueRemapped('build')
 
         then:
-        remappedCacheSize() == 1
-        scriptCacheSize() == 1
-        hasCachedScripts(coreHash)
-        getCompileClasspath(coreHash, 'proj').length == 2
+        def scripts = scriptDetails()
+        scriptsAreReused(before, scripts) // The scripts end up with the same byte code and so the result is reused
+        scriptCacheSize() == 3 // single classpath block, plus a build script body for each parent classpath
     }
 
     @ToBeFixedForInstantExecution
@@ -407,43 +421,33 @@ task fastTask { }
             module {
                 'module.gradle'(this.simpleBuild('module'))
             }
-            'settings.gradle'(this.settings('module'))
+            'settings.gradle'(this.settingsWithBuildScriptsUseProjectName('module'))
         }
 
         when:
         run 'help'
 
         then:
-        def coreHash = uniqueRemapped('build')
-        def moduleHash = uniqueRemapped('module')
-        def settingsHash = uniqueRemapped('settings')
-        remappedCacheSize() == 3 // core, module, settings
-        scriptCacheSize() == 3
-        hasCachedScripts(coreHash, moduleHash, settingsHash)
-        getCompileClasspath(coreHash, 'proj').length == 1
-        getCompileClasspath(moduleHash, 'proj').length == 1
+        def before = scriptDetails()
 
         when:
-        sleep(1000)
         createJarWithProperties("lib/foo.jar", [target: 2])
         run 'help'
-        coreHash = uniqueRemapped('build')
-        moduleHash = uniqueRemapped('module')
-        settingsHash = uniqueRemapped('settings')
 
         then:
-        remappedCacheSize() == 3
-        scriptCacheSize() == 3
-        hasCachedScripts(coreHash, moduleHash, settingsHash)
-        getCompileClasspath(coreHash, 'proj').length == 2
-        getCompileClasspath(moduleHash, 'proj').length == 2
+        def scripts = scriptDetails()
+        scriptsAreReused(before, scripts) // scripts end up with the same byte code and so are reused
+        scriptCacheSize() == 8 // classpath and body for settings plus classpath and two bodies for the two build scripts
     }
 
     def "init script is cached"() {
         root {
             'build.gradle'(this.simpleBuild())
             gradle {
-                'init.gradle'('// init script')
+                'init.gradle'("""
+                    // init script
+                    ${this.instrument('"init"')}
+                """)
             }
         }
 
@@ -452,18 +456,17 @@ task fastTask { }
         run 'help'
 
         then:
-        def initHash = uniqueRemapped('init')
-        def coreHash = uniqueRemapped('build')
-        remappedCacheSize() == 2
-        scriptCacheSize() == 2
-        hasCachedScripts(coreHash, initHash)
-        getCompileClasspath(coreHash, 'proj').length == 1
-        getCompileClasspath(initHash, 'init').length == 1
+        def scripts = scriptDetails()
+        scripts.size() == 2
+        hasScript('init', scripts)
+        scriptCacheSize() == 4 // classpath and body for build script and init script
     }
 
     def "same script can be applied from init script, settings script and build script"() {
         root {
-            'common.gradle'('println "poke"')
+            'common.gradle'("""
+                ${this.instrument('"common"')}
+            """)
             'init.gradle'('''
                 // init script
                 apply from: 'common.gradle'
@@ -483,20 +486,18 @@ task fastTask { }
         run 'help'
 
         then:
-        def commonHash = uniqueRemapped('common')
-        def initHash = uniqueRemapped('settings')
-        def settingsHash = uniqueRemapped('init')
-        def coreHash = uniqueRemapped('build')
-        remappedCacheSize() == 4
-        scriptCacheSize() == 4
-        hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
-        getCompileClasspath(commonHash, 'cp_dsl').length == 1
-        getCompileClasspath(commonHash, 'dsl').length == 1
+        def scripts = scriptDetails()
+        scripts.size() == 3 // same script applied 3 times
+        scripts.collect { it.className }.unique().size() == 1
+        scripts.collect { it.classpath }.unique().size() == 1
+        scriptCacheSize() == 8 // classpath and body for each script
     }
 
     def "same script can be applied from identical init script, settings script and build script"() {
         root {
-            'common.gradle'('println "poke"')
+            'common.gradle'("""
+                ${this.instrument('"common"')}
+            """)
             'init.gradle'('''
                 apply from: 'common.gradle'
             ''')
@@ -513,15 +514,11 @@ task fastTask { }
         run 'help'
 
         then:
-        def commonHash = uniqueRemapped('common')
-        def initHash = uniqueRemapped('settings')
-        def settingsHash = uniqueRemapped('init')
-        def coreHash = uniqueRemapped('build')
-        remappedCacheSize() == 4
-        scriptCacheSize() == 2
-        hasCachedScripts(commonHash, settingsHash, coreHash, initHash)
-        getCompileClasspath(commonHash, 'cp_dsl').length == 1
-        getCompileClasspath(commonHash, 'dsl').length == 1
+        def scripts = scriptDetails()
+        scripts.size() == 3 // same script applied 3 times
+        scripts.collect { it.className }.unique().size() == 1
+        scripts.collect { it.classpath }.unique().size() == 1
+        scriptCacheSize() == 8 // classpath and body for the common script + identical script x 3 targets
     }
 
     def "remapped classes have script origin"() {
@@ -541,11 +538,11 @@ task fastTask { }
                        throw new AssertionError("Expected a unique hash, but found duplicate: ${o.contentHash} in $seen")
                     }
                 }
-                
+
                 Set<String> seen = []
-    
+
                 assertScriptOrigin(this, seen)
-            
+
                 task one {
                     doLast {
                         { ->
@@ -553,13 +550,13 @@ task fastTask { }
                         }()
                     }
                 }
-                
+
                 task two {
                     def v
                     v = { assertScriptOrigin(v, seen) }
                     doFirst(v)
                 }
-                
+
                 task three {
                     doLast(new Action() {
                         void execute(Object o) {
@@ -567,14 +564,14 @@ task fastTask { }
                         }
                     })
                 }
-                
+
                 task four {
                     doLast {
                         def a = new A()
                         assertScriptOrigin(a, seen)
                     }
                 }
-                
+
                 class A {}
             ''')
         }
@@ -609,15 +606,14 @@ task fastTask { }
                 """)
             }
             run 'help'
-            sleep(1000)
         }
 
         then:
-        remappedCacheSize() == 2 // build + common
-        scriptCacheSize() == 1 + iterations // common + 1 build script per iteration
+        scriptCacheSize() == 2 * (1 + iterations) // common + 1 build script per iteration
     }
 
-    def "script don't get recompiled if daemon disappears"() {
+    @ToBeFixedForInstantExecution
+    def "script doesn't get recompiled if daemon disappears"() {
         root {
             buildSrc {
                 'build.gradle'('''
@@ -631,14 +627,14 @@ task fastTask { }
                     }
                 }
             }
-            'build.gradle'('''apply from:'main.gradle' ''')
-            'main.gradle'('''
+            'build.gradle'(simpleBuild('''apply from:'main.gradle' '''))
+            'main.gradle'(simpleBuild('''
                 task success {
                     doLast {
                         println 'ok'
                     }
                 }
-            ''')
+            '''))
         }
         executer.requireIsolatedDaemons()
         executer.requireDaemon()
@@ -646,105 +642,91 @@ task fastTask { }
 
         when:
         succeeds 'success'
+        def before = scriptDetails()
         daemons.daemon.kill()
+
         succeeds 'success'
 
         then:
-        String hash = uniqueRemapped('main')
-        getCompileClasspath(hash, 'dsl').length == 1
+        def scripts = scriptDetails()
+        scriptsAreReused(before, scripts)
+        scriptCacheSize() == 6
     }
 
     DaemonsFixture getDaemons() {
         new DaemonLogsAnalyzer(executer.daemonBaseDir)
     }
 
-    int buildScopeCacheSize() {
-        def m = output =~ /(?s).*Build scope cache size: (\d+).*/
-        m.matches()
-        m.group(1).toInteger()
-    }
-
-    int crossBuildScopeCacheSize() {
-        def m = output =~ /(?s).*Cross-build scope cache size: (\d+).*/
-        m.matches()
-        m.group(1).toInteger()
-    }
-
-    Set<String> buildScopeCacheContents() {
-        def m = output =~ /(?s).*Build scope cache contents: \[(.+?)\].*/
-        m.matches()
-        m.group(1).split(", ") as Set
-    }
-
-    Set<String> crossBuildScopeCacheContents() {
-        def m = output =~ /(?s).*Cross-build scope cache contents: \[(.+?)\].*/
-        m.matches()
-        m.group(1).split(", ") as Set
-    }
-
-    Map<String, Integer> crossBuildCacheStats() {
-        def m = output =~ /(?s).*Cross-build scope cache stats: CacheStats\{((?:(?:\p{Alnum}+=\d+)(?:, )?)+)}.*/
-        m.matches()
-        def stats = [:]
-        m = m.group(1) =~ /(\p{Alnum}+)=(\d+)/
-        while (m.find()) {
-            stats[m.group(1)] = m.group(2).toInteger()
-        }
-        stats
-    }
-
-    List<String> hasRemapped(String buildFile) {
-        def remapped = remappedCachesDir.listFiles().findAll { it.name.startsWith(buildFile) }
-        if (remapped) {
-            def contentHash = remapped*.list().flatten()
-            return contentHash
-        }
-        throw new AssertionError("Cannot find a remapped build script for '${buildFile}.gradle'")
-    }
-
-    String uniqueRemapped(String buildFile) {
-        def hashes = hasRemapped(buildFile)
-        assert hashes.size() == 1
-        hashes[0]
-    }
-
-    int remappedCacheSize() {
-        remappedCachesDir.list().length
-    }
-
     int scriptCacheSize() {
-        scriptCachesDir.list().length
+        scriptCachesDir.listFiles().collect { it.listFiles() ?: [] }.flatten().size()
     }
 
-    void hasCachedScripts(String... contentHashes) {
-        Set foundInCache = scriptCachesDir.list() as Set
-        Set expected = contentHashes as Set
-        assert foundInCache == expected
+    void hasScript(String path, List<ClassDetails> scripts) {
+        assert scripts.find { it.path == path }
     }
 
-    String[] getCompileClasspath(String contentHash, String dslId) {
-        new File(new File(scriptCachesDir, contentHash), dslId).list()?:new String[0]
+    void scriptHasChanged(String path, List<ClassDetails> before, List<ClassDetails> after) {
+        def script1 = before.find { it.path == path }
+        def script2 = after.find { it.path == path }
+        assert script1 != null && script2 != null
+        assert script1.className == script2.className
+        assert script1.classpath != script2.classpath
     }
 
-    void hasCachedScriptForClasspath(String contentHash, String dslId, String classpathHash) {
-        def contentsDir = new File(scriptCachesDir, contentHash)
-        assert contentsDir.exists(): "Unable to find a cached script directory for content hash $contentHash.  Found: ${scriptCachesDir.list().toList()}"
-        def dslDir = new File(contentsDir, dslId)
-        assert dslDir.exists(): "Unable to find a cached script directory for content hash $contentHash and DSL id $dslId. Found: ${contentsDir.list().toList()}"
-        def classpathDir = new File(dslDir, classpathHash)
-        assert classpathDir.exists(): "Unable to find a cached script directory for content hash $contentHash, DSL id $dslId and classpath hash $classpathHash. Found: ${dslDir.list().toList()}"
+    void scriptsAreReused(List<ClassDetails> before, List<ClassDetails> after) {
+        assert before.size() == after.size()
+        for (int i = 0; i < before.size(); i++) {
+            def script1 = before[i]
+            def script2 = after[i]
+            assert script1.path == script2.path
+            assert script1.className == script2.className
+            assert script1.classpath == script2.classpath
+        }
     }
 
-    String simpleBuild(String comment = '') {
+    void eachScriptIsUnique(List<ClassDetails> scripts) {
+        assert scripts.collect { it.path }.unique().size() == scripts.size()
+        assert scripts.collect { it.className }.unique().size() == scripts.size()
+        assert scripts.collect { it.classpath }.unique().size() == scripts.size()
+    }
+
+    List<ClassDetails> scriptDetails(String text = result.output) {
+        def pattern = Pattern.compile("script=(.*)=(.*),(.*)")
+        def lines = text.readLines()
+        def result = []
+        lines.forEach { line ->
+            def matcher = pattern.matcher(line)
+            if (!matcher.matches()) {
+                return
+            }
+            result.add(new ClassDetails(matcher.group(1), matcher.group(2), matcher.group(3)))
+        }
+        return result
+    }
+
+    String instrument(String idExpr) {
+        return """println("script=" + $idExpr + "=" + getClass().name + "," + getClass().classLoader.getURLs().collect { new File(it.toURI()) })"""
+    }
+
+    String simpleBuild(String content = '') {
         """
-            // ${comment}
-            apply plugin:'java'
+            ${content}
+            ${instrument("project.path")}
         """
     }
 
     String settings(String... projects) {
         String includes = "include ${projects.collect { "'$it'" }.join(', ')}"
         """
+            ${instrument("'settings'")}
+            $includes
+        """
+    }
+
+    String settingsWithBuildScriptsUseProjectName(String... projects) {
+        String includes = "include ${projects.collect { "'$it'" }.join(', ')}"
+        """
+            ${instrument("'settings'")}
             $includes
             rootProject.children.each { project ->
                 project.projectDir = new File(project.name)
@@ -754,18 +736,30 @@ task fastTask { }
     }
 
     String taskThrowingError() {
-        '''
+        simpleBuild('''
             task someTask() {
                 doLast {
                     thisMethodDoesNotExist()
                 }
             }
-        '''
+        ''')
     }
 
     String applyFromRemote(BlockingHttpServer server) {
-        """
+        simpleBuild("""
             apply from: '${server.uri}/shared.gradle'
-        """
+        """)
+    }
+
+    class ClassDetails {
+        final String path
+        final String className
+        final String classpath
+
+        ClassDetails(String path, String className, String classpath) {
+            this.path = path
+            this.className = className
+            this.classpath = classpath
+        }
     }
 }

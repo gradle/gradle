@@ -34,6 +34,7 @@ class InstantExecutionUndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends
                 override fun apply(project: Project) {
                     val ci = System.getProperty("CI")
                     println("apply CI = " + ci)
+                    println("apply CI2 = \${System.getProperty("CI2")}")
                     project.tasks.register("thing") {
                         doLast {
                             val ci2 = System.getProperty("CI")

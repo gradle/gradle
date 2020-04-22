@@ -59,7 +59,7 @@ class ProjectConfigurationChildrenProgressCrossVersionSpec extends ToolingApiSpe
             // See https://github.com/gradle/gradle-private/issues/1486
             ClassLoader cl = new URLClassLoader(
                 ClasspathUtil.getClasspath(TestRunnable.class.classLoader).asURLs.findAll { url ->
-                    ["scripts-remapped", "groovy-all"].any { url.toString().contains(it) }
+                    ["scripts-remapped", "proj.jar", "groovy-all"].any { url.toString().contains(it) }
                 } as URL[]
             )
 

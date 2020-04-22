@@ -29,7 +29,7 @@ import javax.annotation.Nonnull;
 import java.io.File;
 import java.util.Collection;
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.BuildLogic;
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 
 public class BuildSrcUpdateFactory implements Factory<ClassPath> {
     private static final Logger LOGGER = Logging.getLogger(BuildSrcUpdateFactory.class);
