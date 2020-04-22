@@ -7,11 +7,11 @@ repositories {
 }
 
 // tag::declareVersion[]
-version = "1.1"
+version = "1.2"
 
 tasks.compileJava {
-    // if set, the following takes precedence over the version defined above
-    options.javaModuleVersion.set("1.2")
+    // use the project's version or define one directly
+    options.javaModuleVersion.set(provider { project.version as String })
 }
 // end::declareVersion[]
 

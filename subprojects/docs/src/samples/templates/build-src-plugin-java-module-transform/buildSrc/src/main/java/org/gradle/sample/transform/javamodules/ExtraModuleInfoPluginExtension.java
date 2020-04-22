@@ -1,11 +1,10 @@
 package org.gradle.sample.transform.javamodules;
 
-import org.gradle.api.artifacts.transform.TransformParameters;
-import org.gradle.api.tasks.Input;
 
-import java.io.Serializable;
+import org.gradle.api.Action;
+
+import javax.annotation.Nullable;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -13,32 +12,41 @@ import java.util.Map;
  * Here the class is used as extension that can be configured in the build script
  * and as input to the ExtraModuleInfoTransform that add the information to Jars.
  */
-public class ExtraModuleInfoPluginExtension implements TransformParameters, Serializable {
+public class ExtraModuleInfoPluginExtension {
 
     private final Map<String, ModuleInfo> moduleInfo = new HashMap<>();
     private final Map<String, String> automaticModules = new HashMap<>();
 
     /**
+     * Add full module information for a given Jar file.
+     */
+    public void module(String jarName, String moduleName, String moduleVersion) {
+        module(jarName, moduleName, moduleVersion, null);
+    }
+
+    /**
      * Add full module information, including exported packages and dependencies, for a given Jar file.
      */
-    public void addModuleInfo(String jarName, String moduleName, String moduleVersion, List<String> exports, List<String> requires, List<String> requiresTransitive) {
-        moduleInfo.put(jarName, new ModuleInfo(moduleName, moduleVersion, exports, requires, requiresTransitive));
+    public void module(String jarName, String moduleName, String moduleVersion, @Nullable Action<? super ModuleInfo> conf) {
+        ModuleInfo moduleInfo = new ModuleInfo(moduleName, moduleVersion);
+        if (conf != null) {
+            conf.execute(moduleInfo);
+        }
+        this.moduleInfo.put(jarName, moduleInfo);
     }
 
     /**
      * Add only an automatic module name to a given jar file.
      */
-    public void addAutomatic(String jarName, String moduleName) {
+    public void automaticModule(String jarName, String moduleName) {
         automaticModules.put(jarName, moduleName);
     }
 
-    @Input
-    public Map<String, ModuleInfo> getModuleInfo() {
+    protected Map<String, ModuleInfo> getModuleInfo() {
         return moduleInfo;
     }
 
-    @Input
-    public Map<String, String> getAutomaticModules() {
+    protected Map<String, String> getAutomaticModules() {
         return automaticModules;
     }
 }

@@ -20,7 +20,7 @@ import org.gradle.cache.CacheBuilder
 import org.gradle.cache.CacheRepository
 import org.gradle.cache.FileLockManager
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.cache.internal.filelock.LockOptionsBuilder
 import spock.lang.Specification
@@ -34,7 +34,7 @@ class DefaultPreviousExecutionCacheAccessTest extends Specification {
         PersistentCache backingCache = Mock()
 
         when:
-        new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()))
+        new DefaultExecutionHistoryCacheAccess(gradle, cacheRepository, new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory()))
 
         then:
         1 * cacheRepository.cache(gradle, "executionHistory") >> cacheBuilder

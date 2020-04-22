@@ -17,10 +17,8 @@ public class ExtraModuleInfoPlugin implements Plugin<Project> {
         ExtraModuleInfoPluginExtension extension = project.getObjects().newInstance(ExtraModuleInfoPluginExtension.class);
         project.getExtensions().add(ExtraModuleInfoPluginExtension.class, "extraJavaModuleInfo", extension);
 
-        for(Project p : project.getAllprojects()) {
-            // setup the transform for all projects in the build
-            p.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> configureTransform(p, extension));
-        }
+        // setup the transform for all projects in the build
+        project.getPlugins().withType(JavaPlugin.class).configureEach(javaPlugin -> configureTransform(project, extension));
     }
 
     private void configureTransform(Project project, ExtraModuleInfoPluginExtension extension) {
@@ -31,14 +29,14 @@ public class ExtraModuleInfoPlugin implements Plugin<Project> {
         project.getConfigurations().matching(this::isResolvingJavaPluginConfiguration).all(
                 c -> c.getAttributes().attribute(javaModule, true));
 
-        // all Jars have a javaModule=false attribute by default; the transform also regognizes modules and returns them without modification
+        // all Jars have a javaModule=false attribute by default; the transform also recognizes modules and returns them without modification
         project.getDependencies().getArtifactTypes().getByName("jar").getAttributes().attribute(javaModule, false);
 
-        // register the tranfrom for Jars and "javaModule=false -> javaModule=true"; the plugin extension object fills the input parameter
+        // register the transform for Jars and "javaModule=false -> javaModule=true"; the plugin extension object fills the input parameter
         project.getDependencies().registerTransform(ExtraModuleInfoTransform.class, t -> {
             t.parameters(p -> {
-                p.getModuleInfo().putAll(extension.getModuleInfo());
-                p.getAutomaticModules().putAll(extension.getAutomaticModules());
+                p.setModuleInfo(extension.getModuleInfo());
+                p.setAutomaticModules(extension.getAutomaticModules());
             });
             t.getFrom().attribute(artifactType, "jar").attribute(javaModule, false);
             t.getTo().attribute(artifactType, "jar").attribute(javaModule, true);
