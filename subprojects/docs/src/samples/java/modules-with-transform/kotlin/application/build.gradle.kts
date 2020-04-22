@@ -26,6 +26,10 @@ java {
     modularity.inferModulePath.set(true)
 }
 
+tasks.named<JavaCompile>("compileJava") {
+    options.javaModuleVersion.set(provider({ project.version as String }))
+}
+
 dependencies {
     implementation("com.google.code.gson:gson:2.8.6")           // real module
     implementation("org.apache.commons:commons-lang3:3.10")     // automatic module
