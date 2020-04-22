@@ -253,7 +253,7 @@ The following sample shows how the `build.gradle` needs to be adjusted. In order
 [source,properties]
 .gradle.properties
 ----
-include::{samplesPath}/java/crossCompilation/groovy/gradle.properties[]
+include::{snippetsPath}/java/crossCompilation/groovy/gradle.properties[]
 ----
 
 ====

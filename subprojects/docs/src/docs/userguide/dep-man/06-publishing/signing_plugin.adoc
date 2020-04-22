@@ -169,7 +169,7 @@ The `GnupgSignatory` supports a number of configuration options for controlling 
 [source.multi-language-sample,properties]
 .gradle.properties
 ----
-include::{samplesPath}/signing/gnupg-signatory/groovy/gradle.properties[tag=user-properties]
+include::{snippetsPath}/signing/gnupg-signatory/groovy/gradle.properties[tag=user-properties]
 ----
 
 `signing.gnupg.executable`::
@@ -210,7 +210,7 @@ This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing
 .Output of **`gradle signMavenJavaPublication`**
 ----
 > gradle signMavenJavaPublication
-include::{samplesPath}/signing/maven-publish/signingPluginSignPublication.out[]
+include::{snippetsPath}/signing/maven-publish/signingPluginSignPublication.out[]
 ----
 
 In addition, the above DSL allows to `sign` multiple comma-separated publications. Alternatively, you may specify `publishing.publications` to sign all publications, or use `publishing.publications.matching { … }` to sign all publications that match the specified predicate.
@@ -233,7 +233,7 @@ This will create a task (of type link:{groovyDslPath}/org.gradle.plugins.signing
 .Output of **`gradle signArchives`**
 ----
 > gradle signArchives
-include::{samplesPath}/signing/maven/signingArchivesOutput.out[]
+include::{snippetsPath}/signing/maven/signingArchivesOutput.out[]
 ----
 
 [[sec:signing_tasks]]
@@ -256,7 +256,7 @@ The signature file will be placed alongside the artifact being signed.
 .Output of **`gradle signStuffZip`**
 ----
 > gradle signStuffZip
-include::{samplesPath}/signing/tasks/signingTaskOutput.out[]
+include::{snippetsPath}/signing/tasks/signingTaskOutput.out[]
 ----
 
 For a task to be _signable_, it must produce an archive of some type, i.e. it must extend link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask].

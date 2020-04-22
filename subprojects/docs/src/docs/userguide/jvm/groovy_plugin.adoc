@@ -312,7 +312,7 @@ The Groovy compiler will always be executed with the same version of Java that w
 [source]
 .gradle.properties
 ----
-include::{samplesPath}/groovy/crossCompilation/groovy/gradle.properties[]
+include::{snippetsPath}/groovy/crossCompilation/groovy/gradle.properties[]
 ----
 
 ====

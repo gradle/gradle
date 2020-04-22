@@ -47,7 +47,7 @@ include::sample[dir="snippets/dependencyManagement/inspectingDependencies/depend
 .Output of **`gradle -q dependencies --configuration scm`**
 ----
 > gradle -q dependencies --configuration scm
-include::{samplesPath}/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
+include::{snippetsPath}/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
 ----
 
 The dependencies report provides detailed information about the dependencies available in the graph.
@@ -85,7 +85,7 @@ Given a dependency in the dependency graph you can identify the selection reason
 .Output of **`gradle -q dependencyInsight --dependency commons-codec --configuration scm`**
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
-include::{samplesPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
+include::{snippetsPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
 
 [[sec:resolving-version-conflict]]

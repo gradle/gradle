@@ -134,7 +134,7 @@ By specifying that the distribution should include the task's output files (see 
 .Output of `gradle distZip`
 ----
 > gradle distZip
-include::{samplesPath}/application/dependentTaskForApplicationDistributionOutput.out[]
+include::{snippetsPath}/application/dependentTaskForApplicationDistributionOutput.out[]
 ----
 
 You can run `gradle installDist` to create an image of the application in `build/install/__projectName__`. You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assemble` to build both.

@@ -160,7 +160,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             // TODO: This breaks if the version is changed later.
             attributes.put("gradleVersion", project.getVersion().toString());
-            attributes.put("samplesPath", "snippets");
+            attributes.put("snippetsPath", "snippets");
             task.attributes(attributes);
         });
 
