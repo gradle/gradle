@@ -16,6 +16,8 @@
 
 package org.gradle.internal.classpath;
 
+import groovy.lang.GroovyObject;
+import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
@@ -35,6 +37,16 @@ public class DecoratingTransformer {
     private static final Type SYSTEM_TYPE = Type.getType(System.class);
     private static final Type STRING_TYPE = Type.getType(String.class);
     private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
+    private static final Type GROOVY_TYPE = Type.getType(GroovyObject.class);
+
+    private static final String RETURN_STRING_FROM_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.getType(CallSiteArray.class));
+    private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(CallSiteArray.class));
+
+    private static final String INSTRUMENTED_CALL_SITE_METHOD = "$instrumentedCallSiteArray";
+    private static final String CALL_SITE_ARRAY_METHOD = "$createCallSiteArray";
+
+    private static final String[] NO_EXCEPTIONS = new String[0];
     private static final Attributes.Name DIGEST_ATTRIBUTE = new Attributes.Name("SHA1-Digest");
 
     private final ClasspathWalker classpathWalker;
@@ -46,7 +58,6 @@ public class DecoratingTransformer {
     }
 
     void transform(File source, File dest) {
-        // Unpack and rebuild the jar. Later, this will apply some transformations to the classes
         classpathBuilder.jar(dest, builder -> classpathWalker.visit(source, entry -> {
             if (entry.getName().endsWith(".class")) {
                 ClassReader reader = new ClassReader(entry.getContent());
@@ -80,6 +91,8 @@ public class DecoratingTransformer {
 
     private static class InstrumentingVisitor extends ClassVisitor {
         private String className;
+        private boolean groovyType;
+        private boolean hasCallSites;
 
         public InstrumentingVisitor(ClassVisitor visitor) {
             super(Opcodes.ASM7, visitor);
@@ -88,33 +101,63 @@ public class DecoratingTransformer {
         @Override
         public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
             super.visit(version, access, name, signature, superName, interfaces);
+
+            for (String anInterface : interfaces) {
+                if (anInterface.equals(GROOVY_TYPE.getInternalName())) {
+                    this.groovyType = true;
+                    break;
+                }
+            }
+
             this.className = name;
         }
 
         @Override
         public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
             MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(className, methodVisitor);
+            if (name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
+                hasCallSites = true;
+            }
+            return new InstrumentingMethodVisitor(className, groovyType, methodVisitor);
+        }
+
+        @Override
+        public void visitEnd() {
+            if (groovyType && hasCallSites) {
+                MethodVisitor methodVisitor = super.visitMethod(Opcodes.ACC_STATIC | Opcodes.ACC_SYNTHETIC | Opcodes.ACC_PRIVATE, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, null, NO_EXCEPTIONS);
+                methodVisitor.visitCode();
+                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, className, CALL_SITE_ARRAY_METHOD, RETURN_CALL_SITE_ARRAY, false);
+                methodVisitor.visitInsn(Opcodes.DUP);
+                methodVisitor.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "groovyCallSites", RETURN_VOID_FROM_CALL_SITE_ARRAY, false);
+                methodVisitor.visitInsn(Opcodes.ARETURN);
+                methodVisitor.visitMaxs(2, 0);
+                methodVisitor.visitEnd();
+            }
+            super.visitEnd();
         }
     }
 
     private static class InstrumentingMethodVisitor extends MethodVisitor {
         private final String className;
+        private final boolean groovyType;
 
-        public InstrumentingMethodVisitor(String className, MethodVisitor methodVisitor) {
+        public InstrumentingMethodVisitor(String className, boolean groovyType, MethodVisitor methodVisitor) {
             super(Opcodes.ASM7, methodVisitor);
             this.className = className;
+            this.groovyType = groovyType;
         }
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            if (opcode == Opcodes.INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty")) {
-                if (Type.getMethodType(descriptor).getArgumentTypes().length == 1) {
-                    // TODO - load the class literal instead of class name
-                    visitLdcInsn(Type.getObjectType(className).getClassName());
-                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE), false);
-                    return;
-                }
+            if (opcode == Opcodes.INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty") && descriptor.equals(Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE))) {
+                // TODO - load the class literal instead of class name
+                visitLdcInsn(Type.getObjectType(className).getClassName());
+                super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING, false);
+                return;
+            }
+            if (groovyType && opcode == Opcodes.INVOKESTATIC && owner.equals(className) && name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
+                super.visitMethodInsn(Opcodes.INVOKESTATIC, className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, false);
+                return;
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }
