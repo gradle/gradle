@@ -391,7 +391,16 @@ samples {
             }
         }
 
+        gradlePlugin {
+            sampleDirectory = samplesRoot.dir("build-organization/gradle-plugin")
+            description = "Organize your build logic into a Gradle plugin written in Java."
+            category = "Build organization"
+            common {
+                from(templates.gradlePluginInJava)
+            }
+        }
         precompiledScriptPlugin {
+            sampleDirectory = samplesRoot.dir("build-organization/precompiled-script-plugin")
             description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
             category = "Build organization"
         }
@@ -399,14 +408,6 @@ samples {
             sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
             description = "Bundle and publish multiple precompiled script plugins."
             category = "Build organization"
-        }
-
-        gradlePlugin {
-            description = "Organize your build logic into a Gradle plugin written in Java."
-            category = "Build organization"
-            common {
-                from(templates.gradlePluginInJava)
-            }
         }
 
         taskWithArguments {
