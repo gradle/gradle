@@ -29,7 +29,7 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIn
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample('userguide/bestPractices/taskDefinition')
+    @UsesSample('bestPractices/taskDefinition')
     def "can execute tasks with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -44,7 +44,7 @@ class SamplesAuthoringMaintainableBuildsIntegrationTest extends AbstractSampleIn
     }
 
     @Unroll
-    @UsesSample('userguide/bestPractices/taskGroupDescription')
+    @UsesSample('bestPractices/taskGroupDescription')
     @ToBeFixedForInstantExecution
     def "can render a task's group and description in tasks report with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
@@ -62,7 +62,7 @@ generateDocs - Generates the HTML documentation for this project.""")
     }
 
     @Unroll
-    @UsesSample('userguide/bestPractices/logicDuringConfiguration')
+    @UsesSample('bestPractices/logicDuringConfiguration')
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can execute logic during execution phase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
@@ -80,7 +80,7 @@ generateDocs - Generates the HTML documentation for this project.""")
     }
 
     @Unroll
-    @UsesSample('userguide/bestPractices/logicDuringConfiguration')
+    @UsesSample('bestPractices/logicDuringConfiguration')
     def "throw exception when executing logic during configuration phrase with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
 
@@ -97,7 +97,7 @@ generateDocs - Generates the HTML documentation for this project.""")
     }
 
     @Unroll
-    @UsesSample('userguide/bestPractices/conditionalLogic')
+    @UsesSample('bestPractices/conditionalLogic')
     def "can execute conditional logic for #exampleName with #dsl dsl"() {
         executer.inDirectory(sample.dir.file("$subDirName/$dsl"))
         executer.withArgument('-PreleaseEngineer=true')

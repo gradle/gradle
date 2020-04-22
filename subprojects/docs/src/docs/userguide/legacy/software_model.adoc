@@ -398,13 +398,13 @@ You should note that the configuration code is not executed immediately but is i
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/modelRules/configureAsRequired/build.gradle[tag=configure-rule]
+include::{samplesPath}/modelRules/configureAsRequired/build.gradle[tag=configure-rule]
 ----
 
 .Output of **`gradle showPerson`**
 ----
 > gradle showPerson
-include::{samplesPath}/userguide/modelRules/configureAsRequired/modelDslConfigureRuleRunWhenRequired.out[]
+include::{samplesPath}/modelRules/configureAsRequired/modelDslConfigureRuleRunWhenRequired.out[]
 ----
 
 You can see that before the task is run, the "person" element is configured by running the rule closure. Now let's run a task that does not require the "person" element:
@@ -414,7 +414,7 @@ You can see that before the task is run, the "person" element is configured by r
 .Output of **`gradle somethingElse`**
 ----
 > gradle somethingElse
-include::{samplesPath}/userguide/modelRules/configureAsRequired/modelDslConfigureRuleNotRunWhenNotRequired.out[]
+include::{samplesPath}/modelRules/configureAsRequired/modelDslConfigureRuleNotRunWhenNotRequired.out[]
 ----
 
 In this instance, you can see that the "person" element is not configured at all.
@@ -465,13 +465,13 @@ You should note that the initialization code is not executed immediately but is 
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/build.gradle[tag=configure-and-create-rules]
+include::{samplesPath}/modelRules/initializationRuleRunsBeforeConfigurationRules/build.gradle[tag=configure-and-create-rules]
 ----
 
 .Output of **`gradle showPerson`**
 ----
 > gradle showPerson
-include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/modelDslInitializationRuleRunsBeforeConfigurationRule.out[]
+include::{samplesPath}/modelRules/initializationRuleRunsBeforeConfigurationRules/modelDslInitializationRuleRunsBeforeConfigurationRule.out[]
 ----
 
 Notice that the creation rule appears in the build script _after_ the configuration rule, but its code runs before the code of the configuration rule. Gradle collects up all the rules for a particular subject before running any of them, then runs the rules in the appropriate order.
@@ -527,13 +527,13 @@ As before, a nested configuration rule defines the name of the element to config
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/modelRules/configureElementsOfMap/build.gradle[tag=create-and-configure]
+include::{samplesPath}/modelRules/configureElementsOfMap/build.gradle[tag=create-and-configure]
 ----
 
 .Output of **`gradle listPeople`**
 ----
 > gradle listPeople
-include::{samplesPath}/userguide/modelRules/configureElementsOfMap/modelDslModelMapNestedAll.out[]
+include::{samplesPath}/modelRules/configureElementsOfMap/modelDslModelMapNestedAll.out[]
 ----
 
 Any method on link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] that accepts an link:{javadocPath}/org/gradle/api/Action.html[Action] as its last parameter can also be used to define a nested rule.

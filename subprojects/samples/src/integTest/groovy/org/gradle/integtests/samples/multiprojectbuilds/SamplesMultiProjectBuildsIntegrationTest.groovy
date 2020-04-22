@@ -29,7 +29,7 @@ class SamplesMultiProjectBuildsIntegrationTest extends AbstractSampleIntegration
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/multiproject/dependencies/outgoingArtifact")
+    @UsesSample("multiproject/dependencies/outgoingArtifact")
     def "can produce outgoing artifact and depend on it from other project with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

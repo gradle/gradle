@@ -273,24 +273,24 @@ Adding a JAR containing the classes of a source set:
 
 .Assembling a JAR for a source set
 ====
-include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
-include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
 ====
 
 Generating Javadoc for a source set:
 
 .Generating the Javadoc for a source set
 ====
-include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
-include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
 ====
 
 Adding a test suite to run the tests in a source set:
 
 .Running tests in a source set
 ====
-include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
-include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
 ====
 
 [[sec:java_plugin_and_dependency_management]]
@@ -410,8 +410,8 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 .Using the `java` extension
 ====
-include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
-include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
 ====
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::

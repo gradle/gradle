@@ -20,8 +20,8 @@ Adding a variant is then very simple:
 
 .Adding a variant to an existing software component
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
-include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=add_variant_to_existing_component]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=add_variant_to_existing_component]"]
 ====
 
 In other cases, you might want to modify a variant that was added by one of the Java plugins already.
@@ -45,8 +45,8 @@ At the moment, this is only possible via a plugin because you need to get a hand
 
 .Injecting the software component factory
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=inject_software_component_factory]"]
-include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=inject_software_component_factory]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=inject_software_component_factory]"]
 ====
 
 Declaring _what_ a custom component publishes is still done via the link:{javadocPath}/org/gradle/api/component/AdhocComponentWithVariants.html[AdhocComponentWithVariants] API.
@@ -55,8 +55,8 @@ At this stage, what you should have is variants which can be used in cross-proje
 
 .Creating a custom, adhoc component
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=create_adhoc_component]"]
-include::sample[dir="snippets/userguide/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/groovy/buildSrc/src/main/groovy/com/acme",files="InstrumentedJarsPlugin.groovy[tags=create_adhoc_component]"]
+include::sample[dir="snippets/dependencyManagement/modelingFeatures/crossProjectPublications/advanced-published/kotlin/buildSrc/src/main/kotlin/com/acme",files="InstrumentedJarsPlugin.kt[tags=create_adhoc_component]"]
 ====
 
 First we use the factory to create a new adhoc component.
@@ -175,8 +175,8 @@ For example, imagine you want to change where the `generatePomFileFor__PubName__
 
 .Configuring a dynamically named task created by the publishing plugins
 ====
-include::sample[dir="snippets/userguide/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
-include::sample[dir="snippets/userguide/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]
+include::sample[dir="snippets/publishing/javaLibrary/groovy",files="build.gradle[tags=configure-generate-task]"]
+include::sample[dir="snippets/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]
 ====
 
 The above sample uses a regular expression to extract the name of the publication from the name of the task. This is so that there is no conflict between the file paths of all the POM files that might be generated. If you only have one publication, then you don't have to worry about such conflicts since there will only be one POM file.
