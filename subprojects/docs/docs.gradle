@@ -168,6 +168,8 @@ samples {
         kotlinUtilitiesLibrary
 
         projectInfoPlugin
+
+        standalonePrecompiledScriptPluginUtils
     }
 
     publishedSamples {
@@ -408,6 +410,9 @@ samples {
             sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
             description = "Bundle and publish multiple precompiled script plugins."
             category = "Build organization"
+            common {
+                from(templates.standalonePrecompiledScriptPluginUtils)
+            }
         }
 
         taskWithArguments {
