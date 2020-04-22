@@ -16,15 +16,15 @@
 
 package org.gradle.internal.vfs;
 
+import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.file.FileWatcherCallback;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
 import java.io.IOException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -32,7 +32,7 @@ import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
-import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATE;
+import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
@@ -40,7 +40,7 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
-    private final BlockingQueue<FileEvent> fileEvents = new ArrayBlockingQueue<>(4096);
+    private final BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(4096);
     private final Thread eventConsumerThread;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
 
@@ -56,13 +56,42 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
         Thread thread = new Thread(() -> {
             try {
                 while (consumeEvents) {
-                    FileEvent nextEvent = fileEvents.take();
+                    FileWatchEvent nextEvent = fileEvents.take();
                     if (!stopping) {
-                        if (nextEvent.lostState) {
-                            handler.handleLostState();
-                        } else {
-                            handler.handleChange(nextEvent.type, nextEvent.path);
-                        }
+                        nextEvent.handleEvent(new FileWatchEvent.Handler() {
+                            @Override
+                            public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
+                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
+                                handler.handleChange(convertType(type), Paths.get(absolutePath));
+                            }
+
+                            @Override
+                            public void handleUnknownEvent(String absolutePath) {
+                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
+                                handler.handleLostState();
+                            }
+
+                            @Override
+                            public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
+                                if (absolutePath == null) {
+                                    handler.handleLostState();
+                                } else {
+                                    handler.handleChange(INVALIDATED, Paths.get(absolutePath));
+                                }
+                            }
+
+                            @Override
+                            public void handleFailure(Throwable failure) {
+                                LOGGER.error("Error while receiving file changes", failure);
+                                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(failure));
+                                handler.handleLostState();
+                            }
+
+                            @Override
+                            public void handleTerminated(boolean successful) {
+                                consumeEvents = false;
+                            }
+                        });
                     }
                 }
             } catch (InterruptedException e) {
@@ -80,45 +109,14 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
     }
 
     private FileWatcher createWatcher(FileWatcherCreator watcherCreator) {
-        return watcherCreator.createWatcher(new FileWatcherCallback() {
-            @Override
-            public void pathChanged(Type type, String path) {
-                FileEvent event;
-                if (type == FileWatcherCallback.Type.UNKNOWN) {
-                    fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
-                    event = FileEvent.lostState();
-                } else {
-                    fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
-                    event = FileEvent.changed(convertType(type), Paths.get(path));
-                }
-                boolean addedToQueue = fileEvents.offer(event);
-                if (!addedToQueue) {
-                    LOGGER.warn("Gradle file event buffer overflow, dropping state");
-                    signalLostState();
-                }
-            }
-
-            @Override
-            public void reportError(Throwable ex) {
-                LOGGER.error("Error while receiving file changes", ex);
-                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(ex));
-                signalLostState();
-            }
-
-            private void signalLostState() {
-                fileEvents.clear();
-                try {
-                    fileEvents.put(FileEvent.lostState());
-                } catch (InterruptedException e) {
-                    //noinspection ResultOfMethodCallIgnored
-                    Thread.interrupted();
-                    throw new RuntimeException(e);
-                }
-            }
-        });
+        try {
+            return watcherCreator.createWatcher(fileEvents);
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
+        }
     }
 
-    private static Type convertType(FileWatcherCallback.Type type) {
+    private static Type convertType(FileWatchEvent.ChangeType type) {
         switch (type) {
             case CREATED:
                 return CREATED;
@@ -126,8 +124,8 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
                 return MODIFIED;
             case REMOVED:
                 return REMOVED;
-            case INVALIDATE:
-                return INVALIDATE;
+            case INVALIDATED:
+                return INVALIDATED;
             default:
                 throw new AssertionError();
         }
@@ -150,27 +148,7 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
     }
 
     protected interface FileWatcherCreator {
-        FileWatcher createWatcher(FileWatcherCallback callback);
-    }
-
-    private static class FileEvent {
-        final Path path;
-        final FileWatcherRegistry.Type type;
-        final boolean lostState;
-
-        public static FileEvent lostState() {
-            return new FileEvent(null, null, true);
-        }
-
-        public static FileEvent changed(Type type, Path path) {
-            return new FileEvent(path, type, false);
-        }
-
-        private FileEvent(@Nullable Path path, @Nullable FileWatcherRegistry.Type type, boolean lostState) {
-            this.path = path;
-            this.type = type;
-            this.lostState = lostState;
-        }
+        FileWatcher createWatcher(BlockingQueue<FileWatchEvent> eventQueue) throws InterruptedException;
     }
 
     private static class MutableFileWatchingStatistics implements FileWatchingStatistics {

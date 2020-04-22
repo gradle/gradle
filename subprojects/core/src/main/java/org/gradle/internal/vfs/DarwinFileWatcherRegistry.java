@@ -27,12 +27,10 @@ public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRe
 
     public DarwinFileWatcherRegistry(ChangeHandler handler) {
         super(
-            callback -> Native.get(OsxFileEventFunctions.class)
-                .startWatcher(
-                    // TODO Figure out a good value for this
-                    20, TimeUnit.MICROSECONDS,
-                    callback
-                ),
+            eventQueue -> Native.get(OsxFileEventFunctions.class)
+                .newWatcher(eventQueue)
+                .withLatency(20, TimeUnit.MICROSECONDS)
+                .start(),
             handler
         );
     }
