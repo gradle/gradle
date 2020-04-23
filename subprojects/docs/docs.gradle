@@ -408,7 +408,8 @@ samples {
         }
         standalonePrecompiledScriptPlugins {
             sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
-            description = "Bundle and publish multiple precompiled script plugins."
+            displayName = "Compose build logic using precompiled script plugins"
+            description = "Build and publish multiple precompiled script plugins."
             category = "Build organization"
             common {
                 from(templates.standalonePrecompiledScriptPluginUtils)
