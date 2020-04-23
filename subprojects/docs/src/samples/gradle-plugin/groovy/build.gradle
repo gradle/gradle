@@ -19,8 +19,8 @@ gradlePlugin {
     // Define the plugin
     plugins {
         greeting {
-            id = 'org.gradle.sample.plugin.greeting'
-            implementationClass = 'org.gradle.sample.plugin.GradlePluginInJavaPlugin'
+            id = 'com.example.plugin.greeting'
+            implementationClass = 'com.example.plugin.GreetingPlugin'
         }
     }
 }
