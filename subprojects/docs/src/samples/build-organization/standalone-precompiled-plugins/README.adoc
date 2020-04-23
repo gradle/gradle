@@ -28,7 +28,7 @@ The plugins can be published to a pre-configured repository by running:
 $ ./gradlew publish
 ----
 
-The sample contains an example consumer project in `consumer-service` that demonstrates how the plugins can be consumed in a standalone project:
+The sample contains an example consumer project in `consumer-service` directory that demonstrates how the plugins can be consumed in a standalone project:
 ====
 include::sample[dir="groovy/consumer-service",files="settings.gradle[];build.gradle[]"]
 include::sample[dir="kotlin/consumer-service",files="settings.gradle.kts[];build.gradle.kts[]"]
