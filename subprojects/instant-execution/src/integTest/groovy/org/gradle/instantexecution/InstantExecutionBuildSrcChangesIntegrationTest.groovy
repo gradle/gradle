@@ -97,7 +97,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
                 parameters.value.set(providers.systemProperty("test_is_ci"))
             }
 
-            val isCi = $inputExpression
+            val isCi = ${inputExpression}.forUseAtConfigurationTime()
             tasks {
                 if (isCi.isPresent) {
                     register("run") {

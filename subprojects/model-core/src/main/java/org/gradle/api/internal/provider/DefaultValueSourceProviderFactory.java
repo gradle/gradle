@@ -44,18 +44,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
+    private final ConfigurationTimeBarrier configurationTimeBarrier;
     private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
 
     public DefaultValueSourceProviderFactory(
+        ConfigurationTimeBarrier configurationTimeBarrier,
         ListenerManager listenerManager,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
         ServiceLookup services
     ) {
+        this.configurationTimeBarrier = configurationTimeBarrier;
         this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
@@ -159,6 +162,22 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
+    public class ConfigurationTimeValueSourceProvider<T, P extends ValueSourceParameters> extends ValueSourceProvider<T, P> {
+
+        public ConfigurationTimeValueSourceProvider(Class<? extends ValueSource<T, P>> valueSourceType, Class<P> parametersType, P parameters) {
+            super(valueSourceType, parametersType, parameters);
+        }
+
+        @Override
+        public Provider<T> forUseAtConfigurationTime() {
+            return this;
+        }
+
+        @Override
+        protected void vetoValueCalculationAtConfigurationTime() {
+        }
+    }
+
     public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         private final Class<? extends ValueSource<T, P>> valueSourceType;
@@ -176,6 +195,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             this.valueSourceType = valueSourceType;
             this.parametersType = parametersType;
             this.parameters = parameters;
+        }
+
+        @Override
+        public Provider<T> forUseAtConfigurationTime() {
+            return new ConfigurationTimeValueSourceProvider(valueSourceType, parametersType, parameters);
         }
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
@@ -221,12 +245,27 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             synchronized (this) {
                 if (value == null) {
 
+                    vetoValueCalculationAtConfigurationTime();
+
                     // TODO - add more information to exception
                     value = Try.ofFailable(() -> obtainValueFromSource());
 
                     onValueObtained();
                 }
                 return Value.ofNullable(value.get());
+            }
+        }
+
+        protected void vetoValueCalculationAtConfigurationTime() {
+            if (configurationTimeBarrier.isAtConfigurationTime()) {
+                throw new IllegalStateException(
+                    new TreeFormatter()
+                        .node("Cannot obtain value from ")
+                        .appendType(valueSourceType)
+                        .append(" provider at configuration time.")
+                        .node("Use a provider returned by 'forUseAtConfigurationTime()' instead.")
+                        .toString()
+                );
             }
         }
 
