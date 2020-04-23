@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UnsupportedWithInstantExecution
 import org.gradle.integtests.fixtures.android.AndroidHome
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -26,6 +27,14 @@ import spock.lang.Unroll
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
 class KotlinPluginSmokeTest extends AbstractSmokeTest {
+
+    private static final String NO_INSTANT_EXECUTION_ITERATION_MATCHER = ".*kotlin=1\\.3\\.[2-6].*"
+
+    // TODO:instant-execution remove once fixed upstream
+    @Override
+    protected int maxInstantExecutionProblems() {
+        return 62
+    }
 
     @Unroll
     @ToBeFixedForInstantExecution
@@ -52,8 +61,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution
-    def '#sampleName kotlin #kotlinPluginVersion android #androidPluginVersion plugins, workers=#workers'() {
+    @UnsupportedWithInstantExecution(iterationMatchers = [NO_INSTANT_EXECUTION_ITERATION_MATCHER, AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
+    def "kotlin android on sample '#sampleName' (kotlin=#kotlinPluginVersion, agp=#androidPluginVersion, workers=#workers)"() {
         given:
         AndroidHome.assertIsSet()
         useSample(sampleName)
