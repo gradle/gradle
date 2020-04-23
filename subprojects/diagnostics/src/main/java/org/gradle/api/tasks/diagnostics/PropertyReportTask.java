@@ -19,7 +19,6 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 
-import java.io.IOException;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -40,7 +39,7 @@ public class PropertyReportTask extends AbstractReportTask {
     }
 
     @Override
-    public void generate(Project project) throws IOException {
+    public void generate(Project project) {
         for (Map.Entry<String, ?> entry : new TreeMap<String, Object>(project.getProperties()).entrySet()) {
             if (entry.getKey().equals("properties")) {
                 renderer.addProperty(entry.getKey(), "{...}");

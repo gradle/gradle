@@ -16,17 +16,17 @@
 package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import com.google.common.base.Joiner;
-import com.google.common.base.Predicates;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.DependencySet;
 import org.gradle.api.artifacts.ProjectDependency;
 
-import java.util.Arrays;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class UnresolvableConfigurationResult extends AbstractRenderableDependency {
     private final Configuration configuration;
@@ -75,7 +75,7 @@ public class UnresolvableConfigurationResult extends AbstractRenderableDependenc
                     if (dependency instanceof ProjectDependency) {
                         label = "project " + dependency.getName();
                     } else {
-                        label = Joiner.on(":").join(Iterables.filter(Arrays.asList(dependency.getGroup(), dependency.getName(), dependency.getVersion()), Predicates.<String>notNull()));
+                        label = Joiner.on(":").join(Stream.of(dependency.getGroup(), dependency.getName(), dependency.getVersion()).filter(Objects::nonNull).collect(Collectors.toList()));
                     }
                     return label;
                 }

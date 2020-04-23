@@ -23,7 +23,6 @@ import org.gradle.reporting.HtmlPageBuilder;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
 import java.util.Set;
@@ -36,7 +35,7 @@ public class ProjectsPageRenderer extends ReportRenderer<Set<Project>, HtmlPageB
     }
 
     @Override
-    public void render(final Set<Project> projects, final HtmlPageBuilder<Writer> builder) throws IOException {
+    public void render(final Set<Project> projects, final HtmlPageBuilder<Writer> builder) {
         final String baseCssLink = builder.requireResource(getClass().getResource("/org/gradle/reporting/base-style.css"));
         final String cssLink = builder.requireResource(getClass().getResource("/org/gradle/api/tasks/diagnostics/htmldependencyreport/style.css"));
 

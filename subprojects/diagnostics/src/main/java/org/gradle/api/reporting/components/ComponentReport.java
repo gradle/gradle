@@ -75,7 +75,7 @@ public class ComponentReport extends DefaultTask {
 
         renderer.startProject(project);
 
-        Collection<ComponentSpec> components = new ArrayList<ComponentSpec>();
+        Collection<ComponentSpec> components = new ArrayList<>();
         ComponentSpecContainer componentSpecs = modelElement("components", ComponentSpecContainer.class);
         if (componentSpecs != null) {
             components.addAll(componentSpecs.values());

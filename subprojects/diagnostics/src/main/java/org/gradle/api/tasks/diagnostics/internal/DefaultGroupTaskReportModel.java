@@ -30,26 +30,23 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
 
     public void build(TaskReportModel model) {
         Comparator<String> keyComparator = GUtil.last(GUtil.last(STRING_COMPARATOR, OTHER_GROUP), DEFAULT_GROUP);
-        Comparator<TaskDetails> taskComparator = new Comparator<TaskDetails>() {
-            @Override
-            public int compare(TaskDetails task1, TaskDetails task2) {
-                int diff = STRING_COMPARATOR.compare(task1.getPath().getName(), task2.getPath().getName());
-                if (diff != 0) {
-                    return diff;
-                }
-                Path parent1 = task1.getPath().getParent();
-                Path parent2 = task2.getPath().getParent();
-                if (parent1 == null && parent2 != null) {
-                    return -1;
-                }
-                if (parent1 != null && parent2 == null) {
-                    return 1;
-                }
-                if (parent1 == null) {
-                    return 0;
-                }
-                return parent1.compareTo(parent2);
+        Comparator<TaskDetails> taskComparator = (task1, task2) -> {
+            int diff = STRING_COMPARATOR.compare(task1.getPath().getName(), task2.getPath().getName());
+            if (diff != 0) {
+                return diff;
             }
+            Path parent1 = task1.getPath().getParent();
+            Path parent2 = task2.getPath().getParent();
+            if (parent1 == null && parent2 != null) {
+                return -1;
+            }
+            if (parent1 != null && parent2 == null) {
+                return 1;
+            }
+            if (parent1 == null) {
+                return 0;
+            }
+            return parent1.compareTo(parent2);
         };
         groups = TreeMultimap.create(keyComparator, taskComparator);
         for (String group : model.getGroups()) {

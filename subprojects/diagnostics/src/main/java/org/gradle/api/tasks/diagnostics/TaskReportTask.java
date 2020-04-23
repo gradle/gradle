@@ -31,10 +31,8 @@ import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetailsFactory;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.api.tasks.options.Option;
-import org.gradle.internal.Factory;
 
 import javax.inject.Inject;
-import java.io.IOException;
 
 /**
  * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
@@ -92,7 +90,7 @@ public class TaskReportTask extends AbstractReportTask {
     }
 
     @Override
-    public void generate(Project project) throws IOException {
+    public void generate(Project project) {
         renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());
 
@@ -128,13 +126,10 @@ public class TaskReportTask extends AbstractReportTask {
 
     private SingleProjectTaskReportModel buildTaskReportModelFor(final TaskDetailsFactory taskDetailsFactory, final Project subproject) {
         ProjectState projectState = getProjectStateRegistry().stateFor(subproject);
-        return projectState.withMutableState(new Factory<SingleProjectTaskReportModel>() {
-            @Override
-            public SingleProjectTaskReportModel create() {
-                SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
-                subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
-                return subprojectTaskModel;
-            }
+        return projectState.withMutableState(() -> {
+            SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
+            subprojectTaskModel.build(getProjectTaskLister().listProjectTasks(subproject));
+            return subprojectTaskModel;
         });
     }
 

@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -215,7 +214,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         Set<DependencyResult> selectedDependencies = selectDependencies(configuration, errorHandler);
 
         if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
+            output.println("No dependencies matching given input were found in " + configuration);
             return;
         }
         errorHandler.renderErrors(output);
@@ -258,13 +257,10 @@ public class DependencyInsightReportTask extends DefaultTask {
         ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
         ResolutionResult result = incoming.getResolutionResult(errorHandler);
 
-        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
-        result.allDependencies(new Action<DependencyResult>() {
-            @Override
-            public void execute(DependencyResult dependencyResult) {
-                if (dependencySpec.isSatisfiedBy(dependencyResult)) {
-                    selectedDependencies.add(dependencyResult);
-                }
+        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
+        result.allDependencies(dependencyResult -> {
+            if (dependencySpec.isSatisfiedBy(dependencyResult)) {
+                selectedDependencies.add(dependencyResult);
             }
         });
         return selectedDependencies;
@@ -280,14 +276,13 @@ public class DependencyInsightReportTask extends DefaultTask {
                     if (actualValue.equals(requestedValue)) {
                         return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
                     }
-                    return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
                 } else {
                     // maybe it matched through coercion
                     if (actualValue.toString().equals(requestedValue.toString())) {
                         return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
                     }
-                    return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
                 }
+                return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
             }
         }
         return new AttributeMatchDetails(MatchType.not_requested, null, null);

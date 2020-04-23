@@ -30,6 +30,7 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 class ResolutionErrorRenderer implements Action<Throwable> {
@@ -41,7 +42,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     @Override
-    public void execute(Throwable throwable) {
+    public void execute(@Nonnull Throwable throwable) {
         if (throwable instanceof ResolveException) {
             Throwable cause = throwable.getCause();
             handleResolutionError(cause);
@@ -63,38 +64,32 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     private void handleOutOfDateLocks(final LockOutOfDateException cause) {
-        registerError(new Action<StyledTextOutput>() {
-            @Override
-            public void execute(StyledTextOutput output) {
-                List<String> errors = cause.getErrors();
-                output.text("The dependency locks are out-of-date:");
-                output.println();
-                for (String error : errors) {
-                    output.text("   - " + error);
-                    output.println();
-                }
+        registerError(output -> {
+            List<String> errors = cause.getErrors();
+            output.text("The dependency locks are out-of-date:");
+            output.println();
+            for (String error : errors) {
+                output.text("   - " + error);
                 output.println();
             }
+            output.println();
         });
     }
 
     private void handleConflict(final VersionConflictException conflict) {
-        registerError(new Action<StyledTextOutput>() {
-            @Override
-            public void execute(StyledTextOutput output) {
-                output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
-                output.println();
-                for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
-                    boolean matchesSpec = hasVersionConflictOnRequestedDependency(identifierStringPair.getLeft());
-                    if (!matchesSpec) {
-                        continue;
-                    }
-                    output.text("   - ");
-                    output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
-                    output.println();
+        registerError(output -> {
+            output.text("Dependency resolution failed because of conflict(s) on the following module(s):");
+            output.println();
+            for (Pair<List<? extends ModuleVersionIdentifier>, String> identifierStringPair : conflict.getConflicts()) {
+                boolean matchesSpec = hasVersionConflictOnRequestedDependency(identifierStringPair.getLeft());
+                if (!matchesSpec) {
+                    continue;
                 }
+                output.text("   - ");
+                output.withStyle(StyledTextOutput.Style.Error).text(identifierStringPair.getRight());
                 output.println();
             }
+            output.println();
         });
 
     }
@@ -120,6 +115,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
 
     private DependencyResult asDependencyResult(final ModuleVersionIdentifier versionIdentifier) {
         return new DependencyResult() {
+            @Nonnull
             @Override
             public ComponentSelector getRequested() {
                 return DefaultModuleComponentSelector.newSelector(versionIdentifier.getModule(), versionIdentifier.getVersion());

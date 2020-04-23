@@ -33,7 +33,7 @@ import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
 
-import java.io.IOException;
+import javax.annotation.Nonnull;
 import java.util.Collections;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -90,7 +90,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
     public void completeConfiguration(Configuration configuration) {}
 
     @Override
-    public void render(Configuration configuration) throws IOException {
+    public void render(Configuration configuration) {
         if (canBeResolved(configuration)) {
             ResolutionResult result = configuration.getIncoming().getResolutionResult();
             RenderableDependency root = new RenderableModuleResult(result.getRoot());
@@ -133,7 +133,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         private Configuration configuration;
 
         @Override
-        public void execute(StyledTextOutput styledTextOutput) {
+        public void execute(@Nonnull StyledTextOutput styledTextOutput) {
             getTextOutput().withStyle(Identifier).text(configuration.getName());
             getTextOutput().withStyle(Description).text(getDescription(configuration));
             if (!canBeResolved(configuration)) {

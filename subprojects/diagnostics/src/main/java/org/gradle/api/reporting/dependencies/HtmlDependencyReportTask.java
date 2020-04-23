@@ -19,7 +19,6 @@ package org.gradle.api.reporting.dependencies;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionComparator;
@@ -29,13 +28,13 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.reporting.dependencies.internal.DefaultDependencyReportContainer;
 import org.gradle.api.reporting.dependencies.internal.HtmlDependencyReporter;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.ClosureBackedAction;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.Set;
 
@@ -71,25 +70,23 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     public HtmlDependencyReportTask() {
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, this, getCallbackActionDecorator());
         reports.getHtml().setEnabled(true);
-        getOutputs().upToDateWhen(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return false;
-            }
-        });
+        getOutputs().upToDateWhen(element -> false);
     }
 
     @Nested
     @Override
+    @Nonnull
     public DependencyReportContainer getReports() {
         return reports;
     }
 
+    @Nonnull
     @Override
-    public DependencyReportContainer reports(Closure closure) {
-        return reports(new ClosureBackedAction<DependencyReportContainer>(closure));
+    public DependencyReportContainer reports(@Nonnull Closure closure) {
+        return reports(new ClosureBackedAction<>(closure));
     }
 
+    @Nonnull
     @Override
     public DependencyReportContainer reports(Action<? super DependencyReportContainer> configureAction) {
         configureAction.execute(reports);

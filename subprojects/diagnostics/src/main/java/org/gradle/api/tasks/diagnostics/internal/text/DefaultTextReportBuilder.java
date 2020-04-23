@@ -75,14 +75,11 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
 
     @Override
     public <T> void item(final T value, final ReportRenderer<T, TextReportBuilder> renderer) {
-        renderItem(new Action<TextReportBuilder>() {
-            @Override
-            public void execute(TextReportBuilder textReportBuilder) {
-                try {
-                    renderer.render(value, textReportBuilder);
-                } catch (IOException e) {
-                    throw new UncheckedIOException(e);
-                }
+        renderItem(textReportBuilder -> {
+            try {
+                renderer.render(value, textReportBuilder);
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
             }
         });
     }
@@ -140,14 +137,11 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
     @Override
     public <T> void collection(final Iterable<? extends T> items, final ReportRenderer<T, TextReportBuilder> renderer) {
         for (final T t : items) {
-            nested(new Action<TextReportBuilder>() {
-                @Override
-                public void execute(TextReportBuilder textReportBuilder) {
-                    try {
-                        renderer.render(t, textReportBuilder);
-                    } catch (IOException e) {
-                        throw new UncheckedIOException(e);
-                    }
+            nested(textReportBuilder -> {
+                try {
+                    renderer.render(t, textReportBuilder);
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
                 }
             });
         }
@@ -160,15 +154,12 @@ public class DefaultTextReportBuilder implements TextReportBuilder {
 
     private void nested(final Action<TextReportBuilder> action) {
         final boolean indent = depth > 1 || hasTitledItems;
-        renderItem(new Action<TextReportBuilder>() {
-            @Override
-            public void execute(TextReportBuilder textReportBuilder) {
-                if (indent) {
-                    textOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT);
-                }
-                depth++;
-                action.execute(textReportBuilder);
+        renderItem(textReportBuilder -> {
+            if (indent) {
+                textOutput = new LinePrefixingStyledTextOutput(textOutput, INDENT);
             }
+            depth++;
+            action.execute(textReportBuilder);
         });
     }
 

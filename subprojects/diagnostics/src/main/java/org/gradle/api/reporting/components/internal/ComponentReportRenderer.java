@@ -37,8 +37,8 @@ public class ComponentReportRenderer extends TextReportRenderer {
 
     public ComponentReportRenderer(FileResolver fileResolver, TypeAwareBinaryRenderer binaryRenderer) {
         setFileResolver(fileResolver);
-        this.sourceSetRenderer = new TrackingReportRenderer<LanguageSourceSet, TextReportBuilder>(new SourceSetRenderer());
-        this.binaryRenderer = new TrackingReportRenderer<BinarySpec, TextReportBuilder>(binaryRenderer);
+        this.sourceSetRenderer = new TrackingReportRenderer<>(new SourceSetRenderer());
+        this.binaryRenderer = new TrackingReportRenderer<>(binaryRenderer);
         this.componentRenderer = new ComponentRenderer(this.sourceSetRenderer, this.binaryRenderer);
     }
 

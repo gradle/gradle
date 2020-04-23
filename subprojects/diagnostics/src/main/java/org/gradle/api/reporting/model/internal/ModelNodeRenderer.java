@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.model.internal;
 
 import com.google.common.base.Optional;
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
@@ -33,6 +32,7 @@ import org.gradle.reporting.ReportRenderer;
 
 import java.util.Map;
 import java.util.TreeMap;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
@@ -72,7 +72,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
             return;
         }
 
-        Map<String, ModelNode> links = new TreeMap<String, ModelNode>();
+        Map<String, ModelNode> links = new TreeMap<>();
         for (ModelNode node : model.getLinks(ModelType.untyped())) {
             links.put(node.getPath().getName(), node);
         }
@@ -163,12 +163,7 @@ public class ModelNodeRenderer extends ReportRenderer<ModelNode, TextReportBuild
     }
 
     static Iterable<ModelRuleDescriptor> uniqueExecutedRulesExcludingCreator(final ModelNode model) {
-        Iterable filtered = Iterables.filter(model.getExecutedRules(), new Predicate<ModelRuleDescriptor>() {
-            @Override
-            public boolean apply(ModelRuleDescriptor input) {
-                return !input.equals(model.getDescriptor());
-            }
-        });
+        Iterable<ModelRuleDescriptor> filtered = model.getExecutedRules().stream().filter(input -> !input.equals(model.getDescriptor())).collect(Collectors.toList());
         return ImmutableSet.copyOf(filtered);
     }
 }

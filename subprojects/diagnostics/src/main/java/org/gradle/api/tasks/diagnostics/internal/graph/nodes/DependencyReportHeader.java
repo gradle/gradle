@@ -24,6 +24,7 @@ import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nonnull;
 import java.util.List;
 
 public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
@@ -64,6 +65,7 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
         return selectedVariants;
     }
 
+    @Nonnull
     @Override
     public AttributeContainer getAttributes() {
         ComponentSelector requested = dependency.getRequested();

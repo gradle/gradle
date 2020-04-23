@@ -55,14 +55,11 @@ public class DependencyInsightReporter {
     private final VersionComparator versionComparator;
     private final VersionParser versionParser;
 
-    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = new Transformer<DependencyEdge, DependencyResult>() {
-        @Override
-        public DependencyEdge transform(DependencyResult result) {
-            if (result instanceof UnresolvedDependencyResult) {
-                return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
-            } else {
-                return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
-            }
+    private static final Transformer<DependencyEdge, DependencyResult> TO_EDGES = result -> {
+        if (result instanceof UnresolvedDependencyResult) {
+            return new UnresolvedDependencyEdge((UnresolvedDependencyResult) result);
+        } else {
+            return new ResolvedDependencyEdge((ResolvedDependencyResult) result);
         }
     };
 
@@ -73,7 +70,7 @@ public class DependencyInsightReporter {
     }
 
     public Collection<RenderableDependency> convertToRenderableItems(Collection<DependencyResult> dependencies, boolean singlePathToDependency) {
-        LinkedList<RenderableDependency> out = new LinkedList<RenderableDependency>();
+        LinkedList<RenderableDependency> out = new LinkedList<>();
         Collection<DependencyEdge> sortedEdges = toDependencyEdges(dependencies);
 
         //remember if module id was annotated

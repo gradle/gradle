@@ -49,7 +49,7 @@ public class RenderableDependencyResult extends AbstractRenderableDependencyResu
 
     @Override
     public Set<RenderableDependency> getChildren() {
-        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
+        Set<RenderableDependency> out = new LinkedHashSet<>();
         for (DependencyResult d : dependency.getSelected().getDependencies()) {
             if (d instanceof UnresolvedDependencyResult) {
                 out.add(new RenderableUnresolvedDependencyResult((UnresolvedDependencyResult) d));

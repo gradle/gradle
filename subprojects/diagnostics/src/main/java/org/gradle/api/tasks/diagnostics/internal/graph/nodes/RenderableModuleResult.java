@@ -32,7 +32,7 @@ public class RenderableModuleResult extends AbstractRenderableModuleResult {
 
     @Override
     public Set<RenderableDependency> getChildren() {
-        Set<RenderableDependency> out = new LinkedHashSet<RenderableDependency>();
+        Set<RenderableDependency> out = new LinkedHashSet<>();
         for (DependencyResult d : module.getDependencies()) {
             if (d instanceof UnresolvedDependencyResult) {
                 out.add(new RenderableUnresolvedDependencyResult((UnresolvedDependencyResult) d));

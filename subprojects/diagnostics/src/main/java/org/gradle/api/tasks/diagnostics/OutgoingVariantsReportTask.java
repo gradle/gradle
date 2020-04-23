@@ -135,12 +135,10 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         NamedDomainObjectContainer<ConfigurationVariant> outgoing = cnf.getOutgoing().getVariants();
         if (!outgoing.isEmpty()) {
             tree.section("Secondary variants (*)", () -> {
-                outgoing.forEach(variant -> {
-                    tree.section("Variant", variant.getName(), () -> {
-                        formatAttributes(variant.getAttributes(), tree);
-                        formatArtifacts(variant.getArtifacts(), tree);
-                    });
-                });
+                outgoing.forEach(variant -> tree.section("Variant", variant.getName(), () -> {
+                    formatAttributes(variant.getAttributes(), tree);
+                    formatArtifacts(variant.getArtifacts(), tree);
+                }));
                 legend.hasPublications = true;
             });
             return true;
@@ -150,11 +148,9 @@ public class OutgoingVariantsReportTask extends DefaultTask {
 
     private boolean formatArtifacts(PublishArtifactSet artifacts, Formatter tree) {
         if (!artifacts.isEmpty()) {
-            tree.section("Artifacts", () -> {
-                artifacts.stream()
-                    .sorted(Comparator.comparing(PublishArtifact::toString))
-                    .forEach(artifact -> formatArtifact(artifact, tree));
-            });
+            tree.section("Artifacts", () -> artifacts.stream()
+                .sorted(Comparator.comparing(PublishArtifact::toString))
+                .forEach(artifact -> formatArtifact(artifact, tree)));
             return true;
         }
         return false;
@@ -176,9 +172,9 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         if (!attributes.isEmpty()) {
             tree.section("Attributes", () -> {
                 Integer max = attributes.keySet().stream().map(attr -> attr.getName().length()).max(Integer::compare).get();
-                attributes.keySet().stream().sorted(Comparator.comparing(Attribute::getName)).forEach(attr -> {
-                    tree.value(StringUtils.rightPad(attr.getName(), max), String.valueOf(attributes.getAttribute(attr)));
-                });
+                attributes.keySet().stream().sorted(Comparator.comparing(Attribute::getName)).forEach(attr ->
+                    tree.value(StringUtils.rightPad(attr.getName(), max), String.valueOf(attributes.getAttribute(attr)))
+                );
             });
             return true;
         }
@@ -227,9 +223,7 @@ public class OutgoingVariantsReportTask extends DefaultTask {
         }
         if (variantSpec.isPresent()) {
             String variantName = variantSpec.get();
-            configurations = configurations.filter(cnf -> {
-                return cnf.getName().equals(variantName);
-            });
+            configurations = configurations.filter(cnf -> cnf.getName().equals(variantName));
         }
         return configurations.collect(Collectors.toList());
     }
