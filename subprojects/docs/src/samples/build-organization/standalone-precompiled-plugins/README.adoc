@@ -1,10 +1,10 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-This sample shows how precompiled script plugins can be used to compose build logic.
+This sample shows how precompiled script plugins can be used to compose build logic in a real world scenario.
 
 == Use case
 
-Use case for this sample is an organization that produces two types of artifacts - services and libraries.
+Let's take as an example an organization that produces two types of artifacts - services and libraries.
 We want to apply a set of code quality checking rules to both artifact types and configure some aspects specific to each type.
 
 This is achieved by implementing three separate plugins:
@@ -18,7 +18,24 @@ In addition, they configure specifics for library and service artifacts.
 
 All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behaviour.
 
-The intended use for this project is to build and publish the plugins to a repository and consume them in other projects.
+The intended use for this sample project is to build and publish the plugins to a repository and consume them in other standalone projects:
+====
+include::sample[dir="groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=publishing]"]
+====
+
+The plugins can be published to a pre-configured repository by running:
+
+[listing.terminal]
+----
+$ ./gradlew publish
+----
+
+The sample contains an example consumer project in `consumer-service` that demonstrates how the plugins can be consumed in a standalone project:
+====
+include::sample[dir="groovy/consumer-service",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="kotlin/consumer-service",files="settings.gradle.kts[];build.gradle.kts[]"]
+====
 
 === Applying an external plugin in precompiled script plugin
 
