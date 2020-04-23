@@ -46,9 +46,8 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 
         where:
         [version, workers] << [
-//            TestedVersions.kotlin.versions,
-[TestedVersions.kotlin.last()],
-[true]
+            TestedVersions.kotlin.versions,
+            [true, false]
         ].combinations()
     }
 
@@ -90,10 +89,10 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
 //        sampleName = 'android-kotlin-example-kotlin-dsl'
 
         [kotlinPluginVersion, androidPluginVersion, workers, sampleName] << [
-            [TestedVersions.kotlin.last()],
-            [TestedVersions.androidGradle.last()],
-            [true],
-            ["android-kotlin-example"]
+            TestedVersions.kotlin.versions,
+            TestedVersions.androidGradle.versions,
+            [true, false],
+            ["android-kotlin-example", "android-kotlin-example-kotlin-dsl"]
         ].combinations()
     }
 
