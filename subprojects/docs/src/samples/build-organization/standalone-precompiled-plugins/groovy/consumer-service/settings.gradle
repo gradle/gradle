@@ -1,0 +1,8 @@
+pluginManagement {
+    repositories {
+        maven {
+            url = '../build/my-repo'
+        }
+        gradlePluginPortal()
+    }
+}

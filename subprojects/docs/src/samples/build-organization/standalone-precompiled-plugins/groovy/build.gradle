@@ -15,6 +15,7 @@ dependencies {
 }
 // end::repositories-and-dependencies[]
 
+// tag::publishing[]
 group = 'com.example.conventions'
 version = '1.0'
 
@@ -25,3 +26,4 @@ publishing {
         }
     }
 }
+// end::publishing[]
