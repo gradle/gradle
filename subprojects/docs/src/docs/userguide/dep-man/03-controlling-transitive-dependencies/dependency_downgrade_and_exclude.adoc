@@ -63,6 +63,7 @@ For this reason, a good practice is that if you use _strict versions_, you shoul
 For example, `B` might say, instead of `strictly 1.0`, that it _strictly depends_ on the `[1.0, 2.0[` range, but _prefers_ `1.0`.
 Then if a consumer chooses 1.1 (or any other version in the range), the build will _no longer fail_ (constraints are resolved).
 
+[[forced_dependencies_vs_strict_dependencies]]
 === Forced dependencies vs strict dependencies
 
 [WARNING]

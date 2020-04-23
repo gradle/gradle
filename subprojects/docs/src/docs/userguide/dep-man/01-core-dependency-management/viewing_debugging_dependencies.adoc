@@ -88,6 +88,58 @@ Given a dependency in the dependency graph you can identify the selection reason
 include::{samplesPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
 
+=== Understanding selection reasons
+
+The "Selection reasons" part of the dependency insight report will list the different reasons as to why a dependency was selected.
+Have a look at the table below to understand the meaning of the different terms used:
+
+.Selections reasons terminology
+[%header%autowidth,compact]
+|===
+| Reason    | Meaning
+
+| (Absent)
+| This means that no other reason than having a reference, direct or transitive, was present
+
+| Was requested : <text>
+| The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies#sec:documenting-dependencies, `because` text>>.
+
+| Was requested : didn't match versions <versions>
+| The dependency appears in the graph, with a <<dynamic_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>>, which did not include the listed versions.
+This can also be followed by a `because` text.
+
+| Was requested : reject version <versions>
+| The dependency appears in the graph, with a <<rich_versions#, rich version>> containing one or more `reject`.
+This can also be followed by a `because` text.
+
+| By conflict resolution : between versions <version>
+| The dependency appeared multiple times in the graph, with different version requests.
+This resulted in <<dependency_resolution#sec:version-conflict, conflict resolution>> to select the most appropriate version.
+
+| By constraint
+| A <<dependency_constraints#sec:adding-constraints-transitive-deps, dependency constraint>> participated in the version selection.
+This can also be followed by a `because` text.
+
+| By ancestor
+| There is a <<rich_versions#, rich version>> with a `strictly` in the graph which enforces the version of this dependency.
+
+| Selected by rule
+| A <<resolution_rules#, dependency resolution rule>> overruled the default selection process.
+This can also be followed by a `because` text.
+
+| Rejection : <version> by rule because <text>
+| A `ComponentSelection.reject` link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[rejected the given version] of the dependency
+
+| Rejection: version <version>: <attributes information>
+| The dependency has a dynamic version, and some versions did not match the <<variant_model#sec:variant-aware-matching, requested attributes>>.
+
+| Forced
+| The build <<dependency_downgrade_and_exclude#forced_dependencies_vs_strict_dependencies, enforces>> the version of the dependency.
+|===
+
+Note that if multiple selection reasons exist in the graph, they will all be listed.
+
+
 [[sec:resolving-version-conflict]]
 == Resolving version conflicts
 
