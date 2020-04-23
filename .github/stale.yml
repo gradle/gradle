@@ -69,7 +69,7 @@ exemptMilestones: true
 #exemptAssignees: false
 
 # Label to use when marking as stale
-staleLabel: closed:stale
+staleLabel: stale
 
 
 # Comment to post when removing the stale label.
