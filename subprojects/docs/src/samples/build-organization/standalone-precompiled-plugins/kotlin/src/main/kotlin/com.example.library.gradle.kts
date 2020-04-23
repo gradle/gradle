@@ -1,8 +1,10 @@
+// tag::plugins[]
 plugins {
     `java-library`
     `maven-publish`
     id("com.example.java-convention")
 }
+// end::plugins[]
 
 group = "com.example"
 

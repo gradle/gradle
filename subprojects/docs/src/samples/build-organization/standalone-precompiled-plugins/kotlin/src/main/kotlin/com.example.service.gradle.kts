@@ -1,6 +1,8 @@
+// tag::plugins[]
 plugins {
     id("com.example.java-convention")
 }
+// end::plugins[]
 
 val integrationTest by the<SourceSetContainer>().creating {
     compileClasspath += sourceSets["main"].output + sourceSets["test"].output

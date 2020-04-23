@@ -10,11 +10,8 @@ We want to apply a set of code quality checking rules to both artifact types and
 This is achieved by implementing three separate plugins:
 
 * `com.example.java-convention` - configures conventions that are generic for Java codebase in an organization.
-* `com.example.library` - configures publishing to company's repository.
+* `com.example.library` - configures publishing to organization's repository.
 * `com.example.service` - configures `integrationTest` task and source set and mandatory service README section check.
-
-The `com.example.library` and `com.example.service` plugins both apply the `com.example.java-convention` plugin.
-In addition, they configure specifics for library and service artifacts.
 
 All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behaviour.
 
@@ -26,7 +23,7 @@ include::sample[dir="kotlin",files="build.gradle.kts[tags=publishing]"]
 
 The plugins can be published to a pre-configured repository by running:
 
-[listing.terminal]
+[listing.publishing]
 ----
 $ ./gradlew publish
 ----
@@ -36,6 +33,8 @@ The sample contains an example consumer project in `consumer-service` that demon
 include::sample[dir="groovy/consumer-service",files="settings.gradle[];build.gradle[]"]
 include::sample[dir="kotlin/consumer-service",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
+
+== Things to note
 
 === Applying an external plugin in precompiled script plugin
 
@@ -57,6 +56,15 @@ Now the external plugin can be applied in precompiled script plugin by id:
 include::sample[dir="groovy",files="src/main/groovy/com.example.java-convention.gradle[tags=apply-external-plugin]"]
 include::sample[dir="kotlin",files="src/main/kotlin/com.example.java-convention.gradle.kts[tags=apply-external-plugin]"]
 ====
+
+=== Applying other precompiled script plugins
+Logic in precompile script plugins can be composed by applying other precompiled script plugins.
+The `com.example.library` and `com.example.service` plugins both apply the `com.example.java-convention` plugin:
+====
+include::sample[dir="groovy",files="src/main/groovy/com.example.library.gradle[tags=plugins];src/main/groovy/com.example.service.gradle[tags=plugins]"]
+include::sample[dir="kotlin",files="src/main/kotlin/com.example.library.gradle.kts[tags=plugins];src/main/kotlin/com.example.service.gradle.kts[tags=plugins]"]
+====
+
 
 === Using classes from the main source set
 Precompiled script plugins can use classes defined in the main source set of the plugins project.
