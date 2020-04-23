@@ -5,8 +5,8 @@ plugins {
 // end::plugins[]
 
 val integrationTest by sourceSets.creating {
-    compileClasspath += sourceSets["main"].output + sourceSets["test"].output
-    runtimeClasspath += sourceSets["main"].output + sourceSets["test"].output
+    compileClasspath += sourceSets.main.get().output + sourceSets.test.get().output
+    runtimeClasspath += sourceSets.main.get().output + sourceSets.test.get().output
 }
 
 val integrationTestTask = tasks.register<Test>("integrationTest") {
