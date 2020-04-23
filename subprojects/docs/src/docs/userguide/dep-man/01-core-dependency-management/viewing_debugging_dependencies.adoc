@@ -36,6 +36,14 @@ Every Gradle project provides the task `dependencies` to render the so-called _d
 By default the dependency report renders dependencies for all configurations.
 To focus on the information about one configuration, provide the optional parameter `--configuration`.
 
+For example, to show dependencies that would be on the test runtime classpath in a Java project, run:
+
+----
+gradle -q dependencies --configuration testRuntimeClasspath
+----
+
+TIP: To see a list of all the pre-defined configurations added by the `java` plugin, see <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the documentation for the Java Plugin>>.
+
 .Declaring the JGit dependency with a custom configuration
 ====
 include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
@@ -87,6 +95,19 @@ Given a dependency in the dependency graph you can identify the selection reason
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
 include::{snippetsPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
+
+Note that omitting the `--configuration` parameter in a project that has no configurations will lead to an error:
+----
+> Dependency insight report cannot be generated because the input configuration was not specified.
+  It can be specified from the command line, e.g: ':dependencyInsight --configuration someConf --dependency someDep'
+----
+
+The most common cases in which this can happen are:
+
+* for a newly initialized general purpose Gradle build: try applying a plugin like `java` that adds pre-defined configurations to the project
+* for the top-level project of a <<multi_project_builds.adoc#,multi-project>>: make sure to run the `dependencyInsight` task against a module, e.g. `gradle -q my-module:dependencyInsight --dependency commons-codec
+
+For more information about configurations, see the documentation on declaring dependencies, which describes <<declaring_dependencies.adoc#sec:what-are-dependency-configurations, what dependency configurations are>>.
 
 === Understanding selection reasons
 
