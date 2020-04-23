@@ -470,7 +470,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
             task incremental(type: IncrementalTask) {
                 sources = file("sources")
-                input = providers.systemProperty("outputDir")
+                input = providers.systemProperty("outputDir").forUseAtConfigurationTime()
                 outputDir = file("build/\${input.get()}")
             }
         """
