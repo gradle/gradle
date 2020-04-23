@@ -5,7 +5,6 @@ plugins {
 
 // tag::repositories-and-dependencies[]
 repositories {
-    jcenter()
     gradlePluginPortal() // so that external plugins can be resolved in dependencies section
 }
 
