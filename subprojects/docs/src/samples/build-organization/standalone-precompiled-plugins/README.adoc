@@ -1,0 +1,77 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how precompiled script plugins can be used to compose build logic in a real world scenario.
+
+== Use case
+
+Let's take as an example an organization that produces two types of artifacts - services and libraries.
+We want to apply a set of code quality checking rules to both artifact types and configure some aspects specific to each type.
+
+This is achieved by implementing three separate plugins:
+
+* `com.example.java-convention` - configures conventions that are generic for Java codebase in an organization.
+* `com.example.library` - configures publishing to organization's repository.
+* `com.example.service` - configures `integrationTest` task and source set and mandatory service README section check.
+
+All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behaviour.
+
+The intended use for this sample project is to build and publish the plugins to a repository and consume them in other standalone projects:
+====
+include::sample[dir="groovy",files="build.gradle[tags=publishing]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=publishing]"]
+====
+
+The plugins can be published to a pre-configured repository by running:
+
+[listing.publishing]
+----
+$ ./gradlew publish
+----
+
+The sample contains an example consumer project in `consumer-service` directory that demonstrates how the plugins can be consumed in a standalone project:
+====
+include::sample[dir="groovy/consumer-service",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="kotlin/consumer-service",files="settings.gradle.kts[];build.gradle.kts[]"]
+====
+
+== Things to note
+
+=== Applying an external plugin in precompiled script plugin
+
+The `com.example.java-convention` plugin uses SpotBugs plugin to perform static code analysis.
+SpotBugs is an external plugin - external plugins currently link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[cannot be used in a precompiled script plugins
+the same way they are used in build scripts - they have to be added as implementation dependencies to the plugin's project]:
+====
+include::sample[dir="groovy",files="build.gradle[tags=repositories-and-dependencies]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=repositories-and-dependencies]"]
+====
+Note here:
+
+* the dependency artifact coordinates are different from the plugin id, which is `com.github.spotbugs`
+* `gradlePluginPortal()` repository is added in `repositories` section
+* plugin version is determined from the dependency version
+
+Now the external plugin can be applied in precompiled script plugin by id:
+====
+include::sample[dir="groovy",files="src/main/groovy/com.example.java-convention.gradle[tags=apply-external-plugin]"]
+include::sample[dir="kotlin",files="src/main/kotlin/com.example.java-convention.gradle.kts[tags=apply-external-plugin]"]
+====
+
+=== Applying other precompiled script plugins
+Logic in precompiled script plugins can be composed by applying other precompiled script plugins.
+The `com.example.library` and `com.example.service` plugins both apply the `com.example.java-convention` plugin:
+====
+include::sample[dir="groovy",files="src/main/groovy/com.example.library.gradle[tags=plugins];src/main/groovy/com.example.service.gradle[tags=plugins]"]
+include::sample[dir="kotlin",files="src/main/kotlin/com.example.library.gradle.kts[tags=plugins];src/main/kotlin/com.example.service.gradle.kts[tags=plugins]"]
+====
+
+
+=== Using classes from the main source set
+Precompiled script plugins can use classes defined in the main source set of the plugins project.
+In this sample `com.example.service` plugin uses a custom task class from `src/main/java` to configure service README checks:
+====
+include::sample[dir="groovy",files="src/main/groovy/com.example.service.gradle[tags=use-java-class]"]
+include::sample[dir="kotlin",files="src/main/kotlin/com.example.service.gradle.kts[tags=use-java-class]"]
+====
+
+For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

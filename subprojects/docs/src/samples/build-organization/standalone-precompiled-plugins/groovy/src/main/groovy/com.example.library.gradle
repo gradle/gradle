@@ -1,0 +1,23 @@
+// tag::plugins[]
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+    id 'com.example.java-convention'
+}
+// end::plugins[]
+
+group = 'com.example'
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name "myOrgPrivateRepo"
+            url 'build/my-repo'
+        }
+    }
+}

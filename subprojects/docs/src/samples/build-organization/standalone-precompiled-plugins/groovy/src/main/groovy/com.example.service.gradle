@@ -1,0 +1,34 @@
+// tag::plugins[]
+plugins {
+    id 'com.example.java-convention'
+}
+// end::plugins[]
+
+sourceSets {
+    integrationTest {
+        compileClasspath += sourceSets.main.output + sourceSets.test.output
+        runtimeClasspath += sourceSets.main.output + sourceSets.test.output
+    }
+}
+
+def integrationTest = tasks.register('integrationTest', Test) {
+    shouldRunAfter(test)
+
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
+}
+
+configurations {
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+// tag::use-java-class[]
+def readmeCheck = tasks.register('readmeCheck', com.example.ReadmeVerificationTask) {
+    readme.set(file("$rootProject.rootDir/README.md"))
+    readmePatterns.set(['^## Service API$'])
+}
+// end::use-java-class[]
+
+tasks.named('check') { dependsOn(integrationTest, readmeCheck) }
+
