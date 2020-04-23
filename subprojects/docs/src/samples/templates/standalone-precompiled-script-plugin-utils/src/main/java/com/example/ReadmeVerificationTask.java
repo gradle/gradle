@@ -10,6 +10,8 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.regex.Pattern;
 
 public abstract class ReadmeVerificationTask extends DefaultTask {
@@ -22,8 +24,8 @@ public abstract class ReadmeVerificationTask extends DefaultTask {
     public abstract ListProperty<String> getReadmePatterns();
 
     @TaskAction
-    void verifyServiceReadme() {
-        var readmeContents = GFileUtils.readFile(getReadme().getAsFile().get());
+    void verifyServiceReadme() throws IOException {
+        var readmeContents = Files.readString(getReadme().getAsFile().get().toPath());
         for (String requiredSection : getReadmePatterns().get()) {
             var pattern = Pattern.compile(requiredSection, Pattern.MULTILINE);
             if (!pattern.matcher(readmeContents).find()) {
