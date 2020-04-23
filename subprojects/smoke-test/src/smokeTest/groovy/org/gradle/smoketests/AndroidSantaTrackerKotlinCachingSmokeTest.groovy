@@ -32,12 +32,6 @@ import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
 class AndroidSantaTrackerKotlinCachingSmokeTest extends AbstractAndroidSantaTrackerSmokeTest {
 
-    // TODO:instant-execution remove once fixed upstream
-    @Override
-    protected int maxInstantExecutionProblems() {
-        return 451
-    }
-
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     @ToBeFixedForInstantExecution(iterationMatchers = [AGP_4_1_ITERATION_MATCHER])
