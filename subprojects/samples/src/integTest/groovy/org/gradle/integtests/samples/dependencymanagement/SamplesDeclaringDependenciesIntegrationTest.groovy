@@ -32,7 +32,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/concreteVersion")
+    @UsesSample("dependencyManagement/declaringDependencies/concreteVersion")
     def "can use declare and resolve dependency with concrete version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -48,7 +48,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/withoutVersion")
+    @UsesSample("dependencyManagement/declaringDependencies/withoutVersion")
     def "can use declare and resolve dependency without version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -64,7 +64,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/dynamicVersion")
+    @UsesSample("dependencyManagement/declaringDependencies/dynamicVersion")
     def "can use declare and resolve dependency with dynamic version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -80,7 +80,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/changingVersion")
+    @UsesSample("dependencyManagement/declaringDependencies/changingVersion")
     def "can use declare and resolve dependency with changing version with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -96,7 +96,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/fileDependencies")
+    @UsesSample("dependencyManagement/declaringDependencies/fileDependencies")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can use declare and resolve file dependencies with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
@@ -117,7 +117,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/projectDependencies")
+    @UsesSample("dependencyManagement/declaringDependencies/projectDependencies")
     def "can declare and resolve project dependencies with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
 
@@ -129,7 +129,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnly")
+    @UsesSample("dependencyManagement/declaringDependencies/artifactOnly")
     def "can resolve dependency with artifact-only declaration with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)
@@ -145,7 +145,7 @@ class SamplesDeclaringDependenciesIntegrationTest extends AbstractSampleIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/declaringDependencies/artifactOnlyWithClassifier")
+    @UsesSample("dependencyManagement/declaringDependencies/artifactOnlyWithClassifier")
     def "can resolve dependency with artifact-only declaration with classifier with #dsl dsl"() {
         TestFile dslDir = sample.dir.file(dsl)
         executer.inDirectory(dslDir)

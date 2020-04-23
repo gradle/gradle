@@ -29,7 +29,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/files/misc")
+    @UsesSample("files/misc")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can create a directory with #dsl dsl"() {
         given:
@@ -47,7 +47,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @UsesSample("userguide/files/misc")
+    @UsesSample("files/misc")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can move a directory with #dsl dsl"() {
         given:
@@ -75,7 +75,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @UsesSample("userguide/files/misc")
+    @UsesSample("files/misc")
     def "can delete a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -93,7 +93,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @UsesSample("userguide/files/misc")
+    @UsesSample("files/misc")
     def "can delete files matching a pattern with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -114,7 +114,7 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @UsesSample("userguide/files/misc")
+    @UsesSample("files/misc")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl.*")
     def "can use the rootDir property in a child project with #dsl dsl"() {
         given:

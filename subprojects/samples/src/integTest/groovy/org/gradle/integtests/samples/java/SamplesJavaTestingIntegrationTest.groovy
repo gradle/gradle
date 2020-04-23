@@ -28,7 +28,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/java/basic/groovy")
+    @UsesSample("java/basic/groovy")
     def "can execute simple Java tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -65,7 +65,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestRun(xmlResults2, "quickUiCheck")
     }
 
-    @UsesSample("userguide/java/customDirs/groovy")
+    @UsesSample("java/customDirs/groovy")
     def "can change the destination for test results and reports"() {
         given:
         executer.inDirectory(sample.dir)
@@ -260,7 +260,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         xmlResults.testcase.@name*.text() == ["test1", "test2", "test1", "test2"]
     }
 
-    @UsesSample("userguide/java/basic/groovy")
+    @UsesSample("java/basic/groovy")
     def "can run simple Java integration tests"() {
         given:
         executer.inDirectory(sample.dir)
@@ -277,7 +277,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
-    @UsesSample("userguide/java/basic/groovy")
+    @UsesSample("java/basic/groovy")
     def "can skip the tests with an `onlyIf` condition"() {
         given:
         executer.inDirectory(sample.dir).withArgument("-PmySkipTests")

@@ -38,8 +38,8 @@ To focus on the information about one configuration, provide the optional parame
 
 .Declaring the JGit dependency with a custom configuration
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
 ====
 
 === Example: Rendering the dependency report for a custom configuration
@@ -47,7 +47,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependenc
 .Output of **`gradle -q dependencies --configuration scm`**
 ----
 > gradle -q dependencies --configuration scm
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
+include::{samplesPath}/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
 ----
 
 The dependencies report provides detailed information about the dependencies available in the graph.
@@ -68,8 +68,8 @@ In this example the conflicting dependency is represented by `commons-codec:comm
 
 .Declaring the JGit dependency and a conflicting dependency
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
 ====
 
 The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
@@ -85,7 +85,7 @@ Given a dependency in the dependency graph you can identify the selection reason
 .Output of **`gradle -q dependencyInsight --dependency commons-codec --configuration scm`**
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
+include::{samplesPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
 
 [[sec:resolving-version-conflict]]

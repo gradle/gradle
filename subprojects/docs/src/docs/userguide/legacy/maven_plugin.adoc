@@ -100,8 +100,8 @@ Let's assume your project produces just the default jar file. Now you want to de
 
 .Upload of file to remote Maven repository
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=upload-file]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=upload-file]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=upload-file]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=upload-file]"]
 ====
 
 That is all. Calling the `uploadArchives` task will generate the POM and deploys the artifact and the POM to the specified repository.
@@ -110,8 +110,8 @@ There is more work to do if you need support for protocols other than `file`. In
 
 .Upload of file via SSH
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=upload-with-ssh]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=upload-with-ssh]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=upload-with-ssh]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=upload-with-ssh]"]
 ====
 
 There are many configuration options for the Maven deployer. The configuration is done via a Groovy builder. All the elements of this tree are Java beans. To configure the simple attributes you pass a map to the bean elements. To add bean elements to its parent, you use a closure. In the example above _repository_ and _authentication_ are such bean elements. <<#deployerConfig,Configuration elements of Maven deployer>> lists the available bean elements and a link to the Javadoc of the corresponding class. In the Javadoc you can see the possible attributes you can set for a particular element.
@@ -215,16 +215,16 @@ Generated POMs can be found in `&lt;buildDir&gt;/poms`. They can be further cust
 
 .Customization of pom
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=customize-pom]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=customize-pom]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=customize-pom]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=customize-pom]"]
 ====
 
 To add additional content to the POM, the `pom.project` builder can be used. With this builder, any element listed in the http://maven.apache.org/pom.html[Maven POM reference] can be added.
 
 .Builder style customization of pom
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=builder]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=builder]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=builder]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=builder]"]
 ====
 
 Note: `groupId`, `artifactId`, `version`, and `packaging` should always be set directly on the `pom` object.
@@ -241,8 +241,8 @@ To customize the settings for the Maven installer (see <<#sub:installing_to_the_
 
 .Customization of Maven installer
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=customize-installer]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=customize-installer]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=customize-installer]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=customize-installer]"]
 ====
 
 
@@ -253,8 +253,8 @@ Maven can only deal with one artifact per project. This is reflected in the stru
 
 .Generation of multiple poms
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=multiple-poms]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=multiple-poms]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=multiple-poms]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=multiple-poms]"]
 ====
 
 You need to declare a filter for each artifact you want to publish. This filter defines a boolean expression for which Gradle artifact it accepts. Each filter has a POM associated with it which you can configure. To learn more about this have a look at link:{javadocPath}/org/gradle/api/artifacts/maven/PomFilterContainer.html[PomFilterContainer] and its associated classes.
@@ -266,8 +266,8 @@ The Maven plugin configures the default mapping between the Gradle configuration
 
 .Accessing a mapping configuration
 ====
-include::sample[dir="snippets/userguide/artifacts/maven/groovy",files="build.gradle[tags=mappings]"]
-include::sample[dir="snippets/userguide/artifacts/maven/kotlin",files="build.gradle.kts[tags=mappings]"]
+include::sample[dir="snippets/artifacts/maven/groovy",files="build.gradle[tags=mappings]"]
+include::sample[dir="snippets/artifacts/maven/kotlin",files="build.gradle.kts[tags=mappings]"]
 ====
 
 Gradle exclude rules are converted to Maven excludes if possible. Such a conversion is possible if in the Gradle exclude rule the group as well as the module name is specified (as Maven needs both in contrast to Ivy). Per-configuration excludes are also included in the Maven POM, if they are convertible.

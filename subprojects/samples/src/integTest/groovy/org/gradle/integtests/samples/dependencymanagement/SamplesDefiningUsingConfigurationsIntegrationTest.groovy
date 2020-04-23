@@ -33,7 +33,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/definingUsingConfigurations/custom")
+    @UsesSample("dependencyManagement/definingUsingConfigurations/custom")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can declare and resolve custom configuration with #dsl dsl"() {
         setup:
@@ -51,7 +51,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/definingUsingConfigurations/inheritance")
+    @UsesSample("dependencyManagement/definingUsingConfigurations/inheritance")
     def "can extend one configuration from another configuration"() {
         setup:
         executer.inDirectory(sample.dir.file(dsl))

@@ -323,8 +323,8 @@ Rather than using a plugin id, plugins can also be applied by simply specifying 
 
 .Applying a binary plugin by type
 ====
-include::sample[dir="snippets/userguide/tutorial/pluginIntro/groovy", files="build.gradle[tags=apply-by-type]"]
-include::sample[dir="snippets/userguide/tutorial/pluginIntro/kotlin", files="build.gradle.kts[tags=apply-by-type]"]
+include::sample[dir="snippets/tutorial/pluginIntro/groovy", files="build.gradle[tags=apply-by-type]"]
+include::sample[dir="snippets/tutorial/pluginIntro/kotlin", files="build.gradle.kts[tags=apply-by-type]"]
 ====
 
 The `JavaPlugin` symbol in the above sample refers to the link:{javadocPath}/org/gradle/api/plugins/JavaPlugin.html[JavaPlugin]. This class does not strictly need to be imported as the `org.gradle.api.plugins` package is automatically imported in all build scripts (see <<writing_build_scripts.adoc#script-default-imports,Default imports>>).
@@ -351,8 +351,8 @@ include::sample[dir="snippets/plugins/buildscript/kotlin", files="build.gradle.k
 
 .Applying a script plugin
 ====
-include::sample[dir="snippets/userguide/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
-include::sample[dir="snippets/userguide/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/organizingGradleProjects/configureProjectUsingScript/kotlin", files="build.gradle.kts[]"]
 ====
 
 Script plugins are automatically resolved and can be applied from a script on the local filesystem or at a remote location. Filesystem locations are relative to the project directory, while remote script locations are specified with an HTTP URL. Multiple script plugins (of either form) can be applied to a given target.
