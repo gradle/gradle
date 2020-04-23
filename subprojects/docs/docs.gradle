@@ -68,6 +68,7 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
+    testImplementation(project(":toolingApiBuilders"))
 }
 
 asciidoctorj {
@@ -413,6 +414,15 @@ samples {
             }
         }
     }
+}
+
+// The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
+// Exemplar doesn't know about that it's running in the context of the gradle/gradle build
+// so it uses the Gradle distribution from the running build. This is not correct, because
+// we want to verify that the samples work with the Gradle distribution being built.
+tasks.named('docsTest').configure() { task ->
+    task.dependsOn(tasks.named('intTestImage'))
+    task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
 }
 
 // TODO: Fix upstream plugin to disable Checkstyle checks for the generated sources
