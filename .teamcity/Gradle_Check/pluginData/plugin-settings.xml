@@ -6,7 +6,7 @@
         <state type="responsibilityChanged" enabled="true" />
         <state type="buildInterrupted" enabled="true" />
         <state type="buildBroken" enabled="false" />
-        <state type="beforeBuildFinish" enabled="true" />
+        <state type="beforeBuildFinish" enabled="false" />
         <state type="changesLoaded" enabled="false" />
         <state type="buildFinished" enabled="true" />
         <state type="buildFixed" enabled="false" />
