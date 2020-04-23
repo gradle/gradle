@@ -20,7 +20,7 @@ configurations["integrationTestImplementation"].extendsFrom(configurations["test
 configurations["integrationTestRuntimeOnly"].extendsFrom(configurations["testRuntimeOnly"])
 
 // tag::use-java-class[]
-val readmeCheck = tasks.register<com.example.ReadmeVerificationTask>("readmeCheck") {
+val readmeCheck by tasks.registering(com.example.ReadmeVerificationTask::class) {
     readme.set(file("${rootProject.rootDir}/README.md"))
     readmePatterns.set(listOf("^## Service API$"))
 }
