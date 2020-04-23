@@ -1,17 +1,52 @@
 NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
 
-TODO:
-This sample shows multiple things. Explain them:
+This sample shows how precompiled script plugins can be used to compose build logic.
 
-* bundle multiple precompiled plugins
-* using classes from main source set
-* using external plugin within precompiled plugin
-* applying precompiled plugin to another precompiled plugin
-* functional testing of the plugin behavior
+== Use case
 
+Use case for this sample is an organization that produces two types of artifacts - services and libraries.
+We want to apply a set of code quality checking rules to both artifact types and configure some aspects specific to each type.
+
+This is achieved by implementing three separate plugins:
+
+* `com.example.java-convention` - configures conventions that are generic for Java codebase in an organization.
+* `com.example.library` - configures publishing to company's repository.
+* `com.example.service` - configures `integrationTest` task and source set and mandatory service README section check.
+
+The `com.example.library` and `com.example.service` plugins both apply the `com.example.java-convention` plugin.
+In addition, they configure specifics for library and service artifacts.
+
+All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behaviour.
+
+The intended use for this project is to build and publish the plugins to a repository and consume them in other projects.
+
+=== Applying an external plugin in precompiled script plugin
+
+The `com.example.java-convention` plugin uses SpotBugs plugin to perform static code analysis.
+SpotBugs is an external plugin - external plugins currently link:{userManualPath}/custom_plugins.html#applying_external_plugins_in_precompiled_script_plugins[cannot be used in a precompiled script plugins
+the same way they are used in build scripts - they have to be added as implementation dependencies to the plugin's project]:
 ====
-include::sample[dir="groovy",files="build.gradle[]"]
-include::sample[dir="kotlin",files="build.gradle.kts[]"]
+include::sample[dir="groovy",files="build.gradle[tags=repositories-and-dependencies]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=repositories-and-dependencies]"]
+====
+Note here:
+
+* the dependency artifact coordinates are different from the plugin id, which is `com.github.spotbugs`
+* `gradlePluginPortal()` repository is added in `repositories` section
+* plugin version is determined from the dependency version
+
+Now the external plugin can be applied in precompiled script plugin by id:
+====
+include::sample[dir="groovy",files="src/main/groovy/com.example.java-convention.gradle[tags=apply-external-plugin]"]
+include::sample[dir="kotlin",files="src/main/kotlin/com.example.java-convention.gradle.kts[tags=apply-external-plugin]"]
+====
+
+=== Using classes from the main source set
+Precompiled script plugins can use classes defined in the main source set of the plugins project.
+In this sample `com.example.service` plugin uses a custom task class from `src/main/java` to configure service README checks:
+====
+include::sample[dir="groovy",files="src/main/groovy/com.example.service.gradle[tags=use-java-class]"]
+include::sample[dir="kotlin",files="src/main/kotlin/com.example.service.gradle.kts[tags=use-java-class]"]
 ====
 
 For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

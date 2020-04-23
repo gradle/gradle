@@ -17,10 +17,12 @@ val integrationTestTask = tasks.register<Test>("integrationTest") {
 configurations["integrationTestImplementation"].extendsFrom(configurations["testImplementation"])
 configurations["integrationTestRuntimeOnly"].extendsFrom(configurations["testRuntimeOnly"])
 
+// tag::use-java-class[]
 val readmeCheck = tasks.register<com.example.ReadmeVerificationTask>("readmeCheck") {
     readme.set(file("${rootProject.rootDir}/README.md"))
     readmePatterns.set(listOf("^## Service API$"))
 }
+// end::use-java-class[]
 
 tasks.named("check") { dependsOn(integrationTestTask, readmeCheck) }
 

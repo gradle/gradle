@@ -1,10 +1,12 @@
+// tag::apply-external-plugin[]
 plugins {
     java
     checkstyle
 
-    // NOTE: external plugin version is specified in implementation dependency of build.gradle for precompiled script plugins
+    // NOTE: external plugin version is specified in implementation dependency artifact of the project's build file
     id("com.github.spotbugs")
 }
+// end::apply-external-plugin[]
 
 val checkstyleConfigFile = project.file("$buildDir/checkstyle.xml")
 

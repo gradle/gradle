@@ -3,6 +3,7 @@ plugins {
     id 'maven-publish'
 }
 
+// tag::repositories-and-dependencies[]
 repositories {
     jcenter()
     gradlePluginPortal() // so that external plugins can be resolved in dependencies section
@@ -10,9 +11,9 @@ repositories {
 
 dependencies {
     implementation 'gradle.plugin.com.github.spotbugs.snom:spotbugs-gradle-plugin:4.0.5'
-
     testImplementation 'org.spockframework:spock-core:1.3-groovy-2.5'
 }
+// end::repositories-and-dependencies[]
 
 group = 'com.example.conventions'
 version = '1.0'

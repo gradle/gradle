@@ -21,10 +21,12 @@ configurations {
     integrationTestRuntimeOnly.extendsFrom testRuntimeOnly
 }
 
+// tag::use-java-class[]
 def readmeCheck = tasks.register('readmeCheck', com.example.ReadmeVerificationTask) {
     it.readme.set(file("$rootProject.rootDir/README.md"))
     it.readmePatterns.set(['^## Service API$'])
 }
+// end::use-java-class[]
 
 tasks.named('check') { it.dependsOn(integrationTest, readmeCheck) }
 
