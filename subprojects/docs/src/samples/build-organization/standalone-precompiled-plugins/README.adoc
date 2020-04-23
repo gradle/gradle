@@ -58,7 +58,7 @@ include::sample[dir="kotlin",files="src/main/kotlin/com.example.java-convention.
 ====
 
 === Applying other precompiled script plugins
-Logic in precompile script plugins can be composed by applying other precompiled script plugins.
+Logic in precompiled script plugins can be composed by applying other precompiled script plugins.
 The `com.example.library` and `com.example.service` plugins both apply the `com.example.java-convention` plugin:
 ====
 include::sample[dir="groovy",files="src/main/groovy/com.example.library.gradle[tags=plugins];src/main/groovy/com.example.service.gradle[tags=plugins]"]
