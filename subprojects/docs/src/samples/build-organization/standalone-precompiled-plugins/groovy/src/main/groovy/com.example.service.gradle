@@ -12,10 +12,10 @@ sourceSets {
 }
 
 def integrationTest = tasks.register('integrationTest', Test) {
-    it.shouldRunAfter(test)
+    shouldRunAfter(test)
 
-    it.testClassesDirs = sourceSets.integrationTest.output.classesDirs
-    it.classpath = sourceSets.integrationTest.runtimeClasspath
+    testClassesDirs = sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
 }
 
 configurations {
@@ -25,10 +25,10 @@ configurations {
 
 // tag::use-java-class[]
 def readmeCheck = tasks.register('readmeCheck', com.example.ReadmeVerificationTask) {
-    it.readme.set(file("$rootProject.rootDir/README.md"))
-    it.readmePatterns.set(['^## Service API$'])
+    readme.set(file("$rootProject.rootDir/README.md"))
+    readmePatterns.set(['^## Service API$'])
 }
 // end::use-java-class[]
 
-tasks.named('check') { it.dependsOn(integrationTest, readmeCheck) }
+tasks.named('check') { dependsOn(integrationTest, readmeCheck) }
 
