@@ -18,8 +18,8 @@ dependencies {
 gradlePlugin {
     // Define the plugin
     val greeting by plugins.creating {
-        id = "org.gradle.sample.plugin.greeting"
-        implementationClass = "org.gradle.sample.plugin.GradlePluginInJavaPlugin"
+        id = "com.example.plugin.greeting"
+        implementationClass = "com.example.plugin.GreetingPlugin"
     }
 }
 // end::plugin[]
