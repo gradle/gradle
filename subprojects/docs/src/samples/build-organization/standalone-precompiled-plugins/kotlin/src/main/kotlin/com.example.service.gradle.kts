@@ -4,7 +4,7 @@ plugins {
 }
 // end::plugins[]
 
-val integrationTest by the<SourceSetContainer>().creating {
+val integrationTest by sourceSets.creating {
     compileClasspath += sourceSets["main"].output + sourceSets["test"].output
     runtimeClasspath += sourceSets["main"].output + sourceSets["test"].output
 }
@@ -27,4 +27,3 @@ val readmeCheck = tasks.register<com.example.ReadmeVerificationTask>("readmeChec
 // end::use-java-class[]
 
 tasks.named("check") { dependsOn(integrationTestTask, readmeCheck) }
-
