@@ -206,7 +206,11 @@ public class DependencyInsightReporter {
                 return "Rejection";
             case CONSTRAINT:
                 return "By constraint";
+            case BY_ANCESTOR:
+                return "By ancestor";
+            default:
+                assert false : "Missing an enum value " + cause;
+                return cause.getDefaultReason();
         }
-        return "Unknown";
     }
 }
