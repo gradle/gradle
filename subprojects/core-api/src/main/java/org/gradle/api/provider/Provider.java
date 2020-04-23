@@ -144,4 +144,10 @@ public interface Provider<T> {
      */
     @Incubating
     Provider<T> orElse(Provider<? extends T> provider);
+
+    /**
+     * Returns a view of this {@link Provider} which can be safely read at configuration time.
+     */
+    @Incubating
+    Provider<T> forUseAtConfigurationTime();
 }

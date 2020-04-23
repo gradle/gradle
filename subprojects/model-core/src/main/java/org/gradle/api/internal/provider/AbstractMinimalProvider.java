@@ -124,6 +124,11 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
     }
 
     @Override
+    public Provider<T> forUseAtConfigurationTime() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         // When used as an input, add the producing tasks if known
         getProducer().visitProducerTasks(context);
