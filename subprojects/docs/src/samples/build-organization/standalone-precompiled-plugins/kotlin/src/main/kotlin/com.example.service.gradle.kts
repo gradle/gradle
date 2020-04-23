@@ -12,8 +12,8 @@ val integrationTest by sourceSets.creating {
 val integrationTestTask = tasks.register<Test>("integrationTest") {
     shouldRunAfter(tasks.named("test"))
 
-    testClassesDirs = sourceSets["integrationTest"].output.classesDirs
-    classpath = sourceSets["integrationTest"].runtimeClasspath
+    testClassesDirs = integrationTest.output.classesDirs
+    classpath = integrationTest.runtimeClasspath
 }
 
 configurations["integrationTestImplementation"].extendsFrom(configurations["testImplementation"])
