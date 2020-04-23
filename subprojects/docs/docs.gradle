@@ -21,6 +21,7 @@ plugins {
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
     id 'org.gradle.samples' version "0.16.3"
+    id 'gradlebuild.internal.java'
 }
 
 repositories { handler ->
@@ -68,7 +69,10 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
-    testImplementation(project(":toolingApiBuilders"))
+}
+
+configurations.testImplementation {
+    extendsFrom(configurations.fullGradleRuntime)
 }
 
 asciidoctorj {
