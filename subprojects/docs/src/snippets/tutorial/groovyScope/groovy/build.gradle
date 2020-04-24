@@ -1,0 +1,13 @@
+plugins {
+    id 'groovy'
+}
+
+dependencies {
+    implementation localGroovy()
+}
+
+task runScript(type: JavaExec) {
+    main = 'scope'
+    classpath = sourceSets.main.runtimeClasspath
+    jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED']
+}

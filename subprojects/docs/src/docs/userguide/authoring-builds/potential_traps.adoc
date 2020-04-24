@@ -27,7 +27,7 @@ One with a local scope and one with a script-wide scope.
 [source,groovy]
 .scope.groovy
 ----
-include::{snippetsPath}/tutorial/groovyScope/scope.groovy[]
+include::{snippetsPath}/tutorial/groovyScope/groovy/src/main/groovy/scope.groovy[]
 ----
 
 .Output of `groovy scope.groovy`
