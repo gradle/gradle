@@ -80,9 +80,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     public void afterBuildStarted(boolean watchingEnabled) {
         getRoot().update(currentRoot -> {
             if (watchingEnabled) {
-                SnapshotHierarchy newRoot = watchRegistry == null
-                    ? currentRoot.empty()
-                    : handleWatcherRegistryEvents(currentRoot, watchRegistry, "since last build");
+                SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "since last build");
                 newRoot = startWatching(newRoot);
                 printStatistics(newRoot, "retained", "since last build");
                 producedByCurrentBuild.set(DefaultFileHierarchySet.of());
@@ -119,9 +117,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
             getRoot().update(currentRoot -> {
                 buildRunning = false;
                 producedByCurrentBuild.set(DefaultFileHierarchySet.of());
-                SnapshotHierarchy newRoot = watchRegistry == null
-                    ? currentRoot.empty()
-                    : handleWatcherRegistryEvents(currentRoot, watchRegistry, "for current build");
+                SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build");
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
             });
@@ -212,7 +208,10 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         return currentRoot.empty();
     }
 
-    private SnapshotHierarchy handleWatcherRegistryEvents(SnapshotHierarchy currentRoot, FileWatcherRegistry watchRegistry, String eventsFor) {
+    private SnapshotHierarchy handleWatcherRegistryEvents(SnapshotHierarchy currentRoot, String eventsFor) {
+        if (watchRegistry == null) {
+            return currentRoot.empty();
+        }
         FileWatcherRegistry.FileWatchingStatistics statistics = watchRegistry.getAndResetStatistics();
         LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
         if (statistics.isUnknownEventEncountered()) {
@@ -300,8 +299,9 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 watchRegistry.close();
             } catch (IOException ex) {
                 LOGGER.error("Couldn't close watch service", ex);
+            } finally {
+                watchRegistry = null;
             }
-            watchRegistry = null;
         }
     }
 }
