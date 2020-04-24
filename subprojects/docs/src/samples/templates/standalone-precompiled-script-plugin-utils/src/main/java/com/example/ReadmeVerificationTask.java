@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.regex.Pattern;
 
+/**
+ * Verifies that the given readme file contains the desired patterns.
+ */
 public abstract class ReadmeVerificationTask extends DefaultTask {
 
     @PathSensitive(PathSensitivity.RELATIVE)

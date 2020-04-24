@@ -18,6 +18,8 @@ dependencies {
 group = "com.example.conventions"
 version = "1.0"
 
+// NOTE: This is only needed to demonstrate publishing the plugin in this sample.
+// Your plugin should be published to an artifact repository or to the Plugin Portal
 publishing {
     repositories {
         maven {

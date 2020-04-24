@@ -1,3 +1,6 @@
+// Define Java conventions for this organization.
+// Projects need to use the Java, Checkstyle and Spotbugs plugins.
+
 // tag::apply-external-plugin[]
 plugins {
     id 'java'
@@ -8,22 +11,20 @@ plugins {
 }
 // end::apply-external-plugin[]
 
-def checkstyleConfigFile = project.file("$buildDir/checkstyle.xml")
-
-afterEvaluate {
-    buildDir.mkdir()
-    com.example.CheckstyleUtil.copyFileFromJar("/checkstyle.xml", checkstyleConfigFile)
+// Projects should use JCenter for external dependencies
+// This could be the organization's private repository
+repositories {
+    jcenter() 
 }
 
+// Use the Checkstyle rules provided by the convention plugin
+// Do not allow any warnings
 checkstyle {
-    configFile = checkstyleConfigFile
+    config = resources.text.fromString(com.example.CheckstyleUtil.getCheckstyleConfig("/checkstyle.xml"))
     maxWarnings = 0
 }
 
-tasks.withType(JavaCompile) {
+// Enable deprecation messages when compiling Java code
+tasks.withType(JavaCompile).configureEach {
     options.compilerArgs << "-Xlint:deprecation"
-}
-
-repositories {
-    jcenter() // could be a company's private repository
 }
