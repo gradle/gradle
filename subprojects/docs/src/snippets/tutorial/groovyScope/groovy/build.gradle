@@ -9,5 +9,7 @@ dependencies {
 task runScript(type: JavaExec) {
     main = 'scope'
     classpath = sourceSets.main.runtimeClasspath
-    jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED']
+    if (JavaVersion.current().isCompatibleWith(JavaVersion.VERSION_1_9)) {
+        jvmArgs = ['--add-opens', 'java.base/java.lang=ALL-UNNAMED']
+    }
 }
