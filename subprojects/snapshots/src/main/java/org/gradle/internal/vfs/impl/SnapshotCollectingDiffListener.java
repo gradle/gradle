@@ -36,11 +36,10 @@ class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDiffListen
         addedSnapshots = new ArrayList<>();
     }
 
-    public SnapshotHierarchy publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener, SnapshotHierarchy newRoot) {
+    public void publishSnapshotDiff(SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener) {
         if (!removedSnapshots.isEmpty() || !addedSnapshots.isEmpty()) {
-            return snapshotDiffListener.changed(removedSnapshots, addedSnapshots, newRoot);
+            snapshotDiffListener.changed(removedSnapshots, addedSnapshots);
         }
-        return newRoot;
     }
 
     private void extractRootSnapshots(FileSystemNode rootNode, Consumer<CompleteFileSystemLocationSnapshot> consumer) {

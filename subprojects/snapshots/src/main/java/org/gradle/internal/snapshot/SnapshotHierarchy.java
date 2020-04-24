@@ -104,14 +104,14 @@ public interface SnapshotHierarchy {
      * - it receives all the changes for one update at once.
      */
     interface SnapshotDiffListener {
-        SnapshotDiffListener NOOP = (removedSnapshots, addedSnapshots, newRoot) -> newRoot;
+        SnapshotDiffListener NOOP = (removedSnapshots, addedSnapshots) -> {};
 
         /**
          * Called after the update to {@link SnapshotHierarchy} finished.
          *
          * Only the roots of added/removed hierarchies are reported.
          */
-        SnapshotHierarchy changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots, SnapshotHierarchy newRoot);
+        void changed(Collection<CompleteFileSystemLocationSnapshot> removedSnapshots, Collection<CompleteFileSystemLocationSnapshot> addedSnapshots);
     }
 
     /**
