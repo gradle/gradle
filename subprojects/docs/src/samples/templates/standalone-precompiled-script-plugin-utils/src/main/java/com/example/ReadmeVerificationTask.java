@@ -25,9 +25,9 @@ public abstract class ReadmeVerificationTask extends DefaultTask {
 
     @TaskAction
     void verifyServiceReadme() throws IOException {
-        var readmeContents = Files.readString(getReadme().getAsFile().get().toPath());
+        String readmeContents = Files.readString(getReadme().getAsFile().get().toPath());
         for (String requiredSection : getReadmePatterns().get()) {
-            var pattern = Pattern.compile(requiredSection, Pattern.MULTILINE);
+            Pattern pattern = Pattern.compile(requiredSection, Pattern.MULTILINE);
             if (!pattern.matcher(readmeContents).find()) {
                 throw new RuntimeException("README should contain section: " + pattern.pattern());
             }
