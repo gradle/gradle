@@ -408,18 +408,18 @@ samples {
 
         standalonePrecompiledScriptPlugins {
             sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
-            displayName = "Compose build logic using precompiled script plugins"
-            description = "Build and publish multiple precompiled script plugins."
+            displayName = "Publish precompiled script plugins"
+            description = "Compose build logic by building and publishing multiple precompiled script plugins."
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtils)
             }
         }
 
-        multiProjectWithPrecompiledScriptPlugins {
+        multiProjectWithPrecompiledScriptPluginsInBuildSrc {
             sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-precompiled-script-plugins")
-            displayName = "Compose build logic using precompiled script plugins in the same project"
-            description = "Build a multi module project that builds and uses multiple precompiled script plugins."
+            displayName = "Use precompiled script plugins from buildSrc"
+            description = "Configure a multi module project that composes build logic by building and using multiple precompiled script plugins."
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtilsInBuildSrc)
