@@ -1,0 +1,13 @@
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+This sample shows how build logic can be organized using precompiled script plugins in a multi project build.
+
+* library plugin applies convention plugin and configures publishing as well as readme checks
+* other modules apply convention only
+
+====
+include::sample[dir="groovy",files="build.gradle[tags=plugin]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=plugin]"]
+====
+
+For more details on authoring custom Gradle plugins, consult the link:{userManualPath}/custom_plugins.html[user manual].

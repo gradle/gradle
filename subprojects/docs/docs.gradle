@@ -174,7 +174,11 @@ samples {
 
         projectInfoPlugin
 
-        standalonePrecompiledScriptPluginUtils
+        precompiledScriptPluginUtils
+        precompiledScriptPluginUtilsInBuildSrc {
+            sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
+            target = "buildSrc"
+        }
     }
 
     publishedSamples {
@@ -408,7 +412,17 @@ samples {
             description = "Build and publish multiple precompiled script plugins."
             category = "Build organization"
             common {
-                from(templates.standalonePrecompiledScriptPluginUtils)
+                from(templates.precompiledScriptPluginUtils)
+            }
+        }
+
+        multiProjectWithPrecompiledScriptPlugins {
+            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-precompiled-script-plugins")
+            displayName = "Compose build logic using precompiled script plugins in the same project"
+            description = "Build a multi module project that builds and uses multiple precompiled script plugins."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPluginUtilsInBuildSrc)
             }
         }
 

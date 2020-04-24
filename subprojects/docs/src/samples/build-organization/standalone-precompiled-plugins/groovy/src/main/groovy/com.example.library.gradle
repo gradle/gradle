@@ -1,5 +1,5 @@
 // Define Java Library conventions for this organization.
-// Projects need to use the organizations Java conventions and publish using Maven Publish
+// Projects need to use the organization's Java conventions and publish using Maven Publish
 
 // tag::plugins[]
 plugins {
