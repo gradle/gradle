@@ -99,7 +99,6 @@ samples {
         javaAndroidApplication
         springBootWebApplication
         gradlePluginInJava
-        precompiledScriptPlugin
         buildSrcPluginJavaModuleTransform
 
         javaApplication
@@ -174,6 +173,8 @@ samples {
         kotlinUtilitiesLibrary
 
         projectInfoPlugin
+
+        standalonePrecompiledScriptPluginUtils
     }
 
     publishedSamples {
@@ -193,9 +194,10 @@ samples {
         }
 
         jvmMultiProjectWithAdditionalTestTypes {
-            displayName = "Additional test types"
+            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-additional-test-types")
+            displayName = "Using additional test types"
             description = "Add an additional test type (e.g. integration tests) to a project."
-            category = "JVM"
+            category = "Java"
 
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -209,18 +211,6 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
-
-        jvmMultiProjectBuild {
-            displayName = "Multi-project build"
-            description = "Use dependencies in a multi-project build."
-            category = "JVM"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-            }
-        }
-
         javaApplication {
             sampleDirectory = samplesRoot.dir("java/application")
             description = "Build a Java application."
@@ -313,7 +303,7 @@ samples {
             }
         }
         jvmMultiProjectWithCodeCoverage {
-            sampleDirectory = samplesRoot.dir("jvm-multi-project-with-code-coverage")
+            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-code-coverage")
             displayName = "Reporting code coverage with JaCoCo"
             description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
             category = "Java"
@@ -397,12 +387,8 @@ samples {
             }
         }
 
-        precompiledScriptPlugin {
-            description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
-            category = "Build organization"
-        }
-
         gradlePlugin {
+            sampleDirectory = samplesRoot.dir("build-organization/gradle-plugin")
             description = "Organize your build logic into a Gradle plugin written in Java."
             category = "Build organization"
             common {
@@ -410,9 +396,38 @@ samples {
             }
         }
 
+        precompiledScriptPlugin {
+            sampleDirectory = samplesRoot.dir("build-organization/precompiled-script-plugin")
+            description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
+            category = "Build organization"
+        }
+
+        standalonePrecompiledScriptPlugins {
+            sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
+            displayName = "Compose build logic using precompiled script plugins"
+            description = "Build and publish multiple precompiled script plugins."
+            category = "Build organization"
+            common {
+                from(templates.standalonePrecompiledScriptPluginUtils)
+            }
+        }
+
+        jvmMultiProjectBuild {
+            sampleDirectory = samplesRoot.dir("build-organization/jvm-multi-project-build")
+            displayName = "Multi-project build (JVM)"
+            description = "Use dependencies in a multi-project build."
+            category = "Build organization"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
+
         taskWithArguments {
-            description = "Pass arguments to a custom task"
-            category = "Plugins"
+            sampleDirectory = samplesRoot.dir("build-organization/task-with-arguments")
+            description = "Pass command-line arguments to a custom task."
+            category = "Build organization"
             common {
                 from(templates.projectInfoPlugin)
             }
