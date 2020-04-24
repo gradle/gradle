@@ -18,7 +18,7 @@ package org.gradle.instantexecution
 
 class InstantExecutionUndeclaredBuildInputsDynamicGroovyDslIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
     @Override
-    void pluginDefinition() {
+    void buildLogicApplication() {
         buildFile << """
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
@@ -32,6 +32,8 @@ class InstantExecutionUndeclaredBuildInputsDynamicGroovyDslIntegrationTest exten
                     }
                 }
             }
+
+            apply plugin: SneakyPlugin
 
             println("apply CI2 = " + System.getProperty("CI2"))
         """
