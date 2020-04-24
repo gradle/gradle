@@ -100,11 +100,11 @@ public abstract class AbstractHierarchicalFileWatcherRegistry extends AbstractEv
             return;
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", newWatchRoots.size());
-        getWatcher().startWatching(newWatchRoots.stream()
+        getWatcher().stopWatching(watchRootsToRemove.stream()
             .map(Path::toFile)
             .collect(Collectors.toList())
         );
-        getWatcher().stopWatching(watchRootsToRemove.stream()
+        getWatcher().startWatching(newWatchRoots.stream()
             .map(Path::toFile)
             .collect(Collectors.toList())
         );
