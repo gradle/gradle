@@ -22,7 +22,7 @@ import org.gradle.api.Project
 
 class InstantExecutionUndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
     @Override
-    void pluginDefinition() {
+    void buildLogicApplication() {
         file("buildSrc/src/main/groovy/SneakyPlugin.groovy") << """
             import ${Project.name}
             import ${Plugin.name}
@@ -42,6 +42,10 @@ class InstantExecutionUndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest e
                     }
                 }
             }
+        """
+
+        buildFile << """
+            apply plugin: SneakyPlugin
         """
     }
 }

@@ -27,6 +27,7 @@ import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 import org.gradle.initialization.ClassLoaderScopeRegistry
 
 import org.gradle.internal.classloader.ClasspathHasher
+import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -88,6 +89,7 @@ object BuildServices {
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationExecutor: BuildOperationExecutor,
+        cachedClasspathTransformer: CachedClasspathTransformer,
         listenerManager: ListenerManager
     ): KotlinScriptEvaluator =
 
@@ -105,6 +107,7 @@ object BuildServices {
             implicitImports,
             progressLoggerFactory,
             buildOperationExecutor,
+            cachedClasspathTransformer,
             listenerManager.getBroadcaster(ScriptExecutionListener::class.java)
         )
 
