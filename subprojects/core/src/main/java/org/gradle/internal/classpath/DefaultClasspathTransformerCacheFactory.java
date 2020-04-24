@@ -45,7 +45,7 @@ public class DefaultClasspathTransformerCacheFactory implements ClasspathTransfo
     private static final CacheVersionMapping CACHE_VERSION_MAPPING = introducedIn("3.1-rc-1")
         .incrementedIn("3.2-rc-1")
         .incrementedIn("3.5-rc-1")
-        .changedTo(7, "6.5-rc-1")
+        .changedTo(8, "6.5-rc-1")
         .build();
     @VisibleForTesting
     static final String CACHE_NAME = "jars";

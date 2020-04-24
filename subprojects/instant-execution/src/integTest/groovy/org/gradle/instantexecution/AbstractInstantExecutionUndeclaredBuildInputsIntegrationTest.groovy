@@ -36,6 +36,7 @@ abstract class AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest exte
 
         then:
         outputContains("apply CI = null")
+        outputContains("apply CI2 = null")
         outputContains("task CI = null")
 
         when:
@@ -44,11 +45,11 @@ abstract class AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest exte
 
         then:
         fixture.assertStateStored()
-        problems.assertResultHasProblems(result) {
-            additionalProblems(it)
-            withProblem("unknown property: read system property 'CI' from 'SneakyPlugin'")
-        }
+        // TODO - use fixture, need to be able to tweak the problem matching as build script class name is generated
+        outputContains("- unknown property: read system property 'CI' from 'SneakyPlugin'")
+        outputContains("- unknown property: read system property 'CI2' from '")
         outputContains("apply CI = null")
+        outputContains("apply CI2 = null")
         outputContains("task CI = null")
 
         when:

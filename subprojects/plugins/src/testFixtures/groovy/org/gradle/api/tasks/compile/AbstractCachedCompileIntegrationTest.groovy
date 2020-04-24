@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.Issue
 
 abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
@@ -40,6 +41,29 @@ abstract class AbstractCachedCompileIntegrationTest extends AbstractIntegrationS
         compileIsNotCached()
 
         when:
+        expectDeprecationWarnings()
+        withBuildCache().succeeds 'clean', compilationTask
+
+        then:
+        compileIsCached()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12860")
+    def 'compilation is cached if the project version changes'() {
+        when:
+        buildFile << '''
+            version = '1.0-a'
+        '''
+        expectDeprecationWarnings()
+        withBuildCache().run compilationTask
+
+        then:
+        compileIsNotCached()
+
+        when:
+        buildFile << '''
+            version = '1.0-b'
+        '''
         expectDeprecationWarnings()
         withBuildCache().succeeds 'clean', compilationTask
 

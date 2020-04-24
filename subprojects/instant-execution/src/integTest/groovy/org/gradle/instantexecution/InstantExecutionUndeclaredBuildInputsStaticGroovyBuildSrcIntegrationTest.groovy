@@ -33,6 +33,7 @@ class InstantExecutionUndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest e
                 public void apply(Project project) {
                     def ci = System.getProperty("CI")
                     println("apply CI = " + ci)
+                    println("apply CI2 = " + System.getProperty("CI2"))
                     project.tasks.register("thing") { t ->
                         t.doLast {
                             def ci2 = System.getProperty("CI")

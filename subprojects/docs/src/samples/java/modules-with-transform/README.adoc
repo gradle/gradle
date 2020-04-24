@@ -8,11 +8,11 @@ The example defines an application that relies on libraries from Maven central w
 It uses `commons-cli` (not a module) to parse the command line arguments, which can contain a JSON String, and `gson` (a proper module) to parse the JSON string.
 It also utilises `commons-lang3` (an automatic module) and `commons-beanutils` (not a module) which brings in some additional dependencies that are also not modules.
 
-By configuring our own `extra-java-module-info` plugin in the root build script, we add information to turn the legacy libraries into modules.
+By configuring our own `extra-java-module-info` plugin, we add information to turn the legacy libraries into modules.
 
 ====
-include::sample[dir="groovy",files="build.gradle[tags=extraModuleInfo]"]
-include::sample[dir="kotlin",files="build.gradle.kts[tags=extraModuleInfo]"]
+include::sample[dir="groovy",files="application/build.gradle[tags=extraModuleInfo]"]
+include::sample[dir="kotlin",files="application/build.gradle.kts[tags=extraModuleInfo]"]
 ====
 
 You can run the example application like this:

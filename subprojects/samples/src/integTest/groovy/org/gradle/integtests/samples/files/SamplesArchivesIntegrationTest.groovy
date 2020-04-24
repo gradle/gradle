@@ -28,7 +28,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/files/copy")
+    @UsesSample("files/copy")
     def "can archive a directory with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -57,7 +57,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/files/archivesWithBasePlugin")
+    @UsesSample("files/archivesWithBasePlugin")
     def "can create an archive with a convention-based name with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -86,7 +86,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/files/archives")
+    @UsesSample("files/archives")
     def "can unpack a ZIP file with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -106,7 +106,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/files/archivesWithJavaPlugin")
+    @UsesSample("files/archivesWithJavaPlugin")
     def "can create an uber JAR with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)
@@ -129,7 +129,7 @@ class SamplesArchivesIntegrationTest extends AbstractSampleIntegrationTest {
     }
 
     @Unroll
-    @UsesSample("userguide/files/sampleJavaProject")
+    @UsesSample("files/sampleJavaProject")
     def "can link tasks via their properties with #dsl dsl"() {
         given:
         def dslDir = sample.dir.file(dsl)

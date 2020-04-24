@@ -28,7 +28,7 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
     @Rule
     Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample("userguide/organizingGradleProjects/customGradleDistribution")
+    @UsesSample("organizingGradleProjects/customGradleDistribution")
     def "can build custom gradle distribution"() {
         executer.inDirectory(sample.dir)
 
@@ -41,7 +41,7 @@ class SamplesOrganizingGradleProjectsIntegrationTest extends AbstractSampleInteg
         new ZipTestFixture(customDistribution).assertContainsFile("gradle-4.6/init.d/repositories.gradle")
     }
 
-    @UsesSample("userguide/organizingGradleProjects/separatedTestTypes")
+    @UsesSample("organizingGradleProjects/separatedTestTypes")
     @Unroll
     def "can execute different types of tests with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))

@@ -263,7 +263,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         executedAndNotSkipped(":consumer")
         receivedFileSystemEventsInCurrentBuild >= 1
-        retainedFilesInCurrentBuild == 2
+        retainedFilesInCurrentBuild == 10 // 8 build script class files + 2 task files
     }
 
     @ToBeFixedForInstantExecution
@@ -302,7 +302,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "initial"
-        retainedFilesInCurrentBuild == 1
+        retainedFilesInCurrentBuild == 9 // 8 script classes + 1 task file
 
         when:
         runWithRetentionAndDoChangesWhen("waitForUserChanges", "userInput") {
@@ -313,7 +313,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped(":consumer")
         outputFile.text == "changed"
         receivedFileSystemEventsInCurrentBuild >= 1
-        retainedFilesInCurrentBuild == 1
+        retainedFilesInCurrentBuild == 9 // 8 script classes + 1 task file
 
         when:
         server.expect("userInput")
@@ -321,7 +321,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         then:
         executedAndNotSkipped(":consumer")
         outputFile.text == "changedAgain"
-        retainedFilesInCurrentBuild == 2
+        retainedFilesInCurrentBuild == 10 // 8 script classes + 2 task files
     }
 
     private void runWithRetentionAndDoChangesWhen(String task, String expectedCall, Closure action) {

@@ -19,7 +19,7 @@ package org.gradle.internal.execution.history.impl
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.CacheDecorator
 import org.gradle.cache.PersistentCache
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.internal.MutableReference
 import org.gradle.internal.serialize.BaseSerializerFactory
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
@@ -42,7 +42,7 @@ class DefaultOutputFilesRepositoryTest extends Specification {
         createCache(_) >> outputFiles
     }
     def cacheDecorator = Mock(CacheDecorator)
-    def inMemoryCacheDecoratorFactory = Stub(InMemoryCacheDecoratorFactory) {
+    def inMemoryCacheDecoratorFactory = Stub(DefaultInMemoryCacheDecoratorFactory) {
         decorator(100000, true) >> cacheDecorator
     }
     def repository = new DefaultOutputFilesRepository(cacheAccess, inMemoryCacheDecoratorFactory)

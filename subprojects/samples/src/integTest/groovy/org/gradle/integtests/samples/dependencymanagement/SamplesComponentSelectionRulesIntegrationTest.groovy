@@ -28,7 +28,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
+    @UsesSample("dependencyManagement/customizingResolution/selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run resolveConfiguration sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
@@ -46,7 +46,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
+    @UsesSample("dependencyManagement/customizingResolution/selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run reject sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
@@ -62,7 +62,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
+    @UsesSample("dependencyManagement/customizingResolution/selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run metadata rules sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))
@@ -79,7 +79,7 @@ class SamplesComponentSelectionRulesIntegrationTest extends AbstractSampleIntegr
     }
 
     @Unroll
-    @UsesSample("userguide/dependencyManagement/customizingResolution/selectionRule")
+    @UsesSample("dependencyManagement/customizingResolution/selectionRule")
     @ToBeFixedForInstantExecution(iterationMatchers = ".*kotlin dsl")
     def "can run targeted rule sample with #dsl dsl"() {
         executer.inDirectory(sample.dir.file(dsl))

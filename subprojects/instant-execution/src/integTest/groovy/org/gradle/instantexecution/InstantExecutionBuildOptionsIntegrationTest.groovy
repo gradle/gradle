@@ -521,7 +521,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
                     Property<String> getPropertyName()
                 }
                 @Override Boolean obtain() {
-                    System.getProperty(parameters.getPropertyName().get()) != null
+                    System.getProperties().get(parameters.getPropertyName().get()) != null
                 }
             }
 

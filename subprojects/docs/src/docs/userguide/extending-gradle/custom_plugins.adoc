@@ -57,14 +57,14 @@ The following sample contains a greeting plugin, which adds a `hello` task to th
 
 .A custom plugin
 ====
-include::sample[dir="snippets/userguide/customPlugins/customPlugin/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/customPlugins/customPlugin/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/customPlugins/customPlugin/customPlugin.out[]
+include::{samplesPath}/customPlugins/customPlugin/customPlugin.out[]
 ----
 
 One thing to note is that a new instance of a plugin is created for each project it is applied to. Also note that the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] class is a generic type.
@@ -85,14 +85,14 @@ Let's add a simple extension object to the project. Here we add a `greeting` ext
 
 .A custom plugin extension
 ====
-include::sample[dir="snippets/userguide/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithConvention/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/customPlugins/customPluginWithConvention/customPluginWithConvention.out[]
+include::{samplesPath}/customPlugins/customPluginWithConvention/customPluginWithConvention.out[]
 ----
 
 In this example, `GreetingPluginExtension` is an object with a property called `message`. The extension object is added to the project with the name `greeting`.
@@ -103,14 +103,14 @@ The following example shows you how this works.
 
 .A custom plugin with configuration block
 ====
-include::sample[dir="snippets/userguide/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/customPlugins/customPluginWithAdvancedConvention/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/customPlugins/customPluginWithAdvancedConvention/customPluginWithAdvancedConvention.out[]
+include::{samplesPath}/customPlugins/customPluginWithAdvancedConvention/customPluginWithAdvancedConvention.out[]
 ----
 
 [.multi-language-text.lang-groovy]
@@ -137,14 +137,14 @@ To do this, you can leverage the link:{groovyDslPath}/org.gradle.api.Project.htm
 
 .Evaluating file properties lazily
 ====
-include::sample[dir="snippets/userguide/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
-include::sample[dir="snippets/userguide/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
+include::sample[dir="snippets/tasks/customTaskWithFileProperty/groovy",files="build.gradle[tags=all]"]
+include::sample[dir="snippets/tasks/customTaskWithFileProperty/kotlin",files="build.gradle.kts[tags=all]"]
 ====
 
 .Output of **`gradle -q sayGreeting`**
 ----
 > gradle -q sayGreeting
-include::{samplesPath}/userguide/tasks/customTaskWithFileProperty/lazyFileProperties.out[]
+include::{samplesPath}/tasks/customTaskWithFileProperty/lazyFileProperties.out[]
 ----
 
 In this example, we configure the `greet` task `destination` property as a closure/provider, which is evaluated with
@@ -274,8 +274,8 @@ First, you need a `buildSrc/build.gradle.kts` file that applies the `kotlin-dsl`
 
 .Enabling precompiled script plugins
 ====
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
 [.multi-language-text.lang-groovy]
@@ -292,8 +292,8 @@ Next, create a new `java-library-convention.gradle.kts` file in the `buildSrc/sr
 
 .Creating a simple script plugin
 ====
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
 ====
 
 This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
@@ -303,22 +303,22 @@ Finally, apply the script plugin to the root project as follows:
 
 .Applying the precompiled script plugin to the main project
 ====
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="build.gradle.kts[]"]
 ====
 
 === Applying external plugins in precompiled script plugins
 In order to apply an external plugin in a precompiled script plugin,
 it has to be added to the plugin project's implementation classpath in the plugin's build file.
 ====
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/build.gradle[]"]
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
 ====
 
 It can then be applied in the precompiled script plugin.
 ====
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
-include::sample[dir="snippets/userguide/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
 ====
 
 The plugin version in this case is defined in the dependency declaration.

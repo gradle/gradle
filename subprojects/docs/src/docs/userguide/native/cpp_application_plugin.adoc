@@ -22,8 +22,8 @@ The {cpp} Application Plugin provides the tasks, configurations and conventions 
 
 .Applying the {cpp} Application Plugin
 ====
-include::sample[dir="snippets/userguide/cpp/cppApplication/groovy",files="build.gradle[tags=apply-plugin]"]
-include::sample[dir="snippets/userguide/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
+include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=apply-plugin]"]
+include::sample[dir="snippets/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=apply-plugin]"]
 ====
 
 [[sec:cpp_application_build_variants]]
@@ -46,8 +46,8 @@ The target machine can be configured as follows:
 
 .Configure application target machines
 ====
-include::sample[dir="snippets/userguide/cpp/cppApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
-include::sample[dir="snippets/userguide/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
+include::sample[dir="snippets/cpp/cppApplication/groovy",files="build.gradle[tags=configure-target-machines]"]
+include::sample[dir="snippets/cpp/cppApplication/kotlin",files="build.gradle.kts[tags=configure-target-machines]"]
 ====
 
 [[sec:cpp_application_tasks]]

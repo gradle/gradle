@@ -3,18 +3,19 @@ package org.gradle.sample.transform.javamodules;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformOutputs;
+import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.tasks.Input;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.ModuleVisitor;
 import org.objectweb.asm.Opcodes;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
+import java.util.Collections;
 import java.util.Map;
 import java.util.jar.*;
+import java.util.regex.Pattern;
 import java.util.zip.ZipEntry;
 
 /**
@@ -22,15 +23,38 @@ import java.util.zip.ZipEntry;
  * The transformation fails the build if a Jar does not contain information and no extra information
  * was defined for it. This way we make sure that all Jars are turned into modules.
  */
-abstract public class ExtraModuleInfoTransform implements TransformAction<ExtraModuleInfoPluginExtension> {
+abstract public class ExtraModuleInfoTransform implements TransformAction<ExtraModuleInfoTransform.Parameter> {
+
+    public static class Parameter implements TransformParameters, Serializable {
+        private Map<String, ModuleInfo> moduleInfo = Collections.emptyMap();
+        private Map<String, String> automaticModules = Collections.emptyMap();
+
+        @Input
+        public Map<String, ModuleInfo> getModuleInfo() {
+            return moduleInfo;
+        }
+
+        @Input
+        public Map<String, String> getAutomaticModules() {
+            return automaticModules;
+        }
+
+        public void setModuleInfo(Map<String, ModuleInfo> moduleInfo) {
+            this.moduleInfo = moduleInfo;
+        }
+
+        public void setAutomaticModules(Map<String, String> automaticModules) {
+            this.automaticModules = automaticModules;
+        }
+    }
 
     @InputArtifact
     protected abstract Provider<FileSystemLocation> getInputArtifact();
 
     @Override
     public void transform(TransformOutputs outputs) {
-        Map<String, ModuleInfo> moduleInfo = getParameters().getModuleInfo();
-        Map<String, String> automaticModules = getParameters().getAutomaticModules();
+        Map<String, ModuleInfo> moduleInfo = getParameters().moduleInfo;
+        Map<String, String> automaticModules = getParameters().automaticModules;
         File originalJar = getInputArtifact().get().getAsFile();
         String originalJarName = originalJar.getName();
 
@@ -48,11 +72,15 @@ abstract public class ExtraModuleInfoTransform implements TransformAction<ExtraM
     }
 
     private boolean isModule(File jar) {
-        // This does not fully check multi-release jars
+        Pattern moduleInfoClassMrjarPath = Pattern.compile("META-INF/versions/\\d+/module-info.class");
         try (JarInputStream inputStream =  new JarInputStream(new FileInputStream(jar))) {
+            boolean isMultiReleaseJar = containsMultiReleaseJarEntry(inputStream);
             ZipEntry next = inputStream.getNextEntry();
             while (next != null) {
                 if ("module-info.class".equals(next.getName())) {
+                    return true;
+                }
+                if (isMultiReleaseJar && moduleInfoClassMrjarPath.matcher(next.getName()).matches()) {
                     return true;
                 }
                 next = inputStream.getNextEntry();
@@ -61,6 +89,11 @@ abstract public class ExtraModuleInfoTransform implements TransformAction<ExtraM
             throw new RuntimeException(e);
         }
         return false;
+    }
+
+    private boolean containsMultiReleaseJarEntry(JarInputStream jarStream) {
+        Manifest manifest = jarStream.getManifest();
+        return manifest != null && Boolean.parseBoolean(manifest.getMainAttributes().getValue("Multi-Release"));
     }
 
     private boolean isAutoModule(File jar) {

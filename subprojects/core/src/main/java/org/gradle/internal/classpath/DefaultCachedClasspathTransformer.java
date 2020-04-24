@@ -24,7 +24,6 @@ import org.gradle.internal.file.FileType;
 import org.gradle.internal.resource.local.FileAccessTracker;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.vfs.VirtualFileSystem;
-import org.gradle.util.GFileUtils;
 
 import javax.annotation.Nullable;
 import java.io.Closeable;
@@ -41,8 +40,9 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
 
     private final PersistentCache cache;
     private final FileAccessTracker fileAccessTracker;
+    private final ClasspathWalker classpathWalker;
+    private final ClasspathBuilder classpathBuilder;
     private final VirtualFileSystem virtualFileSystem;
-    private final DecoratingTransformer decoratingTransformer;
 
     public DefaultCachedClasspathTransformer(
         CacheRepository cacheRepository,
@@ -52,32 +52,32 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         ClasspathBuilder classpathBuilder,
         VirtualFileSystem virtualFileSystem
     ) {
+        this.classpathWalker = classpathWalker;
+        this.classpathBuilder = classpathBuilder;
         this.virtualFileSystem = virtualFileSystem;
         this.cache = classpathTransformerCacheFactory.createCache(cacheRepository, fileAccessTimeJournal);
         this.fileAccessTracker = classpathTransformerCacheFactory.createFileAccessTracker(fileAccessTimeJournal);
-        this.decoratingTransformer = new DecoratingTransformer(classpathWalker, classpathBuilder);
     }
 
     @Override
-    public ClassPath transform(ClassPath classPath, Usage usage) {
-        return cache.useCache(() -> {
-            List<File> originalFiles = classPath.getAsFiles();
-            List<File> cachedFiles = new ArrayList<>(originalFiles.size());
-            for (File file : originalFiles) {
-                cached(file, usage, cachedFiles::add);
-            }
-            return DefaultClassPath.of(cachedFiles);
-        });
+    public ClassPath transform(ClassPath classPath, StandardTransform transform) {
+        return transform(classPath, fileTransformerFor(transform));
     }
 
     @Override
-    public Collection<URL> transform(Collection<URL> urls, Usage usage) {
+    public ClassPath transform(ClassPath classPath, StandardTransform transform, Transform additional) {
+        return transform(classPath, new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new CompositeTransformer(additional, tranformerFor(transform))));
+    }
+
+    @Override
+    public Collection<URL> transform(Collection<URL> urls, StandardTransform transform) {
+        ClasspathFileTransformer transformer = fileTransformerFor(transform);
         return cache.useCache(() -> {
             List<URL> cachedFiles = new ArrayList<>(urls.size());
             for (URL url : urls) {
                 if (url.getProtocol().equals("file")) {
                     try {
-                        cached(new File(url.toURI()), usage, f -> {
+                        cached(new File(url.toURI()), transformer, f -> {
                             try {
                                 cachedFiles.add(f.toURI().toURL());
                             } catch (MalformedURLException e) {
@@ -95,9 +95,39 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
         });
     }
 
-    private void cached(File original, Usage usage, Consumer<File> dest) {
+    private Transform tranformerFor(StandardTransform transform) {
+        if (transform == StandardTransform.BuildLogic) {
+            return new InstrumentingTransformer();
+        } else {
+            throw new UnsupportedOperationException("Not implemented yet.");
+        }
+    }
+
+    private ClassPath transform(ClassPath classPath, ClasspathFileTransformer transformer) {
+        return cache.useCache(() -> {
+            List<File> originalFiles = classPath.getAsFiles();
+            List<File> cachedFiles = new ArrayList<>(originalFiles.size());
+            for (File file : originalFiles) {
+                cached(file, transformer, cachedFiles::add);
+            }
+            return DefaultClassPath.of(cachedFiles);
+        });
+    }
+
+    private ClasspathFileTransformer fileTransformerFor(StandardTransform transform) {
+        switch (transform) {
+            case BuildLogic:
+                return new InstrumentingClasspathFileTransformer(classpathWalker, classpathBuilder, new InstrumentingTransformer());
+            case None:
+                return new CopyingClasspathFileTransformer();
+            default:
+                throw new IllegalArgumentException();
+        }
+    }
+
+    private void cached(File original, ClasspathFileTransformer transformer, Consumer<File> dest) {
         if (shouldUseFromCache(original)) {
-            File result = getCachedJar(usage, original, cache.getBaseDir());
+            File result = getCachedJar(transformer, original, cache.getBaseDir());
             if (result != null) {
                 dest.accept(result);
             }
@@ -107,33 +137,16 @@ public class DefaultCachedClasspathTransformer implements CachedClasspathTransfo
     }
 
     @Nullable
-    public File getCachedJar(CachedClasspathTransformer.Usage usage, File original, File cacheDir) {
+    private File getCachedJar(ClasspathFileTransformer transformer, File original, File cacheDir) {
         CompleteFileSystemLocationSnapshot snapshot = virtualFileSystem.read(original.getAbsolutePath(), s -> s);
         if (snapshot.getType() == FileType.Missing) {
             return null;
         }
-        if (usage == CachedClasspathTransformer.Usage.BuildLogic) {
-            String name = snapshot.getType() == FileType.Directory ? original.getName() + ".jar" : original.getName();
-            File transformed = new File(cacheDir, snapshot.getHash().toString() + '/' + name);
-            if (!transformed.isFile()) {
-                decoratingTransformer.transform(original, transformed);
-            }
-            fileAccessTracker.markAccessed(transformed);
-            return transformed;
-        } else if (usage == CachedClasspathTransformer.Usage.Other) {
-            if (snapshot.getType() != FileType.RegularFile) {
-                return original;
-            }
-            File cachedFile = new File(cacheDir, "o_" + snapshot.getHash().toString() + '/' + original.getName());
-            if (!cachedFile.isFile()) {
-                // Just copy the jar
-                GFileUtils.copyFile(original, cachedFile);
-            }
-            fileAccessTracker.markAccessed(cachedFile);
-            return cachedFile;
-        } else {
-            throw new IllegalArgumentException(String.format("Unknown usage %s", usage));
+        File result = transformer.transform(original, snapshot, cacheDir);
+        if (!result.equals(original)) {
+            fileAccessTracker.markAccessed(result);
         }
+        return result;
     }
 
     private boolean shouldUseFromCache(File original) {

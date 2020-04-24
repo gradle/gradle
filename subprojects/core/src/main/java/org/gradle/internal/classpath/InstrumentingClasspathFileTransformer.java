@@ -16,12 +16,16 @@
 
 package org.gradle.internal.classpath;
 
+import org.gradle.api.file.RelativePath;
+import org.gradle.internal.Pair;
+import org.gradle.internal.file.FileType;
+import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hasher;
+import org.gradle.internal.hash.Hashing;
+import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
 import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,29 +35,47 @@ import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.Manifest;
 
-public class DecoratingTransformer {
-    private static final Type SYSTEM_TYPE = Type.getType(System.class);
-    private static final Type STRING_TYPE = Type.getType(String.class);
-    private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
+class InstrumentingClasspathFileTransformer implements ClasspathFileTransformer {
     private static final Attributes.Name DIGEST_ATTRIBUTE = new Attributes.Name("SHA1-Digest");
 
     private final ClasspathWalker classpathWalker;
     private final ClasspathBuilder classpathBuilder;
+    private final CachedClasspathTransformer.Transform transform;
+    private final HashCode configHash;
 
-    public DecoratingTransformer(ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder) {
+    public InstrumentingClasspathFileTransformer(ClasspathWalker classpathWalker, ClasspathBuilder classpathBuilder, CachedClasspathTransformer.Transform transform) {
         this.classpathWalker = classpathWalker;
         this.classpathBuilder = classpathBuilder;
+        this.transform = transform;
+        Hasher hasher = Hashing.defaultFunction().newHasher();
+        transform.applyConfigurationTo(hasher);
+        configHash = hasher.hash();
     }
 
-    void transform(File source, File dest) {
-        // Unpack and rebuild the jar. Later, this will apply some transformations to the classes
+    @Override
+    public File transform(File source, CompleteFileSystemLocationSnapshot sourceSnapshot, File cacheDir) {
+        String name = sourceSnapshot.getType() == FileType.Directory ? source.getName() + ".jar" : source.getName();
+        Hasher hasher = Hashing.defaultFunction().newHasher();
+        hasher.putHash(configHash);
+        // TODO - apply runtime classpath normalization?
+        hasher.putHash(sourceSnapshot.getHash());
+        HashCode fileHash = hasher.hash();
+        File transformed = new File(cacheDir, fileHash.toString() + '/' + name);
+        if (!transformed.isFile()) {
+            transform(source, transformed);
+        }
+        return transformed;
+    }
+
+    private void transform(File source, File dest) {
         classpathBuilder.jar(dest, builder -> classpathWalker.visit(source, entry -> {
             if (entry.getName().endsWith(".class")) {
                 ClassReader reader = new ClassReader(entry.getContent());
                 ClassWriter classWriter = new ClassWriter(ClassWriter.COMPUTE_MAXS);
-                reader.accept(new InstrumentingVisitor(classWriter), 0);
+                Pair<RelativePath, ClassVisitor> chain = transform.apply(entry, classWriter);
+                reader.accept(chain.right, 0);
                 byte[] bytes = classWriter.toByteArray();
-                builder.put(entry.getName(), bytes);
+                builder.put(chain.left.getPathString(), bytes);
             } else if (entry.getName().equals("META-INF/MANIFEST.MF")) {
                 // Remove the signature from the manifest, as the classes may have been instrumented
                 Manifest manifest = new Manifest(new ByteArrayInputStream(entry.getContent()));
@@ -76,47 +98,5 @@ public class DecoratingTransformer {
                 builder.put(entry.getName(), entry.getContent());
             }
         }));
-    }
-
-    private static class InstrumentingVisitor extends ClassVisitor {
-        private String className;
-
-        public InstrumentingVisitor(ClassVisitor visitor) {
-            super(Opcodes.ASM7, visitor);
-        }
-
-        @Override
-        public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
-            super.visit(version, access, name, signature, superName, interfaces);
-            this.className = name;
-        }
-
-        @Override
-        public MethodVisitor visitMethod(int access, String name, String descriptor, String signature, String[] exceptions) {
-            MethodVisitor methodVisitor = super.visitMethod(access, name, descriptor, signature, exceptions);
-            return new InstrumentingMethodVisitor(className, methodVisitor);
-        }
-    }
-
-    private static class InstrumentingMethodVisitor extends MethodVisitor {
-        private final String className;
-
-        public InstrumentingMethodVisitor(String className, MethodVisitor methodVisitor) {
-            super(Opcodes.ASM7, methodVisitor);
-            this.className = className;
-        }
-
-        @Override
-        public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            if (opcode == Opcodes.INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty")) {
-                if (Type.getMethodType(descriptor).getArgumentTypes().length == 1) {
-                    // TODO - load the class literal instead of class name
-                    visitLdcInsn(Type.getObjectType(className).getClassName());
-                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE), false);
-                    return;
-                }
-            }
-            super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
-        }
     }
 }

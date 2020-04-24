@@ -158,7 +158,6 @@ import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.classloader.ClassLoaderFactory;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
-import org.gradle.internal.classpath.ClasspathWalker;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.file.Deleter;
@@ -356,7 +355,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
         CacheRepository cacheRepository,
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         DefaultScriptCompilationHandler scriptCompilationHandler,
-        ClasspathWalker classpathWalker,
+        CachedClasspathTransformer classpathTransformer,
         ProgressLoggerFactory progressLoggerFactory
     ) {
         return new FileCacheBackedScriptClassCompiler(
@@ -364,7 +363,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             new BuildOperationBackedScriptCompilationHandler(scriptCompilationHandler, buildOperationExecutor),
             progressLoggerFactory,
             classLoaderHierarchyHasher,
-            classpathWalker);
+            classpathTransformer);
     }
 
     protected ScriptPluginFactory createScriptPluginFactory(InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor, UserCodeApplicationContext userCodeApplicationContext) {

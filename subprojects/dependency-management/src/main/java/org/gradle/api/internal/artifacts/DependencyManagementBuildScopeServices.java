@@ -119,6 +119,7 @@ import org.gradle.api.internal.runtimeshaded.RuntimeShadedJarFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.internal.CacheScopeMapping;
+import org.gradle.cache.internal.CleaningInMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.GeneratedGradleJarCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.cache.internal.ProducerGuard;
@@ -573,7 +574,16 @@ class DependencyManagementBuildScopeServices {
                                                                                       CacheRepository cacheRepository,
                                                                                       InMemoryCacheDecoratorFactory cacheDecoratorFactory,
                                                                                       final BuildCommencedTimeProvider timeProvider,
-                                                                                      SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer) {
+                                                                                      SuppliedComponentMetadataSerializer suppliedComponentMetadataSerializer,
+                                                                                      ListenerManager listenerManager) {
+        if (cacheDecoratorFactory instanceof CleaningInMemoryCacheDecoratorFactory) {
+            listenerManager.addListener(new InternalBuildFinishedListener() {
+                @Override
+                public void buildFinished(GradleInternal build) {
+                    ((CleaningInMemoryCacheDecoratorFactory) cacheDecoratorFactory).clearCaches(ComponentMetadataRuleExecutor::isMetadataRuleExecutorCache);
+                }
+            });
+        }
         return new ComponentMetadataSupplierRuleExecutor(cacheRepository, cacheDecoratorFactory, snapshotter, timeProvider, suppliedComponentMetadataSerializer);
     }
 

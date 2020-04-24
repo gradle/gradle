@@ -30,7 +30,7 @@ class SamplesDeclaringRepositoriesIntegrationTest extends AbstractIntegrationSpe
         executer.withRepositoryMirrors()
     }
 
-    @UsesSample("userguide/dependencyManagement/declaringRepositories/multipleRepositories/groovy")
+    @UsesSample("dependencyManagement/declaringRepositories/multipleRepositories/groovy")
     def "can declare multiple repositories and resolve binary dependency"() {
         executer.inDirectory(sample.dir)
 

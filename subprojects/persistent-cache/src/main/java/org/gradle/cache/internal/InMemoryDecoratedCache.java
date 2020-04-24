@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.atomic.AtomicReference;
 
-class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V> {
+class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentIndexedCache<K, V>, InMemoryCacheController {
     private final static Logger LOG = LoggerFactory.getLogger(InMemoryDecoratedCache.class);
     private final static Object NULL = new Object();
     private final MultiProcessSafeAsyncPersistentIndexedCache<K, V> delegate;
@@ -147,5 +147,15 @@ class InMemoryDecoratedCache<K, V> implements MultiProcessSafeAsyncPersistentInd
     public void beforeLockRelease(FileLock.State currentCacheState) {
         fileLockStateReference.set(currentCacheState);
         delegate.beforeLockRelease(currentCacheState);
+    }
+
+    @Override
+    public String getCacheId() {
+        return cacheId;
+    }
+
+    @Override
+    public void clearInMemoryCache() {
+        inMemoryCache.invalidateAll();
     }
 }
