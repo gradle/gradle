@@ -120,7 +120,7 @@ Module notations are ordered alphabetically, to ease diffs.
 [listing]
 .gradle/dependency-locks/compileClasspath.lockfile
 ----
-include::{samplesPath}/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
+include::{snippetsPath}/dependencyManagement/dependencyLocking/lockingSingleConfiguration/groovy/gradle/dependency-locks/compileClasspath.lockfile[]
 ----
 
 which matches the following dependency declaration:
@@ -231,7 +231,7 @@ The lockfile will have the following content:
 [listing]
 .gradle.lockfile
 ----
-include::{samplesPath}/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/groovy/gradle.lockfile[]
+include::{snippetsPath}/dependencyManagement/dependencyLocking/lockingSingleFilePerProject/groovy/gradle.lockfile[]
 ----
 
 * Each line still represents a single dependency in the `group:artifact:version` notation

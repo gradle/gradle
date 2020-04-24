@@ -264,7 +264,7 @@ The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibili
 [source,properties]
 .gradle.properties
 ----
-include::{samplesPath}/scala/crossCompilation/groovy/gradle.properties[]
+include::{snippetsPath}/scala/crossCompilation/groovy/gradle.properties[]
 ----
 
 ====
