@@ -34,7 +34,7 @@ class KotlinPluginSmokeTest extends AbstractSmokeTest {
     // TODO:instant-execution remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
-        return 67
+        return 70
     }
 
     @Unroll
