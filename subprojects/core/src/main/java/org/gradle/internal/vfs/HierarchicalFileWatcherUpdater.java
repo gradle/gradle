@@ -104,16 +104,20 @@ public class HierarchicalFileWatcherUpdater implements FileWatcherUpdater {
             return;
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", newWatchRoots.size());
-        watcher.stopWatching(watchRootsToRemove.stream()
-            .map(Path::toFile)
-            .collect(Collectors.toList())
-        );
-        watcher.startWatching(newWatchRoots.stream()
-            .map(Path::toFile)
-            .collect(Collectors.toList())
-        );
-        watchedRoots.addAll(newWatchRoots);
-        watchedRoots.removeAll(watchRootsToRemove);
+        if (!watchRootsToRemove.isEmpty()) {
+            watcher.stopWatching(watchRootsToRemove.stream()
+                .map(Path::toFile)
+                .collect(Collectors.toList())
+            );
+            watchedRoots.removeAll(watchRootsToRemove);
+        }
+        if (!newWatchRoots.isEmpty()) {
+            watcher.startWatching(newWatchRoots.stream()
+                .map(Path::toFile)
+                .collect(Collectors.toList())
+            );
+            watchedRoots.addAll(newWatchRoots);
+        }
     }
 
     private static boolean startsWithAnyPrefix(String path, Set<String> prefixes) {
