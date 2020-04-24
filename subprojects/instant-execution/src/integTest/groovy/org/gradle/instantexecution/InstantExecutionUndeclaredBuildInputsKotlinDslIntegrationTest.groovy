@@ -16,25 +16,14 @@
 
 package org.gradle.instantexecution
 
-
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.integtests.fixtures.KotlinDslTestUtil
-import org.gradle.integtests.fixtures.instantexecution.HasInstantExecutionProblemsSpec
-
-class InstantExecutionUndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
+class InstantExecutionUndeclaredBuildInputsKotlinDslIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
     @Override
     void buildLogicApplication() {
-        file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
-        file("buildSrc/src/main/kotlin/SneakyPlugin.kt") << """
-            import ${Project.name}
-            import ${Plugin.name}
-
+        buildKotlinFile << """
             class SneakyPlugin: Plugin<Project> {
                 override fun apply(project: Project) {
                     val ci = System.getProperty("CI")
                     println("apply CI = " + ci)
-                    println("apply CI2 = \${System.getProperty("CI2")}")
                     project.tasks.register("thing") {
                         doLast {
                             val ci2 = System.getProperty("CI")
@@ -43,15 +32,10 @@ class InstantExecutionUndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends
                     }
                 }
             }
-        """
-        buildFile << """
-            apply plugin: SneakyPlugin
-        """
-    }
 
-    @Override
-    void additionalProblems(HasInstantExecutionProblemsSpec spec) {
-        spec.withProblem("unknown property: read system property 'kotlin.gradle.test.report.memory.usage' from 'org.jetbrains.kotlin.gradle.plugin.KotlinGradleBuildServices'")
-        spec.withProblem("unknown property: read system property 'idea.active' from 'org.jetbrains.kotlin.gradle.plugin.statistics.DefaultKotlinBuildStatsService'")
+            println("apply CI2 = " + System.getProperty("CI2"))
+
+            plugins.apply(SneakyPlugin::class.java)
+        """
     }
 }
