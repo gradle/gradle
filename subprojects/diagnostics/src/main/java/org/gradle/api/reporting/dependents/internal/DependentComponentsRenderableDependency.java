@@ -36,7 +36,7 @@ import static com.google.common.base.Strings.emptyToNull;
 public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
-        return of(componentSpec, internalProtocol, null);
+        return of(componentSpec, internalProtocol, new LinkedHashSet<>());
     }
 
     public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
@@ -49,8 +49,7 @@ public class DependentComponentsRenderableDependency extends AbstractRenderableD
             VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
             buildable = variantComponentSpec.getBinaries().values().stream().anyMatch(BinarySpec::isBuildable);
         }
-        boolean testSuite = false;
-        return new DependentComponentsRenderableDependency(id, name, description, buildable, testSuite, children);
+        return new DependentComponentsRenderableDependency(id, name, description, buildable, false, children);
     }
 
     public static DependentComponentsRenderableDependency of(DependentBinariesResolvedResult resolvedResult) {

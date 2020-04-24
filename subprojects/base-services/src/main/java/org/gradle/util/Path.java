@@ -30,7 +30,7 @@ public class Path implements Comparable<Path> {
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     public static final String SEPARATOR = ":";
 
-    public static Path path(String path) {
+    public static Path path(@Nullable String path) {
         if (Strings.isNullOrEmpty(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }

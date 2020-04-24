@@ -30,7 +30,6 @@ import org.gradle.internal.component.external.model.DefaultModuleComponentSelect
 import org.gradle.internal.locking.LockOutOfDateException;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
 class ResolutionErrorRenderer implements Action<Throwable> {
@@ -42,7 +41,7 @@ class ResolutionErrorRenderer implements Action<Throwable> {
     }
 
     @Override
-    public void execute(@Nonnull Throwable throwable) {
+    public void execute(Throwable throwable) {
         if (throwable instanceof ResolveException) {
             Throwable cause = throwable.getCause();
             handleResolutionError(cause);
@@ -115,7 +114,6 @@ class ResolutionErrorRenderer implements Action<Throwable> {
 
     private DependencyResult asDependencyResult(final ModuleVersionIdentifier versionIdentifier) {
         return new DependencyResult() {
-            @Nonnull
             @Override
             public ComponentSelector getRequested() {
                 return DefaultModuleComponentSelector.newSelector(versionIdentifier.getModule(), versionIdentifier.getVersion());

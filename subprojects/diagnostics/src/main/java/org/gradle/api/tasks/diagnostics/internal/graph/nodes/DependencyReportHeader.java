@@ -25,6 +25,7 @@ import org.gradle.api.attributes.HasAttributes;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.List;
 
 public class DependencyReportHeader extends AbstractRenderableDependency implements HasAttributes {
@@ -33,13 +34,14 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
     private final List<ResolvedVariantResult> selectedVariants;
     private final List<Section> extraDetails;
 
-    public DependencyReportHeader(DependencyEdge dependency, String description, List<ResolvedVariantResult> resolvedVariants, List<Section> extraDetails) {
+    public DependencyReportHeader(DependencyEdge dependency, @Nullable String description, List<ResolvedVariantResult> resolvedVariants, List<Section> extraDetails) {
         this.dependency = dependency;
         this.description = description;
         this.selectedVariants = resolvedVariants;
         this.extraDetails = extraDetails;
     }
 
+    @Nonnull
     @Override
     public ComponentIdentifier getId() {
         return dependency.getActual();
@@ -65,7 +67,6 @@ public class DependencyReportHeader extends AbstractRenderableDependency impleme
         return selectedVariants;
     }
 
-    @Nonnull
     @Override
     public AttributeContainer getAttributes() {
         ComponentSelector requested = dependency.getRequested();

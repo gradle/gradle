@@ -131,12 +131,10 @@ public class DependencyInsightReporter {
         if (edge instanceof UnresolvedDependencyEdge) {
             UnresolvedDependencyEdge unresolved = (UnresolvedDependencyEdge) edge;
             Throwable failure = unresolved.getFailure();
-            if (failure != null) {
-                DefaultSection failures = new DefaultSection("Failures");
-                String errorMessage = collectErrorMessages(failure, alreadyReportedErrors);
-                failures.addChild(new DefaultSection(errorMessage));
-                sections.add(failures);
-            }
+            DefaultSection failures = new DefaultSection("Failures");
+            String errorMessage = collectErrorMessages(failure, alreadyReportedErrors);
+            failures.addChild(new DefaultSection(errorMessage));
+            sections.add(failures);
         }
     }
 

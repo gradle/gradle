@@ -20,6 +20,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.DefaultTask;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.plugins.DslObject;
@@ -29,7 +30,6 @@ import org.gradle.execution.TaskSelector;
 import org.gradle.internal.logging.text.LinePrefixingStyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
@@ -47,6 +47,7 @@ import static org.gradle.util.CollectionUtils.collect;
 import static org.gradle.util.CollectionUtils.filter;
 import static org.gradle.util.CollectionUtils.sort;
 
+@NonNullApi
 public class TaskDetailPrinter {
     private final String taskPath;
     private final TaskSelector.TaskSelection selection;
@@ -109,7 +110,6 @@ public class TaskDetailPrinter {
         return tasksGroupedByType;
     }
 
-    @Nonnull
     private Class getDeclaredTaskType(Task original) {
         Class clazz = new DslObject(original).getDeclaredType();
         if (clazz.equals(DefaultTask.class)) {

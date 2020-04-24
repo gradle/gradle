@@ -39,6 +39,7 @@ import org.gradle.internal.deprecation.DeprecatableConfiguration;
 import org.gradle.util.CollectionUtils;
 import org.gradle.util.GradleVersion;
 
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -204,6 +205,7 @@ public class JsonProjectDependencyRenderer {
         });
     }
 
+    @Nullable
     private ModuleIdentifier getModuleIdentifier(RenderableDependency renderableDependency) {
         if (renderableDependency.getId() instanceof ModuleComponentIdentifier) {
             ModuleComponentIdentifier id = (ModuleComponentIdentifier) renderableDependency.getId();

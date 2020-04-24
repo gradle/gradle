@@ -49,6 +49,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -241,7 +242,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         output.println(" option.");
     }
 
-    private void assertValidTaskConfiguration(Configuration configuration) {
+    private void assertValidTaskConfiguration(@Nullable Configuration configuration) {
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                     + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
@@ -290,10 +291,12 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private static class AttributeMatchDetails {
         private final MatchType matchType;
+        @Nullable
         private final Attribute<?> requested;
+        @Nullable
         private final Object requestedValue;
 
-        private AttributeMatchDetails(MatchType matchType, Attribute<?> requested, Object requestedValue) {
+        private AttributeMatchDetails(MatchType matchType, @Nullable Attribute<?> requested, @Nullable Object requestedValue) {
             this.matchType = matchType;
             this.requested = requested;
             this.requestedValue = requestedValue;

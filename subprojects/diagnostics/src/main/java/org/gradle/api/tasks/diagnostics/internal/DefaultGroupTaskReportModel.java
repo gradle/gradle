@@ -20,6 +20,7 @@ import com.google.common.collect.TreeMultimap;
 import org.gradle.util.GUtil;
 import org.gradle.util.Path;
 
+import javax.annotation.Nullable;
 import java.util.Comparator;
 import java.util.Set;
 
@@ -61,6 +62,7 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
         }
     }
 
+    @Nullable
     private String findOtherGroup(Set<String> groupNames) {
         for (String groupName : groupNames) {
             if (groupName.equalsIgnoreCase(OTHER_GROUP)) {

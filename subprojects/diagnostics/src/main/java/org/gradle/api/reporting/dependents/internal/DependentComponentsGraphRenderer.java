@@ -23,6 +23,7 @@ import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependenc
 import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
@@ -107,7 +108,7 @@ public class DependentComponentsGraphRenderer {
         }
 
         @Override
-        public boolean apply(RenderableDependency node) {
+        public boolean apply(@Nullable RenderableDependency node) {
             if (node instanceof DependentComponentsRenderableDependency) {
                 DependentComponentsRenderableDependency dep = (DependentComponentsRenderableDependency) node;
                 boolean hideNonBuildable = !dep.isBuildable() && !showNonBuildable;

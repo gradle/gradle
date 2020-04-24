@@ -34,7 +34,6 @@ import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.logging.ConsoleRenderer;
 import org.gradle.util.ClosureBackedAction;
 
-import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import java.util.Set;
 
@@ -75,18 +74,15 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
 
     @Nested
     @Override
-    @Nonnull
     public DependencyReportContainer getReports() {
         return reports;
     }
 
-    @Nonnull
     @Override
-    public DependencyReportContainer reports(@Nonnull Closure closure) {
+    public DependencyReportContainer reports(Closure closure) {
         return reports(new ClosureBackedAction<>(closure));
     }
 
-    @Nonnull
     @Override
     public DependencyReportContainer reports(Action<? super DependencyReportContainer> configureAction) {
         configureAction.execute(reports);

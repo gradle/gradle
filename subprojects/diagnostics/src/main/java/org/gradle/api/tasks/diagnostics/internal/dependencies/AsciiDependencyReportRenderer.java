@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal.dependencies;
 
 import org.gradle.api.Action;
+import org.gradle.api.NonNullApi;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.result.ResolutionResult;
@@ -33,7 +34,6 @@ import org.gradle.internal.graph.GraphRenderer;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.util.GUtil;
 
-import javax.annotation.Nonnull;
 import java.util.Collections;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Description;
@@ -44,6 +44,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * Simple dependency graph renderer that emits an ASCII tree.
  */
+@NonNullApi
 public class AsciiDependencyReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private final ConfigurationAction configurationAction = new ConfigurationAction();
     private boolean hasConfigs;
@@ -133,7 +134,7 @@ public class AsciiDependencyReportRenderer extends TextReportRenderer implements
         private Configuration configuration;
 
         @Override
-        public void execute(@Nonnull StyledTextOutput styledTextOutput) {
+        public void execute(StyledTextOutput styledTextOutput) {
             getTextOutput().withStyle(Identifier).text(configuration.getName());
             getTextOutput().withStyle(Description).text(getDescription(configuration));
             if (!canBeResolved(configuration)) {
