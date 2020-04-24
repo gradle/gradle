@@ -28,7 +28,7 @@ import spock.lang.Unroll
 @Requires(TestPrecondition.JDK9_OR_LATER)
 class SamplesApplicationIntegrationTest extends AbstractIntegrationSpec {
 
-    @Rule Sample sample = new Sample(temporaryFolder, 'application')
+    @Rule Sample sample = new Sample(temporaryFolder, 'java/application')
 
     def setup() {
         executer.withRepositoryMirrors()
