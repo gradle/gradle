@@ -274,8 +274,8 @@ First, you need a `buildSrc/build.gradle.kts` file that applies the `kotlin-dsl`
 
 .Enabling precompiled script plugins
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
 [.multi-language-text.lang-groovy]
@@ -292,8 +292,8 @@ Next, create a new `java-library-convention.gradle.kts` file in the `buildSrc/sr
 
 .Creating a simple script plugin
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
 ====
 
 This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
@@ -303,22 +303,22 @@ Finally, apply the script plugin to the root project as follows:
 
 .Applying the precompiled script plugin to the main project
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="build.gradle.kts[]"]
 ====
 
 === Applying external plugins in precompiled script plugins
 In order to apply an external plugin in a precompiled script plugin,
 it has to be added to the plugin project's implementation classpath in the plugin's build file.
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/build.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
 ====
 
 It can then be applied in the precompiled script plugin.
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
 ====
 
 The plugin version in this case is defined in the dependency declaration.
