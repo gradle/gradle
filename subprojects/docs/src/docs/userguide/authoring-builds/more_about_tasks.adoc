@@ -84,7 +84,7 @@ And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 
 .Defining tasks using a DSL specific syntax
 ====
-include::sample[dir="snippets/tasks/defineAsGroovyExpression",files="build.gradle[]"]
+include::sample[dir="snippets/tasks/defineAsGroovyExpression/groovy",files="build.gradle[]"]
 include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
 
 [.multi-language-text.lang-kotlin]
