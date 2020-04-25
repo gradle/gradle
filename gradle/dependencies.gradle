@@ -16,7 +16,7 @@
 
 ext {
     libraries = [:]
-    groovyVersion = '2.5.10'
+    groovyVersion = '2.5.11'
     kotlinVersion = '1.3.72'
 }
 
