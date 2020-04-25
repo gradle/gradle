@@ -504,13 +504,13 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 ====
 
 ====
-include::sample[dir="snippets/multiproject/dependencies/messagesHack/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];aProducer/build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies/messagesHack/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];aProducer/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-messagesHack/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];aProducer/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-messagesHack/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];aProducer/build.gradle.kts[]"]
 
 .Output of `gradle -q action`
 ----
 > gradle -q action
-include::{snippetsPath}/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHack.out[]
+include::{snippetsPath}/multiproject/dependencies-messagesHack/multiprojectMessagesHack.out[]
 ----
 
 We can show where this hack doesn't work if we now switch to the `consumer` dir and execute the build.
@@ -518,7 +518,7 @@ We can show where this hack doesn't work if we now switch to the `consumer` dir 
 .Output of `gradle -q action` from the `consumer` dir
 ----
 > gradle -q action
-include::{snippetsPath}/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHackBroken.out[]
+include::{snippetsPath}/multiproject/dependencies-messagesHack/multiprojectMessagesHackBroken.out[]
 ----
 ====
 
