@@ -459,13 +459,13 @@ The examples from the last section were special, as the projects had no _Executi
 
 
 ====
-include::sample[dir="snippets/multiproject/dependencies/firstMessages/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];producer/build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies/firstMessages/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];producer/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-firstMessages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];producer/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-firstMessages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];producer/build.gradle.kts[]"]
 
 .Output of `gradle -q action`
 ----
 > gradle -q action
-include::{snippetsPath}/multiproject/dependencies/firstMessages/messages/multiprojectFirstMessages.out[]
+include::{snippetsPath}/multiproject/dependencies-firstMessages/multiprojectFirstMessages.out[]
 ----
 ====
 
