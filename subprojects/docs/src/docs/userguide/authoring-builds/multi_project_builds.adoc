@@ -135,21 +135,21 @@ We are not that happy with the build script of the `water` project. It is inconv
 
 
 ====
-include::sample[dir="snippets/multiproject/addKrill/water/groovy",files="settings.gradle[]"]
-include::sample[dir="snippets/multiproject/addKrill/water/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/addKrill/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/multiproject/addKrill/kotlin",files="settings.gradle.kts[]"]
 ====
 
 Now we rewrite the `water` build script and boil it down to a single line.
 
 .Water project build script
 ====
-include::sample[dir="snippets/multiproject/addKrill/water/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/multiproject/addKrill/water/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/addKrill/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/addKrill/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/addKrill/water/multiprojectAddKrill.out[]
+include::{snippetsPath}/multiproject/addKrill/multiprojectAddKrill.out[]
 ----
 ====
 
