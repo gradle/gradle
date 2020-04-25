@@ -85,7 +85,7 @@ And finally, there are language specific syntaxes for the Groovy and Kotlin DSL:
 .Defining tasks using a DSL specific syntax
 ====
 include::sample[dir="snippets/tasks/defineAsGroovyExpression/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/defineAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
 
 [.multi-language-text.lang-kotlin]
 Note that the Kotlin link:https://kotlinlang.org/docs/reference/delegated-properties.html[delegated properties] syntax is particularly useful if you need the created task for further reference.
