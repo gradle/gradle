@@ -732,8 +732,8 @@ If you come from Maven land you might be perfectly happy with this. If you come 
 
 .Fine grained control over dependencies
 ====
-include::sample[dir="snippets/multiproject/dependencies/javaWithCustomConf/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies/javaWithCustomConf/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-javaWithCustomConf/kotlin",files="build.gradle.kts[]"]
 ====
 
 The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an _additional_ library containing only the interfaces of the “`api`” project. We assign this library to a new _dependency configuration_. For the person service we declare that the project should be compiled only against the “`api`” interfaces but tested with all classes from “`api`”.
