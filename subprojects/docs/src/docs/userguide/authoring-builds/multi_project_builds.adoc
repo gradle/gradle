@@ -722,8 +722,8 @@ We have the projects “`shared`”, “`api`” and “`personService`”. The 
 
 [[javadependencies_2]]
 ====
-include::sample[dir="snippets/multiproject/dependencies/java/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies/java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 All the build logic is in the build script of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
@@ -817,7 +817,7 @@ Assume you are working on a single project, the “`:api`” project. You have b
 .Output of **`gradle :api:build`**
 ----
 > gradle :api:build
-include::{snippetsPath}/multiproject/dependencies/java/multitestingBuild.out[]
+include::{snippetsPath}/multiproject/dependencies-java/multitestingBuild.out[]
 ----
 =====
 ====
@@ -831,7 +831,7 @@ If you have just gotten the latest version of source from your version control s
 .Output of **`gradle :api:buildNeeded`**
 ----
 > gradle :api:buildNeeded
-include::{snippetsPath}/multiproject/dependencies/java/multitestingBuildNeeded.out[]
+include::{snippetsPath}/multiproject/dependencies-java/multitestingBuildNeeded.out[]
 ----
 =====
 ====
@@ -845,7 +845,7 @@ You also might want to refactor some part of the “`:api`” project that is us
 .Output of **`gradle :api:buildDependents`**
 ----
 > gradle :api:buildDependents
-include::{snippetsPath}/multiproject/dependencies/java/multitestingBuildDependents.out[]
+include::{snippetsPath}/multiproject/dependencies-java/multitestingBuildDependents.out[]
 ----
 =====
 ====
