@@ -373,13 +373,13 @@ The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarc
 
 .Evaluation and execution of projects
 ====
-include::sample[dir="snippets/multiproject/partialTasks/water/groovy",files="bluewhale/build.gradle[];krill/build.gradle[]"]
-include::sample[dir="snippets/multiproject/partialTasks/water/kotlin",files="bluewhale/build.gradle.kts[];krill/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/partialTasks/groovy",files="bluewhale/build.gradle[];krill/build.gradle[]"]
+include::sample[dir="snippets/multiproject/partialTasks/kotlin",files="bluewhale/build.gradle.kts[];krill/build.gradle.kts[]"]
 
 .Output of `gradle -q distanceToIceberg`
 ----
 > gradle -q distanceToIceberg
-include::{snippetsPath}/multiproject/partialTasks/water/multiprojectPartialTasks.out[]
+include::{snippetsPath}/multiproject/partialTasks/multiprojectPartialTasks.out[]
 ----
 
 Here's the output without the `-q` option:
@@ -387,7 +387,7 @@ Here's the output without the `-q` option:
 .Output of **`gradle distanceToIceberg`**
 ----
 > gradle distanceToIceberg
-include::{snippetsPath}/multiproject/partialTasks/water/multiprojectPartialTasksNotQuiet.out[]
+include::{snippetsPath}/multiproject/partialTasks/multiprojectPartialTasksNotQuiet.out[]
 ----
 ====
 
