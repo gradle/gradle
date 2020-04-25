@@ -99,7 +99,7 @@ You often need to locate the tasks that you have defined in the build file, for 
 .Accessing tasks using a DSL specific syntax
 ====
 include::sample[dir="snippets/tasks/accessAsGroovyProperty/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/tasks/accessAsKotlinDelegatedProperty",files="build.gradle.kts[]"]
+include::sample[dir="snippets/tasks/accessAsKotlinDelegatedProperty/kotlin",files="build.gradle.kts[]"]
 ====
 
 Tasks are also available through the `tasks` collection.
