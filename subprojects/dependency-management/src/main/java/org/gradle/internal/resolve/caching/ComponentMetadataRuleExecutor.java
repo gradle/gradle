@@ -34,7 +34,7 @@ public class ComponentMetadataRuleExecutor extends CrossBuildCachingRuleExecutor
     private static final String CACHE_ID = "md-rule";
 
     public static boolean isMetadataRuleExecutorCache(InMemoryCacheController controller) {
-        return CACHE_ID.equals(controller);
+        return CACHE_ID.equals(controller.getCacheId());
     }
 
     private static Transformer<Object, ModuleComponentResolveMetadata> getKeyToSnapshotableTransformer() {
