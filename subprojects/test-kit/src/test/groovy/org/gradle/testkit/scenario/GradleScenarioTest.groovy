@@ -18,7 +18,6 @@ package org.gradle.testkit.scenario
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.testkit.runner.GradleRunner
-import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
 

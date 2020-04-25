@@ -19,7 +19,6 @@ package org.gradle.testkit.scenario;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.Named;
-import org.gradle.internal.Actions;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 
@@ -34,11 +33,15 @@ import java.io.File;
 @Incubating
 public interface GradleScenarioStep extends Named {
 
-    GradleScenarioStep withRunnerCustomization(Action<GradleRunner> runnerCustomization);
+    GradleScenarioStep withRunnerAction(Action<GradleRunner> runnerAction);
 
-    GradleScenarioStep withTasks(String... tasks);
+    GradleScenarioStep withArguments(String... arguments);
 
-    GradleScenarioStep withWorkspaceMutation(Action<File> workspaceMutation);
+    GradleScenarioStep withCleanWorkspace();
+
+    GradleScenarioStep withRelocatedWorkspace();
+
+    GradleScenarioStep withWorkspaceAction(Action<File> workspaceAction);
 
     GradleScenarioStep withResult(Action<BuildResult> resultConsumer);
 

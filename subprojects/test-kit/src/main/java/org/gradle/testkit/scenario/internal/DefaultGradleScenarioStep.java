@@ -21,18 +21,22 @@ import org.gradle.internal.Actions;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.scenario.GradleScenarioStep;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 
 public class DefaultGradleScenarioStep implements GradleScenarioStep {
 
     private final String name;
-    private final List<Action<GradleRunner>> runnerCustomizations = new ArrayList<>();
-    private final List<Action<File>> workspaceMutations = new ArrayList<>();
+    private final List<Action<GradleRunner>> runnerActions = new ArrayList<>();
+    private boolean cleanWorkspace;
+    private boolean relocatedWorkspace;
+    private final List<Action<File>> workspaceActions = new ArrayList<>();
     private final List<Action<BuildResult>> resultActions = new ArrayList<>();
     private final List<Action<BuildResult>> failureActions = new ArrayList<>();
 
@@ -46,30 +50,42 @@ public class DefaultGradleScenarioStep implements GradleScenarioStep {
     }
 
     @Override
-    public GradleScenarioStep withRunnerCustomization(Action<GradleRunner> runnerCustomization) {
-        this.runnerCustomizations.add(runnerCustomization);
+    public GradleScenarioStep withRunnerAction(Action<GradleRunner> runnerAction) {
+        this.runnerActions.add(runnerAction);
         return this;
     }
 
     @Override
-    public GradleScenarioStep withTasks(String... tasks) {
-        return withRunnerCustomization(runner -> {
+    public GradleScenarioStep withArguments(String... arguments) {
+        return withRunnerAction(runner -> {
             List<String> args = new ArrayList<>(runner.getArguments());
-            args.addAll(Arrays.asList(tasks));
+            args.addAll(Arrays.asList(arguments));
             runner.withArguments(args);
         });
     }
 
     @Override
-    public GradleScenarioStep withWorkspaceMutation(Action<File> workspaceMutation) {
-        this.workspaceMutations.add(workspaceMutation);
+    public GradleScenarioStep withCleanWorkspace() {
+        this.cleanWorkspace = true;
+        return this;
+    }
+
+    @Override
+    public GradleScenarioStep withRelocatedWorkspace() {
+        this.relocatedWorkspace = true;
+        return this;
+    }
+
+    @Override
+    public GradleScenarioStep withWorkspaceAction(Action<File> workspaceAction) {
+        this.workspaceActions.add(workspaceAction);
         return this;
     }
 
     @Override
     public GradleScenarioStep withResult(Action<BuildResult> resultConsumer) {
         if (!failureActions.isEmpty()) {
-            throw new IllegalStateException("This scenario step expect a build failure, can't also expect a success");
+            throw new IllegalStateException("This scenario step expects a build failure, can't also expect a success");
         }
         this.resultActions.add(resultConsumer);
         return this;
@@ -78,7 +94,7 @@ public class DefaultGradleScenarioStep implements GradleScenarioStep {
     @Override
     public GradleScenarioStep withFailure(Action<BuildResult> failureConsumer) {
         if (!resultActions.isEmpty()) {
-            throw new IllegalStateException("This scenario step expect a build success, can't also expect a failure");
+            throw new IllegalStateException("This scenario step expects a build success, can't also expect a failure");
         }
         this.failureActions.add(failureConsumer);
         return this;
@@ -89,16 +105,35 @@ public class DefaultGradleScenarioStep implements GradleScenarioStep {
         return withFailure(Actions.doNothing());
     }
 
-    void customizeRunner(GradleRunner runner) {
-        for (Action<GradleRunner> customization : runnerCustomizations) {
-            customization.execute(runner);
+    void executeRunnerActions(GradleRunner runner) {
+        for (Action<GradleRunner> runnerAction : runnerActions) {
+            runnerAction.execute(runner);
         }
     }
 
-    void mutateWorkspace(File root) {
-        for (Action<File> mutation : workspaceMutations) {
-            mutation.execute(root);
+    File prepareWorkspace(File currentWorkspace, Supplier<File> nextWorkspaceSupplier, Action<File> workspaceBuilder) {
+        if (relocatedWorkspace) {
+            File nextWorkspace = nextWorkspaceSupplier.get();
+            if (cleanWorkspace) {
+                GFileUtils.mkdirs(nextWorkspace);
+                workspaceBuilder.execute(nextWorkspace);
+            } else {
+                GFileUtils.copyDirectory(currentWorkspace, nextWorkspace);
+            }
+            for (Action<File> workspaceAction : workspaceActions) {
+                workspaceAction.execute(nextWorkspace);
+            }
+            return nextWorkspace;
         }
+        if (cleanWorkspace) {
+            GFileUtils.deleteDirectory(currentWorkspace);
+            GFileUtils.mkdirs(currentWorkspace);
+            workspaceBuilder.execute(currentWorkspace);
+        }
+        for (Action<File> workspaceAction : workspaceActions) {
+            workspaceAction.execute(currentWorkspace);
+        }
+        return currentWorkspace;
     }
 
     boolean expectsFailure() {

@@ -45,7 +45,7 @@ dependencies {
 }
 
 classycle {
-    excludePatterns.set(listOf("org/gradle/testkit/runner/internal/**"))
+    excludePatterns.set(listOf("org/gradle/testkit/**/internal/**"))
 }
 
 tasks.integMultiVersionTest {

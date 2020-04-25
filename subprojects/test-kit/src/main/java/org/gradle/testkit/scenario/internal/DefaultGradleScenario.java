@@ -22,11 +22,9 @@ import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.scenario.GradleScenario;
 import org.gradle.testkit.scenario.GradleScenarioSteps;
 import org.gradle.testkit.scenario.ScenarioResult;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -36,9 +34,10 @@ import java.util.function.Supplier;
 
 public class DefaultGradleScenario implements GradleScenario {
 
-    private File baseDirectory;
+    protected File baseDirectory;
     private Action<File> workspaceBuilder;
     private Supplier<GradleRunner> runnerFactory;
+    private final List<Action<GradleRunner>> runnerActions = new ArrayList<>();
     private final List<Action<GradleScenarioSteps>> stepsBuilders = new ArrayList<>();
 
     @Override
@@ -60,6 +59,12 @@ public class DefaultGradleScenario implements GradleScenario {
     }
 
     @Override
+    public GradleScenario withRunnerAction(Action<GradleRunner> runnerAction) {
+        this.runnerActions.add(runnerAction);
+        return this;
+    }
+
+    @Override
     public GradleScenario withSteps(Action<GradleScenarioSteps> steps) {
         this.stepsBuilders.add(steps);
         return this;
@@ -70,11 +75,18 @@ public class DefaultGradleScenario implements GradleScenario {
 
         validateScenario();
 
-        createWorkspace();
+        File workspaceDirectory = createInitialWorkspace(baseDirectory);
 
         LinkedHashMap<String, BuildResult> results = new LinkedHashMap<>();
         for (DefaultGradleScenarioStep step : buildSteps()) {
-            results.put(step.getName(), runStep(step));
+
+            workspaceDirectory = step.prepareWorkspace(
+                workspaceDirectory,
+                () -> nextWorkspaceDirectory(baseDirectory),
+                workspaceBuilder
+            );
+
+            results.put(step.getName(), runStep(step, workspaceDirectory));
         }
 
         return new DefaultScenarioResult(results);
@@ -103,14 +115,23 @@ public class DefaultGradleScenario implements GradleScenario {
         return file.isDirectory() && file.list().length > 0;
     }
 
-    private void createWorkspace() {
-        try {
-            Files.createDirectories(baseDirectory.toPath());
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private File createInitialWorkspace(File baseDirectory) {
+        File workspaceDirectory = nextWorkspaceDirectory(baseDirectory);
+        GFileUtils.mkdirs(workspaceDirectory);
         if (workspaceBuilder != null) {
-            workspaceBuilder.execute(baseDirectory);
+            workspaceBuilder.execute(workspaceDirectory);
+        }
+        return workspaceDirectory;
+    }
+
+    private File nextWorkspaceDirectory(File baseDirectory) {
+        int count = 1;
+        while (true) {
+            File workspaceDirectory = new File(baseDirectory, "workspace-" + count);
+            if (!workspaceDirectory.exists()) {
+                return workspaceDirectory;
+            }
+            count++;
         }
     }
 
@@ -122,12 +143,13 @@ public class DefaultGradleScenario implements GradleScenario {
         return steps.getSteps();
     }
 
-    private BuildResult runStep(DefaultGradleScenarioStep step) {
+    private BuildResult runStep(DefaultGradleScenarioStep step, File workspaceDirectory) {
 
-        step.mutateWorkspace(baseDirectory);
-
-        GradleRunner runner = runnerFactory.get().withProjectDir(baseDirectory);
-        step.customizeRunner(runner);
+        GradleRunner runner = runnerFactory.get().withProjectDir(workspaceDirectory);
+        for (Action<GradleRunner> runnerAction : runnerActions) {
+            runnerAction.execute(runner);
+        }
+        step.executeRunnerActions(runner);
 
         BuildResult result;
         if (step.expectsFailure()) {

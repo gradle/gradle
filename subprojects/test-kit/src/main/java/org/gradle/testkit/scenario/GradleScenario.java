@@ -26,7 +26,7 @@ import java.util.function.Supplier;
 
 
 /**
- * Runs a scenario of several Gradle builds, allowing inspection of the outcome.
+ * Runs a scenario of several Gradle builds, allowing inspection of the outcome for each step.
  *
  * @since 6.5
  */
@@ -42,6 +42,8 @@ public interface GradleScenario {
     GradleScenario withWorkspace(Action<File> workspaceBuilder);
 
     GradleScenario withRunnerFactory(Supplier<GradleRunner> runnerFactory);
+
+    GradleScenario withRunnerAction(Action<GradleRunner> runnerAction);
 
     GradleScenario withSteps(Action<GradleScenarioSteps> steps);
 
