@@ -190,13 +190,13 @@ You can add specific behavior on top of the common behavior. Usually we put the 
 
 .Defining specific behaviour for particular project
 ====
-include::sample[dir="snippets/multiproject/subprojectsAddFromTop/water/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/multiproject/subprojectsAddFromTop/water/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/subprojectsAddFromTop/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/subprojectsAddFromTop/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/subprojectsAddFromTop/water/multiprojectSubprojectsAddFromTop.out[]
+include::{snippetsPath}/multiproject/subprojectsAddFromTop/multiprojectSubprojectsAddFromTop.out[]
 ----
 ====
 
