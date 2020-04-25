@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -258,15 +259,22 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         protected void vetoValueCalculationAtConfigurationTime() {
             if (configurationTimeBarrier.isAtConfigurationTime()) {
-                throw new IllegalStateException(
-                    new TreeFormatter()
-                        .node("Cannot obtain value from ")
-                        .appendType(valueSourceType)
-                        .append(" provider at configuration time.")
-                        .node("Use a provider returned by 'forUseAtConfigurationTime()' instead.")
-                        .toString()
-                );
+                throw new IllegalStateException(cannotObtainValueAtConfigurationTime());
             }
+        }
+
+        private String cannotObtainValueAtConfigurationTime() {
+            TreeFormatter message = new TreeFormatter();
+            message.node("Cannot obtain value from provider of ");
+            if (Describable.class.isAssignableFrom(valueSourceType)) {
+                message.append(((Describable) valueSource()).getDisplayName());
+            } else {
+                message.appendType(valueSourceType);
+            }
+            return message
+                .append(" at configuration time.")
+                .node("Use a provider returned by 'forUseAtConfigurationTime()' instead.")
+                .toString();
         }
 
         @Override
@@ -280,11 +288,16 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Nullable
         private T obtainValueFromSource() {
+            return valueSource().obtain();
+        }
+
+        @NotNull
+        private ValueSource<T, P> valueSource() {
             return instantiateValueSource(
                 valueSourceType,
                 parametersType,
                 isolateParameters()
-            ).obtain();
+            );
         }
 
         private P isolateParameters() {
