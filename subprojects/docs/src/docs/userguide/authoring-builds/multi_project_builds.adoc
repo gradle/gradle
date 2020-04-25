@@ -291,13 +291,13 @@ To show more of the power of configuration injection, let's add another project 
 
 
 ====
-include::sample[dir="snippets/multiproject/addTropical/water/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/multiproject/addTropical/water/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/addTropical/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/addTropical/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/addTropical/water/multiprojectAddTropical.out[]
+include::{snippetsPath}/multiproject/addTropical/multiprojectAddTropical.out[]
 ----
 ====
 
