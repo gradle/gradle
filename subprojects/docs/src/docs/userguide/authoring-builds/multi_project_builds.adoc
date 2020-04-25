@@ -236,13 +236,13 @@ As we have said, we usually prefer to put project specific behavior into the bui
 
 
 ====
-include::sample[dir="snippets/multiproject/spreadSpecifics/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[]"]
-include::sample[dir="snippets/multiproject/spreadSpecifics/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/spreadSpecifics/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/spreadSpecifics/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[]"]
 
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{snippetsPath}/multiproject/spreadSpecifics/water/multiprojectSpreadSpecifics.out[]
+include::{snippetsPath}/multiproject/spreadSpecifics/multiprojectSpreadSpecifics.out[]
 ----
 ====
 
