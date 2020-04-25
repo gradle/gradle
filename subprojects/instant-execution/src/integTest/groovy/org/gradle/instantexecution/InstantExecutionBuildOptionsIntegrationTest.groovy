@@ -239,7 +239,10 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         def instant = newInstantExecutionFixture()
         buildKotlinFile """
 
-            val sysPropProvider = providers.systemProperty("thread.pool.size").map(Integer::valueOf)
+            val sysPropProvider = providers
+                .systemProperty("thread.pool.size")
+                .map(Integer::valueOf)
+                .orElse(1)
 
             abstract class TaskA : DefaultTask() {
 
@@ -258,11 +261,18 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         """
 
         when:
+        instantRun("a")
+
+        then:
+        output.count("ThreadPoolSize = 1") == 1
+        instant.assertStateStored()
+
+        when:
         instantRun("a", "-Dthread.pool.size=4")
 
         then:
         output.count("ThreadPoolSize = 4") == 1
-        instant.assertStateStored()
+        instant.assertStateLoaded()
 
         when:
         instantRun("a", "-Dthread.pool.size=3")
