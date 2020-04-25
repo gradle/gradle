@@ -749,16 +749,16 @@ Let's say you are working in a multi-project build with the two subprojects `pro
 
 .Task generating a property file containing build information
 ====
-include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/groovy/producer",files="build.gradle[]"]
-include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/producer",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
 ====
 
 The consuming project is supposed to be able to read the properties file at runtime. Declaring a project dependency on the producing project takes care of creating the properties beforehand and making it available to the runtime classpath.
 
 .Declaring a project dependency on the project producing the properties file
 ====
-include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
-include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/kotlin/consumer",files="build.gradle.kts[tags=producer-project-dependency]"]
+include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
+include::sample[dir="snippets/multiproject/dependencies-outgoingArtifact/kotlin/consumer",files="build.gradle.kts[tags=producer-project-dependency]"]
 ====
 
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
