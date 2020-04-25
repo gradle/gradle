@@ -185,12 +185,8 @@ public class JacocoPluginExtension {
      *
      * @param tasks the tasks to apply Jacoco to
      */
+    @SuppressWarnings("unchecked")
     public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {
-        ((TaskCollection) tasks).withType(JavaForkOptions.class, new Action<T>() {
-            @Override
-            public void execute(T task) {
-                applyTo(task);
-            }
-        });
+        ((TaskCollection) tasks).withType(JavaForkOptions.class, (Action<T>) this::applyTo);
     }
 }

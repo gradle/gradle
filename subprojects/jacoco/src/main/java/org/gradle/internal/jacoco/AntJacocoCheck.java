@@ -108,7 +108,7 @@ public class AntJacocoCheck extends AbstractAntJacocoReport<JacocoViolationRules
 
     private String getViolations(GroovyObjectSupport antBuilder) {
         Object project = antBuilder.getProperty("project");
-        Hashtable<String, Object> properties = JavaMethod.of(project, Hashtable.class, "getProperties").invoke(project, new Object[0]);
+        Hashtable<?, ?> properties = JavaMethod.of(project, Hashtable.class, "getProperties").invoke(project, new Object[0]);
         return (String) properties.get(VIOLATIONS_ANT_PROPERTY);
     }
 }

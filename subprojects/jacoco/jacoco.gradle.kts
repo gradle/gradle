@@ -53,7 +53,7 @@ dependencies {
 }
 
 strictCompile {
-    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+    ignoreRawTypes()
 }
 
 classycle {
