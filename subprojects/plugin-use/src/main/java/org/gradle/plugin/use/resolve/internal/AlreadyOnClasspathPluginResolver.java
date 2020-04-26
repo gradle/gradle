@@ -20,9 +20,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.plugins.PluginDescriptorLocator;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
-import org.gradle.internal.Factories;
-import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.scan.config.BuildScanPluginCompatibility;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -30,9 +27,6 @@ import org.gradle.plugin.management.internal.autoapply.AutoAppliedGradleEnterpri
 import org.gradle.plugin.use.PluginId;
 
 public class AlreadyOnClasspathPluginResolver implements PluginResolver {
-
-    private static final Factory<ClassPath> EMPTY_CLASSPATH_FACTORY = Factories.constant(ClassPath.EMPTY);
-
     private final PluginResolver delegate;
     private final PluginRegistry corePluginRegistry;
     private final PluginDescriptorLocator pluginDescriptorLocator;
@@ -70,7 +64,7 @@ public class AlreadyOnClasspathPluginResolver implements PluginResolver {
     }
 
     private void resolveAlreadyOnClasspath(PluginId pluginId, PluginResolutionResult result) {
-        PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, parentLoaderScope, EMPTY_CLASSPATH_FACTORY, pluginInspector);
+        PluginResolution pluginResolution = new ClassPathPluginResolution(pluginId, parentLoaderScope, pluginInspector);
         result.found("Already on classpath", pluginResolution);
     }
 
