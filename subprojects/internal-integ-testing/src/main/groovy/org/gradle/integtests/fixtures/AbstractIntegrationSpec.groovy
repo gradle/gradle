@@ -37,10 +37,10 @@ import org.gradle.test.fixtures.ivy.IvyFileRepository
 import org.gradle.test.fixtures.maven.M2Installation
 import org.gradle.test.fixtures.maven.MavenFileRepository
 import org.gradle.test.fixtures.maven.MavenLocalRepository
-import spock.lang.Specification
 import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.junit.Rule
+import spock.lang.Specification
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
 import static org.gradle.test.fixtures.dsl.GradleDsl.GROOVY
@@ -92,7 +92,7 @@ class AbstractIntegrationSpec extends Specification {
         executer.cleanup()
     }
 
-    GradleContextualExecuter createExecuter() {
+    GradleExecuter createExecuter() {
         new GradleContextualExecuter(distribution, temporaryFolder, getBuildContext())
     }
 
