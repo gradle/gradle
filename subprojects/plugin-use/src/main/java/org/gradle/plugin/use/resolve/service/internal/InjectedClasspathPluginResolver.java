@@ -24,10 +24,11 @@ import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
+import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.ClassPath;
-import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
+import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.resolve.internal.PluginResolution;
 import org.gradle.plugin.use.resolve.internal.PluginResolutionResult;
 import org.gradle.plugin.use.resolve.internal.PluginResolveContext;
@@ -40,11 +41,12 @@ public class InjectedClasspathPluginResolver implements PluginResolver {
     private final ClassPath injectedClasspath;
     private final PluginRegistry pluginRegistry;
 
-    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, PluginInspector pluginInspector, ClassPath injectedClasspath) {
+    public InjectedClasspathPluginResolver(ClassLoaderScope parentScope, CachedClasspathTransformer classpathTransformer, PluginInspector pluginInspector, ClassPath injectedClasspath) {
         this.injectedClasspath = injectedClasspath;
+        ClassPath cachedClassPath = classpathTransformer.transform(injectedClasspath, CachedClasspathTransformer.StandardTransform.BuildLogic);
         this.pluginRegistry = new DefaultPluginRegistry(pluginInspector,
             parentScope.createChild("injected-plugin")
-                .local(injectedClasspath)
+                .local(cachedClassPath)
                 .lock()
         );
     }

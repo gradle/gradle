@@ -43,7 +43,7 @@ class BuildActionCrossVersionSpec extends ToolingApiSpecification {
             }
         """
         def jar = temporaryFolder.file("work folder", "action-impl.jar")
-        builder.buildJar(jar, true)
+        builder.buildJar(jar)
 
         when:
         def classloader = new URLClassLoader([jar.toURL()] as URL[], getClass().classLoader)
