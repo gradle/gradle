@@ -22,21 +22,17 @@ import org.gradle.api.internal.plugins.PluginImplementation;
 import org.gradle.api.internal.plugins.PluginInspector;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.plugins.UnknownPluginException;
-import org.gradle.internal.Factory;
-import org.gradle.internal.classpath.ClassPath;
 import org.gradle.plugin.use.PluginId;
 
 public class ClassPathPluginResolution implements PluginResolution {
 
     private final PluginId pluginId;
     private final ClassLoaderScope parent;
-    private final Factory<? extends ClassPath> classPathFactory;
     private final PluginInspector pluginInspector;
 
-    public ClassPathPluginResolution(PluginId pluginId, ClassLoaderScope parent, Factory<? extends ClassPath> classPathFactory, PluginInspector pluginInspector) {
+    public ClassPathPluginResolution(PluginId pluginId, ClassLoaderScope parent, PluginInspector pluginInspector) {
         this.pluginId = pluginId;
         this.parent = parent;
-        this.classPathFactory = classPathFactory;
         this.pluginInspector = pluginInspector;
     }
 
@@ -47,11 +43,7 @@ public class ClassPathPluginResolution implements PluginResolution {
 
     @Override
     public void execute(PluginResolveContext pluginResolveContext) {
-        ClassPath classPath = classPathFactory.create();
-        ClassLoaderScope loaderScope = parent.createChild("plugin-" + pluginId.getId());
-        loaderScope.local(classPath);
-        loaderScope.lock();
-        PluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, loaderScope);
+        PluginRegistry pluginRegistry = new DefaultPluginRegistry(pluginInspector, parent);
         PluginImplementation<?> plugin = pluginRegistry.lookup(pluginId);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id '" + pluginId + "' not found.");
