@@ -26,6 +26,9 @@ import static org.gradle.testkit.runner.TaskOutcome.FROM_CACHE
 import static org.gradle.testkit.runner.TaskOutcome.NO_SOURCE
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 import static org.gradle.testkit.runner.TaskOutcome.UP_TO_DATE
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.not
+import static org.junit.Assume.assumeThat
 
 
 @Requires(TestPrecondition.JDK11_OR_EARLIER)
@@ -34,12 +37,15 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
     // TODO:instant-execution remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
-        return 43
+        return 27
     }
 
     @Unroll
     @UnsupportedWithInstantExecution(iterationMatchers = [AGP_3_ITERATION_MATCHER, AGP_4_0_ITERATION_MATCHER])
     def "can cache Santa Tracker Java Android application (agp=#agpVersion)"() {
+
+        // 4.1 nightly has less tasks
+        assumeThat(agpVersion, not(equalTo("4.1.0-alpha07")))
 
         given:
         def originalDir = temporaryFolder.createDir("original")
@@ -279,7 +285,6 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':rocketsleigh:syncDebugLibJars': FROM_CACHE,
         ':santa-tracker:assembleDebug': SUCCESS,
         ':santa-tracker:assembleDevelopmentDebug': SUCCESS,
-        ':santa-tracker:bundleDevelopmentDebugClasses': FROM_CACHE,
         ':santa-tracker:checkDevelopmentDebugDuplicateClasses': FROM_CACHE,
         ':santa-tracker:compileDevelopmentDebugAidl': NO_SOURCE,
         ':santa-tracker:compileDevelopmentDebugJavaWithJavac': FROM_CACHE,
@@ -288,7 +293,6 @@ class AndroidSantaTrackerJavaCachingSmokeTest extends AbstractAndroidSantaTracke
         ':santa-tracker:compileDevelopmentDebugSources': UP_TO_DATE,
         ':santa-tracker:createDevelopmentDebugCompatibleScreenManifests': FROM_CACHE,
         ':santa-tracker:dexBuilderDevelopmentDebug': FROM_CACHE,
-        ':santa-tracker:enumerateDevelopmentDebugClasses': FROM_CACHE,
         ':santa-tracker:extractDeepLinksDevelopmentDebug': FROM_CACHE,
         ':santa-tracker:generateDevelopmentDebugAssets': UP_TO_DATE,
         ':santa-tracker:generateDevelopmentDebugBuildConfig': FROM_CACHE,

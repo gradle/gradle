@@ -34,7 +34,7 @@ class AndroidSantaTrackerSmokeTest extends AbstractAndroidSantaTrackerSmokeTest 
     // TODO:instant-execution remove once fixed upstream
     @Override
     protected int maxInstantExecutionProblems() {
-        return 53
+        return 27
     }
 
     @Unroll
