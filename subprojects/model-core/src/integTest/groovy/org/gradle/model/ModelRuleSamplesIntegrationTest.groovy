@@ -30,14 +30,14 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
     @UsesSample("modelRules/modelDsl")
     def "dsl creation example works"() {
         when:
-        sample sample
+        inDirectory(sample.dir.file('groovy'))
 
         then:
         succeeds "hello"
         output.contains("Hello John Smith!")
 
         when:
-        sample sample
+        inDirectory(sample.dir.file('groovy'))
 
         then:
         succeeds "listPeople"
@@ -47,5 +47,3 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         output.contains("Hello Barry Barry!")
     }
 }
-
-
