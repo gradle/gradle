@@ -140,7 +140,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestRun(xmlResults, "fastTest()")
     }
 
-    @UsesSample("testing/testng/groups/groovy")
+    @UsesSample("testing/testng-groups/groovy")
     @ToBeFixedForInstantExecution
     def "can filter tests by TestNG group"() {
         given:
@@ -218,7 +218,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
-    @UsesSample("testing/testng/preserveorder/groovy")
+    @UsesSample("testing/testng-preserveorder/groovy")
     @ToBeFixedForInstantExecution
     def "can use the preserveOrder option with TestNG tests"() {
         given:
@@ -242,7 +242,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             2)
     }
 
-    @UsesSample("testing/testng/groupbyinstances/groovy")
+    @UsesSample("testing/testng-groupbyinstances/groovy")
     @ToBeFixedForInstantExecution
     def "can use the groupByInstances option with TestNG tests"() {
         given:

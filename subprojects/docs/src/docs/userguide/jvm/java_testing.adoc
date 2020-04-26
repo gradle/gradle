@@ -278,8 +278,8 @@ The TestNG framework uses the concept of test groups for a similar effect.footno
 
 .Grouping TestNG tests
 ====
-include::sample[dir="snippets/testing/testng/groups/groovy",files="build.gradle[tags=test-config]"]
-include::sample[dir="snippets/testing/testng/groups/kotlin",files="build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/testing/testng-groups/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="snippets/testing/testng-groups/kotlin",files="build.gradle.kts[tags=test-config]"]
 ====
 
 [[using_junit5]]
@@ -363,8 +363,8 @@ While preserving the order of tests is the default behavior when directly workin
 
 .Preserving order of TestNG tests
 ====
-include::sample[dir="snippets/testing/testng/preserveorder/groovy",files="build.gradle[tags=test-config]"]
-include::sample[dir="snippets/testing/testng/preserveorder/kotlin",files="build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/testing/testng-preserveorder/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="snippets/testing/testng-preserveorder/kotlin",files="build.gradle.kts[tags=test-config]"]
 ====
 
 The `groupByInstance` property controls whether tests should be grouped by instance rather than by class. The http://testng.org/doc/documentation-main.html#dependencies-with-annotations[TestNG documentation] explains the difference in more detail, but essentially, if you have a test method `A()` that depends on `B()`, grouping by instance ensures that each A-B pairing, e.g. `B(1)`-`A(1)`, is executed before the next pairing. With group by class, all `B()` methods are run and then all `A()` ones.
@@ -373,8 +373,8 @@ Note that you typically only have more than one instance of a test if you're usi
 
 .Grouping TestNG tests by instances
 ====
-include::sample[dir="snippets/testing/testng/groupbyinstances/groovy",files="build.gradle[tags=test-config]"]
-include::sample[dir="snippets/testing/testng/groupbyinstances/kotlin",files="build.gradle.kts[tags=test-config]"]
+include::sample[dir="snippets/testing/testng-groupbyinstances/groovy",files="build.gradle[tags=test-config]"]
+include::sample[dir="snippets/testing/testng-groupbyinstances/kotlin",files="build.gradle.kts[tags=test-config]"]
 ====
 
 [[testNgParameterizedReporting]]

@@ -34,7 +34,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         executer.withRepositoryMirrors()
     }
 
-    @Test @UsesSample('testing/testng/suitexmlbuilder')
+    @Test @UsesSample('testing/testng-suitexmlbuilder')
     @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
@@ -45,7 +45,7 @@ public class SampleTestNGIntegrationTest extends AbstractIntegrationTest {
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
     }
 
-    @Test @UsesSample('testing/testng/java-passing')
+    @Test @UsesSample('testing/testng-java-passing')
     @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FAILS_TO_CLEANUP)
     public void javaPassing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
