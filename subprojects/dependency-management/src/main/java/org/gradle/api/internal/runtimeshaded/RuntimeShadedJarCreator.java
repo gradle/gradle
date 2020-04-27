@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -171,13 +172,13 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] slashesToPeriods(String... slashClassNames) {
-        return asList(slashClassNames).stream().filter(Objects::nonNull)
+        return Arrays.stream(slashClassNames).filter(Objects::nonNull)
             .map(clsName -> clsName.replace('/', '.')).map(String::trim)
             .toArray(String[]::new);
     }
 
     private String[] periodsToSlashes(String... periodClassNames) {
-        return asList(periodClassNames).stream().filter(Objects::nonNull)
+        return Arrays.stream(periodClassNames).filter(Objects::nonNull)
             .map(clsName -> clsName.replace('.', '/'))
             .toArray(String[]::new);
     }
@@ -233,7 +234,7 @@ class RuntimeShadedJarCreator {
     }
 
     private static class ShadingClassRemapper extends ClassRemapper {
-        Map<String, String> remappedClassLiterals;
+        final Map<String, String> remappedClassLiterals;
         private final ImplementationDependencyRelocator remapper;
 
         public ShadingClassRemapper(ClassWriter classWriter, ImplementationDependencyRelocator remapper) {
@@ -294,7 +295,7 @@ class RuntimeShadedJarCreator {
     }
 
     private String[] maybeRelocateResources(String... resources) {
-        return asList(resources).stream()
+        return Arrays.stream(resources)
             .filter(Objects::nonNull)
             .map(remapper::maybeRelocateResource)
             .filter(Objects::nonNull)

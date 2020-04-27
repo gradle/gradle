@@ -21,6 +21,7 @@ import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.List;
 
@@ -84,6 +85,7 @@ public interface DependencyMetadata {
      * An optional human readable reason why this dependency is used.
      * @return if not null, a description why this dependency is used.
      */
+    @Nullable
     String getReason();
 
     /**

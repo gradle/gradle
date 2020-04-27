@@ -154,6 +154,7 @@ public class IvyModuleDescriptorConverter {
     }
 
     // TODO We should get rid of this reflection (will need to reimplement the parser to act on the metadata directly)
+    @SuppressWarnings("unchecked")
     private static Map<String, List<String>> readConfigMappings(DependencyDescriptor dependencyDescriptor) {
         if (dependencyDescriptor instanceof DefaultDependencyDescriptor) {
             try {

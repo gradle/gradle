@@ -40,11 +40,11 @@ public class IvyUtil {
         return GUtil.elvis(value, "");
     }
 
-    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String rev, Map extraAttributes) {
+    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String rev, Map<String, String> extraAttributes) {
         return createModuleRevisionId(org, name, branch, rev, extraAttributes, true);
     }
 
-    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String revConstraint, Map extraAttributes, boolean replaceNullBranchWithDefault) {
+    public static ModuleRevisionId createModuleRevisionId(String org, String name, String branch, String revConstraint, Map<String, String> extraAttributes, boolean replaceNullBranchWithDefault) {
         synchronized (MODULE_ID_LOCK) {
             return ModuleRevisionId.newInstance(org, name, branch, revConstraint, extraAttributes, replaceNullBranchWithDefault);
         }

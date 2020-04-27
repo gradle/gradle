@@ -46,7 +46,7 @@ public class DefaultDependencySet extends DelegatingDomainObjectSet<Dependency> 
     }
 
     protected Action<ModuleDependency> toMutationValidator(final Configuration clientConfiguration) {
-        return clientConfiguration instanceof MutationValidator ? new MutationValidationAction(clientConfiguration) : Actions.<ModuleDependency>doNothing();
+        return clientConfiguration instanceof MutationValidator ? new MutationValidationAction(clientConfiguration) : Actions.doNothing();
     }
 
     @Override

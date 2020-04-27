@@ -94,11 +94,11 @@ public abstract class AbstractRealisedModuleComponentResolveMetadata extends Abs
         if (variants.isEmpty()) {
             return maybeDeriveVariants();
         }
-        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<ConfigurationMetadata>();
+        ImmutableList.Builder<ConfigurationMetadata> configurations = new ImmutableList.Builder<>();
         for (ComponentVariant variant : variants) {
             configurations.add(new RealisedVariantBackedConfigurationMetadata(getId(), variant, getAttributes(), getAttributesFactory()));
         }
-        return Optional.<ImmutableList<? extends ConfigurationMetadata>>of(configurations.build());
+        return Optional.of(configurations.build());
     }
 
     protected static class NameOnlyVariantResolveMetadata implements VariantResolveMetadata {

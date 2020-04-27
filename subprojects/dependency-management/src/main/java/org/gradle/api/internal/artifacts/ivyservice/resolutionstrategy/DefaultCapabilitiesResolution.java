@@ -73,16 +73,13 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
     public void apply(CapabilitiesConflictHandler.ResolutionDetails details) {
         details.getCapabilityVersions().stream()
             .collect(Collectors.groupingBy(c -> new ImmutableCapability(c.getGroup(), c.getName(), null)))
-            .entrySet()
-            .forEach(e -> {
-                Capability key = e.getKey();
-                List<? extends Capability> versions = e.getValue();
+            .forEach((key1, versions) -> {
                 List<ComponentVariantIdentifier> candidateIds = versions.stream()
                     .flatMap(c -> details.getCandidates(c).stream())
                     .map(detail -> new DefaultComponentVariantIdentifier(detail.getId(), detail.getVariantName()))
                     .collect(Collectors.toList());
-                DefaultCapabilityResolutionDetails resolutionDetails = new DefaultCapabilityResolutionDetails(componentNotationParser, key, candidateIds);
-                handleCapabilityAction(details, key, versions, resolutionDetails);
+                DefaultCapabilityResolutionDetails resolutionDetails = new DefaultCapabilityResolutionDetails(componentNotationParser, key1, candidateIds);
+                handleCapabilityAction(details, key1, versions, resolutionDetails);
             });
 
     }
@@ -102,11 +99,7 @@ public class DefaultCapabilitiesResolution implements CapabilitiesResolutionInte
         if (resolutionDetails.useHighest) {
             upgradeCapabilityResolver.resolve(details);
         } else if (resolutionDetails.selected != null) {
-            versions.forEach(version -> {
-                details.getCandidates(version).forEach(cand -> {
-                    selectExplicitCandidate(resolutionDetails, (CapabilityInternal) version, cand);
-                });
-            });
+            versions.forEach(version -> details.getCandidates(version).forEach(cand -> selectExplicitCandidate(resolutionDetails, (CapabilityInternal) version, cand)));
         }
     }
 

@@ -86,7 +86,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
     private final FileResolver fileResolver;
     private final RepositoryTransportFactory transportFactory;
     private final DefaultUrlArtifactRepository urlArtifactRepository;
-    private List<Object> additionalUrls = new ArrayList<Object>();
+    private List<Object> additionalUrls = new ArrayList<>();
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
     private final MetaDataParser<MutableMavenModuleResolveMetadata> pomParser;
@@ -186,7 +186,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
 
     @Override
     public Set<URI> getArtifactUrls() {
-        Set<URI> result = new LinkedHashSet<URI>();
+        Set<URI> result = new LinkedHashSet<>();
         for (Object additionalUrl : additionalUrls) {
             result.add(fileResolver.resolveUri(additionalUrl));
         }
@@ -388,7 +388,7 @@ public class DefaultMavenArtifactRepository extends AbstractAuthenticationSuppor
          * @return a list of implemented metadata sources, as strings.
          */
         List<String> asList() {
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             if (gradleMetadata) {
                 list.add("gradleMetadata");
             }

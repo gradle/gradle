@@ -179,7 +179,7 @@ public class DefaultConfigurationPublications implements ConfigurationPublicatio
 
     @Override
     public Collection<? extends Capability> getCapabilities() {
-        return capabilities == null ? Collections.<Capability>emptyList() : ImmutableList.copyOf(capabilities);
+        return capabilities == null ? Collections.emptyList() : ImmutableList.copyOf(capabilities);
     }
 
     void preventFromFurtherMutation() {

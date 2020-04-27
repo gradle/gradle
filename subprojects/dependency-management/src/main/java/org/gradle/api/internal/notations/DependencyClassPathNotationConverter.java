@@ -130,7 +130,7 @@ public class DependencyClassPathNotationConverter implements NotationConverter<D
     }
 
     private void removeKotlin(Collection<File> apiClasspath) {
-        for (File file : new ArrayList<File>(apiClasspath)) {
+        for (File file : new ArrayList<>(apiClasspath)) {
             String name = file.getName();
             if (file.getName().contains("kotlin")) {
                 apiClasspath.remove(file);

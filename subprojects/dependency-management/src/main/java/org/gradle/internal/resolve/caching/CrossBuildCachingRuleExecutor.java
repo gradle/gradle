@@ -97,7 +97,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     }
 
     private Serializer<CachedEntry<RESULT>> createEntrySerializer(final Serializer<RESULT> resultSerializer) {
-        return new CacheEntrySerializer<RESULT>(resultSerializer);
+        return new CacheEntrySerializer<>(resultSerializer);
     }
 
     @Override
@@ -137,7 +137,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         }
 
         RESULT result = executeRule(key, action, detailsToResult, onCacheMiss);
-        store.put(keyHash, new CachedEntry<RESULT>(timeProvider.getCurrentTime(), registrar.implicits, result));
+        store.put(keyHash, new CachedEntry<>(timeProvider.getCurrentTime(), registrar.implicits, result));
         return result;
     }
 
@@ -243,7 +243,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
 
         @Override
         public CachedEntry<RESULT> read(Decoder decoder) throws Exception {
-            return new CachedEntry<RESULT>(decoder.readLong(), readImplicits(decoder), resultSerializer.read(decoder));
+            return new CachedEntry<>(decoder.readLong(), readImplicits(decoder), resultSerializer.read(decoder));
         }
 
         private Multimap<String, ImplicitInputRecord<?, ?>> readImplicits(Decoder decoder) throws Exception {
@@ -324,7 +324,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
     private static class AnySerializer implements Serializer<Object> {
         private static final BaseSerializerFactory SERIALIZER_FACTORY = new BaseSerializerFactory();
 
-        private static final Class<?>[] USUAL_TYPES = new Class[] {
+        private static final Class<?>[] USUAL_TYPES = new Class<?>[] {
             String.class,
             Boolean.class,
             Long.class,

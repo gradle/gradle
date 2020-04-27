@@ -51,7 +51,7 @@ class IvyConfigurationHelper {
     }
 
     ImmutableList<ModuleComponentArtifactMetadata> filterArtifacts(String name, Collection<String> hierarchy) {
-        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<ModuleComponentArtifactMetadata>();
+        Set<ModuleComponentArtifactMetadata> artifacts = new LinkedHashSet<>();
         collectArtifactsFor(name, artifacts);
         for (String parent : hierarchy) {
             collectArtifactsFor(parent, artifacts);

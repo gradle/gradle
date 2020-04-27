@@ -176,7 +176,7 @@ public abstract class AbstractLazyModuleComponentResolveMetadata extends Abstrac
         if (descriptorConfiguration.getExtendsFrom().isEmpty()) {
             return ImmutableSet.of(descriptorConfiguration.getName());
         }
-        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<String>();
+        ImmutableSet.Builder<String> accumulator = new ImmutableSet.Builder<>();
         populateHierarchy(descriptorConfiguration, accumulator);
         return accumulator.build();
     }

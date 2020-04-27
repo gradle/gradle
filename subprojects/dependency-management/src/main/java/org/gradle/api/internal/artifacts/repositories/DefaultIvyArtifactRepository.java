@@ -267,7 +267,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     private MetaDataParser<MutableIvyModuleResolveMetadata> createIvyDescriptorParser() {
-        return new IvyContextualMetaDataParser<MutableIvyModuleResolveMetadata>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory));
+        return new IvyContextualMetaDataParser<>(ivyContextManager, new IvyXmlModuleDescriptorParser(new IvyModuleDescriptorConverter(moduleIdentifierFactory), moduleIdentifierFactory, fileResourceRepository, metadataFactory));
     }
 
     @Override
@@ -355,6 +355,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
+    @SuppressWarnings({"rawtypes", "deprecation"})
     public void layout(String layoutName, Closure config) {
         DeprecationLogger.deprecateMethod(IvyArtifactRepository.class, "layout(String, Closure)")
             .replaceWith("IvyArtifactRepository.patternLayout(Action)")
@@ -365,6 +366,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void layout(String layoutName, Action<? extends RepositoryLayout> config) {
         DeprecationLogger.deprecateMethod(IvyArtifactRepository.class, "layout(String, Action)")
             .replaceWith("IvyArtifactRepository.patternLayout(Action)")
@@ -374,6 +376,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
         internalLayout(layoutName, config);
     }
 
+    @SuppressWarnings({"rawtypes", "unchecked"})
     private void internalLayout(String layoutName, Action config) {
         layout(layoutName);
         config.execute(layout);
@@ -396,8 +399,8 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
      */
     private static class AdditionalPatternsRepositoryLayout extends AbstractRepositoryLayout {
         private final FileResolver fileResolver;
-        private final Set<String> artifactPatterns = new LinkedHashSet<String>();
-        private final Set<String> ivyPatterns = new LinkedHashSet<String>();
+        private final Set<String> artifactPatterns = new LinkedHashSet<>();
+        private final Set<String> ivyPatterns = new LinkedHashSet<>();
 
         public AdditionalPatternsRepositoryLayout(FileResolver fileResolver) {
             this.fileResolver = fileResolver;
@@ -477,7 +480,7 @@ public class DefaultIvyArtifactRepository extends AbstractAuthenticationSupporte
          * @return a list of implemented metadata sources, as strings.
          */
         List<String> asList() {
-            List<String> list = new ArrayList<String>();
+            List<String> list = new ArrayList<>();
             if (gradleMetadata) {
                 list.add("gradleMetadata");
             }

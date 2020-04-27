@@ -49,6 +49,7 @@ import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.resolver.DependencyToComponentIdResolver;
 import org.gradle.internal.resolve.result.ComponentResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.ArrayDeque;
 import java.util.Collection;
 import java.util.Comparator;
@@ -83,7 +84,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
     private final ResolveOptimizations resolveOptimizations;
     private final Map<VersionConstraint, ResolvedVersionConstraint> resolvedVersionConstraints = Maps.newHashMap();
     private final AttributeDesugaring attributeDesugaring;
-    private final boolean denyDynamicSelector;
 
     public ResolveState(IdGenerator<Long> idGenerator,
                         ComponentResolveResult rootResult,
@@ -99,8 +99,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
                         VersionSelectorScheme versionSelectorScheme,
                         Comparator<Version> versionComparator,
                         VersionParser versionParser,
-                        ModuleConflictResolver conflictResolver,
-                        boolean denyDynamicSelectorm,
+                        ModuleConflictResolver<ComponentState> conflictResolver,
                         int graphSize) {
         this.idGenerator = idGenerator;
         this.idResolver = idResolver;
@@ -114,10 +113,10 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         this.versionSelectorScheme = versionSelectorScheme;
         this.versionComparator = versionComparator;
         this.versionParser = versionParser;
-        this.modules = new LinkedHashMap<ModuleIdentifier, ModuleResolveState>(graphSize);
-        this.nodes = new LinkedHashMap<ResolvedConfigurationIdentifier, NodeState>(3 * graphSize / 2);
-        this.selectors = new LinkedHashMap<Pair<ComponentSelector, Boolean>, SelectorState>(5 * graphSize / 2);
-        this.queue = new ArrayDeque<NodeState>(graphSize);
+        this.modules = new LinkedHashMap<>(graphSize);
+        this.nodes = new LinkedHashMap<>(3 * graphSize / 2);
+        this.selectors = new LinkedHashMap<>(5 * graphSize / 2);
+        this.queue = new ArrayDeque<>(graphSize);
         this.resolveOptimizations = new ResolveOptimizations();
         this.attributeDesugaring = new AttributeDesugaring(attributesFactory);
         ComponentState rootVersion = getRevision(rootResult.getId(), rootResult.getModuleVersionId(), rootResult.getMetadata());
@@ -127,8 +126,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         nodes.put(root.getResolvedConfigurationId(), root);
         root.getComponent().getModule().select(root.getComponent());
         this.replaceSelectionWithConflictResultAction = new ReplaceSelectionWithConflictResultAction(this);
-        selectorStateResolver = new SelectorStateResolver<ComponentState>(conflictResolver, this, rootVersion, resolveOptimizations);
-        this.denyDynamicSelector = denyDynamicSelectorm;
+        selectorStateResolver = new SelectorStateResolver<>(conflictResolver, this, rootVersion, resolveOptimizations);
         getModule(rootResult.getModuleVersionId().getModule()).setSelectorStateResolver(selectorStateResolver);
     }
 
@@ -161,10 +159,6 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return nodes.values();
     }
 
-    public int getNodeCount() {
-        return nodes.size();
-    }
-
     public NodeState getNode(ComponentState module, ConfigurationMetadata configurationMetadata) {
         ResolvedConfigurationIdentifier id = new ResolvedConfigurationIdentifier(module.getId(), configurationMetadata.getName());
         return nodes.computeIfAbsent(id, rci -> new NodeState(idGenerator.generateId(), id, module, this, configurationMetadata));
@@ -183,6 +177,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return selectorState;
     }
 
+    @Nullable
     public NodeState peek() {
         return queue.isEmpty() ? null : queue.getFirst();
     }
@@ -245,6 +240,7 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return new DefaultPendingDependenciesVisitor(this);
     }
 
+    @Nullable
     ResolvedVersionConstraint resolveVersionConstraint(ComponentSelector selector) {
         if (selector instanceof ModuleComponentSelector) {
             return resolveVersionConstraint(((ModuleComponentSelector) selector).getVersionConstraint());
@@ -268,15 +264,8 @@ class ResolveState implements ComponentStateFactory<ComponentState> {
         return attributeDesugaring;
     }
 
-    void virtualPlatformInUse() {
-        resolveOptimizations.declareVirtualPlatformInUse();
-    }
-
     ResolveOptimizations getResolveOptimizations() {
         return resolveOptimizations;
     }
 
-    public boolean isDenyDynamicSelector() {
-        return denyDynamicSelector;
-    }
 }

@@ -20,18 +20,19 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ModuleDependency;
 
+import javax.annotation.Nullable;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DefaultClientModule extends AbstractExternalModuleDependency implements ClientModule {
 
-    private Set<ModuleDependency> dependencies = new LinkedHashSet<ModuleDependency>();
+    private final Set<ModuleDependency> dependencies = new LinkedHashSet<>();
 
     public DefaultClientModule(String group, String name, String version) {
         this(group, name, version, null);
     }
 
-    public DefaultClientModule(String group, String name, String version, String configuration) {
+    public DefaultClientModule(String group, String name, String version, @Nullable String configuration) {
         super(assertModuleId(group, name), version, configuration);
     }
 
@@ -40,7 +41,7 @@ public class DefaultClientModule extends AbstractExternalModuleDependency implem
         return emptyStringIfNull(getGroup()) + ":" + getName() + ":" + emptyStringIfNull(getVersion());
     }
 
-    private String emptyStringIfNull(String value) {
+    private String emptyStringIfNull(@Nullable String value) {
         return value == null ? "" : value;
     }
 

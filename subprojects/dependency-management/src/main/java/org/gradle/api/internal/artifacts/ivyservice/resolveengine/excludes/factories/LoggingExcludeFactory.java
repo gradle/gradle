@@ -82,9 +82,7 @@ public class LoggingExcludeFactory extends DelegatingExcludeFactory {
                 StackTraceElement[] stackTrace = e.getStackTrace();
                 printWriter.print(Arrays.stream(stackTrace)
                     .limit(100)
-                    .map(d -> {
-                        return "\"" + d.toString() + "\"";
-                    })
+                    .map(d -> "\"" + d.toString() + "\"")
                     .collect(Collectors.joining(", "))
                 );
                 sw.append("]}");

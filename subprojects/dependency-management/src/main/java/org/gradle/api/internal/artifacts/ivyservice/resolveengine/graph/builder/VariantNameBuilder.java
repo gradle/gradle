@@ -34,6 +34,7 @@ import java.util.Map;
 public class VariantNameBuilder {
     private final Map<List<String>, DisplayName> names = Maps.newHashMap();
 
+    @Nullable
     public DisplayName getVariantName(@Nullable List<String> parts) {
         if (parts == null) {
             return null;

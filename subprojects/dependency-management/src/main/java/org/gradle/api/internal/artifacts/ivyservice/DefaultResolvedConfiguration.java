@@ -52,7 +52,7 @@ public class DefaultResolvedConfiguration implements ResolvedConfiguration {
 
     @Override
     public Set<File> getFiles() throws ResolveException {
-        return getFiles(Specs.<Dependency>satisfyAll());
+        return getFiles(Specs.satisfyAll());
     }
 
     @Override

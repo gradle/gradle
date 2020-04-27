@@ -47,9 +47,9 @@ public class DefaultCachePolicy implements CachePolicy {
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
 
     public DefaultCachePolicy() {
-        this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>();
-        this.moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>();
-        this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>();
+        this.dependencyCacheRules = new ArrayList<>();
+        this.moduleCacheRules = new ArrayList<>();
+        this.artifactCacheRules = new ArrayList<>();
 
         cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
@@ -57,9 +57,9 @@ public class DefaultCachePolicy implements CachePolicy {
     }
 
     DefaultCachePolicy(DefaultCachePolicy policy) {
-        this.dependencyCacheRules = new ArrayList<Action<? super DependencyResolutionControl>>(policy.dependencyCacheRules);
-        this.moduleCacheRules = new ArrayList<Action<? super ModuleResolutionControl>>(policy.moduleCacheRules);
-        this.artifactCacheRules = new ArrayList<Action<? super ArtifactResolutionControl>>(policy.artifactCacheRules);
+        this.dependencyCacheRules = new ArrayList<>(policy.dependencyCacheRules);
+        this.moduleCacheRules = new ArrayList<>(policy.moduleCacheRules);
+        this.artifactCacheRules = new ArrayList<>(policy.artifactCacheRules);
     }
 
     /**
@@ -71,9 +71,9 @@ public class DefaultCachePolicy implements CachePolicy {
 
     @Override
     public void setOffline() {
-        eachDependency(ResolutionControl::useCachedResult);
-        eachModule(ResolutionControl::useCachedResult);
-        eachArtifact(ResolutionControl::useCachedResult);
+        eachDependency(DependencyResolutionControl::useCachedResult);
+        eachModule(ModuleResolutionControl::useCachedResult);
+        eachArtifact(ArtifactResolutionControl::useCachedResult);
     }
 
     @Override
@@ -255,11 +255,7 @@ public class DefaultCachePolicy implements CachePolicy {
         @Override
         public void cacheFor(int value, TimeUnit units) {
             long expiryMillis = TimeUnit.MILLISECONDS.convert(value, units);
-            if (ageMillis > expiryMillis) {
-                setMustCheck(true);
-            } else {
-                setMustCheck(false);
-            }
+            setMustCheck(ageMillis > expiryMillis);
         }
 
         @Override

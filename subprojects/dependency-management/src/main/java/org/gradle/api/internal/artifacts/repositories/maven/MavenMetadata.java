@@ -22,5 +22,5 @@ import java.util.List;
 public class MavenMetadata {
     public String timestamp;
     public String buildNumber;
-    public List<String> versions = new ArrayList<String>();
+    public final List<String> versions = new ArrayList<>();
 }

@@ -24,10 +24,10 @@ import java.util.Comparator;
 
 public abstract class AttributeMatchingRules {
     public static <T> Action<? super CompatibilityCheckDetails<T>> orderedCompatibility(Comparator<? super T> comparator, boolean reverse) {
-        return new DefaultOrderedCompatibilityRule<T>(comparator, reverse);
+        return new DefaultOrderedCompatibilityRule<>(comparator, reverse);
     }
 
     public static <T> Action<? super MultipleCandidatesDetails<T>> orderedDisambiguation(Comparator<? super T> comparator, boolean pickFirst) {
-        return new DefaultOrderedDisambiguationRule<T>(comparator, pickFirst);
+        return new DefaultOrderedDisambiguationRule<>(comparator, pickFirst);
     }
 }

@@ -38,6 +38,7 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
+import org.gradle.internal.component.external.model.MutableModuleComponentResolveMetadata;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.reflect.Instantiator;
@@ -59,7 +60,7 @@ import java.util.Set;
 
 public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArtifactRepository implements FlatDirectoryArtifactRepository, ResolutionAwareRepository, PublicationAwareRepository {
     private final FileCollectionFactory fileCollectionFactory;
-    private final List<Object> dirs = new ArrayList<Object>();
+    private final List<Object> dirs = new ArrayList<>();
     private final RepositoryTransportFactory transportFactory;
     private final LocallyAvailableResourceFinder<ModuleComponentArtifactMetadata> locallyAvailableResourceFinder;
     private final FileStore<ModuleComponentArtifactIdentifier> artifactFileStore;
@@ -166,8 +167,8 @@ public class DefaultFlatDirArtifactRepository extends AbstractResolutionAwareArt
     }
 
     private ImmutableMetadataSources createMetadataSources() {
-        MetadataSource artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
-        return new DefaultImmutableMetadataSources(Collections.<MetadataSource<?>>singletonList(artifactMetadataSource));
+        MetadataSource<MutableModuleComponentResolveMetadata> artifactMetadataSource = new DefaultArtifactMetadataSource(metadataFactory);
+        return new DefaultImmutableMetadataSources(Collections.singletonList(artifactMetadataSource));
     }
 
     private static class NoOpRepositoryResourceAccessor implements RepositoryResourceAccessor, ImplicitInputsProvidingService<String, Long, RepositoryResourceAccessor> {

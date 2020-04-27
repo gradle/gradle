@@ -100,7 +100,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
             return;
         }
         if (this.unmatchedVersions == null) {
-            this.unmatchedVersions = new ImmutableSet.Builder<String>();
+            this.unmatchedVersions = new ImmutableSet.Builder<>();
         }
         this.unmatchedVersions.addAll(unmatchedVersions);
     }
@@ -111,7 +111,7 @@ public class DefaultBuildableComponentIdResolveResult extends DefaultResourceAwa
             return;
         }
         if (this.rejections == null) {
-            this.rejections = new ImmutableSet.Builder<RejectedVersion>();
+            this.rejections = new ImmutableSet.Builder<>();
         }
         this.rejections.addAll(rejections);
     }

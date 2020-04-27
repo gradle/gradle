@@ -20,6 +20,7 @@ import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -98,7 +99,7 @@ public class MutableModuleSources implements ModuleSources {
 
         MutableModuleSources that = (MutableModuleSources) o;
 
-        return moduleSources != null ? moduleSources.equals(that.moduleSources) : that.moduleSources == null;
+        return Objects.equals(moduleSources, that.moduleSources);
     }
 
     @Override

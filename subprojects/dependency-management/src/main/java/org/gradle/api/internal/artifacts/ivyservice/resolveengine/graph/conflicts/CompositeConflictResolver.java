@@ -26,12 +26,12 @@ import java.util.List;
 
 class CompositeConflictResolver<T> implements ModuleConflictResolver<T> {
 
-    private final List<ModuleConflictResolver> resolvers = new LinkedList<ModuleConflictResolver>();
+    private final List<ModuleConflictResolver<T>> resolvers = new LinkedList<>();
 
     @Override
     public void select(ConflictResolverDetails<T> details) {
-        CompositeDetails<T> composite = new CompositeDetails<T>(details);
-        for (ModuleConflictResolver r : resolvers) {
+        CompositeDetails<T> composite = new CompositeDetails<>(details);
+        for (ModuleConflictResolver<T> r : resolvers) {
             r.select(composite);
             if (composite.hasResult) {
                 return;
@@ -41,7 +41,7 @@ class CompositeConflictResolver<T> implements ModuleConflictResolver<T> {
                 + " was unable to select a candidate using resolvers: " + resolvers + ". Candidates: " + details.getCandidates());
     }
 
-    void addFirst(ModuleConflictResolver conflictResolver) {
+    void addFirst(ModuleConflictResolver<T> conflictResolver) {
         resolvers.add(0, conflictResolver);
     }
 

@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts;
 
-import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Lists;
@@ -38,12 +37,11 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 
 public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictHandler {
     private final List<Resolver> resolvers = Lists.newArrayListWithExpectedSize(3);
     private final Map<String, Set<NodeState>> capabilityWithoutVersionToNodes = Maps.newHashMap();
-    private final Deque<CapabilityConflict> conflicts = new ArrayDeque<CapabilityConflict>();
+    private final Deque<CapabilityConflict> conflicts = new ArrayDeque<>();
 
     @Override
     public PotentialConflict registerCandidate(CapabilitiesConflictHandler.Candidate candidate) {
@@ -100,13 +98,8 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
     private Set<NodeState> findNodesFor(CapabilityInternal capability) {
         String capabilityId = capability.getCapabilityId();
-        Set<NodeState> nodes = capabilityWithoutVersionToNodes.get(capabilityId);
-        if (nodes == null) {
-            nodes = Sets.newLinkedHashSet();
-            capabilityWithoutVersionToNodes.put(capabilityId, nodes);
-        }
 
-        return nodes;
+        return capabilityWithoutVersionToNodes.computeIfAbsent(capabilityId, k -> Sets.newLinkedHashSet());
     }
 
     @Override
@@ -191,7 +184,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         @Override
         public Collection<? extends CandidateDetails> getCandidates(Capability capability) {
-            ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<CandidateDetails>();
+            ImmutableList.Builder<CandidateDetails> candidates = new ImmutableList.Builder<>();
             String group = capability.getGroup();
             String name = capability.getName();
             String version = capability.getVersion();
@@ -274,7 +267,7 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
 
         private CapabilityConflict(String group, String name, Collection<NodeState> nodes) {
             this.nodes = nodes;
-            final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<Capability>();
+            final ImmutableSet.Builder<Capability> builder = new ImmutableSet.Builder<>();
             for (final NodeState node : nodes) {
                 Capability capability = node.findCapability(group, name);
                 if (capability != null) {
@@ -284,23 +277,6 @@ public class DefaultCapabilitiesConflictHandler implements CapabilitiesConflictH
             this.descriptors = builder.build();
         }
 
-    }
-
-    private static String prettifyCapabilities(CapabilityConflict conflict) {
-        TreeSet<String> capabilities = Sets.newTreeSet();
-        for (Capability c : conflict.descriptors) {
-            capabilities.add(c.getGroup() + ":" + c.getName() + ":" + c.getVersion());
-        }
-        return Joiner.on(", ").join(capabilities);
-    }
-
-    private static String prettifyCandidates(CapabilityConflict conflict) {
-        TreeSet<String> candidates = Sets.newTreeSet();
-        boolean showVariant = sameComponentAppearsMultipleTimes(conflict);
-        for (NodeState node : conflict.nodes) {
-            candidates.add(showVariant ? node.getNameWithVariant() : node.getSimpleName());
-        }
-        return Joiner.on(" and ").join(candidates);
     }
 
     private static boolean sameComponentAppearsMultipleTimes(CapabilityConflict conflict) {

@@ -40,6 +40,7 @@ import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.resolver.ComponentMetaDataResolver;
 import org.gradle.internal.resolve.result.DefaultBuildableComponentResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
@@ -113,6 +114,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return id;
     }
 
+    @Nullable
     public ModuleVersionResolveException getMetadataResolveFailure() {
         return metadataResolveFailure;
     }
@@ -433,6 +435,7 @@ public class ComponentState implements ComponentResolutionState, DependencyGraph
         return implicitCapability;
     }
 
+    @Nullable
     Capability findCapability(String group, String name) {
         if (id.getGroup().equals(group) && id.getName().equals(name)) {
             return implicitCapability;

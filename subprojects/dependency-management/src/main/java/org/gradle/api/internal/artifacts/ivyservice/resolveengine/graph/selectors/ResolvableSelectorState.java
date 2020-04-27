@@ -24,6 +24,8 @@ import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.ComponentIdResolveResult;
 
+import javax.annotation.Nullable;
+
 public interface ResolvableSelectorState {
     /**
      * The raw component selector being resolved, after any substitution.
@@ -44,6 +46,7 @@ public interface ResolvableSelectorState {
     /**
      * Resolve the prefer constraint of the selector to a component identifier.
      */
+    @Nullable
     ComponentIdResolveResult resolvePrefer(VersionSelector allRejects);
 
     /**

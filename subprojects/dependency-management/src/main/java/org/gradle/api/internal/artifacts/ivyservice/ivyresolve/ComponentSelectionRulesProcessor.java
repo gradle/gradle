@@ -91,7 +91,7 @@ public class ComponentSelectionRulesProcessor {
             return null;
         }
 
-        List<Object> inputs = new ArrayList<Object>(inputTypes.size());
+        List<Object> inputs = new ArrayList<>(inputTypes.size());
         for (Class<?> inputType : inputTypes) {
             if (inputType == ComponentMetadata.class) {
                 inputs.add(metadataProvider.getComponentMetadata());

@@ -62,11 +62,7 @@ class ModuleMetadataCacheEntrySerializer extends AbstractSerializer<ModuleMetada
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        if (!super.equals(o)) {
-            return false;
-        }
-
-        return true;
+        return super.equals(o);
     }
 
     @Override

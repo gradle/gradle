@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Lists;
 import org.gradle.api.artifacts.Dependency;
-import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionReason;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
@@ -105,10 +104,6 @@ class EdgeState implements DependencyGraphEdge {
 
     DependencyMetadata getDependencyMetadata() {
         return dependencyMetadata;
-    }
-
-    ModuleIdentifier getTargetIdentifier() {
-        return dependencyState.getModuleIdentifier();
     }
 
     /**
@@ -343,6 +338,7 @@ class EdgeState implements DependencyGraphEdge {
     }
 
     @Override
+    @Nullable
     public ResolvedVariantResult getSelectedVariant() {
         if (resolvedVariant != null) {
             return resolvedVariant;
@@ -380,6 +376,7 @@ class EdgeState implements DependencyGraphEdge {
         return from.getResolvedVariant();
     }
 
+    @Nullable
     private ComponentState getSelectedComponent() {
         return selector.getTargetModule().getSelected();
     }
@@ -409,11 +406,8 @@ class EdgeState implements DependencyGraphEdge {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
+        return this == o;
         // Edge states are deduplicated, this is a performance optimization
-        return false;
     }
 
     @Override

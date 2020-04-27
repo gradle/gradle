@@ -90,7 +90,7 @@ public class DefaultIvyModuleResolveMetadata extends AbstractLazyModuleComponent
     @Override
     protected DefaultConfigurationMetadata createConfiguration(ModuleComponentIdentifier componentId, String name, boolean transitive, boolean visible, ImmutableSet<String> hierarchy, VariantMetadataRules componentMetadataRules) {
         if (artifacts == null) {
-            artifacts = new IdentityHashMap<Artifact, ModuleComponentArtifactMetadata>();
+            artifacts = new IdentityHashMap<>();
         }
         IvyConfigurationHelper configurationHelper = new IvyConfigurationHelper(artifactDefinitions, artifacts, excludes, dependencies, componentId);
         ImmutableList<ModuleComponentArtifactMetadata> artifacts = configurationHelper.filterArtifacts(name, hierarchy);

@@ -92,8 +92,8 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
     private static final StringInterner REPOSITORY_ID_INTERNER = new StringInterner();
 
     private final String name;
-    private final List<ResourcePattern> ivyPatterns = new ArrayList<ResourcePattern>();
-    private final List<ResourcePattern> artifactPatterns = new ArrayList<ResourcePattern>();
+    private final List<ResourcePattern> ivyPatterns = new ArrayList<>();
+    private final List<ResourcePattern> artifactPatterns = new ArrayList<>();
     private ComponentResolvers componentResolvers;
 
     private final ExternalResourceRepository repository;
@@ -219,7 +219,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
             }
         }
 
-        result.listed(ImmutableSet.<String>of());
+        result.listed(ImmutableSet.of());
     }
 
     /**
@@ -515,7 +515,7 @@ public abstract class ExternalResourceResolver<T extends ModuleComponentResolveM
         }
     }
 
-    private String generateId(ExternalResourceResolver resolver) {
+    private String generateId(ExternalResourceResolver<?> resolver) {
         Hasher cacheHasher = Hashing.newHasher();
         cacheHasher.putString(getClass().getName());
         cacheHasher.putInt(resolver.ivyPatterns.size());

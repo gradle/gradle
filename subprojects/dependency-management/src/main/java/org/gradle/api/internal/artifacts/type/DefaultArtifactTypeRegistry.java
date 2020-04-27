@@ -35,7 +35,7 @@ import static org.gradle.api.internal.artifacts.ArtifactAttributes.ARTIFACT_FORM
 public class DefaultArtifactTypeRegistry implements ArtifactTypeRegistry {
     private final Instantiator instantiator;
     private final ImmutableAttributesFactory attributesFactory;
-    private CollectionCallbackActionDecorator callbackActionDecorator;
+    private final CollectionCallbackActionDecorator callbackActionDecorator;
     private ArtifactTypeContainer artifactTypeDefinitions;
 
     public DefaultArtifactTypeRegistry(Instantiator instantiator, ImmutableAttributesFactory attributesFactory, CollectionCallbackActionDecorator callbackActionDecorator) {

@@ -46,6 +46,7 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 class DefaultMetadataProvider implements MetadataProvider {
@@ -70,6 +71,7 @@ class DefaultMetadataProvider implements MetadataProvider {
         return cachedComponentMetadata;
     }
 
+    @Nullable
     private ComponentMetadata computeMetadata() {
         ComponentMetadata metadata = null;
         InstantiatingAction<ComponentMetadataSupplierDetails> componentMetadataSupplier = resolveState.getComponentMetadataSupplier();
@@ -184,7 +186,7 @@ class DefaultMetadataProvider implements MetadataProvider {
             return attributes.asImmutable();
         }
 
-        private void maybeThrowValidationError(List<Attribute<?>> invalidAttributes) {
+        private void maybeThrowValidationError(@Nullable List<Attribute<?>> invalidAttributes) {
             if (invalidAttributes != null) {
                 TreeFormatter fm = new TreeFormatter();
                 fm.node("Invalid attributes types have been provider by component metadata supplier. Attributes must either be strings or booleans");
@@ -225,6 +227,7 @@ class DefaultMetadataProvider implements MetadataProvider {
             return builder;
         }
 
+        @Nullable
         public ComponentMetadata getExecutionResult() {
             if (builder.mutated) {
                 return builder.build();

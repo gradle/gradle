@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.internal.component.local.model.DslOriginDependencyMetadata;
 
+import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
 
@@ -31,23 +32,24 @@ public class DefaultComponentOverrideMetadata implements ComponentOverrideMetada
     private final List<IvyArtifactName> artifacts;
     private final ClientModule clientModule;
 
-    public static ComponentOverrideMetadata forDependency(boolean changing, IvyArtifactName mainArtifact, ClientModule clientModule) {
+    public static ComponentOverrideMetadata forDependency(boolean changing, @Nullable IvyArtifactName mainArtifact, @Nullable ClientModule clientModule) {
         if (!changing && mainArtifact == null && clientModule == null) {
             return EMPTY;
         }
         return new DefaultComponentOverrideMetadata(changing, mainArtifact, clientModule);
     }
 
-    private DefaultComponentOverrideMetadata(boolean changing, IvyArtifactName artifact, ClientModule clientModule) {
+    private DefaultComponentOverrideMetadata(boolean changing, @Nullable IvyArtifactName artifact, @Nullable ClientModule clientModule) {
         this(changing, artifact == null ? Collections.emptyList() : ImmutableList.of(artifact), clientModule);
     }
 
-    private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, ClientModule clientModule) {
+    private DefaultComponentOverrideMetadata(boolean changing, List<IvyArtifactName> artifacts, @Nullable ClientModule clientModule) {
         this.changing = changing;
         this.artifacts = artifacts;
         this.clientModule = clientModule;
     }
 
+    @Nullable
     public static ClientModule extractClientModule(DependencyMetadata dependencyMetadata) {
         if (dependencyMetadata instanceof DslOriginDependencyMetadata) {
             Dependency source = ((DslOriginDependencyMetadata) dependencyMetadata).getSource();

@@ -24,6 +24,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.provider.Property;
 
+import javax.annotation.Nullable;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -93,6 +94,7 @@ public class LockFileReaderWriter {
         }
     }
 
+    @Nullable
     public List<String> readLockFile(String configurationName) {
         checkValidRoot(configurationName);
 

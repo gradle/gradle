@@ -18,7 +18,9 @@ package org.gradle.internal.component.model;
 import com.google.common.collect.Lists;
 import org.gradle.internal.Cast;
 
+import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 
@@ -42,7 +44,7 @@ public class ImmutableModuleSources implements ModuleSources {
         return cur;
     }
 
-    private ImmutableModuleSources(ImmutableModuleSources previous, ModuleSource value) {
+    private ImmutableModuleSources(@Nullable ImmutableModuleSources previous, @Nullable ModuleSource value) {
         if (previous != null && value == null) {
             throw new AssertionError("value must not be null");
         }
@@ -106,10 +108,10 @@ public class ImmutableModuleSources implements ModuleSources {
 
         ImmutableModuleSources that = (ImmutableModuleSources) o;
 
-        if (previous != null ? !previous.equals(that.previous) : that.previous != null) {
+        if (!Objects.equals(previous, that.previous)) {
             return false;
         }
-        return value != null ? value.equals(that.value) : that.value == null;
+        return Objects.equals(value, that.value);
     }
 
     @Override

@@ -138,6 +138,7 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationInte
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.ConfigureUtil.configure;
 
+@SuppressWarnings("rawtypes")
 public class DefaultConfiguration extends AbstractFileCollection implements ConfigurationInternal, MutationValidator {
 
     private static final Action<Throwable> DEFAULT_ERROR_HANDLER = throwable -> {
@@ -190,9 +191,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private boolean visible = true;
     private boolean transitive = true;
-    private Set<Configuration> extendsFrom = new LinkedHashSet<Configuration>();
+    private Set<Configuration> extendsFrom = new LinkedHashSet<>();
     private String description;
-    private final Set<Object> excludeRules = new LinkedHashSet<Object>();
+    private final Set<Object> excludeRules = new LinkedHashSet<>();
     private Set<ExcludeRule> parsedExcludeRules;
 
     private final ProjectStateRegistry.SafeExclusiveLock resolutionLock;
@@ -356,7 +357,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             ((ConfigurationInternal) configuration).removeMutationValidator(parentMutationValidator);
         }
-        this.extendsFrom = new LinkedHashSet<Configuration>();
+        this.extendsFrom = new LinkedHashSet<>();
         for (Configuration configuration : extendsFrom) {
             extendsFrom(configuration);
         }
@@ -424,9 +425,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private void collectSuperConfigs(Configuration configuration, Set<Configuration> result) {
         for (Configuration superConfig : configuration.getExtendsFrom()) {
-            if (result.contains(superConfig)) {
-                result.remove(superConfig);
-            }
+            // The result is an ordered set - so seeing the same value a second time pushes further down
+            result.remove(superConfig);
             result.add(superConfig);
             collectSuperConfigs(superConfig, result);
         }
@@ -764,6 +764,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencies;
     }
 
+    @SuppressWarnings("unchecked")
     private synchronized void initAllDependencies() {
         if (allDependencies != null) {
             return;
@@ -788,6 +789,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allDependencyConstraints;
     }
 
+    @SuppressWarnings("unchecked")
     private synchronized void initAllDependencyConstraints() {
         if (allDependencyConstraints != null) {
             return;
@@ -810,6 +812,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return allArtifacts;
     }
 
+    @SuppressWarnings("unchecked")
     private synchronized void initAllArtifacts() {
         if (allArtifacts != null) {
             return;
@@ -1360,14 +1363,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         StringBuilder reply = new StringBuilder();
 
         reply.append("\nConfiguration:");
-        reply.append("  class='" + this.getClass() + "'");
-        reply.append("  name='" + this.getName() + "'");
-        reply.append("  hashcode='" + this.hashCode() + "'");
+        reply.append("  class='").append(this.getClass()).append("'");
+        reply.append("  name='").append(this.getName()).append("'");
+        reply.append("  hashcode='").append(this.hashCode()).append("'");
 
         reply.append("\nLocal Dependencies:");
         if (getDependencies().size() > 0) {
             for (Dependency d : getDependencies()) {
-                reply.append("\n   " + d);
+                reply.append("\n   ").append(d);
             }
         } else {
             reply.append("\n   none");
@@ -1376,7 +1379,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         reply.append("\nLocal Artifacts:");
         if (getArtifacts().size() > 0) {
             for (PublishArtifact a : getArtifacts()) {
-                reply.append("\n   " + a);
+                reply.append("\n   ").append(a);
             }
         } else {
             reply.append("\n   none");
@@ -1385,7 +1388,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         reply.append("\nAll Dependencies:");
         if (getAllDependencies().size() > 0) {
             for (Dependency d : getAllDependencies()) {
-                reply.append("\n   " + d);
+                reply.append("\n   ").append(d);
             }
         } else {
             reply.append("\n   none");
@@ -1395,7 +1398,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         reply.append("\nAll Artifacts:");
         if (getAllArtifacts().size() > 0) {
             for (PublishArtifact a : getAllArtifacts()) {
-                reply.append("\n   " + a);
+                reply.append("\n   ").append(a);
             }
         } else {
             reply.append("\n   none");

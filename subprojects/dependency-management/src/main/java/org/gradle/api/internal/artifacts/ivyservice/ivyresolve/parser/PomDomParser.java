@@ -71,7 +71,7 @@ public final class PomDomParser {
     }
 
     public static List<Element> getAllChilds(Element parent) {
-        List<Element> r = new LinkedList<Element>();
+        List<Element> r = new LinkedList<>();
         if (parent != null) {
             NodeList childs = parent.getChildNodes();
             for (int i = 0; i < childs.getLength(); i++) {
