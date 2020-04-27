@@ -29,7 +29,6 @@ import org.gradle.language.base.internal.SourceTransformTaskConfig;
 import org.gradle.language.base.internal.registry.LanguageTransform;
 import org.gradle.language.base.internal.registry.LanguageTransformContainer;
 import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.jvm.JvmResourceSet;
 import org.gradle.language.jvm.internal.DefaultJvmResourceLanguageSourceSet;
 import org.gradle.language.jvm.tasks.ProcessResources;
 import org.gradle.model.Mutate;
@@ -62,7 +61,8 @@ public class JvmResourcesPlugin implements Plugin<Project> {
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @ComponentType
-        void registerLanguage(TypeBuilder<JvmResourceSet> builder) {
+        @SuppressWarnings("deprecation")
+        void registerLanguage(TypeBuilder<org.gradle.language.jvm.JvmResourceSet> builder) {
             builder.defaultImplementation(DefaultJvmResourceLanguageSourceSet.class);
         }
 
@@ -72,15 +72,16 @@ public class JvmResourcesPlugin implements Plugin<Project> {
         }
     }
 
-    private static class JvmResources implements LanguageTransform<JvmResourceSet, org.gradle.jvm.JvmResources> {
+    @SuppressWarnings("deprecation")
+    private static class JvmResources implements LanguageTransform<org.gradle.language.jvm.JvmResourceSet, org.gradle.jvm.JvmResources> {
         @Override
         public String getLanguageName() {
             return "resources";
         }
 
         @Override
-        public Class<JvmResourceSet> getSourceSetType() {
-            return JvmResourceSet.class;
+        public Class<org.gradle.language.jvm.JvmResourceSet> getSourceSetType() {
+            return org.gradle.language.jvm.JvmResourceSet.class;
         }
 
         @Override
@@ -109,7 +110,7 @@ public class JvmResourcesPlugin implements Plugin<Project> {
                 @Override
                 public void configureTask(Task task, BinarySpec binary, LanguageSourceSet sourceSet, ServiceRegistry serviceRegistry) {
                     ProcessResources resourcesTask = (ProcessResources) task;
-                    JvmResourceSet resourceSet = (JvmResourceSet) sourceSet;
+                    org.gradle.language.jvm.JvmResourceSet resourceSet = (org.gradle.language.jvm.JvmResourceSet) sourceSet;
                     resourcesTask.from(resourceSet.getSource());
 
                     // The first directory is the one created by JvmComponentPlugin.configureJvmBinaries()
