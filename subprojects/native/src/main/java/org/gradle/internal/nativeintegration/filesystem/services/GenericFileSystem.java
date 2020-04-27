@@ -122,7 +122,7 @@ class GenericFileSystem implements FileSystem {
 
     private File createFile(String content) throws IOException {
         File file = File.createTempFile("gradle_fs_probing", null, null);
-        Files.write(content, file, Charsets.UTF_8);
+        Files.asCharSink(file, Charsets.UTF_8).write(content);
         return file;
     }
 
@@ -140,7 +140,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     private boolean hasContent(File file, String content) throws IOException {
-        return file.exists() && Files.readFirstLine(file, Charsets.UTF_8).equals(content);
+        return file.exists() && Files.asCharSource(file, Charsets.UTF_8).readFirstLine().equals(content);
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {
