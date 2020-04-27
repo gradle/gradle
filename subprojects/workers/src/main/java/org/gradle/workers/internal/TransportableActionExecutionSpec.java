@@ -16,11 +16,9 @@
 
 package org.gradle.workers.internal;
 
-import org.gradle.workers.WorkParameters;
-
 import java.io.File;
 
-public class TransportableActionExecutionSpec<T extends WorkParameters> {
+public class TransportableActionExecutionSpec {
     protected final String implementationClassName;
     private final byte[] serializedParameters;
     private final ClassLoaderStructure classLoaderStructure;

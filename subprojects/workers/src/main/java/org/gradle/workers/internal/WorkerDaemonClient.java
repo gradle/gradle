@@ -25,7 +25,7 @@ import org.gradle.process.internal.worker.WorkerProcess;
 class WorkerDaemonClient implements Stoppable {
     public static final String DISABLE_EXPIRATION_PROPERTY_KEY = "org.gradle.workers.internal.disable-daemons-expiration";
     private final DaemonForkOptions forkOptions;
-    private final MultiRequestClient<TransportableActionExecutionSpec<?>, DefaultWorkResult> workerClient;
+    private final MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient;
     private final WorkerProcess workerProcess;
     private final LogLevel logLevel;
     private final ActionExecutionSpecFactory actionExecutionSpecFactory;
@@ -33,7 +33,7 @@ class WorkerDaemonClient implements Stoppable {
     private boolean failed;
     private boolean cannotBeExpired = Boolean.getBoolean(DISABLE_EXPIRATION_PROPERTY_KEY);
 
-    public WorkerDaemonClient(DaemonForkOptions forkOptions, MultiRequestClient<TransportableActionExecutionSpec<?>, DefaultWorkResult> workerClient, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
+    public WorkerDaemonClient(DaemonForkOptions forkOptions, MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerClient, WorkerProcess workerProcess, LogLevel logLevel, ActionExecutionSpecFactory actionExecutionSpecFactory) {
         this.forkOptions = forkOptions;
         this.workerClient = workerClient;
         this.workerProcess = workerProcess;
