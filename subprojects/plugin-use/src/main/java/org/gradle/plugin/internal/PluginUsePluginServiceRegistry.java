@@ -101,8 +101,8 @@ public class PluginUsePluginServiceRegistry extends AbstractPluginServiceRegistr
         }
 
         InjectedClasspathPluginResolver createInjectedClassPathPluginResolver(ClassLoaderScopeRegistry classLoaderScopeRegistry, PluginInspector pluginInspector,
-                                                                              InjectedPluginClasspath injectedPluginClasspath, CachedClasspathTransformer classpathTransformer) {
-            return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), classpathTransformer, pluginInspector, injectedPluginClasspath.getClasspath());
+                                                                              InjectedPluginClasspath injectedPluginClasspath) {
+            return new InjectedClasspathPluginResolver(classLoaderScopeRegistry.getCoreAndPluginsScope(), pluginInspector, injectedPluginClasspath.getClasspath());
         }
 
         PluginResolutionStrategyInternal createPluginResolutionStrategy(Instantiator instantiator, ListenerManager listenerManager) {

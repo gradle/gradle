@@ -30,8 +30,7 @@ import spock.lang.Unroll
 class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implements FileAccessTimeJournalFixture {
     static final long MAX_CACHE_AGE_IN_DAYS = LeastRecentlyUsedCacheCleanup.DEFAULT_MAX_AGE_IN_DAYS_FOR_RECREATABLE_CACHE_ENTRIES
 
-    @Rule
-    public final HttpServer server = new HttpServer()
+    @Rule public final HttpServer server = new HttpServer()
     MavenHttpRepository repo
 
     def setup() {
@@ -43,7 +42,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         server.start()
     }
 
-    @Unroll("jars on buildscript classpath can change (loopNumber: #loopNumber)")
+    @Unroll("jars on buildscript classpath can change (deleteIfExists: #deleteIfExists, loopNumber: #loopNumber)")
     @ToBeFixedForInstantExecution
     def "jars on buildscript classpath can change"() {
         given:
@@ -69,7 +68,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 public String message() { return "hello world"; }
             }
         '''
-        builder.buildJar(jarFile)
+        builder.buildJar(jarFile, deleteIfExists)
 
         then:
         succeeds("hello")
@@ -83,13 +82,14 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
                 public String message() { return "hello again"; }
             }
         '''
-        builder.buildJar(jarFile)
+        builder.buildJar(jarFile, deleteIfExists)
 
         then:
         succeeds("hello")
         outputContains("hello again")
 
         where:
+        deleteIfExists << [false, true] * 3
         loopNumber << (1..6).toList()
     }
 
@@ -279,7 +279,7 @@ class BuildScriptClasspathIntegrationSpec extends AbstractIntegrationSpec implem
         inJarCache(filename, false)
     }
 
-    TestFile inJarCache(String filename, boolean shouldBeFound = true) {
+    TestFile inJarCache(String filename, boolean shouldBeFound=true) {
         String fullpath = result.output.readLines().find { it.matches(">>>file:.*${filename}") }.replace(">>>", "")
         assert fullpath.startsWith(cacheDir.toURI().toString()) == shouldBeFound
         return new TestFile(new File(URI.create(fullpath)))
