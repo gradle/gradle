@@ -37,12 +37,6 @@ open class StrictCompileExtension(val tasks: TaskContainer) {
         }
     }
 
-    fun ignoreUnchecked() {
-        tasks.withType<JavaCompile>().configureEach {
-            options.compilerArgs.add("-Xlint:-unchecked")
-        }
-    }
-
     fun ignoreParameterizedVarargType() {
         tasks.withType<JavaCompile>().configureEach {
             // There is no way to ignore this warning, so we need to turn off "-Werror" completely
