@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -55,9 +56,9 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     @Override
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
-            set((Provider<T>) object);
+            set(Cast.<Provider<T>>uncheckedNonnullCast(object));
         } else {
-            set((T) object);
+            set(Cast.<T>uncheckedNonnullCast(object));
         }
     }
 

@@ -24,6 +24,7 @@ import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -124,10 +125,10 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     private <P extends ValueSourceParameters> void configureParameters(@Nullable P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
-        DefaultValueSourceSpec<P> valueSourceSpec = specInstantiator.newInstance(
+        DefaultValueSourceSpec<P> valueSourceSpec = Cast.uncheckedNonnullCast(specInstantiator.newInstance(
             DefaultValueSourceSpec.class,
             parameters
-        );
+        ));
         configureAction.execute(valueSourceSpec);
     }
 
@@ -249,12 +250,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         private P isolateParameters() {
             // TODO - consider if should hold the project lock to do the isolation
-            return (P) isolatableFactory.isolate(parameters).isolate();
+            return isolatableFactory.isolate(parameters).isolate();
         }
 
         private void onValueObtained() {
             broadcaster.getSource().valueObtained(
-                new DefaultObtainedValue(
+                new DefaultObtainedValue<>(
                     value,
                     valueSourceType,
                     parametersType,

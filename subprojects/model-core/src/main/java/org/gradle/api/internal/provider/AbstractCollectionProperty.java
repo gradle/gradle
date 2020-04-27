@@ -76,7 +76,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     }
 
     @Override
-    public void addAll(T... elements) {
+    @SafeVarargs
+    @SuppressWarnings("varargs")
+    public final void addAll(T... elements) {
         addCollector(new ElementsFromArray<>(elements));
     }
 
@@ -98,7 +100,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Nullable
     @Override
     public Class<C> getType() {
-        return (Class<C>) collectionType;
+        return Cast.uncheckedCast(collectionType);
     }
 
     @Override
@@ -122,12 +124,12 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
     @Override
     public void setFromAnyValue(Object object) {
         if (object instanceof Provider) {
-            set((Provider<C>) object);
+            set(Cast.<Provider<C>>uncheckedCast(object));
         } else {
             if (object != null && !(object instanceof Iterable)) {
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using an instance of type %s.", collectionType.getName(), object.getClass().getName()));
             }
-            set((Iterable<? extends T>) object);
+            set(Cast.<Iterable<? extends T>>uncheckedCast(object));
         }
     }
 
@@ -151,7 +153,7 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
             throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s using a provider of type %s.", collectionType.getName(), p.getType().getName()));
         }
         if (p instanceof CollectionPropertyInternal) {
-            CollectionPropertyInternal<T, C> collectionProp = (CollectionPropertyInternal<T, C>) p;
+            CollectionPropertyInternal<T, C> collectionProp = Cast.uncheckedCast(p);
             if (!elementType.isAssignableFrom(collectionProp.getElementType())) {
                 throw new IllegalArgumentException(String.format("Cannot set the value of a property of type %s with element type %s using a provider with element type %s.", collectionType.getName(), elementType.getName(), collectionProp.getElementType().getName()));
             }
