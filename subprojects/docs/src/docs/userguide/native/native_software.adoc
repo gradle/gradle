@@ -968,7 +968,7 @@ include::{snippetsPath}/native-binaries/cunit/groovy/build.gradle[tag=complete-e
 .Output of `gradle -q runOperatorsTestFailingCUnitExe`
 ----
 > gradle -q runOperatorsTestFailingCUnitExe
-include::{snippetsPath}/native-binaries/cunit/groovy/completeCUnitExample.out[]
+include::{snippetsPath}/native-binaries/cunit/completeCUnitExample.out[]
 ----
 
 

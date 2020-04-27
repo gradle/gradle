@@ -232,7 +232,7 @@ Running `gradle help --task someTask` gives you detailed information about a spe
 .Obtaining detailed help for tasks
 ----
 $ gradle -q help --task libs
-include::{snippetsPath}/tutorial/projectReports/groovy/taskHelp.out[]
+include::{snippetsPath}/tutorial/projectReports/taskHelp.out[]
 ----
 
 This information includes the full task path, the task type, possible command line options and the description of the given task.
@@ -283,7 +283,7 @@ Running `gradle properties` gives you a list of the properties of the selected p
 .Information about properties
 ----
 $ gradle -q api:properties
-include::{snippetsPath}/tutorial/projectReports/groovy/propertyListReport.out[]
+include::{snippetsPath}/tutorial/projectReports/propertyListReport.out[]
 ----
 
 === Software Model reports
