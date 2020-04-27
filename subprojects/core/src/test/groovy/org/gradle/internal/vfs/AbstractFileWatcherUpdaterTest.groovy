@@ -58,18 +58,18 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher)
 
     def "starts and stops watching must watch directories"() {
-        def mustWatchDirectories = ["first", "second", "third"].collect { temporaryFolder.testDirectory.createDir(it)}
+        def mustWatchDirectories = ["first", "second", "third"].collect { file(it).createDir() }
 
         when:
         updater.updateMustWatchDirectories(mustWatchDirectories)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, mustWatchDirectories) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
         0 * _
 
         when:
         updater.updateMustWatchDirectories([])
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, mustWatchDirectories) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
         0 * _
     }
 
@@ -80,7 +80,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         updater.updateMustWatchDirectories(existingMustWatchDirectories + nonExistingMustWatchDirectory)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, existingMustWatchDirectories) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, existingMustWatchDirectories) })
         0 * _
     }
 
@@ -91,15 +91,15 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         when:
         updater.updateMustWatchDirectories(firstMustWatchDirectories)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, firstMustWatchDirectories) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, firstMustWatchDirectories) })
         0 * _
 
         when:
         updater.updateMustWatchDirectories(secondMustWatchDirectories)
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, [file("first")]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
         then:
-        1 * watcher.startWatching({ equalAsSets(it, [file("third")]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("third")]) })
         0 * _
     }
 
@@ -127,7 +127,9 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         new RegularFileSnapshot(regularFile.absolutePath, regularFile.name, TestFiles.fileHasher().hash(regularFile), FileMetadata.from(Files.readAttributes(regularFile.toPath(), BasicFileAttributes)))
     }
 
-    static boolean equalAsSets(Object actual, Object expected) {
-        return (actual as Set) == (expected as Set)
+    static boolean equalIgnoringOrder(Object actual, Collection<?> expected) {
+        List<?> actualSorted = (actual as List).toSorted()
+        List<?> expectedSorted = (expected as List).toSorted()
+        return actualSorted == expectedSorted
     }
 }

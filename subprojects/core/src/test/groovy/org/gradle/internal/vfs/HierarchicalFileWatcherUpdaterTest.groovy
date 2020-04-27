@@ -33,7 +33,23 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         updater.updateMustWatchDirectories(mustWatchDirectories)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, mustWatchDirectoryRoots) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectoryRoots) })
+        0 * _
+
+        when:
+        updater.updateMustWatchDirectories([file("first/within"), file("second")])
+        then:
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("first/within")]) })
+        0 * _
+
+        when:
+        updater.updateMustWatchDirectories(mustWatchDirectoryRoots)
+        then:
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first/within")]) })
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("first")]) })
         0 * _
     }
 
@@ -51,9 +67,9 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         updater.updateMustWatchDirectories([])
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, [rootDir]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         then:
-        1 * watcher.startWatching({ equalAsSets(it, ([subDirInRootDir.parentFile])) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, ([subDirInRootDir.parentFile])) })
         0 * _
     }
 
@@ -65,22 +81,22 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         addSnapshot(rootDirSnapshot)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, [rootDir.parentFile]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir.parentFile]) })
         0 * _
 
         when:
         invalidate(rootDirSnapshot.children[0])
         invalidate(rootDirSnapshot.children[1])
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, [rootDir.parentFile]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir.parentFile]) })
         then:
-        1 * watcher.startWatching({ equalAsSets(it, [rootDir]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
         0 * _
 
         when:
         invalidate(rootDirSnapshot.children[2])
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, [rootDir]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         0 * _
     }
 }

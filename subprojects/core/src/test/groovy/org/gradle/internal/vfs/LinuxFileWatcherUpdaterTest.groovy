@@ -33,7 +33,7 @@ class LinuxFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
         when:
         updater.updateMustWatchDirectories(mustWatchDirectories)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, mustWatchDirectories) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectories) })
         0 * _
     }
 
@@ -45,20 +45,20 @@ class LinuxFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
         when:
         addSnapshot(rootDirSnapshot)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, [rootDir.parentFile, rootDir]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir.parentFile, rootDir]) })
         0 * _
 
         when:
         invalidate(rootDirSnapshot.children[0])
         invalidate(rootDirSnapshot.children[1])
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, [rootDir.parentFile]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir.parentFile]) })
         0 * _
 
         when:
         invalidate(rootDirSnapshot.children[2])
         then:
-        1 * watcher.stopWatching({ equalAsSets(it, [rootDir]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         0 * _
     }
 }

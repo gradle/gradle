@@ -43,7 +43,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 public class LinuxFileWatcherUpdater implements FileWatcherUpdater {
-
     private static final Logger LOGGER = LoggerFactory.getLogger(LinuxFileWatcherUpdater.class);
 
     private final Multiset<String> watchedRoots = HashMultiset.create();
