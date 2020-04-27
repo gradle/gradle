@@ -22,6 +22,22 @@ import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+    def "reports build logic reading a system property via the Java API"() {
+        buildFile << """
+            // not declared
+            System.getProperty("CI")
+        """
+
+        when:
+        instantFails()
+
+        then:
+        // TODO - use problems fixture, however build script class is generated
+        failure.assertThatDescription(containsNormalizedString("- unknown property: read system property 'CI' from 'build_"))
+        failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
+        failure.assertHasLineNumber(3)
+        failure.assertThatCause(containsNormalizedString("Read system property 'CI' from 'build_"))
+    }
 
     def "plugin can use standard properties without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """

@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.problems.PropertyProblem
 import org.gradle.instantexecution.problems.PropertyTrace
@@ -51,6 +52,7 @@ class SystemPropertyAccessListener(
             text("' from ")
             reference(consumer)
         }
-        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message))
+        val exception = InvalidUserCodeException(message.toString().capitalize())
+        problems.onProblem(PropertyProblem(PropertyTrace.Unknown, message, exception))
     }
 }
