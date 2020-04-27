@@ -35,6 +35,13 @@ trait JavaPluginImplementation {
                     String ci = System.getProperty("CI");
                     System.out.println("apply CI = " + ci);
                     System.out.println("apply CI2 = " + System.getProperty("CI2"));
+
+                    // Lambda
+                    Runnable r = () -> {
+                        System.out.println("apply CI3 = " + System.getProperty("CI3"));
+                    };
+                    r.run();
+
                     project.getTasks().register("thing", t -> {
                         t.doLast(new Action<Task>() {
                             public void execute(Task t) {

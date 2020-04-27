@@ -16,16 +16,26 @@
 
 package org.gradle.instantexecution
 
-
-import org.gradle.integtests.fixtures.KotlinDslTestUtil
-
-class InstantExecutionUndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
+class InstantExecutionUndeclaredBuildInputsDynamicGroovyBuildScriptIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     void buildLogicApplication() {
-        file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
-        kotlinPlugin(file("buildSrc/src/main/kotlin/SneakyPlugin.kt"))
+        buildFile << """
+            buildscript {
+                println("apply BUILDSCRIPT = " + System.getProperty("BUILDSCRIPT"))
+            }
+        """
+
+        dynamicGroovyPlugin(buildFile)
+
         buildFile << """
             apply plugin: SneakyPlugin
+            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
         """
+    }
+
+    @Override
+    void additionalProblems() {
+        outputContains("- unknown property: read system property 'BUILDSCRIPT' from '")
+        outputContains("- unknown property: read system property 'SCRIPT' from '")
     }
 }

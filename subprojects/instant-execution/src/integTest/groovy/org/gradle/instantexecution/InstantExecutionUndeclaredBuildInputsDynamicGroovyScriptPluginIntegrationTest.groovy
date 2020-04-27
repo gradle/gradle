@@ -16,26 +16,24 @@
 
 package org.gradle.instantexecution
 
-class InstantExecutionUndeclaredBuildInputsDynamicGroovyDslIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
+class InstantExecutionUndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     void buildLogicApplication() {
-        buildFile << """
-            class SneakyPlugin implements Plugin<Project> {
-                public void apply(Project project) {
-                    def ci = System.getProperty("CI")
-                    println("apply CI = " + ci)
-                    project.tasks.register("thing") { t ->
-                        t.doLast {
-                            def ci2 = System.getProperty("CI")
-                            println("task CI = " + ci2)
-                        }
-                    }
-                }
-            }
+        def script = file("plugin.gradle")
+        dynamicGroovyPlugin(script)
 
+        script << """
             apply plugin: SneakyPlugin
-
-            println("apply CI2 = " + System.getProperty("CI2"))
+            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
         """
+
+        buildFile << """
+            apply from: "plugin.gradle"
+        """
+    }
+
+    @Override
+    void additionalProblems() {
+        outputContains("- unknown property: read system property 'SCRIPT' from '")
     }
 }

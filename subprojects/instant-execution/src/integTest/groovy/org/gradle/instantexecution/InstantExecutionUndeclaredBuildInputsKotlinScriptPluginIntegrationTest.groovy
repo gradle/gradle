@@ -16,26 +16,23 @@
 
 package org.gradle.instantexecution
 
-class InstantExecutionUndeclaredBuildInputsKotlinDslIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
+class InstantExecutionUndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     void buildLogicApplication() {
-        buildKotlinFile << """
-            class SneakyPlugin: Plugin<Project> {
-                override fun apply(project: Project) {
-                    val ci = System.getProperty("CI")
-                    println("apply CI = " + ci)
-                    project.tasks.register("thing") {
-                        doLast {
-                            val ci2 = System.getProperty("CI")
-                            println("task CI = " + ci2)
-                        }
-                    }
-                }
-            }
-
-            println("apply CI2 = " + System.getProperty("CI2"))
+        def script = file("plugin.gradle.kts")
+        kotlinPlugin(script)
+        script << """
+            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
 
             plugins.apply(SneakyPlugin::class.java)
         """
+        buildFile << """
+            apply from: "plugin.gradle.kts"
+        """
+    }
+
+    @Override
+    void additionalProblems() {
+        outputContains("- unknown property: read system property 'SCRIPT' from '")
     }
 }

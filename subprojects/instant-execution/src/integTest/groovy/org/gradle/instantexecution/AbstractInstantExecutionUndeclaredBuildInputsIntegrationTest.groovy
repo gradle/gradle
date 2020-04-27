@@ -16,12 +16,10 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.instantexecution.HasInstantExecutionProblemsSpec
-
 abstract class AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     abstract void buildLogicApplication()
 
-    void additionalProblems(HasInstantExecutionProblemsSpec spec) {
+    void additionalProblems() {
     }
 
     def "reports undeclared use of system property prior to task execution from plugin"() {
@@ -34,6 +32,7 @@ abstract class AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest exte
         then:
         outputContains("apply CI = null")
         outputContains("apply CI2 = null")
+        outputContains("apply CI3 = null")
         outputContains("task CI = null")
 
         when:
@@ -45,15 +44,18 @@ abstract class AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest exte
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
         outputContains("- unknown property: read system property 'CI' from '")
         outputContains("- unknown property: read system property 'CI2' from '")
+        outputContains("- unknown property: read system property 'CI3' from '")
+        additionalProblems()
         outputContains("apply CI = null")
         outputContains("apply CI2 = null")
+        outputContains("apply CI3 = null")
         outputContains("task CI = null")
 
         when:
         instantRun("thing", "-DCI=true")
 
         then:
-        fixture.assertStateLoaded()
+        fixture.assertStateLoaded() // undeclared properties are not considered build inputs
         problems.assertResultHasProblems(result)
         outputContains("task CI = true")
     }
