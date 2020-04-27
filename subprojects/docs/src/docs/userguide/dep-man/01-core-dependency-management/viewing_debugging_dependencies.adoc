@@ -86,7 +86,21 @@ The dependency tree in a link:https://scans.gradle.com/[build scan] renders the 
 image::dependency-management-dependency-insight-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line.
-Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameters `--configuration` and `--singlepath` are optional but help with filtering the output.
+Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection.
+You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency.
+
+The task takes the following parameters:
+
+`--dependency <dependency>` (mandatory)::
+Indicates which dependency to focus on.
+It can be a complete `group:name`, or part of it.
+If multiple dependencies match, they are all printed in the report.
+`--configuration <name>` (mandatory)::
+Indicates which configuration to resolve for showing the dpendency information.
+Note that the <<java_plugin#, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
+`--singlepath` (optional)::
+Indicates to render only a single path to the dependency.
+This might be useful to trim down the output in large graphs.
 
 === Example: Using the dependency insight report for a given dependency
 
@@ -96,16 +110,11 @@ Given a dependency in the dependency graph you can identify the selection reason
 include::{snippetsPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
 
-Note that omitting the `--configuration` parameter in a project that has no configurations will lead to an error:
+As indicated above, omitting the `--configuration` parameter in a project that is not a Java project will lead to an error:
 ----
 > Dependency insight report cannot be generated because the input configuration was not specified.
   It can be specified from the command line, e.g: ':dependencyInsight --configuration someConf --dependency someDep'
 ----
-
-The most common cases in which this can happen are:
-
-* for a newly initialized general purpose Gradle build: try applying a plugin like `java` that adds pre-defined configurations to the project
-* for the top-level project of a <<multi_project_builds.adoc#,multi-project>>: make sure to run the `dependencyInsight` task against a module, e.g. `gradle -q my-module:dependencyInsight --dependency commons-codec
 
 For more information about configurations, see the documentation on declaring dependencies, which describes <<declaring_dependencies.adoc#sec:what-are-dependency-configurations, what dependency configurations are>>.
 
