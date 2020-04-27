@@ -79,6 +79,7 @@ public class HtmlDependencyReportTask extends ConventionTask implements Reportin
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public DependencyReportContainer reports(Closure closure) {
         return reports(new ClosureBackedAction<>(closure));
     }
