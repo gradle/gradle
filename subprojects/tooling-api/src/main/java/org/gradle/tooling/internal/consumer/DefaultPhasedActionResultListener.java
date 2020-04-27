@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.internal.Cast;
 import org.gradle.tooling.IntermediateResultHandler;
 import org.gradle.tooling.internal.protocol.PhasedActionResult;
 import org.gradle.tooling.internal.protocol.PhasedActionResultListener;
@@ -48,7 +49,7 @@ public class DefaultPhasedActionResultListener implements PhasedActionResultList
 
     private <T> void onComplete(Object result, @Nullable IntermediateResultHandler<T> handler) {
         if (handler != null) {
-            handler.onComplete((T) result);
+            handler.onComplete(Cast.uncheckedNonnullCast(result));
         }
     }
 }

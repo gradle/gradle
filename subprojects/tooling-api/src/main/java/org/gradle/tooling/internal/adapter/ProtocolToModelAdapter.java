@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.adapter;
 
 import com.google.common.base.Optional;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DirectInstantiator;
 import org.gradle.internal.time.CountdownTimer;
@@ -198,10 +199,11 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
             }
         }
         if (targetType instanceof Class) {
-            if (((Class) targetType).isPrimitive()) {
+            Class<Object> targetClassType = Cast.uncheckedNonnullCast(targetType);
+            if (targetClassType.isPrimitive()) {
                 return sourceObject;
             }
-            return createView((Class) targetType, sourceObject, decoration, graphDetails);
+            return createView(targetClassType, sourceObject, decoration, graphDetails);
         }
         throw new UnsupportedOperationException(String.format("Cannot convert object of %s to %s.", sourceObject.getClass(), targetType));
     }
@@ -218,7 +220,7 @@ public class ProtocolToModelAdapter implements ObjectGraphAdapter {
         Collection<Object> convertedElements = COLLECTION_MAPPER.createEmptyCollection(collectionClass);
         convertCollectionInternal(convertedElements, targetElementType, sourceObject, decoration, graphDetails);
         if (collectionClass.equals(DomainObjectSet.class)) {
-            return new ImmutableDomainObjectSet(convertedElements);
+            return new ImmutableDomainObjectSet<>(convertedElements);
         } else {
             return convertedElements;
         }
