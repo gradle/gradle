@@ -16,6 +16,7 @@
 
 package org.gradle.process.internal.worker;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.classloader.FilteringClassLoader;
 import org.gradle.internal.stream.EncodedStream;
 
@@ -63,7 +64,7 @@ public class GradleWorkerMain {
             implementationClassLoader = getClass().getClassLoader();
         }
 
-        Class<? extends Callable> workerClass = implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+        Class<? extends Callable<Void>> workerClass = Cast.uncheckedNonnullCast(implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker"));
         Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
         main.call();
     }

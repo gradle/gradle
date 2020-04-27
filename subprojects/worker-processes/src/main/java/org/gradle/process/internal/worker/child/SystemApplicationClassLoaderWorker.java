@@ -19,6 +19,7 @@ package org.gradle.process.internal.worker.child;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.GradleUserHomeDirProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.DefaultExecutorFactory;
@@ -148,7 +149,7 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         Action<WorkerProcessContext> action;
         try {
             ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-            action = (Action<WorkerProcessContext>) instr.readObject();
+            action = Cast.uncheckedNonnullCast(instr.readObject());
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
