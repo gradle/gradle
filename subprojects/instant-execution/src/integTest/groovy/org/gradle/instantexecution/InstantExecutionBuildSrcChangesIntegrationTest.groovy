@@ -75,10 +75,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
     @Unroll
     def "invalidates cache upon change to #inputName used by buildSrc"() {
 
-        assumeFalse(
-            'property from gradle.properties is not available to buildSrc',
-            inputName == 'gradle.properties'
-        )
+        assumeFalse('wip', inputName == 'gradle.properties')
 
         given:
         def instant = newInstantExecutionFixture()
