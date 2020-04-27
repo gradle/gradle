@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
 import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.artifacts.transform.TransformSpec;
-import org.gradle.api.artifacts.transform.VariantTransform;
 import org.gradle.api.artifacts.type.ArtifactTypeContainer;
 import org.gradle.api.attributes.AttributesSchema;
 import org.gradle.api.plugins.ExtensionAware;
@@ -451,7 +450,8 @@ public interface DependencyHandler extends ExtensionAware {
      * @since 3.5
      */
     @Deprecated
-    void registerTransform(Action<? super VariantTransform> registrationAction);
+    @SuppressWarnings("deprecation")
+    void registerTransform(Action<? super org.gradle.api.artifacts.transform.VariantTransform> registrationAction);
 
     /**
      * Registers an <a href="https://docs.gradle.org/current/userguide/artifact_transforms.html">artifact transform</a>.

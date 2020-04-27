@@ -17,6 +17,7 @@
 package org.gradle.internal.typeconversion;
 
 import org.gradle.api.Describable;
+import org.gradle.internal.Cast;
 
 import java.util.Collection;
 import java.util.LinkedList;
@@ -114,7 +115,7 @@ public class NotationParserBuilder<N, T> {
         if (!notationType.isAssignableFrom(String.class)) {
             throw new IllegalArgumentException(String.format("Cannot convert from String when notation is %s.", notationType.getSimpleName()));
         }
-        NotationConverter notationParser = new CharSequenceNotationParser();
+        NotationConverter<String, T> notationParser = Cast.uncheckedNonnullCast(new CharSequenceNotationParser());
         fromCharSequence(notationParser);
         return this;
     }
