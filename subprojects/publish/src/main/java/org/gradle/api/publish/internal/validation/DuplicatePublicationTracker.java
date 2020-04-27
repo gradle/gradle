@@ -28,9 +28,9 @@ import java.net.URI;
 
 public class DuplicatePublicationTracker {
     private final static Logger LOG = Logging.getLogger(DuplicatePublicationTracker.class);
-    private final Multimap<String, PublicationInternal> published = LinkedHashMultimap.create();
+    private final Multimap<String, PublicationInternal<?>> published = LinkedHashMultimap.create();
 
-    public synchronized void checkCanPublish(PublicationInternal publication, @Nullable URI repositoryLocation, String repositoryName) {
+    public synchronized void checkCanPublish(PublicationInternal<?> publication, @Nullable URI repositoryLocation, String repositoryName) {
         // Don't track publications to repositories configured without a base URL
         if (repositoryLocation == null) {
             return;
@@ -44,7 +44,7 @@ public class DuplicatePublicationTracker {
         }
 
         ModuleVersionIdentifier projectIdentity = publication.getCoordinates();
-        for (PublicationInternal previousPublication : published.get(repositoryKey)) {
+        for (PublicationInternal<?> previousPublication : published.get(repositoryKey)) {
             if (previousPublication.getCoordinates().equals(projectIdentity)) {
                 LOG.warn("Multiple publications with coordinates '" + publication.getCoordinates() + "' are published to repository '" + repositoryName + "'. The publications will overwrite each other!");
             }
