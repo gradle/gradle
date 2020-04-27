@@ -17,6 +17,7 @@
 package org.gradle.api.internal.coerce;
 
 import org.codehaus.groovy.reflection.CachedClass;
+import org.gradle.internal.Cast;
 import org.gradle.util.GUtil;
 
 public class StringToEnumTransformer implements MethodArgumentsTransformer, PropertySetTransformer {
@@ -28,7 +29,7 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
         boolean needsTransform = false;
         for (int i = 0; i < args.length; i++) {
             Object arg = args[i];
-            Class type = types[i].getTheClass();
+            Class<?> type = types[i].getTheClass();
             if (type.isInstance(arg) || arg == null) {
                 // Can use arg without conversion
                 continue;
@@ -45,9 +46,9 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
         Object[] transformed = new Object[args.length];
         for (int i = 0; i < args.length; i++) {
             Object arg = args[i];
-            Class type = types[i].getTheClass();
+            Class<?> type = types[i].getTheClass();
             if (type.isEnum() && arg instanceof CharSequence) {
-                transformed[i] = toEnumValue(type, arg);
+                transformed[i] = toEnumValue(Cast.uncheckedNonnullCast(type), arg);
             } else {
                 transformed[i] = args[i];
             }
@@ -68,8 +69,8 @@ public class StringToEnumTransformer implements MethodArgumentsTransformer, Prop
     @Override
     public Object transformValue(Class<?> type, Object value) {
         if (value instanceof CharSequence && type.isEnum()) {
-            @SuppressWarnings("unchecked") Class<? extends Enum> enumType = (Class<? extends Enum>) type;
-            return toEnumValue(enumType, value);
+            @SuppressWarnings("unchecked") Class<? extends Enum<?>> enumType = (Class<? extends Enum<?>>) type;
+            return toEnumValue(Cast.uncheckedNonnullCast(enumType), value);
         }
 
         return value;

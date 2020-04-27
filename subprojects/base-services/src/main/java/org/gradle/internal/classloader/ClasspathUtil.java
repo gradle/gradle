@@ -79,7 +79,7 @@ public class ClasspathUtil {
 
     public static File getClasspathForClass(String targetClassName) {
         try {
-            Class clazz = Class.forName(targetClassName);
+            Class<?> clazz = Class.forName(targetClassName);
             if (clazz.getClassLoader() == null) {
                 return null;
             } else {

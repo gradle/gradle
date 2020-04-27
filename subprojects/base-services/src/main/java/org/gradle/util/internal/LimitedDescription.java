@@ -26,12 +26,12 @@ import java.util.List;
  */
 public class LimitedDescription {
 
-    private final LinkedList content;
+    private final LinkedList<String> content;
     private final int maxItems;
 
     public LimitedDescription(int maxItems) {
         this.maxItems = maxItems;
-        this.content = new LinkedList();
+        this.content = new LinkedList<String>();
     }
 
     public LimitedDescription append(String line) {
@@ -41,14 +41,14 @@ public class LimitedDescription {
         }
         return this;
     }
-    
+
     public String toString() {
         if (content.size() == 0) {
             return "<<empty>>";
         }
 
         StringBuilder out = new StringBuilder();
-        List reversed = Lists.reverse(content);
+        List<String> reversed = Lists.reverse(content);
         for (Object item : reversed) {
             out.append(item).append("\n");
         }

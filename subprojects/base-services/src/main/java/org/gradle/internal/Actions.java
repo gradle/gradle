@@ -126,7 +126,7 @@ public abstract class Actions {
                 return false;
             }
 
-            CompositeAction that = (CompositeAction) o;
+            CompositeAction<?> that = (CompositeAction<?>) o;
 
             if (!actions.equals(that.actions)) {
                 return false;
