@@ -86,6 +86,11 @@ dependencies {
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
 }
 
+strictCompile {
+    ignoreRawTypes() // deprecated raw types
+    ignoreDeprecations() // uses deprecated software model types
+}
+
 tasks.named<Test>("integTest") {
     exclude("org/gradle/play/prepare/**")
 }
