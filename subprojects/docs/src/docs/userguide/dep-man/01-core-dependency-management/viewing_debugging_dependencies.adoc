@@ -29,6 +29,13 @@ Rendering the dependency tree is particularly useful if you'd like to identify w
 It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version.
 The dependency report always contains declared and transitive dependencies.
 
+[NOTE]
+====
+The `dependencies` task will only execute on a _single_ project.
+If you run the task on the root project, it will show dependencies of the root project and not of any subproject.
+Be sure to always target the <<command_line_interface#executing_tasks_in_multi_project_builds, right project>> when running `dependencies`.
+====
+
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process.
 You can declare dependencies for any external tooling with the help of a <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,custom configuration>> so that it doesn't pollute other contexts like the compilation classpath for your production source code.
 
@@ -101,6 +108,13 @@ Note that the <<java_plugin#, Java plugin>> wires a convention with the value `c
 `--singlepath` (optional)::
 Indicates to render only a single path to the dependency.
 This might be useful to trim down the output in large graphs.
+
+[NOTE]
+====
+The `dependencyInsight` task will only execute on a _single_ project.
+If you run the task on the root project, it will show the dependency information of the root project and not of any subproject.
+Be sure to always target the <<command_line_interface#executing_tasks_in_multi_project_builds, right project>> when running `dependencyInsight`.
+====
 
 === Example: Using the dependency insight report for a given dependency
 
