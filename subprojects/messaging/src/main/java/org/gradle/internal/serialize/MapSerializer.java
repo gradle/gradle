@@ -56,7 +56,7 @@ public class MapSerializer<U, V> extends AbstractSerializer<Map<U, V>> {
             return false;
         }
 
-        MapSerializer rhs = (MapSerializer) obj;
+        MapSerializer<?, ?> rhs = (MapSerializer<?, ?>) obj;
         return Objects.equal(keySerializer, rhs.keySerializer)
             && Objects.equal(valueSerializer, rhs.valueSerializer);
     }

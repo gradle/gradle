@@ -17,6 +17,7 @@
 package org.gradle.internal.event;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ReflectionDispatch;
@@ -56,7 +57,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     public BroadcastDispatch<T> add(String methodName, Action<?> action) {
         assertIsMethod(methodName);
-        return add(action, new ActionInvocationHandler(methodName, action));
+        return add(action, new ActionInvocationHandler(methodName, Cast.<Action<Object>>uncheckedNonnullCast(action)));
     }
 
     abstract BroadcastDispatch<T> add(Object handler, Dispatch<MethodInvocation> dispatch);
@@ -81,9 +82,9 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
     private static class ActionInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
-        private final Action action;
+        private final Action<Object> action;
 
-        ActionInvocationHandler(String methodName, Action action) {
+        ActionInvocationHandler(String methodName, Action<Object> action) {
             this.methodName = methodName;
             this.action = action;
         }
@@ -170,7 +171,7 @@ public abstract class BroadcastDispatch<T> extends AbstractBroadcastDispatch<T> 
 
         @Override
         public boolean equals(Object obj) {
-            SingletonDispatch<T> other = (SingletonDispatch<T>) obj;
+            SingletonDispatch<T> other = Cast.uncheckedNonnullCast(obj);
             return handler == other.handler || handler.equals(other.handler);
         }
 
