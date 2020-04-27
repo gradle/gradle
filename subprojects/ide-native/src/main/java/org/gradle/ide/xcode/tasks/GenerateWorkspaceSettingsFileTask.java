@@ -18,6 +18,7 @@ package org.gradle.ide.xcode.tasks;
 
 import org.gradle.api.Incubating;
 import org.gradle.ide.xcode.tasks.internal.XcodeWorkspaceSettingsFile;
+import org.gradle.internal.Cast;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
 
 /**
@@ -36,6 +37,6 @@ public class GenerateWorkspaceSettingsFileTask extends PropertyListGeneratorTask
 
     @Override
     protected XcodeWorkspaceSettingsFile create() {
-        return new XcodeWorkspaceSettingsFile(getPropertyListTransformer());
+        return new XcodeWorkspaceSettingsFile(Cast.uncheckedNonnullCast(getPropertyListTransformer()));
     }
 }

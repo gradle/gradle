@@ -58,7 +58,7 @@ public abstract class PropertyListPersistableConfigurationObject<T extends NSObj
 
     protected abstract void load(T rootObject);
 
-    public void transformAction(Closure action) {
+    public void transformAction(Closure<?> action) {
         transformAction(configureUsing(action));
     }
 
