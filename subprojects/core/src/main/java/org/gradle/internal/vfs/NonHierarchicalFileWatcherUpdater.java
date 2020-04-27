@@ -24,8 +24,6 @@ import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
-import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
@@ -133,13 +131,6 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
     private static void increment(String path, Map<String, Integer> changedWatchedDirectories) {
         changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
-    }
-
-    public static class Factory implements FileWatcherRegistryFactory {
-        @Override
-        public FileWatcherRegistry startWatcher(FileWatcherRegistry.ChangeHandler handler) {
-            return new LinuxFileWatcherRegistry(handler);
-        }
     }
 
     private static class OnlyVisitSubDirectories implements FileSystemSnapshotVisitor {

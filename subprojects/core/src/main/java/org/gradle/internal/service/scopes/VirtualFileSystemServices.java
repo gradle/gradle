@@ -70,12 +70,12 @@ import org.gradle.internal.serialize.HashCodeSerializer;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
 import org.gradle.internal.vfs.AdditiveCacheLocations;
-import org.gradle.internal.vfs.DarwinFileWatcherRegistry;
-import org.gradle.internal.vfs.LinuxFileWatcherRegistry;
+import org.gradle.internal.vfs.DarwinFileWatcherRegistryFactory;
+import org.gradle.internal.vfs.LinuxFileWatcherRegistryFactory;
 import org.gradle.internal.vfs.RoutingVirtualFileSystem;
 import org.gradle.internal.vfs.VirtualFileSystem;
 import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
-import org.gradle.internal.vfs.WindowsFileWatcherRegistry;
+import org.gradle.internal.vfs.WindowsFileWatcherRegistryFactory;
 import org.gradle.internal.vfs.impl.DefaultVirtualFileSystem;
 import org.gradle.internal.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator;
 import org.gradle.internal.vfs.impl.NonWatchingVirtualFileSystem;
@@ -201,11 +201,11 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
         private Optional<FileWatcherRegistryFactory> determineWatcherRegistryFactory(OperatingSystem operatingSystem) {
             if (operatingSystem.isMacOsX()) {
-                return Optional.of(new DarwinFileWatcherRegistry.Factory());
+                return Optional.of(new DarwinFileWatcherRegistryFactory());
             } else if (operatingSystem.isWindows()) {
-                return Optional.of(new WindowsFileWatcherRegistry.Factory());
+                return Optional.of(new WindowsFileWatcherRegistryFactory());
             } else if (operatingSystem.isLinux()) {
-                return Optional.of(new LinuxFileWatcherRegistry.Factory());
+                return Optional.of(new LinuxFileWatcherRegistryFactory());
             }
             return Optional.empty();
         }

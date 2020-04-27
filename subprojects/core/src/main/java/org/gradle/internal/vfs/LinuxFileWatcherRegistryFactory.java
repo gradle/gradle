@@ -17,25 +17,23 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.file.FileWatchEvent;
+import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
-import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 
-public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
-    public LinuxFileWatcherRegistry(ChangeHandler handler) {
-        super(
-            eventQueue -> Native.get(LinuxFileEventFunctions.class)
-                .newWatcher(eventQueue)
-                .start(),
-            handler,
-            NonHierarchicalFileWatcherUpdater::new
-        );
+import java.util.concurrent.BlockingQueue;
+
+public class LinuxFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory {
+    @Override
+    protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
+        return Native.get(LinuxFileEventFunctions.class)
+            .newWatcher(fileEvents)
+            .start();
     }
 
-    public static class Factory implements FileWatcherRegistryFactory {
-        @Override
-        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
-            return new LinuxFileWatcherRegistry(handler);
-        }
+    @Override
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
+        return new NonHierarchicalFileWatcherUpdater(watcher);
     }
 }
