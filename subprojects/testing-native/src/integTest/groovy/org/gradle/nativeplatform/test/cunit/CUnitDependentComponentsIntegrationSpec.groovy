@@ -30,7 +30,7 @@ import org.gradle.util.TextUtil
 @RequiresInstalledToolChain(ToolChainRequirement.SUPPORTS_32)
 class CUnitDependentComponentsIntegrationSpec extends AbstractInstalledToolChainIntegrationSpec {
 
-    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/cunit/libs")
+    def prebuiltDir = buildContext.getSamplesDir().file("native-binaries/cunit/groovy/libs")
     def prebuiltPath = TextUtil.normaliseFileSeparators(prebuiltDir.path)
     def app = new CHelloWorldApp()
 
