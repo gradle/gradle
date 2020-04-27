@@ -4,8 +4,9 @@ This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community contributors to this release of Gradle:
 [fransflippo](https://github.com/fransflippo),
-[Victor Turansky](https://github.com/turansky)
-and [Gregor Dschung](https://github.com/chkpnt).
+[Victor Turansky](https://github.com/turansky),
+[Gregor Dschung](https://github.com/chkpnt),
+and [Erhard Pointl](https://github.com/epeee).
 <!-- 
 Include only their name, impactful features should be called out separately below.
  [Some person](https://github.com/some-person)
