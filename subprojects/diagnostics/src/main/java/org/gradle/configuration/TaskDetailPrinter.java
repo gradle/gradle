@@ -64,12 +64,12 @@ public class TaskDetailPrinter {
         final List<Task> tasks = sort(selection.getTasks());
 
         output.text("Detailed task information for ").withStyle(UserInput).println(taskPath);
-        final ListMultimap<Class, Task> classListMap = groupTasksByType(tasks);
+        final ListMultimap<Class<?>, Task> classListMap = groupTasksByType(tasks);
 
-        final Set<Class> classes = classListMap.keySet();
+        final Set<Class<?>> classes = classListMap.keySet();
         boolean multipleClasses = classes.size() > 1;
-        final List<Class> sortedClasses = sort(classes, Comparator.comparing(Class::getSimpleName));
-        for (Class clazz : sortedClasses) {
+        final List<Class<?>> sortedClasses = sort(classes, Comparator.comparing(Class::getSimpleName));
+        for (Class<?> clazz : sortedClasses) {
             output.println();
             final List<Task> tasksByType = classListMap.get(clazz);
             final LinePrefixingStyledTextOutput pathOutput = createIndentedOutput(output, INDENT);
@@ -99,19 +99,19 @@ public class TaskDetailPrinter {
         }
     }
 
-    private ListMultimap<Class, Task> groupTasksByType(List<Task> tasks) {
-        final Set<Class> taskTypes = new TreeSet<>(Comparator.comparing(Class::getSimpleName));
+    private ListMultimap<Class<?>, Task> groupTasksByType(List<Task> tasks) {
+        final Set<Class<?>> taskTypes = new TreeSet<>(Comparator.comparing(Class::getSimpleName));
         taskTypes.addAll(collect(tasks, this::getDeclaredTaskType));
 
-        ListMultimap<Class, Task> tasksGroupedByType = ArrayListMultimap.create();
-        for (final Class taskType : taskTypes) {
+        ListMultimap<Class<?>, Task> tasksGroupedByType = ArrayListMultimap.create();
+        for (final Class<?> taskType : taskTypes) {
             tasksGroupedByType.putAll(taskType, filter(tasks, element -> getDeclaredTaskType(element).equals(taskType)));
         }
         return tasksGroupedByType;
     }
 
-    private Class getDeclaredTaskType(Task original) {
-        Class clazz = new DslObject(original).getDeclaredType();
+    private Class<?> getDeclaredTaskType(Task original) {
+        Class<?> clazz = new DslObject(original).getDeclaredType();
         if (clazz.equals(DefaultTask.class)) {
             return org.gradle.api.Task.class;
         } else {
