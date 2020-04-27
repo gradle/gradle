@@ -21,6 +21,7 @@ import java.util.Collection;
 
 public interface ClassToKClass {
 
+    @SuppressWarnings("rawtypes")
     void rawClass(Class type);
 
     void unknownClass(Class<?> type);
