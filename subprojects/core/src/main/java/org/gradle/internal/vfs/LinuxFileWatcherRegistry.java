@@ -28,7 +28,7 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
                 .newWatcher(eventQueue)
                 .start(),
             handler,
-            LinuxFileWatcherUpdater::new
+            NonHierarchicalFileWatcherUpdater::new
         );
     }
 

@@ -19,11 +19,11 @@ package org.gradle.internal.vfs
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.vfs.watch.FileWatcherUpdater
 
-class LinuxFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
+class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher) {
-        new LinuxFileWatcherUpdater(watcher)
+        new NonHierarchicalFileWatcherUpdater(watcher)
     }
 
     def "adds watches for all must watch directories"() {

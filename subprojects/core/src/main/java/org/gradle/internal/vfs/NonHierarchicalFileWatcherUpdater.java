@@ -42,15 +42,15 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class LinuxFileWatcherUpdater implements FileWatcherUpdater {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LinuxFileWatcherUpdater.class);
+public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedRoots = HashMultiset.create();
     private final Set<String> mustWatchDirectories = new HashSet<>();
     private final Map<String, ImmutableList<String>> watchedRootsForSnapshot = new HashMap<>();
     private final FileWatcher fileWatcher;
 
-    public LinuxFileWatcherUpdater(FileWatcher fileWatcher) {
+    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher) {
         this.fileWatcher = fileWatcher;
     }
 
