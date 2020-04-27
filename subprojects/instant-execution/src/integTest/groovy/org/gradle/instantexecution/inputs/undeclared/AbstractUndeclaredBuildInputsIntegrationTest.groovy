@@ -14,9 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
-abstract class AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+
+abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     abstract void buildLogicApplication()
 
     void additionalProblems() {

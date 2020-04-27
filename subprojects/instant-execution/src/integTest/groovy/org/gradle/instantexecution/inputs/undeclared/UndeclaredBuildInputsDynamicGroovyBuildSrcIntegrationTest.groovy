@@ -14,26 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
-class InstantExecutionUndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
+class UndeclaredBuildInputsDynamicGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
     void buildLogicApplication() {
-        def script = file("plugin.gradle")
-        dynamicGroovyPlugin(script)
-
-        script << """
-            apply plugin: SneakyPlugin
-            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
-        """
+        dynamicGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"))
 
         buildFile << """
-            apply from: "plugin.gradle"
+            apply plugin: SneakyPlugin
         """
-    }
-
-    @Override
-    void additionalProblems() {
-        outputContains("- unknown property: read system property 'SCRIPT' from '")
     }
 }

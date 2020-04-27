@@ -14,18 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.test.fixtures.file.TestFile
 
-trait GroovyPluginImplementation {
-    void dynamicGroovyPlugin(TestFile sourceFile) {
-        sourceFile << """
+class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest {
+    @Override
+    void buildLogicApplication() {
+        file("buildSrc/src/main/groovy/SneakyPlugin.groovy") << """
             import ${Project.name}
             import ${Plugin.name}
+            import ${CompileStatic.name}
 
+            @CompileStatic
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
                     // Static method call
@@ -37,7 +40,7 @@ trait GroovyPluginImplementation {
                     println("apply CI2 = " + sys.getProperty("CI2"))
 
                     // Call from closure
-                    def cl = { p ->
+                    def cl = { String p ->
                         println("apply \$p = " + sys.getProperty(p))
                     }
                     cl("CI3")
@@ -50,6 +53,10 @@ trait GroovyPluginImplementation {
                     }
                 }
             }
+        """
+
+        buildFile << """
+            apply plugin: SneakyPlugin
         """
     }
 }

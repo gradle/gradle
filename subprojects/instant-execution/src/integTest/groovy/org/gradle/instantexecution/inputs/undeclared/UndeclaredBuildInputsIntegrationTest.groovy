@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 
-class InstantExecutionUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
+class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
     def "plugin can use standard properties without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
