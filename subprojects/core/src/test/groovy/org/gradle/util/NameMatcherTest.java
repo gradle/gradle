@@ -15,6 +15,7 @@
  */
 package org.gradle.util;
 
+import org.gradle.internal.Cast;
 import org.junit.Test;
 
 import java.util.List;
@@ -174,7 +175,7 @@ public class NameMatcherTest {
 
     @Test
     public void doesNotSelectMapEntryWhenMultiplePartialMatches() {
-        Map<String, Integer> items = GUtil.map("someName", 9, "soName", 10);
+        Map<String, Integer> items = Cast.uncheckedNonnullCast(GUtil.map("someName", 9, "soName", 10));
         Integer match = matcher.find("soNa", items);
         assertThat(match, nullValue());
     }

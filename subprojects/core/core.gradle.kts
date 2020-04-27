@@ -149,6 +149,10 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }
