@@ -171,8 +171,8 @@ Here is a simple build script for the project.
 
 .A build for a custom plugin
 ====
-include::sample[dir="snippets/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
 ====
 
 [[sec:creating_a_plugin_id]]
@@ -216,8 +216,8 @@ The following example shows how you might do this when the plugin has been publi
 
 .Using a custom plugin in another project
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-plugin];build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-plugin];build.gradle.kts[tags=use-plugin]"]
 ====
 
 ==== Note for plugins published without `java-gradle-plugin`
@@ -226,8 +226,8 @@ In this case, the recommended way to resolve the plugin in another project is to
 
 .Resolution strategy for plugins without Plugin Marker Artifact
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
 ====
 
 [[sec:precompiled_plugins]]
