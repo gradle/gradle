@@ -16,7 +16,6 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -141,11 +140,12 @@ public abstract class ClassLoaderUtils {
             }
         }
 
+        @SuppressWarnings("unchecked")
         protected <T> T invoke(ClassLoader classLoader, String methodName, MethodType methodType, Object... arguments) {
             try {
                 MethodHandles.Lookup lookup = getLookupForClassLoader(classLoader);
                 MethodHandle methodHandle = lookup.findVirtual(ClassLoader.class, methodName, methodType);
-                return Cast.uncheckedNonnullCast(methodHandle.bindTo(classLoader).invokeWithArguments(arguments));
+                return (T) methodHandle.bindTo(classLoader).invokeWithArguments(arguments);
             } catch (Throwable e) {
                 throw new RuntimeException(e);
             }
@@ -162,15 +162,17 @@ public abstract class ClassLoaderUtils {
     }
 
     private static class ReflectionClassDefiner implements ClassDefiner {
-        private final JavaMethod<ClassLoader, Class<?>> defineClassMethod;
+        @SuppressWarnings("rawtypes")
+        private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
         private ReflectionClassDefiner() {
-            defineClassMethod = Cast.uncheckedNonnullCast(JavaMethod.of(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class));
+            defineClassMethod = JavaMethod.of(ClassLoader.class, Class.class, "defineClass", String.class, byte[].class, int.class, int.class);
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
-            return Cast.uncheckedNonnullCast(defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length));
+            return (Class<T>) defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length);
         }
 
         @Override
