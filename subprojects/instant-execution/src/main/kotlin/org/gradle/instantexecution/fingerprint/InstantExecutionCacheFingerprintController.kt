@@ -140,9 +140,6 @@ class InstantExecutionCacheFingerprintController internal constructor(
     inner class CacheFingerprintComponentHost
         : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
 
-        override val allInitScripts: List<File>
-            get() = startParameter.allInitScripts
-
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)
 

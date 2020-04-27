@@ -289,6 +289,7 @@ class ClassLoadersCachingIntegrationTest extends PersistentBuildProcessIntegrati
         notCached
     }
 
+    @ToBeFixedForInstantExecution
     def "reuse classloader when init script changed"() {
         addIsCachedCheck()
 
