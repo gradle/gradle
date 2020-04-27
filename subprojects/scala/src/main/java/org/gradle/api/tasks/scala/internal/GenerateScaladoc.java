@@ -80,9 +80,9 @@ public abstract class GenerateScaladoc implements WorkAction<ScaladocParameters>
     }
 
     private void invokeScalaDoc(List<String> args) throws ClassNotFoundException, NoSuchMethodException, InstantiationException, IllegalAccessException, InvocationTargetException {
-        Class scaladocClass = Thread.currentThread().getContextClassLoader().loadClass("scala.tools.nsc.ScalaDoc");
+        Class<?> scaladocClass = Thread.currentThread().getContextClassLoader().loadClass("scala.tools.nsc.ScalaDoc");
         Method process = scaladocClass.getMethod("process", String[].class);
-        Object scaladoc = scaladocClass.newInstance();
+        Object scaladoc = scaladocClass.getDeclaredConstructor().newInstance();
         process.invoke(scaladoc, new Object[]{args.toArray(new String[0])});
     }
 }
