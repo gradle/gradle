@@ -19,15 +19,13 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.annotation.Contract;
 import org.apache.http.annotation.ThreadingBehavior;
 import org.apache.http.auth.AuthScheme;
-import org.apache.http.auth.AuthSchemeFactory;
-import org.apache.http.auth.AuthSchemeProvider;
-import org.apache.http.params.HttpParams;
 import org.apache.http.protocol.HttpContext;
 
 import java.nio.charset.Charset;
 
 @Contract(threading = ThreadingBehavior.IMMUTABLE)
-public class HttpHeaderSchemeFactory implements AuthSchemeFactory, AuthSchemeProvider {
+@SuppressWarnings("deprecation")
+public class HttpHeaderSchemeFactory implements org.apache.http.auth.AuthSchemeFactory, org.apache.http.auth.AuthSchemeProvider {
 
     public HttpHeaderSchemeFactory(final Charset charset) {
         super();
@@ -38,7 +36,7 @@ public class HttpHeaderSchemeFactory implements AuthSchemeFactory, AuthSchemePro
     }
 
     @Override
-    public AuthScheme newInstance(final HttpParams params) {
+    public AuthScheme newInstance(final org.apache.http.params.HttpParams params) {
         return new HttpHeaderAuthScheme();
     }
 
