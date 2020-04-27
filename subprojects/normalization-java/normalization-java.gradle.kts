@@ -18,7 +18,6 @@ description = "API extraction for Java"
 plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
-    gradlebuild.`strict-compile`
 }
 
 dependencies {

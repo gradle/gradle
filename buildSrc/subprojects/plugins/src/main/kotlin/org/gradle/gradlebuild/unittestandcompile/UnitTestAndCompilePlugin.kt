@@ -135,7 +135,7 @@ class UnitTestAndCompilePlugin : Plugin<Project> {
         options.isIncremental = true
         options.forkOptions.jvmArgs?.add("-XX:+HeapDumpOnOutOfMemoryError")
         options.forkOptions.memoryMaximumSize = "1g"
-        options.compilerArgs = mutableListOf("-Xlint:-options", "-Xlint:-path")
+        options.compilerArgs.addAll(mutableListOf("-Xlint:-options", "-Xlint:-path"))
         if (!jdkForCompilation.current) {
             options.forkOptions.javaHome = jdkForCompilation.javaHome
         }
