@@ -223,7 +223,7 @@ class JavaEcosystemAttributesDescriber implements AttributeDescriber {
                 sb.append("preferably not packaged as a jar");
                 break;
             default:
-                sb.append("with the library elements '").append(name);
+                sb.append("with the library elements '").append(name).append("'");
         }
     }
 
