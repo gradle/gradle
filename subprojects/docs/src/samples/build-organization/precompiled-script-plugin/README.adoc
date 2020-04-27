@@ -13,23 +13,9 @@ This is achieved by layering three separate plugins:
 * `com.example.library` - adds publishing configuration to publish to the organization's repository.
 * `com.example.service` - adds integration tests and checks for mandatory content in a README.
 
-All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behavior.
+We've put the plugins in the `plugins` directory in the sample. All plugins created in this sample contain functional tests that use link:{userManualPath}/test_kit.html[TestKit] to verify their behavior.
 
-This sample project is intended to be built and published to a repository and consumed as an external plugin in other projects:
-====
-include::sample[dir="groovy/plugin",files="build.gradle[tags=publishing]"]
-include::sample[dir="kotlin/plugin",files="build.gradle.kts[tags=publishing]"]
-====
-
-The plugins in this sample can be published to a pre-configured repository by running:
-
-[listing.publishing]
-----
-$ cd plugin/
-$ ./gradlew publish
-----
-
-This root of this sample contains a consumer project that demonstrates how the plugins can be consumed once they are published:
+This root of this sample contains a consumer project that demonstrates how the plugins can be consumed using a link:{userManualPath}/composite_builds.html[composite build]:
 ====
 include::sample[dir="groovy",files="settings.gradle[];build.gradle[]"]
 include::sample[dir="kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
