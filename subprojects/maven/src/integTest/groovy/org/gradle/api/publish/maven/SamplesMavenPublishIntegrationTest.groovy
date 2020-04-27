@@ -252,13 +252,13 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @ToBeFixedForInstantExecution
     def pomGeneration() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file('groovy'))
 
         when:
         succeeds "generatePomFileForMavenCustomPublication"
 
         then:
-        def pom = sampleProject.dir.file("build/generated-pom.xml").assertExists()
+        def pom = sampleProject.dir.file("groovy/build/generated-pom.xml").assertExists()
         def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
         parsedPom.name == "Example"
     }
