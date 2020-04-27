@@ -137,8 +137,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
     }
 
     private
-    inner class CacheFingerprintComponentHost
-        : InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
+    inner class CacheFingerprintComponentHost :
+        InstantExecutionCacheFingerprintWriter.Host, InstantExecutionCacheFingerprintChecker.Host {
 
         override fun hashCodeOf(file: File) =
             virtualFileSystem.hashCodeOf(file)
