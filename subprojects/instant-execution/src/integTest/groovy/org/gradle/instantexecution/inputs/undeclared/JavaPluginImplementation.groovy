@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
 import org.gradle.api.Action
 import org.gradle.api.Plugin

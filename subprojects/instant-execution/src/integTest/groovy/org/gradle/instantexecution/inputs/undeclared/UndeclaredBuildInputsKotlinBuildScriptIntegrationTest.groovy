@@ -14,22 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
-class InstantExecutionUndeclaredBuildInputsDynamicGroovyBuildScriptIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
+class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     void buildLogicApplication() {
-        buildFile << """
-            buildscript {
+        buildKotlinFile << """
+            plugins {
                 println("apply BUILDSCRIPT = " + System.getProperty("BUILDSCRIPT"))
             }
         """
-
-        dynamicGroovyPlugin(buildFile)
-
-        buildFile << """
-            apply plugin: SneakyPlugin
+        kotlinPlugin(buildKotlinFile)
+        buildKotlinFile << """
             println("apply SCRIPT = " + System.getProperty("SCRIPT"))
+
+            plugins.apply(SneakyPlugin::class.java)
         """
     }
 

@@ -14,14 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
-class InstantExecutionUndeclaredBuildInputsJavaBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
+class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     void buildLogicApplication() {
-        javaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"))
-        buildFile << """
-            apply plugin: SneakyPlugin
+        def script = file("plugin.gradle.kts")
+        kotlinPlugin(script)
+        script << """
+            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
+
+            plugins.apply(SneakyPlugin::class.java)
         """
+        buildFile << """
+            apply from: "plugin.gradle.kts"
+        """
+    }
+
+    @Override
+    void additionalProblems() {
+        outputContains("- unknown property: read system property 'SCRIPT' from '")
     }
 }

@@ -14,13 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution
+package org.gradle.instantexecution.inputs.undeclared
 
-class InstantExecutionUndeclaredBuildInputsDynamicGroovyBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
+
+import org.gradle.integtests.fixtures.KotlinDslTestUtil
+
+class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     void buildLogicApplication() {
-        dynamicGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"))
-
+        file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
+        kotlinPlugin(file("buildSrc/src/main/kotlin/SneakyPlugin.kt"))
         buildFile << """
             apply plugin: SneakyPlugin
         """
