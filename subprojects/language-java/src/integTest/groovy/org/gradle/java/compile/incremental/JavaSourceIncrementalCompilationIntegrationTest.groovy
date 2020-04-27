@@ -17,6 +17,7 @@
 package org.gradle.java.compile.incremental
 
 import org.gradle.integtests.fixtures.CompiledLanguage
+import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import spock.lang.Issue
@@ -184,6 +185,7 @@ class JavaSourceIncrementalCompilationIntegrationTest extends BaseJavaSourceIncr
         outputs.recompiledClasses('MyClass', 'MyAnnotation', 'TopLevel$Inner', 'TopLevel')
     }
 
+    @ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/11851")
     @Requires(TestPrecondition.SYMLINKS)
     @Issue("https://github.com/gradle/gradle/issues/9202")
     def "source mapping file works with symlinks"() {
