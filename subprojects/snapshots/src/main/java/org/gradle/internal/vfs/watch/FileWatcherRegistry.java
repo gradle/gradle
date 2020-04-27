@@ -38,7 +38,7 @@ public interface FileWatcherRegistry extends Closeable, SnapshotHierarchy.Snapsh
         CREATED,
         MODIFIED,
         REMOVED,
-        INVALIDATE
+        INVALIDATED
     }
 
     /**

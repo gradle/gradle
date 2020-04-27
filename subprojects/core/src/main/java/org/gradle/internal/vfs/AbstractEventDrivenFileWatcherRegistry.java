@@ -16,19 +16,23 @@
 
 package org.gradle.internal.vfs;
 
+import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import net.rubygrapefruit.platform.file.FileWatcherCallback;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Optional;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.CREATED;
-import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATE;
+import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
@@ -36,43 +40,83 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
     private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
+    private final BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(4096);
+    private final Thread eventConsumerThread;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
 
+    private volatile boolean consumeEvents = true;
+    private volatile boolean stopping = false;
+
     public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        this.watcher = createWatcher(watcherCreator, handler);
+        this.watcher = createWatcher(watcherCreator);
+        this.eventConsumerThread = createAndStartEventConsumerThread(handler);
+    }
+
+    private Thread createAndStartEventConsumerThread(ChangeHandler handler) {
+        Thread thread = new Thread(() -> {
+            try {
+                while (consumeEvents) {
+                    FileWatchEvent nextEvent = fileEvents.take();
+                    if (!stopping) {
+                        nextEvent.handleEvent(new FileWatchEvent.Handler() {
+                            @Override
+                            public void handleChangeEvent(FileWatchEvent.ChangeType type, String absolutePath) {
+                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
+                                handler.handleChange(convertType(type), Paths.get(absolutePath));
+                            }
+
+                            @Override
+                            public void handleUnknownEvent(String absolutePath) {
+                                fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
+                                handler.handleLostState();
+                            }
+
+                            @Override
+                            public void handleOverflow(FileWatchEvent.OverflowType type, @Nullable String absolutePath) {
+                                if (absolutePath == null) {
+                                    handler.handleLostState();
+                                } else {
+                                    handler.handleChange(INVALIDATED, Paths.get(absolutePath));
+                                }
+                            }
+
+                            @Override
+                            public void handleFailure(Throwable failure) {
+                                LOGGER.error("Error while receiving file changes", failure);
+                                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(failure));
+                                handler.handleLostState();
+                            }
+
+                            @Override
+                            public void handleTerminated(boolean successful) {
+                                consumeEvents = false;
+                            }
+                        });
+                    }
+                }
+            } catch (InterruptedException e) {
+                // stop thread
+            }
+        });
+        thread.setDaemon(true);
+        thread.setName("File watcher consumer");
+        thread.start();
+        return thread;
     }
 
     public FileWatcher getWatcher() {
         return watcher;
     }
 
-    private FileWatcher createWatcher(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        return watcherCreator.createWatcher(new FileWatcherCallback() {
-            @Override
-            public void pathChanged(Type type, String path) {
-                handleEvent(type, path, handler);
-            }
-
-            @Override
-            public void reportError(Throwable ex) {
-                LOGGER.error("Error while receiving file changes", ex);
-                fileWatchingStatistics.updateAndGet(statistics -> statistics.errorWhileReceivingFileChanges(ex));
-                handler.handleLostState();
-            }
-        });
-    }
-
-    private void handleEvent(FileWatcherCallback.Type type, String path, ChangeHandler handler) {
-        if (type == FileWatcherCallback.Type.UNKNOWN) {
-            fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::unknownEventEncountered);
-            handler.handleLostState();
-        } else {
-            fileWatchingStatistics.updateAndGet(MutableFileWatchingStatistics::eventReceived);
-            handler.handleChange(convertType(type), Paths.get(path));
+    private FileWatcher createWatcher(FileWatcherCreator watcherCreator) {
+        try {
+            return watcherCreator.createWatcher(fileEvents);
+        } catch (InterruptedException e) {
+            throw UncheckedException.throwAsUncheckedException(e);
         }
     }
 
-    private static Type convertType(FileWatcherCallback.Type type) {
+    private static Type convertType(FileWatchEvent.ChangeType type) {
         switch (type) {
             case CREATED:
                 return CREATED;
@@ -80,8 +124,8 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
                 return MODIFIED;
             case REMOVED:
                 return REMOVED;
-            case INVALIDATE:
-                return INVALIDATE;
+            case INVALIDATED:
+                return INVALIDATED;
             default:
                 throw new AssertionError();
         }
@@ -94,11 +138,17 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
 
     @Override
     public void close() throws IOException {
-        watcher.close();
+        stopping = true;
+        try {
+            watcher.close();
+        } finally {
+            consumeEvents = false;
+            eventConsumerThread.interrupt();
+        }
     }
 
     protected interface FileWatcherCreator {
-        FileWatcher createWatcher(FileWatcherCallback callback);
+        FileWatcher createWatcher(BlockingQueue<FileWatchEvent> eventQueue) throws InterruptedException;
     }
 
     private static class MutableFileWatchingStatistics implements FileWatchingStatistics {
