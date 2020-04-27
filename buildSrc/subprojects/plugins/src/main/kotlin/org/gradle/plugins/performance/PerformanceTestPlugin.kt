@@ -461,6 +461,8 @@ class PerformanceTestPlugin : Plugin<Project> {
             libsRepository.required = true
             maxParallelForks = 1
 
+            useJUnitPlatform()
+
             project.findProperty(PropertyNames.baselines)?.let { baselines ->
                 task.configuredBaselines.set(baselines as String)
             }
