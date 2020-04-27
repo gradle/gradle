@@ -25,11 +25,11 @@ import org.gradle.api.tasks.testing.TestResult;
  * {@code TestListenerInternal} that causes the {@link TestExecuter} to stop at the first failed test
  */
 public class FailFastTestListenerInternal implements TestListenerInternal {
-    private final TestExecuter testExecuter;
+    private final TestExecuter<?> testExecuter;
     private final TestListenerInternal delegate;
     private boolean failed;
 
-    public FailFastTestListenerInternal(TestExecuter testExecuter, TestListenerInternal delegate) {
+    public FailFastTestListenerInternal(TestExecuter<?> testExecuter, TestListenerInternal delegate) {
         this.testExecuter = testExecuter;
         this.delegate = delegate;
     }
