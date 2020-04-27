@@ -60,6 +60,10 @@ dependencies {
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
 }
 
+strictCompile {
+    ignoreDeprecations() // Play support in Gradle core has been deprecated
+}
+
 tasks.withType<IntegrationTest>().configureEach {
     dependsOn(":platformPlay:integTestPrepare")
     // this is a workaround for which we need a better fix:
