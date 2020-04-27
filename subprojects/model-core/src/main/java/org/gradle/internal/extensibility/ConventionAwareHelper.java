@@ -107,7 +107,7 @@ public class ConventionAwareHelper implements ConventionMapping, HasConvention {
                 useMapping = false;
             }
             if (useMapping) {
-                returnValue = Cast.uncheckedNonnullCast((_mappings.get(propertyName).getValue(_convention, _source)));
+                returnValue = Cast.uncheckedNonnullCast(_mappings.get(propertyName).getValue(_convention, _source));
             }
         }
         return returnValue;

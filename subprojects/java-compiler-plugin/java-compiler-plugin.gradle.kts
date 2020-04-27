@@ -17,7 +17,6 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.classycle
-    gradlebuild.`strict-compile`
 }
 
 description = "A Java compiler plugin used by Gradle's incremental compiler"

@@ -91,7 +91,7 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
 
     @Override
     public void classpath(Iterable<File> files) {
-        GUtil.addToCollection(classpath, Cast.uncheckedNonnullCast(new Iterable<?>[] { files }));
+        GUtil.addToCollection(classpath, Cast.uncheckedNonnullCast(new Iterable<?>[]{files}));
     }
 
     @Override

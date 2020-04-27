@@ -98,7 +98,7 @@ public class ManagedFactories {
             }
             // TODO - should preserve the element type
             DefaultListProperty<Object> property = propertyFactory.listProperty(Object.class);
-            property.set((Cast.<Iterable<Object>>uncheckedNonnullCast(state)));
+            property.set(Cast.<Iterable<Object>>uncheckedNonnullCast(state));
             return type.cast(property);
         }
 

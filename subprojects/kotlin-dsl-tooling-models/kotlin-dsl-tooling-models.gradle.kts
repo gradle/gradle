@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`core-api-kotlin`
-    gradlebuild.`strict-compile`
 }
 
 description = "Kotlin DSL Tooling Models for IDEs"
