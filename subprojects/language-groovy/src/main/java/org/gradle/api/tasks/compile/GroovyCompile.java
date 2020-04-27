@@ -58,7 +58,6 @@ import org.gradle.api.tasks.SkipWhenEmpty;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.file.Deleter;
-import org.gradle.jvm.toolchain.JavaToolChain;
 import org.gradle.language.base.internal.compile.Compiler;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.IncubationLogger;
@@ -330,7 +329,8 @@ public class GroovyCompile extends AbstractCompile {
      * @since 4.0
      */
     @Nested
-    protected JavaToolChain getJavaToolChain() {
+    @SuppressWarnings("deprecation")
+    protected org.gradle.jvm.toolchain.JavaToolChain getJavaToolChain() {
         return getJavaToolChainFactory().forCompileOptions(getOptions());
     }
 
