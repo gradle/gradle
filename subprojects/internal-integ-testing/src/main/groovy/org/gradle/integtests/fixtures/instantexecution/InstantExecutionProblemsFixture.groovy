@@ -272,8 +272,11 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
     }
 
     protected static String problemsSummaryHeaderFor(int totalProblems, int uniqueProblems) {
-        return "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found, " +
-            "${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
+        def header = "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found"
+        if (totalProblems == uniqueProblems) {
+            return "${header}."
+        }
+        return "${header}, ${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
     }
 
     protected static void assertProblemsHtmlReport(

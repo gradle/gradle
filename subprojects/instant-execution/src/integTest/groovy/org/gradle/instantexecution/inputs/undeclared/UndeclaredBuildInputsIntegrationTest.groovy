@@ -33,7 +33,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         then:
         // TODO - use problems fixture, however build script class is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown property: read system property 'CI' from 'build_"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from 'build_"))
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsNormalizedString("Read system property 'CI' from 'build_"))
