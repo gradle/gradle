@@ -39,6 +39,7 @@ abstract class AbstractPropertyKotlinInterOpIntegrationTest extends AbstractProp
                     project.tasks.register("someTask", SomeTask::class.java) {
                         flag.set(true)
                         message.set("some value")
+                        number.set(1.23)
                         list.set(listOf(1, 2))
                         set.set(listOf(1, 2))
                         map.set(mapOf(1 to true, 2 to false))
@@ -59,6 +60,7 @@ abstract class AbstractPropertyKotlinInterOpIntegrationTest extends AbstractProp
                     project.tasks.register("someTask", SomeTask::class.java) {
                         flag.set(project.provider { true })
                         message.set(project.provider { "some value" })
+                        number.set(project.provider { 1.23 })
                         list.set(project.provider { listOf(1, 2) })
                         set.set(project.provider { listOf(1, 2) })
                         map.set(project.provider { mapOf(1 to true, 2 to false) })
@@ -80,6 +82,7 @@ abstract class AbstractPropertyKotlinInterOpIntegrationTest extends AbstractProp
                         val provider = project.provider { "some value" }
                         flag.set(provider.map { s -> !s.isEmpty() })
                         message.set(provider.map { s -> s })
+                        number.set(provider.map { s -> 1.23 })
                         list.set(provider.map { s -> listOf(1, 2) })
                         set.set(provider.map { s -> listOf(1, 2) })
                         map.set(provider.map { s -> mapOf(1 to true, 2 to false) })
