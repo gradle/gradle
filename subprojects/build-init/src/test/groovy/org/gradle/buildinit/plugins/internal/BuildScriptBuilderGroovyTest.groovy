@@ -243,7 +243,7 @@ dependencies {
  */
 
 // Compile stuff
-task compile(type: JavaCompile) {
+tasks.register('compile', JavaCompile) {
     classpath = 12
 }
 
@@ -271,7 +271,7 @@ artifacts {
 
 allprojects {
     // Compile stuff
-    task compile(type: JavaCompile) {
+    tasks.register('compile', JavaCompile) {
         // Set a property
         foo.bar = 'bazar'
 
