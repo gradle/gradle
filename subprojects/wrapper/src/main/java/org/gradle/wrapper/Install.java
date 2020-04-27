@@ -235,13 +235,13 @@ public class Install {
     }
 
     private void unzip(File zip, File dest) throws IOException {
-        Enumeration<? extends ZipEntry> entries;
+        Enumeration entries;
         ZipFile zipFile = new ZipFile(zip);
         try {
             entries = zipFile.entries();
 
             while (entries.hasMoreElements()) {
-                ZipEntry entry = entries.nextElement();
+                ZipEntry entry = (ZipEntry) entries.nextElement();
 
                 if (entry.isDirectory()) {
                     (new File(dest, entry.getName())).mkdirs();

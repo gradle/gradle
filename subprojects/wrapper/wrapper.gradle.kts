@@ -44,6 +44,10 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
 }
 
+strictCompile {
+    ignoreRawTypes() // Raw type used in 'org.gradle.wrapper.Install', consider fixing next time the wrapper code needs changes
+}
+
 tasks.register<Jar>("executableJar") {
     archiveFileName.set("gradle-wrapper.jar")
     manifest {
