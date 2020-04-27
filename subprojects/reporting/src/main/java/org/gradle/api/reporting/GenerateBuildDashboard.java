@@ -30,6 +30,7 @@ import org.gradle.api.reporting.internal.DefaultBuildDashboardReports;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.internal.Cast;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.util.ClosureBackedAction;
 import org.gradle.util.CollectionUtils;
@@ -103,7 +104,7 @@ public class GenerateBuildDashboard extends DefaultTask implements Reporting<Bui
                         if (!(task instanceof Reporting)) {
                             return;
                         }
-                        reports.add((Reporting) task);
+                        reports.add(Cast.uncheckedNonnullCast(task));
                     }
                 });
             }
