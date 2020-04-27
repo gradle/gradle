@@ -307,8 +307,8 @@ You can declare a dependency on the TestKit API of the current version of Gradle
 
 .Gradle TestKit dependencies
 ====
-include::sample[dir="snippets/testKit/gradleRunner/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
-include::sample[dir="snippets/testKit/gradleRunner/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/groovy",files="build.gradle[tags=declare-gradle-testkit-dependency]"]
+include::sample[dir="snippets/testKit/junitQuickstart/kotlin",files="build.gradle.kts[tags=declare-gradle-testkit-dependency]"]
 ====
 
 <<test_kit.adoc#test_kit,The TestKit chapter>> explains the use of TestKit by example.
