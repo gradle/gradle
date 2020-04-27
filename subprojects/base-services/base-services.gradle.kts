@@ -33,10 +33,6 @@ dependencies {
     jmh("com.google.guava:guava:27.1-android")
 }
 
-strictCompile {
-    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: org.gradle.api.specs.AndSpec.and()
-}
-
 jmh {
     include = listOf("HashingAlgorithmsBenchmark")
 }
