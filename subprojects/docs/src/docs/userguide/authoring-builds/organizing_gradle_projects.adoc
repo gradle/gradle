@@ -342,5 +342,5 @@ You can find a sample (`organizingGradleProjects/customGradleDistribution`) that
 
 .Building a custom Gradle distribution
 ====
-include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution",files="build.gradle[]"]
+include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution/groovy",files="build.gradle[]"]
 ====
