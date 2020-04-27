@@ -19,41 +19,21 @@ package org.gradle.internal.vfs
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.internal.vfs.watch.FileWatcherUpdater
 
-class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
+class LinuxFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
 
     @Override
     FileWatcherUpdater createUpdater(FileWatcher watcher) {
-        new HierarchicalFileWatcherUpdater(watcher)
+        new LinuxFileWatcherUpdater(watcher)
     }
 
-    def "only adds watches for the roots of must watch directories"() {
-        def mustWatchDirectoryRoots = ["first", "second"].collect { file(it).createDir() }
+    def "adds watches for all must watch directories"() {
+        def mustWatchDirectoryRoots = ["first", "second"].collect { file(it).createDir()}
         def mustWatchDirectories = mustWatchDirectoryRoots + file("first/within").createDir()
 
         when:
         updater.updateMustWatchDirectories(mustWatchDirectories)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, mustWatchDirectoryRoots) })
-        0 * _
-    }
-
-    def "does not watch snapshot roots in must watch directories"() {
-        def rootDir = file("root").createDir()
-        updater.updateMustWatchDirectories([rootDir])
-        def subDirInRootDir = rootDir.file("some/path").createDir()
-        def snapshotInRootDir = snapshotDirectory(subDirInRootDir)
-
-        when:
-        addSnapshot(snapshotInRootDir)
-        then:
-        0 * _
-
-        when:
-        updater.updateMustWatchDirectories([])
-        then:
-        1 * watcher.stopWatching({ equalAsSets(it, [rootDir]) })
-        then:
-        1 * watcher.startWatching({ equalAsSets(it, ([subDirInRootDir.parentFile])) })
+        1 * watcher.startWatching({ equalAsSets(it, mustWatchDirectories) })
         0 * _
     }
 
@@ -65,7 +45,7 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         when:
         addSnapshot(rootDirSnapshot)
         then:
-        1 * watcher.startWatching({ equalAsSets(it, [rootDir.parentFile]) })
+        1 * watcher.startWatching({ equalAsSets(it, [rootDir.parentFile, rootDir]) })
         0 * _
 
         when:
@@ -73,8 +53,6 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         invalidate(rootDirSnapshot.children[1])
         then:
         1 * watcher.stopWatching({ equalAsSets(it, [rootDir.parentFile]) })
-        then:
-        1 * watcher.startWatching({ equalAsSets(it, [rootDir]) })
         0 * _
 
         when:

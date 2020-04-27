@@ -114,8 +114,12 @@ public class LinuxFileWatcherUpdater implements FileWatcherUpdater {
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.entrySet().size());
         try {
-            fileWatcher.stopWatching(watchRootsToRemove);
-            fileWatcher.startWatching(watchRootsToAdd);
+            if (!watchRootsToRemove.isEmpty()) {
+                fileWatcher.stopWatching(watchRootsToRemove);
+            }
+            if (!watchRootsToAdd.isEmpty()) {
+                fileWatcher.startWatching(watchRootsToAdd);
+            }
         } catch (NativeException e) {
             if (e.getMessage().contains("Already watching path: ")) {
                 throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
