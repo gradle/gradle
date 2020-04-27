@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.internal.Cast;
 import org.junit.internal.builders.AllDefaultPossibilitiesBuilder;
 import org.junit.internal.builders.IgnoredBuilder;
 import org.junit.internal.builders.JUnit4Builder;
@@ -49,7 +50,7 @@ public class AllExceptIgnoredTestRunnerBuilder extends AllDefaultPossibilitiesBu
             } catch (Throwable t) {
                 //failed to instantiate BlockJUnitRunner. try deprecated JUnitRunner (for JUnit < 4.5)
                 try {
-                    Class<Runner> runnerClass = (Class<Runner>) Thread.currentThread().getContextClassLoader().loadClass("org.junit.internal.runners.JUnit4ClassRunner");
+                    Class<Runner> runnerClass = Cast.uncheckedNonnullCast(Thread.currentThread().getContextClassLoader().loadClass("org.junit.internal.runners.JUnit4ClassRunner"));
                     final Constructor<Runner> constructor = runnerClass.getConstructor(Class.class);
                     return constructor.newInstance(testClass);
                 } catch (Throwable e) {
