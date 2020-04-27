@@ -56,7 +56,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Welcome to Gradle")
     }
 
-    @UsesSample('/groovy')
+    @UsesSample('toolingApi/idea/groovy')
     @ToBeFixedForInstantExecution
     def "can use tooling API to build IDEA model"() {
         tweakProject()
