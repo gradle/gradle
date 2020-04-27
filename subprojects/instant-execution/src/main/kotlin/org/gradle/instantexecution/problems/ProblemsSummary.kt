@@ -51,10 +51,19 @@ fun uniquePropertyProblems(problems: List<PropertyProblem>): Set<UniquePropertyP
 
 private
 fun buildSummaryHeader(totalProblemCount: Int, uniquePropertyProblems: Set<UniquePropertyProblem>): String {
-    val problemOrProblems = if (totalProblemCount == 1) "problem was" else "problems were"
+    val result = StringBuilder()
+    result.append(totalProblemCount)
+    result.append(" instant execution ")
+    result.append(if (totalProblemCount == 1) "problem was found" else "problems were found")
     val uniqueProblemCount = uniquePropertyProblems.size
-    val seemsOrSeem = if (uniqueProblemCount == 1) "seems" else "seem"
-    return "$totalProblemCount instant execution $problemOrProblems found, $uniqueProblemCount of which $seemsOrSeem unique."
+    if (totalProblemCount != uniquePropertyProblems.size) {
+        result.append(", ")
+        result.append(uniqueProblemCount)
+        result.append(" of which ")
+        result.append(if (uniqueProblemCount == 1) "seems unique" else "seem unique")
+    }
+    result.append(".")
+    return result.toString()
 }
 
 

@@ -44,9 +44,9 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        outputContains("- unknown property: read system property 'CI' from '")
-        outputContains("- unknown property: read system property 'CI2' from '")
-        outputContains("- unknown property: read system property 'CI3' from '")
+        outputContains("- unknown location: read system property 'CI' from '")
+        outputContains("- unknown location: read system property 'CI2' from '")
+        outputContains("- unknown location: read system property 'CI3' from '")
         additionalProblems()
         outputContains("apply CI = null")
         outputContains("apply CI2 = null")

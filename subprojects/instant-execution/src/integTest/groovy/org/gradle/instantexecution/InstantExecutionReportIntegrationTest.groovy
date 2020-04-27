@@ -181,7 +181,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         then:
         problems.assertFailureHasProblems(failure) {
             withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
-            withProblem("unknown property: registration of listener on 'Gradle.addListener' is unsupported")
+            withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
         }
         failure.assertHasFailures(1)
 
@@ -192,7 +192,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         then:
         problems.assertResultHasProblems(result) {
             withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
-            withProblem("unknown property: registration of listener on 'Gradle.addListener' is unsupported")
+            withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
         }
     }
 
@@ -318,7 +318,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
+            withUniqueProblems("unknown location: registration of listener on '$registrationPoint' is unsupported")
             withProblemsWithStackTraceCount(1)
         }
 

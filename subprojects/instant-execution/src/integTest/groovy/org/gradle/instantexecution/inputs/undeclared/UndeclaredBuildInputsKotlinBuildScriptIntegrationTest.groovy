@@ -34,7 +34,7 @@ class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUnde
 
     @Override
     void additionalProblems() {
-        outputContains("- unknown property: read system property 'BUILDSCRIPT' from '")
-        outputContains("- unknown property: read system property 'SCRIPT' from '")
+        outputContains("- unknown location: read system property 'BUILDSCRIPT' from '")
+        outputContains("- unknown location: read system property 'SCRIPT' from '")
     }
 }
