@@ -174,7 +174,25 @@ samples {
 
         projectInfoPlugin
 
-        precompiledScriptPluginUtils
+        precompiledScriptPluginGroovy {
+            target = "plugin"
+        }
+        precompiledScriptPluginGroovyInBuildSrc {
+            sourceDirectory = precompiledScriptPluginGroovy.sourceDirectory
+            target = "buildSrc"
+        }
+
+        precompiledScriptPluginKotlin {
+            target = "plugin"
+        }
+        precompiledScriptPluginKotlinInBuildSrc {
+            sourceDirectory = precompiledScriptPluginKotlin.sourceDirectory
+            target = "buildSrc"
+        }
+
+        precompiledScriptPluginUtils {
+            target = "plugin"
+        }
         precompiledScriptPluginUtilsInBuildSrc {
             sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
             target = "buildSrc"
@@ -402,20 +420,32 @@ samples {
 
         precompiledScriptPlugin {
             sampleDirectory = samplesRoot.dir("build-organization/precompiled-script-plugin")
-            description = "Use the Groovy or Kotlin DSL in a plugin."
+            description = "Use the Groovy or Kotlin DSL in a published plugin."
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtils)
+            }
+            groovy {
+                from(templates.precompiledScriptPluginGroovy)
+            }
+            kotlin {
+                from(templates.precompiledScriptPluginKotlin)
             }
         }
 
         precompiledScriptPluginInBuildSrc {
             sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-precompiled-script-plugins")
-            displayName = "Precompiled script plugin in buildSrc"
+            displayName = "Precompiled Script Plugin in buildSrc"
             description = "Use the Groovy or Kotlin DSL in a plugin from buildSrc."
             category = "Build organization"
             common {
                 from(templates.precompiledScriptPluginUtilsInBuildSrc)
+            }
+            groovy {
+                from(templates.precompiledScriptPluginGroovyInBuildSrc)
+            }
+            kotlin {
+                from(templates.precompiledScriptPluginKotlinInBuildSrc)
             }
         }
 
