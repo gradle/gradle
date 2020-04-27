@@ -13,7 +13,7 @@ dependencies {
         exclude(group = "org.codehaus.groovy")
     }
     implementation("com.github.javaparser:javaparser-symbol-solver-core")
-    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.5.0")
+    implementation("org.gradle.kotlin:gradle-kotlin-dsl-conventions:0.4.1")
 }
 
 gradlePlugin {
