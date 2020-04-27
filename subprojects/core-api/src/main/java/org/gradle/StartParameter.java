@@ -556,7 +556,8 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
-            new UserHomeInitScriptFinder(getGradleUserHomeDir()), new DistributionInitScriptFinder(gradleHomeDir)
+            new UserHomeInitScriptFinder(getGradleUserHomeDir()),
+            new DistributionInitScriptFinder(gradleHomeDir)
         );
 
         List<File> scripts = new ArrayList<>(getInitScripts());
