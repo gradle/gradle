@@ -66,6 +66,10 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 }
 
+strictCompile {
+    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+}
+
 classycle {
     excludePatterns.set(listOf(
         "org/gradle/plugins/ide/internal/*",

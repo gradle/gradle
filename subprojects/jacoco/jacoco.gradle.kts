@@ -52,6 +52,10 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+strictCompile {
+    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+}
+
 classycle {
     excludePatterns.set(listOf(
         "org/gradle/internal/jacoco/*",
