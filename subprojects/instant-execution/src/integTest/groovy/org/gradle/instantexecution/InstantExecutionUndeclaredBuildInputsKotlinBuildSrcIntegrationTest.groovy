@@ -24,7 +24,7 @@ import org.gradle.integtests.fixtures.instantexecution.HasInstantExecutionProble
 
 class InstantExecutionUndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractInstantExecutionUndeclaredBuildInputsIntegrationTest {
     @Override
-    void buildLogicApplication() {
+    void pluginDefinition() {
         file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
         file("buildSrc/src/main/kotlin/SneakyPlugin.kt") << """
             import ${Project.name}
@@ -43,9 +43,6 @@ class InstantExecutionUndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends
                     }
                 }
             }
-        """
-        buildFile << """
-            apply plugin: SneakyPlugin
         """
     }
 

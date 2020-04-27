@@ -29,7 +29,6 @@ import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.internal.ScriptSourceHasher
 
 import org.gradle.internal.classloader.ClasspathHasher
-import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
@@ -101,7 +100,6 @@ class StandardKotlinScriptEvaluator(
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
     private val buildOperationExecutor: BuildOperationExecutor,
-    private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener
 ) : KotlinScriptEvaluator {
 
@@ -277,11 +275,8 @@ class StandardKotlinScriptEvaluator(
             location: File,
             className: String,
             accessorsClassPath: ClassPath?
-        ): CompiledScript {
-            val instrumentedClasses = cachedClasspathTransformer.transform(DefaultClassPath.of(location), CachedClasspathTransformer.StandardTransform.BuildLogic)
-            val classpath = instrumentedClasses.plus(accessorsClassPath ?: ClassPath.EMPTY)
-            return ScopeBackedCompiledScript(classLoaderScope, childScopeId, classpath, className)
-        }
+        ): CompiledScript =
+            ScopeBackedCompiledScript(classLoaderScope, childScopeId, location, className, accessorsClassPath)
 
         override val implicitImports: List<String>
             get() = this@StandardKotlinScriptEvaluator.implicitImports.list
@@ -291,8 +286,9 @@ class StandardKotlinScriptEvaluator(
     class ScopeBackedCompiledScript(
         private val classLoaderScope: ClassLoaderScope,
         private val childScopeId: String,
-        private val classPath: ClassPath,
-        private val className: String
+        private val location: File,
+        private val className: String,
+        private val accessorsClassPath: ClassPath?
     ) : CompiledScript {
         private
         var loadedClass: Class<*>? = null
@@ -317,6 +313,6 @@ class StandardKotlinScriptEvaluator(
         }
 
         private
-        fun prepareClassLoaderScope() = classLoaderScope.createLockedChild(childScopeId, classPath, null, null)
+        fun prepareClassLoaderScope() = classLoaderScope.createLockedChild(childScopeId, DefaultClassPath.of(location).plus(accessorsClassPath ?: ClassPath.EMPTY), null, null)
     }
 }
