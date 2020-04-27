@@ -79,6 +79,7 @@ public class DeprecationLogger {
      * Output: ${feature} has been deprecated.
      */
     @CheckReturnValue
+    @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecate(final String feature) {
         return new DeprecationMessageBuilder() {
             @Override
@@ -124,6 +125,7 @@ public class DeprecationLogger {
      * Output: ${behaviour} ${advice}
      */
     @CheckReturnValue
+    @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder.WithDeprecationTimeline warnOfChangedBehaviour(final String behaviour, final String advice) {
         return new DeprecationMessageBuilder.WithDeprecationTimeline(new DeprecationMessageBuilder() {
             @Override
@@ -137,6 +139,7 @@ public class DeprecationLogger {
      * Output: ${action} has been deprecated.
      */
     @CheckReturnValue
+    @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecateAction(final String action) {
         return new DeprecationMessageBuilder() {
             @Override
