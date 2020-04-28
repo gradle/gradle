@@ -23,6 +23,7 @@ import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.util.NumberUtil.ordinal
 import java.io.File
 
 
@@ -34,6 +35,7 @@ internal
 class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val allInitScripts: List<File>
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
@@ -61,6 +63,18 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
                         return reason
                     }
+                }
+                is InstantExecutionCacheFingerprint.InitScripts -> input.run {
+                    val initScripts = host.allInitScripts
+                    if (initScripts.size != hashes.size) {
+                        return "sequence of init scripts has changed"
+                    }
+                    initScripts.zip(hashes).forEachIndexed { index, (initScript, hash) ->
+                        if (host.hashCodeOf(initScript) != hash) {
+                            return "content of ${ordinal(index + 1)} init script, '${displayNameOf(initScript)}', has changed"
+                        }
+                    }
+                    null
                 }
                 else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
             }

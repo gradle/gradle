@@ -26,6 +26,10 @@ import java.io.File
 internal
 sealed class InstantExecutionCacheFingerprint {
 
+    data class InitScripts(
+        val hashes: List<HashCode?>
+    ) : InstantExecutionCacheFingerprint()
+
     data class TaskInputs(
         val taskPath: String,
         val fileSystemInputs: FileCollectionInternal,
