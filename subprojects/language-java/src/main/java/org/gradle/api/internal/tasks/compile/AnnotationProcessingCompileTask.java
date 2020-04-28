@@ -58,7 +58,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
     private final List<File> annotationProcessorPath;
     private final AnnotationProcessingResult result;
 
-    private URLClassLoader processorClassloader;
+    private ClassLoader processorClassloader;
     private boolean called;
 
     AnnotationProcessingCompileTask(JavaCompiler.CompilationTask delegate, Set<AnnotationProcessorDeclaration> processorDeclarations, List<File> annotationProcessorPath, AnnotationProcessingResult result) {
@@ -117,7 +117,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         delegate.setProcessors(processors);
     }
 
-    private URLClassLoader createProcessorClassLoader() {
+    ClassLoader createProcessorClassLoader() {
         return new URLClassLoader(
             DefaultClassPath.of(annotationProcessorPath).getAsURLArray(),
             getFilteredClassLoader(delegate.getClass().getClassLoader())
@@ -128,7 +128,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         try {
             return processorClassloader.loadClass(declaredProcessor.getClassName());
         } catch (ClassNotFoundException e) {
-            throw new IllegalArgumentException("Annotation processor '" + declaredProcessor.getClassName() + "' not found");
+            throw new IllegalArgumentException("Annotation processor '" + declaredProcessor.getClassName() + "' not found", e);
         }
     }
 
@@ -136,7 +136,7 @@ class AnnotationProcessingCompileTask implements JavaCompiler.CompilationTask {
         try {
             return (Processor) processorClass.getConstructor().newInstance();
         } catch (Exception e) {
-            throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'");
+            throw new IllegalArgumentException("Could not instantiate annotation processor '" + processorClass.getName() + "'", e);
         }
     }
 
