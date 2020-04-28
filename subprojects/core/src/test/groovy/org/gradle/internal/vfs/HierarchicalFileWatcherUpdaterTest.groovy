@@ -27,29 +27,54 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
     }
 
     def "only adds watches for the roots of must watch directories"() {
-        def mustWatchDirectoryRoots = ["first", "second"].collect { file(it).createDir() }
-        def mustWatchDirectories = mustWatchDirectoryRoots + file("first/within").createDir()
+        def firstDir = file("first").createDir()
+        def secondDir = file("second").createDir()
+        def directoryWithinFirst = file("first/within").createDir()
 
         when:
-        updater.updateMustWatchDirectories(mustWatchDirectories)
+        updater.updateMustWatchDirectories([firstDir, directoryWithinFirst, secondDir])
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, mustWatchDirectoryRoots) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [firstDir, secondDir]) })
+        0 * _
+    }
+
+    def "starts watching must watch directory which was beneath another must watch directory"() {
+        def firstDir = file("first").createDir()
+        def secondDir = file("second").createDir()
+        def directoryWithinFirst = file("first/within").createDir()
+
+        when:
+        updater.updateMustWatchDirectories([firstDir, directoryWithinFirst, secondDir])
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [firstDir, secondDir]) })
         0 * _
 
         when:
-        updater.updateMustWatchDirectories([file("first/within"), file("second")])
+        updater.updateMustWatchDirectories([directoryWithinFirst, secondDir])
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first")]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [firstDir]) })
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("first/within")]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
+        0 * _
+    }
+
+    def "stops watching must watch directory which is now beneath another must watch directory"() {
+        def firstDir = file("first").createDir()
+        def secondDir = file("second").createDir()
+        def directoryWithinFirst = file("first/within").createDir()
+
+        when:
+        updater.updateMustWatchDirectories([directoryWithinFirst, secondDir])
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [directoryWithinFirst, secondDir]) })
         0 * _
 
         when:
-        updater.updateMustWatchDirectories(mustWatchDirectoryRoots)
+        updater.updateMustWatchDirectories([firstDir, secondDir])
         then:
-        1 * watcher.stopWatching({ equalIgnoringOrder(it, [file("first/within")]) })
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [directoryWithinFirst]) })
         then:
-        1 * watcher.startWatching({ equalIgnoringOrder(it, [file("first")]) })
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [firstDir]) })
         0 * _
     }
 
