@@ -48,6 +48,57 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
 
     @Test
     @ToBeFixedForInstantExecution
+    fun `generated code is ignored by JaCoCo`() {
+
+        requireGradleDistributionOnEmbeddedExecuter()
+
+        withBuildScript("""
+            plugins {
+                `kotlin-dsl`
+                jacoco
+            }
+            ${jcenterRepository(GradleDsl.KOTLIN)}
+            dependencies {
+                testImplementation("junit:junit:4.12")
+            }
+            tasks {
+                test {
+                    useJUnit()
+                }
+                jacocoTestCoverageVerification {
+                    violationRules {
+                        rule {
+                            element = "CLASS"
+                            includes = listOf("org.gradle.*", "gradle.*")
+                            limit {
+                                minimum = 1.toBigDecimal()
+                            }
+                        }
+                        rule {
+                            element = "METHOD"
+                            includes = listOf("org.gradle.*", "gradle.*")
+                            limit {
+                                minimum = 1.toBigDecimal()
+                            }
+                        }
+                    }
+                }
+            }
+        """)
+
+        val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "plugins { base }")
+        val fooTest = withFile("src/test/kotlin/fooTest.kt", """
+            import org.junit.Test
+            class FooTest {
+                @Test fun testFoo() { }
+            }""".trimIndent()
+        )
+
+        build("test", "jacocoTestCoverageVerification")
+    }
+
+    @Test
+    @ToBeFixedForInstantExecution
     fun `precompiled script plugins tasks are cached and relocatable`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
