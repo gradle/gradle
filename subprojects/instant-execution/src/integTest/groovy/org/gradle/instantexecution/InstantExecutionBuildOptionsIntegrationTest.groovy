@@ -417,7 +417,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         then: "cache is NO longer valid"
         output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
-        outputContains "configuration file 'ci' has changed"
+        outputContains "file 'ci' has changed"
         instant.assertStateStored()
 
         where:
