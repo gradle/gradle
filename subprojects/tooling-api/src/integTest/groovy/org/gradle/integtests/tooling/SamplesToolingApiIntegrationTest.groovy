@@ -36,6 +36,10 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
     def "can use tooling API to build Eclipse model"() {
         tweakProject()
 
+        if (true) {
+            throw new RuntimeException()
+        }
+
         when:
         run()
 
