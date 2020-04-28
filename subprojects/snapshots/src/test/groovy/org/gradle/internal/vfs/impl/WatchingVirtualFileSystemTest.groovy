@@ -53,7 +53,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.afterBuildStarted(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
-        1 * watcherRegistryFactory.startWatcher(_) >> watcherRegistry
+        1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_)
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         0 * _
@@ -80,7 +80,7 @@ class WatchingVirtualFileSystemTest extends Specification {
         watchingVirtualFileSystem.afterBuildStarted(true)
         then:
         _ * delegate.getRoot() >> new AtomicSnapshotHierarchyReference(snapshotHierarchy)
-        1 * watcherRegistryFactory.startWatcher(_) >> watcherRegistry
+        1 * watcherRegistryFactory.createFileWatcherRegistry(_) >> watcherRegistry
         1 * watcherRegistry.getAndResetStatistics() >> Stub(FileWatcherRegistry.FileWatchingStatistics)
         1 * capturingUpdateFunctionDecorator.setSnapshotDiffListener(_)
         0 * _

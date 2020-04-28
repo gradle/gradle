@@ -30,7 +30,7 @@ public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherR
     private static final int FILE_EVENT_QUEUE_SIZE = 4096;
 
     @Override
-    public FileWatcherRegistry startWatcher(FileWatcherRegistry.ChangeHandler handler) {
+    public FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler) {
         BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
             FileWatcher watcher = createFileWatcher(fileEvents);
