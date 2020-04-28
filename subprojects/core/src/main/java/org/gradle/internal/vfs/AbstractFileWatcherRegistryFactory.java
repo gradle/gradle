@@ -18,7 +18,6 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
 import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
 import org.gradle.internal.vfs.watch.FileWatcherUpdater;
@@ -42,7 +41,7 @@ public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherR
                 fileEvents
             );
         } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
+            throw new RuntimeException(e);
         }
     }
 
