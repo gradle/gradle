@@ -33,4 +33,12 @@ dependencies {
     testImplementation(project(":resources"))
     testImplementation(testFixtures(project(":core")))
     testImplementation(testFixtures(project(":fileCollections")))
+
+    integTestRuntimeOnly(project(":runtimeApiInfo"))
+    integTestRuntimeOnly(project(":workers"))
+    integTestRuntimeOnly(project(":dependencyManagement"))
+    integTestRuntimeOnly(project(":apiMetadata"))
+    integTestRuntimeOnly(project(":kotlinDsl"))
+    integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+    integTestRuntimeOnly(project(":kotlinDslToolingBuilders"))
 }
