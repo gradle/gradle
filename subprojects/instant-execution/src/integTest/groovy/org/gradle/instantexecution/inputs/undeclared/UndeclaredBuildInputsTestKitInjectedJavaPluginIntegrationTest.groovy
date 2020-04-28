@@ -30,7 +30,9 @@ import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.internal.ToolingApiGradleExecutor
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
+import spock.lang.Ignore
 
+@Ignore
 @Requires(TestPrecondition.NOT_WINDOWS)
 class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     TestFile jar
