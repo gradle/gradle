@@ -11,7 +11,6 @@ import org.gradle.api.Generated
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
 import org.gradle.api.internal.classpath.Module
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
 import org.gradle.kotlin.dsl.accessors.TestWithClassPath

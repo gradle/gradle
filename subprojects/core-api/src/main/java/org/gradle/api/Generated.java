@@ -24,10 +24,13 @@ import java.lang.annotation.Target;
 
 /**
  * Indicates that the annotated member code was generated.
+ *
+ * @since 6.5
  */
 @Retention(RetentionPolicy.CLASS)
 @Target(ElementType.TYPE)
 @Documented
+@Incubating
 @SuppressWarnings("unused")
 public @interface Generated {
 }

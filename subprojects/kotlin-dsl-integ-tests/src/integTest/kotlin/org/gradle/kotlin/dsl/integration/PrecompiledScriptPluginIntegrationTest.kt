@@ -86,8 +86,8 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
             }
         """)
 
-        val fooScript = withFile("src/main/kotlin/foo.gradle.kts", "plugins { base }")
-        val fooTest = withFile("src/test/kotlin/fooTest.kt", """
+        withFile("src/main/kotlin/foo.gradle.kts", "plugins { base }")
+        withFile("src/test/kotlin/fooTest.kt", """
             import org.junit.Test
             class FooTest {
                 @Test fun testFoo() { }
