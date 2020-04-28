@@ -65,7 +65,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InitScripts -> input.run {
-                    checkInitScriptsAreUpToDate(scripts)?.let { reason ->
+                    checkInitScriptsAreUpToDate(fingerprints)?.let { reason ->
                         return reason
                     }
                 }
@@ -75,8 +75,8 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun checkInitScriptsAreUpToDate(scripts: List<InstantExecutionCacheFingerprint.InputFile>): InvalidationReason? {
-        val previous = scripts.iterator()
+    fun checkInitScriptsAreUpToDate(fingerprints: List<InstantExecutionCacheFingerprint.InputFile>): InvalidationReason? {
+        val previous = fingerprints.iterator()
         val current = host.allInitScripts.iterator()
         var index = 1
         while (current.hasNext()) {

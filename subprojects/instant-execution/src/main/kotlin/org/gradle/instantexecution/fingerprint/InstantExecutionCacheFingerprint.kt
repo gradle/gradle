@@ -27,7 +27,7 @@ internal
 sealed class InstantExecutionCacheFingerprint {
 
     data class InitScripts(
-        val scripts: List<InputFile>
+        val fingerprints: List<InputFile>
     ) : InstantExecutionCacheFingerprint()
 
     data class TaskInputs(

@@ -52,9 +52,9 @@ import java.io.OutputStream
 class InstantExecutionFingerprintCheckerTest {
 
     @Test
-    fun `changed initscript is reported`() {
+    fun `modified init script is reported`() {
         assertThat(
-            invalidationReasonForInitScripts(
+            invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1)
                 ),
@@ -67,9 +67,9 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     @Test
-    fun `index of changed initscript is reported when file names differ`() {
+    fun `index of modified init script is reported when file names differ`() {
         assertThat(
-            invalidationReasonForInitScripts(
+            invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1),
                     File("before.gradle.kts") to HashCode.fromInt(2)
@@ -84,9 +84,9 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     @Test
-    fun `added initscript is reported`() {
+    fun `added init script is reported`() {
         assertThat(
-            invalidationReasonForInitScripts(
+            invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1)
                 ),
@@ -100,9 +100,9 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     @Test
-    fun `added initscripts are reported`() {
+    fun `added init scripts are reported`() {
         assertThat(
-            invalidationReasonForInitScripts(
+            invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1)
                 ),
@@ -117,9 +117,9 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     @Test
-    fun `removed initscript is reported`() {
+    fun `removed init script is reported`() {
         assertThat(
-            invalidationReasonForInitScripts(
+            invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1),
                     File("removed.init.gradle.kts") to HashCode.fromInt(2)
@@ -133,9 +133,9 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     @Test
-    fun `removed initscripts are reported`() {
+    fun `removed init scripts are reported`() {
         assertThat(
-            invalidationReasonForInitScripts(
+            invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1),
                     File("removed.init.gradle.kts") to HashCode.fromInt(2),
@@ -153,7 +153,7 @@ class InstantExecutionFingerprintCheckerTest {
     fun `build script invalidation reason`() {
         val scriptFile = File("build.gradle.kts")
         assertThat(
-            checkFingerprintWith(
+            checkFingerprintGiven(
                 mock {
                     on { hashCodeOf(scriptFile) } doReturn HashCode.fromInt(1)
                     on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
@@ -181,7 +181,7 @@ class InstantExecutionFingerprintCheckerTest {
 
         // expect:
         assertThat(
-            checkFingerprintWith(
+            checkFingerprintGiven(
                 mock {
                     on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
                 },
@@ -192,10 +192,10 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     private
-    fun invalidationReasonForInitScripts(
+    fun invalidationReasonForInitScriptsChange(
         from: Iterable<Pair<File, HashCode?>>,
         to: List<Pair<File, HashCode?>>
-    ): InvalidationReason? = checkFingerprintWith(
+    ): InvalidationReason? = checkFingerprintGiven(
         mock {
             on { allInitScripts } doReturn to.map { (file, _) -> file }
             on { hashCodeOf(any()) }.then { invocation ->
@@ -211,7 +211,7 @@ class InstantExecutionFingerprintCheckerTest {
     )
 
     private
-    fun checkFingerprintWith(
+    fun checkFingerprintGiven(
         host: InstantExecutionCacheFingerprintChecker.Host,
         fingerprint: InstantExecutionCacheFingerprint
     ): InvalidationReason? {
