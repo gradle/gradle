@@ -27,9 +27,8 @@ import org.gradle.kotlin.dsl.support.serviceOf
  *
  * @see PrecompiledProjectScript
  */
-@Suppress("deprecation")
 @Deprecated("Kept for compatibility with precompiled script plugins published with Gradle versions prior to 6.0")
-open class PrecompiledSettingsScript(target: Settings) : SettingsScriptApi(target) {
+open class PrecompiledSettingsScript(target: Settings) : @Suppress("deprecation") SettingsScriptApi(target) {
 
     override val fileOperations by lazy { fileOperationsFor(delegate) }
 

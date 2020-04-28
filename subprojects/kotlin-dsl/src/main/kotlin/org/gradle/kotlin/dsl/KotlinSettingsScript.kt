@@ -62,7 +62,6 @@ import kotlin.script.templates.ScriptTemplateDefinition
 /**
  * Base class for Kotlin settings scripts.
  */
-@Suppress("deprecation")
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = "^(settings|.+\\.settings)\\.gradle\\.kts$")
@@ -77,7 +76,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 @GradleDsl
 abstract class KotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
+) : @Suppress("deprecation") SettingsScriptApi(host.target) /* TODO:kotlin-dsl configure implicit receiver */ {
 
     /**
      * The [ScriptHandler] for this script.
