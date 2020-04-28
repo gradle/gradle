@@ -128,7 +128,7 @@ class TaskNodeCodec(
     private
     suspend fun ReadContext.readUpToDateSpec(task: TaskInternal) {
         if (readBoolean()) {
-            task.outputs.upToDateWhen(read() as Spec<Task>)
+            task.outputs.upToDateWhen(readNonNull<Spec<Task>>())
         }
     }
 

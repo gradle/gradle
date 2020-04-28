@@ -207,7 +207,7 @@ ValueSourceProviderCodec(
 class
 PropertyCodec(private val propertyFactory: PropertyFactory, private val providerCodec: FixedValueReplacingProviderCodec) : Codec<DefaultProperty<*>> {
     override suspend fun WriteContext.encode(value: DefaultProperty<*>) {
-        writeClass(value.type!!)
+        writeClass(value.type as Class<*>)
         providerCodec.run { encodeProvider(value.provider) }
     }
 

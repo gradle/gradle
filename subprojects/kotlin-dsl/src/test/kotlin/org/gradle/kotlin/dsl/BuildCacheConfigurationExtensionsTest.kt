@@ -48,6 +48,7 @@ class BuildCacheConfigurationExtensionsTest {
         }
     }
 
+    @Suppress("deprecation")
     @Test
     fun local() {
 
