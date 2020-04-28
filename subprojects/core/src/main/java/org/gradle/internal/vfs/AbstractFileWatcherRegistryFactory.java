@@ -27,9 +27,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherRegistryFactory {
+    private static final int FILE_EVENT_QUEUE_SIZE = 4096;
+
     @Override
     public FileWatcherRegistry startWatcher(FileWatcherRegistry.ChangeHandler handler) {
-        BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(4096);
+        BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(FILE_EVENT_QUEUE_SIZE);
         try {
             FileWatcher watcher = createFileWatcher(fileEvents);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher);
