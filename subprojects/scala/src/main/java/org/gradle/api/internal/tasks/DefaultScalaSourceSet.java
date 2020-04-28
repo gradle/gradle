@@ -44,6 +44,7 @@ public class DefaultScalaSourceSet implements ScalaSourceSet, HasPublicType {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public ScalaSourceSet scala(Closure configureClosure) {
         configure(configureClosure, getScala());
         return this;

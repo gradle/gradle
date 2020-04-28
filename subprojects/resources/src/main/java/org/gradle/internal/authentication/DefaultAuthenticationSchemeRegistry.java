@@ -18,6 +18,7 @@ package org.gradle.internal.authentication;
 
 import com.google.common.collect.Maps;
 import org.gradle.authentication.Authentication;
+import org.gradle.internal.Cast;
 
 import java.util.Collections;
 import java.util.Map;
@@ -31,7 +32,7 @@ public class DefaultAuthenticationSchemeRegistry implements AuthenticationScheme
     }
 
     @Override
-    public Map<Class<? extends Authentication>, Class<? extends Authentication>> getRegisteredSchemes() {
-        return Collections.unmodifiableMap(registeredSchemes);
+    public <T extends Authentication> Map<Class<T>, Class<? extends T>> getRegisteredSchemes() {
+        return Collections.unmodifiableMap(Cast.uncheckedNonnullCast(registeredSchemes));
     }
 }

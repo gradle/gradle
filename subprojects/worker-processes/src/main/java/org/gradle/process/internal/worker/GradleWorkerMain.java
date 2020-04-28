@@ -63,7 +63,8 @@ public class GradleWorkerMain {
             implementationClassLoader = getClass().getClassLoader();
         }
 
-        Class<? extends Callable> workerClass = implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
+        @SuppressWarnings("unchecked")
+        Class<? extends Callable<Void>> workerClass = (Class<? extends Callable<Void>>) implementationClassLoader.loadClass("org.gradle.process.internal.worker.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
         Callable<Void> main = workerClass.getConstructor(DataInputStream.class).newInstance(instr);
         main.call();
     }

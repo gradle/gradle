@@ -17,12 +17,13 @@
 package org.gradle.internal.logging.sink;
 
 import org.fusesource.jansi.AnsiOutputStream;
-import org.fusesource.jansi.WindowsAnsiOutputStream;
+import org.fusesource.jansi.WindowsAnsiPrintStream;
 import org.gradle.internal.os.OperatingSystem;
 
 import java.io.FilterOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.PrintStream;
 
 import static org.fusesource.jansi.internal.CLibrary.STDOUT_FILENO;
 import static org.fusesource.jansi.internal.CLibrary.isatty;
@@ -100,7 +101,7 @@ final class AnsiConsoleUtil {
 
             // On windows we know the console does not interpret ANSI codes..
             try {
-                return new WindowsAnsiOutputStream(stream);
+                return new WindowsAnsiPrintStream(new PrintStream(stream));
             } catch (Throwable ignore) {
                 // this happens when JNA is not in the path.. or
                 // this happens when the stdout is being redirected to a file.

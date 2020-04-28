@@ -38,7 +38,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
      * Creates an empty action set.
      */
     public static <T> ImmutableActionSet<T> empty() {
-        return Cast.uncheckedCast(EMPTY);
+        return Cast.uncheckedNonnullCast(EMPTY);
     }
 
     /**
@@ -62,7 +62,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
 
     private static <T> void unpackAction(Action<? super T> action, ImmutableSet.Builder<Action<? super T>> builder) {
         if (action instanceof ImmutableActionSet) {
-            ImmutableActionSet<T> immutableSet = (ImmutableActionSet<T>) action;
+            ImmutableActionSet<T> immutableSet = Cast.uncheckedNonnullCast(action);
             immutableSet.unpackInto(builder);
         } else {
             builder.add(action);
@@ -79,15 +79,15 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             return this;
         }
         if (action instanceof SingletonSet) {
-            SingletonSet<T> singletonSet = (SingletonSet) action;
+            SingletonSet<T> singletonSet = Cast.uncheckedNonnullCast(action);
             return addOne(singletonSet.singleAction);
         }
         if (action instanceof SetWithFewActions) {
-            SetWithFewActions<T> compositeSet = (SetWithFewActions<T>) action;
+            SetWithFewActions<T> compositeSet = Cast.uncheckedNonnullCast(action);
             return addAll(compositeSet);
         }
         if (action instanceof SetWithManyActions) {
-            SetWithManyActions<T> compositeSet = (SetWithManyActions) action;
+            SetWithManyActions<T> compositeSet = Cast.uncheckedNonnullCast(action);
             return addAll(compositeSet);
         }
         return addOne(action);
@@ -133,7 +133,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             return this;
         }
         if (isEmpty()) {
-            return (ImmutableActionSet<T>) sibling;
+            return Cast.uncheckedNonnullCast(sibling);
         }
         return add(sibling);
     }
@@ -191,7 +191,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             if (action.equals(singleAction)) {
                 return this;
             }
-            return new SetWithFewActions<T>(new Action[]{singleAction, action});
+            return new SetWithFewActions<T>(Cast.<Action<? super T>[]>uncheckedNonnullCast(new Action<?>[]{singleAction, action}));
         }
 
         @Override
@@ -202,7 +202,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             }
             if (source.actions.length < FEW_VALUES && !source.contains(singleAction)) {
                 // Adding a small set with no duplicates
-                Action<? super T>[] newActions = new Action[source.actions.length + 1];
+                Action<? super T>[] newActions = Cast.uncheckedNonnullCast(new Action<?>[source.actions.length + 1]);
                 newActions[0] = singleAction;
                 System.arraycopy(source.actions, 0, newActions, 1, source.actions.length);
                 return new SetWithFewActions<T>(newActions);
@@ -232,10 +232,10 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
     }
 
     private static class SetWithFewActions<T> extends ImmutableActionSet<T> {
-        private final Action<? super T> actions[];
+        private final Action<? super T>[] actions;
 
         SetWithFewActions(ImmutableSet<Action<? super T>> set) {
-            actions = set.toArray(new Action[set.size()]);
+            actions = Cast.uncheckedNonnullCast(set.toArray(new Action<?>[set.size()]));
         }
 
         SetWithFewActions(Action<? super T>[] actions) {
@@ -255,7 +255,7 @@ public abstract class ImmutableActionSet<T> implements Action<T>, InternalListen
             }
             if (actions.length < FEW_VALUES) {
                 // Adding an action that is not a duplicate
-                Action<? super T>[] newActions = new Action[actions.length + 1];
+                Action<? super T>[] newActions = Cast.uncheckedNonnullCast(new Action<?>[actions.length + 1]);
                 System.arraycopy(actions, 0, newActions, 0, actions.length);
                 newActions[actions.length] = action;
                 return new SetWithFewActions<T>(newActions);

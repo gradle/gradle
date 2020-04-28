@@ -149,6 +149,11 @@ dependencies {
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }

@@ -169,13 +169,9 @@ public abstract class JacocoReportBase extends JacocoBase {
      *
      * @param tasks one or more tasks to add
      */
+    @SuppressWarnings("unchecked")
     public void executionData(TaskCollection tasks) {
-        tasks.all(new Action<Task>() {
-            @Override
-            public void execute(Task task) {
-                executionData(task);
-            }
-        });
+        tasks.all((Action<Task>) this::executionData);
     }
 
     /**

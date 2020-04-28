@@ -71,7 +71,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
     }
 
     private PublishFilter toFilter(final Closure filter) {
-        return (PublishFilter) DefaultGroovyMethods.asType(filter, PublishFilter.class);
+        return DefaultGroovyMethods.asType(filter, PublishFilter.class);
     }
 
     @Override

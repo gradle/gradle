@@ -19,7 +19,6 @@ import accessors.java
 plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
-    gradlebuild.`strict-compile`
 }
 
 description = "Tools to take immutable, comparable snapshots of files and other things"

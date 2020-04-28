@@ -63,6 +63,10 @@ dependencies {
     integTestRuntimeOnly(project(":plugins"))
 }
 
+strictCompile {
+    ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
+}
+
 classycle {
     // These public packages have classes that are tangled with the corresponding internal package.
     excludePatterns.set(listOf(

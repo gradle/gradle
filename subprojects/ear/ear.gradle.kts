@@ -42,6 +42,10 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/plugins/ear/internal/*"))
 }

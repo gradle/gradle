@@ -126,7 +126,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         @Override
         public void run() {
             try {
-                ConditionalExecution operation;
+                ConditionalExecution<?> operation;
                 while ((operation = waitForNextOperation()) != null) {
                     runBatch(operation);
                 }
@@ -135,7 +135,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
             }
         }
 
-        private ConditionalExecution waitForNextOperation() {
+        private ConditionalExecution<?> waitForNextOperation() {
             lock.lock();
             try {
                 // Wait for work to be submitted if the queue is empty and our worker count is under max workers
@@ -158,8 +158,8 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         /**
          * Run executions until there are none ready to be executed.
          */
-        private void runBatch(final ConditionalExecution firstOperation) {
-            ConditionalExecution operation = firstOperation;
+        private void runBatch(final ConditionalExecution<?> firstOperation) {
+            ConditionalExecution<?> operation = firstOperation;
             while (operation != null) {
                 runExecution(operation);
                 operation = getReadyExecution();
@@ -172,8 +172,8 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
          * execution is removed from the queue and returned.  If unsuccessful, it continues to iterate
          * the queue looking for an execution that is ready to execute.
          */
-        private ConditionalExecution getReadyExecution() {
-            final MutableReference<ConditionalExecution> execution = MutableReference.empty();
+        private ConditionalExecution<?> getReadyExecution() {
+            final MutableReference<ConditionalExecution<?>> execution = MutableReference.empty();
             coordinationService.withStateLock(new Transformer<ResourceLockState.Disposition, ResourceLockState>() {
                 @Override
                 public ResourceLockState.Disposition transform(ResourceLockState resourceLockState) {
@@ -185,7 +185,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
                     try {
                         Iterator<ConditionalExecution<T>> itr = queue.iterator();
                         while (itr.hasNext()) {
-                            ConditionalExecution next = itr.next();
+                            ConditionalExecution<T> next = itr.next();
                             if (next.getResourceLock().tryLock()) {
                                 execution.set(next);
                                 itr.remove();
@@ -210,7 +210,7 @@ public class DefaultConditionalExecutionQueue<T> implements ConditionalExecution
         /**
          * Executes a conditional execution and then releases it's resource lock
          */
-        private void runExecution(ConditionalExecution execution) {
+        private void runExecution(ConditionalExecution<?> execution) {
             try {
                 execution.getExecution().run();
             } finally {

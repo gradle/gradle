@@ -32,6 +32,7 @@ import org.gradle.api.internal.DynamicObjectAware;
 import org.gradle.api.internal.coerce.MethodArgumentsTransformer;
 import org.gradle.api.internal.coerce.PropertySetTransformer;
 import org.gradle.api.internal.coerce.StringToEnumTransformer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.JavaPropertyReflectionUtil;
 import org.gradle.internal.state.ModelObject;
@@ -598,7 +599,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
     }
 
     private class MapAdapter extends MetaClassAdapter {
-        Map<String, Object> map = (Map<String, Object>) bean;
+        Map<String, Object> map = Cast.uncheckedNonnullCast(bean);
 
         @Override
         public boolean hasProperty(String name) {

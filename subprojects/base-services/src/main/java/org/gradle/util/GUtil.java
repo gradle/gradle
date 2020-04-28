@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Transformer;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.specs.Spec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.io.StreamByteBuffer;
 
@@ -58,40 +59,40 @@ public class GUtil {
     private static final Pattern WORD_SEPARATOR = Pattern.compile("\\W+");
     private static final Pattern UPPER_LOWER = Pattern.compile("(?m)([A-Z]*)([a-z0-9]*)");
 
-    public static <T extends Collection> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
+    public static <T extends Collection<?>> T flatten(Object[] elements, T addTo, boolean flattenMaps) {
         return flatten(asList(elements), addTo, flattenMaps);
     }
 
-    public static <T extends Collection> T flatten(Object[] elements, T addTo) {
+    public static <T extends Collection<?>> T flatten(Object[] elements, T addTo) {
         return flatten(asList(elements), addTo);
     }
 
-    public static <T extends Collection> T flatten(Collection elements, T addTo) {
+    public static <T extends Collection<?>> T flatten(Collection<?> elements, T addTo) {
         return flatten(elements, addTo, true);
     }
 
-    public static <T extends Collection> T flattenElements(Object... elements) {
+    public static <T extends Collection<?>> T flattenElements(Object... elements) {
         Collection<T> out = new LinkedList<T>();
         flatten(elements, out, true);
-        return (T) out;
+        return Cast.uncheckedNonnullCast(out);
     }
 
-    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMapsAndArrays) {
+    public static <T extends Collection<?>> T flatten(Collection<?> elements, T addTo, boolean flattenMapsAndArrays) {
         return flatten(elements, addTo, flattenMapsAndArrays, flattenMapsAndArrays);
     }
 
-    public static <T extends Collection> T flatten(Collection elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
-        Iterator iter = elements.iterator();
+    public static <T extends Collection<?>> T flatten(Collection<?> elements, T addTo, boolean flattenMaps, boolean flattenArrays) {
+        Iterator<?> iter = elements.iterator();
         while (iter.hasNext()) {
             Object element = iter.next();
             if (element instanceof Collection) {
-                flatten((Collection) element, addTo, flattenMaps, flattenArrays);
+                flatten((Collection<?>) element, addTo, flattenMaps, flattenArrays);
             } else if ((element instanceof Map) && flattenMaps) {
-                flatten(((Map) element).values(), addTo, flattenMaps, flattenArrays);
+                flatten(((Map<?, ?>) element).values(), addTo, flattenMaps, flattenArrays);
             } else if ((element.getClass().isArray()) && flattenArrays) {
                 flatten(asList((Object[]) element), addTo, flattenMaps, flattenArrays);
             } else {
-                addTo.add(element);
+                (Cast.<Collection<Object>>uncheckedNonnullCast(addTo)).add(element);
             }
         }
         return addTo;
@@ -103,15 +104,15 @@ public class GUtil {
      * @param input any object
      * @return collection of flattened input or single input wrapped in a collection.
      */
-    public static Collection collectionize(Object input) {
+    public static Collection<?> collectionize(Object input) {
         if (input == null) {
             return emptyList();
         } else if (input instanceof Collection) {
-            Collection out = new LinkedList();
-            flatten((Collection) input, out, false, true);
+            Collection<?> out = new LinkedList<Object>();
+            flatten((Collection<?>) input, out, false, true);
             return out;
         } else if (input.getClass().isArray()) {
-            Collection out = new LinkedList();
+            Collection<?> out = new LinkedList<Object>();
             flatten(asList((Object[]) input), out, false, true);
             return out;
         } else {
@@ -119,12 +120,12 @@ public class GUtil {
         }
     }
 
-    public static List flatten(Collection elements, boolean flattenMapsAndArrays) {
-        return flatten(elements, new ArrayList(), flattenMapsAndArrays);
+    public static List<Object> flatten(Collection<Object> elements, boolean flattenMapsAndArrays) {
+        return flatten(elements, new ArrayList<Object>(), flattenMapsAndArrays);
     }
 
-    public static List flatten(Collection elements) {
-        return flatten(elements, new ArrayList());
+    public static List<Object> flatten(Collection<Object> elements) {
+        return flatten(elements, new ArrayList<Object>());
     }
 
     public static String asPath(Iterable<?> collection) {
@@ -184,8 +185,8 @@ public class GUtil {
         };
     }
 
-    public static Map addMaps(Map map1, Map map2) {
-        HashMap map = new HashMap();
+    public static <K, V> Map<K, V> addMaps(Map<K, V> map1, Map<K, V> map2) {
+        HashMap<K, V> map = new HashMap<K, V>();
         map.putAll(map1);
         map.putAll(map2);
         return map;
@@ -256,8 +257,8 @@ public class GUtil {
         }
     }
 
-    public static Map map(Object... objects) {
-        Map map = new HashMap();
+    public static Map<Object, Object> map(Object... objects) {
+        Map<Object, Object> map = new HashMap<Object, Object>();
         assert objects.length % 2 == 0;
         for (int i = 0; i < objects.length; i += 2) {
             map.put(objects[i], objects[i + 1]);

@@ -49,7 +49,7 @@ public class SetSerializer<T> extends AbstractCollectionSerializer<T, Set<T>> im
             return false;
         }
 
-        SetSerializer rhs = (SetSerializer) obj;
+        SetSerializer<?> rhs = (SetSerializer<?>) obj;
         return linkedHashSet == rhs.linkedHashSet;
     }
 

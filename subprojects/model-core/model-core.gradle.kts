@@ -57,6 +57,10 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 classycle {
     excludePatterns.set(listOf(
         "org/gradle/model/internal/core/**",

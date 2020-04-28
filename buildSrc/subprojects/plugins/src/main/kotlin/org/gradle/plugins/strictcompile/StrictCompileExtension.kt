@@ -15,11 +15,32 @@
  */
 package org.gradle.plugins.strictcompile
 
+import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.kotlin.dsl.*
+
 
 /**
  * Strict compilation options honored by [gradlebuild.Strict_compile_gradle].
  */
-open class StrictCompileExtension {
+open class StrictCompileExtension(val tasks: TaskContainer) {
 
-    var ignoreDeprecations = false
+    fun ignoreDeprecations() {
+        tasks.withType<JavaCompile>().configureEach {
+            options.compilerArgs.add("-Xlint:-deprecation")
+        }
+    }
+
+    fun ignoreRawTypes() {
+        tasks.withType<JavaCompile>().configureEach {
+            options.compilerArgs.add("-Xlint:-rawtypes")
+        }
+    }
+
+    fun ignoreParameterizedVarargType() {
+        tasks.withType<JavaCompile>().configureEach {
+            // There is no way to ignore this warning, so we need to turn off "-Werror" completely
+            options.compilerArgs = options.compilerArgs - "-Werror"
+        }
+    }
 }

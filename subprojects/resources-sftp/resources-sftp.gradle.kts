@@ -18,7 +18,6 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    gradlebuild.`strict-compile`
 }
 
 dependencies {

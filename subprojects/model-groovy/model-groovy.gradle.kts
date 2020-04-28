@@ -19,7 +19,6 @@
  */
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.`strict-compile`
 }
 
 dependencies {

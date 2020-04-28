@@ -143,7 +143,7 @@ public abstract class CollectionUtils {
     /**
      * Returns a sorted copy of the provided collection of things. Uses the natural ordering of the things.
      */
-    public static <T extends Comparable> List<T> sort(Iterable<T> things) {
+    public static <T extends Comparable<T>> List<T> sort(Iterable<T> things) {
         List<T> copy = toMutableList(things);
         Collections.sort(copy);
         return copy;

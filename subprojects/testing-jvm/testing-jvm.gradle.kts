@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    // id "gradlebuild.strict-compile"
 }
 
 gradlebuildJava.usedInWorkers()
@@ -64,6 +63,11 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.Test)
+    ignoreDeprecations() // uses deprecated software model types
 }
 
 classycle {

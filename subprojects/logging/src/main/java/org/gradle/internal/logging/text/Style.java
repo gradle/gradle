@@ -79,6 +79,6 @@ public class Style {
     }
 
     public static Style of(Color color) {
-        return new Style(Collections.EMPTY_SET, color);
+        return new Style(Collections.<Emphasis>emptySet(), color);
     }
 }

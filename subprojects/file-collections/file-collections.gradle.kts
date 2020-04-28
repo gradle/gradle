@@ -56,6 +56,10 @@ dependencies {
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 classycle {
     // Some cycles have been inherited from the time these classes were in :core
     excludePatterns.set(listOf("org/gradle/api/internal/file/collections/"))

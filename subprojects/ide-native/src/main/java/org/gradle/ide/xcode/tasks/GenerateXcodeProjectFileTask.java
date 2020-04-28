@@ -43,6 +43,7 @@ import org.gradle.ide.xcode.internal.xcodeproj.PBXSourcesBuildPhase;
 import org.gradle.ide.xcode.internal.xcodeproj.PBXTarget;
 import org.gradle.ide.xcode.internal.xcodeproj.XcodeprojSerializer;
 import org.gradle.ide.xcode.tasks.internal.XcodeProjectFile;
+import org.gradle.internal.Cast;
 import org.gradle.language.swift.SwiftVersion;
 import org.gradle.nativeplatform.MachineArchitecture;
 import org.gradle.plugins.ide.api.PropertyListGeneratorTask;
@@ -141,7 +142,7 @@ public class GenerateXcodeProjectFileTask extends PropertyListGeneratorTask<Xcod
 
     @Override
     protected XcodeProjectFile create() {
-        return new XcodeProjectFile(getPropertyListTransformer());
+        return new XcodeProjectFile(Cast.uncheckedNonnullCast(getPropertyListTransformer()));
     }
 
     private PBXFileReference toFileReference(File file) {

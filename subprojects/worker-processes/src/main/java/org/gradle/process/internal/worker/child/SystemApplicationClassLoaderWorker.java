@@ -148,7 +148,9 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
         Action<WorkerProcessContext> action;
         try {
             ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorker), getClass().getClassLoader());
-            action = (Action<WorkerProcessContext>) instr.readObject();
+            @SuppressWarnings("unchecked")
+            Action<WorkerProcessContext> deserializedAction = (Action<WorkerProcessContext>) instr.readObject();
+            action = deserializedAction;
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

@@ -68,6 +68,10 @@ dependencies {
     }
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'
 val toolsJar = buildJvms.testJvm.map { jvm -> jvm.toolsClasspath }
 dependencies {

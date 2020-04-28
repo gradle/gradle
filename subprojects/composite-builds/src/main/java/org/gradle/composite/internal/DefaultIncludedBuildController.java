@@ -307,11 +307,11 @@ class DefaultIncludedBuildController implements Runnable, Stoppable, IncludedBui
         }
 
         @Override
-        public void beforeExecute(TaskIdentity taskIdentity) {
+        public void beforeExecute(TaskIdentity<?> taskIdentity) {
         }
 
         @Override
-        public void afterExecute(TaskIdentity taskIdentity, org.gradle.api.tasks.TaskState state) {
+        public void afterExecute(TaskIdentity<?> taskIdentity, org.gradle.api.tasks.TaskState state) {
             Throwable failure = state.getFailure();
             taskCompleted(taskIdentity.getTaskPath(), failure);
         }

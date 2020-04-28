@@ -52,6 +52,10 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+strictCompile {
+    ignoreRawTypes()
+}
+
 classycle {
     excludePatterns.set(listOf(
         "org/gradle/internal/jacoco/*",

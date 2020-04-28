@@ -24,6 +24,7 @@ import java.util.List;
 
 public class DiagnosticsServices extends AbstractPluginServiceRegistry {
     @Override
+    @SuppressWarnings("rawtypes")
     public void registerGlobalServices(ServiceRegistration registration) {
         registration.addProvider(new Object() {
             TypeAwareBinaryRenderer createBinaryRenderer(List<AbstractBinaryRenderer> renderers, ModelSchemaStore schemaStore) {

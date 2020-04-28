@@ -49,12 +49,12 @@ public class IsolatedClassloaderWorkerFactory implements WorkerFactory {
             public DefaultWorkResult execute(IsolatedParametersActionExecutionSpec<?> spec, BuildOperationRef parentBuildOperation) {
                 return executeWrappedInBuildOperation(spec, parentBuildOperation, workSpec -> {
                     // Serialize the incoming class and parameters
-                    TransportableActionExecutionSpec<?> transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
+                    TransportableActionExecutionSpec transportableSpec = actionExecutionSpecFactory.newTransportableSpec(spec);
 
                     ClassLoader workerInfrastructureClassloader = classLoaderRegistry.getPluginsClassLoader();
                     ClassLoaderStructure classLoaderStructure = ((IsolatedClassLoaderWorkerRequirement) workerRequirement).getClassLoaderStructure();
                     ClassLoader workerClassLoader = IsolatedClassloaderWorker.createIsolatedWorkerClassloader(classLoaderStructure, workerInfrastructureClassloader, legacyTypesSupport);
-                    RequestHandler<TransportableActionExecutionSpec<?>, DefaultWorkResult> worker = new IsolatedClassloaderWorker(workerClassLoader, internalServices, actionExecutionSpecFactory, instantiatorFactory);
+                    RequestHandler<TransportableActionExecutionSpec, DefaultWorkResult> worker = new IsolatedClassloaderWorker(workerClassLoader, internalServices, actionExecutionSpecFactory, instantiatorFactory);
                     return worker.run(transportableSpec);
                 });
             }

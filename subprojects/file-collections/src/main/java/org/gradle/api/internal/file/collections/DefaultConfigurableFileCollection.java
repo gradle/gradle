@@ -269,7 +269,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector plus(PathToFileResolver resolver, Object[] paths) {
+        public ValueCollector plus(PathToFileResolver resolver, Object... paths) {
             return setFrom(resolver, paths);
         }
     }
@@ -335,7 +335,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector plus(PathToFileResolver resolver, Object[] paths) {
+        public ValueCollector plus(PathToFileResolver resolver, Object... paths) {
             Collections.addAll(items, paths);
             return this;
         }
@@ -369,7 +369,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         @Override
-        public ValueCollector plus(PathToFileResolver resolver, Object[] paths) {
+        public ValueCollector plus(PathToFileResolver resolver, Object... paths) {
             throw new UnsupportedOperationException("Should not be called");
         }
 

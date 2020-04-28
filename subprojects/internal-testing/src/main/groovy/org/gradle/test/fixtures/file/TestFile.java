@@ -855,11 +855,11 @@ public class TestFile extends File {
         return new TestFileHelper(this).executeSuccess(Arrays.asList(args), null);
     }
 
-    public ExecOutput execWithFailure(List args, List env) {
+    public ExecOutput execWithFailure(List<?> args, List<?> env) {
         return new TestFileHelper(this).executeFailure(args, env);
     }
 
-    public ExecOutput execute(List args, List env) {
+    public ExecOutput execute(List<?> args, List<?> env) {
         return new TestFileHelper(this).executeSuccess(args, env);
     }
 

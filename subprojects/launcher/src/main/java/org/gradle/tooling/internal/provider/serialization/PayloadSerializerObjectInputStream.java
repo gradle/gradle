@@ -73,7 +73,9 @@ class PayloadSerializerObjectInputStream extends ExceptionReplacingObjectInputSt
         for (int i = 0; i < count; i++) {
             actualInterfaces[i] = readClass();
         }
-        return Proxy.getProxyClass(actualInterfaces[0].getClassLoader(), actualInterfaces);
+        @SuppressWarnings("deprecation")
+        Class<?> proxyClass = Proxy.getProxyClass(actualInterfaces[0].getClassLoader(), actualInterfaces);
+        return proxyClass;
     }
 
     @Override

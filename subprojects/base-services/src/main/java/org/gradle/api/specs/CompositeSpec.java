@@ -29,7 +29,7 @@ import java.util.List;
  * @param <T> The target type for this Spec
  */
 public abstract class CompositeSpec<T> implements Spec<T> {
-    private static final Spec<?>[] EMPTY = new Spec[0];
+    private static final Spec<?>[] EMPTY = new Spec<?>[0];
 
     private final Spec<? super T>[] specs;
 
@@ -90,7 +90,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
             return false;
         }
 
-        CompositeSpec that = (CompositeSpec) o;
+        CompositeSpec<?> that = (CompositeSpec<?>) o;
         return Arrays.equals(specs, that.specs);
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.provider.ValueSupplier;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.Cast;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 
 import javax.annotation.Nullable;
@@ -120,17 +121,17 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 }
             } else if (dependency instanceof Iterable && !(dependency instanceof Path)) {
                 // Path is Iterable, but we don't want to unpack it
-                Iterable<?> iterable = (Iterable) dependency;
+                Iterable<?> iterable = Cast.uncheckedNonnullCast(dependency);
                 addAllFirst(queue, toArray(iterable, Object.class));
             } else if (dependency instanceof Map) {
-                Map<?, ?> map = (Map) dependency;
+                Map<?, ?> map = Cast.uncheckedNonnullCast(dependency);
                 addAllFirst(queue, map.values().toArray());
             } else if (dependency instanceof Object[]) {
                 Object[] array = (Object[]) dependency;
                 addAllFirst(queue, array);
             } else if (dependency instanceof Callable) {
-                Callable callable = (Callable) dependency;
-                Object callableResult = uncheckedCall(callable);
+                Callable<?> callable = Cast.uncheckedNonnullCast(dependency);
+                Object callableResult = uncheckedCall(Cast.uncheckedNonnullCast(callable));
                 if (callableResult != null) {
                     queue.addFirst(callableResult);
                 }

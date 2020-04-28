@@ -56,6 +56,7 @@ public abstract class AbstractFileCollection implements FileCollectionInternal {
         this.patternSetFactory = patternSetFactory;
     }
 
+    @SuppressWarnings("deprecation")
     public AbstractFileCollection() {
         this.patternSetFactory = PatternSets.getNonCachingPatternSetFactory();
     }

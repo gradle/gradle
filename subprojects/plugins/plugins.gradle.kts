@@ -86,6 +86,11 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreDeprecations() // uses deprecated software model types
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/**"))
 }

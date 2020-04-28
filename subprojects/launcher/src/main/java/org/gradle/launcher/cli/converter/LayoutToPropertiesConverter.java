@@ -25,6 +25,7 @@ import org.gradle.initialization.ParallelismBuildOptions;
 import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.launcher.daemon.configuration.DaemonBuildOptions;
@@ -58,11 +59,11 @@ public class LayoutToPropertiesConverter {
         configureFromHomeDir(layout.getGradleInstallationHomeDir(), properties);
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromHomeDir(layout.getGradleUserHomeDir(), properties);
-        configureFromSystemproperties(properties);
+        configureFromSystemproperties(Cast.uncheckedNonnullCast(properties));
         return properties;
     }
 
-    private void configureFromSystemproperties(Map properties) {
+    private void configureFromSystemproperties(Map<Object, Object> properties) {
         for (Map.Entry<Object, Object> entry : System.getProperties().entrySet()) {
             Object key = entry.getKey();
             Object value = entry.getValue();

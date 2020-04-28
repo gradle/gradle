@@ -18,6 +18,7 @@ package org.gradle.api.specs;
 import com.google.common.collect.ObjectArrays;
 import groovy.lang.Closure;
 import org.gradle.api.specs.internal.ClosureSpec;
+import org.gradle.internal.Cast;
 
 /**
  * A {@link org.gradle.api.specs.CompositeSpec} which requires all its specs to be true in order to evaluate to true.
@@ -26,12 +27,14 @@ import org.gradle.api.specs.internal.ClosureSpec;
  * @param <T> The target type for this Spec
  */
 public class AndSpec<T> extends CompositeSpec<T> {
-    public static final AndSpec<?> EMPTY = new AndSpec<Object>();
+    public static final AndSpec<?> EMPTY = new AndSpec<>();
 
     public AndSpec() {
         super();
     }
 
+    @SafeVarargs
+    @SuppressWarnings("varargs")
     public AndSpec(Spec<? super T>... specs) {
         super(specs);
     }
@@ -51,6 +54,7 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return true;
     }
 
+    @SuppressWarnings("varargs")
     public AndSpec<T> and(Spec<? super T>... specs) {
         if (specs.length == 0) {
             return this;
@@ -71,14 +75,12 @@ public class AndSpec<T> extends CompositeSpec<T> {
      *
      * @since 4.3
      */
-    @SuppressWarnings("unchecked")
     public AndSpec<T> and(Spec<? super T> spec) {
-        return and(new Spec[]{spec});
+        return and(Cast.<Spec<? super T>[]>uncheckedNonnullCast(new Spec<?>[]{spec}));
     }
 
-    @SuppressWarnings("unchecked")
-    public AndSpec<T> and(Closure spec) {
-        return and(new ClosureSpec<T>(spec));
+    public AndSpec<T> and(Closure<T> spec) {
+        return and(new ClosureSpec<>(spec));
     }
 
     public static <T> AndSpec<T> empty() {

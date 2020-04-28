@@ -18,6 +18,7 @@ package org.gradle.internal.snapshot.impl;
 
 import org.gradle.api.Named;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
+import org.gradle.internal.Cast;
 
 import javax.annotation.Nullable;
 
@@ -36,7 +37,7 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
             return type.cast(this);
         }
         if (type.isEnum()) {
-            return type.cast(Enum.valueOf(type.asSubclass(Enum.class), getValue()));
+            return type.cast(Enum.valueOf(Cast.uncheckedNonnullCast(type.asSubclass(Enum.class)), getValue()));
         }
         if (Named.class.isAssignableFrom(type)) {
             return type.cast(instantiator.named(type.asSubclass(Named.class), getValue()));

@@ -40,6 +40,11 @@ dependencies {
     add("reports", "jquery:jquery.min:3.4.1@js")
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: GenerateBuildDashboard.aggregate()
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/api/reporting/internal/**"))
 }

@@ -60,6 +60,7 @@ public class HttpHeaderAuthScheme implements ContextAwareAuthScheme {
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Header authenticate(final Credentials credentials, final HttpRequest request) throws AuthenticationException {
         return this.authenticate(credentials, request, new BasicHttpContext());
     }

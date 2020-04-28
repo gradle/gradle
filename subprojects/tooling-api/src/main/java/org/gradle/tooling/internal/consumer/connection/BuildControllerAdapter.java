@@ -73,7 +73,7 @@ class BuildControllerAdapter extends AbstractBuildController implements BuildCon
         validateParameters(parameterType, parameterInitializer);
         if (parameterType != null) {
             // TODO: move this to ObjectFactory
-            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class[]{parameterType}, new ToolingParameterProxy()));
+            P parameter = parameterType.cast(Proxy.newProxyInstance(parameterType.getClassLoader(), new Class<?>[]{parameterType}, new ToolingParameterProxy()));
             parameterInitializer.execute(parameter);
             return parameter;
         } else {

@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel;
 
 public abstract class AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     @Override
-    public StyledTextOutput create(Class logCategory) {
+    public StyledTextOutput create(Class<?> logCategory) {
         return create(logCategory.getName());
     }
 
@@ -30,7 +30,7 @@ public abstract class AbstractStyledTextOutputFactory implements StyledTextOutpu
     }
 
     @Override
-    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
+    public StyledTextOutput create(Class<?> logCategory, LogLevel logLevel) {
         return create(logCategory.getName(), logLevel);
     }
 }

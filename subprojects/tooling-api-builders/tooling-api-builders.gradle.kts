@@ -1,6 +1,5 @@
 plugins {
     gradlebuild.distribution.`plugins-implementation-java`
-    gradlebuild.`strict-compile`
 }
 
 dependencies {
@@ -31,5 +30,5 @@ dependencies {
 }
 
 strictCompile {
-    ignoreDeprecations = true
+    ignoreDeprecations()
 }

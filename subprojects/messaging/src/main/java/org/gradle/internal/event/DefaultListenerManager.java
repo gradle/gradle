@@ -16,6 +16,7 @@
 
 package org.gradle.internal.event;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.dispatch.Dispatch;
 import org.gradle.internal.dispatch.MethodInvocation;
 import org.gradle.internal.dispatch.ProxyDispatchAdapter;
@@ -33,11 +34,10 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 
-@SuppressWarnings({"unchecked"})
 public class DefaultListenerManager implements ListenerManager {
     private final Map<Object, ListenerDetails> allListeners = new LinkedHashMap<Object, ListenerDetails>();
     private final Map<Object, ListenerDetails> allLoggers = new LinkedHashMap<Object, ListenerDetails>();
-    private final Map<Class<?>, EventBroadcast> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast>();
+    private final Map<Class<?>, EventBroadcast<?>> broadcasters = new ConcurrentHashMap<Class<?>, EventBroadcast<?>>();
     private final Object lock = new Object();
     private final DefaultListenerManager parent;
 
@@ -111,7 +111,7 @@ public class DefaultListenerManager implements ListenerManager {
 
     private <T> EventBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
         synchronized (lock) {
-            EventBroadcast<T> broadcaster = broadcasters.get(listenerClass);
+            EventBroadcast<T> broadcaster = Cast.uncheckedCast(broadcasters.get(listenerClass));
             if (broadcaster == null) {
                 broadcaster = new EventBroadcast<T>(listenerClass);
                 broadcasters.put(listenerClass, broadcaster);

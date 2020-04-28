@@ -17,6 +17,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.api.Transformer;
+import org.gradle.internal.Cast;
 import org.gradle.tooling.BuildAction;
 import org.gradle.tooling.BuildActionExecuter;
 import org.gradle.tooling.GradleConnectionException;
@@ -61,9 +62,9 @@ class DefaultBuildActionExecuter<T> extends AbstractLongRunningOperation<Default
 
     @Override
     public T run() throws GradleConnectionException {
-        BlockingResultHandler<Object> handler = new BlockingResultHandler<Object>(Object.class);
+        BlockingResultHandler<Object> handler = new BlockingResultHandler<>(Object.class);
         run(handler);
-        return (T) handler.getResult();
+        return Cast.uncheckedNonnullCast(handler.getResult());
     }
 
     @Override

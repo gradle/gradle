@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.isolation.Isolatable;
 import org.gradle.internal.snapshot.ValueSnapshot;
 
@@ -53,7 +54,7 @@ public class IsolatedEnumValueSnapshot extends EnumValueSnapshot implements Isol
             return type.cast(value);
         }
         if (type.isEnum() && type.getName().equals(value.getClass().getName())) {
-            return type.cast(Enum.valueOf(type.asSubclass(Enum.class), value.name()));
+            return type.cast(Enum.valueOf(Cast.uncheckedNonnullCast(type.asSubclass(Enum.class)), value.name()));
         }
         return null;
     }

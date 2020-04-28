@@ -433,8 +433,8 @@ public class IsolatableSerializerRegistry extends DefaultSerializerRegistry {
         public IsolatedEnumValueSnapshot read(Decoder decoder) throws Exception {
             String className = decoder.readString();
             String name = decoder.readString();
-            Class<? extends Enum> enumClass = Cast.uncheckedCast(fromClassName(className));
-            return new IsolatedEnumValueSnapshot(Enum.valueOf(enumClass, name));
+            Class<? extends Enum<?>> enumClass = Cast.uncheckedCast(fromClassName(className));
+            return new IsolatedEnumValueSnapshot(Enum.valueOf(Cast.uncheckedCast(enumClass), name));
         }
 
         @Override

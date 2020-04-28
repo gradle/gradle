@@ -18,6 +18,7 @@ package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.internal.Cast;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
@@ -49,36 +50,36 @@ public class BaseSerializerFactory {
 
     public <T> Serializer<T> getSerializerFor(Class<T> type) {
         if (type.equals(String.class)) {
-            return (Serializer<T>) STRING_SERIALIZER;
+            return Cast.uncheckedNonnullCast(STRING_SERIALIZER);
         }
         if (type.equals(Long.class)) {
-            return (Serializer) LONG_SERIALIZER;
+            return Cast.uncheckedNonnullCast(LONG_SERIALIZER);
         }
         if (type.equals(File.class)) {
-            return (Serializer) FILE_SERIALIZER;
+            return Cast.uncheckedNonnullCast(FILE_SERIALIZER);
         }
         if (type.equals(byte[].class)) {
-            return (Serializer) BYTE_ARRAY_SERIALIZER;
+            return Cast.uncheckedNonnullCast(BYTE_ARRAY_SERIALIZER);
         }
         if (type.isEnum()) {
-            return new EnumSerializer(type);
+            return Cast.uncheckedNonnullCast(new EnumSerializer<Enum<?>>(Cast.<Class<Enum<?>>>uncheckedNonnullCast(type)));
         }
         if (type.equals(Boolean.class)) {
-            return (Serializer<T>) BOOLEAN_SERIALIZER;
+            return Cast.uncheckedNonnullCast(BOOLEAN_SERIALIZER);
         }
         if (Throwable.class.isAssignableFrom(type)) {
-            return (Serializer<T>) THROWABLE_SERIALIZER;
+            return Cast.uncheckedNonnullCast(THROWABLE_SERIALIZER);
         }
         if (HashCode.class.isAssignableFrom(type)) {
-            return (Serializer<T>) HASHCODE_SERIALIZER;
+            return Cast.uncheckedNonnullCast(HASHCODE_SERIALIZER);
         }
         if (Path.class.isAssignableFrom(type)) {
-            return (Serializer) PATH_SERIALIZER;
+            return Cast.uncheckedNonnullCast(PATH_SERIALIZER);
         }
         return new DefaultSerializer<T>(type.getClassLoader());
     }
 
-    private static class EnumSerializer<T extends Enum> extends AbstractSerializer<T> {
+    private static class EnumSerializer<T extends Enum<?>> extends AbstractSerializer<T> {
         private final Class<T> type;
 
         private EnumSerializer(Class<T> type) {
@@ -101,7 +102,7 @@ public class BaseSerializerFactory {
                 return false;
             }
 
-            EnumSerializer rhs = (EnumSerializer) obj;
+            EnumSerializer<?> rhs = (EnumSerializer<?>) obj;
             return Objects.equal(type, rhs.type);
         }
 

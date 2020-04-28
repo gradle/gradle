@@ -36,3 +36,7 @@ dependencies {
 
     integTestImplementation(library("slf4j_api"))
 }
+
+strictCompile {
+    ignoreDeprecations() // most of this project has been deprecated
+}

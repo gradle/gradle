@@ -16,6 +16,7 @@
 
 package org.gradle.internal.remote.internal.hub;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
@@ -49,10 +50,10 @@ class DefaultMethodArgsSerializer implements MethodArgsSerializer {
             return defaultArgsSerializer.forTypes(types);
         }
 
-        final Serializer<Object>[] serializers = new Serializer[types.length];
+        final Serializer<Object>[] serializers = Cast.uncheckedNonnullCast(new Serializer<?>[types.length]);
         for (int i = 0; i < types.length; i++) {
             Class<?> type = types[i];
-            serializers[i] = (Serializer<Object>) selected.build(type);
+            serializers[i] = Cast.uncheckedNonnullCast(selected.build(type));
         }
         return new ArraySerializer(serializers);
     }

@@ -43,6 +43,10 @@ dependencies {
     testRuntimeOnly(testFixtures(project(":security")))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
 classycle {
     excludePatterns.set(listOf("org/gradle/plugins/signing/**"))
 }
