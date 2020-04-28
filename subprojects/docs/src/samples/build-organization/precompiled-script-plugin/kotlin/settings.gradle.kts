@@ -1,3 +1,3 @@
-rootProject.name = "plugin-user"
+rootProject.name = "consumer-service"
 
 includeBuild("plugin")

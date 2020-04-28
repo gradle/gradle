@@ -174,7 +174,29 @@ samples {
 
         projectInfoPlugin
 
-        standalonePrecompiledScriptPluginUtils
+        precompiledScriptPluginGroovy {
+            target = "plugin"
+        }
+        precompiledScriptPluginGroovyInBuildSrc {
+            sourceDirectory = precompiledScriptPluginGroovy.sourceDirectory
+            target = "buildSrc"
+        }
+
+        precompiledScriptPluginKotlin {
+            target = "plugin"
+        }
+        precompiledScriptPluginKotlinInBuildSrc {
+            sourceDirectory = precompiledScriptPluginKotlin.sourceDirectory
+            target = "buildSrc"
+        }
+
+        precompiledScriptPluginUtils {
+            target = "plugin"
+        }
+        precompiledScriptPluginUtilsInBuildSrc {
+            sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
+            target = "buildSrc"
+        }
     }
 
     publishedSamples {
@@ -398,17 +420,32 @@ samples {
 
         precompiledScriptPlugin {
             sampleDirectory = samplesRoot.dir("build-organization/precompiled-script-plugin")
-            description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
-            category = "Build organization"
-        }
-
-        standalonePrecompiledScriptPlugins {
-            sampleDirectory = samplesRoot.dir("build-organization/standalone-precompiled-plugins")
-            displayName = "Compose build logic using precompiled script plugins"
-            description = "Build and publish multiple precompiled script plugins."
+            description = "Use the Groovy or Kotlin DSL in a Gradle plugin."
             category = "Build organization"
             common {
-                from(templates.standalonePrecompiledScriptPluginUtils)
+                from(templates.precompiledScriptPluginUtils)
+            }
+            groovy {
+                from(templates.precompiledScriptPluginGroovy)
+            }
+            kotlin {
+                from(templates.precompiledScriptPluginKotlin)
+            }
+        }
+
+        precompiledScriptPluginInBuildSrc {
+            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-precompiled-script-plugins")
+            displayName = "Precompiled Script Plugin in buildSrc"
+            description = "Use the Groovy or Kotlin DSL in a Gradle plugin in buildSrc."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPluginUtilsInBuildSrc)
+            }
+            groovy {
+                from(templates.precompiledScriptPluginGroovyInBuildSrc)
+            }
+            kotlin {
+                from(templates.precompiledScriptPluginKotlinInBuildSrc)
             }
         }
 
