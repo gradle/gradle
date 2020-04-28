@@ -37,16 +37,36 @@ import org.gradle.instantexecution.serialization.WriteIsolate
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.Try
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
 
 class InstantExecutionFingerprintCheckerTest {
+
+    @Test
+    fun `build script invalidation reason`() {
+        val scriptFile = File("build.gradle.kts")
+        assertThat(
+            checkFingerprintWith(
+                mock {
+                    on { hashCodeOf(scriptFile) } doReturn HashCode.fromInt(1)
+                    on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
+                },
+                InstantExecutionCacheFingerprint.InputFile(
+                    scriptFile,
+                    HashCode.fromInt(2)
+                )
+            ),
+            equalTo("file 'displayNameOf(scriptFile)' has changed")
+        )
+    }
 
     @Test
     fun `invalidation reason includes ValueSource description`() {
@@ -58,32 +78,41 @@ class InstantExecutionFingerprintCheckerTest {
             on { (this as Describable).displayName } doReturn "my value source"
         }
 
-        val obtainedValue = mock<ObtainedValue> {
-            on { value } doReturn Try.successful<Any>(42)
-        }
+        val obtainedValue = obtainedValueMock()
 
-        val fingerprintCheckerHost = mock<InstantExecutionCacheFingerprintChecker.Host> {
-            on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
-        }
+        // expect:
+        assertThat(
+            checkFingerprintWith(
+                mock {
+                    on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
+                },
+                InstantExecutionCacheFingerprint.ValueSource(obtainedValue)
+            ),
+            equalTo("my value source has changed")
+        )
+    }
 
-        // when:
+    private
+    fun checkFingerprintWith(
+        host: InstantExecutionCacheFingerprintChecker.Host,
+        fingerprint: InstantExecutionCacheFingerprint
+    ): InvalidationReason? {
+
         val readContext = recordWritingOf {
-            write(InstantExecutionCacheFingerprint.ValueSource(obtainedValue))
+            write(fingerprint)
             write(null)
         }
 
-        // and:
-        val invalidationReason = readContext.readToCompletion {
-            InstantExecutionCacheFingerprintChecker(fingerprintCheckerHost).run {
+        return readContext.readToCompletion {
+            InstantExecutionCacheFingerprintChecker(host).run {
                 checkFingerprint()
             }
         }
+    }
 
-        // then:
-        assertThat(
-            invalidationReason,
-            equalTo("my value source has changed")
-        )
+    private
+    fun obtainedValueMock(): ObtainedValue = mock {
+        on { value } doReturn Try.successful(42)
     }
 
     private

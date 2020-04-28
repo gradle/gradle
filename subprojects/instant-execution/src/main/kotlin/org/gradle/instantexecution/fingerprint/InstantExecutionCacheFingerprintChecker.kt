@@ -56,7 +56,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {
                     if (host.hashCodeOf(file) != hash) {
-                        return "configuration file '${displayNameOf(file)}' has changed"
+                        return "file '${displayNameOf(file)}' has changed"
                     }
                 }
                 is InstantExecutionCacheFingerprint.ValueSource -> input.run {
