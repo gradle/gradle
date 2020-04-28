@@ -195,20 +195,22 @@ class InstantExecutionFingerprintCheckerTest {
     fun invalidationReasonForInitScriptsChange(
         from: Iterable<Pair<File, HashCode?>>,
         to: List<Pair<File, HashCode?>>
-    ): InvalidationReason? = checkFingerprintGiven(
-        mock {
-            on { allInitScripts } doReturn to.map { (file, _) -> file }
-            on { hashCodeOf(any()) }.then { invocation ->
-                to.first { it.first == invocation.getArgument<File>(0) }.second
-            }
-            on { displayNameOf(any()) }.then { invocation ->
-                invocation.getArgument<File>(0).name
-            }
-        },
-        InstantExecutionCacheFingerprint.InitScripts(
-            from.map { (file, hash) -> InstantExecutionCacheFingerprint.InputFile(file, hash) }
+    ): InvalidationReason? = to.toMap().let { toMap ->
+        checkFingerprintGiven(
+            mock {
+                on { allInitScripts } doReturn toMap.keys.toList()
+                on { hashCodeOf(any()) }.then { invocation ->
+                    toMap[invocation.getArgument(0)]
+                }
+                on { displayNameOf(any()) }.then { invocation ->
+                    invocation.getArgument<File>(0).name
+                }
+            },
+            InstantExecutionCacheFingerprint.InitScripts(
+                from.map { (file, hash) -> InstantExecutionCacheFingerprint.InputFile(file, hash) }
+            )
         )
-    )
+    }
 
     private
     fun checkFingerprintGiven(
