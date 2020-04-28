@@ -17,29 +17,26 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.file.FileWatchEvent;
+import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.WindowsFileEventFunctions;
-import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 
-public class WindowsFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
+import java.util.concurrent.BlockingQueue;
 
+public class WindowsFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory {
     private static final int BUFFER_SIZE = 128 * 1024;
 
-    public WindowsFileWatcherRegistry(ChangeHandler handler) {
-        super(
-            eventQueue -> Native.get(WindowsFileEventFunctions.class)
-                .newWatcher(eventQueue)
-                .withBufferSize(BUFFER_SIZE)
-                .start(),
-            handler
-        );
+    @Override
+    protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
+        return Native.get(WindowsFileEventFunctions.class)
+            .newWatcher(fileEvents)
+            .withBufferSize(BUFFER_SIZE)
+            .start();
     }
 
-    public static class Factory implements FileWatcherRegistryFactory {
-
-        @Override
-        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
-            return new WindowsFileWatcherRegistry(handler);
-        }
+    @Override
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
+        return new HierarchicalFileWatcherUpdater(watcher);
     }
 }

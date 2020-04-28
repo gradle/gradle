@@ -18,8 +18,8 @@ package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.file.FileWatchEvent;
 import net.rubygrapefruit.platform.file.FileWatcher;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.vfs.watch.FileWatcherRegistry;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,7 +27,6 @@ import javax.annotation.Nullable;
 import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.Optional;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -36,19 +35,22 @@ import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATED
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
-public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatcherRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AbstractEventDrivenFileWatcherRegistry.class);
+public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
-    private final BlockingQueue<FileWatchEvent> fileEvents = new ArrayBlockingQueue<>(4096);
+    private final BlockingQueue<FileWatchEvent> fileEvents;
     private final Thread eventConsumerThread;
     private final AtomicReference<MutableFileWatchingStatistics> fileWatchingStatistics = new AtomicReference<>(new MutableFileWatchingStatistics());
+    private final FileWatcherUpdater fileWatcherUpdater;
 
     private volatile boolean consumeEvents = true;
     private volatile boolean stopping = false;
 
-    public AbstractEventDrivenFileWatcherRegistry(FileWatcherCreator watcherCreator, ChangeHandler handler) {
-        this.watcher = createWatcher(watcherCreator);
+    public DefaultFileWatcherRegistry(FileWatcher watcher, ChangeHandler handler, FileWatcherUpdater fileWatcherUpdater, BlockingQueue<FileWatchEvent> fileEvents) {
+        this.watcher = watcher;
+        this.fileEvents = fileEvents;
+        this.fileWatcherUpdater = fileWatcherUpdater;
         this.eventConsumerThread = createAndStartEventConsumerThread(handler);
     }
 
@@ -104,16 +106,9 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
         return thread;
     }
 
-    public FileWatcher getWatcher() {
-        return watcher;
-    }
-
-    private FileWatcher createWatcher(FileWatcherCreator watcherCreator) {
-        try {
-            return watcherCreator.createWatcher(fileEvents);
-        } catch (InterruptedException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
+    @Override
+    public FileWatcherUpdater getFileWatcherUpdater() {
+        return fileWatcherUpdater;
     }
 
     private static Type convertType(FileWatchEvent.ChangeType type) {
@@ -145,10 +140,6 @@ public abstract class AbstractEventDrivenFileWatcherRegistry implements FileWatc
             consumeEvents = false;
             eventConsumerThread.interrupt();
         }
-    }
-
-    protected interface FileWatcherCreator {
-        FileWatcher createWatcher(BlockingQueue<FileWatchEvent> eventQueue) throws InterruptedException;
     }
 
     private static class MutableFileWatchingStatistics implements FileWatchingStatistics {

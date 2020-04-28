@@ -17,30 +17,26 @@
 package org.gradle.internal.vfs;
 
 import net.rubygrapefruit.platform.Native;
+import net.rubygrapefruit.platform.file.FileWatchEvent;
+import net.rubygrapefruit.platform.file.FileWatcher;
 import net.rubygrapefruit.platform.internal.jni.OsxFileEventFunctions;
-import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.TimeUnit;
 
-public class DarwinFileWatcherRegistry extends AbstractHierarchicalFileWatcherRegistry {
-
-    public DarwinFileWatcherRegistry(ChangeHandler handler) {
-        super(
-            eventQueue -> Native.get(OsxFileEventFunctions.class)
-                .newWatcher(eventQueue)
-                .withLatency(20, TimeUnit.MICROSECONDS)
-                .start(),
-            handler
-        );
+public class DarwinFileWatcherRegistryFactory extends AbstractFileWatcherRegistryFactory {
+    @Override
+    protected FileWatcher createFileWatcher(BlockingQueue<FileWatchEvent> fileEvents) throws InterruptedException {
+        return Native.get(OsxFileEventFunctions.class)
+            .newWatcher(fileEvents)
+            // TODO Figure out a good value for this
+            .withLatency(20, TimeUnit.MICROSECONDS)
+            .start();
     }
 
-    public static class Factory implements FileWatcherRegistryFactory {
-
-        @Override
-        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
-            return new DarwinFileWatcherRegistry(handler);
-        }
-
+    @Override
+    protected FileWatcherUpdater createFileWatcherUpdater(FileWatcher watcher) {
+        return new HierarchicalFileWatcherUpdater(watcher);
     }
 }

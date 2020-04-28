@@ -52,7 +52,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
     private final DelegatingDiffCapturingUpdateFunctionDecorator delegatingUpdateFunctionDecorator;
     private final AtomicReference<FileHierarchySet> producedByCurrentBuild = new AtomicReference<>(DefaultFileHierarchySet.of());
     private final Predicate<String> watchFilter;
-    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> updateWatchRegistry(watchRegistry -> watchRegistry.changed(removedSnapshots, addedSnapshots));
+    private final SnapshotHierarchy.SnapshotDiffListener snapshotDiffListener = (removedSnapshots, addedSnapshots) -> updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().changed(removedSnapshots, addedSnapshots));
 
     private FileWatcherRegistry watchRegistry;
     private volatile boolean buildRunning;
@@ -96,7 +96,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
 
     @Override
     public void updateMustWatchDirectories(Collection<File> mustWatchDirectories) {
-        updateWatchRegistry(watchRegistry -> watchRegistry.updateMustWatchDirectories(mustWatchDirectories));
+        updateWatchRegistry(watchRegistry -> watchRegistry.getFileWatcherUpdater().updateMustWatchDirectories(mustWatchDirectories));
     }
 
     @Override
@@ -121,7 +121,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         }
         try {
             long startTime = System.currentTimeMillis();
-            watchRegistry = watcherRegistryFactory.startWatcher(new FileWatcherRegistry.ChangeHandler() {
+            watchRegistry = watcherRegistryFactory.createFileWatcherRegistry(new FileWatcherRegistry.ChangeHandler() {
                 @Override
                 public void handleChange(FileWatcherRegistry.Type type, Path path) {
                     try {

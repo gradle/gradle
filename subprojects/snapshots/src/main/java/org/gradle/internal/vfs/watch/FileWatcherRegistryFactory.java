@@ -18,7 +18,7 @@ package org.gradle.internal.vfs.watch;
 
 public interface FileWatcherRegistryFactory {
     /**
-     * Start the watch server.
+     * Create the file watcher registry.
      */
-    FileWatcherRegistry startWatcher(FileWatcherRegistry.ChangeHandler handler);
+    FileWatcherRegistry createFileWatcherRegistry(FileWatcherRegistry.ChangeHandler handler);
 }

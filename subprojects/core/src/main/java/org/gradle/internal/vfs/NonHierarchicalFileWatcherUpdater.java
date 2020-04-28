@@ -19,14 +19,12 @@ package org.gradle.internal.vfs;
 import com.google.common.collect.HashMultiset;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
-import net.rubygrapefruit.platform.Native;
 import net.rubygrapefruit.platform.NativeException;
-import net.rubygrapefruit.platform.internal.jni.LinuxFileEventFunctions;
+import net.rubygrapefruit.platform.file.FileWatcher;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
-import org.gradle.internal.vfs.watch.FileWatcherRegistry;
-import org.gradle.internal.vfs.watch.FileWatcherRegistryFactory;
+import org.gradle.internal.vfs.watch.FileWatcherUpdater;
 import org.gradle.internal.vfs.watch.WatchRootUtil;
 import org.gradle.internal.vfs.watch.WatchingNotSupportedException;
 import org.slf4j.Logger;
@@ -42,20 +40,16 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(LinuxFileWatcherRegistry.class);
+public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
+    private static final Logger LOGGER = LoggerFactory.getLogger(NonHierarchicalFileWatcherUpdater.class);
 
     private final Multiset<String> watchedRoots = HashMultiset.create();
     private final Set<String> mustWatchDirectories = new HashSet<>();
     private final Map<String, ImmutableList<String>> watchedRootsForSnapshot = new HashMap<>();
+    private final FileWatcher fileWatcher;
 
-    public LinuxFileWatcherRegistry(ChangeHandler handler) {
-        super(
-            eventQueue -> Native.get(LinuxFileEventFunctions.class)
-                .newWatcher(eventQueue)
-                .start(),
-            handler
-        );
+    public NonHierarchicalFileWatcherUpdater(FileWatcher fileWatcher) {
+        this.fileWatcher = fileWatcher;
     }
 
     @Override
@@ -117,8 +111,12 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
         }
         LOGGER.info("Watching {} directory hierarchies to track changes", watchedRoots.entrySet().size());
         try {
-            getWatcher().stopWatching(watchRootsToRemove);
-            getWatcher().startWatching(watchRootsToAdd);
+            if (!watchRootsToRemove.isEmpty()) {
+                fileWatcher.stopWatching(watchRootsToRemove);
+            }
+            if (!watchRootsToAdd.isEmpty()) {
+                fileWatcher.startWatching(watchRootsToAdd);
+            }
         } catch (NativeException e) {
             if (e.getMessage().contains("Already watching path: ")) {
                 throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
@@ -133,13 +131,6 @@ public class LinuxFileWatcherRegistry extends AbstractEventDrivenFileWatcherRegi
 
     private static void increment(String path, Map<String, Integer> changedWatchedDirectories) {
         changedWatchedDirectories.compute(path, (key, value) -> value == null ? 1 : value + 1);
-    }
-
-    public static class Factory implements FileWatcherRegistryFactory {
-        @Override
-        public FileWatcherRegistry startWatcher(ChangeHandler handler) {
-            return new LinuxFileWatcherRegistry(handler);
-        }
     }
 
     private static class OnlyVisitSubDirectories implements FileSystemSnapshotVisitor {
