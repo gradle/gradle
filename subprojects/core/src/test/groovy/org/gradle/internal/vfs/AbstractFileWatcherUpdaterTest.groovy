@@ -24,6 +24,7 @@ import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.RegularFileSnapshot
+import org.gradle.internal.snapshot.SnapshotHierarchy
 import org.gradle.internal.snapshot.impl.DirectorySnapshotter
 import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.vfs.impl.DelegatingDiffCapturingUpdateFunctionDecorator
@@ -52,7 +53,10 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     def setup() {
         updater = createUpdater(watcher)
-        decorator.setSnapshotDiffListener(updater)
+        decorator.setSnapshotDiffListener(updater) { SnapshotHierarchy currentRoot, Runnable runnable ->
+            runnable.run()
+            return currentRoot
+        }
     }
 
     abstract FileWatcherUpdater createUpdater(FileWatcher watcher)
