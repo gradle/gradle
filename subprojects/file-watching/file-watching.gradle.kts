@@ -28,4 +28,9 @@ dependencies {
     implementation(library("guava"))
     implementation(library("nativePlatform"))
     implementation(library("slf4j_api"))
+
+    testImplementation(project(":processServices"))
+    testImplementation(project(":resources"))
+    testImplementation(testFixtures(project(":core")))
+    testImplementation(testFixtures(project(":fileCollections")))
 }
