@@ -86,7 +86,7 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                 buildRunning = true;
                 return newRoot;
             } else {
-                return stopWatching(currentRoot);
+                return stopWatchingAndInvalidateHierarchy(currentRoot);
             }
         });
     }
@@ -152,14 +152,14 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
                         }
                     } catch (Exception e) {
                         LOGGER.error("Error while processing file events", e);
-                        stopWatching();
+                        stopWatchingAndInvalidateHierarchy();
                     }
                 }
 
                 @Override
                 public void handleLostState() {
                     LOGGER.warn("Dropped VFS state due to lost state");
-                    stopWatching();
+                    stopWatchingAndInvalidateHierarchy();
                 }
             });
             delegatingUpdateFunctionDecorator.setSnapshotDiffListener(snapshotDiffListener, this::handleWatcherChangeErrors);
@@ -170,8 +170,8 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         } catch (Exception ex) {
             LOGGER.error("Couldn't create watch service, not tracking changes between builds", ex);
             closeUnderLock();
+            return currentRoot.empty();
         }
-        return currentRoot.empty();
     }
 
     private SnapshotHierarchy handleWatcherChangeErrors(SnapshotHierarchy currentRoot, Runnable runnable) {
@@ -181,10 +181,10 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         } catch (WatchingNotSupportedException ex) {
             // No stacktrace here, since this is a known shortcoming of our implementation
             LOGGER.warn("Watching not supported, not tracking changes between builds: {}", ex.getMessage());
-            return stopWatching(currentRoot);
+            return stopWatchingAndInvalidateHierarchy(currentRoot);
         } catch (Exception ex) {
             LOGGER.error("Couldn't update watches, not watching anymore", ex);
-            return stopWatching(currentRoot);
+            return stopWatchingAndInvalidateHierarchy(currentRoot);
         }
     }
 
@@ -192,11 +192,11 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
      * Stop watching the known areas of the file system, and invalidate
      * the parts that have been changed since calling {@link #startWatching(SnapshotHierarchy)}}.
      */
-    private void stopWatching() {
-        getRoot().update(this::stopWatching);
+    private void stopWatchingAndInvalidateHierarchy() {
+        getRoot().update(this::stopWatchingAndInvalidateHierarchy);
     }
 
-    private SnapshotHierarchy stopWatching(SnapshotHierarchy currentRoot) {
+    private SnapshotHierarchy stopWatchingAndInvalidateHierarchy(SnapshotHierarchy currentRoot) {
         if (watchRegistry != null) {
             try {
                 FileWatcherRegistry toBeClosed = watchRegistry;
@@ -218,11 +218,11 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         LOGGER.warn("Received {} file system events {}", statistics.getNumberOfReceivedEvents(), eventsFor);
         if (statistics.isUnknownEventEncountered()) {
             LOGGER.warn("Dropped VFS state due to lost state");
-            return stopWatching(currentRoot);
+            return stopWatchingAndInvalidateHierarchy(currentRoot);
         }
         if (statistics.getErrorWhileReceivingFileChanges().isPresent()) {
             LOGGER.warn("Dropped VFS state due to error while receiving file changes", statistics.getErrorWhileReceivingFileChanges().get());
-            return stopWatching(currentRoot);
+            return stopWatchingAndInvalidateHierarchy(currentRoot);
         }
         return currentRoot;
     }
