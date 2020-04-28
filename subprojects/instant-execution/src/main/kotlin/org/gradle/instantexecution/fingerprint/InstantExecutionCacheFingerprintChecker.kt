@@ -55,7 +55,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {
-                    if (host.hashCodeOf(file) != hash) {
+                    if (fileHasChanged(file, hash)) {
                         return "file '${displayNameOf(file)}' has changed"
                     }
                 }
@@ -65,16 +65,9 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InitScripts -> input.run {
-                    val initScripts = host.allInitScripts
-                    if (initScripts.size != hashes.size) {
-                        return "sequence of init scripts has changed"
+                    checkInitScriptsAreUpToDate(scripts)?.let { reason ->
+                        return reason
                     }
-                    initScripts.zip(hashes).forEachIndexed { index, (initScript, hash) ->
-                        if (host.hashCodeOf(initScript) != hash) {
-                            return "content of ${ordinal(index + 1)} init script, '${displayNameOf(initScript)}', has changed"
-                        }
-                    }
-                    null
                 }
                 else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
             }
@@ -82,8 +75,37 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun displayNameOf(file: File) =
-        host.displayNameOf(file)
+    fun checkInitScriptsAreUpToDate(scripts: List<InstantExecutionCacheFingerprint.InputFile>): InvalidationReason? {
+        val previous = scripts.iterator()
+        val current = host.allInitScripts.iterator()
+        var index = 1
+        while (current.hasNext()) {
+            val currentScript = current.next()
+            if (previous.hasNext()) {
+                val (previousScript, previousHash) = previous.next()
+                if (fileHasChanged(currentScript, previousHash)) {
+                    if (previousScript == currentScript) {
+                        return "init script '${displayNameOf(currentScript)}' has changed"
+                    }
+                    return "content of ${ordinal(index)} init script, '${displayNameOf(currentScript)}', has changed"
+                }
+                index += 1
+                continue
+            }
+            if (current.hasNext()) {
+                return "init script '${displayNameOf(currentScript)}' and more have been added"
+            }
+            return "init script '${displayNameOf(currentScript)}' has been added"
+        }
+        if (previous.hasNext()) {
+            val (removedScript, _) = previous.next()
+            if (previous.hasNext()) {
+                return "init script '${displayNameOf(removedScript)}' and more have been removed"
+            }
+            return "init script '${displayNameOf(removedScript)}' has been removed"
+        }
+        return null
+    }
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {
@@ -93,6 +115,14 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
         }
         return null
     }
+
+    private
+    fun fileHasChanged(file: File, originalHash: HashCode?) =
+        host.hashCodeOf(file) != originalHash
+
+    private
+    fun displayNameOf(file: File) =
+        host.displayNameOf(file)
 
     private
     fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =

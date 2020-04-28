@@ -61,7 +61,7 @@ class InstantExecutionCacheFingerprintWriter(
         capturedFiles = newConcurrentHashSet(initScripts)
         write(
             InstantExecutionCacheFingerprint.InitScripts(
-                initScripts.map { host.hashCodeOf(it) }
+                initScripts.map(::inputFile)
             )
         )
     }
@@ -110,17 +110,17 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     fun captureFile(file: File) {
-
         if (!capturedFiles.add(file))
             return
-
-        write(
-            InputFile(
-                file,
-                host.hashCodeOf(file)
-            )
-        )
+        write(inputFile(file))
     }
+
+    private
+    fun inputFile(file: File) =
+        InputFile(
+            file,
+            host.hashCodeOf(file)
+        )
 
     private
     fun captureTaskInputs(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {
