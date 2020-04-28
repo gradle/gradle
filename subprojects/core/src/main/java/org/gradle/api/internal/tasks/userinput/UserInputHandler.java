@@ -49,7 +49,7 @@ public interface UserInputHandler {
     /**
      * Prompts the user to provide a string value.
      * @param question The text of the question.
-     * @return The answer of the given default if not connected to a user console.
+     * @return The answer or the given default if not connected to a user console.
      */
     String askQuestion(String question, String defaultValue);
 }
