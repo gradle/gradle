@@ -82,9 +82,7 @@ public class GradleJavadocsPlugin implements Plugin<Project> {
             options.addStringOption("stylesheetfile", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
             // TODO: This breaks the provider
-            options.links(javadocs.getJavaApi().get().toString());
-            // TODO uncomment this once docs.groovy-lang.org certificate is updated
-            // options.links(javadocs.getGroovyApi().get().toString());
+            options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
 
             task.source(extension.getDocumentedSource());
 
