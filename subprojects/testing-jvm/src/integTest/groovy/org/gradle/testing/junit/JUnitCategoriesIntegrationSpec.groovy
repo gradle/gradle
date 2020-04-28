@@ -71,7 +71,7 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def canWorkWithPowerMock() {
         given:
         buildFile << """
