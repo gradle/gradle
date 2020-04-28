@@ -35,8 +35,8 @@ import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.INVALIDATED
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.MODIFIED;
 import static org.gradle.internal.vfs.watch.FileWatcherRegistry.Type.REMOVED;
 
-public class EventDrivenFileWatcherRegistry implements FileWatcherRegistry {
-    private static final Logger LOGGER = LoggerFactory.getLogger(EventDrivenFileWatcherRegistry.class);
+public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultFileWatcherRegistry.class);
 
     private final FileWatcher watcher;
     private final BlockingQueue<FileWatchEvent> fileEvents;
@@ -47,7 +47,7 @@ public class EventDrivenFileWatcherRegistry implements FileWatcherRegistry {
     private volatile boolean consumeEvents = true;
     private volatile boolean stopping = false;
 
-    public EventDrivenFileWatcherRegistry(FileWatcher watcher, ChangeHandler handler, FileWatcherUpdater fileWatcherUpdater, BlockingQueue<FileWatchEvent> fileEvents) {
+    public DefaultFileWatcherRegistry(FileWatcher watcher, ChangeHandler handler, FileWatcherUpdater fileWatcherUpdater, BlockingQueue<FileWatchEvent> fileEvents) {
         this.watcher = watcher;
         this.fileEvents = fileEvents;
         this.fileWatcherUpdater = fileWatcherUpdater;

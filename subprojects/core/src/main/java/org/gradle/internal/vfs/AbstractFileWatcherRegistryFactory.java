@@ -33,7 +33,7 @@ public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherR
         try {
             FileWatcher watcher = createFileWatcher(fileEvents);
             FileWatcherUpdater fileWatcherUpdater = createFileWatcherUpdater(watcher);
-            return new EventDrivenFileWatcherRegistry(
+            return new DefaultFileWatcherRegistry(
                 watcher,
                 handler,
                 fileWatcherUpdater,
