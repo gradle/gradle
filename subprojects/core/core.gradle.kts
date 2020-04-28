@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
+    implementation(project(":fileWatching"))
     implementation(project(":execution"))
     implementation(project(":workerProcesses"))
     implementation(project(":normalizationJava"))
