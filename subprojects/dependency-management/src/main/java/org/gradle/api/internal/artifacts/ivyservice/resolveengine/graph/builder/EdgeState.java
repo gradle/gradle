@@ -347,6 +347,15 @@ class EdgeState implements DependencyGraphEdge {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
+        List<NodeState> targetNodes = this.targetNodes;
+        if (targetNodes.isEmpty()) {
+            // happens for substituted dependencies
+            ComponentState targetComponent = getTargetComponent();
+            if (targetComponent != null) {
+                targetNodes = targetComponent.getNodes();
+            }
+        }
+        assert !targetNodes.isEmpty();
         for (NodeState targetNode : targetNodes) {
             if (targetNode.isSelected()) {
                 resolvedVariant = targetNode.getResolvedVariant();
