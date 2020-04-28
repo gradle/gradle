@@ -44,6 +44,7 @@ inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.all(): C
  *
  * @see [ComponentMetadataHandler.all]
  */
+@Suppress("extension_shadowed_by_member")
 inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.all(configureAction: Action<in ActionConfiguration>): ComponentMetadataHandler =
     all(T::class.java, configureAction)
 
@@ -70,5 +71,6 @@ inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withModu
  *
  * @see [ComponentMetadataHandler.withModule]
  */
+@Suppress("extension_shadowed_by_member")
 inline fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.withModule(id: Any, configureAction: Action<in ActionConfiguration>): ComponentMetadataHandler =
     withModule(id, T::class.java, configureAction)

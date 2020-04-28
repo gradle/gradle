@@ -19,7 +19,6 @@ package org.gradle.instantexecution.serialization.beans
 import org.gradle.api.DefaultTask
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.internal.AbstractTask
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.TaskInternal
 
@@ -116,7 +115,8 @@ val Class<*>.relevantFields: List<Field>
                 || Workarounds.isIgnoredBeanField(field)
         }
         .filter { field ->
-            field.declaringClass != AbstractTask::class.java || field.name in abstractTaskRelevantFields
+            @Suppress("deprecation")
+            field.declaringClass != org.gradle.api.internal.AbstractTask::class.java || field.name in abstractTaskRelevantFields
         }
         .sortedBy { it.name }
 

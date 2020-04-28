@@ -55,6 +55,7 @@ import kotlin.script.templates.ScriptTemplateDefinition
 /**
  * Script template for Kotlin init scripts.
  */
+@Suppress("deprecation")
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,
     scriptFilePattern = ".+\\.init\\.gradle\\.kts")

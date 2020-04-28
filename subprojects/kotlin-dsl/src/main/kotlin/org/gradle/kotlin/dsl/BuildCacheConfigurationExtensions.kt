@@ -49,6 +49,7 @@ inline fun <reified T : BuildCache> BuildCacheConfiguration.registerBuildCacheSe
  */
 @Deprecated(message = "Scheduled to be removed in Gradle 6.0", replaceWith = ReplaceWith("local()"))
 inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(): T {
+    @Suppress("deprecation")
     return local(T::class.java)
 }
 
@@ -69,6 +70,7 @@ inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(): T 
  */
 @Deprecated(message = "Scheduled to be removed in Gradle 6.0", replaceWith = ReplaceWith("local(Action)"))
 inline fun <reified T : DirectoryBuildCache> BuildCacheConfiguration.local(noinline configuration: T.() -> Unit): T {
+    @Suppress("deprecation")
     return local(T::class.java, configuration)
 }
 
