@@ -15,9 +15,7 @@
  */
 package org.gradle.plugins.ide.idea.model;
 
-import com.google.common.base.Function;
 import com.google.common.base.Predicate;
-import com.google.common.collect.Iterables;
 import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import groovy.lang.Closure;
@@ -27,15 +25,16 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectStateRegistry;
-import org.gradle.language.scala.ScalaPlatform;
 import org.gradle.plugins.ide.idea.model.internal.IdeaDependenciesProvider;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
 import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 
 import java.io.File;
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import static org.gradle.util.ConfigureUtil.configure;
 
@@ -176,7 +175,8 @@ public class IdeaModule {
     private String jdkName;
     private IdeaLanguageLevel languageLevel;
     private JavaVersion targetBytecodeVersion;
-    private ScalaPlatform scalaPlatform;
+    @SuppressWarnings("deprecation")
+    private org.gradle.language.scala.ScalaPlatform scalaPlatform;
     private final IdeaModuleIml iml;
     private final Project project;
     private PathFactory pathFactory;
@@ -475,11 +475,13 @@ public class IdeaModule {
     /**
      * The Scala version used by this module.
      */
-    public ScalaPlatform getScalaPlatform() {
+    @Deprecated
+    public org.gradle.language.scala.ScalaPlatform getScalaPlatform() {
         return scalaPlatform;
     }
 
-    public void setScalaPlatform(ScalaPlatform scalaPlatform) {
+    @Deprecated
+    public void setScalaPlatform(org.gradle.language.scala.ScalaPlatform scalaPlatform) {
         this.scalaPlatform = scalaPlatform;
     }
 
@@ -616,12 +618,7 @@ public class IdeaModule {
     }
 
     private Set<Path> pathsOf(Set<File> files) {
-        return Sets.newLinkedHashSet(Iterables.transform(files, new Function<File, Path>() {
-            @Override
-            public Path apply(File file) {
-                return getPathFactory().path(file);
-            }
-        }));
+        return files.stream().map(file -> getPathFactory().path(file)).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
 }
