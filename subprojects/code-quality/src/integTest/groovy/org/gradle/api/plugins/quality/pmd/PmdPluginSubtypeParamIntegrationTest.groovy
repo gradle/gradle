@@ -43,6 +43,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
             buildFile << """
                 pmd {
                     ruleSets = ["java-unusedcode"]
+                    incrementalAnalysis = false
                 }
             """
         } else {
