@@ -39,7 +39,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
-    def "Disconnect during build stops daemon"() {
+    def "disconnect during build stops daemon"() {
         setup:
         toolingApi.requireDaemons()
         buildFile << """
@@ -69,7 +69,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
-    def "Disconnect during tooling model query stops daemon"() {
+    def "disconnect during tooling model query stops daemon"() {
         setup:
         toolingApi.requireDaemons()
         buildFile << """
@@ -103,7 +103,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
     }
 
     @TargetGradleVersion(">=6.5")
-    def "Disconnect stops multiple daemons"() {
+    def "disconnect stops multiple daemons"() {
         setup:
         toolingApi.requireDaemons()
         buildFile << """
@@ -142,7 +142,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         assertNoRunningDaemons()
     }
 
-    def "Disconnect cancels the current build"() {
+    def "disconnect cancels the current build"() {
         toolingApi.requireDaemons()
         buildFile << """
             task hang {
@@ -170,7 +170,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    def "Disconnect before build starts"() {
+    def "disconnect before build starts"() {
         when:
         GradleConnector connector = toolingApi.connector()
         connector.connect()
@@ -181,7 +181,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         assertNoRunningDaemons()
     }
 
-    def "Can call disconnect after the build was cancelled"() {
+    def "can call disconnect after the build was cancelled"() {
         toolingApi.requireDaemons()
         buildFile << """
             task hang {
@@ -211,7 +211,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    def "Can call cancel after disconnect"() {
+    def "can call cancel after disconnect"() {
         toolingApi.requireDaemons()
         buildFile << """
             task hang {
@@ -241,7 +241,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    def "Can call close after disconnect"() {
+    def "can call close after disconnect"() {
         toolingApi.requireDaemons()
         buildFile << """
             task hang {
@@ -270,7 +270,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    def "Can call disconnect after project connection closed"() {
+    def "can call disconnect after project connection closed"() {
         toolingApi.requireDaemons()
         buildFile << """
             task myTask {
@@ -293,7 +293,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         true
     }
 
-    def "Can call disconnect before project connection closed"() {
+    def "can call disconnect before project connection closed"() {
         toolingApi.requireDaemons()
         buildFile << """
             task hang {
@@ -320,7 +320,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         resultHandler.assertFailedWith(BuildCancelledException)
     }
 
-    def "Cannot run build operations on project connection after disconnect"() {
+    def "cannot run build operations on project connection after disconnect"() {
         setup:
         GradleConnector connector = toolingApi.connector()
         ProjectConnection connection = connector.connect()
@@ -334,7 +334,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         thrown(RuntimeException)
     }
 
-    def "Cannot create new project connection after disconnect"() {
+    def "cannot create new project connection after disconnect"() {
         setup:
         GradleConnector connector = toolingApi.connector()
         withConnection(connector) { connection ->
@@ -349,14 +349,14 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         thrown(RuntimeException)
     }
 
-    def assertNoRunningDaemons() {
+    void assertNoRunningDaemons() {
         assertNumberOfRunningDaemons(0)
     }
 
-    def assertNumberOfRunningDaemons(number) {
+    void assertNumberOfRunningDaemons(number) {
         waitFor.eventually {
             toolingApi.daemons.daemons.findAll { !existingDaemonPids.contains(it.context.pid) }.size() == number
         }
-        true // `eventually` throws a runtime exception when the condition is never met
+        // `eventually` throws a runtime exception when the condition is never met
     }
 }
