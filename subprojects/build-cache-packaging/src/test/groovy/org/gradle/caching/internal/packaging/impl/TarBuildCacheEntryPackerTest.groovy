@@ -157,6 +157,7 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         "space"       | "input file.txt"
         "zwnj"        | "input\u200cfile.txt"
         "url-quoted"  | "input%<file>#2.txt"
+        "stars"       | '$accessors to **typed** java lambda extensions are typed$exception$1.class'
     }
 
     @Unroll
