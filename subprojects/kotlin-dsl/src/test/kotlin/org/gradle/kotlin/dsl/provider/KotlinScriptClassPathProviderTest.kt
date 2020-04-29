@@ -7,13 +7,13 @@ import com.nhaarman.mockito_kotlin.doReturn
 import com.nhaarman.mockito_kotlin.mock
 import com.nhaarman.mockito_kotlin.times
 import com.nhaarman.mockito_kotlin.verify
+import org.gradle.api.Generated
 
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory.ClassPathNotation.GRADLE_API
 import org.gradle.api.internal.classpath.Module
-import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 
-import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
+import org.gradle.kotlin.dsl.accessors.TestWithClassPath
 
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
@@ -21,12 +21,12 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
-class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
+class KotlinScriptClassPathProviderTest : TestWithClassPath() {
 
     @Test
     fun `should report progress based on the number of entries in gradle-api jar`() {
 
-        val gradleApiJar = file("gradle-api-3.1.jar")
+        val gradleApiJar = jarClassPathWith("gradle-api-3.1.jar", Generated::class).asFiles
 
         val generatedKotlinExtensions = file("kotlin-dsl-extensions.jar")
 
@@ -39,15 +39,15 @@ class KotlinScriptClassPathProviderTest : TestWithTempFiles() {
 
         val subject = KotlinScriptClassPathProvider(
             moduleRegistry = mock { on { getExternalModule(any()) } doReturn apiMetadataModule },
-            classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn ClassPath.EMPTY },
+            classPathRegistry = mock { on { getClassPath(GRADLE_API.name) } doReturn DefaultClassPath.of(gradleApiJar) },
             coreAndPluginsScope = mock(),
-            gradleApiJarsProvider = { listOf(gradleApiJar) },
+            gradleApiJarsProvider = { gradleApiJar },
             jarCache = { id, generator -> file("$id.jar").apply(generator) },
             progressMonitorProvider = progressMonitorProvider)
 
         assertThat(
             subject.gradleKotlinDsl.asFiles.toList(),
-            equalTo(listOf(gradleApiJar, generatedKotlinExtensions)))
+            equalTo(gradleApiJar + generatedKotlinExtensions))
 
         verifyProgressMonitor(kotlinExtensionsMonitor)
     }

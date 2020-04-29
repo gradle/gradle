@@ -64,7 +64,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
             ClassAndGroovyNamedArguments::class
         ) {
 
-            assertGeneratedJarHash("c42d6067815922bce1c3f67afcd96e7f")
+            assertGeneratedJarHash("b429469f8feb02fe9435b6bf7de2f7a5")
         }
     }
 
@@ -376,7 +376,7 @@ class GradleApiExtensionsTest : TestWithClassPath() {
 
     private
     fun apiJarsWith(vararg classes: KClass<*>): List<File> =
-        jarClassPathWith("gradle-api.jar", *classes).asFiles
+        jarClassPathWith("gradle-api.jar", *classes, org.gradle.api.Generated::class).asFiles
 
     private
     fun fixturesApiMetadataJar(): File =
