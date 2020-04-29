@@ -64,12 +64,13 @@ dependencies {
 
     testImplementation project(":baseServices")
     testImplementation project(":core")
-    testImplementation libraries.junit5_vintage.coordinates
     testImplementation testLibraries.jsoup
     testImplementation("org.gebish:geb-spock:2.2")
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
+    docsTestImplementation libraries.junit5_vintage.coordinates
+    docsTestImplementation libraries.junit.coordinates
 }
 
 configurations.testImplementation {
