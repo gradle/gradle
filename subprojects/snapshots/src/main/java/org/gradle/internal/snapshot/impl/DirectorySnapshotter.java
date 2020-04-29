@@ -234,18 +234,18 @@ public class DirectorySnapshotter {
                         throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
                     }
                 } else {
-                    visitResolvedFile(file, targetAttributes);
+                    visitResolvedFile(file, targetAttributes, true);
                 }
             } else {
-                visitResolvedFile(file, attrs);
+                visitResolvedFile(file, attrs, false);
             }
             return FileVisitResult.CONTINUE;
         }
 
-        private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes) {
+        private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, boolean isSymbolicLink) {
             String internedName = intern(file.getFileName().toString());
             if (shouldVisit(file, internedName, false, builder.getRelativePath())) {
-                builder.visitFile(snapshotFile(file, internedName, targetAttributes));
+                builder.visitFile(snapshotFile(file, internedName, targetAttributes, isSymbolicLink));
             }
         }
 
@@ -257,13 +257,13 @@ public class DirectorySnapshotter {
             }
         }
 
-        private CompleteFileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs) {
+        private CompleteFileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, boolean isSymbolicLink) {
             String internedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
                     HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
                     FileMetadata metadata = FileMetadata.from(attrs);
-                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata);
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata, isSymbolicLink);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
@@ -297,7 +297,8 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            builder.postVisitDirectory();
+            boolean isSymbolicLink = !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString());
+            builder.postVisitDirectory(true, isSymbolicLink);
             return FileVisitResult.CONTINUE;
         }
 

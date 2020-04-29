@@ -29,11 +29,11 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     private static final HashCode SIGNATURE = Hashing.signature(MissingFileSnapshot.class);
 
     public MissingFileSnapshot(String absolutePath, String name) {
-        super(absolutePath, name);
+        super(absolutePath, name, false);
     }
 
     public MissingFileSnapshot(String absolutePath) {
-        super(absolutePath, PathUtil.getFileName(absolutePath));
+        this(absolutePath, PathUtil.getFileName(absolutePath));
     }
 
     @Override

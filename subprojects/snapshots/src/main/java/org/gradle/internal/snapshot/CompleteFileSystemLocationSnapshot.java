@@ -48,6 +48,11 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
     String getAbsolutePath();
 
     /**
+     * Whether this snapshot is a symbolic link.
+     */
+    boolean isSymlink();
+
+    /**
      * The hash of the snapshot.
      *
      * This makes it possible to uniquely identify the snapshot.

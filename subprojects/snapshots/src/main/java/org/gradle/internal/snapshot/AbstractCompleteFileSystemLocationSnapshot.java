@@ -21,10 +21,12 @@ import java.util.Optional;
 public abstract class AbstractCompleteFileSystemLocationSnapshot implements CompleteFileSystemLocationSnapshot {
     private final String absolutePath;
     private final String name;
+    private final boolean isSymlink;
 
-    public AbstractCompleteFileSystemLocationSnapshot(String absolutePath, String name) {
+    public AbstractCompleteFileSystemLocationSnapshot(String absolutePath, String name, boolean isSymlink) {
         this.absolutePath = absolutePath;
         this.name = name;
+        this.isSymlink = isSymlink;
     }
 
     protected static MissingFileSnapshot missingSnapshotForAbsolutePath(String filePath) {
@@ -39,6 +41,11 @@ public abstract class AbstractCompleteFileSystemLocationSnapshot implements Comp
     @Override
     public String getName() {
         return name;
+    }
+
+    @Override
+    public boolean isSymlink() {
+        return isSymlink;
     }
 
     @Override

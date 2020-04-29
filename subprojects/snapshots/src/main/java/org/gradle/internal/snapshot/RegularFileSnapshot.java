@@ -31,7 +31,11 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     private final FileMetadata metadata;
 
     public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata) {
-        super(absolutePath, name);
+        this(absolutePath, name, contentHash, metadata, false);
+    }
+
+    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata, boolean isSymlink) {
+        super(absolutePath, name, isSymlink);
         this.contentHash = contentHash;
         this.metadata = metadata;
     }

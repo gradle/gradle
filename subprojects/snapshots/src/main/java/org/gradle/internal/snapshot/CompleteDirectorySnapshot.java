@@ -34,10 +34,14 @@ public class CompleteDirectorySnapshot extends AbstractCompleteFileSystemLocatio
     private final List<CompleteFileSystemLocationSnapshot> children;
     private final HashCode contentHash;
 
-    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash) {
-        super(absolutePath, name);
+    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash, boolean isSymlink) {
+        super(absolutePath, name, isSymlink);
         this.children = children;
         this.contentHash = contentHash;
+    }
+
+    public CompleteDirectorySnapshot(String absolutePath, String name, List<CompleteFileSystemLocationSnapshot> children, HashCode contentHash) {
+        this(absolutePath, name, children, contentHash, false);
     }
 
     @Override

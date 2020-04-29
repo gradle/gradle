@@ -78,6 +78,10 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
     }
 
     public boolean postVisitDirectory(boolean includeEmpty) {
+        return postVisitDirectory(includeEmpty, false);
+    }
+
+    public boolean postVisitDirectory(boolean includeEmpty, boolean isSymlink) {
         String name = relativePathSegmentsTracker.leave();
         List<CompleteFileSystemLocationSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
@@ -93,7 +97,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
-        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash());
+        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash(), isSymlink);
         List<CompleteFileSystemLocationSnapshot> siblings = levelHolder.peekLast();
         if (siblings != null) {
             siblings.add(directorySnapshot);
