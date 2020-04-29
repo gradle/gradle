@@ -24,7 +24,9 @@ class DefaultProjectConnectionTest extends Specification {
     final ConnectionParameters parameters = Stub() {
         getProjectDir() >> new File("foo")
     }
-    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, parameters)
+    final ProjectConnectionCloseListener listener = Mock()
+
+    final DefaultProjectConnection connection = new DefaultProjectConnection(protocolConnection, parameters, listener)
 
     def canCreateAModelBuilder() {
         expect:
@@ -51,6 +53,7 @@ class DefaultProjectConnectionTest extends Specification {
 
         then:
         1 * protocolConnection.stop()
+        1 * listener.connectionClosed(connection)
     }
 
     def "can create phased build action builder"() {

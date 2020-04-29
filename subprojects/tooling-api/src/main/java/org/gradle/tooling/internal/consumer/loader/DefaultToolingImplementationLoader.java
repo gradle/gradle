@@ -35,6 +35,7 @@ import org.gradle.tooling.internal.consumer.connection.NotifyDaemonsAboutChanged
 import org.gradle.tooling.internal.consumer.connection.ParameterAcceptingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.ParameterValidatingConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.PhasedActionAwareConsumerConnection;
+import org.gradle.tooling.internal.consumer.connection.StopWhenIdleConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.TestExecutionConsumerConnection;
 import org.gradle.tooling.internal.consumer.connection.UnsupportedOlderVersionConnection;
 import org.gradle.tooling.internal.consumer.converters.ConsumerTargetTypeProvider;
@@ -45,6 +46,7 @@ import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.tooling.internal.protocol.InternalInvalidatableVirtualFileSystemConnection;
 import org.gradle.tooling.internal.protocol.InternalParameterAcceptingConnection;
 import org.gradle.tooling.internal.protocol.InternalPhasedActionConnection;
+import org.gradle.tooling.internal.protocol.InternalStopWhenIdleConnection;
 import org.gradle.tooling.internal.protocol.test.InternalTestExecutionConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -81,8 +83,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
 
             ProtocolToModelAdapter adapter = new ProtocolToModelAdapter(new ConsumerTargetTypeProvider());
             ModelMapping modelMapping = new ModelMapping();
-
-            if (connection instanceof InternalInvalidatableVirtualFileSystemConnection) {
+            if (connection instanceof InternalStopWhenIdleConnection) {
+                return createConnection(new StopWhenIdleConsumerConnection(connection, modelMapping, adapter), connectionParameters);
+            } else if (connection instanceof InternalInvalidatableVirtualFileSystemConnection) {
                 return createConnection(new NotifyDaemonsAboutChangedPathsConsumerConnection(connection, modelMapping, adapter), connectionParameters);
             } else if (connection instanceof InternalPhasedActionConnection) {
                 return createConnection(new PhasedActionAwareConsumerConnection(connection, modelMapping, adapter), connectionParameters);
