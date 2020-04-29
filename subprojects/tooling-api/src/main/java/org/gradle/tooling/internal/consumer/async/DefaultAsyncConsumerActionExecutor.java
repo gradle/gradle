@@ -49,6 +49,7 @@ public class DefaultAsyncConsumerActionExecutor implements AsyncConsumerActionEx
 
     @Override
     public void disconnect() {
+        lifecycle.requestStop();
         executor.requestStop();
         actionExecutor.disconnect();
     }

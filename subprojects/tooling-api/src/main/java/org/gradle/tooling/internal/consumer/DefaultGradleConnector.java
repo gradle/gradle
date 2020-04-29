@@ -169,7 +169,7 @@ public class DefaultGradleConnector extends GradleConnector implements ProjectCo
 
         synchronized (connections) {
             if (stopped) {
-                throw new IllegalStateException("Connection was stopped");
+                throw new IllegalStateException("Tooling API client has been disconnected. No other connections may be used.");
             }
 
             ProjectConnection connection = connectionFactory.create(distribution, connectionParameters, this);

@@ -281,16 +281,13 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         """.stripIndent()
 
 
-        when:
+        expect:
         GradleConnector connector = toolingApi.connector()
         withConnection(connector) { connection ->
             def build = connection.newBuild()
             build.forTasks('myTask').run()
         }
         connector.disconnect()
-
-        then:
-        true
     }
 
     def "can call disconnect before project connection closed"() {
@@ -331,7 +328,8 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         connection.getModel(GradleProject)
 
         then:
-        thrown(RuntimeException)
+        def e = thrown(RuntimeException)
+        e.message ==~ /Cannot use .* as it has been stopped./
     }
 
     def "cannot create new project connection after disconnect"() {
@@ -346,7 +344,8 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         connector.connect()
 
         then:
-        thrown(RuntimeException)
+        def e = thrown(RuntimeException)
+        e.message == "Tooling API client has been disconnected. No other connections may be used."
     }
 
     void assertNoRunningDaemons() {

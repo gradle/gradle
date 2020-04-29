@@ -117,7 +117,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
 
     @Override
     public String getDisplayName() {
-        return distribution.getDisplayName();
+        return "connection to " + distribution.getDisplayName();
     }
 
     @Override
