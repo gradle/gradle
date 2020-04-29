@@ -531,7 +531,8 @@ project.extensions.create("some", SomeExtension)
         'prop5' | 'fileProperty()'      | 'RegularFile' | ''
     }
 
-    @IgnoreIf({ GradleContextualExecuter.isParallel() })
+    @ToBeFixedForInstantExecution
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Issue("https://github.com/gradle/gradle/issues/12811")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
         settingsFile << """
@@ -583,6 +584,63 @@ project.extensions.create("some", SomeExtension)
 
         then:
         file("consumer/build/consumer1.txt").text == "producer"
+        file("consumer/build/consumer2.txt").text == "producer"
+    }
+
+    @ToBeFixedForInstantExecution
+    @Issue("https://github.com/gradle/gradle/issues/12969")
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {
+        settingsFile << """
+            include 'producer'
+            include 'consumer'
+        """
+        taskTypeWritesPropertyValueToFile()
+        buildFile << """
+            project(':producer') {
+                def t = task producer(type: SomeTask) {
+                    prop = "producer"
+                    outputFile = layout.buildDirectory.file("producer.txt")
+                }
+                def c = configurations.create("default")
+                c.outgoing.artifact(t.outputFile)
+
+                // Start another task that blocks dependency resolution from the other project
+                task slow {
+                    dependsOn t
+                    doLast {
+                        sleep(200)
+                    }
+                }
+            }
+
+            interface Model {
+                Property<String> getProp()
+            }
+
+            project(':consumer') {
+                def m = extensions.create('model', Model)
+                m.prop.finalizeValueOnRead()
+                def c = configurations.create("incoming")
+                dependencies.incoming(project(":producer"))
+                m.prop = c.elements.map { files -> files*.asFile*.text.join(",") }
+                task consumer1 {
+                    inputs.files(c)
+                    doLast {
+                        println inputs.files
+                    }
+                }
+                task consumer2(type: SomeTask) {
+                    prop = m.prop
+                    outputFile = layout.buildDirectory.file("consumer2.txt")
+                }
+            }
+        """
+
+        when:
+        run("slow", "consumer1", "consumer2", "--parallel", "--max-workers=3")
+
+        then:
         file("consumer/build/consumer2.txt").text == "producer"
     }
 
