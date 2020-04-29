@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.daemon.DaemonFixture
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.internal.os.OperatingSystem
-import org.gradle.internal.vfs.watch.FileWatcherRegistry
+import org.gradle.internal.watch.registry.FileWatcherRegistry
 import org.gradle.soak.categories.SoakTest
 import org.gradle.test.fixtures.file.TestFile
 import org.junit.experimental.categories.Category

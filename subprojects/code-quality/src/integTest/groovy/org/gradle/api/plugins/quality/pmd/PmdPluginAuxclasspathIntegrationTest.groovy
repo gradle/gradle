@@ -40,7 +40,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
                 apply plugin: 'java'
 
-                ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
+                ${TestPrecondition.JDK9_OR_LATER.fulfilled ? "sourceCompatibility = 1.7" : ""}
             }
 
             project("pmd-rule") {

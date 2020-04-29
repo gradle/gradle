@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
-class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
+public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDiffListener {
     private final List<CompleteFileSystemLocationSnapshot> removedSnapshots = new ArrayList<>();
     private final List<CompleteFileSystemLocationSnapshot> addedSnapshots = new ArrayList<>();
     private final Predicate<String> watchFilter;

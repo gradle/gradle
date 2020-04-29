@@ -36,6 +36,7 @@ fun fileHeaderFor(packageName: String) =
     "RemoveRedundantBackticks",
     "ObjectPropertyName"
 )
+@file:org.gradle.api.Generated
 
 /* ktlint-disable */
 

@@ -19,23 +19,19 @@ package org.gradle.api.publish.ivy
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.ProgressLoggingFixture
-import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.AuthScheme
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.test.fixtures.server.http.IvyHttpModule
 import org.gradle.test.fixtures.server.http.IvyHttpRepository
 import org.gradle.util.GradleVersion
-import org.gradle.util.Requires
 import org.hamcrest.CoreMatchers
 import org.junit.Rule
 import org.mortbay.jetty.HttpStatus
-import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.test.matchers.UserAgentMatcher.matchesNameAndVersion
 import static org.gradle.util.Matchers.matchesRegexp
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class IvyPublishHttpIntegTest extends AbstractIvyPublishIntegTest {
     private static final int HTTP_UNRECOVERABLE_ERROR = 415
@@ -381,13 +377,14 @@ credentials {
         !module.ivy.file.text.contains(MetaDataParser.GRADLE_6_METADATA_MARKER)
     }
 
-    @Requires(FIX_TO_WORK_ON_JAVA9)
-    @Issue('provide a different large jar')
     @ToBeFixedForInstantExecution
-    public void "can publish large artifact (tools.jar) to authenticated repository"() {
+    void "can publish large artifact to authenticated repository"() {
         given:
         server.start()
-        def toolsJar = Jvm.current().toolsJar
+        def largeJar = file("large.jar")
+        new RandomAccessFile(largeJar, "rw").withCloseable {
+            it.length = 1024 * 1024 * 10 // 10 mb
+        }
 
         settingsFile << 'rootProject.name = "publish"'
         buildFile << """
@@ -410,7 +407,7 @@ credentials {
                     ivy(IvyPublication) {
                         configurations {
                             runtime {
-                                artifact('${toolsJar.toURI()}') {
+                                artifact('${largeJar.toURI()}') {
                                     name 'publish'
                                 }
                             }
@@ -436,7 +433,7 @@ credentials {
         then:
         module.assertIvyAndJarFilePublished()
         module.ivyFile.assertIsFile()
-        module.jarFile.assertIsCopyOf(new TestFile(toolsJar))
+        module.jarFile.assertIsCopyOf(new TestFile(largeJar))
     }
 
     @ToBeFixedForInstantExecution

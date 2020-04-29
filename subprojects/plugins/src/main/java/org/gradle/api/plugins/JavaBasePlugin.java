@@ -129,7 +129,7 @@ public class JavaBasePlugin implements Plugin<ProjectInternal> {
 
     private void configureVariantDerivationStrategy(ProjectInternal project) {
         ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
-        metadataHandler.setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy());
+        metadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
     }
 
     private JavaPluginConvention addExtensions(final ProjectInternal project) {

@@ -156,7 +156,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
     }
 
     @Override
-    AtomicSnapshotHierarchyReference getRoot() {
+    public AtomicSnapshotHierarchyReference getRoot() {
         return root;
     }
 

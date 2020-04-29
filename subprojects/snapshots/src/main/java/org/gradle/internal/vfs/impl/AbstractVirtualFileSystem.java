@@ -19,6 +19,6 @@ package org.gradle.internal.vfs.impl;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.vfs.VirtualFileSystem;
 
-abstract public class AbstractVirtualFileSystem implements VirtualFileSystem {
-    abstract AtomicSnapshotHierarchyReference getRoot();
+public abstract class AbstractVirtualFileSystem implements VirtualFileSystem {
+    public abstract AtomicSnapshotHierarchyReference getRoot();
 }

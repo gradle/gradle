@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
 import org.gradle.integtests.fixtures.FluidDependenciesResolveRunner
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import org.junit.runner.RunWith
+import spock.lang.Issue
 import spock.lang.Unroll
 
 @RunWith(FluidDependenciesResolveRunner)
@@ -104,16 +105,16 @@ baz:1.0 requested
             configurations {
                 conf
             }
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 conf 'org.test:a:1.0'
                 conf 'org.test:b:1.0'
             }
-            
+
             task checkDeps {
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
@@ -171,19 +172,19 @@ baz:1.0 requested
                     }
                 }
             }
-            
+
             repositories {
                maven { url "${mavenRepo.uri}" }
             }
-            
+
             dependencies {
                 conf 'org.test:a:1.0'
                 conf 'org.test:b:1.0'
-                
+
             }
         """
         resolve.prepare()
-        buildFile << """           
+        buildFile << """
             checkDeps {
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
@@ -244,7 +245,7 @@ baz:1.0 requested
             }
             dependencies {
                 conf "org:foo:1.0"
-                
+
                 constraints {
                     conf("org:foo:1.0") {
                         version {
@@ -254,7 +255,7 @@ baz:1.0 requested
                     }
                 }
             }
-            
+
             configurations.all {
                 resolutionStrategy.eachDependency {
                     if (requested.name == 'foo') {
@@ -262,7 +263,7 @@ baz:1.0 requested
                     }
                 }
             }
-            
+
             task checkWithApi {
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
@@ -311,7 +312,7 @@ baz:1.0 requested
                     if ($useReason) { because("This is a direct dependency reason") }
                 }
             }
-            
+
             configurations.all {
                 resolutionStrategy.eachDependency {
                     if (requested.name == 'foo') {
@@ -319,7 +320,7 @@ baz:1.0 requested
                     }
                 }
             }
-            
+
             task checkWithApi {
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
@@ -361,16 +362,16 @@ baz:1.0 requested
             configurations {
                 conf
             }
-            
+
             def attr = Attribute.of("myAttribute", String)
-            
+
             dependencies {
                 conf("org:foo:1.0") {
                     because 'first reason' // must have custom reasons to show the problem
                 }
                 conf("org:bar") {
                     because 'second reason'
-                    
+
                     attributes {
                         attribute(attr, 'val') // make sure attributes are properly serialized and read back
                     }
@@ -384,11 +385,11 @@ baz:1.0 requested
                     }
                 }
             }
-            
+
             task resolveTwice {
                 doLast {
                     def result = configurations.conf.incoming.resolutionResult
-                    result.allComponents { 
+                    result.allComponents {
                         it.selectionReason.descriptions.each {
                            println "\${it.cause} : \${it.description}"
                         }
@@ -431,13 +432,13 @@ baz:1.0 requested
 
                 apply plugin: 'java-library'
             }
-            
+
             project(":lib") {
                 dependencies {
                    api "org:dep:1.0"
                 }
             }
-            
+
             project(":tool") {
                 apply plugin: 'java-test-fixtures'
                 dependencies {
@@ -446,13 +447,13 @@ baz:1.0 requested
                     testFixturesImplementation "com:bar:1.0"
                 }
             }
-            
+
             dependencies {
                 implementation(project(":lib"))
                 testImplementation(testFixtures(project(":tool")))
                 testImplementation(testFixtures(project(":tool"))) // intentional duplication
             }
-            
+
 
         """
         withResolutionResultDumper("testCompileClasspath", "testRuntimeClasspath")
@@ -489,13 +490,13 @@ testCompileClasspath
             project(":platform") {
                 apply plugin: 'java-platform'
             }
-            
+
             apply plugin: 'java-library'
-            
+
             dependencies {
                 implementation(platform(project(":platform")))
             }
-            
+
             task checkDependencyAttributes {
                 doLast {
                     configurations.compileClasspath.incoming.resolutionResult.root.dependencies.each {
@@ -526,7 +527,7 @@ testCompileClasspath
               testFixturesApi('org:foo:1.0')
               testFixturesImplementation('org:bar:1.0')
               testFixturesImplementation('org:baz:1.0')
-            
+
               api('org:baz:1.0')
               implementation('org:gaz:1.0')
             }
@@ -541,7 +542,7 @@ testCompileClasspath
                   maven { url "${mavenRepo.uri}" }
                }
             }
-                        
+
             dependencies {
               implementation(project(':producer'))
               testImplementation(testFixtures(project(':producer')))
@@ -602,12 +603,12 @@ testRuntimeClasspath
                   maven { url "${mavenRepo.uri}" }
                }
             }
-                        
+
             dependencies {
               implementation(project(':producer'))
               testImplementation(testFixtures(project(':producer')))
             }
-            
+
             task resolve {
                 doLast {
                     def result = configurations.testCompileClasspath.incoming.resolutionResult
@@ -630,13 +631,55 @@ testRuntimeClasspath
         failure.assertHasCause("Variant 'apiElements' doesn't belong to resolved component 'project :'. There's no resolved variant with the same name. Most likely you are using a variant from another component to get the dependencies of this component.")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/12643")
+    def "resolved variant of a selected node shouldn't be null"() {
+        buildFile << """
+        apply plugin: 'java-library'
+
+        ${jcenterRepository()}
+
+        configurations.all {
+            resolutionStrategy.capabilitiesResolution.withCapability('com.google.collections:google-collections') {
+                selectHighestVersion()
+            }
+        }
+        dependencies {
+            implementation 'com.google.guava:guava:28.1-jre'
+            implementation 'com.google.collections:google-collections:1.0'
+            components {
+                withModule('com.google.guava:guava') {
+                    allVariants {
+                        withCapabilities {
+                           addCapability('com.google.collections', 'google-collections', id.version)
+                        }
+                    }
+                }
+            }
+        }
+
+        task resolve {
+            doLast {
+                def result = configurations.compileClasspath.incoming.resolutionResult
+                result.allDependencies {
+                    assert it instanceof ResolvedDependencyResult
+                    assert it.resolvedVariant != null
+                }
+            }
+        }
+        """
+
+        expect:
+        succeeds 'resolve'
+
+    }
+
     private void withResolutionResultDumper(String... configurations) {
         def confList = configurations.collect { configuration ->
             """
                 // dump variant dependencies
                 def result_$configuration = configurations.${configuration}.incoming.resolutionResult
                 dump("$configuration", result_${configuration}.root, null, 0)
-                
+
                 // check that configuration attributes are visible and desugared
                 def consumerAttributes_$configuration = configurations.${configuration}.attributes
                 assert result_${configuration}.requestedAttributes.keySet().size() == consumerAttributes_${configuration}.keySet().size()

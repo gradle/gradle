@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.BaseDirFileResolver;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.file.PathToFileResolver;
-import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem;
+import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

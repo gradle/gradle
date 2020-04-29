@@ -259,6 +259,7 @@ fun BufferedWriter.appendSourceCodeForPluginAccessors(
                     /**
                      * The `$id` plugin group.
                      */
+                    @org.gradle.api.Generated
                     class `$groupType`(internal val plugins: PluginDependenciesSpec)
 
 

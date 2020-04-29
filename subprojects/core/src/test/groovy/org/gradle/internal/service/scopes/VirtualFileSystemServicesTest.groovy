@@ -26,7 +26,7 @@ import org.gradle.internal.nativeintegration.filesystem.FileSystem
 import org.gradle.internal.vfs.AdditiveCacheLocations
 import org.gradle.internal.vfs.RoutingVirtualFileSystem
 import org.gradle.internal.vfs.VirtualFileSystem
-import org.gradle.internal.vfs.WatchingAwareVirtualFileSystem
+import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem
 import spock.lang.Specification
 import spock.lang.Unroll
 
