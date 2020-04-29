@@ -112,7 +112,7 @@ class InstantExecutionFingerprintCheckerTest {
                     File("another.init.gradle.kts") to HashCode.fromInt(3)
                 )
             ),
-            equalTo("init script 'added.init.gradle.kts' and more have been added")
+            equalTo("init script 'added.init.gradle.kts' and 1 more have been added")
         )
     }
 
@@ -145,7 +145,7 @@ class InstantExecutionFingerprintCheckerTest {
                     File("init.gradle.kts") to HashCode.fromInt(1)
                 )
             ),
-            equalTo("init script 'removed.init.gradle.kts' and more have been removed")
+            equalTo("init script 'removed.init.gradle.kts' and 1 more have been removed")
         )
     }
 

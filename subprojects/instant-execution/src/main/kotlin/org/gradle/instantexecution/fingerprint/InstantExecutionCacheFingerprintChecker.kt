@@ -86,7 +86,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
             val added = current.size - upToDateCount
             return when {
                 added == 1 -> "init script '${displayNameOf(current[upToDateCount])}' has been added"
-                added > 1 -> "init script '${displayNameOf(current[upToDateCount])}' and more have been added"
+                added > 1 -> "init script '${displayNameOf(current[upToDateCount])}' and ${added - 1} more have been added"
                 else -> null
             }
         }
@@ -94,7 +94,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
             val removed = previous.size - upToDateCount
             return when {
                 removed == 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' has been removed"
-                removed > 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' and more have been removed"
+                removed > 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' and ${removed - 1} more have been removed"
                 else -> null
             }
         }
