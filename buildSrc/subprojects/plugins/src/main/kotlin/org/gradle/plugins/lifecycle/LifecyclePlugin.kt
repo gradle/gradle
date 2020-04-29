@@ -66,6 +66,12 @@ class LifecyclePlugin : Plugin<Project> {
             tasks.registerCITestDistributionLifecycleTasks()
             plugins.withId("gradlebuild.java-library") {
                 tasks.registerEarlyFeedbackLifecycleTasks()
+                tasks.named(quickTest) {
+                    dependsOn("test")
+                }
+                tasks.named(platformTest) {
+                    dependsOn("test")
+                }
             }
             plugins.withId("gradlebuild.integration-tests") {
                 tasks.configureCIIntegrationTestDistributionLifecycleTasks()
@@ -234,11 +240,11 @@ class LifecyclePlugin : Plugin<Project> {
     private
     fun TaskContainer.configureCIIntegrationTestDistributionLifecycleTasks() {
         named(quickTest) {
-            dependsOn("test", "integTest")
+            dependsOn("integTest")
         }
 
         named(platformTest) {
-            dependsOn("test", "forkingIntegTest")
+            dependsOn("forkingIntegTest")
         }
 
         named(allVersionsIntegMultiVersionTest) {
