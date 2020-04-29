@@ -42,7 +42,7 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
 
     private void extractRootSnapshots(FileSystemNode rootNode, Consumer<CompleteFileSystemLocationSnapshot> consumer) {
         rootNode.accept(snapshot -> {
-            if (watchFilter.test(snapshot.getAbsolutePath())) {
+            if (!snapshot.isSymlink() && watchFilter.test(snapshot.getAbsolutePath())) {
                 consumer.accept(snapshot);
             }
         });

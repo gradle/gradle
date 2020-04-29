@@ -138,16 +138,16 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
         public OnlyVisitSubDirectories(Consumer<String> subDirectoryConsumer) {
             this.subDirectoryConsumer = subDirectoryConsumer;
-            root = true;
+            this.root = true;
         }
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (!root) {
+            if (!root && !directorySnapshot.isSymlink()) {
                 subDirectoryConsumer.accept(directorySnapshot.getAbsolutePath());
             }
             root = false;
-            return true;
+            return !directorySnapshot.isSymlink();
         }
 
         @Override
