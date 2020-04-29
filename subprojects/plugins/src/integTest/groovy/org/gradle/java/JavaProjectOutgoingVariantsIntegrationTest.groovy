@@ -18,9 +18,7 @@ package org.gradle.java
 
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.maven.MavenFileModule
-import spock.lang.Unroll
 
 abstract class JavaProjectOutgoingVariantsIntegrationTest extends AbstractIntegrationSpec {
 
@@ -93,11 +91,6 @@ project(':consumer') {
         succeeds "resolve"
     }
 
-    @ToBeFixedForInstantExecution(
-        bottomSpecs = [
-            "JavaProjectOutgoingVariantsPomMetadataIntegrationTest"
-        ]
-    )
     def "provides runtime JAR as default variant"() {
         when:
         resolve()
@@ -129,12 +122,6 @@ project(':consumer') {
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
     }
 
-    @Unroll
-    @ToBeFixedForInstantExecution(
-        bottomSpecs = [
-            "JavaProjectOutgoingVariantsPomMetadataIntegrationTest"
-        ]
-    )
     def "provides API variant - #format"() {
         buildFile << """
             project(':consumer') {
@@ -180,12 +167,6 @@ project(':consumer') {
         "LibraryElements.RESOURCES" | _
     }
 
-    @Unroll
-    @ToBeFixedForInstantExecution(
-        bottomSpecs = [
-            "JavaProjectOutgoingVariantsPomMetadataIntegrationTest"
-        ]
-    )
     def "provides runtime variant - format: #format"() {
         buildFile << """
             project(':consumer') {
@@ -249,12 +230,7 @@ project(':consumer') {
         outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
     }
-
-    @ToBeFixedForInstantExecution(
-        bottomSpecs = [
-            "JavaProjectOutgoingVariantsPomMetadataIntegrationTest"
-        ]
-    )
+    
     def "provides runtime classes variant"() {
         buildFile << """
             project(':consumer') {
