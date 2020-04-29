@@ -268,7 +268,7 @@ public class DirectorySnapshotter {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
             }
-            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName);
+            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName, isSymbolicLink);
         }
 
         /** unlistable directories (and maybe some locked files) will stop here */

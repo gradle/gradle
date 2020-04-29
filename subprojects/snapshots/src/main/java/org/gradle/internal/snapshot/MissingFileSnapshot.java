@@ -32,8 +32,16 @@ public class MissingFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
         super(absolutePath, name, false);
     }
 
+    public MissingFileSnapshot(String absolutePath, String name, boolean isSymlink) {
+        super(absolutePath, name, isSymlink);
+    }
+
     public MissingFileSnapshot(String absolutePath) {
         this(absolutePath, PathUtil.getFileName(absolutePath));
+    }
+
+    public MissingFileSnapshot(String absolutePath, boolean isSymlink) {
+        this(absolutePath, PathUtil.getFileName(absolutePath), isSymlink);
     }
 
     @Override
