@@ -55,7 +55,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {
-                    if (fileHasChanged(file, hash)) {
+                    if (hasFileChanged(file, hash)) {
                         return "file '${displayNameOf(file)}' has changed"
                     }
                 }
@@ -115,7 +115,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun fileHasChanged(file: File, originalHash: HashCode?) =
+    fun hasFileChanged(file: File, originalHash: HashCode?) =
         !isUpToDate(file, originalHash)
 
     private
