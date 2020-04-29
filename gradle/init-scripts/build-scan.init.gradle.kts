@@ -20,8 +20,6 @@ if (!gradle.startParameter.systemPropertiesArgs.containsKey("disableScanPlugin")
     }
 }
 
-val ci = System.getenv("CI") != null
-
 fun configureExtension(extension: Any) {
     extension.withGroovyBuilder {
         if (gradle.startParameter.taskNames in tasksWithBuildScansOnFailure) {
@@ -30,10 +28,6 @@ fun configureExtension(extension: Any) {
             "publishAlways"()
         }
         setProperty("server", "https://e.grdev.net")
-
-        if (ci) {
-            setProperty("uploadInBackground", false)
-        }
 
         if (!System.getProperty("slow.internet.connection", "false").toBoolean()) {
             setProperty("captureTaskInputFiles", true)
