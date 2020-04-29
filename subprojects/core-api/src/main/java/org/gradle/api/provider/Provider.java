@@ -147,6 +147,8 @@ public interface Provider<T> {
 
     /**
      * Returns a view of this {@link Provider} which can be safely read at configuration time.
+     *
+     * @since 6.5
      */
     @Incubating
     Provider<T> forUseAtConfigurationTime();

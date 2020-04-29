@@ -125,7 +125,7 @@ public abstract class AbstractMinimalProvider<T> implements ProviderInternal<T>,
 
     @Override
     public Provider<T> forUseAtConfigurationTime() {
-        throw new UnsupportedOperationException();
+        return this;
     }
 
     @Override
