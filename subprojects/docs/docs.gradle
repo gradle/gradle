@@ -64,6 +64,7 @@ dependencies {
 
     testImplementation project(":baseServices")
     testImplementation project(":core")
+    testImplementation libraries.junit5_vintage
     testImplementation testLibraries.jsoup
     testImplementation("org.gebish:geb-spock:2.2")
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
