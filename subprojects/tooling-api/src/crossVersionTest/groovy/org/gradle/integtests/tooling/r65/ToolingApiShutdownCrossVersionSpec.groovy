@@ -281,13 +281,15 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         """.stripIndent()
 
 
-        expect:
+        when:
         GradleConnector connector = toolingApi.connector()
         withConnection(connector) { connection ->
             def build = connection.newBuild()
             build.forTasks('myTask').run()
         }
         connector.disconnect()
+        then:
+        noExceptionThrown()
     }
 
     def "can call disconnect before project connection closed"() {

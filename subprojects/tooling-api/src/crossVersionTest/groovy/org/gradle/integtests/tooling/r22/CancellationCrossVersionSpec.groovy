@@ -103,7 +103,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        configureWasCancelled(resultHandler, "Could not fetch model of type 'GradleProject' using Gradle")
+        configureWasCancelled(resultHandler, "Could not fetch model of type 'GradleProject' using")
 
         where:
         configureOnDemand << [true, false]
@@ -130,7 +130,7 @@ throw new RuntimeException("should not run")
         }
 
         then:
-        configureWasCancelled(resultHandler, "Could not run build action using Gradle")
+        configureWasCancelled(resultHandler, "Could not run build action using")
 
         where:
         configureOnDemand << [true, false]
@@ -230,7 +230,7 @@ task hang {
 
         then:
         resultHandler.assertFailedWith(BuildCancelledException)
-        resultHandler.failure.message.startsWith("Could not execute build using Gradle")
+        resultHandler.failure.message.startsWith("Could not execute build using")
         if (targetDist.toolingApiHasCauseOnForcedCancel) {
             resultHandler.failure.cause.message.startsWith("Daemon was stopped to handle build cancel request.")
         }
