@@ -19,13 +19,12 @@ package org.gradle.language.java
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
+import org.gradle.util.TestPrecondition
 import spock.lang.Ignore
-import spock.lang.Issue
 import spock.lang.Unroll
 
 import static org.gradle.language.java.JavaIntegrationTesting.applyJavaPlugin
 import static org.gradle.language.java.JavaIntegrationTesting.expectJavaLangPluginDeprecationWarnings
-import static org.gradle.util.TestPrecondition.FIX_TO_WORK_ON_JAVA9
 
 class JavaCompilationAgainstApiJarIntegrationTest extends AbstractIntegrationSpec {
 
@@ -209,7 +208,6 @@ public class PersonInternal extends Person {
     }
 
     @Unroll
-    @Issue('Need to investigate the reason for the Java 9 failure')
     @ToBeFixedForInstantExecution
     def "changing comment in API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
@@ -261,7 +259,7 @@ public class Person {
     }
 
     @Unroll
-    @Requires(FIX_TO_WORK_ON_JAVA9)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER) // behavior changed with Java 9; we do not investigate as this tests a deprecated feature to be removed in Gradle 7.0
     @ToBeFixedForInstantExecution
     def "changing method body of API class should not trigger recompilation of the consuming library when API is #apiDeclared"() {
         given:
