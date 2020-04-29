@@ -52,14 +52,16 @@ import java.io.OutputStream
 class InstantExecutionFingerprintCheckerTest {
 
     @Test
-    fun `modified init script is reported`() {
+    fun `first modified init script is reported`() {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(1)
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("unchanged.gradle.kts") to HashCode.fromInt(1)
                 ),
                 to = listOf(
-                    File("init.gradle.kts") to HashCode.fromInt(2)
+                    File("init.gradle.kts") to HashCode.fromInt(2),
+                    File("unchanged.gradle.kts") to HashCode.fromInt(1)
                 )
             ),
             equalTo("init script 'init.gradle.kts' has changed")
@@ -67,16 +69,18 @@ class InstantExecutionFingerprintCheckerTest {
     }
 
     @Test
-    fun `index of modified init script is reported when file names differ`() {
+    fun `index of first modified init script is reported when file names differ`() {
         assertThat(
             invalidationReasonForInitScriptsChange(
                 from = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("before.gradle.kts") to HashCode.fromInt(2)
+                    File("before.gradle.kts") to HashCode.fromInt(2),
+                    File("other.gradle.kts") to HashCode.fromInt(3)
                 ),
                 to = listOf(
                     File("init.gradle.kts") to HashCode.fromInt(1),
-                    File("after.gradle.kts") to HashCode.fromInt(3)
+                    File("after.gradle.kts") to HashCode.fromInt(42),
+                    File("other.gradle.kts") to HashCode.fromInt(3)
                 )
             ),
             equalTo("content of 2nd init script, 'after.gradle.kts', has changed")
