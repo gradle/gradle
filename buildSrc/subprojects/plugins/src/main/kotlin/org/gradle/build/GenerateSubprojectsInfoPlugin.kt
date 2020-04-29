@@ -34,7 +34,9 @@ class GenerateSubprojectsInfoPlugin : Plugin<Project> {
 open class GenerateSubprojectsInfoTask : DefaultTask() {
     @TaskAction
     fun generateSubprojectsInfo() {
-        val subprojects: List<GradleSubproject> = project.rootDir.resolve("subprojects").listFiles(File::isDirectory).map(this::generateSubproject)
+        val subprojects: List<GradleSubproject> = project.rootDir.resolve("subprojects").listFiles(File::isDirectory)!!
+            .sorted()
+            .map(this::generateSubproject)
         val gson = GsonBuilder().setPrettyPrinting().create()
         project.rootDir.resolve(".teamcity/subprojects.json").writeText(gson.toJson(subprojects))
     }
