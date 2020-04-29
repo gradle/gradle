@@ -262,8 +262,8 @@ JUnit 4.8 introduced the concept of categories for grouping JUnit 4 tests classe
 
 .JUnit Categories
 ====
-include::sample[dir="snippets/testing/junit/categories/groovy",files="build.gradle[tags=test-categories]"]
-include::sample[dir="snippets/testing/junit/categories/kotlin",files="build.gradle.kts[tags=test-categories]"]
+include::sample[dir="snippets/testing/junit-categories/groovy",files="build.gradle[tags=test-categories]"]
+include::sample[dir="snippets/testing/junit-categories/kotlin",files="build.gradle.kts[tags=test-categories]"]
 ====
 
 http://junit.org/junit5/docs/current/user-guide[JUnit Platform] introduced http://junit.org/junit5/docs/current/user-guide/#writing-tests-tagging-and-filtering[tagging] to replace categories. You can specify the included/excluded tags via link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform-org.gradle.api.Action-[Test.useJUnitPlatform(org.gradle.api.Action)], as follows:

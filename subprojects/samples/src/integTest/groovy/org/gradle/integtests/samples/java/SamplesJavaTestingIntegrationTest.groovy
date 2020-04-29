@@ -106,7 +106,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         getStandardTestReportDir("util", "").file("index.html").assertDoesNotExist()
     }
 
-    @UsesSample("testing/junit/categories/groovy")
+    @UsesSample("testing/junit-categories/groovy")
     def "can filter tests by JUnit category"() {
         given:
         executer.inDirectory(sample.dir)
