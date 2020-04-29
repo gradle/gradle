@@ -39,6 +39,8 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -117,8 +119,36 @@ public class WatchingVirtualFileSystem extends AbstractDelegatingVirtualFileSyst
         if (watchingEnabled) {
             getRoot().update(currentRoot -> {
                 buildRunning = false;
+                Set<String> symlinkLocations = new HashSet<>();
+                currentRoot.visitSnapshotRoots(rootSnapshot -> rootSnapshot.accept(new FileSystemSnapshotVisitor() {
+                    @Override
+                    public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                        if (directorySnapshot.isSymlink()) {
+                            symlinkLocations.add(directorySnapshot.getAbsolutePath());
+                            return false;
+                        }
+                        return true;
+                    }
+
+                    @Override
+                    public void visitFile(CompleteFileSystemLocationSnapshot fileSnapshot) {
+                        if (fileSnapshot.isSymlink()) {
+                            symlinkLocations.add(fileSnapshot.getAbsolutePath());
+                        }
+                    }
+
+                    @Override
+                    public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
+                    }
+                }));
                 producedByCurrentBuild.set(DefaultFileHierarchySet.of());
-                SnapshotHierarchy newRoot = handleWatcherRegistryEvents(currentRoot, "for current build");
+                SnapshotHierarchy newRoot = currentRoot;
+                for (String symlinkLocation : symlinkLocations) {
+                    newRoot = delegatingUpdateFunctionDecorator
+                        .decorate((root, diffListener) -> root.invalidate(symlinkLocation, diffListener))
+                        .updateRoot(newRoot);
+                }
+                newRoot = handleWatcherRegistryEvents(newRoot, "for current build");
                 printStatistics(newRoot, "retains", "till next build");
                 return newRoot;
             });
