@@ -113,7 +113,7 @@ public class JavaPlatformPlugin implements Plugin<Project> {
 
     private static void configureVariantDerivationStrategy(ProjectInternal project) {
         ComponentMetadataHandlerInternal metadataHandler = (ComponentMetadataHandlerInternal) project.getDependencies().getComponents();
-        metadataHandler.setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy());
+        metadataHandler.setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.getInstance());
     }
 
     private void createSoftwareComponent(Project project, Configuration apiElements, Configuration runtimeElements) {
