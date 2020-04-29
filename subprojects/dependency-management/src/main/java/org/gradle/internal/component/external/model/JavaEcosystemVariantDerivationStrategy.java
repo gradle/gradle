@@ -25,7 +25,16 @@ import org.gradle.internal.component.model.ConfigurationMetadata;
 
 import java.util.Collections;
 
-public class JavaEcosystemVariantDerivationStrategy implements VariantDerivationStrategy {
+public class JavaEcosystemVariantDerivationStrategy extends AbstractStatelessDerivationStrategy {
+    private static final JavaEcosystemVariantDerivationStrategy INSTANCE = new JavaEcosystemVariantDerivationStrategy();
+
+    private JavaEcosystemVariantDerivationStrategy() {
+    }
+
+    public static JavaEcosystemVariantDerivationStrategy getInstance() {
+        return INSTANCE;
+    }
+
     @Override
     public boolean derivesVariants() {
         return true;

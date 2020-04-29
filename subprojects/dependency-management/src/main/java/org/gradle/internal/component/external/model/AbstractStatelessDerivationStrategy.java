@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,14 +15,23 @@
  */
 package org.gradle.internal.component.external.model;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.component.model.ConfigurationMetadata;
+public abstract class AbstractStatelessDerivationStrategy implements VariantDerivationStrategy {
+    private final int hashCode;
 
-/**
- * Variant derivation strategies should be stateless. If they aren't singletons,
- * implementors must make sure that equals/hashcode returns true for all instances.
- */
-public interface VariantDerivationStrategy {
-    boolean derivesVariants();
-    ImmutableList<? extends ConfigurationMetadata> derive(ModuleComponentResolveMetadata metadata);
+    protected AbstractStatelessDerivationStrategy() {
+        hashCode = this.getClass().getName().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        return o != null && getClass() == o.getClass();
+    }
+
+    @Override
+    public int hashCode() {
+        return hashCode;
+    }
 }

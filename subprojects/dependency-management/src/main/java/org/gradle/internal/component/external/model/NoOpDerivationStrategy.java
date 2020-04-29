@@ -18,7 +18,15 @@ package org.gradle.internal.component.external.model;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.ConfigurationMetadata;
 
-public class NoOpDerivationStrategy implements VariantDerivationStrategy {
+public class NoOpDerivationStrategy extends AbstractStatelessDerivationStrategy {
+    private static final NoOpDerivationStrategy INSTANCE = new NoOpDerivationStrategy();
+
+    private NoOpDerivationStrategy() {
+    }
+
+    public static NoOpDerivationStrategy getInstance() {
+        return INSTANCE;
+    }
 
     @Override
     public boolean derivesVariants() {
