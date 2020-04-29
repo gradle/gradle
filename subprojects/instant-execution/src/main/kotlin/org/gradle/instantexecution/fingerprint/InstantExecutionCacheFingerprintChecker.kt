@@ -55,7 +55,7 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {
-                    if (host.hashCodeOf(file) != hash) {
+                    if (hasFileChanged(file, hash)) {
                         return "file '${displayNameOf(file)}' has changed"
                     }
                 }
@@ -65,16 +65,9 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InitScripts -> input.run {
-                    val initScripts = host.allInitScripts
-                    if (initScripts.size != hashes.size) {
-                        return "sequence of init scripts has changed"
+                    checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)?.let { reason ->
+                        return reason
                     }
-                    initScripts.zip(hashes).forEachIndexed { index, (initScript, hash) ->
-                        if (host.hashCodeOf(initScript) != hash) {
-                            return "content of ${ordinal(index + 1)} init script, '${displayNameOf(initScript)}', has changed"
-                        }
-                    }
-                    null
                 }
                 else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
             }
@@ -82,8 +75,35 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun displayNameOf(file: File) =
-        host.displayNameOf(file)
+    fun checkInitScriptsAreUpToDate(
+        previous: List<InstantExecutionCacheFingerprint.InputFile>,
+        current: List<File>
+    ): InvalidationReason? {
+        val upToDateCount = current.zip(previous).count { (initScript, fingerprint) ->
+            isUpToDate(initScript, fingerprint.hash)
+        }
+        if (upToDateCount == previous.size) {
+            val added = current.size - upToDateCount
+            return when {
+                added == 1 -> "init script '${displayNameOf(current[upToDateCount])}' has been added"
+                added > 1 -> "init script '${displayNameOf(current[upToDateCount])}' and ${added - 1} more have been added"
+                else -> null
+            }
+        }
+        if (upToDateCount == current.size) {
+            val removed = previous.size - upToDateCount
+            return when {
+                removed == 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' has been removed"
+                removed > 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' and ${removed - 1} more have been removed"
+                else -> null
+            }
+        }
+        val modifiedScript = current[upToDateCount]
+        if (modifiedScript == previous[upToDateCount].file) {
+            return "init script '${displayNameOf(modifiedScript)}' has changed"
+        }
+        return "content of ${ordinal(upToDateCount + 1)} init script, '${displayNameOf(modifiedScript)}', has changed"
+    }
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {
@@ -93,6 +113,18 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
         }
         return null
     }
+
+    private
+    fun hasFileChanged(file: File, originalHash: HashCode?) =
+        !isUpToDate(file, originalHash)
+
+    private
+    fun isUpToDate(file: File, originalHash: HashCode?) =
+        host.hashCodeOf(file) == originalHash
+
+    private
+    fun displayNameOf(file: File) =
+        host.displayNameOf(file)
 
     private
     fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
