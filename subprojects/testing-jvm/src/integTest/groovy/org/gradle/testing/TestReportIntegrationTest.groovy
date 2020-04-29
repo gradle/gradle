@@ -16,17 +16,28 @@
 
 package org.gradle.testing
 
-import org.gradle.integtests.fixtures.*
+
+import org.gradle.integtests.fixtures.HtmlTestExecutionResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TargetCoverage
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Unroll
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
-import static org.hamcrest.CoreMatchers.*
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
+import static org.hamcrest.CoreMatchers.allOf
+import static org.hamcrest.CoreMatchers.containsString
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.is
 import static org.junit.Assume.assumeTrue
 
-@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
+@TargetCoverage({ JUNIT_4_LATEST + [JUPITER, VINTAGE] })
 class TestReportIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     @Rule Sample sample = new Sample(temporaryFolder)
 
@@ -410,12 +421,12 @@ public class SubClassTests extends SuperClassTests {
         then:
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def clazz = xmlReport.testClass("OutputLifecycleTest")
-        clazz.assertTestCaseStderr("m1", is("beforeTest err\nm1 err\nafterTest err\n"))
-        clazz.assertTestCaseStderr("m2", is("beforeTest err\nm2 err\nafterTest err\n"))
-        clazz.assertTestCaseStdout("m1", is("beforeTest out\nm1 out\nafterTest out\n"))
-        clazz.assertTestCaseStdout("m2", is("beforeTest out\nm2 out\nafterTest out\n"))
-        clazz.assertStderr(is("beforeClass err\nconstructor err\nconstructor err\nafterClass err\n"))
-        clazz.assertStdout(is("beforeClass out\nconstructor out\nconstructor out\nafterClass out\n"))
+        clazz.assertTestCaseStderr("m1", is("constructor err\nbeforeTest err\nm1 err\nafterTest err\n"))
+        clazz.assertTestCaseStderr("m2", is("constructor err\nbeforeTest err\nm2 err\nafterTest err\n"))
+        clazz.assertTestCaseStdout("m1", is("constructor out\nbeforeTest out\nm1 out\nafterTest out\n"))
+        clazz.assertTestCaseStdout("m2", is("constructor out\nbeforeTest out\nm2 out\nafterTest out\n"))
+        clazz.assertStderr(is("beforeClass err\nafterClass err\n"))
+        clazz.assertStdout(is("beforeClass out\nafterClass out\n"))
     }
 
     def "collects output for failing non-root suite descriptors"() {
@@ -460,7 +471,7 @@ public class SubClassTests extends SuperClassTests {
         """
         apply plugin: 'java'
         ${mavenCentralRepository()}
-        dependencies { testImplementation 'junit:junit:4.12' }
+        dependencies { testImplementation 'junit:junit:4.13' }
         """
     }
 

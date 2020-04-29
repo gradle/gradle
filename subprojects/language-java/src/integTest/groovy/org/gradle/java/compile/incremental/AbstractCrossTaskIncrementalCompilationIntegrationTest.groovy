@@ -600,7 +600,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     def "the order of classpath items is unchanged"() {
         source api: ["class A {}"], impl: ["class B {}"]
         file("impl/build.gradle") << """
-            dependencies { implementation "org.mockito:mockito-core:1.9.5", "junit:junit:4.12" }
+            dependencies { implementation "org.mockito:mockito-core:1.9.5", "junit:junit:4.13" }
             ${language.compileTaskName}.doFirst {
                 file("classpath.txt").createNewFile();
                 file("classpath.txt").text = classpath.files*.name.findAll { !it.startsWith('groovy') }.join(', ')
@@ -610,21 +610,21 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         when:
         run("impl:${language.compileTaskName}") //initial run
         then:
-        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.12.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
+        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
 
         when: //project dependency changes
         source api: ["class A { String change; }"]
         run("impl:${language.compileTaskName}")
 
         then:
-        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.12.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
+        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, hamcrest-core-1.3.jar, objenesis-1.0.jar")
 
         when: //transitive dependency is excluded
         file("impl/build.gradle") << "configurations.implementation.exclude module: 'hamcrest-core' \n"
         run("impl:${language.compileTaskName}")
 
         then:
-        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.12.jar, objenesis-1.0.jar")
+        file("impl/classpath.txt").text == wrapClassDirs("mockito-core-1.9.5.jar, junit-4.13.jar, objenesis-1.0.jar")
 
         when: //direct dependency is excluded
         file("impl/build.gradle") << "configurations.implementation.exclude module: 'junit' \n"
@@ -670,7 +670,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         file("impl/build.gradle") << """
             configurations.implementation.dependencies.clear()
             dependencies {
-                implementation 'junit:junit:4.12'
+                implementation 'junit:junit:4.13'
                 implementation localGroovy()
             }
         """
@@ -692,7 +692,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         impl.snapshot { run("impl:${language.compileTaskName}") }
 
         when:
-        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.12' }"
+        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.13' }"
         run("impl:${language.compileTaskName}")
 
         then:
@@ -702,7 +702,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
     def "changed jar with duplicate class appearing earlier on classpath must trigger compilation"() {
         source impl: ["class A extends org.junit.Assert {}"]
         file("impl/build.gradle") << """
-            dependencies { implementation 'junit:junit:4.12' }
+            dependencies { implementation 'junit:junit:4.13' }
         """
 
         impl.snapshot { run("impl:${language.compileTaskName}") }
@@ -720,7 +720,7 @@ abstract class AbstractCrossTaskIncrementalCompilationIntegrationTest extends Ab
         file("api/src/main/${language.name}/org/junit/Assert.${language.name}") << "package org.junit; public class Assert {}"
         source impl: ["class A extends org.junit.Assert {}"]
 
-        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.12' }"
+        file("impl/build.gradle") << "dependencies { implementation 'junit:junit:4.13' }"
 
         impl.snapshot { run("impl:${language.compileTaskName}") }
 

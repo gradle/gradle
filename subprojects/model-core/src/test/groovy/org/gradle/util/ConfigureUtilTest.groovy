@@ -20,7 +20,7 @@ import org.gradle.util.ConfigureUtil.IncompleteInputException
 import spock.lang.Specification
 
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class ConfigureUtilTest extends Specification {
 

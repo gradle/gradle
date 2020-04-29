@@ -32,7 +32,7 @@ import org.junit.Rule
 import org.junit.Test
 
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class DefaultJavaPluginConventionTest extends Specification {
     @Rule

@@ -38,7 +38,7 @@ java {
 
 // tag::test_fixtures_deps[]
 dependencies {
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
 
     // API dependencies are visible to consumers when building
     testFixturesApi("org.apache.commons:commons-lang3:3.9")

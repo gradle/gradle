@@ -29,6 +29,9 @@ class JUnitAbortedTestClassIntegrationTest extends JUnitMultiVersionIntegrationS
 
     @Rule TestResources resources = new TestResources(temporaryFolder)
 
+    // Note: there're some behavior changes in 4.13:
+    // https://github.com/junit-team/junit4/issues/1066
+    // So this test was adjusted accordingly.
     def supportsAssumptionsInRules() {
         given:
         executer.noExtraLogging()
@@ -46,8 +49,8 @@ dependencies {
         result.assertTestClassesExecuted('org.gradle.SkippingRuleTests')
         result.testClass('org.gradle.SkippingRuleTests')
             .assertTestCount(3, 0, 0)
-            .assertTestsExecuted('a')
-            .assertTestsSkipped('b', 'c')
+            .assertTestsExecuted('a', 'c')
+            .assertTestsSkipped('b')
     }
 
 }

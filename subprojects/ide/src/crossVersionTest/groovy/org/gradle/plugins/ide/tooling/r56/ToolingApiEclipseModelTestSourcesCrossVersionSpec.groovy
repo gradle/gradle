@@ -39,7 +39,7 @@ class ToolingApiEclipseModelTestSourcesCrossVersionSpec extends ToolingApiSpecif
 
             dependencies {
                 implementation 'com.google.guava:guava:21.0'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
         file('src/main/java').mkdirs()

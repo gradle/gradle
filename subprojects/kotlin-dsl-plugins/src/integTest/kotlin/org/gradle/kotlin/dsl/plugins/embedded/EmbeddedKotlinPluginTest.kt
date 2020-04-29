@@ -28,7 +28,7 @@ import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 import org.hamcrest.CoreMatchers.containsString
 
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 
@@ -66,7 +66,7 @@ class EmbeddedKotlinPluginTest : AbstractPluginTest() {
             configurations {
                 create("compileOnlyClasspath") { extendsFrom(configurations["compileOnly"]) }
             }
-            
+
             $repositoriesBlock
 
             tasks {

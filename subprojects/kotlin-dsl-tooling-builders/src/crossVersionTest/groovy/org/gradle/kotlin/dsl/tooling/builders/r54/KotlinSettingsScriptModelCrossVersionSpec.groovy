@@ -22,7 +22,7 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVers
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 @TargetGradleVersion(">=5.4")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {

@@ -60,7 +60,7 @@ class SamplesDefiningUsingConfigurationsIntegrationTest extends AbstractIntegrat
         succeeds('copyLibs')
 
         then:
-        sample.dir.file("$dsl/build/libs/junit-4.12.jar").isFile()
+        sample.dir.file("$dsl/build/libs/junit-4.13.jar").isFile()
         sample.dir.file("$dsl/build/libs/httpclient-4.5.5.jar").isFile()
 
         where:

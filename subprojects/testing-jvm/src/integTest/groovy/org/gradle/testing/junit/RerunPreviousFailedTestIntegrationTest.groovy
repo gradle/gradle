@@ -34,7 +34,7 @@ class RerunPreviousFailedTestIntegrationTest extends AbstractIntegrationSpec {
 
 
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
 

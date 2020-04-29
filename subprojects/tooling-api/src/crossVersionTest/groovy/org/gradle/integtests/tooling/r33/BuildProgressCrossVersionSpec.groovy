@@ -35,7 +35,7 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
         """
         buildFile << """
             allprojects { apply plugin: 'java' }
-            
+
             evaluationDependsOn(':a')
 """
         file("a/build.gradle") << """
@@ -72,15 +72,15 @@ class BuildProgressCrossVersionSpec extends ToolingApiSpecification {
     def "generates events for dependency resolution"() {
         given:
         buildFile << """
-            allprojects { 
+            allprojects {
                 apply plugin: 'java'
                 ${mavenCentralRepository()}
-                dependencies { testCompile 'junit:junit:4.12' }
+                dependencies { testCompile 'junit:junit:4.13' }
             }
 """
         file("src/main/java/Thing.java") << """class Thing { }"""
         file("src/test/java/ThingTest.java") << """
-            public class ThingTest { 
+            public class ThingTest {
                 @org.junit.Test
                 public void ok() { }
             }

@@ -1,7 +1,7 @@
 package org.gradle.kotlin.dsl.resolver
 
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 
 

@@ -65,7 +65,7 @@ description = 'The shared API for the application'
 // end::project-description[]
     dependencies {
         implementation "org.codehaus.groovy:groovy-all:2.4.15"
-        testImplementation "junit:junit:4.12"
+        testImplementation "junit:junit:4.13"
     }
 }
 

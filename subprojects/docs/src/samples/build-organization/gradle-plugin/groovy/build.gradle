@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     // Use JUnit test framework for unit tests
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 
 gradlePlugin {

@@ -23,7 +23,7 @@ import org.gradle.testkit.runner.UnexpectedBuildFailure
 import org.hamcrest.CoreMatchers
 
 import org.junit.Assert.assertFalse
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
