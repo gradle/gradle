@@ -32,31 +32,47 @@ class ScalaRuntimeTest extends AbstractProjectBuilderSpec {
         project.repositories {
             mavenCentral()
         }
-
         when:
         def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
-
         then:
-        classpath instanceof LazilyInitializedFileCollection
-        classpath.sourceCollections.size() == 1
+        assertHasCorrectDependencies(classpath, DefaultScalaToolProvider.DEFAULT_ZINC_VERSION)
+    }
+
+    def "inferred Scala class path contains 'scala-compiler' repository dependency and 'compiler-bridge' matching 'scala-library' Jar found on class path with specified zinc version"() {
+        project.repositories {
+            mavenCentral()
+        }
+        def useZincVersion = "1.3.4"
+        project.scala {
+            zincVersion = useZincVersion
+        }
+        when:
+        def classpath = project.scalaRuntime.inferScalaClasspath([new File("other.jar"), new File("scala-library-2.10.1.jar")])
+        then:
+        assertHasCorrectDependencies(classpath, useZincVersion)
+    }
+
+    private void assertHasCorrectDependencies(classpath, zincVersion) {
+        assert classpath instanceof LazilyInitializedFileCollection
+        assert classpath.sourceCollections.size() == 1
         with(classpath.sourceCollections[0]) {
-            it instanceof Configuration
-            it.state == Configuration.State.UNRESOLVED
-            it.dependencies.size() == 3
-            it.dependencies.any { d ->
+            assert it instanceof Configuration
+            assert it.state == Configuration.State.UNRESOLVED
+            assert it.dependencies.size() == 3
+            assert it.dependencies.any { d ->
                 d.group == "org.scala-lang" &&
-                d.name == "scala-compiler" &&
-                d.version == "2.10.1"
+                    d.name == "scala-compiler" &&
+                    d.version == "2.10.1"
             }
-            it.dependencies.any { d ->
+            assert it.dependencies.any { d ->
                 d.group == "org.scala-sbt" &&
-                d.name == "compiler-bridge_2.10" &&
-                d.version == DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+                    d.name == "compiler-bridge_2.10" &&
+                    d.version == zincVersion
             }
-            it.dependencies.any { d ->
+            assert it.dependencies.any { d ->
                 d.group == "org.scala-sbt" &&
-                d.name == "compiler-interface" &&
-                d.version == DefaultScalaToolProvider.DEFAULT_ZINC_VERSION
+                    d.name == "compiler-interface" &&
+                    d.version == zincVersion
             }
         }
     }
