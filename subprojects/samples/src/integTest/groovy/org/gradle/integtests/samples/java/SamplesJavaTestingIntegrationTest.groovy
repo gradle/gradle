@@ -123,7 +123,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         xmlResults.testcase.find { it.@name == "a" }
     }
 
-    @UsesSample("testing/junitplatform/tagging/groovy")
+    @UsesSample("testing/junitplatform-tagging/groovy")
     def "can filter tests by JUnit Platform tag"() {
         given:
         executer.inDirectory(sample.dir)
@@ -160,7 +160,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         getTestResultsFile(sample, "org.gradle.testng.SimpleIntegrationTest").assertDoesNotExist()
     }
 
-    @UsesSample("testing/junitplatform/jupiter/groovy")
+    @UsesSample("testing/junitplatform-jupiter/groovy")
     def "can run tests using JUnit Jupiter"() {
         given:
         executer.inDirectory(sample.dir)
@@ -177,7 +177,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
         assertTestsRunCount(xmlResults, 5)
     }
 
-    @UsesSample("testing/junitplatform/mix/groovy")
+    @UsesSample("testing/junitplatform-mix/groovy")
     def "can run older JUnit tests with JUnit Jupiter"() {
         given:
         executer.inDirectory(sample.dir)
@@ -200,7 +200,7 @@ class SamplesJavaTestingIntegrationTest extends AbstractSampleIntegrationTest {
             1)
     }
 
-    @UsesSample("testing/junitplatform/engine/groovy")
+    @UsesSample("testing/junitplatform-engine/groovy")
     def "can run JUnit Platform tests with a subset of engines"() {
         given:
         executer.inDirectory(sample.dir)
