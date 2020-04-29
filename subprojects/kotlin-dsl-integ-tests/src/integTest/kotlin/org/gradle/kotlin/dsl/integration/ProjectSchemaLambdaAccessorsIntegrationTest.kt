@@ -19,23 +19,14 @@ package org.gradle.kotlin.dsl.integration
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.plugin.PluginBuilder
-
-import org.hamcrest.CoreMatchers.containsString
-
+import org.junit.Assert
 import org.junit.ComparisonFailure
-import org.junit.Rule
 import org.junit.Test
-import org.junit.rules.ExpectedException
-
 import spock.lang.Issue
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
-
-    @get:Rule
-    val exceptionRule: ExpectedException = ExpectedException.none()
-
     @Test
     fun `accessors to **untyped** groovy closures extensions are typed Any`() {
 
@@ -56,7 +47,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             plugins {
                 my
             }
-            
+
             inline fun <reified T> typeOf(value: T) = typeOf<T>()
 
             println("closureExtension: " + typeOf(closureExtension))
@@ -82,14 +73,14 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
         withFile("buildSrc/src/main/kotlin/my.gradle.kts", """
             extensions.add("lambdaExtension", { name: String ->
                 name.toUpperCase()
-            }) 
+            })
         """)
 
         withBuildScript("""
             plugins {
                 my
             }
-            
+
             inline fun <reified T> typeOf(value: T) = typeOf<T>()
 
             println("lambdaExtension: " + typeOf(lambdaExtension))
@@ -124,7 +115,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
         """)
         withFile("buildSrc/src/main/java/my/MyPlugin.java", """
             package my;
-            
+
             import org.gradle.api.*;
             import java.util.function.Function;
 
@@ -138,11 +129,11 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
         withBuildScript("""
             import java.util.function.Function
-            
+
             plugins {
                 my
             }
-            
+
             inline fun <reified T> typeOf(value: T) = typeOf<T>()
 
             println("lambdaExtension: " + typeOf(lambdaExtension))
@@ -178,7 +169,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             plugins {
                 my
             }
-            
+
             inline fun <reified T> typeOf(value: T) = typeOf<T>()
 
             println("closureExtension: " + typeOf(closureExtension))
@@ -211,7 +202,7 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             plugins {
                 my
             }
-            
+
             inline fun <reified T> typeOf(value: T) = typeOf<T>()
 
             println("lambdaExtension: " + typeOf(lambdaExtension))
@@ -229,11 +220,6 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
     @Issue("https://github.com/gradle/gradle/issues/10771")
     fun `accessors to **typed** java lambda extensions are typed`() {
 
-        // TODO:kotlin-dsl Remove once above issue is fixed
-        exceptionRule.apply {
-            expect(ComparisonFailure::class.java)
-            expectMessage(containsString("lambdaExtension: java.lang.Object"))
-        }
 
         withDefaultSettings()
         withFile("buildSrc/build.gradle", """
@@ -252,14 +238,14 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
         """)
         withFile("buildSrc/src/main/java/my/MyPlugin.java", """
             package my;
-            
+
             import org.gradle.api.*;
             import org.gradle.api.reflect.*;
             import java.util.function.Function;
 
             public class MyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    TypeOf<Function<String, String>> typeToken = new TypeOf<Function<String, String>>() {}; 
+                    TypeOf<Function<String, String>> typeToken = new TypeOf<Function<String, String>>() {};
                     Function<String, String> lambda = s -> s.toUpperCase();
                     project.getExtensions().add(typeToken, "lambdaExtension", lambda);
                 }
@@ -268,11 +254,11 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
 
         withBuildScript("""
             import java.util.function.Function
-            
+
             plugins {
                 my
             }
-            
+
             inline fun <reified T> typeOf(value: T) = typeOf<T>()
 
             println("lambdaExtension: " + typeOf(lambdaExtension))
@@ -281,9 +267,14 @@ class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTes
             println(casted.apply("some"))
         """)
 
-        build("help").apply {
-            assertOutputContains("lambdaExtension: java.util.function.Function<java.lang.String, java.lang.String>")
-            assertOutputContains("SOME")
+
+        // TODO:kotlin-dsl Remove once above issue is fixed
+        val exception = Assert.assertThrows(ComparisonFailure::class.java) {
+            build("help").apply {
+                assertOutputContains("lambdaExtension: java.util.function.Function<java.lang.String, java.lang.String>")
+                assertOutputContains("SOME")
+            }
         }
+        Assert.assertTrue(exception.message!!.contains("lambdaExtension: java.lang.Object"))
     }
 }
