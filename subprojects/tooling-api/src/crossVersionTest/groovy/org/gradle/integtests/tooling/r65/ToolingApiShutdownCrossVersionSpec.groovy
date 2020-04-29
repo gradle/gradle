@@ -1,5 +1,5 @@
 /*
- * Copyright 2014 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.tooling.r64
+package org.gradle.integtests.tooling.r65
 
 import org.gradle.integtests.tooling.CancellationSpec
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
@@ -27,7 +27,7 @@ import org.gradle.tooling.model.GradleProject
 import org.gradle.tooling.model.eclipse.EclipseProject
 import spock.util.concurrent.PollingConditions
 
-@ToolingApiVersion(">=6.4")
+@ToolingApiVersion(">=6.5")
 class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
 
     def waitFor
@@ -38,7 +38,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         existingDaemonPids = toolingApi.daemons.daemons.collect { it.context.pid }
     }
 
-    @TargetGradleVersion(">=6.4")
+    @TargetGradleVersion(">=6.5")
     def "Disconnect during build stops daemon"() {
         setup:
         toolingApi.requireDaemons()
@@ -68,7 +68,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         assertNoRunningDaemons()
     }
 
-    @TargetGradleVersion(">=6.4")
+    @TargetGradleVersion(">=6.5")
     def "Disconnect during tooling model query stops daemon"() {
         setup:
         toolingApi.requireDaemons()
@@ -102,7 +102,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         assertNoRunningDaemons()
     }
 
-    @TargetGradleVersion(">=6.4")
+    @TargetGradleVersion(">=6.5")
     def "Disconnect stops multiple daemons"() {
         setup:
         toolingApi.requireDaemons()

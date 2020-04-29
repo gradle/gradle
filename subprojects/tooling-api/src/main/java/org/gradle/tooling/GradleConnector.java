@@ -166,14 +166,16 @@ public abstract class GradleConnector {
 
     /**
      * Disconnects all ProjectConnection instances created by this connector.
+     *
      * <p>
-     * Calling this method tries does best effort to clean up daemons. It tries to cancel the existing builds and
-     * shut down the daemons without any guarantees.
+     * Calling this method tries to do a best effort to clean up resources used by the tooling API.
+     * It tries to cancel any builds and shut down running daemons.
      * <p>
+     *
      * After calling {@code disconnect}, creating new project connections will be rejected and the existing ones
      * created by this instance will also deny future build operations.
      *
-     * @since 6.4
+     * @since 6.5
      */
     @Incubating
     public abstract void disconnect();

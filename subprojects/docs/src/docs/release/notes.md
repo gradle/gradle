@@ -39,8 +39,7 @@ details of 2
 
 ## Improvements for tooling providers
 
-The GradleConnector class has a new `disconnect` method. Clients can use it to asynchronously cancel release all Tooling API connections without waiting for the current build to finish.
-For more details, refer to the [javadoc](javadoc/org/gradle/tooling/GradleConnector.html). 
+Tooling API clients can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.
