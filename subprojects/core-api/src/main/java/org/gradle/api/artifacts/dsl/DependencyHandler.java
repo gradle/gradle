@@ -147,6 +147,8 @@ import java.util.Map;
  *
  * <code><i>configurationName</i> &lt;instance&gt;</code>
  *
+ * <p>Dependencies can also be declared with a {@link org.gradle.api.provider.Provider} that provides any of the other supported dependency notations.</p>
+ *
  * <h3>External dependencies</h3>
  *
  * <p>There are two notations supported for declaring a dependency on an external module.
@@ -261,10 +263,6 @@ import java.util.Map;
  * The module notation is the same as the dependency notations described above, except that the classifier property is
  * not available. Client modules are represented using a {@link org.gradle.api.artifacts.ClientModule}.
  *
- * <h3>Lazy dependencies</h3>
- *
- * <p>All {@link DependencyHandler#add} methods also support accepting {@link org.gradle.api.provider.Provider} instances
- * that supply any of the supported dependency formats.</p>
  */
 public interface DependencyHandler extends ExtensionAware {
     /**
