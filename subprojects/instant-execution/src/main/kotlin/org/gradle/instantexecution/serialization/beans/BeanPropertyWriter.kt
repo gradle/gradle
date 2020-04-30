@@ -62,7 +62,6 @@ class BeanPropertyWriter(
     fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
         is Closure<*> -> fieldValue
         // TODO - do not eagerly evaluate these types
-        is Function0<*> -> fieldValue.invoke()
         is Lazy<*> -> fieldValue.value
         else -> fieldValue ?: conventionalValueOf(bean, fieldName)
     }

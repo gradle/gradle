@@ -76,9 +76,6 @@ class BeanPropertyReader(
 
     private
     fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit = when (val type = field.type) {
-        Function0::class.java -> { bean, value ->
-            field.set(bean, { value })
-        }
         Lazy::class.java -> { bean, value ->
             field.set(bean, lazyOf(value))
         }
