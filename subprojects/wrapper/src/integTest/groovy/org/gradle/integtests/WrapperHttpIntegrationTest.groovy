@@ -24,7 +24,7 @@ import org.junit.Rule
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
     @Rule BlockingHttpServer server = new BlockingHttpServer()

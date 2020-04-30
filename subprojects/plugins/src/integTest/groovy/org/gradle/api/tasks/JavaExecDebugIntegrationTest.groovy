@@ -64,7 +64,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "can debug Java exec with socket listen type debugger (server = false)"(String taskName) {
         setup:
-        sampleProject"""    
+        sampleProject"""
             debugOptions {
                 enabled = true
                 server = false
@@ -84,7 +84,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @Ignore
     def "can debug Java exec with socket attach type debugger (server = true)"(String taskName) {
         setup:
-        sampleProject"""    
+        sampleProject"""
             debugOptions {
                 enabled = true
                 server = true
@@ -112,9 +112,9 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "debug options overrides debug property"(String taskName) {
         setup:
-        sampleProject"""    
+        sampleProject"""
             debug = true
-        
+
             debugOptions {
                 enabled = false
                 server = false
@@ -131,13 +131,13 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
     @ToBeFixedForInstantExecution
     def "if custom debug argument is passed to the build then debug options is ignored"(String taskName) {
         setup:
-        sampleProject"""    
+        sampleProject"""
             debugOptions {
                 enabled = true
                 server = false
                 suspend = false
             }
-            
+
             jvmArgs "-agentlib:jdwp=transport=dt_socket,server=n,suspend=n,address=$debugClient.port"
         """
 
@@ -160,7 +160,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                     System.exit(0);
                 }
             }
-            
+
         """
 
         file('src/test/java/driver/DriverTest.java').text = """
@@ -183,13 +183,13 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
             }
 
             dependencies {
-                 testImplementation 'junit:junit:4.12'
+                 testImplementation 'junit:junit:4.13'
             }
 
             task runJavaExec(type: JavaExec) {
                 classpath = sourceSets.main.runtimeClasspath
                 main "driver.Driver"
-                
+
                 $javaExecConfig
             }
 
@@ -198,7 +198,7 @@ class JavaExecDebugIntegrationTest extends AbstractIntegrationSpec {
                     project.javaexec {
                         classpath = sourceSets.main.runtimeClasspath
                         main "driver.Driver"
-                        
+
                         $javaExecConfig
                     }
                 }

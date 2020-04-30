@@ -13,7 +13,7 @@ dependencies {
 dependencies {
     implementation("commons-collections:commons-collections:3.2.2")
     testImplementation("org.scalatest:scalatest_2.11:3.0.0")
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
 }
 
 // tag::force-compilation[]

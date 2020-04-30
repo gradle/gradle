@@ -25,7 +25,7 @@ dependencies {
 
 // tag::java-basic-test-config[]
 dependencies {
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
 }
 
 tasks.test {
@@ -50,7 +50,7 @@ val intTestImplementation by configurations.getting {
 configurations["intTestRuntimeOnly"].extendsFrom(configurations.runtimeOnly.get())
 
 dependencies {
-    intTestImplementation("junit:junit:4.12")
+    intTestImplementation("junit:junit:4.13")
 }
 // end::practical-integ-test-source-set[]
 

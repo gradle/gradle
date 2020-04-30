@@ -5,7 +5,7 @@ repositories {
 }
 
 dependencies {
-    testImplementation "junit:junit:4.12"
+    testImplementation "junit:junit:4.13"
 }
 
 sourceSets.test.groovy.filter.includes = ["**/*.spec"]

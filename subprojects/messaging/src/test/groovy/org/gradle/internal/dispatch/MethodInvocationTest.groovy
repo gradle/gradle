@@ -18,7 +18,7 @@ package org.gradle.internal.dispatch
 import spock.lang.Specification
 
 import static org.gradle.util.Matchers.strictlyEqual
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class MethodInvocationTest extends Specification {
 

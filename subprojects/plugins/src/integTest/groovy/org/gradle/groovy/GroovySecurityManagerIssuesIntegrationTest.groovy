@@ -33,7 +33,7 @@ class GroovySecurityManagerIssuesIntegrationTest extends AbstractIntegrationSpec
             ${jcenterRepository()}
             dependencies{
                 compile localGroovy()
-                testCompile 'junit:junit:4.12'
+                testCompile 'junit:junit:4.13'
             }
             """
         executer.withArguments("-i")

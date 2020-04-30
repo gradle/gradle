@@ -6,7 +6,7 @@ dependencies {
     implementation(project(":kotlinDsl"))
     implementation(project(":packaging"))
     implementation(project(":versioning"))
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
 }
 
 gradlePlugin {

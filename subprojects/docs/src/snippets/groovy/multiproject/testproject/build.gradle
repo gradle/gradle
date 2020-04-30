@@ -8,7 +8,7 @@ version = '1.0'
 dependencies {
     implementation 'org.codehaus.groovy:groovy-all:2.4.15'
     implementation project(':groovycDetector')
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 
 sourceSets {

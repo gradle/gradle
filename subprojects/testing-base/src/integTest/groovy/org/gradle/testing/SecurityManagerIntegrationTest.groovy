@@ -28,13 +28,13 @@ class SecurityManagerIntegrationTest extends AbstractIntegrationSpec {
     @IntegrationTestTimeout(120)
     def "should not hang when running with security manager"() {
         given:
-        buildFile << """ 
+        buildFile << """
 apply plugin:"java"
 
 ${mavenCentralRepository()}
 
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 """
         file('src/test/java/SecurityManagerTest.java') << '''

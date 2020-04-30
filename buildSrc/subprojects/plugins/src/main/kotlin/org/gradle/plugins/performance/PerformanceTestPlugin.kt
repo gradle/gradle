@@ -136,7 +136,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         dependencies {
             "performanceTestImplementation"(project(":internalPerformanceTesting"))
-            "junit"("junit:junit:4.12")
+            "junit"("junit:junit:4.13")
         }
     }
 

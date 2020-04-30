@@ -18,7 +18,7 @@ project(":project1") {
     description = "The first project"
 
     dependencies {
-        "implementation"("junit:junit:4.12")
+        "implementation"("junit:junit:4.13")
         "implementation"(project(":project2"))
     }
 }

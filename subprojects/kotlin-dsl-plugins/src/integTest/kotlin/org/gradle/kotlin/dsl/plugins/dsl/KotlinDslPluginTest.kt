@@ -15,7 +15,7 @@ import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.not
 
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Before
 import org.junit.Test
 
@@ -87,7 +87,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                testImplementation("junit:junit:4.12")
+                testImplementation("junit:junit:4.13")
             }
 
         """)
@@ -142,7 +142,7 @@ class KotlinDslPluginTest : AbstractPluginTest() {
             $repositoriesBlock
 
             dependencies {
-                testImplementation("junit:junit:4.12")
+                testImplementation("junit:junit:4.13")
                 testImplementation("org.hamcrest:hamcrest-library:1.3")
                 testImplementation(gradleTestKit())
             }

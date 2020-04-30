@@ -42,7 +42,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
                    providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
                    implementation 'org.apache.commons:commons-lang3:3.0'
                    implementation project(':java')
-                   testImplementation "junit:junit:4.12"
+                   testImplementation "junit:junit:4.13"
                }
            }
             project(':java') {
@@ -53,7 +53,7 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
                 dependencies {
                     implementation 'com.google.guava:guava:18.0'
                     implementation 'javax.servlet:javax.servlet-api:3.1.0'
-                    testImplementation "junit:junit:4.12"
+                    testImplementation "junit:junit:4.13"
                 }
             }
             """
@@ -73,17 +73,17 @@ class EclipseWtpWebAndJavaProjectIntegrationTest extends AbstractEclipseIntegrat
 
         // Classpath
         def javaClasspath = classpath('java')
-        javaClasspath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
+        javaClasspath.assertHasLibs('guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.13.jar', 'hamcrest-core-1.3.jar')
         javaClasspath.lib('guava-18.0.jar').assertIsExcludedFromDeployment()
         javaClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
-        javaClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
+        javaClasspath.lib('junit-4.13.jar').assertIsExcludedFromDeployment()
         javaClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         def webClasspath = classpath('web')
-        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', "guava-18.0.jar", 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
+        webClasspath.assertHasLibs('commons-lang3-3.0.jar', 'javax.servlet-api-3.1.0.jar', "guava-18.0.jar", 'junit-4.13.jar', 'hamcrest-core-1.3.jar')
         webClasspath.lib('commons-lang3-3.0.jar').assertIsDeployedTo("/WEB-INF/lib")
         webClasspath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
-        webClasspath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
+        webClasspath.lib('junit-4.13.jar').assertIsExcludedFromDeployment()
         webClasspath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         // Facets

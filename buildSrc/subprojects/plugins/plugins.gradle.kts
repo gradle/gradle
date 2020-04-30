@@ -13,8 +13,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.7")
     implementation("org.gradle:test-retry-gradle-plugin:1.1.3")
 
-    testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.0")
-    testImplementation("junit:junit:4.12")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.6.2")
+    testImplementation("junit:junit:4.13")
     testImplementation("io.mockk:mockk:1.8.13")
 }
 
