@@ -114,7 +114,7 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
             }
         """.stripIndent()
 
-        def sync = server.expectAndBlock("waiting")
+        def sync = server.expectConcurrentAndBlock("waiting", "waiting")
         def resultHandler = new TestResultHandler()
 
         when:
@@ -130,14 +130,13 @@ class ToolingApiShutdownCrossVersionSpec extends CancellationSpec {
         build2.forTasks('hang')
         build2.run(resultHandler)
 
+        sync.waitForAllPendingCalls(resultHandler)
         then:
         assertNumberOfRunningDaemons(2)
 
         when:
-        sync.waitForAllPendingCalls(resultHandler)
         connector.disconnect()
         resultHandler.finished()
-
         then:
         assertNoRunningDaemons()
     }
