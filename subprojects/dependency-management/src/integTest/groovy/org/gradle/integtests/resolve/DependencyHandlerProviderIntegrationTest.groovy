@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
 import spock.lang.Ignore
 
@@ -67,6 +68,7 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         }
     }
 
+    @ToBeFixedForInstantExecution
     def "works correctly with up-to-date checking"() {
         given:
         mavenHttpRepo.module("group", "projectA", "1.1").publish()
