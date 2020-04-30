@@ -209,7 +209,6 @@ public class LockFileReaderWriter {
 
     public void writeUniqueLockfile(Map<String, List<String>> lockState) {
         checkValidRoot();
-        makeLockfilesRoot();
         Path lockfilePath = getUniqueLockfilePath();
 
         // Revert mapping
