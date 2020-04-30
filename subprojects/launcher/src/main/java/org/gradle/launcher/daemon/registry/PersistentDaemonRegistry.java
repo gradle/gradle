@@ -26,7 +26,6 @@ import org.gradle.cache.internal.OnDemandFileAccess;
 import org.gradle.cache.internal.SimpleStateCache;
 import org.gradle.internal.file.Chmod;
 import org.gradle.internal.remote.Address;
-import org.gradle.internal.remote.internal.inet.InetEndpoint;
 import org.gradle.launcher.daemon.context.DaemonContext;
 
 import java.io.File;
@@ -136,7 +135,7 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                     if (oldValue == null) {
                         return oldValue;
                     }
-                    oldValue.removeInfo(((InetEndpoint)address).getPort());
+                    oldValue.removeInfo(address);
                     return oldValue;
                 }
             });
@@ -237,7 +236,6 @@ public class PersistentDaemonRegistry implements DaemonRegistry {
                         oldValue = new DaemonRegistryContent();
                     }
                     DaemonInfo daemonInfo = new DaemonInfo(address, daemonContext, token, state);
-                    oldValue.removeInfo(((InetEndpoint) address).getPort());
                     oldValue.setStatus(address, daemonInfo);
                     return oldValue;
                 }
