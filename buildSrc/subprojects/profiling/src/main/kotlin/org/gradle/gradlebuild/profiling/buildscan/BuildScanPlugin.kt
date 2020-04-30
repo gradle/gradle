@@ -68,15 +68,17 @@ open class BuildScanPlugin : Plugin<Project> {
         extractCiOrLocalData()
         extractVcsData()
 
-        if (isCiServer && !isTravis && !isJenkins) {
-            extractAllReportsFromCI()
-            monitorUnexpectedCacheMisses()
+        if (isCiServer) {
+            doNotUploadInBackground()
+            if (!isTravis && !isJenkins) {
+                extractAllReportsFromCI()
+                monitorUnexpectedCacheMisses()
+            }
         }
 
         extractCheckstyleAndCodenarcData()
         extractBuildCacheData()
         extractVfsRetentionData()
-
 
         if ((project.gradle as GradleInternal).buildType != GradleInternal.BuildType.TASKS) {
             buildScan.tag("SYNC")
@@ -301,6 +303,11 @@ open class BuildScanPlugin : Plugin<Project> {
             link("Git Commit Scans", customValueSearchUrl(mapOf(gitCommitName to commitId)))
             link("CI CompileAll Scan", customValueSearchUrl(mapOf(gitCommitName to commitId)) + "&search.tags=CompileAll")
         }
+    }
+
+    private
+    fun Project.doNotUploadInBackground() {
+        buildScan.isUploadInBackground = false
     }
 
     private

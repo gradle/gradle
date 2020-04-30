@@ -38,6 +38,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class LockFileReaderWriter {
 
@@ -208,7 +209,6 @@ public class LockFileReaderWriter {
 
     public void writeUniqueLockfile(Map<String, List<String>> lockState) {
         checkValidRoot();
-        makeLockfilesRoot();
         Path lockfilePath = getUniqueLockfilePath();
 
         // Revert mapping
@@ -225,10 +225,10 @@ public class LockFileReaderWriter {
             List<String> content = new ArrayList<>(50);
             content.addAll(LOCKFILE_HEADER_LIST);
             for (Map.Entry<String, List<String>> entry : dependencyToConfigurations.entrySet()) {
-                String builder = entry.getKey() + "=" + String.join(",", entry.getValue());
+                String builder = entry.getKey() + "=" + entry.getValue().stream().sorted().collect(Collectors.joining(","));
                 content.add(builder);
             }
-            content.add("empty=" + String.join(",", emptyConfigurations));
+            content.add("empty=" + emptyConfigurations.stream().sorted().collect(Collectors.joining(",")));
             Files.write(lockfilePath, content, CHARSET);
         } catch (IOException e) {
             throw new RuntimeException("Unable to write unique lockfile", e);
