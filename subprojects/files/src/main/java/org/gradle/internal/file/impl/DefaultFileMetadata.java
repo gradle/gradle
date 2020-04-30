@@ -20,20 +20,28 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 
 public class DefaultFileMetadata implements FileMetadataSnapshot {
-    private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(FileType.Directory, 0, 0);
-    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadata(FileType.Missing, 0, 0);
+    private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(FileType.Directory, 0, 0, false);
+    private static final FileMetadataSnapshot SYMLINKED_DIR = new DefaultFileMetadata(FileType.Directory, 0, 0, true);
+    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadata(FileType.Missing, 0, 0, false);
+    private static final FileMetadataSnapshot BROKEN_SYMLINK = new DefaultFileMetadata(FileType.Missing, 0, 0, true);
     private final FileType type;
     private final long lastModified;
     private final long length;
+    private final boolean isSymlink;
 
-    public DefaultFileMetadata(FileType type, long lastModified, long length) {
+    public DefaultFileMetadata(FileType type, long lastModified, long length, boolean isSymlink) {
         this.type = type;
         this.lastModified = lastModified;
         this.length = length;
+        this.isSymlink = isSymlink;
     }
 
     public static FileMetadataSnapshot file(long lastModified, long length) {
-        return new DefaultFileMetadata(FileType.RegularFile, lastModified, length);
+        return new DefaultFileMetadata(FileType.RegularFile, lastModified, length, false);
+    }
+
+    public static FileMetadataSnapshot symlinkedFile(long lastModified, long length) {
+        return new DefaultFileMetadata(FileType.RegularFile, lastModified, length, true);
     }
 
     public static FileMetadataSnapshot directory() {
@@ -42,6 +50,14 @@ public class DefaultFileMetadata implements FileMetadataSnapshot {
 
     public static FileMetadataSnapshot missing() {
         return MISSING;
+    }
+
+    public static FileMetadataSnapshot brokenSymlink() {
+        return BROKEN_SYMLINK;
+    }
+
+    public static FileMetadataSnapshot symlinkedDirectory() {
+        return SYMLINKED_DIR;
     }
 
     @Override
@@ -57,5 +73,10 @@ public class DefaultFileMetadata implements FileMetadataSnapshot {
     @Override
     public long getLength() {
         return length;
+    }
+
+    @Override
+    public boolean isSymlink() {
+        return isSymlink;
     }
 }

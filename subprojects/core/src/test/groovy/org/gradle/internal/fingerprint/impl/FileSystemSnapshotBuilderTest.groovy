@@ -136,6 +136,6 @@ class FileSystemSnapshotBuilderTest extends Specification {
     }
 
     private static DefaultFileMetadata fileMetadata() {
-        new DefaultFileMetadata(FileType.RegularFile, 0, 5)
+        new DefaultFileMetadata(FileType.RegularFile, 0, 5, false)
     }
 }

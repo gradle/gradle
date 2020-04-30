@@ -57,7 +57,8 @@ public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapsho
                     new DefaultFileMetadata(
                         FileType.RegularFile,
                         fileDetails.getLastModified(),
-                        fileDetails.getSize()
+                        fileDetails.getSize(),
+                        false
                     )
                 );
             }

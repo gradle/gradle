@@ -36,12 +36,6 @@ import org.gradle.internal.snapshot.impl.DirectorySnapshotter;
 import org.gradle.internal.snapshot.impl.FileSystemSnapshotFilter;
 
 import java.io.File;
-import java.io.IOException;
-import java.io.UncheckedIOException;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.Lock;
@@ -86,7 +80,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
                 File file = new File(location);
                 FileMetadataSnapshot stat = this.stat.stat(file);
                 if (stat.getType() == FileType.Missing) {
-                    storeStatForMissingFile(file);
+                    storeStatForMissingFile(file, stat.isSymlink());
                 }
                 if (stat.getType() != FileType.RegularFile) {
                     return Optional.empty();
@@ -104,8 +98,7 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
             .map(visitor);
     }
 
-    private void storeStatForMissingFile(File file) {
-        boolean isSymlink = missingFileIsBrokenSymlink(file);
+    private void storeStatForMissingFile(File file, boolean isSymlink) {
         updateRoot((root, changeListener) -> root.store(file.getAbsolutePath(), new MissingFileSnapshot(file.getAbsolutePath(), isSymlink), changeListener));
     }
 
@@ -142,11 +135,11 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
         switch (stat.getType()) {
             case RegularFile:
                 HashCode hash = hasher.hash(file, stat.getLength(), stat.getLastModified());
-                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat), Files.isSymbolicLink(file.toPath()));
+                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat), stat.isSymlink());
                 updateRoot((root, changeListener) -> root.store(regularFileSnapshot.getAbsolutePath(), regularFileSnapshot, changeListener));
                 return regularFileSnapshot;
             case Missing:
-                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, missingFileIsBrokenSymlink(file));
+                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, stat.isSymlink());
                 updateRoot((root, changeListener) -> root.store(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot, changeListener));
                 return missingFileSnapshot;
             case Directory:
@@ -155,15 +148,6 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
                 return directorySnapshot;
             default:
                 throw new UnsupportedOperationException();
-        }
-    }
-
-    private boolean missingFileIsBrokenSymlink(File file) {
-        try {
-            Path path = file.toPath();
-            return Files.exists(path, LinkOption.NOFOLLOW_LINKS) && Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS).isSymbolicLink();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
         }
     }
 

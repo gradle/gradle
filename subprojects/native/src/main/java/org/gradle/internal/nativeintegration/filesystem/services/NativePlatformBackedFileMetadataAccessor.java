@@ -35,14 +35,24 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
 
     @Override
     public FileMetadataSnapshot stat(File f) {
-        FileInfo stat = files.stat(f, true);
+        FileInfo stat = files.stat(f, false);
+        boolean isSymlink = stat.getType() == FileInfo.Type.Symlink;
+        if (isSymlink) {
+            stat = files.stat(f, true);
+        }
         switch (stat.getType()) {
             case File:
-                return DefaultFileMetadata.file(stat.getLastModifiedTime(), stat.getSize());
+                return isSymlink
+                    ? DefaultFileMetadata.symlinkedFile(stat.getLastModifiedTime(), stat.getSize())
+                    : DefaultFileMetadata.file(stat.getLastModifiedTime(), stat.getSize());
             case Directory:
-                return DefaultFileMetadata.directory();
+                return isSymlink
+                    ? DefaultFileMetadata.symlinkedDirectory()
+                    : DefaultFileMetadata.directory();
             case Missing:
-                return DefaultFileMetadata.missing();
+                return isSymlink
+                    ? DefaultFileMetadata.brokenSymlink()
+                    : DefaultFileMetadata.missing();
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }

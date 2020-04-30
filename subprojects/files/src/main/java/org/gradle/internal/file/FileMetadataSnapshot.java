@@ -31,4 +31,11 @@ public interface FileMetadataSnapshot {
      * Note: always 0 for directories and missing files.
      */
     long getLength();
+
+    /**
+     * Whether this file is a symlink.
+     *
+     * Note: the other methods return information about the target of the symlink.
+     */
+    boolean isSymlink();
 }
