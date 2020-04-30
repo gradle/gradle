@@ -1,8 +1,9 @@
 dependencies {
     implementation(project(":configuration"))
-    // TODO remove dependency once docs has publications
-    implementation(project(":docs"))
     implementation(project(":kotlinDsl"))
+    implementation(project(":docs")) {
+        because("we need to access the release notes location for the JUnit run configuration")
+    }
 
     implementation("gradle.plugin.org.jetbrains.gradle.plugin.idea-ext:gradle-idea-ext:0.7")
 }

@@ -24,40 +24,19 @@ import org.gradle.api.plugins.ExtensionAware
 import org.gradle.gradlebuild.PublicApi
 import org.gradle.gradlebuild.docs.DecorateReleaseNotes
 import org.gradle.kotlin.dsl.*
-import org.gradle.plugins.ide.idea.IdeaPlugin
+import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.plugins.ide.idea.model.IdeaProject
-import org.jetbrains.gradle.ext.Application
 import org.jetbrains.gradle.ext.CopyrightConfiguration
-import org.jetbrains.gradle.ext.GroovyCompilerConfiguration
-import org.jetbrains.gradle.ext.IdeaCompilerConfiguration
-import org.jetbrains.gradle.ext.Inspection
 import org.jetbrains.gradle.ext.JUnit
-import org.jetbrains.gradle.ext.Make
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
-import org.jetbrains.gradle.ext.TaskTriggersConfig
-import java.io.File
-
-
-private
-const val javaCompilerHeapSpace = 3072
-
-
-// Disable Java 7 and Java 8 inspections because some parts of the codebase still need to run on Java 6
-private
-val disabledInspections = listOf(
-    // Java 7 inspections
-    "Convert2Diamond", "EqualsReplaceableByObjectsCall", "SafeVarargsDetector", "TryFinallyCanBeTryWithResources", "TryWithIdenticalCatches",
-    // Java 8 inspections
-    "Anonymous2MethodRef", "AnonymousHasLambdaAlternative", "CodeBlock2Expr", "ComparatorCombinators", "Convert2Lambda", "Convert2MethodRef", "Convert2streamapi", "FoldExpressionIntoStream", "Guava", "Java8ArraySetAll", "Java8CollectionRemoveIf", "Java8ListSort", "Java8MapApi", "Java8MapForEach", "LambdaCanBeMethodCall", "SimplifyForEach", "StaticPseudoFunctionalStyleMethod"
-)
 
 
 object GradleCopyright {
-    val profileName = "ASL2"
-    val keyword = "Copyright"
-    val notice =
+    const val profileName = "ASL2"
+    const val keyword = "Copyright"
+    const val notice =
         """Copyright ${"$"}{today.year} the original author or authors.
 
 Licensed under the Apache License, Version 2.0 (the "License");
@@ -77,124 +56,24 @@ limitations under the License."""
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        configureIdeaForRootProject()
+        if (providers.systemProperty("idea.active").getOrElse("false").toBoolean()) {
+            configureIdeaForRootProject()
+        }
     }
 
     private
     fun Project.configureIdeaForRootProject() {
+        val rootProject = this
         apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
-        apply(plugin = "idea")
-        tasks.named("idea") {
-            doFirst {
-                throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij")
+        with(the<IdeaModel>()) {
+            module {
+                excludeDirs = setOf(intTestHomeDir)
             }
-        }
-
-        val rootProject = this
-        plugins.withType<IdeaPlugin> {
-            with(model) {
-                module {
-                    excludeDirs = excludeDirs + rootExcludeDirs
-                }
-
-                project {
-                    jdkName = "11.0"
-                    wildcards.add("?*.gradle")
-                    vcs = "Git"
-
-                    settings {
-                        configureCompilerSettings(rootProject)
-                        configureCopyright()
-                        // TODO The idea-ext plugin does not yet support customizing inspections.
-                        // TODO Delete .idea/inspectionProfiles and uncomment the code below when it does
-                        // configureInspections()
-                        configureRunConfigurations(rootProject)
-                        doNotDetectFrameworks("android", "web")
-                        configureSyncTasks(subprojects)
-                    }
-                }
-            }
-        }
-        configureJUnitDefaults()
-    }
-
-    private
-    fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
-        runConfigurations {
-            create<Application>("Run Gradle") {
-                mainClass = "org.gradle.debug.GradleRunConfiguration"
-                programParameters = "help"
-                workingDirectory = rootProject.projectDir.absolutePath
-                moduleName = "org.gradle.integTest.integTest"
-                jvmArgs = "-Dorg.gradle.daemon=false"
-                beforeRun {
-                    create<Make>("make") {
-                        enabled = false
-                    }
-                }
-            }
-            create<Remote>("Remote debug port 5005") {
-                mode = Remote.RemoteMode.ATTACH
-                transport = Remote.RemoteTransport.SOCKET
-                sharedMemoryAddress = "javadebug"
-                host = "localhost"
-                port = 5005
-            }
-        }
-    }
-
-    private
-    fun Project.docsProject() =
-        project(":docs")
-
-    private
-    val lang: String
-        get() = System.getenv("LANG") ?: "en_US.UTF-8"
-
-    private
-    fun Project.configureJUnitDefaults() {
-        val rootProject = this
-        val docsProject = docsProject()
-        docsProject.afterEvaluate {
-            rootProject.plugins.withType<IdeaPlugin> {
-                with(model) {
-                    project {
-                        settings {
-                            runConfigurations {
-                                create<JUnit>("defaults") {
-                                    defaults = true
-                                    vmParameters = getDefaultJunitVmParameters(docsProject)
-                                    envs = mapOf("LANG" to lang)
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // TODO this can be removed if we *always* delegate to Gradle
-    private
-    fun ProjectSettings.configureSyncTasks(subprojects: Set<Project>) {
-        subprojects.forEach { subproject ->
-            subproject.run {
-                apply(plugin = "idea")
-                afterEvaluate {
-                    taskTriggers {
-                        val classpathManifest = tasks.findByName("classpathManifest")
-                        if (classpathManifest != null) {
-                            afterSync(classpathManifest)
-                        }
-                        when (subproject.name) {
-                            "baseServices" -> afterSync(tasks.getByName("buildReceiptResource"))
-                            "core" -> afterSync(tasks.getByName("pluginsManifest"), tasks.getByName("implementationPluginsManifest"))
-                            "docs" -> afterSync(tasks.getByName("defaultImports"))
-                            "internalIntegTesting" -> afterSync(tasks.getByName("prepareVersionsInfo"))
-                            "kotlinCompilerEmbeddable" -> afterSync(tasks.getByName("classes"))
-                            "kotlinDsl" -> afterSync(tasks["generateExtensions"])
-                        }
-                    }
+            project {
+                settings {
+                    configureCopyright()
+                    configureRunConfigurations(rootProject)
+                    doNotDetectFrameworks("android", "web")
                 }
             }
         }
@@ -214,93 +93,83 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun ProjectSettings.configureCompilerSettings(project: Project) {
-        compiler {
-            processHeapSize = javaCompilerHeapSpace
-            useReleaseOption = false
-        }
-        groovyCompiler {
-            excludes {
-                file("${project.rootProject.projectDir.absolutePath}/subprojects/plugins/src/test/groovy/org/gradle/api/internal/tasks/testing/junit/JUnitTestClassProcessorTest.groovy")
+    fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
+        runConfigurations {
+            create<Remote>("Remote debug port 5005") {
+                mode = Remote.RemoteMode.ATTACH
+                transport = Remote.RemoteTransport.SOCKET
+                sharedMemoryAddress = "javadebug"
+                host = "localhost"
+                port = 5005
+            }
+            create<JUnit>("defaults") {
+                defaults = true
+                envs = mapOf("LANG" to rootProject.lang)
+                lateSetJunitVmParameters(rootProject)
             }
         }
     }
 
     private
-    fun ProjectSettings.configureInspections() {
-        inspections {
-            disabledInspections.forEach { name ->
-                create(name) {
-                    enabled = false
-                }
+    fun JUnit.lateSetJunitVmParameters(rootProject: Project) {
+        // TODO This is configured late: it reads provider values because 'JUnit.vmParameters' expects a plain String
+        rootProject.docsProject().afterEvaluate {
+            val releaseNotes: DecorateReleaseNotes by rootProject.docsProject().tasks
+
+            val releaseNotesFile = releaseNotes.destinationFile.get().asFile
+            val gradleUserHomeDir = rootProject.intTestHomeDir.absolutePath
+            val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName).get().asFile.absolutePath
+            val daemoRegistryDir = rootProject.layout.buildDirectory.dir("daemon").get().asFile.absolutePath
+            val libsRepo = rootProject.layout.buildDirectory.dir("repo").get().asFile.absolutePath
+
+            val vmParameterList = mutableListOf(
+                "-ea",
+                "-Dorg.gradle.docs.releasenotes.rendered=$releaseNotesFile",
+                "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
+                "-DintegTest.gradleUserHomeDir=$gradleUserHomeDir",
+                "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",
+                "-DintegTest.libsRepo=$libsRepo",
+                "-Dorg.gradle.integtest.daemon.registry=$daemoRegistryDir",
+                "-DintegTest.distsDir=$distsDir",
+                "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
+                "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
+                "-Dorg.gradle.integtest.executer=embedded",
+                "-Dorg.gradle.integtest.versions=default",
+                "-Dorg.gradle.integtest.testkit.compatibility=current",
+                "-Xmx512m",
+                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
+                "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
+                "--add-opens", "java.base/java.util=ALL-UNNAMED",
+                "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
+            )
+            vmParameters = vmParameterList.joinToString(" ") {
+                if (it.contains(" ") || it.contains("\$")) "\"$it\""
+                else it
             }
         }
     }
 
+    private
+    fun Project.docsProject() =
+        project(":docs")
 
     private
-    fun getDefaultJunitVmParameters(docsProject: Project): String {
-        val rootProject = docsProject.rootProject
-        val releaseNotes: DecorateReleaseNotes by docsProject.tasks
-        val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName)
-        val vmParameter = mutableListOf(
-            "-ea",
-            // TODO: This breaks the provider
-            "-Dorg.gradle.docs.releasenotes.rendered=${releaseNotes.getDestinationFile().get().getAsFile()}",
-            "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
-            "-DintegTest.gradleUserHomeDir=${rootProject.file("intTestHomeDir").absolutePath}",
-            "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",
-            "-DintegTest.libsRepo=${rootProject.file("build/repo").absolutePath}",
-            "-Dorg.gradle.integtest.daemon.registry=${rootProject.file("build/daemon").absolutePath}",
-            "-DintegTest.distsDir=${distsDir.get().asFile.absolutePath}",
-            "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
-            "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
-            "-Dorg.gradle.integtest.executer=embedded",
-            "-Dorg.gradle.integtest.versions=default",
-            "-Dorg.gradle.integtest.testkit.compatibility=current",
-            "-Xmx512m",
-            "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-            "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-            "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-            "--add-opens", "java.base/java.util=ALL-UNNAMED",
-            "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
-        )
-        return vmParameter.joinToString(" ") {
-            if (it.contains(" ") || it.contains("\$")) "\"$it\""
-            else it
-        }
-    }
+    val Project.lang: String
+        get() = providers.environmentVariable("LANG").getOrElse("en_US.UTF-8")
+
+    private
+    val Project.intTestHomeDir
+        get() = file("intTestHomeDir")
 }
-
-
-private
-val Project.rootExcludeDirs
-    get() = setOf<File>(
-        file("intTestHomeDir"),
-        file("buildSrc/build"),
-        file("buildSrc/.gradle"))
 
 
 fun IdeaProject.settings(configuration: ProjectSettings.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.taskTriggers(configuration: TaskTriggersConfig.() -> Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.compiler(configuration: IdeaCompilerConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
-
-
-fun ProjectSettings.groovyCompiler(configuration: GroovyCompilerConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
-
-
 fun ProjectSettings.copyright(configuration: CopyrightConfiguration.() -> Unit) = (this as ExtensionAware).configure(configuration)
 
 
-fun ProjectSettings.inspections(configuration: NamedDomainObjectContainer<Inspection>.() -> Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<Inspection>> {
-    this.apply(configuration)
-}
-
-
-fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> kotlin.Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
+fun ProjectSettings.runConfigurations(configuration: PolymorphicDomainObjectContainer<RunConfiguration>.() -> Unit) = (this as ExtensionAware).configure<NamedDomainObjectContainer<RunConfiguration>> {
     (this as PolymorphicDomainObjectContainer<RunConfiguration>).apply(configuration)
 }
