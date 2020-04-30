@@ -71,4 +71,8 @@ public class NoToolingApiConnection implements ConsumerConnection {
         throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "6.1");
     }
 
+    @Override
+    public void stopWhenIdle(ConsumerOperationParameters operationParameters) {
+        throw Exceptions.unsupportedFeature(operationParameters.getEntryPointName(), distribution, "6.5");
+    }
 }

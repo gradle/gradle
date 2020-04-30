@@ -38,6 +38,7 @@ details of 2
 ## n
 -->
 
+<<<<<<< HEAD
 <a name="lazy-dependencies"><a>
 ## Lazy Dependencies
 
@@ -61,6 +62,11 @@ play {
 In this above example, the method `playDep.json()` returns the type `Provider<ExternalModuleDependency>`.
 This new capability will be useful to plugin authors that wish to create plugins that supply different versions of dependencies
 based upon how the plugin extension is configured.
+=======
+## Improvements for tooling providers
+
+Tooling API clients can now use a new method from [`GradleConnector`](javadoc/org/gradle/tooling/GradleConnector.html) to asynchronously cancel all Tooling API connections without waiting for the current build to finish. 
+>>>>>>> origin/sg/65/merges/tooling-api
 
 ## Promoted features
 Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backwards compatibility.

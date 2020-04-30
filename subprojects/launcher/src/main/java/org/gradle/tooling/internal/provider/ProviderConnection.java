@@ -192,6 +192,13 @@ public class ProviderConnection {
         client.notifyDaemonsAboutChangedPaths(changedPaths);
     }
 
+    public void stopWhenIdle(ProviderOperationParameters providerParameters) {
+        LoggingServiceRegistry loggingServices = LoggingServiceRegistry.newNestedLogging();
+        Parameters params = initParams(providerParameters);
+        ServiceRegistry clientServices = daemonClientFactory.createMessageDaemonServices(loggingServices.get(OutputEventListener.class), params.daemonParams);
+        ((ShutdownCoordinator)clientServices.find(ShutdownCoordinator.class)).stop();
+    }
+
     private Object run(BuildAction action, BuildCancellationToken cancellationToken,
                        ProgressListenerConfiguration progressListenerConfiguration,
                        BuildEventConsumer buildEventConsumer,

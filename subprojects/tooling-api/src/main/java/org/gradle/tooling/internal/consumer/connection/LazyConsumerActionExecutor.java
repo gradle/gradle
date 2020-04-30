@@ -19,6 +19,7 @@ import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.tooling.internal.consumer.ConnectionParameters;
+import org.gradle.tooling.internal.consumer.DefaultCancellationTokenSource;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.LoggingProvider;
 import org.gradle.tooling.internal.consumer.loader.ToolingImplementationLoader;
@@ -46,6 +47,7 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     private ConsumerConnection connection;
 
     private final ConnectionParameters connectionParameters;
+    private BuildCancellationToken cancellationToken;
 
     public LazyConsumerActionExecutor(Distribution distribution, ToolingImplementationLoader implementationLoader, LoggingProvider loggingProvider, ConnectionParameters connectionParameters) {
         this.distribution = distribution;
@@ -73,15 +75,56 @@ public class LazyConsumerActionExecutor implements ConsumerActionExecutor {
     }
 
     @Override
+    public void disconnect() {
+        lock.lock();
+        try {
+            if (stopped) {
+                return;
+            }
+            requestCancellation();
+            sendStopWhenIdleMessageToDaemons();
+        } finally {
+            stopped = true;
+            lock.unlock();
+        }
+    }
+
+    private void requestCancellation() {
+        if (cancellationToken != null) {
+            cancellationToken.cancel();
+        }
+    }
+
+    private void sendStopWhenIdleMessageToDaemons() {
+        ConsumerOperationParameters.Builder builder = ConsumerOperationParameters.builder();
+        builder.setCancellationToken(new DefaultCancellationTokenSource().token());
+        builder.setParameters(connectionParameters);
+        builder.setEntryPoint("Request daemon shutdown when idle");
+
+        run(new ConsumerAction<Void>() {
+            @Override
+            public ConsumerOperationParameters getParameters() {
+                return builder.build();
+            }
+
+            @Override
+            public Void run(ConsumerConnection c) {
+                c.stopWhenIdle(getParameters());
+                return null;
+            }
+        });
+    }
+
+    @Override
     public String getDisplayName() {
-        return distribution.getDisplayName();
+        return "connection to " + distribution.getDisplayName();
     }
 
     @Override
     public <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException {
         try {
             ConsumerOperationParameters parameters = action.getParameters();
-            BuildCancellationToken cancellationToken = parameters.getCancellationToken();
+            this.cancellationToken = parameters.getCancellationToken();
             InternalBuildProgressListener buildProgressListener = parameters.getBuildProgressListener();
             ConsumerConnection connection = onStartAction(cancellationToken, buildProgressListener);
             return action.run(connection);

@@ -102,7 +102,7 @@ System.err.println 'this is stderr'
 
         then:
         BuildException e = thrown()
-        e.message.startsWith('Could not execute build using Gradle')
+        e.message.startsWith('Could not execute build using')
         e.cause.message.contains('A problem occurred evaluating root project')
 
         and:

@@ -39,4 +39,9 @@ public class RethrowingErrorsConsumerActionExecutor implements ConsumerActionExe
         action.getParameters().getBuildProgressListener().rethrowErrors();
         return result;
     }
+
+    @Override
+    public void disconnect() {
+        delegate.disconnect();
+    }
 }

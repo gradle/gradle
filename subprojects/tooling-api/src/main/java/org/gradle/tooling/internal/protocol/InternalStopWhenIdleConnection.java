@@ -1,5 +1,5 @@
 /*
- * Copyright 2011 the original author or authors.
+ * Copyright 2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,23 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.tooling.internal.consumer.connection;
-
-import org.gradle.internal.concurrent.Stoppable;
+package org.gradle.tooling.internal.protocol;
 
 /**
- * Implementations must be thread-safe.
+ * @since 6.5
+ * @see ConnectionVersion4
  */
-public interface ConsumerActionExecutor extends Stoppable {
-    /**
-     * Blocks until all actions have completed.
-     */
-    @Override
-    void stop();
-
-    String getDisplayName();
-
-    <T> T run(ConsumerAction<T> action) throws UnsupportedOperationException, IllegalStateException;
-
-    void disconnect();
+public interface InternalStopWhenIdleConnection extends InternalProtocolInterface {
+    void stopWhenIdle(BuildParameters parameters);
 }

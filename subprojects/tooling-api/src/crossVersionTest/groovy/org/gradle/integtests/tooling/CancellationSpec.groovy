@@ -71,7 +71,7 @@ latch.await()
 
     }
 
-    void buildWasCancelled(TestResultHandler resultHandler, String failureMessage = 'Could not execute build using Gradle') {
+    void buildWasCancelled(TestResultHandler resultHandler, String failureMessage = 'Could not execute build using') {
         resultHandler.assertFailedWith(BuildCancelledException)
         assert resultHandler.failure.message.startsWith(failureMessage)
 
@@ -114,7 +114,7 @@ latch.await()
 
     void taskWasCancelled(TestResultHandler resultHandler, String taskPath) {
         resultHandler.assertFailedWith(BuildCancelledException)
-        assert resultHandler.failure.message.startsWith("Could not execute build using Gradle")
+        assert resultHandler.failure.message.startsWith("Could not execute build using")
 
         if (targetDist.toolingApiRetainsOriginalFailureOnCancel) {
             if (targetDist.toolingApiDoesNotAddCausesOnTaskCancel) {
