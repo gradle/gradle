@@ -1021,6 +1021,60 @@ The value of this provider is derived from:
         result == someValue()
     }
 
+    def "can read value while finalizing property value"() {
+        def property = propertyWithDefaultValue()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+        property.set(provider)
+
+        // TODO - this verifies that a workaround to accidental concurrent access works. Instead, this should really be an error
+
+        when:
+        property.finalizeValue()
+
+        then:
+        1 * function.call() >> {
+            property.get()
+        }
+        1 * function.call() >> someValue()
+        0 * function._
+
+        when:
+        def result = property.get()
+
+        then:
+        result == someValue()
+        0 * function._
+    }
+
+    def "can read value while finalizing property value on read when finalize on read enabled"() {
+        def property = propertyWithDefaultValue()
+        def function = Mock(Callable)
+        def provider = new DefaultProvider<T>(function)
+        property.set(provider)
+        property.finalizeValueOnRead()
+
+        // TODO - this verifies that a workaround to accidental concurrent access works. Instead, this should really be an error
+
+        when:
+        def result = property.get()
+
+        then:
+        result == someValue()
+        1 * function.call() >> {
+            property.get()
+        }
+        1 * function.call() >> someValue()
+        0 * function._
+
+        when:
+        def result2 = property.get()
+
+        then:
+        result2 == someValue()
+        0 * function._
+    }
+
     def "replaces provider with no value with fixed missing value when value finalized"() {
         def property = propertyWithNoValue()
         def function = Mock(Callable)

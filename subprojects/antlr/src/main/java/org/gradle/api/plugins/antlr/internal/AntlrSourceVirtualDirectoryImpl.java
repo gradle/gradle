@@ -44,6 +44,7 @@ public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirect
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, getAntlr());
         return this;

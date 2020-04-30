@@ -68,6 +68,7 @@ public interface ExternalResource extends Resource {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
+    @SuppressWarnings("overloads")
     ExternalResourceReadResult<Void> withContent(Action<? super InputStream> readAction) throws ResourceException;
 
     /**
@@ -76,6 +77,7 @@ public interface ExternalResource extends Resource {
      * @throws ResourceException on failure to read the content.
      * @throws org.gradle.api.resources.MissingResourceException when the resource does not exist
      */
+    @SuppressWarnings("overloads")
     <T> ExternalResourceReadResult<T> withContent(Transformer<? extends T, ? super InputStream> readAction) throws ResourceException;
 
     /**

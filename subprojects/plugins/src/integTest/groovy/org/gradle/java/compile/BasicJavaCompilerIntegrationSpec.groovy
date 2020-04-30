@@ -357,7 +357,9 @@ class Main {
         settingsFile << "include 'processor'"
         writeAnnotationProcessorProject()
 
-        file("src/main/java/Java.java") << "@com.test.SimpleAnnotation public class Java {}"
+        file("src/main/java/Java.java") << """@com.test.SimpleAnnotation public class Java {
+            void foo() { (new Runnable() { public void run() {} }).run(); }
+        }"""
 
         then:
         succeeds("compileJava")

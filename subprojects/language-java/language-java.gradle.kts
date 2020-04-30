@@ -2,7 +2,6 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    gradlebuild.classycle
 }
 
 dependencies {
@@ -38,6 +37,8 @@ dependencies {
     implementation(library("asm_commons"))
     implementation(library("inject"))
 
+    runtimeOnly(project(":javaCompilerPlugin"))
+
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(library("commons_io"))
     testImplementation(testFixtures(project(":core")))
@@ -60,6 +61,10 @@ dependencies {
 
     // TODO - get rid of this cycle
     integTestRuntimeOnly(project(":plugins"))
+}
+
+strictCompile {
+    ignoreDeprecations() // this project currently uses many deprecated part from 'platform-jvm'
 }
 
 classycle {

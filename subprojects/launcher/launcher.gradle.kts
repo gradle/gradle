@@ -3,7 +3,6 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
 
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 dependencies {
@@ -67,6 +66,10 @@ dependencies {
     integTestRuntimeOnly(project(":languageNative")) {
         because("for 'ProcessCrashHandlingIntegrationTest.session id of daemon is different from daemon client'")
     }
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
 }
 
 // Needed for testing debug command line option (JDWPUtil) - 'CommandLineIntegrationSpec.can debug with org.gradle.debug=true'

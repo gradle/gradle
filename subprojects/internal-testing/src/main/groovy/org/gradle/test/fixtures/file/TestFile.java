@@ -66,7 +66,7 @@ import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assume.assumeTrue;
 
@@ -855,11 +855,11 @@ public class TestFile extends File {
         return new TestFileHelper(this).executeSuccess(Arrays.asList(args), null);
     }
 
-    public ExecOutput execWithFailure(List args, List env) {
+    public ExecOutput execWithFailure(List<?> args, List<?> env) {
         return new TestFileHelper(this).executeFailure(args, env);
     }
 
-    public ExecOutput execute(List args, List env) {
+    public ExecOutput execute(List<?> args, List<?> env) {
         return new TestFileHelper(this).executeSuccess(args, env);
     }
 

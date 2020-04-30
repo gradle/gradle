@@ -18,7 +18,6 @@ package org.gradle.api.plugins.quality
 import org.gradle.api.plugins.quality.pmd.AbstractPmdPluginVersionIntegrationTest
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Matchers
-import org.gradle.util.TestPrecondition
 import org.hamcrest.CoreMatchers
 import org.junit.Assume
 import spock.lang.Unroll
@@ -42,7 +41,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
                 classpath = files()
             }"""}
 
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
+            ${requiredSourceCompatibility()}
         """.stripIndent()
     }
 

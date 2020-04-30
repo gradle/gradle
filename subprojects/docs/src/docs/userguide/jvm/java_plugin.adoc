@@ -273,24 +273,24 @@ Adding a JAR containing the classes of a source set:
 
 .Assembling a JAR for a source set
 ====
-include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
-include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=jar]"]
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=jar]"]
 ====
 
 Generating Javadoc for a source set:
 
 .Generating the Javadoc for a source set
 ====
-include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
-include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=javadoc]"]
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=javadoc]"]
 ====
 
 Adding a test suite to run the tests in a source set:
 
 .Running tests in a source set
 ====
-include::sample[dir="snippets/userguide/java/sourceSets/groovy", files="build.gradle[tags=test]"]
-include::sample[dir="snippets/userguide/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
+include::sample[dir="snippets/java/sourceSets/groovy", files="build.gradle[tags=test]"]
+include::sample[dir="snippets/java/sourceSets/kotlin", files="build.gradle.kts[tags=test]"]
 ====
 
 [[sec:java_plugin_and_dependency_management]]
@@ -410,8 +410,8 @@ This allows to configure a number of Java related properties inside a dedicated 
 
 .Using the `java` extension
 ====
-include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-extension]"]
-include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-extension]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-extension]"]
 ====
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
@@ -554,7 +554,7 @@ The format is one line per processor, with the fully qualified name of the proce
 [listing]
 .processor/src/main/resources/META-INF/gradle/incremental.annotation.processors
 ----
-include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/processor/src/main/resources/META-INF/gradle/incremental.annotation.processors[tag=registering-incremental-annotation-processors]
 ----
 
 
@@ -566,7 +566,7 @@ and return its true type at runtime using the link:{javaApi}/javax/annotation/pr
 [source,java,indent=0]
 .processor/src/main/java/ServiceRegistryProcessor.java
 ----
-include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
 ----
 
 Both categories have the following limitations:
@@ -591,7 +591,7 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 [source,java,indent=0]
 .processor/src/main/java/EntityProcessor.java
 ----
-include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/java/EntityProcessor.java[tag=isolating-annotation-processor]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/processor/src/main/java/EntityProcessor.java[tag=isolating-annotation-processor]
 ----
 
 "Isolating" processors have the following limitations:
@@ -618,7 +618,7 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 [source,java,indent=0]
 .processor/src/main/java/ServiceRegistryProcessor.java
 ----
-include::{samplesPath}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/processor/src/main/java/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
 ----
 
 "Aggregating" processors have the following limitations:

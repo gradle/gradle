@@ -1,6 +1,5 @@
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    gradlebuild.classycle
 }
 
 dependencies {
@@ -36,4 +35,8 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestImplementation(library("slf4j_api"))
+}
+
+strictCompile {
+    ignoreDeprecations() // most of this project has been deprecated
 }

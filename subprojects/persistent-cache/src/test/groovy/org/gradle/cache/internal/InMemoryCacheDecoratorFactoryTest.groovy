@@ -23,7 +23,7 @@ import org.gradle.internal.Factory
 import spock.lang.Specification
 
 class InMemoryCacheDecoratorFactoryTest extends Specification {
-    def cacheFactory = new InMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory())
+    def cacheFactory = new DefaultInMemoryCacheDecoratorFactory(false, new TestCrossBuildInMemoryCacheFactory())
     def target = Mock(MultiProcessSafePersistentIndexedCache)
     def asyncCacheAccess = Mock(AsyncCacheAccess)
     def crossProcessCacheAccess = Mock(CrossProcessCacheAccess)

@@ -20,14 +20,13 @@ import org.apache.tools.ant.types.Commandline;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.internal.jvm.DefaultModularitySpec;
 import org.gradle.internal.jvm.JavaModuleDetector;
@@ -57,7 +56,9 @@ import java.util.Map;
  * Similar to {@link org.gradle.api.tasks.Exec}, but starts a JVM with the given classpath and application class.
  * </p>
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * task runApp(type: JavaExec) {
  *   classpath = sourceSets.main.runtimeClasspath
@@ -110,23 +111,20 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     private final JavaExecAction javaExecHandleBuilder;
     private final Property<String> mainModule;
     private final Property<String> mainClass;
-    private final ConfigurableFileCollection classpath;
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
 
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
-        this.mainModule = objectFactory.property(String.class);
-        this.mainClass = objectFactory.property(String.class);
-        this.classpath = getFileCollectionFactory().configurableFiles("classpath");
-        this.modularity = objectFactory.newInstance(DefaultModularitySpec.class);
-        execResult = getObjectFactory().property(ExecResult.class);
+        mainModule = objectFactory.property(String.class);
+        mainClass = objectFactory.property(String.class);
+        modularity = objectFactory.newInstance(DefaultModularitySpec.class);
+        execResult = objectFactory.property(ExecResult.class);
 
         javaExecHandleBuilder = getDslExecActionFactory().newDecoratedJavaExecAction();
-        javaExecHandleBuilder.getMainClass().convention(mainClass);
+        javaExecHandleBuilder.getMainClass().convention(getProviderFactory().provider(this::getMain)); // go through 'main' to keep this compatible with existing convention mappings
         javaExecHandleBuilder.getMainModule().convention(mainModule);
         javaExecHandleBuilder.getModularity().getInferModulePath().convention(modularity.getInferModulePath());
-        javaExecHandleBuilder.setClasspath(classpath);
     }
 
     @Inject
@@ -140,12 +138,12 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     }
 
     @Inject
-    protected DslExecActionFactory getDslExecActionFactory() {
+    protected ProviderFactory getProviderFactory() {
         throw new UnsupportedOperationException();
     }
 
     @Inject
-    protected FileCollectionFactory getFileCollectionFactory() {
+    protected DslExecActionFactory getDslExecActionFactory() {
         throw new UnsupportedOperationException();
     }
 
@@ -489,7 +487,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec setClasspath(FileCollection classpath) {
-        this.classpath.setFrom(classpath);
+        javaExecHandleBuilder.setClasspath(classpath);
         return this;
     }
 
@@ -498,7 +496,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public JavaExec classpath(Object... paths) {
-        classpath.from(paths);
+        javaExecHandleBuilder.classpath(paths);
         return this;
     }
 
@@ -507,7 +505,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
      */
     @Override
     public FileCollection getClasspath() {
-        return classpath;
+        return javaExecHandleBuilder.getClasspath();
     }
 
     /**

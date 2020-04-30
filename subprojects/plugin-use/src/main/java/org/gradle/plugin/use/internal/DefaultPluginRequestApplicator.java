@@ -50,7 +50,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.google.common.collect.Maps.newLinkedHashMap;
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.BuildLogic;
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.BuildLogic;
 import static org.gradle.util.CollectionUtils.collect;
 
 public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
@@ -153,8 +153,8 @@ public class DefaultPluginRequestApplicator implements PluginRequestApplicator {
 
     private void defineScriptHandlerClassScope(ScriptHandlerInternal scriptHandler, ClassLoaderScope classLoaderScope, Iterable<PluginImplementation<?>> pluginsFromOtherLoaders) {
         ClassPath classPath = scriptHandler.getScriptClassPath();
-        ClassPath cachedJarClassPath = cachedClasspathTransformer.transform(classPath, BuildLogic);
-        classLoaderScope.export(cachedJarClassPath);
+        ClassPath cachedClassPath = cachedClasspathTransformer.transform(classPath, BuildLogic);
+        classLoaderScope.export(cachedClassPath);
 
         for (PluginImplementation<?> pluginImplementation : pluginsFromOtherLoaders) {
             classLoaderScope.export(pluginImplementation.asClass().getClassLoader());

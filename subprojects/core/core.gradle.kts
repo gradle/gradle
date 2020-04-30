@@ -47,6 +47,7 @@ dependencies {
     implementation(project(":jvmServices"))
     implementation(project(":modelGroovy"))
     implementation(project(":snapshots"))
+    implementation(project(":fileWatching"))
     implementation(project(":execution"))
     implementation(project(":workerProcesses"))
     implementation(project(":normalizationJava"))
@@ -147,6 +148,15 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 
     crossVersionTestRuntimeOnly(project(":testingJunitPlatform"))
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
 }
 
 tasks.test {

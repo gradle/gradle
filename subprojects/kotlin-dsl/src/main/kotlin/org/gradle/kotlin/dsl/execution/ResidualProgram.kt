@@ -31,8 +31,8 @@ sealed class ResidualProgram {
      */
     data class Static(val instructions: List<Instruction>) : ResidualProgram() {
 
-        constructor(vararg instructions: Instruction)
-            : this(instructions.toList())
+        constructor(vararg instructions: Instruction) :
+            this(instructions.toList())
     }
 
     /**

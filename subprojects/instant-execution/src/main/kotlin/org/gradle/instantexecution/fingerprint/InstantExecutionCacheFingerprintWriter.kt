@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.fingerprint
 
+import com.google.common.collect.Sets.newConcurrentHashSet
 import org.gradle.api.execution.internal.TaskInputsListener
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileCollectionInternal
@@ -42,12 +43,27 @@ class InstantExecutionCacheFingerprintWriter(
 
     interface Host {
 
+        val allInitScripts: List<File>
+
         fun hashCodeOf(file: File): HashCode?
 
         fun fingerprintOf(
             fileCollection: FileCollectionInternal,
             owner: TaskInternal
         ): HashCode
+    }
+
+    private
+    val capturedFiles: MutableSet<File>
+
+    init {
+        val initScripts = host.allInitScripts
+        capturedFiles = newConcurrentHashSet(initScripts)
+        write(
+            InstantExecutionCacheFingerprint.InitScripts(
+                initScripts.map(::inputFile)
+            )
+        )
     }
 
     /**
@@ -94,13 +110,17 @@ class InstantExecutionCacheFingerprintWriter(
 
     private
     fun captureFile(file: File) {
-        write(
-            InputFile(
-                file,
-                host.hashCodeOf(file)
-            )
-        )
+        if (!capturedFiles.add(file))
+            return
+        write(inputFile(file))
     }
+
+    private
+    fun inputFile(file: File) =
+        InputFile(
+            file,
+            host.hashCodeOf(file)
+        )
 
     private
     fun captureTaskInputs(task: TaskInternal, fileSystemInputs: FileCollectionInternal) {

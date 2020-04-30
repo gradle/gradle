@@ -1,6 +1,5 @@
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    gradlebuild.`strict-compile`
 }
 
 dependencies {
@@ -32,4 +31,8 @@ dependencies {
     testFixturesImplementation(library("guava"))
     testFixturesApi(testFixtures(project(":modelCore")))
     testFixturesApi(testFixtures(project(":diagnostics")))
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
 }

@@ -13,7 +13,7 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinInitscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
 import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
 import kotlin.reflect.KCallable
 import kotlin.reflect.KClass

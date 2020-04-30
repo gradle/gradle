@@ -129,8 +129,8 @@ By pointing an instance of a source set to one or many source code directories, 
 
 .Integration test source set
 ====
-include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
-include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
+include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=custom-source-set]"]
+include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=custom-source-set]"]
 ====
 
 Source sets are only responsible for compiling source code, but do not deal with executing the byte code.
@@ -138,8 +138,8 @@ For the purpose of test execution, a corresponding task of type link:{groovyDslP
 
 .Integration test task
 ====
-include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
-include::sample[dir="snippets/userguide/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
+include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/groovy",files="gradle/integration-test.gradle[tags=test-task]"]
+include::sample[dir="snippets/organizingGradleProjects/separatedTestTypes/kotlin",files="gradle/integration-test.gradle.kts[tags=test-task]"]
 ====
 
 [[sec:use_standard_conventions]]
@@ -338,9 +338,9 @@ The following steps are typical for creating a custom Gradle distribution:
 4. Upload the Gradle distribution archive to a HTTP server.
 5. Change the Wrapper files of all projects to point to the URL of the custom Gradle distribution.
 
-You can find a sample (`userguide/organizingGradleProjects/customGradleDistribution`) that covers steps one to three in the `samples` directory of the standard `-all` Gradle distribution.
+You can find a sample (`organizingGradleProjects/customGradleDistribution`) that covers steps one to three in the `samples` directory of the standard `-all` Gradle distribution.
 
 .Building a custom Gradle distribution
 ====
-include::sample[dir="snippets/userguide/organizingGradleProjects/customGradleDistribution",files="build.gradle[]"]
+include::sample[dir="snippets/organizingGradleProjects/customGradleDistribution",files="build.gradle[]"]
 ====

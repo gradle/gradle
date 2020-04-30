@@ -24,6 +24,7 @@ import org.gradle.instantexecution.serialization.Codec
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.readStrings
 import org.gradle.instantexecution.serialization.writeCollection
 import org.gradle.instantexecution.serialization.writeStrings
@@ -46,10 +47,10 @@ class PatternSetCodec(private val patternSetFactory: Factory<PatternSet>) : Code
             setIncludes(readStrings())
             setExcludes(readStrings())
             readCollection {
-                include(read() as Spec<FileTreeElement>)
+                include(readNonNull<Spec<FileTreeElement>>())
             }
             readCollection {
-                exclude(read() as Spec<FileTreeElement>)
+                exclude(readNonNull<Spec<FileTreeElement>>())
             }
         }
 }

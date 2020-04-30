@@ -202,7 +202,9 @@ abstract class ToolingApiSpecification extends Specification {
      * Returns the set of implicit task names expected for any project for the target Gradle version.
      */
     Set<String> getImplicitTasks() {
-        if (targetVersion >= GradleVersion.version("6.0")) {
+        if (targetVersion >= GradleVersion.version("6.5")) {
+            return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants']
+        } else if (targetVersion >= GradleVersion.version("6.0")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'outgoingVariants', 'prepareKotlinBuildScriptModel']
         } else if (targetVersion >= GradleVersion.version("5.3")) {
             return ['buildEnvironment', 'components', 'dependencies', 'dependencyInsight', 'dependentComponents', 'help', 'projects', 'properties', 'tasks', 'model', 'prepareKotlinBuildScriptModel']
@@ -226,26 +228,26 @@ abstract class ToolingApiSpecification extends Specification {
     }
 
     /**
-     * Returns the set of invisible implicit task names expected for any project for the target Gradle version.
+     * Returns the set of invisible implicit task names expected for a root project for the target Gradle version.
      */
-    Set<String> getImplicitInvisibleTasks() {
+    Set<String> getRootProjectImplicitInvisibleTasks() {
         return targetVersion >= GradleVersion.version("5.3") ? ['prepareKotlinBuildScriptModel'] : []
     }
 
     /**
-     * Returns the set of invisible implicit selector names expected for any project for the target Gradle version.
+     * Returns the set of invisible implicit selector names expected for a root project for the target Gradle version.
      *
-     * See {@link #getImplicitInvisibleTasks}.
+     * See {@link #getRootProjectImplicitInvisibleTasks}.
      */
-    Set<String> getImplicitInvisibleSelectors() {
-        return implicitInvisibleTasks
+    Set<String> getRootProjectImplicitInvisibleSelectors() {
+        return rootProjectImplicitInvisibleTasks
     }
 
     /**
      * Returns the set of implicit task names expected for a root project for the target Gradle version.
      */
     Set<String> getRootProjectImplicitTasks() {
-        return implicitTasks + ['init', 'wrapper']
+        return implicitTasks + ['init', 'wrapper'] + rootProjectImplicitInvisibleTasks
     }
 
     /**

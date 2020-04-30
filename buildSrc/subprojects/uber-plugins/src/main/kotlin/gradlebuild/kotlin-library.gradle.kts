@@ -34,6 +34,7 @@ plugins {
 tasks {
     withType<KotlinCompile>().configureEach {
         configureKotlinCompilerForGradleBuild()
+        kotlinOptions.allWarningsAsErrors = true
     }
 
     withType<KtlintFormatTask>().configureEach {

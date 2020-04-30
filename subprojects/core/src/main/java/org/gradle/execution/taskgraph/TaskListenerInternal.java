@@ -25,7 +25,7 @@ public interface TaskListenerInternal {
      *
      * @param taskIdentity The identity of the task about to be executed. Never null.
      */
-    void beforeExecute(TaskIdentity taskIdentity);
+    void beforeExecute(TaskIdentity<?> taskIdentity);
 
     /**
      * This method is call immediately after a task has been executed. It is always called, regardless of whether the
@@ -35,6 +35,6 @@ public interface TaskListenerInternal {
      * @param state The task state. If the task failed with an exception, the exception is available in this
      * state. Never null.
      */
-    void afterExecute(TaskIdentity taskIdentity, TaskState state);
+    void afterExecute(TaskIdentity<?>  taskIdentity, TaskState state);
 
 }

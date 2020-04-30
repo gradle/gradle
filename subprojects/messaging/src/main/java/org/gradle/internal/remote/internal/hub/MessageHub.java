@@ -17,6 +17,7 @@
 package org.gradle.internal.remote.internal.hub;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.AsyncStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -111,13 +112,13 @@ public class MessageHub implements AsyncStoppable {
             }
             Dispatch<Object> dispatch;
             if (handler instanceof Dispatch) {
-                dispatch = (Dispatch) handler;
+                dispatch = Cast.uncheckedNonnullCast(handler);
             } else {
                 dispatch = DISCARD;
             }
             BoundedDispatch<Object> boundedDispatch;
             if (dispatch instanceof BoundedDispatch) {
-                boundedDispatch = (BoundedDispatch) dispatch;
+                boundedDispatch = Cast.uncheckedNonnullCast(dispatch);
             } else {
                 boundedDispatch = DISCARD;
             }

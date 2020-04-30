@@ -259,14 +259,14 @@ public class KotlinCompatibilityTest {
         // We avoid using reflect, since that leads to class loading exceptions
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && (accessorType == PropertyAccessorType.GET_GETTER || accessorType == PropertyAccessorType.IS_GETTER)
-            && m.getParameters().size() == 0
-            && (accessorType != PropertyAccessorType.IS_GETTER || m.getReturnType().isEquivalentTo(Boolean.TYPE) || m.getReturnType().isEquivalentTo(Boolean.class));
+            && m.getRawParameterTypes().size() == 0
+            && (accessorType != PropertyAccessorType.IS_GETTER || m.getRawReturnType().isEquivalentTo(Boolean.TYPE) || m.getRawReturnType().isEquivalentTo(Boolean.class));
     }
 
     private static boolean isSetter(JavaMethod m, PropertyAccessorType accessorType) {
         return !m.getModifiers().contains(JavaModifier.STATIC)
             && accessorType == PropertyAccessorType.SETTER
-            && m.getParameters().size() == 1;
+            && m.getRawParameterTypes().size() == 1;
     }
 
     private static class GradlePublicApi extends DescribedPredicate<JavaClass> {

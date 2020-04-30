@@ -39,6 +39,8 @@ class ManagedPropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlin
                 @get:Internal
                 abstract val message: Property<String>
                 @get:Internal
+                abstract val number: Property<Double>
+                @get:Internal
                 abstract val list: ListProperty<Int>
                 @get:Internal
                 abstract val set: SetProperty<Int>
@@ -49,6 +51,7 @@ class ManagedPropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlin
                 fun run() {
                     println("flag = " + flag.get())
                     println("message = " + message.get())
+                    println("number = " + number.get())
                     println("list = " + list.get())
                     println("set = " + set.get())
                     println("map = " + map.get())

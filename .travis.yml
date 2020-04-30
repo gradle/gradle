@@ -1,5 +1,11 @@
 language: java
 jdk: openjdk11
+before_cache:
+  - rm -f $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -f $HOME/.gradle/caches/modules-2/gc.properties
+cache:
+  directories:
+    - $HOME/.gradle/caches/modules-2/
 env:
     global:
         - JAVA_TOOL_OPTIONS=-Dhttps.protocols=TLSv1.2

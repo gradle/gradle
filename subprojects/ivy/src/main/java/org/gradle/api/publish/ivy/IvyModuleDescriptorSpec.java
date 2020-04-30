@@ -40,7 +40,9 @@ public interface IvyModuleDescriptorSpec {
      * Allow configuration of the descriptor, after it has been generated according to the input data.
      *
      * <pre class='autoTested'>
-     * apply plugin: "ivy-publish"
+     * plugins {
+     *     id 'ivy-publish'
+     * }
      *
      * publishing {
      *   publications {

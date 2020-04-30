@@ -49,36 +49,36 @@ To implement a custom task class, you extend link:{groovyDslPath}/org.gradle.api
 
 .Defining a custom task
 ====
-include::sample[dir="snippets/userguide/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
-include::sample[dir="snippets/userguide/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
+include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=define-task]"]
+include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=define-task]"]
 ====
 
 This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark it with the link:{javadocPath}/org/gradle/api/tasks/TaskAction.html[TaskAction] annotation. Gradle will call the method when the task executes. You don't have to use a method to define the behaviour for the task. You could, for instance, call `doFirst()` or `doLast()` with a closure in the task constructor to add behaviour.
 
 .A hello world task
 ====
-include::sample[dir="snippets/userguide/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
-include::sample[dir="snippets/userguide/tasks/customTask/kotlin",files="build.gradle.kts[tags=add-action]"]
+include::sample[dir="snippets/tasks/customTask/groovy",files="build.gradle[tags=add-action]"]
+include::sample[dir="snippets/tasks/customTask/kotlin",files="build.gradle.kts[tags=add-action]"]
 ====
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/tasks/customTask/customTaskWithAction.out[]
+include::{snippetsPath}/tasks/customTask/customTaskWithAction.out[]
 ----
 
 Let's add a property to the task, so we can customize it. Tasks are simply POGOs, and when you declare a task, you can set the properties or call methods on the task object. Here we add a `greeting` property, and set the value when we declare the `greeting` task.
 
 .A customizable hello world task
 ====
-include::sample[dir="snippets/userguide/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
-include::sample[dir="snippets/userguide/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
+include::sample[dir="snippets/tasks/customTaskWithProperty/groovy",files="build.gradle[tags=add-property]"]
+include::sample[dir="snippets/tasks/customTaskWithProperty/kotlin",files="build.gradle.kts[tags=add-property]"]
 ====
 
 .Output of **`gradle -q hello greeting`**
 ----
 > gradle -q hello greeting
-include::{samplesPath}/userguide/tasks/customTaskWithProperty/customTaskWithProperty.out[]
+include::{snippetsPath}/tasks/customTaskWithProperty/customTaskWithProperty.out[]
 ----
 
 
@@ -101,7 +101,7 @@ We just follow the convention for where the source for the task class should go.
 [source.multi-language-sample,groovy]
 .src/main/groovy/org/gradle/GreetingTask.groovy
 ----
-include::{samplesPath}/customExternalTask/groovy/task/src/main/groovy/org/gradle/GreetingTask.groovy[]
+include::{snippetsPath}/customExternalTask/groovy/task/src/main/groovy/org/gradle/GreetingTask.groovy[]
 ----
 
 [[sec:using_your_task_class_in_another_project]]
@@ -125,7 +125,7 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingTaskTest.groovy
 ----
-include::{samplesPath}/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
+include::{snippetsPath}/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
 ----
 
 [[incremental_tasks]]
@@ -180,8 +180,8 @@ You can also see how the action deletes a target file if the corresponding input
 [[taskDefinition]]
 .Defining an incremental task action
 ====
-include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
-include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=incremental-task]"]
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=incremental-task]"]
 ====
 
 
@@ -226,8 +226,8 @@ In this case, all inputs will be considered added, as shown here:
 [[ex:incremental_task_definition]]
 .Running the incremental task for the first time
 ====
-include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
-include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=reverse]"]
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=reverse]"]
 
 .Build layout
 ----
@@ -242,7 +242,7 @@ include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="bui
 .Output of `gradle -q incrementalReverse`
 ----
 > gradle -q incrementalReverse
-include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskFirstRun.out[]
+include::{snippetsPath}/tasks/incrementalTask/incrementalTaskFirstRun.out[]
 ----
 ====
 
@@ -253,7 +253,7 @@ Naturally when the task is executed again with no changes, then the entire task 
 .Output of `gradle incrementalReverse`
 ----
 > gradle incrementalReverse
-include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskNoChange.out[]
+include::{snippetsPath}/tasks/incrementalTask/incrementalTaskNoChange.out[]
 ----
 ====
 
@@ -262,13 +262,13 @@ The following example modifies the content of one file and adds another before r
 
 .Running the incremental task with updated input files
 ====
-include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
-include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=updated-inputs]"]
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=updated-inputs]"]
 
 .Output of `gradle -q updateInputs incrementalReverse`
 ----
 > gradle -q updateInputs incrementalReverse
-include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskUpdatedInputs.out[]
+include::{snippetsPath}/tasks/incrementalTask/incrementalTaskUpdatedInputs.out[]
 ----
 ====
 
@@ -280,13 +280,13 @@ The following example removes one of the existing files before executing the inc
 
 .Running the incremental task with an input file removed
 ====
-include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
-include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-input]"]
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-input]"]
 
 .Output of `gradle -q removeInput incrementalReverse`
 ----
 > gradle -q removeInput incrementalReverse
-include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskRemovedInput.out[]
+include::{snippetsPath}/tasks/incrementalTask/incrementalTaskRemovedInput.out[]
 ----
 ====
 
@@ -296,13 +296,13 @@ The following example removes just one of the output files from the build direct
 
 .Running the incremental task with an output file removed
 ====
-include::sample[dir="snippets/userguide/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
-include::sample[dir="snippets/userguide/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
+include::sample[dir="snippets/tasks/incrementalTask/groovy",files="build.gradle[tags=removed-output]"]
+include::sample[dir="snippets/tasks/incrementalTask/kotlin",files="build.gradle.kts[tags=removed-output]"]
 
 .Output of `gradle -q removeOutput incrementalReverse`
 ----
 > gradle -q removeOutput incrementalReverse
-include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskRemovedOutput.out[]
+include::{snippetsPath}/tasks/incrementalTask/incrementalTaskRemovedOutput.out[]
 ----
 ====
 
@@ -317,7 +317,7 @@ Here's the output you can expect in this case:
 .Output of `gradle -q -PtaskInputProperty=changed incrementalReverse`
 ----
 > gradle -q -PtaskInputProperty=changed incrementalReverse
-include::{samplesPath}/userguide/tasks/incrementalTask/incrementalTaskChangedProperty.out[]
+include::{snippetsPath}/tasks/incrementalTask/incrementalTaskChangedProperty.out[]
 ----
 ====
 
@@ -351,7 +351,7 @@ Let's have a look at an example to illustrate the functionality. The custom task
 [source.multi-language-sample,java]
 .UrlVerify.java
 ----
-include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
+include::{snippetsPath}/tasks/commandLineOption/stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
 ----
 
 All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
@@ -369,14 +369,14 @@ Getting back to the previous example, the build script creates a task instance o
 
 .Using a command line option
 ====
-include::sample[dir="snippets/userguide/tasks/commandLineOption/stringOption/groovy",files="build.gradle[tags=task]"]
-include::sample[dir="snippets/userguide/tasks/commandLineOption/stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/commandLineOption/stringOption/groovy",files="build.gradle[tags=task]"]
+include::sample[dir="snippets/tasks/commandLineOption/stringOption/kotlin",files="build.gradle.kts[tags=task]"]
 ====
 
 .Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
 ----
 > gradle -q verifyUrl --url=http://www.google.com/
-include::{samplesPath}/userguide/tasks/commandLineOption/stringOption/taskCommandLineOption.out[]
+include::{snippetsPath}/tasks/commandLineOption/stringOption/taskCommandLineOption.out[]
 ----
 
 [[sec:supported_task_option_data_types]]
@@ -413,7 +413,7 @@ This example demonstrates the use of multiple options for a single task. The tas
 [source.multi-language-sample,java]
 .UrlProcess.java
 ----
-include::{samplesPath}/userguide/tasks/commandLineOption/optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
+include::{snippetsPath}/tasks/commandLineOption/optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
 ----
 
 [[sec:listing_task_options]]
@@ -426,7 +426,7 @@ Command line options using the annotations link:{javadocPath}/org/gradle/api/tas
 .Output of **`gradle -q help --task processUrl`**
 ----
 > gradle -q help --task processUrl
-include::{samplesPath}/userguide/tasks/commandLineOption/optionValues/helpTaskOptions.out[]
+include::{snippetsPath}/tasks/commandLineOption/optionValues/helpTaskOptions.out[]
 ----
 
 === Limitations

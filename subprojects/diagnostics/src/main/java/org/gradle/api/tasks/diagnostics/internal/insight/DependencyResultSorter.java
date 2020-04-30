@@ -79,6 +79,7 @@ public abstract class DependencyResultSorter {
         }
 
         private void checkRequestedComponentSelectorType(DependencyEdge dependencyEdge) {
+            // Second null check is redundant according to API specification, but is tested behaviour
             if(dependencyEdge == null || dependencyEdge.getRequested() == null) {
                 throw new IllegalArgumentException("Dependency edge or the requested component selector may not be null");
             }
@@ -153,7 +154,7 @@ public abstract class DependencyResultSorter {
                 return 1;
             } else if (!leftDynamic && rightDynamic) {
                 return -1;
-            } else if (leftDynamic && rightDynamic) {
+            } else if (leftDynamic) {
                 // Compare 2 dynamic selectors lexicographically
                 return leftRequiredVersion.compareTo(rightRequiredVersion);
             } else {

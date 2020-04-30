@@ -20,7 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.CoreMatchers.not
 
 

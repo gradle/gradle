@@ -35,7 +35,7 @@ import kotlin.reflect.KClass
 
 
 object PropertyNames {
-    const val dbUrl = "org.gradle.performance.db.mysql.url"
+    const val dbUrl = "org.gradle.performance.db.url"
     const val dbUsername = "org.gradle.performance.db.username"
     const val dbPassword = "org.gradle.performance.db.password"
 
@@ -136,7 +136,7 @@ class PerformanceTestPlugin : Plugin<Project> {
 
         dependencies {
             "performanceTestImplementation"(project(":internalPerformanceTesting"))
-            "junit"("junit:junit:4.12")
+            "junit"("junit:junit:4.13")
         }
     }
 

@@ -27,7 +27,7 @@ import spock.lang.Unroll
 import java.util.jar.Manifest
 
 import static org.hamcrest.CoreMatchers.equalTo
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class SamplesJavaQuickstartIntegrationTest extends AbstractIntegrationSpec {
 

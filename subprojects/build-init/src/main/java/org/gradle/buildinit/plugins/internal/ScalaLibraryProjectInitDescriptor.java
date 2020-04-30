@@ -57,7 +57,7 @@ public class ScalaLibraryProjectInitDescriptor extends JvmProjectInitDescriptor 
         String scalaLibraryVersion = libraryVersionProvider.getVersion("scala-library");
         String scalaTestVersion = libraryVersionProvider.getVersion("scalatest");
         String scalaTestPlusJunitVersion = libraryVersionProvider.getVersion("scalatestplus-junit");
-        String junitVersion = libraryVersionProvider.getVersion("junit");
+        String junitVersion = libraryVersionProvider.getVersion("scala-junit");
         String scalaXmlVersion = libraryVersionProvider.getVersion("scala-xml");
 
         buildScriptBuilder

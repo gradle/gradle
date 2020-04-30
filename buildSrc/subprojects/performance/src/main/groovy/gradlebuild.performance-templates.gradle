@@ -27,7 +27,7 @@ tasks.register("gradleBuildBaseline", RemoteProject) {
     remoteUri = rootDir.absolutePath
     // Remember to update accordingly when rebasing/squashing
     // Do not use the "Rebase and merge" nor "Squash and merge" Github buttons when merging a PR that change the baseline
-    ref = 'bc8ca568299c9b28b8a574502ecfb9de1fbc3eed'
+    ref = '4a45c91fc3f6f062c25a34d8eb889470a1909fa8'
 }
 
 // === Java ===
@@ -360,7 +360,7 @@ tasks.register("largeAndroidBuild", RemoteProject) {
 tasks.register("santaTrackerAndroidBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0
-    ref = '65479d5a244a64afef79d86b4bbc81d8908d2434'
+    ref = '764ac5150938f45bec0b4de852c323e767ba4bb4'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }
@@ -369,7 +369,7 @@ tasks.register("santaTrackerAndroidBuild", RemoteProject) {
 tasks.register("santaTrackerAndroidJavaBuild", RemoteProject) {
     remoteUri = 'https://github.com/gradle/santa-tracker-android.git'
     // Pinned from branch agp-3.6.0-java
-    ref = '5fff06e2496cc762b34031f6dd28467041ae8453'
+    ref = '2fb2273a6f000b369bb719c25cda797d935983cc'
     doLast {
         addGoogleServicesJson(outputDirectory)
     }

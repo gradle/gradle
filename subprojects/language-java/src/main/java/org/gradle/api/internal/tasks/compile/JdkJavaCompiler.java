@@ -30,6 +30,7 @@ import javax.tools.JavaCompiler;
 import javax.tools.JavaFileManager;
 import javax.tools.JavaFileObject;
 import javax.tools.StandardJavaFileManager;
+import java.io.File;
 import java.io.Serializable;
 import java.nio.charset.Charset;
 import java.util.Iterator;
@@ -68,7 +69,10 @@ public class JdkJavaCompiler implements Compiler<JavaCompileSpec>, Serializable 
         boolean hasEmptySourcepaths = JavaVersion.current().isJava9Compatible() && emptySourcepathIn(options);
         JavaFileManager fileManager = GradleStandardJavaFileManager.wrap(standardFileManager, DefaultClassPath.of(spec.getAnnotationProcessorPath()), hasEmptySourcepaths);
         JavaCompiler.CompilationTask task = compiler.getTask(null, fileManager, null, options, spec.getClasses(), compilationUnits);
-
+        File mappingFile = compileOptions.getIncrementalCompilationMappingFile();
+        if (mappingFile != null && compiler instanceof IncrementalCompilationAwareJavaCompiler) {
+            task = ((IncrementalCompilationAwareJavaCompiler) compiler).makeIncremental(task, mappingFile, new CompilationSourceDirs(spec.getSourceRoots()));
+        }
         Set<AnnotationProcessorDeclaration> annotationProcessors = spec.getEffectiveAnnotationProcessors();
         task = new AnnotationProcessingCompileTask(task, annotationProcessors, spec.getAnnotationProcessorPath(), result.getAnnotationProcessingResult());
         task = new ResourceCleaningCompilationTask(task, fileManager);

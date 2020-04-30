@@ -25,7 +25,7 @@ import org.hamcrest.Matcher
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.hasItem
 import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class ArchiveTestFixture {
     private final ListMultimap<String, String> filesByRelativePath = LinkedListMultimap.create()

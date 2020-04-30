@@ -23,7 +23,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.api.internal.tasks.compile.incremental.recomp.CompilationSourceDirs;
+import org.gradle.api.internal.tasks.compile.CompilationSourceDirs;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.CacheableTask;
@@ -66,7 +66,9 @@ import java.util.List;
  * If you create your own Javadoc tasks remember to specify the 'source' property!
  * Without source the Javadoc task will not create any documentation. Example:
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * task myJavadocs(type: Javadoc) {
  *   source = sourceSets.main.allJava
@@ -76,7 +78,9 @@ import java.util.List;
  * <p>
  * An example how to create a task that runs a custom doclet implementation:
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * configurations {
  *   jaxDoclet

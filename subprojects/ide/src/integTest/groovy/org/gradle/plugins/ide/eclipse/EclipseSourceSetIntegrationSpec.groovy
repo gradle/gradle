@@ -37,7 +37,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
             dependencies {
                 implementation 'com.google.guava:guava:18.0'
                 compileOnly 'commons-logging:commons-logging:1.2'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
 
@@ -48,7 +48,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         EclipseClasspathFixture classpath = classpath('.')
         classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test')
         classpath.lib('commons-logging-1.2.jar').assertHasAttribute('gradle_used_by_scope', '')
-        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
+        classpath.lib('junit-4.13.jar').assertHasAttribute('gradle_used_by_scope', 'test')
     }
 
     @ToBeFixedForInstantExecution
@@ -81,7 +81,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
 
             dependencies {
                 implementation 'com.google.guava:guava:18.0'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
 
             eclipse.classpath.file.whenMerged {
@@ -99,7 +99,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         then:
         EclipseClasspathFixture classpath = classpath('.')
         classpath.sourceDir('src/test/java').assertHasAttribute('gradle_used_by_scope', 'test,integTest')
-        classpath.lib('junit-4.12.jar').assertHasAttribute('gradle_used_by_scope', 'test')
+        classpath.lib('junit-4.13.jar').assertHasAttribute('gradle_used_by_scope', 'test')
         classpath.lib('guava-18.0.jar').assertHasAttribute('gradle_used_by_scope', 'main,test,integTest')
     }
 
@@ -109,7 +109,7 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
-            
+
             sourceSets {
                 integTest {
                     java {
@@ -166,14 +166,14 @@ class EclipseSourceSetIntegrationSpec extends AbstractEclipseIntegrationSpec {
         buildFile << """
             apply plugin: 'java'
             apply plugin: 'eclipse'
-            
+
             sourceSets {
                 "default" {
                     java {
                         srcDirs 'src/default/java'
                     }
                 }
-                
+
                 default_ {
                     java {
                         srcDirs 'src/default_/java'

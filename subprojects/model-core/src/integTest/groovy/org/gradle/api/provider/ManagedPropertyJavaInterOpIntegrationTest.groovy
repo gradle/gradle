@@ -39,6 +39,9 @@ class ManagedPropertyJavaInterOpIntegrationTest extends AbstractPropertyJavaInte
                 public abstract Property<String> getMessage();
 
                 @Internal
+                public abstract Property<Double> getNumber();
+
+                @Internal
                 public abstract ListProperty<Integer> getList();
 
                 @Internal
@@ -51,6 +54,7 @@ class ManagedPropertyJavaInterOpIntegrationTest extends AbstractPropertyJavaInte
                 public void run() {
                     System.out.println("flag = " + getFlag().get());
                     System.out.println("message = " + getMessage().get());
+                    System.out.println("number = " + getNumber().get());
                     System.out.println("list = " + getList().get());
                     System.out.println("set = " + getSet().get());
                     System.out.println("map = " + getMap().get());

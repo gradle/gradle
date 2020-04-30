@@ -83,21 +83,21 @@ Let's look at some examples with the following project tree. This is a multi-pro
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/firstExample/water/groovy",files="settings.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/firstExample/water/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/firstExample/water/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/multiproject/firstExample/water/kotlin",files="settings.gradle.kts[]"]
 ====
 
 And where is the build script for the `bluewhale` project? In Gradle build scripts are optional. Obviously for a single project build, a project without a build script doesn't make much sense. For multiproject builds the situation is different. Let's look at the build script for the `water` project and execute it:
 
 .Build script of water (parent) project
 ====
-include::sample[dir="snippets/userguide/multiproject/firstExample/water/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/firstExample/water/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/firstExample/water/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/firstExample/water/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/firstExample/water/multiprojectFirstExample.out[]
+include::{snippetsPath}/multiproject/firstExample/water/multiprojectFirstExample.out[]
 ----
 ====
 
@@ -135,21 +135,21 @@ We are not that happy with the build script of the `water` project. It is inconv
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/addKrill/water/groovy",files="settings.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/addKrill/water/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/addKrill/water/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/multiproject/addKrill/water/kotlin",files="settings.gradle.kts[]"]
 ====
 
 Now we rewrite the `water` build script and boil it down to a single line.
 
 .Water project build script
 ====
-include::sample[dir="snippets/userguide/multiproject/addKrill/water/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/addKrill/water/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/addKrill/water/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/addKrill/water/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/addKrill/water/multiprojectAddKrill.out[]
+include::{snippetsPath}/multiproject/addKrill/water/multiprojectAddKrill.out[]
 ----
 ====
 
@@ -171,13 +171,13 @@ The Project API also provides a property for accessing the subprojects only.
 
 .Defining common behavior of all projects and subprojects
 ====
-include::sample[dir="snippets/userguide/multiproject/useSubprojects/water/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/useSubprojects/water/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/useSubprojects/water/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/useSubprojects/water/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/useSubprojects/water/multiprojectUseSubprojects.out[]
+include::{snippetsPath}/multiproject/useSubprojects/water/multiprojectUseSubprojects.out[]
 ----
 ====
 
@@ -190,13 +190,13 @@ You can add specific behavior on top of the common behavior. Usually we put the 
 
 .Defining specific behaviour for particular project
 ====
-include::sample[dir="snippets/userguide/multiproject/subprojectsAddFromTop/water/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/subprojectsAddFromTop/water/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/subprojectsAddFromTop/water/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/subprojectsAddFromTop/water/kotlin",files="build.gradle.kts[]"]
 
 .Output of **`gradle -q hello`**
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/subprojectsAddFromTop/water/multiprojectSubprojectsAddFromTop.out[]
+include::{snippetsPath}/multiproject/subprojectsAddFromTop/water/multiprojectSubprojectsAddFromTop.out[]
 ----
 ====
 
@@ -236,13 +236,13 @@ As we have said, we usually prefer to put project specific behavior into the bui
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/spreadSpecifics/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/spreadSpecifics/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/spreadSpecifics/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/spreadSpecifics/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[]"]
 
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/spreadSpecifics/water/multiprojectSpreadSpecifics.out[]
+include::{snippetsPath}/multiproject/spreadSpecifics/water/multiprojectSpreadSpecifics.out[]
 ----
 ====
 
@@ -291,13 +291,13 @@ To show more of the power of configuration injection, let's add another project 
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/addTropical/water/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/addTropical/water/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/addTropical/water/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/addTropical/water/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/addTropical/water/multiprojectAddTropical.out[]
+include::{snippetsPath}/multiproject/addTropical/water/multiprojectAddTropical.out[]
 ----
 ====
 
@@ -346,13 +346,13 @@ Using the project name for filtering is one option. Using <<writing_build_script
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/tropicalWithProperties/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[];tropicalFish/build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/tropicalWithProperties/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[];tropicalFish/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/tropicalWithProperties/water/groovy",files="settings.gradle[];bluewhale/build.gradle[];krill/build.gradle[];build.gradle[];tropicalFish/build.gradle[]"]
+include::sample[dir="snippets/multiproject/tropicalWithProperties/water/kotlin",files="settings.gradle.kts[];bluewhale/build.gradle.kts[];krill/build.gradle.kts[];build.gradle.kts[];tropicalFish/build.gradle.kts[]"]
 
 .Output of `gradle -q hello`
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectTropicalWithProperties.out[]
+include::{snippetsPath}/multiproject/tropicalWithProperties/water/multiprojectTropicalWithProperties.out[]
 ----
 ====
 
@@ -366,20 +366,20 @@ When we executed the `hello` task from the root project dir, things behaved in a
 .Running build from subproject
 ----
 > gradle -q hello
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectSubBuild.out[]
+include::{snippetsPath}/multiproject/tropicalWithProperties/water/multiprojectSubBuild.out[]
 ----
 
 The basic rule behind Gradle's behavior is simple. Gradle looks down the hierarchy, starting with the _current dir_, for tasks with the name `hello` and executes them. One thing is very important to note. Gradle _always_ evaluates _every_ project of the multi-project build and creates all existing task objects. Then, according to the task name arguments and the current dir, Gradle filters the tasks which should be executed. Because of Gradle's cross project configuration _every_ project has to be evaluated before _any_ task gets executed. We will have a closer look at this in the next section. Let's now have our last marine example. Let's add a task to `bluewhale` and `krill`.
 
 .Evaluation and execution of projects
 ====
-include::sample[dir="snippets/userguide/multiproject/partialTasks/water/groovy",files="bluewhale/build.gradle[];krill/build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/partialTasks/water/kotlin",files="bluewhale/build.gradle.kts[];krill/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/partialTasks/water/groovy",files="bluewhale/build.gradle[];krill/build.gradle[]"]
+include::sample[dir="snippets/multiproject/partialTasks/water/kotlin",files="bluewhale/build.gradle.kts[];krill/build.gradle.kts[]"]
 
 .Output of `gradle -q distanceToIceberg`
 ----
 > gradle -q distanceToIceberg
-include::{samplesPath}/userguide/multiproject/partialTasks/water/multiprojectPartialTasks.out[]
+include::{snippetsPath}/multiproject/partialTasks/water/multiprojectPartialTasks.out[]
 ----
 
 Here's the output without the `-q` option:
@@ -387,7 +387,7 @@ Here's the output without the `-q` option:
 .Output of **`gradle distanceToIceberg`**
 ----
 > gradle distanceToIceberg
-include::{samplesPath}/userguide/multiproject/partialTasks/water/multiprojectPartialTasksNotQuiet.out[]
+include::{snippetsPath}/multiproject/partialTasks/water/multiprojectPartialTasksNotQuiet.out[]
 ----
 ====
 
@@ -401,7 +401,7 @@ As we have seen, you can run a multi-project build by entering any subproject di
 .Running tasks by their absolute path
 ----
 > gradle -q :hello :krill:hello hello
-include::{samplesPath}/userguide/multiproject/tropicalWithProperties/water/multiprojectAbsoluteTaskPaths.out[]
+include::{snippetsPath}/multiproject/tropicalWithProperties/water/multiprojectAbsoluteTaskPaths.out[]
 ----
 
 The build is executed from the `tropicalFish` project. We execute the `hello` tasks of the `water`, the `krill` and the `tropicalFish` project. The first two tasks are specified by their absolute path, the last task is executed using the name matching mechanism described above.
@@ -459,13 +459,13 @@ The examples from the last section were special, as the projects had no _Executi
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/firstMessages/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];producer/build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/firstMessages/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];producer/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies/firstMessages/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];producer/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies/firstMessages/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];producer/build.gradle.kts[]"]
 
 .Output of `gradle -q action`
 ----
 > gradle -q action
-include::{samplesPath}/userguide/multiproject/dependencies/firstMessages/messages/multiprojectFirstMessages.out[]
+include::{snippetsPath}/multiproject/dependencies/firstMessages/messages/multiprojectFirstMessages.out[]
 ----
 ====
 
@@ -504,13 +504,13 @@ This didn't quite do what we want. If nothing else is defined, Gradle executes t
 ====
 
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/messagesHack/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];aProducer/build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/messagesHack/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];aProducer/build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies/messagesHack/messages/groovy",files="build.gradle[];settings.gradle[];consumer/build.gradle[];aProducer/build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies/messagesHack/messages/kotlin",files="build.gradle.kts[];settings.gradle.kts[];consumer/build.gradle.kts[];aProducer/build.gradle.kts[]"]
 
 .Output of `gradle -q action`
 ----
 > gradle -q action
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHack.out[]
+include::{snippetsPath}/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHack.out[]
 ----
 
 We can show where this hack doesn't work if we now switch to the `consumer` dir and execute the build.
@@ -518,7 +518,7 @@ We can show where this hack doesn't work if we now switch to the `consumer` dir 
 .Output of `gradle -q action` from the `consumer` dir
 ----
 > gradle -q action
-include::{samplesPath}/userguide/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHackBroken.out[]
+include::{snippetsPath}/multiproject/dependencies/messagesHack/messages/multiprojectMessagesHackBroken.out[]
 ----
 ====
 
@@ -595,8 +595,8 @@ Gradle's multi-project features are driven by real life use cases. One good exam
 
 
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/webDist/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/webDist/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies/webDist/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies/webDist/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 We have an interesting set of dependencies. Obviously the `date` and `hello` projects have a _configuration_ dependency on `webDist`, as all the build logic for the webapp projects is injected by `webDist`. The _execution_ dependency is in the other direction, as `webDist` depends on the build artifacts of `date` and `hello`. There is even a third dependency. `webDist` has a _configuration_ dependency on `date` and `hello` because it needs to know the `archivePath`. But it asks for this information at _execution time_. Therefore we have no circular dependency.
@@ -722,8 +722,8 @@ We have the projects “`shared`”, “`api`” and “`personService`”. The 
 
 [[javadependencies_2]]
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/java/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies/java/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies/java/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 All the build logic is in the build script of the root project.footnote:[We do this here, as it makes the layout a bit easier. We usually put the project specific stuff into the build script of the respective projects.] A “_lib_” dependency is a special form of an execution dependency. It causes the other project to be built first and adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the other project to the classpath. So you can enter the “`api`” directory and trigger a “`gradle compile`”. First the “`shared`” project is built and then the “`api`” project is built. Project dependencies enable partial multi-project builds.
@@ -732,8 +732,8 @@ If you come from Maven land you might be perfectly happy with this. If you come 
 
 .Fine grained control over dependencies
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/javaWithCustomConf/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/javaWithCustomConf/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies/javaWithCustomConf/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies/javaWithCustomConf/kotlin",files="build.gradle.kts[]"]
 ====
 
 The Java plugin adds per default a jar to your project libraries which contains all the classes. In this example we create an _additional_ library containing only the interfaces of the “`api`” project. We assign this library to a new _dependency configuration_. For the person service we declare that the project should be compiled only against the “`api`” interfaces but tested with all classes from “`api`”.
@@ -749,16 +749,16 @@ Let's say you are working in a multi-project build with the two subprojects `pro
 
 .Task generating a property file containing build information
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/outgoingArtifact/groovy/producer",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
+include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/groovy/producer",files="build.gradle[]"]
+include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/kotlin/producer",files="build.gradle.kts[]"]
 ====
 
 The consuming project is supposed to be able to read the properties file at runtime. Declaring a project dependency on the producing project takes care of creating the properties beforehand and making it available to the runtime classpath.
 
 .Declaring a project dependency on the project producing the properties file
 ====
-include::sample[dir="snippets/userguide/multiproject/dependencies/outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
-include::sample[dir="snippets/userguide/multiproject/dependencies/outgoingArtifact/kotlin/consumer",files="build.gradle.kts[tags=producer-project-dependency]"]
+include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/groovy/consumer",files="build.gradle[tags=producer-project-dependency]"]
+include::sample[dir="snippets/multiproject/dependencies/outgoingArtifact/kotlin/consumer",files="build.gradle.kts[tags=producer-project-dependency]"]
 ====
 
 In the example above, the consumer now declares a dependency on the outputs of the `producer` project.
@@ -817,7 +817,7 @@ Assume you are working on a single project, the “`:api`” project. You have b
 .Output of **`gradle :api:build`**
 ----
 > gradle :api:build
-include::{samplesPath}/userguide/multiproject/dependencies/java/multitestingBuild.out[]
+include::{snippetsPath}/multiproject/dependencies/java/multitestingBuild.out[]
 ----
 =====
 ====
@@ -831,7 +831,7 @@ If you have just gotten the latest version of source from your version control s
 .Output of **`gradle :api:buildNeeded`**
 ----
 > gradle :api:buildNeeded
-include::{samplesPath}/userguide/multiproject/dependencies/java/multitestingBuildNeeded.out[]
+include::{snippetsPath}/multiproject/dependencies/java/multitestingBuildNeeded.out[]
 ----
 =====
 ====
@@ -845,7 +845,7 @@ You also might want to refactor some part of the “`:api`” project that is us
 .Output of **`gradle :api:buildDependents`**
 ----
 > gradle :api:buildDependents
-include::{samplesPath}/userguide/multiproject/dependencies/java/multitestingBuildDependents.out[]
+include::{snippetsPath}/multiproject/dependencies/java/multitestingBuildDependents.out[]
 ----
 =====
 ====

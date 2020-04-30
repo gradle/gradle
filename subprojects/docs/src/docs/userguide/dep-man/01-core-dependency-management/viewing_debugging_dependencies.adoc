@@ -29,6 +29,13 @@ Rendering the dependency tree is particularly useful if you'd like to identify w
 It also provides you with information about any dependency conflict resolution that occurred in the process and clearly indicates the selected version.
 The dependency report always contains declared and transitive dependencies.
 
+[NOTE]
+====
+The `dependencies` task will only execute on a _single_ project.
+If you run the task on the root project, it will show dependencies of the root project and not of any subproject.
+Be sure to always target the <<command_line_interface#executing_tasks_in_multi_project_builds, right project>> when running `dependencies`.
+====
+
 Let's say you'd want to create tasks for your project that use the link:https://www.eclipse.org/jgit/[JGit library] to execute SCM operations e.g. to model a release process.
 You can declare dependencies for any external tooling with the help of a <<declaring_dependencies.adoc#sec:what-are-dependency-configurations,custom configuration>> so that it doesn't pollute other contexts like the compilation classpath for your production source code.
 
@@ -36,10 +43,18 @@ Every Gradle project provides the task `dependencies` to render the so-called _d
 By default the dependency report renders dependencies for all configurations.
 To focus on the information about one configuration, provide the optional parameter `--configuration`.
 
+For example, to show dependencies that would be on the test runtime classpath in a Java project, run:
+
+----
+gradle -q dependencies --configuration testRuntimeClasspath
+----
+
+TIP: To see a list of all the pre-defined configurations added by the `java` plugin, see <<java_plugin.adoc#sec:java_plugin_and_dependency_management,the documentation for the Java Plugin>>.
+
 .Declaring the JGit dependency with a custom configuration
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependenciesReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependenciesReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
 ====
 
 === Example: Rendering the dependency report for a custom configuration
@@ -47,7 +62,7 @@ include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependenc
 .Output of **`gradle -q dependencies --configuration scm`**
 ----
 > gradle -q dependencies --configuration scm
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
+include::{snippetsPath}/dependencyManagement/inspectingDependencies/dependenciesReport/dependencyReport.out[]
 ----
 
 The dependencies report provides detailed information about the dependencies available in the graph.
@@ -68,8 +83,8 @@ In this example the conflicting dependency is represented by `commons-codec:comm
 
 .Declaring the JGit dependency and a conflicting dependency
 ====
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
-include::sample[dir="snippets/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependencyInsightReport/groovy",files="build.gradle[tags=dependency-declaration]"]
+include::sample[dir="snippets/dependencyManagement/inspectingDependencies/dependencyInsightReport/kotlin",files="build.gradle.kts[tags=dependency-declaration]"]
 ====
 
 The dependency tree in a link:https://scans.gradle.com/[build scan] renders the selection reason (conflict resolution) as well as the origin of a dependency if you click on a dependency and select the "Required By" tab.
@@ -78,15 +93,96 @@ The dependency tree in a link:https://scans.gradle.com/[build scan] renders the 
 image::dependency-management-dependency-insight-report-build-scan.png[]
 
 Every Gradle project provides the task `dependencyInsight` to render the so-called  _dependency insight report_ from the command line.
-Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection. You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency. When executing the task you have to provide the mandatory parameter `--dependency` to specify the coordinates of the dependency under inspection. The parameters `--configuration` and `--singlepath` are optional but help with filtering the output.
+Given a dependency in the dependency graph you can identify the selection reason and track down the origin of the dependency selection.
+You can think of the dependency insight report as the inverse representation of the dependency report for a given dependency.
+
+The task takes the following parameters:
+
+`--dependency <dependency>` (mandatory)::
+Indicates which dependency to focus on.
+It can be a complete `group:name`, or part of it.
+If multiple dependencies match, they are all printed in the report.
+`--configuration <name>` (mandatory)::
+Indicates which configuration to resolve for showing the dpendency information.
+Note that the <<java_plugin#, Java plugin>> wires a convention with the value `compileClasspath`, making the parameter optional.
+`--singlepath` (optional)::
+Indicates to render only a single path to the dependency.
+This might be useful to trim down the output in large graphs.
+
+[NOTE]
+====
+The `dependencyInsight` task will only execute on a _single_ project.
+If you run the task on the root project, it will show the dependency information of the root project and not of any subproject.
+Be sure to always target the <<command_line_interface#executing_tasks_in_multi_project_builds, right project>> when running `dependencyInsight`.
+====
 
 === Example: Using the dependency insight report for a given dependency
 
 .Output of **`gradle -q dependencyInsight --dependency commons-codec --configuration scm`**
 ----
 > gradle -q dependencyInsight --dependency commons-codec --configuration scm
-include::{samplesPath}/userguide/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
+include::{snippetsPath}/dependencyManagement/inspectingDependencies/dependencyInsightReport/dependencyInsightReport.out[]
 ----
+
+As indicated above, omitting the `--configuration` parameter in a project that is not a Java project will lead to an error:
+----
+> Dependency insight report cannot be generated because the input configuration was not specified.
+  It can be specified from the command line, e.g: ':dependencyInsight --configuration someConf --dependency someDep'
+----
+
+For more information about configurations, see the documentation on declaring dependencies, which describes <<declaring_dependencies.adoc#sec:what-are-dependency-configurations, what dependency configurations are>>.
+
+=== Understanding selection reasons
+
+The "Selection reasons" part of the dependency insight report will list the different reasons as to why a dependency was selected.
+Have a look at the table below to understand the meaning of the different terms used:
+
+.Selections reasons terminology
+[%header%autowidth,compact]
+|===
+| Reason    | Meaning
+
+| (Absent)
+| This means that no other reason than having a reference, direct or transitive, was present
+
+| Was requested : <text>
+| The dependency appears in the graph, and the inclusion came with a <<declaring_dependencies#sec:documenting-dependencies, `because` text>>.
+
+| Was requested : didn't match versions <versions>
+| The dependency appears in the graph, with a <<dynamic_versions#sub:declaring_dependency_with_dynamic_version, dynamic version>>, which did not include the listed versions.
+This can also be followed by a `because` text.
+
+| Was requested : reject version <versions>
+| The dependency appears in the graph, with a <<rich_versions#, rich version>> containing one or more `reject`.
+This can also be followed by a `because` text.
+
+| By conflict resolution : between versions <version>
+| The dependency appeared multiple times in the graph, with different version requests.
+This resulted in <<dependency_resolution#sec:version-conflict, conflict resolution>> to select the most appropriate version.
+
+| By constraint
+| A <<dependency_constraints#sec:adding-constraints-transitive-deps, dependency constraint>> participated in the version selection.
+This can also be followed by a `because` text.
+
+| By ancestor
+| There is a <<rich_versions#, rich version>> with a `strictly` in the graph which enforces the version of this dependency.
+
+| Selected by rule
+| A <<resolution_rules#, dependency resolution rule>> overruled the default selection process.
+This can also be followed by a `because` text.
+
+| Rejection : <version> by rule because <text>
+| A `ComponentSelection.reject` link:{groovyDslPath}/org.gradle.api.artifacts.ComponentSelection.html#org.gradle.api.artifacts.ComponentSelection:reject(java.lang.String)[rejected the given version] of the dependency
+
+| Rejection: version <version>: <attributes information>
+| The dependency has a dynamic version, and some versions did not match the <<variant_model#sec:variant-aware-matching, requested attributes>>.
+
+| Forced
+| The build <<dependency_downgrade_and_exclude#forced_dependencies_vs_strict_dependencies, enforces>> the version of the dependency.
+|===
+
+Note that if multiple selection reasons exist in the graph, they will all be listed.
+
 
 [[sec:resolving-version-conflict]]
 == Resolving version conflicts

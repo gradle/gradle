@@ -27,7 +27,9 @@ import org.gradle.api.provider.Property;
  * under the name 'application'.
  *
  * <pre class='autoTested'>
- * apply plugin: 'application'
+ * plugins {
+ *     id 'application'
+ * }
  *
  * application {
  *   mainClass.set("com.foo.bar.FooBar")
@@ -98,7 +100,9 @@ public interface JavaApplication {
      * <p>
      * Use this {@link org.gradle.api.file.CopySpec} to include extra files/resource in the application distribution.
      * <pre class='autoTested'>
-     * apply plugin: 'application'
+     * plugins {
+     *     id 'application'
+     * }
      *
      * applicationDistribution.from("some/dir") {
      *   include "*.txt"

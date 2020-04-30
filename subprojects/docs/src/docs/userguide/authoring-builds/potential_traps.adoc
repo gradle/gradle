@@ -27,13 +27,13 @@ One with a local scope and one with a script-wide scope.
 [source,groovy]
 .scope.groovy
 ----
-include::{samplesPath}/userguide/tutorial/groovyScope/scope.groovy[]
+include::{snippetsPath}/tutorial/groovyScope/scope.groovy[]
 ----
 
 .Output of `groovy scope.groovy`
 ----
 > groovy scope.groovy
-include::{samplesPath}/userguide/tutorial/groovyScope/scope.out[]
+include::{snippetsPath}/tutorial/groovyScope/scope.out[]
 ----
 
 Variables which are declared with a type modifier are visible within closures but not visible within methods.
@@ -45,14 +45,14 @@ It is important to keep in mind that Gradle has a distinct configuration and exe
 
 .Distinct configuration and execution phase
 ====
-include::sample[dir="snippets/userguide/tutorial/mkdirTrap/groovy", files="build.gradle[]"]
-include::sample[dir="snippets/userguide/tutorial/mkdirTrap/kotlin", files="build.gradle.kts[]"]
+include::sample[dir="snippets/tutorial/mkdirTrap/groovy", files="build.gradle[]"]
+include::sample[dir="snippets/tutorial/mkdirTrap/kotlin", files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q compile`**
 ----
 > gradle -q compile
-include::{samplesPath}/userguide/tutorial/mkdirTrap/mkdirTrap.out[]
+include::{snippetsPath}/tutorial/mkdirTrap/mkdirTrap.out[]
 ----
 
 As the creation of the directory happens during the configuration phase, the `clean` task removes the directory during the execution phase.

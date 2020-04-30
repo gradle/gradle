@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.compile.incremental.recomp
 
+import org.gradle.api.internal.tasks.compile.CompilationSourceDirs
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

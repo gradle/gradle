@@ -47,9 +47,9 @@
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>
 		</attributes>
 	</classpathentry>
-	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.12/@SHA1@/junit-4.12-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.12/@SHA1@/junit-4.12.jar">
+	<classpathentry sourcepath="GRADLE_USER_HOME/@CACHE@/junit/junit/4.13/@SHA1@/junit-4.13-sources.jar" kind="var" path="GRADLE_USER_HOME/@CACHE@/junit/junit/4.13/@SHA1@/junit-4.13.jar">
 		<attributes>
-			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/junit/junit/4.12/@SHA1@/junit-4.12-javadoc.jar!/"/>
+			<attribute name="javadoc_location" value="jar:file:@CACHE_DIR@/junit/junit/4.13/@SHA1@/junit-4.13-javadoc.jar!/"/>
 			<attribute name="gradle_used_by_scope" value="test"/>
 			<attribute name="test" value="true"/>
 			<attribute name="org.eclipse.jst.component.nondependency" value=""/>

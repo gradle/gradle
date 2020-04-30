@@ -40,7 +40,7 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
                implementation 'com.google.guava:guava:18.0'
                compileOnly 'jstl:jstl:1.2'
                providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-               testImplementation "junit:junit:4.12"
+               testImplementation "junit:junit:4.13"
            }
         """
 
@@ -55,11 +55,11 @@ class EclipseWtpWebProjectIntegrationTest extends AbstractEclipseIntegrationSpec
 
         // Classpath
         def classpath = classpath
-        classpath.assertHasLibs('jstl-1.2.jar', 'guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.12.jar', 'hamcrest-core-1.3.jar')
+        classpath.assertHasLibs('jstl-1.2.jar', 'guava-18.0.jar', 'javax.servlet-api-3.1.0.jar', 'junit-4.13.jar', 'hamcrest-core-1.3.jar')
         classpath.lib('guava-18.0.jar').assertIsDeployedTo("/WEB-INF/lib")
         classpath.lib('javax.servlet-api-3.1.0.jar').assertIsExcludedFromDeployment()
         classpath.lib('jstl-1.2.jar').assertIsExcludedFromDeployment()
-        classpath.lib('junit-4.12.jar').assertIsExcludedFromDeployment()
+        classpath.lib('junit-4.13.jar').assertIsExcludedFromDeployment()
         classpath.lib('hamcrest-core-1.3.jar').assertIsExcludedFromDeployment()
 
         // Facets

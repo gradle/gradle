@@ -3157,6 +3157,56 @@ planet:pluto:1.0.0
 """
     }
 
+    @ToBeFixedForInstantExecution(because = ":dependencyInsight")
+    def "reports a strictly on a transitive"() {
+        given:
+        def foo12 = mavenRepo.module("org", "foo", "1.2").publish()
+        mavenRepo.module("org", "foo", "1.5").publish()
+        mavenRepo.module("org", "bar", "1.0").dependsOn(foo12).publish()
+        buildFile << """
+            apply plugin: 'java-library'
+
+            repositories {
+               maven { url "${mavenRepo.uri}" }
+            }
+
+            dependencies {
+                implementation 'org:bar:1.0'
+                constraints {
+                    implementation 'org:foo:1.5!!'
+                }
+            }
+"""
+
+        when:
+        succeeds 'dependencyInsight', '--dependency', 'foo'
+
+        then:
+        outputContains("""> Task :dependencyInsight
+org:foo:1.5
+   variant "compile" [
+      org.gradle.status              = release (not requested)
+      org.gradle.usage               = java-api
+      org.gradle.libraryelements     = jar (compatible with: classes)
+      org.gradle.category            = library
+
+      Requested attributes not found in the selected variant:
+         org.gradle.dependency.bundling = external
+         org.gradle.jvm.version         = ${JavaVersion.current().majorVersion}
+   ]
+   Selection reasons:
+      - By constraint
+      - By ancestor
+
+org:foo:{strictly 1.5} -> 1.5
+\\--- compileClasspath
+
+org:foo:1.2 -> 1.5
+\\--- org:bar:1.0
+     \\--- compileClasspath
+""")
+    }
+
 
     @CompileStatic
     static String decodeURI(URI uri) {

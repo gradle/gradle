@@ -10,7 +10,7 @@ repositories {
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
-    testCompileOnly("junit:junit:4.12")
+    testCompileOnly("junit:junit:4.13")
     testRuntimeOnly("org.junit.vintage:junit-vintage-engine")
 }
 // end::vintage-dependencies[]

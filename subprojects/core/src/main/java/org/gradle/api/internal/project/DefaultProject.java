@@ -169,6 +169,7 @@ public class DefaultProject extends AbstractPluginAware implements ProjectIntern
 
     private final File buildFile;
 
+    @Nullable
     private final ProjectInternal parent;
 
     private final String name;

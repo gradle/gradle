@@ -25,7 +25,9 @@ import java.util.List;
  * Represents a source set containing twirl templates
  *
  * <pre class='autoTested'>
- *     apply plugin: 'play'
+ *     plugins {
+ *         id 'play'
+ *     }
  *
  *     model {
  *       components {

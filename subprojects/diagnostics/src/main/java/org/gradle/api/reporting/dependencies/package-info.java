@@ -17,4 +17,7 @@
 /**
  * Types responsible for generating dependency reports.
  */
+@NonNullApi
 package org.gradle.api.reporting.dependencies;
+
+import org.gradle.api.NonNullApi;

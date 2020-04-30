@@ -66,7 +66,7 @@ public class ManagedFactories {
                 return null;
             }
             // TODO - should preserve the property type (which may be different to the provider type)
-            ProviderInternal<S> provider = Cast.uncheckedCast(state);
+            ProviderInternal<S> provider = Cast.uncheckedNonnullCast(state);
             return type.cast(propertyOf(provider.getType(), provider));
         }
 
@@ -97,8 +97,8 @@ public class ManagedFactories {
                 return null;
             }
             // TODO - should preserve the element type
-            DefaultListProperty<?> property = propertyFactory.listProperty(Object.class);
-            property.set((Iterable) state);
+            DefaultListProperty<Object> property = propertyFactory.listProperty(Object.class);
+            property.set(Cast.<Iterable<Object>>uncheckedNonnullCast(state));
             return type.cast(property);
         }
 
@@ -126,8 +126,8 @@ public class ManagedFactories {
                 return null;
             }
             // TODO - should preserve the element type
-            DefaultSetProperty<?> property = propertyFactory.setProperty(Object.class);
-            property.set((Iterable) state);
+            DefaultSetProperty<Object> property = propertyFactory.setProperty(Object.class);
+            property.set(Cast.<Iterable<Object>>uncheckedNonnullCast(state));
             return type.cast(property);
         }
 
@@ -155,8 +155,8 @@ public class ManagedFactories {
                 return null;
             }
             // TODO - should preserve the key and value types
-            DefaultMapProperty<?, ?> property = propertyFactory.mapProperty(Object.class, Object.class);
-            property.set((Map) state);
+            DefaultMapProperty<Object, Object> property = propertyFactory.mapProperty(Object.class, Object.class);
+            property.set(Cast.<Map<Object, Object>>uncheckedNonnullCast(state));
             return type.cast(property);
         }
 

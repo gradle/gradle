@@ -52,7 +52,7 @@ public class WorkerDaemonStarter {
     public WorkerDaemonClient startDaemon(DaemonForkOptions forkOptions, Action<WorkerProcess> cleanupAction) {
         LOG.debug("Starting Gradle worker daemon with fork options {}.", forkOptions);
         Timer clock = Time.startTimer();
-        MultiRequestWorkerProcessBuilder<TransportableActionExecutionSpec<?>, DefaultWorkResult> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonServer.class);
+        MultiRequestWorkerProcessBuilder<TransportableActionExecutionSpec, DefaultWorkResult> builder = workerDaemonProcessFactory.multiRequestWorker(WorkerDaemonServer.class);
         builder.setBaseName("Gradle Worker Daemon");
         builder.setLogLevel(loggingManager.getLevel()); // NOTE: might make sense to respect per-compile-task log level
         builder.sharedPackages("org.gradle", "javax.inject");
@@ -68,7 +68,7 @@ public class WorkerDaemonStarter {
         JavaExecHandleBuilder javaCommand = builder.getJavaCommand();
         forkOptions.getJavaForkOptions().copyTo(javaCommand);
         builder.registerArgumentSerializer(TransportableActionExecutionSpec.class, new TransportableActionExecutionSpecSerializer());
-        MultiRequestClient<TransportableActionExecutionSpec<?>, DefaultWorkResult> workerDaemonProcess = builder.build();
+        MultiRequestClient<TransportableActionExecutionSpec, DefaultWorkResult> workerDaemonProcess = builder.build();
         WorkerProcess workerProcess = workerDaemonProcess.start();
 
         WorkerDaemonClient client = new WorkerDaemonClient(forkOptions, workerDaemonProcess, workerProcess, loggingManager.getLevel(), actionExecutionSpecFactory);

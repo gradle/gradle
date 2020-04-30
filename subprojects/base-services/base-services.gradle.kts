@@ -7,7 +7,6 @@
 
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 gradlebuildJava.usedInWorkers()

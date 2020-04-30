@@ -28,7 +28,9 @@ import java.util.concurrent.TimeUnit;
  * <p>
  * Examples:
  * <pre class='autoTested'>
- * apply plugin: 'java' //so that there are some configurations
+ * plugins {
+ *     id 'java' // so that there are some configurations
+ * }
  *
  * configurations.all {
  *   resolutionStrategy {
@@ -70,7 +72,9 @@ public interface ResolutionStrategy {
      * The check includes both first level and transitive dependencies. See example below:
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java' //so that there are some configurations
+     * plugins {
+     *     id 'java' // so that there are some configurations
+     * }
      *
      * configurations.all {
      *   resolutionStrategy.failOnVersionConflict()
@@ -129,7 +133,9 @@ public interface ResolutionStrategy {
      * This applies to both first level and transitive dependencies. See example below:
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java' //so that there are some configurations
+     * plugins {
+     *     id 'java' // so that there are some configurations
+     * }
      *
      * configurations.all {
      *   resolutionStrategy.preferProjectModules()
@@ -191,7 +197,9 @@ public interface ResolutionStrategy {
      * </ul>
      * Example:
      * <pre class='autoTested'>
-     * apply plugin: 'java' //so that there are some configurations
+     * plugins {
+     *     id 'java' // so that there are some configurations
+     * }
      *
      * configurations.all {
      *   resolutionStrategy.force 'asm:asm-all:3.3.1', 'commons-io:commons-io:1.4'
@@ -212,7 +220,9 @@ public interface ResolutionStrategy {
      * <p>
      * Example:
      * <pre class='autoTested'>
-     * apply plugin: 'java' //so that there are some configurations
+     * plugins {
+     *     id 'java' // so that there are some configurations
+     * }
      *
      * configurations.all {
      *   resolutionStrategy.forcedModules = ['asm:asm-all:3.3.1', 'commons-io:commons-io:1.4']

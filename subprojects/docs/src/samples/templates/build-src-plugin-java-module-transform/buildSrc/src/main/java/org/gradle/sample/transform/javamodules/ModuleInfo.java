@@ -1,6 +1,7 @@
 package org.gradle.sample.transform.javamodules;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -9,35 +10,44 @@ import java.util.List;
 public class ModuleInfo implements Serializable {
     private String moduleName;
     private String moduleVersion;
-    private List<String> exports;
-    private List<String> requires;
-    private List<String> requiresTransitive;
+    private List<String> exports = new ArrayList<>();
+    private List<String> requires = new ArrayList<>();
+    private List<String> requiresTransitive = new ArrayList<>();
 
-    ModuleInfo(String moduleName, String moduleVersion, List<String> exports, List<String> requires, List<String> requiresTransitive) {
+    ModuleInfo(String moduleName, String moduleVersion) {
         this.moduleName = moduleName;
         this.moduleVersion = moduleVersion;
-        this.exports = exports;
-        this.requires = requires;
-        this.requiresTransitive = requiresTransitive;
+    }
+
+    public void exports(String exports) {
+        this.exports.add(exports);
+    }
+
+    public void requires(String requires) {
+        this.requires.add(requires);
+    }
+
+    public void requiresTransitive(String requiresTransitive) {
+        this.requiresTransitive.add(requiresTransitive);
     }
 
     public String getModuleName() {
         return moduleName;
     }
 
-    public String getModuleVersion() {
+    protected String getModuleVersion() {
         return moduleVersion;
     }
 
-    public List<String> getExports() {
+    protected List<String> getExports() {
         return exports;
     }
 
-    public List<String> getRequires() {
+    protected List<String> getRequires() {
         return requires;
     }
 
-    public List<String> getRequiresTransitive() {
+    protected List<String> getRequiresTransitive() {
         return requiresTransitive;
     }
 }

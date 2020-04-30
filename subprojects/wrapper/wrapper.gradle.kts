@@ -18,7 +18,6 @@ import java.util.jar.Attributes
 
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 gradlebuildJava.usedInWorkers()
@@ -43,6 +42,10 @@ dependencies {
     crossVersionTestImplementation(project(":persistentCache"))
     crossVersionTestImplementation(project(":launcher"))
     crossVersionTestRuntimeOnly(project(":runtimeApiInfo"))
+}
+
+strictCompile {
+    ignoreRawTypes() // Raw type used in 'org.gradle.wrapper.Install', consider fixing next time the wrapper code needs changes
 }
 
 tasks.register<Jar>("executableJar") {

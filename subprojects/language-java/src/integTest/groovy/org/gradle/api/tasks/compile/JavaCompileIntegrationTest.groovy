@@ -18,7 +18,6 @@ package org.gradle.api.tasks.compile
 
 import org.gradle.integtests.fixtures.AbstractPluginIntegrationTest
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.util.Requires
 import org.gradle.util.Resources
 import org.gradle.util.TestPrecondition
@@ -151,7 +150,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                testCompile "junit:junit:4.12"
+                testCompile "junit:junit:4.13"
             }
         """
 
@@ -261,7 +260,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -297,7 +296,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -333,7 +332,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
 
             dependencies {
                 implementation 'org.apache.commons:commons-lang3:3.4'
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
         file('src/main/java/Text.java') << '''import org.apache.commons.lang3.StringUtils;
@@ -836,7 +835,7 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         failureHasCause("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 
-    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled })
+    @Requires(adhoc = { AvailableJavaHomes.getJdk7() && AvailableJavaHomes.getJdk8() && TestPrecondition.JDK8_OR_EARLIER.fulfilled }) // bootclasspath has been removed in Java 9+
     def "bootclasspath can be set"() {
         def jdk7 = AvailableJavaHomes.getJdk7()
         def jdk7bootClasspath = TextUtil.escapeString(jdk7.jre.homeDir.absolutePath) + "/lib/rt.jar"
@@ -941,7 +940,6 @@ class JavaCompileIntegrationTest extends AbstractPluginIntegrationTest {
         file('headers').assertHasDescendants("Foo.h")
     }
 
-    @ToBeFixedForInstantExecution
     def "deletes stale header files"() {
         given:
         buildFile << """

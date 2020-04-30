@@ -46,6 +46,7 @@ abstract class AbstractPropertyJavaInterOpIntegrationTest extends AbstractProper
                     project.getTasks().register("someTask", SomeTask.class, t -> {
                         t.getFlag().set(true);
                         t.getMessage().set("some value");
+                        t.getNumber().set(1.23);
                         t.getList().set(Arrays.asList(1, 2));
                         t.getSet().set(Arrays.asList(1, 2));
                         Map<Integer, Boolean> map = new LinkedHashMap<>();
@@ -72,6 +73,7 @@ abstract class AbstractPropertyJavaInterOpIntegrationTest extends AbstractProper
                     project.getTasks().register("someTask", SomeTask.class, t -> {
                         t.getFlag().set(project.provider(() -> true));
                         t.getMessage().set(project.provider(() -> "some value"));
+                        t.getNumber().set(project.provider(() -> 1.23));
                         t.getList().set(project.provider(() -> Arrays.asList(1, 2)));
                         t.getSet().set(project.provider(() -> Arrays.asList(1, 2)));
                         t.getMap().set(project.provider(() -> {
@@ -102,6 +104,7 @@ abstract class AbstractPropertyJavaInterOpIntegrationTest extends AbstractProper
                         Provider<String> provider = project.provider(() -> "some value");
                         t.getFlag().set(provider.map(s -> !s.isEmpty()));
                         t.getMessage().set(provider.map(s -> s));
+                        t.getNumber().set(provider.map(s -> 1.23));
                         t.getList().set(provider.map(s -> Arrays.asList(1, 2)));
                         t.getSet().set(provider.map(s -> Arrays.asList(1, 2)));
                         t.getMap().set(provider.map(s -> {

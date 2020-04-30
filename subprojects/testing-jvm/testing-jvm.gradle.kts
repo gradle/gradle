@@ -15,9 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    // TODO: re-enable if we are ready to do breaking changes, because this subproject includes classes migrated from the "plugins" subproject
-    // id "gradlebuild.strict-compile"
-    // id "gradlebuild.classycle"
 }
 
 gradlebuildJava.usedInWorkers()
@@ -66,6 +63,15 @@ dependencies {
     testRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.Test)
+    ignoreDeprecations() // uses deprecated software model types
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
 }
 
 tasks.named<Test>("test").configure {

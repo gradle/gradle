@@ -128,7 +128,7 @@ sealed class PropertyTrace {
                 quoted(trace.type.name)
             }
             is Unknown -> {
-                append("unknown property")
+                append("unknown location")
             }
         }
     }

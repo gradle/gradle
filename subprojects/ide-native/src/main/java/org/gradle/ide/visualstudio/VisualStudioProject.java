@@ -32,8 +32,11 @@ import org.gradle.internal.HasInternalProtocol;
  * The content and location of the generate project file can be modified by the supplied methods:
  *
  * <pre class='autoTested'>
- *  apply plugin: "cpp"
- *  apply plugin: "visual-studio"
+ *  plugins {
+ *      id 'cpp'
+ *      id 'visual-studio'
+ *  }
+ *
  *  model {
  *      visualStudio {
  *          projects.all {

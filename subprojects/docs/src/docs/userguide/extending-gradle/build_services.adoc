@@ -31,17 +31,17 @@ Here is an example of a service that takes parameters and is closeable:
 [source.multi-language-sample,java]
 .WebServer.java
 ----
-include::{samplesPath}/userguide/plugins/buildService/java/buildSrc/src/main/java/WebServer.java[]
+include::{snippetsPath}/plugins/buildService/java/buildSrc/src/main/java/WebServer.java[]
 ----
 [source.multi-language-sample,kotlin]
 .WebServer.kt
 ----
-include::{samplesPath}/userguide/plugins/buildService/kotlin/buildSrc/src/main/kotlin/WebServer.kt[]
+include::{snippetsPath}/plugins/buildService/kotlin/buildSrc/src/main/kotlin/WebServer.kt[]
 ----
 [source.multi-language-sample,groovy]
 .WebServer.groovy
 ----
-include::{samplesPath}/userguide/plugins/buildService/groovy/buildSrc/src/main/groovy/WebServer.groovy[]
+include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/groovy/WebServer.groovy[]
 ----
 ====
 
@@ -62,17 +62,17 @@ Here is an example of a task that uses the previous service:
 [source.multi-language-sample,java]
 .Download.java
 ----
-include::{samplesPath}/userguide/plugins/buildService/java/buildSrc/src/main/java/Download.java[]
+include::{snippetsPath}/plugins/buildService/java/buildSrc/src/main/java/Download.java[]
 ----
 [source.multi-language-sample,kotlin]
 .Download.kt
 ----
-include::{samplesPath}/userguide/plugins/buildService/kotlin/buildSrc/src/main/kotlin/Download.kt[]
+include::{snippetsPath}/plugins/buildService/kotlin/buildSrc/src/main/kotlin/Download.kt[]
 ----
 [source.multi-language-sample,groovy]
 .Download.groovy
 ----
-include::{samplesPath}/userguide/plugins/buildService/groovy/buildSrc/src/main/groovy/Download.groovy[]
+include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/groovy/Download.groovy[]
 ----
 ====
 
@@ -91,17 +91,17 @@ Here is an example of a plugin that registers the previous service:
 [source.multi-language-sample,java]
 .DownloadPlugin.java
 ----
-include::{samplesPath}/userguide/plugins/buildService/java/buildSrc/src/main/java/DownloadPlugin.java[]
+include::{snippetsPath}/plugins/buildService/java/buildSrc/src/main/java/DownloadPlugin.java[]
 ----
 [source.multi-language-sample,kotlin]
 .DownloadPlugin.kt
 ----
-include::{samplesPath}/userguide/plugins/buildService/kotlin/buildSrc/src/main/kotlin/DownloadPlugin.kt[]
+include::{snippetsPath}/plugins/buildService/kotlin/buildSrc/src/main/kotlin/DownloadPlugin.kt[]
 ----
 [source.multi-language-sample,groovy]
 .DownloadPlugin.groovy
 ----
-include::{samplesPath}/userguide/plugins/buildService/groovy/buildSrc/src/main/groovy/DownloadPlugin.groovy[]
+include::{snippetsPath}/plugins/buildService/groovy/buildSrc/src/main/groovy/DownloadPlugin.groovy[]
 ----
 ====
 

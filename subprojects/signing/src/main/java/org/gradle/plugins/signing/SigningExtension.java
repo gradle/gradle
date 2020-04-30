@@ -25,7 +25,6 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.artifacts.maven.MavenDeployment;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.model.ObjectFactory;
@@ -33,6 +32,7 @@ import org.gradle.api.publish.Publication;
 import org.gradle.api.publish.PublicationArtifact;
 import org.gradle.api.publish.internal.PublicationInternal;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.internal.Cast;
 import org.gradle.plugins.signing.internal.SignOperationInternal;
 import org.gradle.plugins.signing.signatory.Signatory;
 import org.gradle.plugins.signing.signatory.SignatoryProvider;
@@ -424,7 +424,7 @@ public class SigningExtension {
         signTask.getSignatures().all(new Action<Signature>() {
             @Override
             public void execute(final Signature signature) {
-                T artifact = publicationToSign.addDerivedArtifact((T) signature.getSource(), new DefaultDerivedArtifactFile(signature, signTask));
+                T artifact = publicationToSign.addDerivedArtifact(Cast.uncheckedNonnullCast(signature.getSource()), new DefaultDerivedArtifactFile(signature, signTask));
                 artifact.builtBy(signTask);
                 artifacts.put(signature, artifact);
             }
@@ -538,7 +538,9 @@ public class SigningExtension {
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
      * <pre class='autoTestedWithDeprecations'>
-     * apply plugin: 'maven'
+     * plugins {
+     *     id 'maven'
+     * }
      *
      * uploadArchives {
      *   repositories {
@@ -562,7 +564,8 @@ public class SigningExtension {
      * @deprecated Use {@link #sign(Publication...)} instead
      */
     @Deprecated
-    public Signature signPom(final MavenDeployment mavenDeployment, final Closure closure) {
+    @SuppressWarnings("deprecation")
+    public Signature signPom(final org.gradle.api.artifacts.maven.MavenDeployment mavenDeployment, final Closure closure) {
         SignOperation signOperation = doSignOperation(new Action<SignOperation>() {
             @Override
             public void execute(SignOperation so) {
@@ -591,7 +594,9 @@ public class SigningExtension {
      *
      * <p>You can use this method to sign the generated POM when publishing to a Maven repository with the Maven plugin. </p>
      * <pre class='autoTestedWithDeprecations'>
-     * apply plugin: 'maven'
+     * plugins {
+     *     id 'maven'
+     * }
      *
      * uploadArchives {
      *   repositories {
@@ -615,7 +620,8 @@ public class SigningExtension {
      * @deprecated Use {@link #sign(Publication...)} instead
      */
     @Deprecated
-    public Signature signPom(MavenDeployment mavenDeployment) {
+    @SuppressWarnings("deprecation")
+    public Signature signPom(org.gradle.api.artifacts.maven.MavenDeployment mavenDeployment) {
         return signPom(mavenDeployment, null);
     }
 

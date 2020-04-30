@@ -32,6 +32,7 @@ import org.junit.Rule
 import org.junit.experimental.categories.Category
 import org.junit.rules.TestName
 import spock.lang.AutoCleanup
+import spock.lang.Ignore
 import spock.lang.Shared
 import spock.lang.Specification
 
@@ -52,6 +53,7 @@ import static org.gradle.performance.regression.inception.GradleInceptionPerform
  */
 @Category(PerformanceRegressionTest)
 @CleanupTestDirectory
+@Ignore
 class GradleBuildPerformanceTest extends Specification {
 
     @Rule
@@ -88,6 +90,7 @@ class GradleBuildPerformanceTest extends Specification {
             }
         }
         runner.testGroup = 'gradle build'
+        runner.testClassName = getClass().getName()
     }
 
     def "help on the gradle build comparing the build"() {

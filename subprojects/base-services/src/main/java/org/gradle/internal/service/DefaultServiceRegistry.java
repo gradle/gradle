@@ -16,6 +16,7 @@
 package org.gradle.internal.service;
 
 import org.gradle.api.Action;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 
@@ -313,7 +314,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
     public <T> Factory<T> getFactory(Class<T> type) {
         assertValidServiceType(type);
         Service provider = getFactoryService(type);
-        Factory<T> factory = provider == null ? null : (Factory<T>) provider.get();
+        Factory<T> factory = provider == null ? null : Cast.<Factory<T>>uncheckedCast(provider.get());
         if (factory == null) {
             throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.", format(type), getDisplayName()));
         }
@@ -594,10 +595,10 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         private enum BindState {UNBOUND, BINDING, BOUND}
 
         final Type serviceType;
-        final Class serviceClass;
+        final Class<?> serviceClass;
 
         BindState state = BindState.UNBOUND;
-        Class factoryElementType;
+        Class<?> factoryElementType;
 
         SingletonService(DefaultServiceRegistry owner, Type serviceType) {
             super(owner);
@@ -669,7 +670,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
         }
 
         private boolean isFactory(Type type, Class<?> elementType) {
-            Class c = unwrap(type);
+            Class<?> c = unwrap(type);
             if (!Factory.class.isAssignableFrom(c)) {
                 return false;
             }
@@ -683,7 +684,7 @@ public class DefaultServiceRegistry implements ServiceRegistry, Closeable, Conta
                 if (parameterizedType.getRawType().equals(Factory.class)) {
                     Type actualType = parameterizedType.getActualTypeArguments()[0];
                     if (actualType instanceof Class) {
-                        factoryElementType = (Class) actualType;
+                        factoryElementType = (Class<?>) actualType;
                         return elementType.isAssignableFrom((Class<?>) actualType);
                     }
                 }

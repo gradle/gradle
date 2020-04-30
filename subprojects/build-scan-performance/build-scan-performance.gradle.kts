@@ -18,7 +18,6 @@ import org.gradle.testing.performance.generator.tasks.JvmProjectGeneratorTask
  */
 plugins {
     gradlebuild.internal.java
-    gradlebuild.classycle
 }
 
 dependencies {

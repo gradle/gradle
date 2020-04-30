@@ -20,7 +20,7 @@ import java.util.Properties
 plugins {
     java
     `kotlin-dsl` apply false
-    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.4.1" apply false
+    id("org.gradle.kotlin-dsl.ktlint-convention") version "0.5.0" apply false
 }
 
 subprojects {
@@ -87,6 +87,10 @@ allprojects {
                 // This repository contains an older version which has been overwritten in Central
                 excludeModule("com.google.j2objc", "j2objc-annotations")
             }
+        }
+        maven {
+            name = "Gradle Enterprise Gradle plugin RC"
+            url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local")
         }
         maven {
             name = "kotlinx"

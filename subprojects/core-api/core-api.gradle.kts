@@ -16,7 +16,6 @@ import org.gradle.gradlebuild.testing.integrationtests.cleanup.WhenNotEmpty
  */
 plugins {
     gradlebuild.distribution.`core-api-java`
-    // gradlebuild.`strict-compile`
 }
 
 dependencies {
@@ -42,6 +41,15 @@ dependencies {
 
     testFixturesImplementation(project(":internalTesting"))
     testFixturesImplementation(project(":baseServices"))
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/**"))
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: ArtifactResolutionQuery, RepositoryContentDescriptor, HasMultipleValues
 }
 
 testFilesCleanup {

@@ -24,7 +24,7 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.internal.classpath.CachedClasspathTransformer.Usage.Other;
+import static org.gradle.internal.classpath.CachedClasspathTransformer.StandardTransform.None;
 
 public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFactory {
     private final PayloadClassLoaderFactory delegate;
@@ -54,7 +54,7 @@ public class DaemonSidePayloadClassLoaderFactory implements PayloadClassLoaderFa
         }
 
         // convert the file urls to cached jar files
-        Collection<URL> cachedClassPathUrls = cachedClasspathTransformer.transform(classpath, Other);
+        Collection<URL> cachedClassPathUrls = cachedClasspathTransformer.transform(classpath, None);
 
         return new VisitableURLClassLoader(name, parents.get(0), cachedClassPathUrls);
     }

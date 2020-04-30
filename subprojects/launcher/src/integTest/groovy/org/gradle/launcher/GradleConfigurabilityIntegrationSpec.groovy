@@ -36,7 +36,7 @@ class GradleConfigurabilityIntegrationSpec extends AbstractIntegrationSpec {
 
         expect:
         buildSucceeds """
-assert System.getProperty('some-prop') == 'some-value'
+assert providers.systemProperty('some-prop').get() == 'some-value'
 assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx32m')
         """
     }
@@ -67,7 +67,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         file("gradle.properties") << "org.gradle.java.home=$linkPath"
 
         when:
-        buildSucceeds "println 'java home =' + System.getProperty('java.home')"
+        buildSucceeds "println 'java home =' + providers.systemProperty('java.home').get()"
 
         then:
         javaLink != javaHome
@@ -83,7 +83,7 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
 
         expect:
         buildSucceeds """
-assert System.getProperty('some-prop').toString() == 'i have space'
+assert providers.systemProperty('some-prop').get() == 'i have space'
         """
     }
 

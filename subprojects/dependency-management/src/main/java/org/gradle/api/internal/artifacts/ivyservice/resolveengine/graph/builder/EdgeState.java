@@ -54,7 +54,6 @@ class EdgeState implements DependencyGraphEdge {
     private final DependencyMetadata dependencyMetadata;
     private final NodeState from;
     private final ResolveState resolveState;
-    private final ExcludeSpec transitiveExclusions;
     private final List<NodeState> targetNodes = Lists.newLinkedList();
     private final boolean isTransitive;
     private final boolean isConstraint;
@@ -63,6 +62,7 @@ class EdgeState implements DependencyGraphEdge {
     private SelectorState selector;
     private ModuleVersionResolveException targetNodeSelectionFailure;
     private ImmutableAttributes cachedAttributes;
+    private ExcludeSpec transitiveExclusions;
     private ExcludeSpec cachedEdgeExclusions;
     private ExcludeSpec cachedExclusions;
 
@@ -161,9 +161,9 @@ class EdgeState implements DependencyGraphEdge {
 
     void cleanUpOnSourceChange(NodeState source) {
         removeFromTargetConfigurations();
+        maybeDecreaseHardEdgeCount(source);
         selector.getTargetModule().removeUnattachedDependency(this);
         selector.release();
-        maybeDecreaseHardEdgeCount(source);
     }
 
     void removeFromTargetConfigurations() {
@@ -347,6 +347,15 @@ class EdgeState implements DependencyGraphEdge {
         if (resolvedVariant != null) {
             return resolvedVariant;
         }
+        List<NodeState> targetNodes = this.targetNodes;
+        if (targetNodes.isEmpty()) {
+            // happens for substituted dependencies
+            ComponentState targetComponent = getTargetComponent();
+            if (targetComponent != null) {
+                targetNodes = targetComponent.getNodes();
+            }
+        }
+        assert !targetNodes.isEmpty();
         for (NodeState targetNode : targetNodes) {
             if (targetNode.isSelected()) {
                 resolvedVariant = targetNode.getResolvedVariant();
@@ -414,5 +423,17 @@ class EdgeState implements DependencyGraphEdge {
 
     DependencyState getDependencyState() {
         return dependencyState;
+    }
+
+    public void updateTransitiveExcludes(ExcludeSpec newResolutionFilter) {
+        if (isConstraint) {
+            // Constraint do not carry excludes on a path
+            return;
+        }
+        transitiveExclusions = newResolutionFilter;
+        cachedExclusions = null;
+        for (NodeState targetNode : targetNodes) {
+            targetNode.updateTransitiveExcludes();
+        }
     }
 }

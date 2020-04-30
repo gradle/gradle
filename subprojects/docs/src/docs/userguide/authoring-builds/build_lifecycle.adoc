@@ -41,20 +41,20 @@ The settings file is executed during the initialization phase. A multi-project b
 
 .Single project build
 ====
-include::sample[dir="snippets/userguide/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
-include::sample[dir="snippets/userguide/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/basic/groovy",files="settings.gradle[];build.gradle[]"]
+include::sample[dir="snippets/buildlifecycle/basic/kotlin",files="settings.gradle.kts[];build.gradle.kts[]"]
 ====
 
 === Output of **`gradle test testBoth`**
 [source.multi-language-sample,groovy]
 ----
 > gradle test testBoth
-include::{samplesPath}/userguide/buildlifecycle/basic/buildlifecycle.groovy.out[]
+include::{snippetsPath}/buildlifecycle/basic/buildlifecycle.groovy.out[]
 ----
 [source.multi-language-sample,kotlin]
 ----
 > gradle test testBoth
-include::{samplesPath}/userguide/buildlifecycle/basic/buildlifecycle.kotlin.out[]
+include::{snippetsPath}/buildlifecycle/basic/buildlifecycle.kotlin.out[]
 ----
 
 For a build script, the property access and method calls are delegated to a project object. Similarly property access and method calls within the settings file is delegated to a settings object. Look at the link:{groovyDslPath}/org.gradle.api.initialization.Settings.html[Settings] class in the API documentation for more information.
@@ -82,8 +82,8 @@ In the settings file you can use a set of methods to build the project tree. Hie
 
 .Hierarchical layout
 ====
-include::sample[dir="snippets/userguide/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
-include::sample[dir="snippets/userguide/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=hierarchical-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=hierarchical-layout]"]
 ====
 
 The `include` method takes project paths as arguments. The project path is assumed to be equal to the relative physical file system path. For example, a path 'services:api' is mapped by default to a folder 'services/api' (relative from the project root). You only need to specify the leaves of the tree. This means that the inclusion of the path 'services:hotels:api' will result in creating 3 projects: 'services', 'services:hotels' and 'services:hotels:api'.
@@ -95,8 +95,8 @@ More examples of how to work with the project path can be found in the DSL docum
 
 .Flat layout
 ====
-include::sample[dir="snippets/userguide/multiproject/standardLayouts/groovy",files="settings.gradle[tags=flat-layout]"]
-include::sample[dir="snippets/userguide/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=flat-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/groovy",files="settings.gradle[tags=flat-layout]"]
+include::sample[dir="snippets/multiproject/standardLayouts/kotlin",files="settings.gradle.kts[tags=flat-layout]"]
 ====
 
 The `includeFlat` method takes directory names as an argument. These directories need to exist as siblings of the root project directory. The location of these directories are considered as child projects of the root project in the multi-project tree.
@@ -108,16 +108,16 @@ The multi-project tree created in the settings file is made up of so called _pro
 
 .Lookup of elements of the project tree
 ====
-include::sample[dir="snippets/userguide/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
-include::sample[dir="snippets/userguide/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=lookup-project]"]
+include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=lookup-project]"]
 ====
 
 Using this descriptor you can change the name, project directory and build file of a project.
 
 .Modification of elements of the project tree
 ====
-include::sample[dir="snippets/userguide/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
-include::sample[dir="snippets/userguide/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
+include::sample[dir="snippets/multiproject/customLayout/groovy",files="settings.gradle[tags=change-project]"]
+include::sample[dir="snippets/multiproject/customLayout/kotlin",files="settings.gradle.kts[tags=change-project]"]
 ====
 
 Look at the link:{javadocPath}/org/gradle/api/initialization/ProjectDescriptor.html[ProjectDescriptor] class in the API documentation for more information.
@@ -161,14 +161,14 @@ Below is an example which adds a `test` task to each project which has a `hasTes
 
 .Adding of test task to each project which has certain property set
 ====
-include::sample[dir="snippets/userguide/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];projectA.gradle[]"]
-include::sample[dir="snippets/userguide/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];projectA.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/groovy",files="build.gradle[tags=after-evaluate];projectA.gradle[]"]
+include::sample[dir="snippets/buildlifecycle/projectEvaluateEvents/kotlin",files="build.gradle.kts[tags=after-evaluate];projectA.gradle.kts[]"]
 ====
 
 .Output of `gradle -q test`
 ----
 > gradle -q test
-include::{samplesPath}/userguide/buildlifecycle/projectEvaluateEvents/projectEvaluateEvents.out[]
+include::{snippetsPath}/buildlifecycle/projectEvaluateEvents/projectEvaluateEvents.out[]
 ----
 
 This example uses method `Project.afterEvaluate()` to add a closure which is executed after the project is evaluated.
@@ -177,20 +177,20 @@ It is also possible to receive notifications when any project is evaluated. This
 
 .Notifications
 ====
-include::sample[dir="snippets/userguide/buildlifecycle/buildProjectEvaluateEvents/groovy",files="build.gradle[tags=evaluate-events]"]
-include::sample[dir="snippets/userguide/buildlifecycle/buildProjectEvaluateEvents/kotlin",files="build.gradle.kts[tags=evaluate-events]"]
+include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/groovy",files="build.gradle[tags=evaluate-events]"]
+include::sample[dir="snippets/buildlifecycle/buildProjectEvaluateEvents/kotlin",files="build.gradle.kts[tags=evaluate-events]"]
 ====
 
 ==== Output of **`gradle -q test`**
 [source.multi-language-sample,groovy]
 ----
 > gradle -q test
-include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.groovy.out[]
+include::{snippetsPath}/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.groovy.out[]
 ----
 [source.multi-language-sample,kotlin]
 ----
 > gradle -q test
-include::{samplesPath}/userguide/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.kotlin.out[]
+include::{snippetsPath}/buildlifecycle/buildProjectEvaluateEvents/buildProjectEvaluateEvents.kotlin.out[]
 ----
 
 You can also add a link:{javadocPath}/org/gradle/api/ProjectEvaluationListener.html[ProjectEvaluationListener] to the link:{groovyDslPath}/org.gradle.api.invocation.Gradle.html[Gradle] to receive these events.
@@ -204,14 +204,14 @@ The following example sets the `srcDir` property of each task as it is created.
 
 .Setting of certain property to all tasks
 ====
-include::sample[dir="snippets/userguide/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/buildlifecycle/taskCreationEvents/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/taskCreationEvents/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/buildlifecycle/taskCreationEvents/kotlin",files="build.gradle.kts[]"]
 ====
 
 .Output of **`gradle -q a`**
 ----
 > gradle -q a
-include::{samplesPath}/userguide/buildlifecycle/taskCreationEvents/taskCreationEvents.out[]
+include::{snippetsPath}/buildlifecycle/taskCreationEvents/taskCreationEvents.out[]
 ----
 
 You can also add an link:{javadocPath}/org/gradle/api/Action.html[Action] to a link:{javadocPath}/org/gradle/api/tasks/TaskContainer.html[TaskContainer] to receive these events.
@@ -232,20 +232,20 @@ The following example logs the start and end of each task execution. Notice that
 
 .Logging of start and end of each task execution
 ====
-include::sample[dir="snippets/userguide/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/userguide/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/buildlifecycle/taskExecutionEvents/kotlin",files="build.gradle.kts[]"]
 ====
 
 ==== Output of **`gradle -q broken`**
 [source.multi-language-sample,groovy]
 ----
 > gradle -q broken
-include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/taskExecutionEvents.groovy.out[]
+include::{snippetsPath}/buildlifecycle/taskExecutionEvents/taskExecutionEvents.groovy.out[]
 ----
 [source.multi-language-sample,kotlin]
 ----
 > gradle -q broken
-include::{samplesPath}/userguide/buildlifecycle/taskExecutionEvents/taskExecutionEvents.kotlin.out[]
+include::{snippetsPath}/buildlifecycle/taskExecutionEvents/taskExecutionEvents.kotlin.out[]
 ----
 
 You can also use a link:{javadocPath}/org/gradle/api/execution/TaskExecutionListener.html[TaskExecutionListener] to the link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraph.html[TaskExecutionGraph] to receive these events.

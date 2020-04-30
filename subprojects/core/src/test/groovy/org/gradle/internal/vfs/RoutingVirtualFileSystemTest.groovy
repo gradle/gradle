@@ -20,6 +20,7 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -28,6 +29,7 @@ import spock.lang.Specification
 import java.util.function.Consumer
 import java.util.function.Function
 
+@CleanupTestDirectory(fieldName = "tmpDir")
 class RoutingVirtualFileSystemTest extends Specification {
 
     @Rule

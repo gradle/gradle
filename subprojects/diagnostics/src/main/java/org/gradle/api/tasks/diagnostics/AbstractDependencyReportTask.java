@@ -56,12 +56,7 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
 
     @Override
     public void generate(Project project) throws IOException {
-        SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(new Comparator<Configuration>() {
-            @Override
-            public int compare(Configuration conf1, Configuration conf2) {
-                return conf1.getName().compareTo(conf2.getName());
-            }
-        });
+        SortedSet<Configuration> sortedConfigurations = new TreeSet<>(Comparator.comparing(Configuration::getName));
         sortedConfigurations.addAll(getReportConfigurations());
         for (Configuration configuration : sortedConfigurations) {
             renderer.startConfiguration(configuration);
@@ -105,7 +100,7 @@ public abstract class AbstractDependencyReportTask extends AbstractReportTask {
     }
 
     private Set<Configuration> getNonDeprecatedTaskConfigurations() {
-        Set<Configuration> filteredConfigurations = new HashSet<Configuration>();
+        Set<Configuration> filteredConfigurations = new HashSet<>();
         for (Configuration configuration : getTaskConfigurations()) {
             if (!((DeprecatableConfiguration) configuration).isFullyDeprecated()) {
                 filteredConfigurations.add(configuration);

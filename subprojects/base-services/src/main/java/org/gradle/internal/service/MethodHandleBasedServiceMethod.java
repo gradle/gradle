@@ -22,7 +22,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Method;
 
 class MethodHandleBasedServiceMethod extends AbstractServiceMethod {
-    private final static MethodHandles.Lookup LOOKUP = (MethodHandles.Lookup) MethodHandles.publicLookup();
+    private final static MethodHandles.Lookup LOOKUP = MethodHandles.publicLookup();
     private final MethodHandle method;
 
     MethodHandleBasedServiceMethod(Method target) throws IllegalAccessException {

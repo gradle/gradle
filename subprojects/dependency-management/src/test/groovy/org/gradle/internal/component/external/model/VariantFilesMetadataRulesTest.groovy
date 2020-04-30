@@ -77,7 +77,7 @@ class VariantFilesMetadataRulesTest extends Specification {
             new MavenDependencyDescriptor(MavenScope.Compile, MavenDependencyType.DEPENDENCY, newSelector(DefaultModuleIdentifier.newId("org.test", name), "1.0"), null, [])
         }
         def metadata = mavenMetadataFactory.create(componentIdentifier, dependencies)
-        metadata.getVariantMetadataRules().setVariantDerivationStrategy(new JavaEcosystemVariantDerivationStrategy())
+        metadata.getVariantMetadataRules().setVariantDerivationStrategy(JavaEcosystemVariantDerivationStrategy.instance)
         metadata
     }
 

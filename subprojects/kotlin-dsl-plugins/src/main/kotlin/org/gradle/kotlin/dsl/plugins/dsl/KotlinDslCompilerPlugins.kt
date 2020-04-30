@@ -91,6 +91,7 @@ object KotlinCompilerArguments {
 
 private
 fun KotlinCompile.replaceLoggerWith(logger: Logger) {
+    @Suppress("deprecation")
     (this as TaskInternal).replaceLogger(logger)
 }
 

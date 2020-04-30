@@ -24,7 +24,9 @@ import org.gradle.api.DomainObjectSet;
  * Being a {@link DomainObjectSet}, a {@code IvyArtifactSet} provides convenient methods for querying, filtering, and applying actions to the set of {@link IvyArtifact}s.
  *
  * <pre class='autoTested'>
- * apply plugin: 'ivy-publish'
+ * plugins {
+ *     id 'ivy-publish'
+ * }
  *
  * def publication = publishing.publications.create("my-pub", IvyPublication)
  * def artifacts = publication.artifacts

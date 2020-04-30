@@ -72,13 +72,13 @@ One way to define rules is via a link:{javadocPath}/org/gradle/model/RuleSource.
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type-and-plugin]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type-and-plugin]
 ----
 
 .Output of **`gradle hello`**
 ----
 > gradle hello
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-all.out[]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-all.out[]
 ----
 
 Each of the different methods of the rule source are discrete, independent rules. Their order, or the fact that they belong to the same class, do not affect their behavior.
@@ -88,7 +88,7 @@ Each of the different methods of the rule source are discrete, independent rules
 [source,groovy,indent=0]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=create-rule]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=create-rule]
 ----
 
 This rule declares that there is a model element at path `"person"` (defined by the method name), of type `Person`. This is the form of the link:{javadocPath}/org/gradle/model/Model.html[Model] type rule for link:{javadocPath}/org/gradle/model/Managed.html[Managed] types. Here, the person object is the rule subject. The method could potentially have a body, that mutated the person instance. It could also potentially have more parameters, which would be the rule inputs.
@@ -98,7 +98,7 @@ This rule declares that there is a model element at path `"person"` (defined by 
 [source,groovy,indent=0]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=plugin-mutate-rule]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=plugin-mutate-rule]
 ----
 
 This link:{javadocPath}/org/gradle/model/Mutate.html[Mutate] rule mutates the person object. The first parameter to the method is the subject. Here, a by-type reference is used as no link:{javadocPath}/org/gradle/model/Path.html[Path] annotation is present on the parameter. It could also potentially have more parameters, that would be the rule inputs.
@@ -108,7 +108,7 @@ This link:{javadocPath}/org/gradle/model/Mutate.html[Mutate] rule mutates the pe
 [source,groovy,indent=0]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=task-create-rule]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=task-create-rule]
 ----
 
 This link:{javadocPath}/org/gradle/model/Mutate.html[Mutate] rule effectively adds a task, by mutating the tasks collection. The subject here is the `"tasks"` node, which is available as a link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] of link:{groovyDslPath}/org.gradle.api.Task.html[Task]. The only input is our person element. As the person is being used as an input here, it will have been realised before executing this rule. That is, the task container effectively _depends on_ the person element. If there are other configuration rules for the person element, potentially specified in a build script or other plugin, they will also be guaranteed to have been executed.
@@ -144,7 +144,7 @@ Managed models can be defined by attaching the `@Managed` annotation to an inter
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=managed-type]
 ----
 
 By defining a getter/setter pair, you are effectively declaring a managed property. A managed property is a property for which Gradle will enforce semantics such as immutability when a node of the model is not the subject of a rule. Therefore, this example declares properties named _firstName_ and _lastName_ on the managed type _Person_. These properties will only be writable when the view is mutable, that is to say when the _Person_ is the subject of a `Rule` (see below the explanation for rules).
@@ -161,7 +161,7 @@ Managed properties can be of any scalar type. In addition, properties can also b
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-string]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-string]
 ----
 
 | `File`
@@ -169,7 +169,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-file]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-file]
 ----
 
 | `Integer`, `Boolean`, `Byte`, `Short`, `Float`, `Long`, `Double`
@@ -177,7 +177,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-long]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-long]
 ----
 
 | `int`, `boolean`, `byte`, `short`, `float`, `long`, `double`
@@ -185,14 +185,14 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-boolean]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-boolean]
 ----
 
 '''
 
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-int]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-int]
 ----
 
 | Another _managed_ type.
@@ -200,7 +200,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managed]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managed]
 ----
 
 | An _enumeration_ type.
@@ -208,7 +208,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-enum]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-enum]
 ----
 
 | A `ManagedSet`. A managed set supports the creation of new named model elements, but not their removal.
@@ -216,7 +216,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managedset]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-managedset]
 ----
 
 | A `Set` or `List` of scalar types. All classic operations on collections are supported: add, remove, clear...
@@ -224,7 +224,7 @@ include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=propert
 |
 [source,groovy,indent=0]
 ----
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-collection-scalar]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/build.gradle[tag=property-type-collection-scalar]
 ----
 
 |===
@@ -336,7 +336,7 @@ In the example below, a `@Defaults` rule is applied to each `FileItem` in the mo
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/ruleSourcePluginEach/build.gradle[]
+include::{snippetsPath}/modelRules/ruleSourcePluginEach/build.gradle[]
 ----
 
 
@@ -386,7 +386,7 @@ Continuing with the example so far of the model element `"person"` of type `Pers
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=configure-rule]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=configure-rule]
 ----
 
 A configuration rule specifies a path to the subject that should be configured and a closure containing the code to run when the subject is configured. The closure is executed with the subject passed as the closure delegate. Exactly what code you can provide in the closure depends on the type of the subject. This is discussed below.
@@ -398,13 +398,13 @@ You should note that the configuration code is not executed immediately but is i
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/modelRules/configureAsRequired/build.gradle[tag=configure-rule]
+include::{snippetsPath}/modelRules/configureAsRequired/build.gradle[tag=configure-rule]
 ----
 
 .Output of **`gradle showPerson`**
 ----
 > gradle showPerson
-include::{samplesPath}/userguide/modelRules/configureAsRequired/modelDslConfigureRuleRunWhenRequired.out[]
+include::{snippetsPath}/modelRules/configureAsRequired/modelDslConfigureRuleRunWhenRequired.out[]
 ----
 
 You can see that before the task is run, the "person" element is configured by running the rule closure. Now let's run a task that does not require the "person" element:
@@ -414,7 +414,7 @@ You can see that before the task is run, the "person" element is configured by r
 .Output of **`gradle somethingElse`**
 ----
 > gradle somethingElse
-include::{samplesPath}/userguide/modelRules/configureAsRequired/modelDslConfigureRuleNotRunWhenNotRequired.out[]
+include::{snippetsPath}/modelRules/configureAsRequired/modelDslConfigureRuleNotRunWhenNotRequired.out[]
 ----
 
 In this instance, you can see that the "person" element is not configured at all.
@@ -441,7 +441,7 @@ The following model rule creates the `"person"` element:
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=create-rule]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=create-rule]
 ----
 
 A creation rule definition specifies the path of the element to create, plus its public type, represented as a Java interface or class. Only certain types of model elements can be created.
@@ -455,7 +455,7 @@ The initialization closure is optional and can be omitted, for example:
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=create-rule-no-config]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=create-rule-no-config]
 ----
 
 You should note that the initialization code is not executed immediately but is instead executed only when the element is required. The initialization code is executed before any configuration rules are run. For example:
@@ -465,13 +465,13 @@ You should note that the initialization code is not executed immediately but is 
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/build.gradle[tag=configure-and-create-rules]
+include::{snippetsPath}/modelRules/initializationRuleRunsBeforeConfigurationRules/build.gradle[tag=configure-and-create-rules]
 ----
 
 .Output of **`gradle showPerson`**
 ----
 > gradle showPerson
-include::{samplesPath}/userguide/modelRules/initializationRuleRunsBeforeConfigurationRules/modelDslInitializationRuleRunsBeforeConfigurationRule.out[]
+include::{snippetsPath}/modelRules/initializationRuleRunsBeforeConfigurationRules/modelDslInitializationRuleRunsBeforeConfigurationRule.out[]
 ----
 
 Notice that the creation rule appears in the build script _after_ the configuration rule, but its code runs before the code of the configuration rule. Gradle collects up all the rules for a particular subject before running any of them, then runs the rules in the appropriate order.
@@ -503,7 +503,7 @@ Here is an example of a nested creation rule:
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-create-rule]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-create-rule]
 ----
 
 As before, a nested creation rule defines a name and public type for the element, and optionally, a closure containing code to use to initialize the element. The code is run only when the element is required in the build.
@@ -515,7 +515,7 @@ Here is an example of a nested configuration rule:
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-configure-rule]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=model-map-nested-configure-rule]
 ----
 
 As before, a nested configuration rule defines the name of the element to configure and a closure containing code to use to configure the element. The code is run only when the element is required in the build.
@@ -527,13 +527,13 @@ As before, a nested configuration rule defines the name of the element to config
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/userguide/modelRules/configureElementsOfMap/build.gradle[tag=create-and-configure]
+include::{snippetsPath}/modelRules/configureElementsOfMap/build.gradle[tag=create-and-configure]
 ----
 
 .Output of **`gradle listPeople`**
 ----
 > gradle listPeople
-include::{samplesPath}/userguide/modelRules/configureElementsOfMap/modelDslModelMapNestedAll.out[]
+include::{snippetsPath}/modelRules/configureElementsOfMap/modelDslModelMapNestedAll.out[]
 ----
 
 Any method on link:{javadocPath}/org/gradle/model/ModelMap.html[ModelMap] that accepts an link:{javadocPath}/org/gradle/api/Action.html[Action] as its last parameter can also be used to define a nested rule.
@@ -550,7 +550,7 @@ A rule closure can also configure the properties of the element using nested clo
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=managed-type-nested-config-rule]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=managed-type-nested-config-rule]
 ----
 
 [NOTE]
@@ -574,7 +574,7 @@ Scalar properties in managed types can be assigned `CharSequence` values (e.g. `
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDslCoercion/build.gradle[]
+include::{snippetsPath}/modelRules/modelDslCoercion/build.gradle[]
 ----
 
 In the above example, an `Item` is created and is initialized in `setDefaults()` by providing the path to the data file. In the `item()` method the resolved `File` is parsed to extract and set the data. In the DSL block at the end, the price is adjusted based on the quantity; if there are fewer than 10 remaining the price is doubled, otherwise it is reduced by 50%. The `GString` expression is a valid value since it resolves to a `float` value in string form.
@@ -603,7 +603,7 @@ $.person.firstName
 [source,groovy]
 .build.gradle
 ----
-include::{samplesPath}/modelRules/modelDsl/build.gradle[tag=rule-inputs]
+include::{snippetsPath}/modelRules/modelDsl/build.gradle[tag=rule-inputs]
 ----
 
 In the above snippet, the `$.person` construct is an input reference. The construct returns the value of the model element at the specified path, as its default type (i.e. the type advertised by the <<#model-report,Model Report>>). It may appear anywhere in the rule that an expression may normally appear. It is not limited to the right hand side of variable assignments.
@@ -638,7 +638,7 @@ The built-in link:{groovyDslPath}/org.gradle.api.reporting.model.ModelReport.htm
 .Output of `gradle model`
 ----
 > gradle model
-include::{samplesPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out[]
+include::{snippetsPath}/modelRules/basicRuleSourcePlugin/basicRuleSourcePlugin-model-task.out[]
 ----
 
 

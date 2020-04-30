@@ -26,8 +26,10 @@ import org.gradle.api.Action;
  * or both.  The following example excludes the 'node_modules' folder.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
+ * plugins {
+ *     id 'java'
+ *     id 'eclipse'
+ * }
  *
  * eclipse {
  *   project {

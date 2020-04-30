@@ -92,11 +92,11 @@ public class JUnitPlatformTestFramework implements TestFramework {
         @Override
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
             try {
-                IdGenerator idGenerator = serviceRegistry.get(IdGenerator.class);
+                IdGenerator<?> idGenerator = serviceRegistry.get(IdGenerator.class);
                 Clock clock = serviceRegistry.get(Clock.class);
                 ActorFactory actorFactory = serviceRegistry.get(ActorFactory.class);
                 Class<?> clazz = getClass().getClassLoader().loadClass("org.gradle.api.internal.tasks.testing.junitplatform.JUnitPlatformTestClassProcessor");
-                Constructor constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
+                Constructor<?> constructor = clazz.getConstructor(JUnitPlatformSpec.class, IdGenerator.class, ActorFactory.class, Clock.class);
                 return (TestClassProcessor) constructor.newInstance(spec, idGenerator, actorFactory, clock);
             } catch (Exception e) {
                 throw UncheckedException.throwAsUncheckedException(e);

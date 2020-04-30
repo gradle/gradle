@@ -39,6 +39,8 @@ dependencies {
     conf someDependency
     conf "org.mockito:mockito-core:1.8"
     conf group: 'org.spockframework', name: 'spock-core', version: '1.0'
+    conf provider { "junit:junit:4.12" }
+
     conf('org.test:configured') {
         version {
            prefer '1.1'
@@ -60,6 +62,7 @@ task checkDeps {
         assert deps.contains(someDependency)
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
         assert deps.find { it instanceof ExternalDependency && it.group == 'org.spockframework' && it.name == 'spock-core' && it.version == '1.0'  }
+        assert deps.find { it instanceof ExternalDependency && it.group == 'junit' && it.name == 'junit' && it.version == '4.12' }
         def configuredDep = deps.find { it instanceof ExternalDependency && it.group == 'org.test' && it.name == 'configured' }
         assert configuredDep.version == '1.1'
         assert configuredDep.transitive == false
@@ -236,6 +239,27 @@ task checkDeps
             }
         """
 
+        then:
+        succeeds "check"
+    }
+
+    def "dependencies block supports provider dependencies"() {
+        when:
+        buildFile << """
+            configurations {
+              conf
+            }
+            
+            dependencies {
+              conf provider { gradleApi() } 
+            }
+            
+            task check {
+                doLast {
+                    assert configurations.conf.dependencies.contains(dependencies.gradleApi())
+                }
+            }
+        """
         then:
         succeeds "check"
     }

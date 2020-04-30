@@ -54,7 +54,9 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * then consider using forced versions' feature: {@link ResolutionStrategy#force(Object...)}.
      *
      * <pre class='autoTested'>
-     * apply plugin: 'java' //so that I can declare 'implementation' dependencies
+     * plugins {
+     *     id 'java' // so that I can declare 'implementation' dependencies
+     * }
      *
      * dependencies {
      *   implementation('org.hibernate:hibernate:3.1') {

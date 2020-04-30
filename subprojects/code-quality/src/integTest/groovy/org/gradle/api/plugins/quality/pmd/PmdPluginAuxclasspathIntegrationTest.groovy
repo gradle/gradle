@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import org.junit.Assume
@@ -40,7 +39,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
                 apply plugin: 'java'
 
-                ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
+                ${requiredSourceCompatibility()}
             }
 
             project("pmd-rule") {
@@ -60,6 +59,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
 
                 pmd {
                     ruleSets = ["java-auxclasspath"]
+                    ${supportIncrementalAnalysis()? "" : "incrementalAnalysis = false"}
                 }
             }
         """.stripIndent()

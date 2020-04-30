@@ -234,7 +234,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
             task customTask {
                 outputs.cacheIf { true }
                 def fileList
-                if (System.getProperty("changedCardinality")) {
+                if (providers.systemProperty("changedCardinality").present) {
                     fileList = ["build/output1.txt"]
                 } else {
                     fileList = ["build/output1.txt", "build/output2.txt"]
@@ -613,10 +613,10 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
                 doLast {
                     delete('build')
                     ${
-                        actual == "file"
-                            ? "mkdir('build'); file('build/output').text = file('input.txt').text"
-                            : "mkdir('build/output'); file('build/output/output.txt').text = file('input.txt').text"
-                    }
+            actual == "file"
+                ? "mkdir('build'); file('build/output').text = file('input.txt').text"
+                : "mkdir('build/output'); file('build/output/output.txt').text = file('input.txt').text"
+        }
                 }
             }
         """
@@ -668,7 +668,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         then:
         output.contains "Caching disabled for task ':customTask' because:\n" +
             "  Implementation type was loaded with an unknown classloader (class 'CustomTask_Decorated').\n"
-            "  Additional implementation type was loaded with an unknown classloader (class 'CustomTask_Decorated')."
+        "  Additional implementation type was loaded with an unknown classloader (class 'CustomTask_Decorated')."
     }
 
     def "task with custom action loaded with custom classloader is not cached"() {
@@ -731,13 +731,13 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "producer"
         then:
-        skipped":producer"
+        skipped ":producer"
 
         when:
         withBuildCache().run "producer", "--info"
         !output.contains("Caching disabled for task ':producer'")
         then:
-        skipped":producer"
+        skipped ":producer"
     }
 
     def "task can be cached after loaded from cache"() {
@@ -763,7 +763,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         cleanBuildDir()
         withBuildCache().run "producer"
         then:
-        skipped":producer"
+        skipped ":producer"
     }
 
     def "re-ran task is not loaded from cache"() {
@@ -901,7 +901,7 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         api = useRuntimeApi ? "runtime" : "annotation"
     }
 
-    @IgnoreIf({GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     @Issue("https://github.com/gradle/gradle/issues/3537")
     def "concurrent access to local cache works"() {
         def projectNames = GroovyCollections.combinations(('a'..'p'), ('a'..'p'), ('a'..'d'))*.join("")

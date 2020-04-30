@@ -28,6 +28,7 @@ import net.rubygrapefruit.platform.internal.DefaultProcessLauncher;
 import net.rubygrapefruit.platform.memory.Memory;
 import net.rubygrapefruit.platform.terminal.Terminals;
 import org.gradle.api.JavaVersion;
+import org.gradle.internal.Cast;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
@@ -291,7 +292,7 @@ public class NativeServices extends DefaultServiceRegistry implements ServiceReg
     }
 
     private <T> T notAvailable(Class<T> type) {
-        return (T) Proxy.newProxyInstance(type.getClassLoader(), new Class[]{type}, new BrokenService(type.getSimpleName()));
+        return Cast.uncheckedNonnullCast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type}, new BrokenService(type.getSimpleName())));
     }
 
     private static String format(Throwable throwable) {

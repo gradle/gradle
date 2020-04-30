@@ -44,14 +44,14 @@ public class InvertedRenderableModuleResult extends AbstractRenderableModuleResu
 
     @Override
     public Set<RenderableDependency> getChildren() {
-        Map<ComponentIdentifier, RenderableDependency> children = new LinkedHashMap<ComponentIdentifier, RenderableDependency>();
+        Map<ComponentIdentifier, RenderableDependency> children = new LinkedHashMap<>();
         for (ResolvedDependencyResult dependent : module.getDependents()) {
             InvertedRenderableModuleResult child = new InvertedRenderableModuleResult(dependent);
             if (!children.containsKey(child.getId())) {
                 children.put(child.getId(), child);
             }
         }
-        return new LinkedHashSet<RenderableDependency>(children.values());
+        return new LinkedHashSet<>(children.values());
     }
 
     @Override

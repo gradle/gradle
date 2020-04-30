@@ -31,7 +31,7 @@ import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer
 import org.gradle.api.specs.Specs
 import org.gradle.cache.CacheRepository
-import org.gradle.cache.internal.InMemoryCacheDecoratorFactory
+import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
@@ -59,7 +59,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String MODULE = "module"
 
     // For testing ComponentMetadataHandler capabilities
-    def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(InMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
+    def executor = new ComponentMetadataRuleExecutor(Stub(CacheRepository), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), new BuildCommencedTimeProvider(), Stub(Serializer))
     def stringInterner = SimpleMapInterner.notThreadSafe()
     def handler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.valueSnapshotter(), executor, DependencyManagementTestUtil.platformSupport())
     RuleActionAdapter adapter = Mock(RuleActionAdapter)

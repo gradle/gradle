@@ -18,7 +18,7 @@ package org.gradle.api.publish.internal;
 
 import org.gradle.api.InvalidUserDataException;
 
-public abstract class PublicationFieldValidator<T extends PublicationFieldValidator> {
+public abstract class PublicationFieldValidator<T extends PublicationFieldValidator<T>> {
     private final Class<T> type;
     protected final String publicationName;
     protected final String name;

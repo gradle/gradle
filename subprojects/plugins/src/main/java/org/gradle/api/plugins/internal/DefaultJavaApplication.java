@@ -56,7 +56,7 @@ public class DefaultJavaApplication implements JavaApplication {
 
     @Override
     public String getMainClassName() {
-        return mainClass.get();
+        return mainClass.getOrNull();
     }
 
     @Override

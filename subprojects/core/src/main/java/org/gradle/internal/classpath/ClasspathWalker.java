@@ -16,11 +16,10 @@
 
 package org.gradle.internal.classpath;
 
-import com.google.common.io.ByteStreams;
 import org.gradle.api.file.RelativePath;
-import org.gradle.api.internal.changedetection.state.FileZipInput;
-import org.gradle.api.internal.changedetection.state.ZipEntry;
-import org.gradle.api.internal.changedetection.state.ZipInput;
+import org.gradle.api.internal.file.archive.FileZipInput;
+import org.gradle.api.internal.file.archive.ZipEntry;
+import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
@@ -109,13 +108,7 @@ public class ClasspathWalker {
 
         @Override
         public byte[] getContent() throws IOException {
-            if (entry.size() >= 0) {
-                byte[] content = new byte[entry.size()];
-                ByteStreams.readFully(entry.getInputStream(), content);
-                return content;
-            } else {
-                return ByteStreams.toByteArray(entry.getInputStream());
-            }
+            return entry.getContent();
         }
     }
 

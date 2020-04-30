@@ -3,7 +3,7 @@
         <profile>
           <id>testprofile</id>
           <properties>
-            <junit-version>4.12</junit-version>
+            <junit-version>4.13</junit-version>
             <compiler-version>3.7.0</compiler-version>
           </properties>
         </profile>

@@ -52,8 +52,8 @@ All you need to do in most cases is configure the appropriate compilation and ru
 
 .A basic configuration for the 'test' task
 ====
-include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=java-basic-test-config]"]
-include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=java-basic-test-config]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=java-basic-test-config]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=java-basic-test-config]"]
 ====
 
 The link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task has many generic configuration options as well as several framework-specific ones that you can find described in link:{javadocPath}/org/gradle/api/tasks/testing/junit/JUnitOptions.html[JUnitOptions], link:{javadocPath}/org/gradle/api/tasks/testing/junitplatform/JUnitPlatformOptions.html[JUnitPlatformOptions] and link:{javadocPath}/org/gradle/api/tasks/testing/testng/TestNGOptions.html[TestNGOptions]. We cover a significant number of them in the rest of the chapter.
@@ -206,14 +206,14 @@ Unlike with many of the testing configuration options, there are several project
 
 .Changing the default test report and results directories
 ====
-include::sample[dir="snippets/userguide/java/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
-include::sample[dir="snippets/userguide/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
+include::sample[dir="snippets/java/customDirs/groovy",files="build.gradle[tags=custom-report-dirs]"]
+include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[tags=custom-report-dirs]"]
 ====
 
 .Output of **`gradle -q showDirs`**
 ----
 > gradle -q showDirs
-include::{samplesPath}/userguide/java/customDirs/javaCustomReportDirs.out[]
+include::{snippetsPath}/java/customDirs/javaCustomReportDirs.out[]
 ----
 
 Follow the link to the convention properties for more details.
@@ -403,8 +403,8 @@ Let's start with a practical example that implements the first three steps in a 
 
 .Setting up working integration tests
 ====
-include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=practical-integ-test-source-set]"]
-include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=practical-integ-test-source-set]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=practical-integ-test-source-set]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=practical-integ-test-source-set]"]
 ====
 
 This will set up a new source set called `intTest` that automatically creates:
@@ -431,8 +431,8 @@ Creating and configuring a source set automatically sets up the compilation stag
 
 .Defining a working integration test task
 ====
-include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=integ-test-task]"]
-include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=integ-test-task]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=integ-test-task]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=integ-test-task]"]
 ====
 
 Again, we're accessing a source set to get the relevant information, i.e. where the compiled test classes are — the `testClassesDirs` property — and what needs to be on the classpath when running them — `classpath`.
@@ -521,8 +521,8 @@ Skipping a test via the build script can be done a few ways. One common approach
 
 .Skipping the unit tests based on a project property
 ====
-include::sample[dir="snippets/userguide/java/basic/groovy",files="build.gradle[tags=skip-tests-condition]"]
-include::sample[dir="snippets/userguide/java/basic/kotlin",files="build.gradle.kts[tags=skip-tests-condition]"]
+include::sample[dir="snippets/java/basic/groovy",files="build.gradle[tags=skip-tests-condition]"]
+include::sample[dir="snippets/java/basic/kotlin",files="build.gradle.kts[tags=skip-tests-condition]"]
 ====
 
 In this case, Gradle will mark the skipped tests as "SKIPPED" rather than exclude them from the build.
@@ -568,8 +568,8 @@ Java projects can enable test fixtures support by applying the `java-test-fixtur
 
 .Applying the Java test fixtures plugin
 ====
-include::sample[dir="snippets/userguide/java/fixtures/groovy",files="lib/build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/userguide/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/java/fixtures/groovy",files="lib/build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=use-plugin]"]
 ====
 
 This will automatically create a `testFixtures` source set, in which you can write your test fixtures.
@@ -583,7 +583,7 @@ For example for this main class:
 [source,java,indent=0]
 .src/main/java/com/acme/Person.java
 ----
-include::{samplesPath}/userguide/java/fixtures/groovy/lib/src/main/java/com/acme/Person.java[tags=sample]
+include::{snippetsPath}/java/fixtures/groovy/lib/src/main/java/com/acme/Person.java[tags=sample]
 ----
 
 A test fixture can be written in `src/testFixtures/java`:
@@ -591,7 +591,7 @@ A test fixture can be written in `src/testFixtures/java`:
 [source,java,indent=0]
 .src/testFixtures/java/com/acme/Simpsons.java
 ----
-include::{samplesPath}/userguide/java/fixtures/groovy/lib/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
+include::{snippetsPath}/java/fixtures/groovy/lib/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
 ----
 
 === Declaring dependencies of test fixtures
@@ -600,8 +600,8 @@ Similarly to the link:java_library_plugin.html[Java Library Plugin], test fixtur
 
 .Declaring test fixture dependencies
 ====
-include::sample[dir="snippets/userguide/java/fixtures/groovy",files="lib/build.gradle[tags=test_fixtures_deps]"]
-include::sample[dir="snippets/userguide/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=test_fixtures_deps]"]
+include::sample[dir="snippets/java/fixtures/groovy",files="lib/build.gradle[tags=test_fixtures_deps]"]
+include::sample[dir="snippets/java/fixtures/kotlin",files="lib/build.gradle.kts[tags=test_fixtures_deps]"]
 ====
 
 It's worth noticing that if a dependency is an _implementation_ dependency of test fixtures, then _when compiling tests that depend on those test fixtures_, the implementation dependencies will _not leak_ into the compile classpath.
@@ -615,8 +615,8 @@ This can be achieved very easily using the `testFixtures` keyword:
 
 .Adding a dependency on test fixtures of another project
 ====
-include::sample[dir="snippets/userguide/java/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
-include::sample[dir="snippets/userguide/java/fixtures/kotlin",files="build.gradle.kts[tags=consumer_dependencies]"]
+include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=consumer_dependencies]"]
+include::sample[dir="snippets/java/fixtures/kotlin",files="build.gradle.kts[tags=consumer_dependencies]"]
 ====
 
 === Publishing test fixtures
@@ -628,8 +628,8 @@ However, if you use the `maven-publish` or `ivy-publish` plugin, test fixtures a
 
 .Adding a dependency on test fixtures of an external library
 ====
-include::sample[dir="snippets/userguide/java/fixtures/groovy",files="build.gradle[tags=external-test-fixtures-dependency]"]
-include::sample[dir="snippets/userguide/java/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
+include::sample[dir="snippets/java/fixtures/groovy",files="build.gradle[tags=external-test-fixtures-dependency]"]
+include::sample[dir="snippets/java/fixtures/kotlin",files="build.gradle.kts[tags=external-test-fixtures-dependency]"]
 ====
 
 It's worth noting that if the external project is _not_ publishing Gradle Module Metadata, then resolution will fail with an error indicating that such a variant cannot be found:
@@ -637,7 +637,7 @@ It's worth noting that if the external project is _not_ publishing Gradle Module
 .Output of **`gradle dependencyInsight --configuration functionalTestClasspath --dependency gson`**
 ----
 > gradle dependencyInsight --configuration functionalTestClasspath --dependency gson
-include::{samplesPath}/userguide/java/fixtures/dependencyInsight.out[]
+include::{snippetsPath}/java/fixtures/dependencyInsight.out[]
 ----
 
 The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
@@ -650,6 +650,6 @@ If you publish your library and use test fixtures, but do not want to publish th
 
 .Disable publishing of test fixtures variants
 ====
-include::sample[dir="snippets/userguide/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
-include::sample[dir="snippets/userguide/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
+include::sample[dir="snippets/java/fixtures/groovy/lib",files="build.gradle[tags=disable-test-fixtures-publishing]"]
+include::sample[dir="snippets/java/fixtures/kotlin/lib",files="build.gradle.kts[tags=disable-test-fixtures-publishing]"]
 ====

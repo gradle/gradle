@@ -65,6 +65,7 @@ import org.gradle.api.tasks.VerificationTask;
 import org.gradle.api.tasks.options.Option;
 import org.gradle.api.tasks.testing.logging.TestLogging;
 import org.gradle.api.tasks.testing.logging.TestLoggingContainer;
+import org.gradle.internal.Cast;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -471,7 +472,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
         TestWorkerProgressListener testWorkerProgressListener = new TestWorkerProgressListener(getProgressLoggerFactory(), parentProgressLogger);
         getTestListenerInternalBroadcaster().add(testWorkerProgressListener);
 
-        TestExecuter testExecuter = createTestExecuter();
+        TestExecuter<TestExecutionSpec> testExecuter = Cast.uncheckedNonnullCast(createTestExecuter());
         TestListenerInternal resultProcessorDelegate = getTestListenerInternalBroadcaster().getSource();
         if (failFast) {
             resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);

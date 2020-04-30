@@ -21,7 +21,7 @@ import org.hamcrest.CoreMatchers
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.containsString
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class WrapperProjectIntegrationTest extends AbstractWrapperIntegrationSpec {
     def setup() {

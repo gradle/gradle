@@ -121,7 +121,7 @@ public class RepositoryTransportDeployWagon implements Wagon {
     }
 
     @Override
-    public final List getFileList(String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
+    public final List<String> getFileList(String resourceName) throws TransferFailedException, ResourceDoesNotExistException, AuthorizationException {
         throwNotImplemented("getFileList(String resourceName)");
         return null;
     }

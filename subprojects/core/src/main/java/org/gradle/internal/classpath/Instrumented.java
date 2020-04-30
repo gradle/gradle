@@ -16,13 +16,14 @@
 
 package org.gradle.internal.classpath;
 
+import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
+import org.codehaus.groovy.runtime.callsite.CallSite;
+import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Instrumented {
-    private static final Listener NO_OP = new Listener() {
-        @Override
-        public void systemPropertyQueried(String key, String consumer) {
-        }
+    private static final Listener NO_OP = (key, consumer) -> {
     };
     private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
 
@@ -34,7 +35,16 @@ public class Instrumented {
         LISTENER.set(NO_OP);
     }
 
-    // Called by generated code. This will move somewhere else
+    // Called by generated code
+    public static void groovyCallSites(CallSiteArray array) {
+        for (CallSite callSite : array.array) {
+            if (callSite.getName().equals("getProperty")) {
+                array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
+            }
+        }
+    }
+
+    // Called by generated code.
     public static String systemProperty(String key, String consumer) {
         LISTENER.get().systemPropertyQueried(key, consumer);
         return System.getProperty(key);
@@ -42,5 +52,20 @@ public class Instrumented {
 
     public interface Listener {
         void systemPropertyQueried(String key, String consumer);
+    }
+
+    private static class SystemPropertyCallSite extends AbstractCallSite {
+        public SystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperty((String) arg1, array.owner.getName());
+            } else {
+                return super.call(receiver, arg1);
+            }
+        }
     }
 }

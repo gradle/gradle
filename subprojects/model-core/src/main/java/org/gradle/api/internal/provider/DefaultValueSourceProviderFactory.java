@@ -17,12 +17,14 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ValueSource;
 import org.gradle.api.provider.ValueSourceParameters;
 import org.gradle.api.provider.ValueSourceSpec;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Try;
 import org.gradle.internal.event.AnonymousListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
@@ -30,6 +32,7 @@ import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
+import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.ServiceLookup;
 import org.jetbrains.annotations.NotNull;
@@ -65,13 +68,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     @Override
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
 
-        Class<P> parametersType = extractParametersTypeOf(valueSourceType);
-        P parameters = paramsInstantiator.newInstance(parametersType);
+        try {
+            Class<P> parametersType = extractParametersTypeOf(valueSourceType);
+            P parameters = parametersType != null
+                ? paramsInstantiator.newInstance(parametersType)
+                : null;
 
-        // TODO - consider deferring configuration
-        configureParameters(parameters, configureAction);
+            // TODO - consider deferring configuration
+            configureParameters(parameters, configureAction);
 
-        return instantiateValueSourceProvider(valueSourceType, parametersType, parameters);
+            return instantiateValueSourceProvider(valueSourceType, parametersType, parameters);
+        } catch (GradleException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new GradleException(couldNotCreateProviderOf(valueSourceType), e);
+        }
     }
 
     @Override
@@ -94,11 +105,13 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
         Class<P> parametersType,
-        P isolatedParameters
+        @Nullable P isolatedParameters
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
-        services.add(parametersType, isolatedParameters);
         services.add(GradleProperties.class, gradleProperties);
+        if (isolatedParameters != null) {
+            services.add(parametersType, isolatedParameters);
+        }
         return instantiatorFactory
             .injectScheme()
             .withServices(services)
@@ -106,21 +119,25 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             .newInstance(valueSourceType);
     }
 
-    @NotNull
+    @Nullable
     private <T, P extends ValueSourceParameters> Class<P> extractParametersTypeOf(Class<? extends ValueSource<T, P>> valueSourceType) {
-        Class<P> parametersType = isolationScheme.parameterTypeFor(valueSourceType, 1);
-        if (parametersType == null) {
-            throw new IllegalArgumentException();
-        }
-        return parametersType;
+        return isolationScheme.parameterTypeFor(valueSourceType, 1);
     }
 
-    private <P extends ValueSourceParameters> void configureParameters(P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
-        DefaultValueSourceSpec<P> valueSourceSpec = specInstantiator.newInstance(
+    private <P extends ValueSourceParameters> void configureParameters(@Nullable P parameters, Action<? super ValueSourceSpec<P>> configureAction) {
+        DefaultValueSourceSpec<P> valueSourceSpec = Cast.uncheckedNonnullCast(specInstantiator.newInstance(
             DefaultValueSourceSpec.class,
             parameters
-        );
+        ));
         configureAction.execute(valueSourceSpec);
+    }
+
+    private String couldNotCreateProviderOf(Class<?> valueSourceType) {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node("Could not create provider for value source ");
+        formatter.appendType(valueSourceType);
+        formatter.append(".");
+        return formatter.toString();
     }
 
     @NonExtensible
@@ -233,12 +250,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         private P isolateParameters() {
             // TODO - consider if should hold the project lock to do the isolation
-            return (P) isolatableFactory.isolate(parameters).isolate();
+            return isolatableFactory.isolate(parameters).isolate();
         }
 
         private void onValueObtained() {
             broadcaster.getSource().valueObtained(
-                new DefaultObtainedValue(
+                new DefaultObtainedValue<>(
                     value,
                     valueSourceType,
                     parametersType,
@@ -253,13 +270,14 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         private final Try<T> value;
         private final Class<? extends ValueSource<T, P>> valueSourceType;
         private final Class<P> parametersType;
+        @Nullable
         private final P parameters;
 
         public DefaultObtainedValue(
             Try<T> value,
             Class<? extends ValueSource<T, P>> valueSourceType,
             Class<P> parametersType,
-            P parameters
+            @Nullable P parameters
         ) {
             this.value = value;
             this.valueSourceType = valueSourceType;

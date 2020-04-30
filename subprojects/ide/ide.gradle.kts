@@ -66,6 +66,19 @@ dependencies {
     integTestRuntimeOnly(project(":testKit"))
 }
 
+strictCompile {
+    ignoreParameterizedVarargType() // TODO remove this and address warnings and/or add the RIGHT ignores here
+}
+
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/plugins/ide/internal/*",
+        "org/gradle/plugins/ide/eclipse/internal/*",
+        "org/gradle/plugins/ide/idea/internal/*",
+        "org/gradle/plugins/ide/eclipse/model/internal/*",
+        "org/gradle/plugins/ide/idea/model/internal/*"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

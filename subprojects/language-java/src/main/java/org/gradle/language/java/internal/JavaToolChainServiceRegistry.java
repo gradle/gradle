@@ -48,8 +48,8 @@ public class JavaToolChainServiceRegistry extends AbstractPluginServiceRegistry 
     }
 
     private static class BuildSessionScopeCompileServices {
-        Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory() {
-            return new JavaHomeBasedJavaCompilerFactory();
+        Factory<JavaCompiler> createJavaHomeBasedJavaCompilerFactory(ClassPathRegistry classPathRegistry) {
+            return new JavaHomeBasedJavaCompilerFactory(classPathRegistry.getClassPath("JAVA-COMPILER-PLUGIN").getAsFiles());
         }
     }
 

@@ -27,7 +27,7 @@ dependencies {
     }
     runtimeOnly ":runtime:1.0"
     providedRuntime ":providedRuntime:1.0@jar"
-    testImplementation "junit:junit:4.12"
+    testImplementation "junit:junit:4.13"
     moreLibs ":otherLib:1.0"
 }
 

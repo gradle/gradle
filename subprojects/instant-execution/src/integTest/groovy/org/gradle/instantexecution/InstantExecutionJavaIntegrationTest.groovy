@@ -392,7 +392,7 @@ class InstantExecutionJavaIntegrationTest extends AbstractInstantExecutionIntegr
         buildWithSingleSourceFile()
         buildFile << """
             ${jcenterRepository()}
-            dependencies { testImplementation "junit:junit:4.12" }
+            dependencies { testImplementation "junit:junit:4.13" }
         """
         file("src/test/java/ThingTest.java") << """
             import ${Test.name};

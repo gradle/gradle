@@ -24,6 +24,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl;
+import org.gradle.internal.Cast;
 import org.gradle.internal.file.PathToFileResolver;
 
 import javax.annotation.Nullable;
@@ -185,7 +186,7 @@ public class BuildScriptBuilder {
             return new LiteralValue(expression);
         }
         if (expression instanceof Map) {
-            return new MapLiteralValue(expressionMap((Map<String, ?>) expression));
+            return new MapLiteralValue(expressionMap(Cast.uncheckedNonnullCast(expression)));
         }
         throw new IllegalArgumentException("Don't know how to treat " + expression + " as an expression.");
     }
@@ -1423,7 +1424,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskRegistration(String taskName, String taskType) {
-            return "val " + taskName + " by tasks.creating(" + taskType + "::class)";
+            return "val " + taskName + " by tasks.registering(" + taskType + "::class)";
         }
 
         @Override
@@ -1542,7 +1543,7 @@ public class BuildScriptBuilder {
 
         @Override
         public String taskRegistration(String taskName, String taskType) {
-            return "task " + taskName + "(type: " + taskType + ")";
+            return "tasks.register('" + taskName + "', " + taskType + ")";
         }
 
         @Override

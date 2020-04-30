@@ -46,8 +46,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Bear in mind that usually you don't have to configure them directly because Gradle configures it for free!
  *
  * <pre class='autoTested'>
- * apply plugin: 'war' //or 'ear' or 'java'
- * apply plugin: 'eclipse-wtp'
+ * plugins {
+ *     id 'war' // or 'ear' or 'java'
+ *     id 'eclipse-wtp'
+ * }
  *
  * configurations {
  *   someInterestingConfiguration
@@ -100,8 +102,10 @@ import static org.gradle.util.ConfigureUtil.configure;
  * Examples of advanced configuration:
  *
  * <pre class='autoTested'>
- * apply plugin: 'war'
- * apply plugin: 'eclipse-wtp'
+ * plugins {
+ *     id 'war'
+ *     id 'eclipse-wtp'
+ * }
  *
  * eclipse {
  *

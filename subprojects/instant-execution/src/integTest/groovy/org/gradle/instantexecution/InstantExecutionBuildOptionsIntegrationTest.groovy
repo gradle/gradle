@@ -87,7 +87,12 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
     enum SystemPropertySource {
         COMMAND_LINE,
         GRADLE_PROPERTIES,
-        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR
+        GRADLE_PROPERTIES_FROM_MASTER_SETTINGS_DIR;
+
+        @Override
+        String toString() {
+            name().toLowerCase().replace('_', ' ')
+        }
     }
 
     @Unroll
@@ -412,7 +417,7 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
 
         then: "cache is NO longer valid"
         output.count(usage.endsWith("presence") ? "ON CI" : "NOT CI") == 1
-        outputContains "configuration file 'ci' has changed"
+        outputContains "file 'ci' has changed"
         instant.assertStateStored()
 
         where:
@@ -501,6 +506,62 @@ class InstantExecutionBuildOptionsIntegrationTest extends AbstractInstantExecuti
         operator    | operatorType       | usage
         "getOrElse" | "String"           | "build logic input"
         "orElse"    | "Provider<String>" | "task input"
+    }
+
+    def "can define and use custom value source in a Groovy script"() {
+
+        given:
+        def instant = newInstantExecutionFixture()
+        buildFile.text = """
+
+            import org.gradle.api.provider.*
+
+            abstract class IsSystemPropertySet implements ValueSource<Boolean, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<String> getPropertyName()
+                }
+                @Override Boolean obtain() {
+                    System.getProperties().get(parameters.getPropertyName().get()) != null
+                }
+            }
+
+            def isCi = providers.of(IsSystemPropertySet) {
+                parameters {
+                    propertyName = "ci"
+                }
+            }
+            if (isCi.get()) {
+                tasks.register("build") {
+                    doLast { println("ON CI") }
+                }
+            } else {
+                tasks.register("build") {
+                    doLast { println("NOT CI") }
+                }
+            }
+        """
+
+        when:
+        instantRun "build"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateStored()
+
+        when:
+        instantRun "build"
+
+        then:
+        output.count("NOT CI") == 1
+        instant.assertStateLoaded()
+
+        when:
+        instantRun "build", "-Dci=true"
+
+        then:
+        output.count("ON CI") == 1
+        output.contains("because a build logic input of type 'IsSystemPropertySet' has changed")
+        instant.assertStateStored()
     }
 
     private static String getGreetTask() {

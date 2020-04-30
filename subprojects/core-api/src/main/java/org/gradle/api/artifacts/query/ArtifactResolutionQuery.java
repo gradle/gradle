@@ -26,7 +26,9 @@ import java.util.Collection;
  * A builder to construct a query that can resolve selected software artifacts of the specified components.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
+ * plugins {
+ *     id 'java'
+ * }
  *
  * task resolveCompileSources {
  *     doLast {

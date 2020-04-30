@@ -24,13 +24,18 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class DefaultGradleConnector extends GradleConnector {
+public class DefaultGradleConnector extends GradleConnector implements ProjectConnectionCloseListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
     private final ConnectionFactory connectionFactory;
     private final DistributionFactory distributionFactory;
     private Distribution distribution;
+
+    private final List<DefaultProjectConnection> connections = new ArrayList<>(4);
+    private boolean stopped = false;
 
     private final DefaultConnectionParameters.Builder connectionParamsBuilder = DefaultConnectionParameters.builder();
 
@@ -55,6 +60,24 @@ public class DefaultGradleConnector extends GradleConnector {
      */
     public static void close() {
         ConnectorServices.close();
+    }
+
+    @Override
+    public void connectionClosed(ProjectConnection connection) {
+        synchronized (connections) {
+            connections.remove(connection);
+        }
+    }
+
+    @Override
+    public void disconnect() {
+        synchronized (connections) {
+            stopped = true;
+            for (DefaultProjectConnection connection : connections) {
+                connection.disconnect();
+            }
+            connections.clear();
+        }
     }
 
     @Override
@@ -143,7 +166,16 @@ public class DefaultGradleConnector extends GradleConnector {
         if (distribution == null) {
             distribution = distributionFactory.getDefaultDistribution(connectionParameters.getProjectDir(), connectionParameters.isSearchUpwards() != null ? connectionParameters.isSearchUpwards() : true);
         }
-        return connectionFactory.create(distribution, connectionParameters);
+
+        synchronized (connections) {
+            if (stopped) {
+                throw new IllegalStateException("Tooling API client has been disconnected. No other connections may be used.");
+            }
+
+            ProjectConnection connection = connectionFactory.create(distribution, connectionParameters, this);
+            connections.add((DefaultProjectConnection) connection);
+            return connection;
+        }
     }
 
     ConnectionFactory getConnectionFactory() {

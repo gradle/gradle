@@ -16,7 +16,6 @@ import org.gradle.gradlebuild.test.integrationtests.IntegrationTest
  */
 plugins {
     gradlebuild.distribution.`plugins-api-java`
-    gradlebuild.classycle
 }
 
 val integTestRuntimeResources by configurations.creating {
@@ -59,6 +58,10 @@ dependencies {
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 
     integTestRuntimeResources(testFixtures(project(":platformPlay")))
+}
+
+strictCompile {
+    ignoreDeprecations() // Play support in Gradle core has been deprecated
 }
 
 tasks.withType<IntegrationTest>().configureEach {

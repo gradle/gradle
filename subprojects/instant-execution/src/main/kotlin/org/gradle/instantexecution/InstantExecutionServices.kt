@@ -16,11 +16,15 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.instantexecution.fingerprint.InstantExecutionCacheFingerprintController
+import org.gradle.instantexecution.initialization.DefaultInstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionProblemsListener
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
+import org.gradle.instantexecution.initialization.NoOpInstantExecutionProblemsListener
 import org.gradle.instantexecution.problems.InstantExecutionProblems
 import org.gradle.instantexecution.serialization.beans.BeanConstructors
+import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.service.ServiceRegistration
 import org.gradle.internal.service.scopes.AbstractPluginServiceRegistry
@@ -36,17 +40,17 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
     override fun registerBuildTreeServices(registration: ServiceRegistration) {
         registration.run {
             add(BuildTreeListenerManager::class.java)
+            add(InstantExecutionStartParameter::class.java)
+            add(InstantExecutionReport::class.java)
+            add(InstantExecutionProblems::class.java)
         }
     }
 
     override fun registerBuildServices(registration: ServiceRegistration) {
         registration.run {
-            add(InstantExecutionStartParameter::class.java)
-            add(InstantExecutionProblems::class.java)
-            add(InstantExecutionReport::class.java)
             add(InstantExecutionClassLoaderScopeRegistryListener::class.java)
             add(InstantExecutionBuildScopeListenerManagerAction::class.java)
-            add(InstantExecutionProblemsListener::class.java)
+            addProvider(BuildServicesProvider())
         }
     }
 
@@ -55,6 +59,17 @@ class InstantExecutionServices : AbstractPluginServiceRegistry() {
             add(InstantExecutionCacheFingerprintController::class.java)
             add(InstantExecutionHost::class.java)
             add(DefaultInstantExecution::class.java)
+        }
+    }
+}
+
+
+class BuildServicesProvider {
+    fun createInstantExecutionProblemsListener(buildPath: PublicBuildPath, startParameter: InstantExecutionStartParameter, problemsListener: InstantExecutionProblems): InstantExecutionProblemsListener {
+        if (!startParameter.isEnabled || buildPath.buildPath.name == SettingsInternal.BUILD_SRC) {
+            return NoOpInstantExecutionProblemsListener()
+        } else {
+            return DefaultInstantExecutionProblemsListener(problemsListener)
         }
     }
 }

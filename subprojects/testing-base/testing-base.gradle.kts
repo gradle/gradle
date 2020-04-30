@@ -60,3 +60,11 @@ dependencies {
 
     integTestRuntimeOnly(project(":testingJunitPlatform"))
 }
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API (org.gradle.api.tasks.testing.AbstractTestTask)
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/internal/tasks/testing/**"))
+}

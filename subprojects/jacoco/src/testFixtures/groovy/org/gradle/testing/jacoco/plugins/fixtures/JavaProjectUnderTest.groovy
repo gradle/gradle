@@ -41,7 +41,7 @@ class JavaProjectUnderTest {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
         this
@@ -65,17 +65,17 @@ class JavaProjectUnderTest {
                     runtimeClasspath += output + compileClasspath
                 }
             }
-            
+
             task integrationTest(type: Test) {
                 testClassesDirs = sourceSets.integrationTest.output.classesDirs
                 classpath = sourceSets.integrationTest.runtimeClasspath
             }
-            
+
             task jacocoIntegrationTestReport(type: JacocoReport) {
                 executionData integrationTest
                 sourceSets sourceSets.main
             }
-            
+
             task jacocoIntegrationTestCoverageVerification(type: JacocoCoverageVerification) {
                 executionData integrationTest
                 sourceSets sourceSets.main
@@ -89,11 +89,11 @@ class JavaProjectUnderTest {
     private void writeProductionSourceFile(int count = 1) {
         (1..count).each { index ->
             file("src/main/java/org/gradle/Class${index}.java").text = """
-            package org.gradle; 
+            package org.gradle;
 
-            public class Class${index} { 
-                public boolean isFoo(Object arg) { 
-                    return true; 
+            public class Class${index} {
+                public boolean isFoo(Object arg) {
+                    return true;
                 }
             }
         """
@@ -103,15 +103,15 @@ class JavaProjectUnderTest {
     private void writeTestSourceFile(String baseDir, int count = 1, String type="Test") {
         (1..count).each { index ->
             file("$baseDir/org/gradle/Class${index}${type}.java").text = """
-            package org.gradle; 
+            package org.gradle;
 
-            import org.junit.Test; 
+            import org.junit.Test;
 
-            public class Class${index}${type} { 
-                @Test 
-                public void someTest() { 
-                    new Class${index}().isFoo("test"); 
-                } 
+            public class Class${index}${type} {
+                @Test
+                public void someTest() {
+                    new Class${index}().isFoo("test");
+                }
             }
         """
         }

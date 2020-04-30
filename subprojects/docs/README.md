@@ -82,7 +82,7 @@ This shows Groovy and Kotlin sample projects under "sample-dir" which is defined
 
 ```
 subprojects/docs/src/snippets/
-└── userguide/initScripts/customLogger/
+└── initScripts/customLogger/
     ├── customLogger.out
     ├── customLogger.sample.conf
     ├── groovy
@@ -95,27 +95,27 @@ subprojects/docs/src/snippets/
         └── settings.gradle.kts
 ```
 
-Note here that there are 2 sample projects under `userguide/initScripts/customLogger/`: one for the Groovy DSL and one for Kotlin DSL. Also note that there is only 1 `customLogger.sample.conf` file that tells Exemplar how to execute both groovy and kotlin samples, with 1 `customLogger.out` file proving the output is identical between the two.
+Note here that there are 2 sample projects under `initScripts/customLogger/`: one for the Groovy DSL and one for Kotlin DSL. Also note that there is only 1 `customLogger.sample.conf` file that tells Exemplar how to execute both groovy and kotlin samples, with 1 `customLogger.out` file proving the output is identical between the two.
 
 #### Example Asciidoctor multi-language sample declaration
 
 ```asciidoc
 .Customizing what Gradle logs
 ====
-include::sample[dir="snippets/userguide/initScripts/customLogger/groovy",files="init.gradle[]"]
+include::sample[dir="snippets/initScripts/customLogger/groovy",files="init.gradle[]"]
 
-include::sample[dir="snippets/userguide/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
+include::sample[dir="snippets/initScripts/customLogger/kotlin",files="customLogger.init.gradle.kts[]"]
 ====
 
 [.multi-language-text.lang-groovy]
 ----
 $ gradle -I init.gradle build
-include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
+include::{snippetsPath}/initScripts/customLogger/customLogger.out[]
 ----
 [.multi-language-text.lang-kotlin]
 ----
 $ gradle -I customLogger.init.gradle.kts build
-include::{samplesPath}/userguide/initScripts/customLogger/customLogger.out[]
+include::{snippetsPath}/initScripts/customLogger/customLogger.out[]
 ----
 ```
 

@@ -34,7 +34,7 @@ class InstantExecutionGroovyIntegrationTest extends AbstractInstantExecutionInte
 
             dependencies {
                 implementation(localGroovy())
-                testImplementation("junit:junit:4.12")
+                testImplementation("junit:junit:4.13")
             }
         """
         file("src/main/groovy/Thing.groovy") << """

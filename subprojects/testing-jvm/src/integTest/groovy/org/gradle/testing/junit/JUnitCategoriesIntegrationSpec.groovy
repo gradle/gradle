@@ -71,7 +71,7 @@ class JUnitCategoriesIntegrationSpec extends AbstractSampleIntegrationTest {
     }
 
     @Issue('https://github.com/gradle/gradle/issues/3189')
-    @Requires(TestPrecondition.FIX_TO_WORK_ON_JAVA9)
+    @Requires(TestPrecondition.JDK8_OR_EARLIER)
     def canWorkWithPowerMock() {
         given:
         buildFile << """
@@ -80,7 +80,7 @@ apply plugin: 'java'
 ${mavenCentralRepository()}
 
 dependencies {
-    testImplementation "junit:junit:4.12"
+    testImplementation "junit:junit:4.13"
     testImplementation "org.powermock:powermock-api-mockito:1.6.5"
     testImplementation "org.powermock:powermock-module-junit4:1.6.5"
 }

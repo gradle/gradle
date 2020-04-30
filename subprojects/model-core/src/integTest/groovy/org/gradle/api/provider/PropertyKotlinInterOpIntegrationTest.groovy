@@ -44,6 +44,8 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOp
                 @Internal
                 val message = objectFactory.property(String::class.java)
                 @Internal
+                val number = objectFactory.property(Double::class.java)
+                @Internal
                 val list = objectFactory.listProperty(Int::class.java)
                 @Internal
                 val set = objectFactory.setProperty(Int::class.java)
@@ -54,6 +56,7 @@ class PropertyKotlinInterOpIntegrationTest extends AbstractPropertyKotlinInterOp
                 fun run() {
                     println("flag = " + flag.get())
                     println("message = " + message.get())
+                    println("number = " + number.get())
                     println("list = " + list.get())
                     println("set = " + set.get())
                     println("map = " + map.get())

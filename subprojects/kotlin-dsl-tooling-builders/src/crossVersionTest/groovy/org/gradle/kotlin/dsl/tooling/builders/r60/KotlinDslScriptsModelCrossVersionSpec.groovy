@@ -31,7 +31,7 @@ import java.lang.reflect.Proxy
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.hasItem
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 
 @TargetGradleVersion(">=6.0")

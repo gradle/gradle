@@ -37,7 +37,7 @@ import java.util.Map;
 
 // TODO - bust up this hierarchy and compose using interfaces instead
 public abstract class AbstractBinaryRenderer<T extends BinarySpec> extends ReportRenderer<BinarySpec, TextReportBuilder> {
-    private ModelSchemaStore schemaStore;
+    private final ModelSchemaStore schemaStore;
 
     protected AbstractBinaryRenderer(ModelSchemaStore schemaStore) {
         this.schemaStore = schemaStore;

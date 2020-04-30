@@ -511,7 +511,9 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         public FinalizationState<S> finalState() {
-            throw unexpected();
+            // TODO - it is currently possible for multiple threads to finalize a property instance concurrently (https://github.com/gradle/gradle/issues/12811)
+            // This should be strict
+            return this;
         }
 
         @Override

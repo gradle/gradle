@@ -16,15 +16,17 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.internal.Cast;
+
 /**
  * Type literal, useful for nested Generics.
  */
 public class TypeInfo<T> {
     private final Class<T> targetType;
 
-    public TypeInfo(Class targetType) {
+    public TypeInfo(Class<?> targetType) {
         assert targetType != null;
-        this.targetType = targetType;
+        this.targetType = Cast.uncheckedNonnullCast(targetType);
     }
 
     public Class<T> getTargetType() {

@@ -90,6 +90,14 @@ dependencies {
     integTestRuntimeOnly(project(":apiMetadata"))
 }
 
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/tooling/**"))
+}
+
 apply(from = "buildship.gradle")
 
 tasks.withType<IntegrationTest>().configureEach {

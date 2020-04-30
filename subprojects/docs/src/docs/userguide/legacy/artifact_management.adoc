@@ -36,8 +36,8 @@ You can use an archive task to define an artifact:
 
 .Defining an artifact using an archive task
 ====
-include::sample[dir="snippets/userguide/artifacts/uploading/groovy",files="build.gradle[tags=archive-artifact]"]
-include::sample[dir="snippets/userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=archive-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/groovy",files="build.gradle[tags=archive-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/kotlin",files="build.gradle.kts[tags=archive-artifact]"]
 ====
 
 It is important to note that the custom archives you are creating as part of your build are not automatically assigned to any configuration. You have to explicitly do this assignment.
@@ -49,24 +49,24 @@ You can also use a file to define an artifact:
 
 .Defining an artifact using a file
 ====
-include::sample[dir="snippets/userguide/artifacts/uploading/groovy",files="build.gradle[tags=file-artifact]"]
-include::sample[dir="snippets/userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=file-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/groovy",files="build.gradle[tags=file-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/kotlin",files="build.gradle.kts[tags=file-artifact]"]
 ====
 
 Gradle will figure out the properties of the artifact based on the name of the file. You can customize these properties:
 
 .Customizing an artifact
 ====
-include::sample[dir="snippets/userguide/artifacts/uploading/groovy",files="build.gradle[tags=customized-file-artifact]"]
-include::sample[dir="snippets/userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=customized-file-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/groovy",files="build.gradle[tags=customized-file-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/kotlin",files="build.gradle.kts[tags=customized-file-artifact]"]
 ====
 
 There is a map-based syntax for defining an artifact using a file. The map must include a `file` entry that defines the file. The map may include other artifact properties:
 
 .Map syntax for defining an artifact using a file
 ====
-include::sample[dir="snippets/userguide/artifacts/uploading/groovy",files="build.gradle[tags=map-file-artifact]"]
-include::sample[dir="snippets/userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=map-file-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/groovy",files="build.gradle[tags=map-file-artifact]"]
+include::sample[dir="snippets/artifacts/uploading/kotlin",files="build.gradle.kts[tags=map-file-artifact]"]
 ====
 
 
@@ -80,8 +80,8 @@ In fact, some of those repositories only allow downloading artifacts, not upload
 
 .Configuration of the upload task
 ====
-include::sample[dir="snippets/userguide/artifacts/uploading/groovy",files="build.gradle[tags=uploading]"]
-include::sample[dir="snippets/userguide/artifacts/uploading/kotlin",files="build.gradle.kts[tags=uploading]"]
+include::sample[dir="snippets/artifacts/uploading/groovy",files="build.gradle[tags=uploading]"]
+include::sample[dir="snippets/artifacts/uploading/kotlin",files="build.gradle.kts[tags=uploading]"]
 ====
 
 As you can see, you can either use a reference to an existing repository or create a new repository.

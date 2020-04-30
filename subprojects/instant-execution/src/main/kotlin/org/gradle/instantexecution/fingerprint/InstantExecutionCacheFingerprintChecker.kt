@@ -17,11 +17,13 @@
 package org.gradle.instantexecution.fingerprint
 
 import org.gradle.api.Describable
+import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.api.internal.file.FileCollectionInternal
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.internal.hash.HashCode
+import org.gradle.internal.util.NumberUtil.ordinal
 import java.io.File
 
 
@@ -33,6 +35,7 @@ internal
 class InstantExecutionCacheFingerprintChecker(private val host: Host) {
 
     interface Host {
+        val allInitScripts: List<File>
         fun fingerprintOf(fileCollection: FileCollectionInternal): HashCode
         fun hashCodeOf(file: File): HashCode?
         fun displayNameOf(fileOrDirectory: File): String
@@ -52,12 +55,17 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                     }
                 }
                 is InstantExecutionCacheFingerprint.InputFile -> input.run {
-                    if (host.hashCodeOf(file) != hash) {
-                        return "configuration file '${displayNameOf(file)}' has changed"
+                    if (hasFileChanged(file, hash)) {
+                        return "file '${displayNameOf(file)}' has changed"
                     }
                 }
                 is InstantExecutionCacheFingerprint.ValueSource -> input.run {
                     checkFingerprintValueIsUpToDate(obtainedValue)?.let { reason ->
+                        return reason
+                    }
+                }
+                is InstantExecutionCacheFingerprint.InitScripts -> input.run {
+                    checkInitScriptsAreUpToDate(fingerprints, host.allInitScripts)?.let { reason ->
                         return reason
                     }
                 }
@@ -67,8 +75,42 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     }
 
     private
-    fun displayNameOf(file: File) =
-        host.displayNameOf(file)
+    fun checkInitScriptsAreUpToDate(
+        previous: List<InstantExecutionCacheFingerprint.InputFile>,
+        current: List<File>
+    ): InvalidationReason? =
+        when (val upToDatePrefix = countUpToDatePrefixOf(previous, current)) {
+            previous.size -> {
+                val added = current.size - upToDatePrefix
+                when {
+                    added == 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' has been added"
+                    added > 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' and ${added - 1} more have been added"
+                    else -> null
+                }
+            }
+            current.size -> {
+                val removed = previous.size - upToDatePrefix
+                when {
+                    removed == 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' has been removed"
+                    removed > 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' and ${removed - 1} more have been removed"
+                    else -> null
+                }
+            }
+            else -> {
+                when (val modifiedScript = current[upToDatePrefix]) {
+                    previous[upToDatePrefix].file -> "init script '${displayNameOf(modifiedScript)}' has changed"
+                    else -> "content of ${ordinal(upToDatePrefix + 1)} init script, '${displayNameOf(modifiedScript)}', has changed"
+                }
+            }
+        }
+
+    private
+    fun countUpToDatePrefixOf(
+        previous: List<InstantExecutionCacheFingerprint.InputFile>,
+        current: List<File>
+    ): Int = current.zip(previous)
+        .takeWhile { (initScript, fingerprint) -> isUpToDate(initScript, fingerprint.hash) }
+        .count()
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {
@@ -80,8 +122,20 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     }
 
     private
+    fun hasFileChanged(file: File, originalHash: HashCode?) =
+        !isUpToDate(file, originalHash)
+
+    private
+    fun isUpToDate(file: File, originalHash: HashCode?) =
+        host.hashCodeOf(file) == originalHash
+
+    private
+    fun displayNameOf(file: File) =
+        host.displayNameOf(file)
+
+    private
     fun buildLogicInputHasChanged(valueSource: ValueSource<Any, ValueSourceParameters>): InvalidationReason =
         (valueSource as? Describable)?.let {
             it.displayName + " has changed"
-        } ?: "a build logic input of type '${valueSource.javaClass.simpleName}' has changed"
+        } ?: "a build logic input of type '${unpackType(valueSource).simpleName}' has changed"
 }

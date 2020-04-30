@@ -19,21 +19,8 @@ import org.gradle.plugins.strictcompile.StrictCompileExtension
 
 val strictCompile = extensions.create<StrictCompileExtension>("strictCompile")
 
-afterEvaluate {
+val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile")
 
-    val strictCompilerArgs = listOf("-Werror", "-Xlint:all", "-Xlint:-options", "-Xlint:-serial", "-Xlint:-classfile")
-
-    val ignoreDeprecationsArg = "-Xlint:-deprecation"
-
-    val compilerArgs =
-        if (strictCompile.ignoreDeprecations) strictCompilerArgs + ignoreDeprecationsArg
-        else strictCompilerArgs
-
-    tasks.withType<JavaCompile>().configureEach {
-        options.compilerArgs.addAll(compilerArgs)
-    }
-
-    tasks.withType<GroovyCompile>().configureEach {
-        options.compilerArgs.addAll(compilerArgs)
-    }
+tasks.withType<JavaCompile>().configureEach {
+    options.compilerArgs.addAll(strictCompilerArgs)
 }

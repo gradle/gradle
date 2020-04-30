@@ -40,6 +40,7 @@ public interface ScalaSourceSet {
      * @param configureClosure The closure to use to configure the Scala source.
      * @return this
      */
+    @SuppressWarnings("rawtypes")
     ScalaSourceSet scala(Closure configureClosure);
 
     /**

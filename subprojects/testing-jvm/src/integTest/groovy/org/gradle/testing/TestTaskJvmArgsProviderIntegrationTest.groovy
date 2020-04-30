@@ -45,9 +45,9 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
             ${mavenCentralRepository()}
 
             dependencies {
-                testImplementation "junit:junit:4.12"
-            }              
-                                   
+                testImplementation "junit:junit:4.13"
+            }
+
             class MyTestSystemProperties implements CommandLineArgumentProvider {
                 @InputFile
                 @PathSensitive(PathSensitivity.NONE)

@@ -17,7 +17,6 @@
 import build.kotlinVersion
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 dependencies {
@@ -56,6 +55,10 @@ dependencies {
 
     integTestRuntimeOnly(project(":apiMetadata"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+}
+
+strictCompile {
+    ignoreRawTypes() // raw types used in public API
 }
 
 classycle {

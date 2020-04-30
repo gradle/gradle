@@ -26,6 +26,7 @@ import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.ComponentSpecContainer;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 
+import javax.annotation.Nullable;
 import java.util.Set;
 
 import static org.gradle.model.internal.type.ModelTypes.modelMap;
@@ -66,10 +67,12 @@ public class DependentComponentsUtils {
         return components;
     }
 
+    @Nullable
     private static <T> T modelElement(ModelRegistry registry, String path, Class<T> clazz) {
         return registry.find(path, clazz);
     }
 
+    @Nullable
     private static <T> T modelElement(ModelRegistry registry, String path, ModelType<T> modelType) {
         return registry.find(path, modelType);
     }

@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.collect.Sets;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
@@ -50,6 +49,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.typeconversion.NotationParser;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.Collection;
 import java.util.LinkedHashSet;
@@ -215,7 +215,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         Set<DependencyResult> selectedDependencies = selectDependencies(configuration, errorHandler);
 
         if (selectedDependencies.isEmpty()) {
-            output.println("No dependencies matching given input were found in " + String.valueOf(configuration));
+            output.println("No dependencies matching given input were found in " + configuration);
             return;
         }
         errorHandler.renderErrors(output);
@@ -242,7 +242,7 @@ public class DependencyInsightReportTask extends DefaultTask {
         output.println(" option.");
     }
 
-    private void assertValidTaskConfiguration(Configuration configuration) {
+    private void assertValidTaskConfiguration(@Nullable Configuration configuration) {
         if (configuration == null) {
             throw new InvalidUserDataException("Dependency insight report cannot be generated because the input configuration was not specified. "
                     + "\nIt can be specified from the command line, e.g: '" + getPath() + " --configuration someConf --dependency someDep'");
@@ -258,13 +258,10 @@ public class DependencyInsightReportTask extends DefaultTask {
         ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) configuration.getIncoming();
         ResolutionResult result = incoming.getResolutionResult(errorHandler);
 
-        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<DependencyResult>();
-        result.allDependencies(new Action<DependencyResult>() {
-            @Override
-            public void execute(DependencyResult dependencyResult) {
-                if (dependencySpec.isSatisfiedBy(dependencyResult)) {
-                    selectedDependencies.add(dependencyResult);
-                }
+        final Set<DependencyResult> selectedDependencies = new LinkedHashSet<>();
+        result.allDependencies(dependencyResult -> {
+            if (dependencySpec.isSatisfiedBy(dependencyResult)) {
+                selectedDependencies.add(dependencyResult);
             }
         });
         return selectedDependencies;
@@ -280,14 +277,13 @@ public class DependencyInsightReportTask extends DefaultTask {
                     if (actualValue.equals(requestedValue)) {
                         return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
                     }
-                    return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
                 } else {
                     // maybe it matched through coercion
                     if (actualValue.toString().equals(requestedValue.toString())) {
                         return new AttributeMatchDetails(MatchType.requested, requested, requestedValue);
                     }
-                    return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
                 }
+                return new AttributeMatchDetails(MatchType.different_value, requested, requestedValue);
             }
         }
         return new AttributeMatchDetails(MatchType.not_requested, null, null);
@@ -295,10 +291,12 @@ public class DependencyInsightReportTask extends DefaultTask {
 
     private static class AttributeMatchDetails {
         private final MatchType matchType;
+        @Nullable
         private final Attribute<?> requested;
+        @Nullable
         private final Object requestedValue;
 
-        private AttributeMatchDetails(MatchType matchType, Attribute<?> requested, Object requestedValue) {
+        private AttributeMatchDetails(MatchType matchType, @Nullable Attribute<?> requested, @Nullable Object requestedValue) {
             this.matchType = matchType;
             this.requested = requested;
             this.requestedValue = requestedValue;

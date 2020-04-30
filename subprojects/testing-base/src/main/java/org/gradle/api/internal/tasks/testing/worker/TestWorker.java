@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.internal.Cast;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
@@ -90,7 +91,7 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
     private void startReceivingTests(WorkerProcessContext workerProcessContext, ServiceRegistry testServices) {
         TestClassProcessor targetProcessor = factory.create(testServices);
-        IdGenerator<Object> idGenerator = testServices.get(IdGenerator.class);
+        IdGenerator<Object> idGenerator = Cast.uncheckedNonnullCast(testServices.get(IdGenerator.class));
 
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
                 workerProcessContext.getDisplayName(), testServices.get(Clock.class));

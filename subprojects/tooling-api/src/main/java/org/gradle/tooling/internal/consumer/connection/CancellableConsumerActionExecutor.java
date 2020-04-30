@@ -44,4 +44,9 @@ public class CancellableConsumerActionExecutor implements ConsumerActionExecutor
         }
         return delegate.run(action);
     }
+
+    @Override
+    public void disconnect() {
+        delegate.disconnect();
+    }
 }

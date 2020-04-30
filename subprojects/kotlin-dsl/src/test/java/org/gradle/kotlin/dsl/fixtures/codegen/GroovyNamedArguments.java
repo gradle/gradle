@@ -22,6 +22,7 @@ import java.util.function.Consumer;
 
 public interface GroovyNamedArguments {
 
+    @SuppressWarnings("rawtypes")
     void rawMap(Map args);
 
     void stringUnknownMap(Map<String, ?> args);

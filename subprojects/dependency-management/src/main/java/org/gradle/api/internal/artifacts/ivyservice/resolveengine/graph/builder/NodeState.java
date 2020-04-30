@@ -305,6 +305,12 @@ public class NodeState implements DependencyGraphNode {
         // (it used to be) because if the filters are _equivalent_, we would
         // revisit all dependencies and possibly change the classpath order!
         boolean sameDependencies = dependencies(newResolutionFilter).equals(oldStates);
+        if (sameDependencies) {
+            // While there will be no change to this node, there might be changes to the nodes it brings as the exclude change could concern them
+            for (EdgeState outgoingEdge : outgoingEdges) {
+                outgoingEdge.updateTransitiveExcludes(newResolutionFilter);
+            }
+        }
         if (LOGGER.isDebugEnabled()) {
             if (sameDependencies) {
                 LOGGER.debug("Filter {} excludes same dependencies as previous {}. Dependencies left = {}", newResolutionFilter, previousTraversalExclusions, oldStates);
@@ -1148,5 +1154,12 @@ public class NodeState implements DependencyGraphNode {
             resolvedVariantCapabilities
         );
         return cachedVariantResult;
+    }
+
+    public void updateTransitiveExcludes() {
+        cachedModuleResolutionFilter = null;
+        if (isSelected()) {
+            resolveState.onMoreSelected(this);
+        }
     }
 }

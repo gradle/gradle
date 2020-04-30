@@ -40,7 +40,7 @@ class IvyPublishWarIntegTest extends AbstractIvyPublishIntegTest {
                 runtimeOnly "commons-io:commons-io:1.4"
                 providedCompile "commons-lang:commons-lang:2.6"
                 providedRuntime "commons-cli:commons-cli:1.2"
-                testImplementation "junit:junit:4.12"
+                testImplementation "junit:junit:4.13"
             }
 
             publishing {

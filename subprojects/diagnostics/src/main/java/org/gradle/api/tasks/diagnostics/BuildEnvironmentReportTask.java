@@ -17,11 +17,8 @@ package org.gradle.api.tasks.diagnostics;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportGenerator;
@@ -31,7 +28,6 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 
 import javax.inject.Inject;
-import java.io.IOException;
 import java.util.Collections;
 
 /**
@@ -52,12 +48,7 @@ public class BuildEnvironmentReportTask extends DefaultTask {
     private DependencyReportRenderer renderer = new AsciiDependencyReportRenderer();
 
     public BuildEnvironmentReportTask() {
-        getOutputs().upToDateWhen(new Spec<Task>() {
-            @Override
-            public boolean isSatisfiedBy(Task element) {
-                return false;
-            }
-        });
+        getOutputs().upToDateWhen(element -> false);
     }
 
     @Inject
@@ -72,14 +63,11 @@ public class BuildEnvironmentReportTask extends DefaultTask {
 
     @TaskAction
     public void generate() {
-        ProjectReportGenerator projectReportGenerator = new ProjectReportGenerator() {
-            @Override
-            public void generateReport(Project project) throws IOException {
-                Configuration configuration = getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
-                renderer.startConfiguration(configuration);
-                renderer.render(configuration);
-                renderer.completeConfiguration(configuration);
-            }
+        ProjectReportGenerator projectReportGenerator = project -> {
+            Configuration configuration = getProject().getBuildscript().getConfigurations().getByName(ScriptHandler.CLASSPATH_CONFIGURATION);
+            renderer.startConfiguration(configuration);
+            renderer.render(configuration);
+            renderer.completeConfiguration(configuration);
         };
 
         ReportGenerator reportGenerator = new ReportGenerator(renderer, getClientMetaData(), null,

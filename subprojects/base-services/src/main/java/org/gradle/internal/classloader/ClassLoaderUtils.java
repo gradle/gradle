@@ -16,7 +16,6 @@
 package org.gradle.internal.classloader;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
@@ -141,6 +140,7 @@ public abstract class ClassLoaderUtils {
             }
         }
 
+        @SuppressWarnings("unchecked")
         protected <T> T invoke(ClassLoader classLoader, String methodName, MethodType methodType, Object... arguments) {
             try {
                 MethodHandles.Lookup lookup = getLookupForClassLoader(classLoader);
@@ -162,6 +162,7 @@ public abstract class ClassLoaderUtils {
     }
 
     private static class ReflectionClassDefiner implements ClassDefiner {
+        @SuppressWarnings("rawtypes")
         private final JavaMethod<ClassLoader, Class> defineClassMethod;
 
         private ReflectionClassDefiner() {
@@ -169,8 +170,9 @@ public abstract class ClassLoaderUtils {
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         public <T> Class<T> defineClass(ClassLoader classLoader, String className, byte[] classBytes) {
-            return Cast.uncheckedCast(defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length));
+            return (Class<T>) defineClassMethod.invoke(classLoader, className, classBytes, 0, classBytes.length);
         }
 
         @Override
@@ -180,7 +182,7 @@ public abstract class ClassLoaderUtils {
     }
 
     private static class LookupClassDefiner extends AbstractClassLoaderLookuper implements ClassDefiner {
-        private MethodType defineClassMethodType = MethodType.methodType(Class.class, new Class[]{String.class, byte[].class, int.class, int.class});
+        private MethodType defineClassMethodType = MethodType.methodType(Class.class, new Class<?>[]{String.class, byte[].class, int.class, int.class});
 
         @Override
         @SuppressWarnings("unchecked")
@@ -221,8 +223,8 @@ public abstract class ClassLoaderUtils {
     }
 
     private static class LookupPackagesFetcher extends AbstractClassLoaderLookuper implements ClassLoaderPackagesFetcher {
-        private MethodType getPackagesMethodType = MethodType.methodType(Package[].class, new Class[]{});
-        private MethodType getDefinedPackageMethodType = MethodType.methodType(Package.class, new Class[]{String.class});
+        private MethodType getPackagesMethodType = MethodType.methodType(Package[].class, new Class<?>[]{});
+        private MethodType getDefinedPackageMethodType = MethodType.methodType(Package.class, new Class<?>[]{String.class});
 
         @Override
         public Package[] getPackages(ClassLoader classLoader) {

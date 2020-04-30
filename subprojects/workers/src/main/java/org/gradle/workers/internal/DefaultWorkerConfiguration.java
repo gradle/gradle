@@ -20,6 +20,7 @@ import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.ActionConfiguration;
 import org.gradle.api.internal.DefaultActionConfiguration;
+import org.gradle.internal.Cast;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.util.GUtil;
@@ -90,7 +91,7 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
 
     @Override
     public void classpath(Iterable<File> files) {
-        GUtil.addToCollection(classpath, files);
+        GUtil.addToCollection(classpath, Cast.uncheckedNonnullCast(new Iterable<?>[]{files}));
     }
 
     @Override
@@ -109,6 +110,7 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public ForkMode getForkMode() {
         switch (getIsolationMode()) {
             case AUTO:
@@ -124,6 +126,7 @@ public class DefaultWorkerConfiguration extends DefaultActionConfiguration imple
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public void setForkMode(ForkMode forkMode) {
         switch (forkMode) {
             case AUTO:

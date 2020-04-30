@@ -20,15 +20,29 @@ pluginManagement {
     repositories {
         gradlePluginPortal()
         maven { url = uri("https://repo.gradle.org/gradle/libs-releases") }
+        maven { url = uri("https://repo.gradle.org/gradle/enterprise-libs-release-candidates-local") }
+    }
+
+    // No plugin marker for plugin RC - can be removed when going to a final version
+    resolutionStrategy {
+        eachPlugin {
+            if (requested.id.id == "com.gradle.enterprise") {
+                useModule("com.gradle:gradle-enterprise-gradle-plugin:${requested.version}")
+            }
+        }
     }
 }
 
 plugins {
-    id("com.gradle.enterprise").version("3.2.1")
+    id("com.gradle.enterprise").version("3.3-rc-1")
 }
 
 apply(from = "gradle/build-cache-configuration.settings.gradle.kts")
 apply(from = "gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
+// If you include a new subproject here, you will need to execute the
+// ./gradlew generateSubprojectsInfo
+// task to update metadata about the build for CI
 
 include("instantExecution")
 include("instantExecutionReport")
@@ -88,6 +102,7 @@ include("platformNative")
 include("platformJvm")
 include("languageJvm")
 include("languageJava")
+include("javaCompilerPlugin")
 include("languageGroovy")
 include("languageNative")
 include("toolingNative")
@@ -118,6 +133,7 @@ include("fileCollections")
 include("files")
 include("hashing")
 include("snapshots")
+include("fileWatching")
 include("architectureTest")
 include("buildCachePackaging")
 include("execution")

@@ -45,6 +45,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         and:
         instant.assertStateStoreFailed()
         problems.assertFailureHasError(failure, errorSpec)
+        failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(9)
         failure.assertHasCause("BOOM")
@@ -59,6 +60,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         and:
         instant.assertStateStoreFailed()
         problems.assertFailureHasError(failure, errorSpec)
+        failure.assertHasFailures(1)
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(9)
         failure.assertHasCause("BOOM")
@@ -80,6 +82,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
             withUniqueProblems(taskExecutionProblems + stateSerializationProblems.store)
             withProblemsWithStackTraceCount(2)
         }
+        failure.assertHasFailures(1)
 
         when:
         problems.withDoNotFailOnProblems()
@@ -157,6 +160,40 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
         and:
         failure.assertHasDescription("Execution failed for task ':taskWithStateSerializationProblems'.")
         failure.assertHasCause("java.lang.Exception: BOOM")
+    }
+
+    def "report does not include configuration and runtime problems from buildSrc"() {
+        file("buildSrc/build.gradle") << """
+            // These should not be reported, as neither of these are serialized
+            gradle.buildFinished { }
+            classes.doLast { t -> t.project }
+        """
+        file("build.gradle") << """
+            gradle.addListener(new BuildAdapter())
+            task broken {
+                inputs.property('p', project)
+            }
+        """
+
+        when:
+        instantFails("broken")
+
+        then:
+        problems.assertFailureHasProblems(failure) {
+            withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
+        }
+        failure.assertHasFailures(1)
+
+        when:
+        problems.withDoNotFailOnProblems()
+        instantRun("broken")
+
+        then:
+        problems.assertResultHasProblems(result) {
+            withProblem("input property 'p' of ':broken': cannot serialize object of type 'org.gradle.api.internal.project.DefaultProject', a subtype of 'org.gradle.api.Project', as these are not supported with instant execution.")
+            withProblem("unknown location: registration of listener on 'Gradle.addListener' is unsupported")
+        }
     }
 
     private List<String> withStateSerializationErrors() {
@@ -281,7 +318,7 @@ class InstantExecutionReportIntegrationTest extends AbstractInstantExecutionInte
 
         then:
         problems.assertFailureHasProblems(failure) {
-            withUniqueProblems("unknown property: registration of listener on '$registrationPoint' is unsupported")
+            withUniqueProblems("unknown location: registration of listener on '$registrationPoint' is unsupported")
             withProblemsWithStackTraceCount(1)
         }
 

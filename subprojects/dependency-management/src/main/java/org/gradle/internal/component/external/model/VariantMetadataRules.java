@@ -51,7 +51,7 @@ public class VariantMetadataRules {
     private VariantAttributesRules variantAttributesRules;
     private CapabilitiesRules capabilitiesRules;
     private VariantFilesRules variantFilesRules;
-    private VariantDerivationStrategy variantDerivationStrategy = new NoOpDerivationStrategy();
+    private VariantDerivationStrategy variantDerivationStrategy = NoOpDerivationStrategy.getInstance();
     private final ModuleVersionIdentifier moduleVersionId;
     private List<AdditionalVariant> additionalVariants = Lists.newArrayList();
 

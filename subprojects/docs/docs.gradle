@@ -21,6 +21,7 @@ plugins {
     id 'org.asciidoctor.convert'
     id 'gradlebuild.documentation'
     id 'org.gradle.samples' version "0.16.3"
+    id 'gradlebuild.internal.java'
 }
 
 repositories { handler ->
@@ -70,6 +71,10 @@ dependencies {
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
 }
 
+configurations.testImplementation {
+    extendsFrom(configurations.fullGradleRuntime)
+}
+
 asciidoctorj {
     version = '1.5.8.1'
     noDefaultRepositories = true
@@ -94,7 +99,6 @@ samples {
         javaAndroidApplication
         springBootWebApplication
         gradlePluginInJava
-        precompiledScriptPlugin
         buildSrcPluginJavaModuleTransform
 
         javaApplication
@@ -169,6 +173,30 @@ samples {
         kotlinUtilitiesLibrary
 
         projectInfoPlugin
+
+        precompiledScriptPluginGroovy {
+            target = "plugin"
+        }
+        precompiledScriptPluginGroovyInBuildSrc {
+            sourceDirectory = precompiledScriptPluginGroovy.sourceDirectory
+            target = "buildSrc"
+        }
+
+        precompiledScriptPluginKotlin {
+            target = "plugin"
+        }
+        precompiledScriptPluginKotlinInBuildSrc {
+            sourceDirectory = precompiledScriptPluginKotlin.sourceDirectory
+            target = "buildSrc"
+        }
+
+        precompiledScriptPluginUtils {
+            target = "plugin"
+        }
+        precompiledScriptPluginUtilsInBuildSrc {
+            sourceDirectory = precompiledScriptPluginUtils.sourceDirectory
+            target = "buildSrc"
+        }
     }
 
     publishedSamples {
@@ -188,9 +216,10 @@ samples {
         }
 
         jvmMultiProjectWithAdditionalTestTypes {
-            displayName = "Additional test types"
+            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-additional-test-types")
+            displayName = "Using additional test types"
             description = "Add an additional test type (e.g. integration tests) to a project."
-            category = "JVM"
+            category = "Java"
 
             common {
                 from(templates.javaApplicationAsSubproject)
@@ -204,18 +233,6 @@ samples {
                 from(templates.javaUtilitiesLibraryAsSubproject)
             }
         }
-
-        jvmMultiProjectBuild {
-            displayName = "Multi-project build"
-            description = "Use dependencies in a multi-project build."
-            category = "JVM"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-            }
-        }
-
         javaApplication {
             sampleDirectory = samplesRoot.dir("java/application")
             description = "Build a Java application."
@@ -308,7 +325,7 @@ samples {
             }
         }
         jvmMultiProjectWithCodeCoverage {
-            sampleDirectory = samplesRoot.dir("jvm-multi-project-with-code-coverage")
+            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-code-coverage")
             displayName = "Reporting code coverage with JaCoCo"
             description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
             category = "Java"
@@ -392,12 +409,8 @@ samples {
             }
         }
 
-        precompiledScriptPlugin {
-            description = "Use Groovy or Kotlin DSL in a precompiled script plugin."
-            category = "Build organization"
-        }
-
         gradlePlugin {
+            sampleDirectory = samplesRoot.dir("build-organization/gradle-plugin")
             description = "Organize your build logic into a Gradle plugin written in Java."
             category = "Build organization"
             common {
@@ -405,14 +418,68 @@ samples {
             }
         }
 
+        precompiledScriptPlugin {
+            sampleDirectory = samplesRoot.dir("build-organization/precompiled-script-plugin")
+            description = "Use the Groovy or Kotlin DSL in a Gradle plugin."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPluginUtils)
+            }
+            groovy {
+                from(templates.precompiledScriptPluginGroovy)
+            }
+            kotlin {
+                from(templates.precompiledScriptPluginKotlin)
+            }
+        }
+
+        precompiledScriptPluginInBuildSrc {
+            sampleDirectory = samplesRoot.dir("build-organization/multi-project-with-precompiled-script-plugins")
+            displayName = "Precompiled Script Plugin in buildSrc"
+            description = "Use the Groovy or Kotlin DSL in a Gradle plugin in buildSrc."
+            category = "Build organization"
+            common {
+                from(templates.precompiledScriptPluginUtilsInBuildSrc)
+            }
+            groovy {
+                from(templates.precompiledScriptPluginGroovyInBuildSrc)
+            }
+            kotlin {
+                from(templates.precompiledScriptPluginKotlinInBuildSrc)
+            }
+        }
+
+        jvmMultiProjectBuild {
+            sampleDirectory = samplesRoot.dir("build-organization/jvm-multi-project-build")
+            displayName = "Multi-project build (JVM)"
+            description = "Use dependencies in a multi-project build."
+            category = "Build organization"
+            common {
+                from(templates.javaApplicationAsSubproject)
+                from(templates.javaListLibraryAsSubproject)
+                from(templates.javaUtilitiesLibraryAsSubproject)
+            }
+        }
+
         taskWithArguments {
-            description = "Pass arguments to a custom task"
-            category = "Plugins"
+            sampleDirectory = samplesRoot.dir("build-organization/task-with-arguments")
+            description = "Pass command-line arguments to a custom task."
+            category = "Build organization"
             common {
                 from(templates.projectInfoPlugin)
             }
         }
     }
+}
+
+// The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
+// Exemplar doesn't know about that it's running in the context of the gradle/gradle build
+// so it uses the Gradle distribution from the running build. This is not correct, because
+// we want to verify that the samples work with the Gradle distribution being built.
+tasks.named('docsTest').configure() { task ->
+    task.dependsOn(tasks.named('intTestImage'))
+    // TODO we usen absolute path here which makes the task not cacheable
+    task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
 }
 
 // TODO: Fix upstream plugin to disable Checkstyle checks for the generated sources

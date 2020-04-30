@@ -107,6 +107,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                     /**
                      * The `my` plugin group.
                      */
+                    @org.gradle.api.Generated
                     class `MyPluginGroup`(internal val plugins: PluginDependenciesSpec)
 
 
@@ -120,6 +121,7 @@ class PluginAccessorsClassPathTest : TestWithClassPath() {
                     /**
                      * The `my.own` plugin group.
                      */
+                    @org.gradle.api.Generated
                     class `MyOwnPluginGroup`(internal val plugins: PluginDependenciesSpec)
 
 

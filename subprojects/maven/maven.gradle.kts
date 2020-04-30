@@ -75,6 +75,17 @@ dependencies {
     testFixturesImplementation(project(":dependencyManagement"))
 }
 
+strictCompile {
+    ignoreDeprecations() // old 'maven' publishing mechanism: types are deprecated
+    ignoreRawTypes() // old 'maven' publishing mechanism: raw types used in public API
+}
+
+classycle {
+    excludePatterns.set(listOf(
+        "org/gradle/api/publication/maven/internal/**",
+        "org/gradle/api/artifacts/maven/**"))
+}
+
 testFilesCleanup {
     policy.set(WhenNotEmpty.REPORT)
 }

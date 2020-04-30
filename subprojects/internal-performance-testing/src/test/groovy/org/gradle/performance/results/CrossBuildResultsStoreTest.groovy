@@ -29,7 +29,7 @@ class CrossBuildResultsStoreTest extends ResultSpecification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     @Rule
-    SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.mysql.url": "jdbc:h2:" + tmpDir.testDirectory)
+    SetSystemProperties properties = new SetSystemProperties("org.gradle.performance.db.url": "jdbc:h2:" + tmpDir.testDirectory)
 
     final dbName = "cross-build-results"
 

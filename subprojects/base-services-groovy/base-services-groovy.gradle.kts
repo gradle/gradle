@@ -15,7 +15,6 @@
  */
 plugins {
     gradlebuild.distribution.`core-api-java`
-    // gradlebuild.classycle <- DynamicObjectAware and DynamicObjectUtil should move to org.gradle.internal.metaobject (but it breaks third-party plugins)
 }
 
 dependencies {
@@ -25,4 +24,8 @@ dependencies {
     implementation(library("guava"))
 
     testImplementation(testFixtures(project(":core")))
+}
+
+strictCompile {
+    ignoreParameterizedVarargType() // [unchecked] Possible heap pollution from parameterized vararg type: org.gradle.api.specs.AndSpec.and()
 }

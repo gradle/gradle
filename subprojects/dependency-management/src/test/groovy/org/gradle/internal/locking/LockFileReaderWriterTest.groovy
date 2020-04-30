@@ -50,6 +50,7 @@ class LockFileReaderWriterTest extends Specification {
 
     def 'writes a unique lock file'() {
         when:
+        lockDir.deleteDir()
         lockFileReaderWriter.writeUniqueLockfile([a: ['foo', 'bar'], b: ['foo'], c: []])
 
         then:
@@ -58,10 +59,25 @@ bar=a
 foo=a,b
 empty=c
 """.denormalize()
+        !lockDir.exists()
+    }
+
+    def 'writes dependencies and configurations sorted in the unique lock file'() {
+        when:
+        lockFileReaderWriter.writeUniqueLockfile([b: ['foo', 'bar'], d: ['bar', 'foobar'],a: ['foo'], e: [], f: [], c: []])
+
+        then:
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME).text == """${LockFileReaderWriter.LOCKFILE_HEADER_LIST.join('\n')}
+bar=b,d
+foo=a,b
+foobar=d
+empty=c,e,f
+""".denormalize()
     }
 
     def 'writes a unique lock file to a custom location'() {
         def lockFile = tmpDir.file('different', 'lock.file')
+        lockDir.deleteDir()
         given:
         this.lockFile.set(lockFile)
 
@@ -74,6 +90,7 @@ bar=a
 foo=a,b
 empty=c
 """.denormalize()
+        !lockDir.exists()
     }
 
     def 'writes a legacy lock file on persist'() {

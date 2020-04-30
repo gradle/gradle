@@ -16,6 +16,7 @@
 
 package org.gradle.internal.typeconversion;
 
+import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DiagnosticsVisitor;
 import org.gradle.util.GUtil;
 
@@ -44,7 +45,7 @@ public class FlatteningNotationParser<N, T> implements NotationParser<N, Set<T>>
 
     @Override
     public Set<T> parseNotation(N notation) {
-        Collection<N> notations = GUtil.collectionize(notation);
+        Collection<N> notations = Cast.uncheckedNonnullCast(GUtil.collectionize(notation));
         if (notations.isEmpty()) {
             return Collections.emptySet();
         }

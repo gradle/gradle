@@ -47,7 +47,7 @@ class JUnitTestSuiteComponentReportIntegrationTest extends AbstractComponentRepo
         model {
             testSuites {
                 test(JUnitTestSuiteSpec) {
-                    jUnitVersion = 4.12
+                    jUnitVersion = 4.13
                 }
             }
         }
@@ -72,7 +72,7 @@ Binaries
         build using task: :testBinary
         run using task: :testBinaryTest
         target platform: $currentJava
-        JUnit version: 4.12
+        JUnit version: 4.13
         tool chain: $currentJdk
         classes dir: build/classes/test/binary
         resources dir: build/resources/test/binary
@@ -85,10 +85,10 @@ Binaries
 model {
     testSuites {
         unitTest(JUnitTestSuiteSpec) {
-            jUnitVersion = 4.12
+            jUnitVersion = 4.13
         }
         functionalTest(JUnitTestSuiteSpec) {
-            jUnitVersion = 4.12
+            jUnitVersion = 4.13
         }
     }
 }
@@ -113,7 +113,7 @@ Binaries
         build using task: :functionalTestBinary
         run using task: :functionalTestBinaryTest
         target platform: $currentJava
-        JUnit version: 4.12
+        JUnit version: 4.13
         tool chain: $currentJdk
         classes dir: build/classes/functionalTest/binary
         resources dir: build/resources/functionalTest/binary
@@ -132,7 +132,7 @@ Binaries
         build using task: :unitTestBinary
         run using task: :unitTestBinaryTest
         target platform: $currentJava
-        JUnit version: 4.12
+        JUnit version: 4.13
         tool chain: $currentJdk
         classes dir: build/classes/unitTest/binary
         resources dir: build/resources/unitTest/binary
@@ -148,7 +148,7 @@ Binaries
             }
             testSuites {
                 unitTest(JUnitTestSuiteSpec) {
-                    jUnitVersion = 4.12
+                    jUnitVersion = 4.13
                     testing $.components.main
                 }
             }
@@ -193,7 +193,7 @@ Binaries
         build using task: :unitTestMainJarBinary
         run using task: :unitTestMainJarBinaryTest
         target platform: $currentJava
-        JUnit version: 4.12
+        JUnit version: 4.13
         component under test: JVM library 'main'
         binary under test: Jar 'main:jar'
         tool chain: $currentJdk
@@ -214,7 +214,7 @@ Binaries
             }
             testSuites {
                 unitTest(JUnitTestSuiteSpec) {
-                    jUnitVersion = 4.12
+                    jUnitVersion = 4.13
                     testing $.components.main
                 }
             }
@@ -267,7 +267,7 @@ Binaries
         build using task: :unitTestMainJava6JarBinary
         run using task: :unitTestMainJava6JarBinaryTest
         target platform: Java SE 6
-        JUnit version: 4.12
+        JUnit version: 4.13
         component under test: JVM library 'main'
         binary under test: Jar 'main:java6Jar'
         tool chain: $currentJdk
@@ -277,7 +277,7 @@ Binaries
         build using task: :unitTestMainJava7JarBinary
         run using task: :unitTestMainJava7JarBinaryTest
         target platform: Java SE 7
-        JUnit version: 4.12
+        JUnit version: 4.13
         component under test: JVM library 'main'
         binary under test: Jar 'main:java7Jar'
         tool chain: $currentJdk

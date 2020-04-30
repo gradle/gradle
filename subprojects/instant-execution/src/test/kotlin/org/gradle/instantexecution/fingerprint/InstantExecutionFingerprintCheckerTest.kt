@@ -16,6 +16,7 @@
 
 package org.gradle.instantexecution.fingerprint
 
+import com.nhaarman.mockitokotlin2.any
 import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.mock
 import org.gradle.api.Describable
@@ -37,17 +38,138 @@ import org.gradle.instantexecution.serialization.WriteIsolate
 import org.gradle.instantexecution.serialization.beans.BeanStateReader
 import org.gradle.instantexecution.serialization.beans.BeanStateWriter
 import org.gradle.internal.Try
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
-import org.jetbrains.kotlin.backend.common.push
 import org.junit.Test
+import java.io.File
 import java.io.InputStream
 import java.io.OutputStream
 
 
 class InstantExecutionFingerprintCheckerTest {
+
+    @Test
+    fun `first modified init script is reported`() {
+        assertThat(
+            invalidationReasonForInitScriptsChange(
+                from = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("unchanged.gradle.kts") to HashCode.fromInt(1)
+                ),
+                to = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(2),
+                    File("unchanged.gradle.kts") to HashCode.fromInt(1)
+                )
+            ),
+            equalTo("init script 'init.gradle.kts' has changed")
+        )
+    }
+
+    @Test
+    fun `index of first modified init script is reported when file names differ`() {
+        assertThat(
+            invalidationReasonForInitScriptsChange(
+                from = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("before.gradle.kts") to HashCode.fromInt(2),
+                    File("other.gradle.kts") to HashCode.fromInt(3)
+                ),
+                to = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("after.gradle.kts") to HashCode.fromInt(42),
+                    File("other.gradle.kts") to HashCode.fromInt(3)
+                )
+            ),
+            equalTo("content of 2nd init script, 'after.gradle.kts', has changed")
+        )
+    }
+
+    @Test
+    fun `added init script is reported`() {
+        assertThat(
+            invalidationReasonForInitScriptsChange(
+                from = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1)
+                ),
+                to = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("added.init.gradle.kts") to HashCode.fromInt(2)
+                )
+            ),
+            equalTo("init script 'added.init.gradle.kts' has been added")
+        )
+    }
+
+    @Test
+    fun `added init scripts are reported`() {
+        assertThat(
+            invalidationReasonForInitScriptsChange(
+                from = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1)
+                ),
+                to = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("added.init.gradle.kts") to HashCode.fromInt(2),
+                    File("another.init.gradle.kts") to HashCode.fromInt(3)
+                )
+            ),
+            equalTo("init script 'added.init.gradle.kts' and 1 more have been added")
+        )
+    }
+
+    @Test
+    fun `removed init script is reported`() {
+        assertThat(
+            invalidationReasonForInitScriptsChange(
+                from = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("removed.init.gradle.kts") to HashCode.fromInt(2)
+                ),
+                to = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1)
+                )
+            ),
+            equalTo("init script 'removed.init.gradle.kts' has been removed")
+        )
+    }
+
+    @Test
+    fun `removed init scripts are reported`() {
+        assertThat(
+            invalidationReasonForInitScriptsChange(
+                from = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1),
+                    File("removed.init.gradle.kts") to HashCode.fromInt(2),
+                    File("another.init.gradle.kts") to HashCode.fromInt(3)
+                ),
+                to = listOf(
+                    File("init.gradle.kts") to HashCode.fromInt(1)
+                )
+            ),
+            equalTo("init script 'removed.init.gradle.kts' and 1 more have been removed")
+        )
+    }
+
+    @Test
+    fun `build script invalidation reason`() {
+        val scriptFile = File("build.gradle.kts")
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { hashCodeOf(scriptFile) } doReturn HashCode.fromInt(1)
+                    on { displayNameOf(scriptFile) } doReturn "displayNameOf(scriptFile)"
+                },
+                InstantExecutionCacheFingerprint.InputFile(
+                    scriptFile,
+                    HashCode.fromInt(2)
+                )
+            ),
+            equalTo("file 'displayNameOf(scriptFile)' has changed")
+        )
+    }
 
     @Test
     fun `invalidation reason includes ValueSource description`() {
@@ -59,32 +181,62 @@ class InstantExecutionFingerprintCheckerTest {
             on { (this as Describable).displayName } doReturn "my value source"
         }
 
-        val obtainedValue = mock<ObtainedValue> {
-            on { value } doReturn Try.successful<Any>(42)
-        }
+        val obtainedValue = obtainedValueMock()
 
-        val fingerprintCheckerHost = mock<InstantExecutionCacheFingerprintChecker.Host> {
-            on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
-        }
+        // expect:
+        assertThat(
+            checkFingerprintGiven(
+                mock {
+                    on { instantiateValueSourceOf(obtainedValue) } doReturn describableValueSource
+                },
+                InstantExecutionCacheFingerprint.ValueSource(obtainedValue)
+            ),
+            equalTo("my value source has changed")
+        )
+    }
 
-        // when:
+    private
+    fun invalidationReasonForInitScriptsChange(
+        from: Iterable<Pair<File, HashCode?>>,
+        to: List<Pair<File, HashCode?>>
+    ): InvalidationReason? = to.toMap().let { toMap ->
+        checkFingerprintGiven(
+            mock {
+                on { allInitScripts } doReturn toMap.keys.toList()
+                on { hashCodeOf(any()) }.then { invocation ->
+                    toMap[invocation.getArgument(0)]
+                }
+                on { displayNameOf(any()) }.then { invocation ->
+                    invocation.getArgument<File>(0).name
+                }
+            },
+            InstantExecutionCacheFingerprint.InitScripts(
+                from.map { (file, hash) -> InstantExecutionCacheFingerprint.InputFile(file, hash) }
+            )
+        )
+    }
+
+    private
+    fun checkFingerprintGiven(
+        host: InstantExecutionCacheFingerprintChecker.Host,
+        fingerprint: InstantExecutionCacheFingerprint
+    ): InvalidationReason? {
+
         val readContext = recordWritingOf {
-            write(InstantExecutionCacheFingerprint.ValueSource(obtainedValue))
+            write(fingerprint)
             write(null)
         }
 
-        // and:
-        val invalidationReason = readContext.readToCompletion {
-            InstantExecutionCacheFingerprintChecker(fingerprintCheckerHost).run {
+        return readContext.readToCompletion {
+            InstantExecutionCacheFingerprintChecker(host).run {
                 checkFingerprint()
             }
         }
+    }
 
-        // then:
-        assertThat(
-            invalidationReason,
-            equalTo("my value source has changed")
-        )
+    private
+    fun obtainedValueMock(): ObtainedValue = mock {
+        on { value } doReturn Try.successful(42)
     }
 
     private
@@ -109,11 +261,11 @@ class InstantExecutionFingerprintCheckerTest {
             PlaybackReadContext(values.toList())
 
         override fun writeSmallInt(value: Int) {
-            values.push(value)
+            values.add(value)
         }
 
         override suspend fun write(value: Any?) {
-            values.push(value)
+            values.add(value)
         }
 
         override val sharedIdentities: WriteIdentities

@@ -16,13 +16,10 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
     gradlebuild.`publish-public-libraries`
-    gradlebuild.`strict-compile`
-    gradlebuild.classycle
 }
 
 description = "Common shared annotations"
 
-// We need this because org.gradle.internal.nativeintegration.filesystem.Stat is used in workers
 gradlebuildJava.usedInWorkers()
 
 dependencies {

@@ -31,10 +31,10 @@ import java.util.Collection;
 public class DefaultWorkerServer implements Worker {
     private final ServiceRegistry internalServices;
     private final InstantiatorFactory instantiatorFactory;
-    private final IsolationScheme<WorkAction, WorkParameters> isolationScheme;
+    private final IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme;
     private final Collection<? extends Class<?>> additionalWhitelistedServices;
 
-    public DefaultWorkerServer(ServiceRegistry internalServices, InstantiatorFactory instantiatorFactory, IsolationScheme<WorkAction, WorkParameters> isolationScheme, Collection<? extends Class<?>> additionalWhitelistedServices) {
+    public DefaultWorkerServer(ServiceRegistry internalServices, InstantiatorFactory instantiatorFactory, IsolationScheme<WorkAction<?>, WorkParameters> isolationScheme, Collection<? extends Class<?>> additionalWhitelistedServices) {
         this.internalServices = internalServices;
         this.instantiatorFactory = instantiatorFactory;
         this.isolationScheme = isolationScheme;

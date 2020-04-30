@@ -293,7 +293,7 @@ class AlreadyOnClasspathPluginUseIntegrationTest extends AbstractIntegrationSpec
         """.stripIndent()
         def testKitDependencies = testKitSpec ? """
             testImplementation(gradleTestKit())
-            testImplementation('junit:junit:4.12')
+            testImplementation('junit:junit:4.13')
         """ : ""
         file("$projectPath/build.gradle") << """
 

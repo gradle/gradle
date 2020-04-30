@@ -34,7 +34,7 @@ import java.nio.charset.Charset
 import static org.gradle.api.internal.file.TestFiles.systemSpecificAbsolutePath
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.CoreMatchers.nullValue
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 @UsesNativeServices
 class DefaultJavaForkOptionsTest extends Specification {

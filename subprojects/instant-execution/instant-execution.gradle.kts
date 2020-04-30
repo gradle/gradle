@@ -72,6 +72,8 @@ dependencies {
     integTestImplementation(project(":jvmServices"))
     integTestImplementation(project(":toolingApi"))
     integTestImplementation(project(":platformJvm"))
+    integTestImplementation(project(":testKit"))
+    integTestImplementation(project(":launcher"))
 
     integTestImplementation(library("guava"))
     integTestImplementation(library("ant"))
@@ -85,4 +87,8 @@ dependencies {
     integTestRuntimeOnly(project(":testingJunitPlatform"))
     integTestRuntimeOnly(project(":kotlinDsl"))
     integTestRuntimeOnly(project(":kotlinDslProviderPlugins"))
+}
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/instantexecution/**"))
 }

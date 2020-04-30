@@ -43,3 +43,7 @@ dependencies {
     testImplementation(testFixtures(project(":core")))
     testRuntimeOnly(project(":runtimeApiInfo"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/api/plugins/antlr/internal/*"))
+}

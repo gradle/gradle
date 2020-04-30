@@ -21,3 +21,7 @@ dependencies {
 
     integTestRuntimeOnly(project(":runtimeApiInfo"))
 }
+
+classycle {
+    excludePatterns.set(listOf("org/gradle/process/internal/**"))
+}

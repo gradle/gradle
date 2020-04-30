@@ -23,7 +23,6 @@ import org.gradle.reporting.HtmlPageBuilder;
 import org.gradle.reporting.ReportRenderer;
 import org.gradle.util.GradleVersion;
 
-import java.io.IOException;
 import java.io.Writer;
 import java.util.Date;
 
@@ -35,7 +34,7 @@ public class ProjectPageRenderer extends ReportRenderer<Project, HtmlPageBuilder
     }
 
     @Override
-    public void render(final Project project, final HtmlPageBuilder<Writer> builder) throws IOException {
+    public void render(final Project project, final HtmlPageBuilder<Writer> builder) {
         final String baseCssLink = requireClassResource("/org/gradle/reporting/base-style.css", builder);
         final String cssLink = requireReportResource("style.css", builder);
         final String jqueryLink = requireClassResource("/org/gradle/reporting/jquery.min-3.4.1.js", builder);

@@ -160,6 +160,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
             DaemonOutputConsumer outputConsumer = new DaemonOutputConsumer();
 
             // This factory should be injected but leaves non-daemon threads running when used from the tooling API client
+            @SuppressWarnings("deprecation")
             DefaultExecActionFactory execActionFactory = DefaultExecActionFactory.root();
             try {
                 ExecHandle handle = new DaemonExecHandleBuilder().build(args, workingDir, outputConsumer, stdInput, execActionFactory.newExec());

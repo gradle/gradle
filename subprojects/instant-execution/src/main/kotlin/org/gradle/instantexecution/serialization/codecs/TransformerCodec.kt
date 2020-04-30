@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.gradle.api.artifacts.transform.ArtifactTransform
 import org.gradle.api.artifacts.transform.TransformAction
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.internal.artifacts.transform.ArtifactTransformActionScheme
@@ -119,7 +118,8 @@ class LegacyTransformerCodec(
     }
 
     override suspend fun ReadContext.decode(): LegacyTransformer? {
-        val implementationClass = readClass().asSubclass(ArtifactTransform::class.java)
+        @Suppress("deprecation")
+        val implementationClass = readClass().asSubclass(org.gradle.api.artifacts.transform.ArtifactTransform::class.java)
         val secondaryInputsHash = HashCode.fromBytes(readBinary())
         return LegacyTransformer(
             implementationClass,

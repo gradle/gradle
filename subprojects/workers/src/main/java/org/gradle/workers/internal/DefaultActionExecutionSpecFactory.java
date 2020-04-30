@@ -38,8 +38,8 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkParameters> TransportableActionExecutionSpec<T> newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
-        return new TransportableActionExecutionSpec<T>(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.isInternalServicesRequired());
+    public <T extends WorkParameters> TransportableActionExecutionSpec newTransportableSpec(IsolatedParametersActionExecutionSpec<T> spec) {
+        return new TransportableActionExecutionSpec(spec.getImplementationClass().getName(), serialize(spec.getIsolatedParams()), spec.getClassLoaderStructure(), spec.getBaseDir(), spec.isInternalServicesRequired());
     }
 
     @Override
@@ -56,7 +56,7 @@ public class DefaultActionExecutionSpecFactory implements ActionExecutionSpecFac
     }
 
     @Override
-    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec<T> spec) {
+    public <T extends WorkParameters> SimpleActionExecutionSpec<T> newSimpleSpec(TransportableActionExecutionSpec spec) {
         T params = Cast.uncheckedCast(deserialize(spec.getSerializedParameters()).isolate());
         return new SimpleActionExecutionSpec<T>(Cast.uncheckedCast(fromClassName(spec.getImplementationClassName())), params, spec.isInternalServicesRequired());
     }

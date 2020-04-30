@@ -38,9 +38,11 @@ import static org.gradle.util.ConfigureUtil.configure;
  * First point of entry for customizing Eclipse project generation.
  *
  * <pre class='autoTested'>
- * apply plugin: 'java'
- * apply plugin: 'eclipse'
- * apply plugin: 'eclipse-wtp' //for web projects only
+ * plugins {
+ *     id 'java'
+ *     id 'eclipse'
+ *     id 'eclipse-wtp' // for web projects only
+ * }
  *
  * eclipse {
  *   pathVariables 'GRADLE_HOME': file('/best/software/gradle'), 'TOMCAT_HOME': file('../tomcat')

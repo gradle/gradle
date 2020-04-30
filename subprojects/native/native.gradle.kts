@@ -1,6 +1,5 @@
 plugins {
     gradlebuild.distribution.`core-api-java`
-    gradlebuild.classycle
 }
 
 description = "This project contains various native operating system integration utilities"

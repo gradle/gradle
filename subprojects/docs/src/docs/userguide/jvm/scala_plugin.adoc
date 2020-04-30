@@ -131,8 +131,8 @@ If Scala is only used for test code, the `scala-library` dependency should be ad
 
 .Declaring a Scala dependency for test code
 ====
-include::sample[dir="snippets/userguide/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
-include::sample[dir="snippets/userguide/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
+include::sample[dir="snippets/scala/scalaDependency/groovy",files="build.gradle[tags=scala-test-dependency]"]
+include::sample[dir="snippets/scala/scalaDependency/kotlin",files="build.gradle.kts[tags=scala-test-dependency]"]
 ====
 
 [[sec:configure_scala_classpath]]
@@ -155,8 +155,8 @@ Gradle supports version 1.2.0 of Zinc and above.
 
 .Declaring a version of the Zinc compiler to use
 ====
-include::sample[dir="snippets/userguide/scala/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
-include::sample[dir="snippets/userguide/scala/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
+include::sample[dir="snippets/scala/zincDependency/groovy",files="build.gradle[tags=zinc-dependency]"]
+include::sample[dir="snippets/scala/zincDependency/kotlin",files="build.gradle.kts[tags=zinc-dependency]"]
 ====
 
 The Zinc compiler itself needs a compatible version of `scala-library` that may be different from the version required by your application.
@@ -264,7 +264,7 @@ The Scala compiler ignores Gradle's `targetCompatibility` and `sourceCompatibili
 [source,properties]
 .gradle.properties
 ----
-include::{samplesPath}/scala/crossCompilation/groovy/gradle.properties[]
+include::{snippetsPath}/scala/crossCompilation/groovy/gradle.properties[]
 ----
 
 ====
@@ -284,7 +284,7 @@ When the IDEA plugin encounters a Scala project, it adds additional configuratio
 
 .Explicitly specify a target IntelliJ IDEA version
 ====
-include::sample[dir="snippets/userguide/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
-include::sample[dir="snippets/userguide/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/scala/ideaTargetVersion/groovy",files="build.gradle[tags=scala-idea-target-version]"]
+include::sample[dir="snippets/scala/ideaTargetVersion/kotlin",files="build.gradle.kts[tags=scala-idea-target-version]"]
 ====
 

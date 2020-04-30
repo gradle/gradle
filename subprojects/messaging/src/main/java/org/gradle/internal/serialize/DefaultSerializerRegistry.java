@@ -17,6 +17,7 @@
 package org.gradle.internal.serialize;
 
 import com.google.common.base.Objects;
+import org.gradle.internal.Cast;
 
 import java.util.Arrays;
 import java.util.Comparator;
@@ -89,7 +90,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             throw new IllegalArgumentException(String.format("Don't know how to serialize objects of type %s.", baseType.getName()));
         }
         if (matches.size() == 1 && matchingJavaSerialization.isEmpty()) {
-            return (Serializer<T>) matches.values().iterator().next();
+            return Cast.uncheckedNonnullCast(matches.values().iterator().next());
         }
         return new TaggedTypeSerializer<T>(matches, matchingJavaSerialization);
     }
@@ -97,9 +98,9 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
     private static class TypeInfo {
         final int tag;
         final boolean useForSubtypes;
-        final Serializer serializer;
+        final Serializer<?> serializer;
 
-        private TypeInfo(int tag, boolean useForSubtypes, Serializer serializer) {
+        private TypeInfo(int tag, boolean useForSubtypes, Serializer<?> serializer) {
             this.tag = tag;
             this.useForSubtypes = useForSubtypes;
             this.serializer = serializer;
@@ -143,14 +144,14 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
             if (typeInfo == null) {
                 throw new IllegalArgumentException(String.format("Unexpected type tag %d found.", tag));
             }
-            return (T) typeInfo.serializer.read(decoder);
+            return Cast.uncheckedNonnullCast(typeInfo.serializer.read(decoder));
         }
 
         @Override
         public void write(Encoder encoder, T value) throws Exception {
             TypeInfo typeInfo = map(value.getClass());
             encoder.writeSmallInt(typeInfo.tag);
-            typeInfo.serializer.write(encoder, value);
+            Cast.<Serializer<T>>uncheckedNonnullCast(typeInfo.serializer).write(encoder, value);
         }
 
         @Override
@@ -159,7 +160,7 @@ public class DefaultSerializerRegistry implements SerializerRegistry {
                 return false;
             }
 
-            TaggedTypeSerializer rhs = (TaggedTypeSerializer) obj;
+            TaggedTypeSerializer<?> rhs = (TaggedTypeSerializer<?>) obj;
             return Objects.equal(serializersByType, rhs.serializersByType)
                 && Objects.equal(typeHierarchies, rhs.typeHierarchies)
                 && Arrays.equals(serializersByTag, rhs.serializersByTag);

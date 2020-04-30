@@ -19,6 +19,7 @@ package org.gradle.api.publish.ivy.internal.publication;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Maps;
 import org.gradle.api.Action;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
@@ -73,6 +74,7 @@ import org.gradle.api.publish.ivy.internal.publisher.IvyNormalizedPublication;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.reflect.Instantiator;
@@ -152,7 +154,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
         this.mainArtifacts = instantiator.newInstance(DefaultIvyArtifactSet.class, name, ivyArtifactNotationParser, fileCollectionFactory, collectionCallbackActionDecorator);
         this.metadataArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "metadata artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
         this.derivedArtifacts = new DefaultPublicationArtifactSet<>(IvyArtifact.class, "derived artifacts for " + name, fileCollectionFactory, collectionCallbackActionDecorator);
-        this.publishableArtifacts = new CompositePublicationArtifactSet<>(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts);
+        this.publishableArtifacts = new CompositePublicationArtifactSet<>(IvyArtifact.class, Cast.uncheckedCast(new PublicationArtifactSet<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts}));
         this.ivyDependencies = instantiator.newInstance(DefaultIvyDependencySet.class, collectionCallbackActionDecorator);
         this.descriptor = instantiator.newInstance(DefaultIvyModuleDescriptorSpec.class, this, instantiator, objectFactory);
     }
@@ -531,7 +533,7 @@ public class DefaultIvyPublication implements IvyPublicationInternal {
             }
             return true;
         });
-        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, mainArtifacts, metadataArtifacts, derivedArtifacts).matching(new Spec<IvyArtifact>() {
+        Set<IvyArtifact> artifactsToBePublished = CompositeDomainObjectSet.create(IvyArtifact.class, Cast.uncheckedCast(new DomainObjectCollection<?>[]{mainArtifacts, metadataArtifacts, derivedArtifacts})).matching(new Spec<IvyArtifact>() {
             @Override
             public boolean isSatisfiedBy(IvyArtifact element) {
                 if (!PUBLISHED_ARTIFACTS.isSatisfiedBy(element)) {

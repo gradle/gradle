@@ -16,7 +16,6 @@
 package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
-import org.gradle.util.TestPrecondition
 import org.gradle.util.VersionNumber
 import org.hamcrest.Matcher
 import spock.lang.Issue
@@ -37,6 +36,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             pmd {
                 toolVersion = '$version'
+                ${supportIncrementalAnalysis()? "" : "incrementalAnalysis = false"}
             }
 
             ${fileLockingIssuesSolved() ? "" : """
@@ -45,7 +45,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
                 classpath = files()
             }"""}
 
-            ${!TestPrecondition.FIX_TO_WORK_ON_JAVA9.fulfilled ? "sourceCompatibility = 1.7" : ""}
+            ${requiredSourceCompatibility()}
         """.stripIndent()
     }
 

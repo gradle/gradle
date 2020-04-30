@@ -96,14 +96,14 @@ public class GradleModuleMetadataWriter {
         this.checksumService = checksumService;
     }
 
-    public void generateTo(PublicationInternal publication, Collection<? extends PublicationInternal> publications, Writer writer) throws IOException {
+    public void generateTo(PublicationInternal<?> publication, Collection<? extends PublicationInternal<?>> publications, Writer writer) throws IOException {
         InvalidPublicationChecker checker = new InvalidPublicationChecker(publication.getName());
         // Collect a map from component to coordinates. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, ComponentData> coordinates = new HashMap<SoftwareComponent, ComponentData>();
+        Map<SoftwareComponent, ComponentData> coordinates = new HashMap<>();
         collectCoordinates(publications, coordinates);
 
         // Collect a map from component to its owning component. This might be better to move to the component or some publications model
-        Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<SoftwareComponent, SoftwareComponent>();
+        Map<SoftwareComponent, SoftwareComponent> owners = new HashMap<>();
         collectOwners(publications, owners);
 
         // Write the output
@@ -116,8 +116,8 @@ public class GradleModuleMetadataWriter {
         checker.validate();
     }
 
-    private void collectOwners(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, SoftwareComponent> owners) {
-        for (PublicationInternal publication : publications) {
+    private void collectOwners(Collection<? extends PublicationInternal<?>> publications, Map<SoftwareComponent, SoftwareComponent> owners) {
+        for (PublicationInternal<?> publication : publications) {
             if (publication.getComponent() instanceof ComponentWithVariants) {
                 ComponentWithVariants componentWithVariants = (ComponentWithVariants) publication.getComponent();
                 for (SoftwareComponent child : componentWithVariants.getVariants()) {
@@ -127,8 +127,8 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void collectCoordinates(Collection<? extends PublicationInternal> publications, Map<SoftwareComponent, ComponentData> coordinates) {
-        for (PublicationInternal publication : publications) {
+    private void collectCoordinates(Collection<? extends PublicationInternal<?>> publications, Map<SoftwareComponent, ComponentData> coordinates) {
+        for (PublicationInternal<?> publication : publications) {
             if (publication.getComponent() != null) {
                 ModuleVersionIdentifier moduleVersionIdentifier = publication.getCoordinates();
                 ImmutableAttributes attributes = publication.getAttributes();
@@ -137,7 +137,7 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeComponentWithVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
+    private void writeComponentWithVariants(PublicationInternal<?> publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, Map<SoftwareComponent, SoftwareComponent> owners, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         writeFormat(jsonWriter);
         writeIdentity(publication.getCoordinates(), publication.getAttributes(), component, componentCoordinates, owners, jsonWriter);
@@ -219,7 +219,7 @@ public class GradleModuleMetadataWriter {
         }
     }
 
-    private void writeVariants(PublicationInternal publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
+    private void writeVariants(PublicationInternal<?> publication, SoftwareComponent component, Map<SoftwareComponent, ComponentData> componentCoordinates, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         boolean started = false;
         for (UsageContext usageContext : ((SoftwareComponentInternal) component).getUsages()) {
             checker.registerVariant(usageContext.getName(), usageContext.getAttributes(),  usageContext.getCapabilities());
@@ -318,7 +318,7 @@ public class GradleModuleMetadataWriter {
         return path.toString();
     }
 
-    private void writeVariantHostedInThisModule(PublicationInternal publication, UsageContext variant, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
+    private void writeVariantHostedInThisModule(PublicationInternal<?> publication, UsageContext variant, JsonWriter jsonWriter, InvalidPublicationChecker checker) throws IOException {
         jsonWriter.beginObject();
         jsonWriter.name("name");
         jsonWriter.value(variant.getName());
@@ -338,7 +338,7 @@ public class GradleModuleMetadataWriter {
         }
         jsonWriter.name("attributes");
         jsonWriter.beginObject();
-        Map<String, Attribute<?>> sortedAttributes = new TreeMap<String, Attribute<?>>();
+        Map<String, Attribute<?>> sortedAttributes = new TreeMap<>();
         for (Attribute<?> attribute : attributes.keySet()) {
             sortedAttributes.put(attribute.getName(), attribute);
         }
@@ -367,7 +367,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.endObject();
     }
 
-    private void writeArtifacts(PublicationInternal publication, UsageContext variant, JsonWriter jsonWriter) throws IOException {
+    private void writeArtifacts(PublicationInternal<?> publication, UsageContext variant, JsonWriter jsonWriter) throws IOException {
         if (variant.getArtifacts().isEmpty()) {
             return;
         }
@@ -379,7 +379,7 @@ public class GradleModuleMetadataWriter {
         jsonWriter.endArray();
     }
 
-    private void writeArtifact(PublicationInternal publication, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
+    private void writeArtifact(PublicationInternal<?> publication, PublishArtifact artifact, JsonWriter jsonWriter) throws IOException {
         if (artifact instanceof PublishArtifactInternal) {
             if (!((PublishArtifactInternal) artifact).shouldBePublished()) {
                 return;
@@ -571,7 +571,7 @@ public class GradleModuleMetadataWriter {
     private void writeExcludes(ModuleDependency moduleDependency, Set<ExcludeRule> additionalExcludes, JsonWriter jsonWriter) throws IOException {
         Set<ExcludeRule> excludeRules;
         if (!moduleDependency.isTransitive()) {
-            excludeRules = Collections.<ExcludeRule>singleton(new DefaultExcludeRule(null, null));
+            excludeRules = Collections.singleton(new DefaultExcludeRule(null, null));
         } else {
             excludeRules = Sets.union(additionalExcludes, moduleDependency.getExcludeRules());
         }

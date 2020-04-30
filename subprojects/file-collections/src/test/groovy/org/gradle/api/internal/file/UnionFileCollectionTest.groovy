@@ -47,16 +47,6 @@ class UnionFileCollectionTest extends Specification {
         collection.files == [file1, file2, file3] as LinkedHashSet
     }
 
-    def canAddCollection() {
-        def source1 = new TestFileCollection(file1)
-        def source2 = new TestFileCollection(file2)
-
-        expect:
-        def collection = new UnionFileCollection([source1])
-        collection.addToUnion(source2)
-        collection.files == [file1, file2] as LinkedHashSet
-    }
-
     def dependsOnUnionOfDependenciesOfSourceCollections() {
         def task1 = Stub(Task)
         def task2 = Stub(Task)

@@ -107,12 +107,12 @@ class RuntimeShadedJarCreator {
     private void writeServiceFiles(ClasspathBuilder.EntryBuilder builder, Map<String, List<String>> services) throws IOException {
         for (Map.Entry<String, List<String>> service : services.entrySet()) {
             String allProviders = Joiner.on("\n").join(service.getValue());
-            writeEntry(builder, SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
+            builder.put(SERVICES_DIR_PREFIX + service.getKey(), allProviders.getBytes(Charsets.UTF_8));
         }
     }
 
     private void writeIdentifyingMarkerFile(ClasspathBuilder.EntryBuilder builder) throws IOException {
-        writeEntry(builder, GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
+        builder.put(GradleRuntimeShadedJarDetector.MARKER_FILENAME, new byte[0]);
     }
 
     private void processEntry(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry, final Set<String> seenPaths, Map<String, List<String>> services) throws IOException {
@@ -192,18 +192,14 @@ class RuntimeShadedJarCreator {
         if (remapper.keepOriginalResource(path)) {
             // we're writing 2 copies of the resource: one relocated, the other not, in order to support `getResource/getResourceAsStream` with
             // both absolute and relative paths
-            writeEntry(builder, name, resource);
+            builder.put(name, resource);
         }
 
         String remappedResourceName = path != null ? remapper.maybeRelocateResource(path) : null;
         if (remappedResourceName != null) {
             String newFileName = remappedResourceName + name.substring(i);
-            writeEntry(builder, newFileName, resource);
+            builder.put(newFileName, resource);
         }
-    }
-
-    private void writeEntry(ClasspathBuilder.EntryBuilder builder, String name, byte[] content) throws IOException {
-        builder.put(name, content);
     }
 
     private void processClassFile(ClasspathBuilder.EntryBuilder builder, ClasspathEntryVisitor.Entry entry) throws IOException {
@@ -219,7 +215,7 @@ class RuntimeShadedJarCreator {
         String remappedClassName = remapper.maybeRelocateResource(className);
         String newFileName = (remappedClassName == null ? className : remappedClassName).concat(".class");
 
-        writeEntry(builder, newFileName, remappedClass);
+        builder.put(newFileName, remappedClass);
     }
 
     private byte[] remapClass(String className, byte[] bytes) {

@@ -42,7 +42,7 @@ import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
 import static org.hamcrest.CoreMatchers.startsWith
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
 
 
@@ -179,8 +179,12 @@ final class InstantExecutionProblemsFixture {
         HasInstantExecutionProblemsSpec spec
     ) {
         // assert !(result instanceof ExecutionFailure)
-        assertHasConsoleSummary(result.output, spec)
-        assertProblemsHtmlReport(result.output, rootDir, spec)
+        if (spec.hasProblems()) {
+            assertHasConsoleSummary(result.output, spec)
+            assertProblemsHtmlReport(result.output, rootDir, spec)
+        } else {
+            assertNoProblemsSummary(result.output)
+        }
     }
 
     HasInstantExecutionProblemsSpec newProblemsSpec(
@@ -268,8 +272,11 @@ ${problemsSummaryHeaderFor(totalCount, uniqueCount)}
     }
 
     protected static String problemsSummaryHeaderFor(int totalProblems, int uniqueProblems) {
-        return "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found, " +
-            "${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
+        def header = "${totalProblems} instant execution problem${totalProblems >= 2 ? 's were' : ' was'} found"
+        if (totalProblems == uniqueProblems) {
+            return "${header}."
+        }
+        return "${header}, ${uniqueProblems} of which seem${uniqueProblems >= 2 ? '' : 's'} unique."
     }
 
     protected static void assertProblemsHtmlReport(
@@ -419,6 +426,11 @@ class HasInstantExecutionProblemsSpec {
     HasInstantExecutionProblemsSpec withUniqueProblems(Iterable<String> uniqueProblems) {
         this.uniqueProblems.clear()
         this.uniqueProblems.addAll(uniqueProblems)
+        return this
+    }
+
+    HasInstantExecutionProblemsSpec withProblem(String problem) {
+        uniqueProblems.add(problem)
         return this
     }
 

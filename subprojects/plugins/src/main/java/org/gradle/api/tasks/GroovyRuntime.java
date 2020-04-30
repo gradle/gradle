@@ -38,7 +38,9 @@ import java.util.List;
  * <p>Example usage:
  *
  * <pre class='autoTested'>
- *     apply plugin: "groovy"
+ *     plugins {
+ *         id 'groovy'
+ *     }
  *
  *     repositories {
  *         mavenCentral()
