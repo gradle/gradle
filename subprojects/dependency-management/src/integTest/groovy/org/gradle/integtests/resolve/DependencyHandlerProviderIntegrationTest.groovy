@@ -17,6 +17,8 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Ignore
 
 /**
  * Tests covering the use of {@link org.gradle.api.provider.Provider} as an argument in the
@@ -24,29 +26,45 @@ import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
  */
 class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyResolutionTest {
 
+    def resolve = new ResolveTestFixture(buildFile, "conf")
+
+    def setup() {
+        settingsFile << """
+            rootProject.name = 'provider'
+        """
+        buildFile << """
+            ${mavenCentralRepository()}
+            group = 'org'
+            version = '1.0'
+        """
+        resolve.prepare()
+    }
+
     def "mutating the provider value before it's added resolves to the correct dependency"() {
-        when:
         buildFile << """
         configurations { conf }
-        
+
         def lazyDep = objects.property(String).convention("org.mockito:mockito-core:1.8")
-        
+
         dependencies {
             conf lazyDep
         }
-        
+
         lazyDep.set("junit:junit:4.12")
-        
-        task checkDeps {
-            doLast {
-                def deps = configurations.conf.incoming.dependencies
-                assert deps.find { it instanceof ExternalDependency && it.group == 'junit' && it.name == 'junit' && it.version == '4.12' }
-                assert !deps.find { it instanceof ExternalDependency && it.group == 'org.mockito' && it.name == 'mockito-core' && it.version == '1.8'  }
+
+        """
+
+        when:
+        succeeds'checkDeps'
+
+        then:
+        resolve.expectGraph {
+            root(":", "org:provider:1.0") {
+                module("junit:junit:4.12") {
+                    module('org.hamcrest:hamcrest-core:1.3')
+                }
             }
         }
-        """
-        then:
-        succeeds('checkDeps')
     }
 
     def "works correctly with up-to-date checking"() {
@@ -54,7 +72,6 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
         mavenHttpRepo.module("group", "projectA", "1.1").publish()
         mavenHttpRepo.module("group", "projectA", "1.2").publish()
 
-        when:
         buildFile << """
         repositories {
             maven {
@@ -62,86 +79,126 @@ class DependencyHandlerProviderIntegrationTest extends AbstractHttpDependencyRes
             }
         }
         configurations { conf }
-        
+
         dependencies {
             conf provider { "group:projectA:\${property('project.version')}" }
         }
-        
-        task retrieve (type: Sync) {
-            into 'build'
-            from configurations.conf
+
+        task resolve {
+            inputs.files(configurations.conf)
+            outputs.file("out.txt")
+            doLast {
+               file("out.txt") << 'Hello'
+            }
         }
+
+        checkDeps.dependsOn resolve
+
         """
+
+        when:
+        args '-Pproject.version=1.1'
+        succeeds 'checkDeps'
+
         then:
-        // First run
+        executedAndNotSkipped ":checkDeps", ":resolve"
+        resolve.expectGraph {
+            root(":", "org:provider:1.0") {
+                module('group:projectA:1.1')
+            }
+        }
+
+        when:
         args('-Pproject.version=1.1')
-        succeeds("retrieve").assertTaskExecuted(":retrieve")
-        // Second run, task should be 'UP-TO-DATE'
-        args('-Pproject.version=1.1')
-        succeeds("retrieve").assertTaskSkipped(":retrieve")
-        // Third run, new version, should not be 'UP-TO-DATE'
+        succeeds"checkDeps"
+
+        then:
+        executedAndNotSkipped ":checkDeps"
+        skipped ":resolve"
+        resolve.expectGraph {
+            root(":", "org:provider:1.0") {
+                module('group:projectA:1.1')
+            }
+        }
+
+        when:
         args('-Pproject.version=1.2')
-        succeeds("retrieve").assertTaskExecuted(":retrieve")
+        succeeds 'checkDeps'
+
+        then:
+        executedAndNotSkipped ':checkDeps'
+        resolve.expectGraph {
+            root(":", "org:provider:1.0") {
+                module('group:projectA:1.2')
+            }
+        }
     }
 
+    @Ignore("https://github.com/gradle/gradle/issues/12972")
     def "property has no value"() {
-        when:
         buildFile << """
         configurations { conf }
-        
+
         def emptyDep = objects.property(String)
-        
+
         dependencies {
             conf emptyDep
         }
-        // Do the resolve
-        configurations.conf.incoming.dependencies
+
+        task resolve {
+            doLast {
+                 configurations.conf.resolve()
+            }
+        }
         """
+
+        when:
+        fails("resolve")
+
         then:
-        fails("help")
-        errorOutput.contains("No value has been specified for this property.")
+        failure.assertHasCause("No value has been specified for this property.")
     }
 
     def "provider throws an exception"() {
-        when:
         buildFile << """
         configurations { conf }
-        
+
         def lazyDep = provider {
             throw new GradleException("Boom!")
         }
-        
+
         dependencies {
             conf lazyDep
         }
         // Do the resolve
         configurations.conf.incoming.dependencies
         """
-        then:
+
+        when:
         fails("help")
-        errorOutput.contains("Boom!")
-        errorOutput.contains("build.gradle:5")
-        errorOutput.contains("build.gradle:12")
+
+        then:
+        failure.assertHasCause("Boom!")
     }
 
     def "reasonable error message when the provider doesn't provide a supported dependency notation"() {
-        when:
         buildFile << """
         configurations { conf }
-        
-        def lazyDep = provider { 
+
+        def lazyDep = provider {
             42
         }
-        
+
         dependencies {
             conf lazyDep
         }
-        // Do the resolve
-        configurations.conf.incoming.dependencies
         """
+
+        when:
+        fails ":checkDeps"
+
         then:
-        fails("help")
-        errorOutput.contains("Cannot convert the provided notation to an object of type Dependency: 42.")
-        errorOutput.contains("The following types/formats are supported:")
+        failure.assertHasCause """Cannot convert the provided notation to an object of type Dependency: 42.
+The following types/formats are supported:"""
     }
 }

@@ -230,7 +230,7 @@ project(':consumer') {
         outputContains("other-java.jar (project :other-java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
         outputContains("java.jar (project :java) {artifactType=jar, org.gradle.category=library, org.gradle.dependency.bundling=external, ${defaultTargetPlatform()}, org.gradle.libraryelements=jar, org.gradle.usage=java-runtime}")
     }
-    
+
     def "provides runtime classes variant"() {
         buildFile << """
             project(':consumer') {
