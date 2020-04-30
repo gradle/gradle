@@ -24,17 +24,17 @@ abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
 
     protected
     fun <T : Any> assertDeferredExecutionOf(deferred: T, force: T.() -> Any?) {
-        Register.value = "before"
+        Runtime.value = "before"
         val value = roundtrip(deferred)
 
-        Register.value = "after"
+        Runtime.value = "after"
         assertThat(
             force(value),
             equalTo("after")
         )
     }
 
-    object Register {
+    object Runtime {
         private
         val local = ThreadLocal<Any?>()
 

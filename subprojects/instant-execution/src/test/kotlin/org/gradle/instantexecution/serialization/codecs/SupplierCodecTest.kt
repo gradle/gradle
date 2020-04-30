@@ -24,24 +24,27 @@ class SupplierCodecTest : AbstractFunctionalTypeTest() {
 
     @Test
     fun `defers execution of Supplier objects`() {
-        assertDeferredExecutionOf(Supplier { Register.value }) {
+        assertDeferredExecutionOf(supplier()) {
             get()
         }
     }
 
     @Test
     fun `defers execution of dynamic Supplier fields`() {
-        assertDeferredExecutionOf(BeanOf(Supplier { Register.value })) {
+        assertDeferredExecutionOf(BeanOf(supplier())) {
             value.get()
         }
     }
 
     @Test
     fun `defers execution of static Supplier fields`() {
-        assertDeferredExecutionOf(SupplierBean(Supplier { Register.value })) {
+        assertDeferredExecutionOf(SupplierBean(supplier())) {
             value.get()
         }
     }
+
+    private
+    fun supplier() = Supplier { Runtime.value }
 
     data class SupplierBean(val value: Supplier<Any?>)
 }

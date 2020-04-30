@@ -24,24 +24,27 @@ class CallableCodecTest : AbstractFunctionalTypeTest() {
 
     @Test
     fun `defers execution of Callable objects`() {
-        assertDeferredExecutionOf(Callable { Register.value }) {
+        assertDeferredExecutionOf(callable()) {
             call()
         }
     }
 
     @Test
     fun `defers execution of dynamic Callable fields`() {
-        assertDeferredExecutionOf(BeanOf(Callable { Register.value })) {
+        assertDeferredExecutionOf(BeanOf(callable())) {
             value.call()
         }
     }
 
     @Test
     fun `defers execution of static Callable fields`() {
-        assertDeferredExecutionOf(CallableBean(Callable { Register.value })) {
+        assertDeferredExecutionOf(CallableBean(callable())) {
             value.call()
         }
     }
+
+    private
+    fun callable() = Callable { Runtime.value }
 
     data class CallableBean(val value: Callable<Any?>)
 }
