@@ -37,6 +37,7 @@ import org.openjdk.jmh.infra.Blackhole;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
@@ -118,11 +119,22 @@ public class FileMetadataAccessorBenchmark {
         @Override
         public FileMetadataSnapshot stat(File f) {
             try {
-                BasicFileAttributes bfa = java.nio.file.Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-                if (bfa.isDirectory()) {
-                    return DefaultFileMetadata.directory();
+                Path path = f.toPath();
+                BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                boolean isSymlink = bfa.isSymbolicLink();
+                try {
+                    if (isSymlink) {
+                        bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
+                    }
+                    if (bfa.isDirectory()) {
+                        return isSymlink
+                            ? DefaultFileMetadata.symlinkedDirectory()
+                            : DefaultFileMetadata.directory();
+                    }
+                    return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size(), isSymlink);
+                } catch (IOException e) {
+                    return DefaultFileMetadata.brokenSymlink();
                 }
-                return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
             } catch (IOException e) {
                 return DefaultFileMetadata.missing();
             }
@@ -131,11 +143,21 @@ public class FileMetadataAccessorBenchmark {
         @Override
         public FileMetadataSnapshot stat(Path path) throws IOException {
             try {
-                BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
-                if (bfa.isDirectory()) {
-                    return DefaultFileMetadata.directory();
+                BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+                boolean isSymlink = bfa.isSymbolicLink();
+                try {
+                    if (isSymlink) {
+                        bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
+                    }
+                    if (bfa.isDirectory()) {
+                        return isSymlink
+                            ? DefaultFileMetadata.symlinkedDirectory()
+                            : DefaultFileMetadata.directory();
+                    }
+                    return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size(), isSymlink);
+                } catch (IOException e) {
+                    return DefaultFileMetadata.brokenSymlink();
                 }
-                return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
             } catch (IOException e) {
                 return DefaultFileMetadata.missing();
             }
