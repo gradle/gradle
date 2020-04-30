@@ -121,24 +121,35 @@ public abstract class DefaultDependencyHandler implements DependencyHandler, Met
 
     private Dependency doAdd(Configuration configuration, Object dependencyNotation, Closure configureClosure) {
         if (dependencyNotation instanceof Configuration) {
-            Configuration other = (Configuration) dependencyNotation;
-            if (!configurationContainer.contains(other)) {
-                throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
-            }
-            configuration.extendsFrom(other);
-            return null;
+            return doAddConfiguration(configuration, (Configuration) dependencyNotation);
         }
         if (dependencyNotation instanceof Provider<?>) {
-            Provider<?> lazy = (Provider<?>) dependencyNotation;
-            Provider<Dependency> lazyDependency = lazy.map(lazyNotation -> create(lazyNotation, configureClosure));
-            configuration.getDependencies().addLater(lazyDependency);
-            // Return null here because we don't want to prematurely realize the dependency
-            return null;
+            return doAddProvider(configuration, (Provider<?>) dependencyNotation, configureClosure);
         } else {
-            Dependency dependency = create(dependencyNotation, configureClosure);
-            configuration.getDependencies().add(dependency);
-            return dependency;
+            return doAddRegularDependency(configuration, dependencyNotation, configureClosure);
         }
+    }
+
+    private Dependency doAddRegularDependency(Configuration configuration, Object dependencyNotation, Closure<?> configureClosure) {
+        Dependency dependency = create(dependencyNotation, configureClosure);
+        configuration.getDependencies().add(dependency);
+        return dependency;
+    }
+
+    private Dependency doAddProvider(Configuration configuration, Provider<?> dependencyNotation, Closure<?> configureClosure) {
+        Provider<Dependency> lazyDependency = dependencyNotation.map(lazyNotation -> create(lazyNotation, configureClosure));
+        configuration.getDependencies().addLater(lazyDependency);
+        // Return null here because we don't want to prematurely realize the dependency
+        return null;
+    }
+
+    private Dependency doAddConfiguration(Configuration configuration, Configuration dependencyNotation) {
+        Configuration other = dependencyNotation;
+        if (!configurationContainer.contains(other)) {
+            throw new UnsupportedOperationException("Currently you can only declare dependencies on configurations from the same project.");
+        }
+        configuration.extendsFrom(other);
+        return null;
     }
 
     @Override
