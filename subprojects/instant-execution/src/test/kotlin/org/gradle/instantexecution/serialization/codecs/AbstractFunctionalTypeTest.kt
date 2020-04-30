@@ -16,32 +16,32 @@
 
 package org.gradle.instantexecution.serialization.codecs
 
-import org.junit.Test
-import java.util.concurrent.Callable
+import org.hamcrest.CoreMatchers.equalTo
+import org.hamcrest.MatcherAssert.assertThat
 
 
-class CallableCodecTest : AbstractFunctionalTypeTest() {
+abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
 
-    @Test
-    fun `defers execution of Callable objects`() {
-        assertDeferredExecutionOf(Callable { Register.value }) {
-            call()
-        }
+    protected
+    fun <T : Any> assertDeferredExecutionOf(deferred: T, force: T.() -> Any?) {
+        Register.value = "before"
+        val value = roundtrip(deferred)
+
+        Register.value = "after"
+        assertThat(
+            force(value),
+            equalTo("after")
+        )
     }
 
-    @Test
-    fun `defers execution of dynamic Callable fields`() {
-        assertDeferredExecutionOf(BeanOf(Callable { Register.value })) {
-            value.call()
-        }
+    object Register {
+        private
+        val local = ThreadLocal<Any?>()
+
+        var value: Any?
+            get() = local.get()
+            set(value) = local.set(value)
     }
 
-    @Test
-    fun `defers execution of static Callable fields`() {
-        assertDeferredExecutionOf(CallableBean(Callable { Register.value })) {
-            value.call()
-        }
-    }
-
-    data class CallableBean(val value: Callable<Any?>)
+    data class BeanOf<T>(val value: T)
 }
