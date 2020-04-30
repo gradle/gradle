@@ -25,8 +25,11 @@ import org.junit.Test
 import spock.lang.Issue
 
 
+// The original class name: ProjectSchemaLambdaAccessorsIntegrationTest
+// Some of this class' closure class length exceeds Windows 260 char limitation
+// So we have to rename to a shorter name
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
+class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
     @Test
     fun `accessors to **untyped** groovy closures extensions are typed Any`() {
 
