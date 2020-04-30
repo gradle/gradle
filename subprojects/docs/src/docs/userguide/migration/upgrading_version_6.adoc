@@ -43,6 +43,10 @@ Some plugins will break with this new version of Gradle, for example because the
 - Kotlin has been updated to https://github.com/JetBrains/kotlin/releases/tag/v1.3.72[Kotlin 1.3.72].
 - Groovy has been updated to https://groovy-lang.org/changelogs/changelog-2.5.11.html[Groovy 2.5.11].
 
+==== Updates to default tool integration versions
+
+- PMD has been updated to https://github.com/pmd/pmd/releases/tag/pmd_releases%2F6.23.0[PMD 6.23.0].
+
 === Deprecations
 
 [[abstract_task_deprecated]]
