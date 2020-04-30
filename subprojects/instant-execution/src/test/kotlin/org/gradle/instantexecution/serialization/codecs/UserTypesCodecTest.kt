@@ -54,9 +54,45 @@ import java.io.ObjectInputStream
 import java.io.ObjectOutputStream
 import java.io.OutputStream
 import java.io.Serializable
+import java.util.concurrent.Callable
 
 
 class UserTypesCodecTest {
+
+    @Test
+    fun `defers execution of Callable objects`() {
+        Register.value = "before"
+        val callable = roundtrip(Callable { Register.value })
+
+        Register.value = "after"
+        assertThat(
+            callable.call(),
+            equalTo("after")
+        )
+    }
+
+    @Test
+    fun `defers execution of Callable fields`() {
+        Register.value = "before"
+        val callable = roundtrip(BeanOf(Callable { Register.value })).value
+
+        Register.value = "after"
+        assertThat(
+            callable.call(),
+            equalTo("after")
+        )
+    }
+
+    object Register {
+        private
+        val local = ThreadLocal<Any?>()
+
+        var value: Any?
+            get() = local.get()
+            set(value) = local.set(value)
+    }
+
+    data class BeanOf<T>(val value: T)
 
     @Test
     fun `can handle deeply nested graphs`() {
