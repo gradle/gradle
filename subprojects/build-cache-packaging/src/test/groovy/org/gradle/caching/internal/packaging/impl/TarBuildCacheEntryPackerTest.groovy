@@ -26,8 +26,6 @@ import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.nativeintegration.filesystem.FileSystem
-import org.gradle.util.Requires
-import org.gradle.util.TestPrecondition
 import spock.lang.Unroll
 
 import static org.gradle.caching.internal.packaging.impl.AbstractTarBuildCacheEntryPackerSpec.TestCacheableTree
@@ -132,7 +130,6 @@ class TarBuildCacheEntryPackerTest extends AbstractTarBuildCacheEntryPackerSpec 
         "unicode" | "tree-dezső"
     }
 
-    @Requires(TestPrecondition.UNIX_DERIVATIVE)
     @Unroll
     def "can pack tree directory with files having #type characters in name"() {
         def sourceOutputDir = temporaryFolder.file("source").createDir()
