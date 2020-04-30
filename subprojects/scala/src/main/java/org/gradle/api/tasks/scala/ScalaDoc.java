@@ -18,6 +18,7 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
 import org.gradle.api.tasks.Classpath;
@@ -53,7 +54,12 @@ public class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
-    private final Property<String> maxMemory = getProject().getObjects().property(String.class);
+    private final Property<String> maxMemory;
+
+    @Inject
+    public ScalaDoc(ObjectFactory objectFactory) {
+        this.maxMemory = objectFactory.property(String.class);
+    }
 
     @Inject
     protected IsolatedAntBuilder getAntBuilder() {
@@ -138,24 +144,12 @@ public class ScalaDoc extends SourceTask {
 
     /**
      * Returns the amount of memory allocated to this task.
-     *
+     * Ex. 512m, 1G
      * @since 6.5
      */
     @Internal
-    @Nullable
     public Property<String> getMaxMemory() {
         return maxMemory;
-    }
-
-    /**
-     * Sets the amount of memory allocated to this task.
-     *
-     * @param maxMemory The amount of memory
-     *
-     * @since 6.5
-     */
-    public void setMaxMemory(String maxMemory) {
-        this.maxMemory.set(maxMemory);
     }
 
     @TaskAction
