@@ -44,8 +44,8 @@ import java.util.Map;
 import java.util.UUID;
 
 @Threads(2)
-@Warmup(iterations = 5)
-@Measurement(iterations = 5)
+@Warmup(iterations = 5, time = 1)
+@Measurement(iterations = 5, time = 2)
 @State(Scope.Benchmark)
 public class FileMetadataAccessorBenchmark {
     private static final Map<String, FileMetadataAccessor> ACCESSORS = ImmutableMap.<String, FileMetadataAccessor>builder()
