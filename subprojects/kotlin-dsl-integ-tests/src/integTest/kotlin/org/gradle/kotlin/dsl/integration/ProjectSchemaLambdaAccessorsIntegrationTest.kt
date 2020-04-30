@@ -25,13 +25,10 @@ import org.junit.Test
 import spock.lang.Issue
 
 
-// The original class name: ProjectSchemaLambdaAccessorsIntegrationTest
-// Some of this class' closure class length exceeds Windows 260 char limitation
-// So we have to rename to a shorter name
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
-class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
+class ProjectSchemaLambdaAccessorsIntegrationTest : AbstractPluginIntegrationTest() {
     @Test
-    fun `accessors to **untyped** groovy closures extensions are typed Any`() {
+    fun `accessors to __untyped__ groovy closures extensions are typed Any`() {
 
         withDefaultSettings()
         PluginBuilder(file("buildSrc")).apply {
@@ -67,7 +64,7 @@ class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
 
     @Test
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
-    fun `accessors to **untyped** kotlin lambda extensions are typed Any`() {
+    fun `accessors to __untyped__ kotlin lambda extensions are typed Any`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
@@ -99,7 +96,7 @@ class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `accessors to **untyped** java lambda extensions are typed Any`() {
+    fun `accessors to __untyped__ java lambda extensions are typed Any`() {
 
         withDefaultSettings()
         withFile("buildSrc/build.gradle", """
@@ -152,7 +149,7 @@ class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
     }
 
     @Test
-    fun `accessors to **typed** groovy closures extensions are typed`() {
+    fun `accessors to __typed__ groovy closures extensions are typed`() {
 
         withDefaultSettings()
         PluginBuilder(file("buildSrc")).apply {
@@ -189,7 +186,7 @@ class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
     @Test
     @Issue("https://github.com/gradle/gradle/issues/10772")
     @ToBeFixedForInstantExecution(because = "Kotlin Gradle Plugin")
-    fun `accessors to **typed** kotlin lambda extensions are typed`() {
+    fun `accessors to __typed__ kotlin lambda extensions are typed`() {
 
         requireGradleDistributionOnEmbeddedExecuter()
 
@@ -221,7 +218,7 @@ class ProjSchmLmbdAccssrsIntegTest : AbstractPluginIntegrationTest() {
 
     @Test
     @Issue("https://github.com/gradle/gradle/issues/10771")
-    fun `accessors to **typed** java lambda extensions are typed`() {
+    fun `accessors to __typed__ java lambda extensions are typed`() {
 
 
         withDefaultSettings()
