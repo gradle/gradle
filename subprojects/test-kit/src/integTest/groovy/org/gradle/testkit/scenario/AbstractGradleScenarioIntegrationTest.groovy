@@ -23,6 +23,7 @@ import org.gradle.testkit.runner.fixtures.GradleRunnerScenario
 
 import java.util.function.Supplier
 
+
 @GradleRunnerScenario
 class AbstractGradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
@@ -38,12 +39,16 @@ class AbstractGradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationT
         return { File root ->
             new File(root, 'settings.gradle') << 'rootProject.name = "test"'
             new File(root, 'build.gradle') << buildScriptUnderTest
-            new File(root, 'input.txt') << 'ORIGINAL'
+            new File(root, underTestTaskInputFilePath) << 'ORIGINAL'
         }
     }
 
     protected static String getUnderTestTaskPath() {
-        return ":underTest"
+        return ":$underTestTaskName"
+    }
+
+    protected static String getUnderTestTaskName() {
+        return "underTest"
     }
 
     protected static String getBuildScriptUnderTest() {
@@ -69,11 +74,25 @@ class AbstractGradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationT
             }
 
             tasks.register("underTest", UnderTestTask) {
-                header.set(providers.systemProperty("header").orElse("CONSTANT"))
-                inputFile.set(layout.projectDirectory.file("input.txt"))
+                header.set(providers.systemProperty("$underTestTaskInputSystemPropertyName").orElse("CONSTANT"))
+                inputFile.set(layout.projectDirectory.file("$underTestTaskInputFilePath"))
                 outputFile.set(layout.buildDirectory.file("output.txt"))
             }
 
         """.stripIndent()
+    }
+
+    protected static String getUnderTestTaskInputSystemPropertyName() {
+        return "header"
+    }
+
+    protected static String getUnderTestTaskInputFilePath() {
+        return "input.txt"
+    }
+
+    protected static Action<File> getEmptyBuildWorkspace() {
+        return { File root ->
+            new File(root, 'settings.gradle') << 'rootProject.name = "test"'
+        }
     }
 }

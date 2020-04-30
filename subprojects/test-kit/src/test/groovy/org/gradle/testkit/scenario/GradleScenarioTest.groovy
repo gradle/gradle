@@ -35,7 +35,7 @@ class GradleScenarioTest extends Specification {
         GradleScenario.create().run()
 
         then:
-        def ex = thrown(IllegalStateException)
+        def ex = thrown(InvalidScenarioConfigurationException)
         ex.message == "No Gradle runner factory provided. Use withRunnerFactory(Supplier<GradleRunner>)"
     }
 
@@ -47,7 +47,7 @@ class GradleScenarioTest extends Specification {
             .run()
 
         then:
-        def ex = thrown(IllegalStateException)
+        def ex = thrown(InvalidScenarioConfigurationException)
         ex.message == "No base directory provided. Use withBaseDirectory(File)"
     }
 
@@ -64,7 +64,7 @@ class GradleScenarioTest extends Specification {
             .run()
 
         then:
-        def ex = thrown(IllegalArgumentException)
+        def ex = thrown(InvalidScenarioConfigurationException)
         normaliseFileSeparators(ex.message) == "Provided base directory '$baseDir' exists and is a file"
     }
 
@@ -82,7 +82,7 @@ class GradleScenarioTest extends Specification {
             .run()
 
         then:
-        def ex = thrown(IllegalArgumentException)
+        def ex = thrown(InvalidScenarioConfigurationException)
         normaliseFileSeparators(ex.message) == "Provided base directory '$baseDir' is a non-empty directory"
     }
 
@@ -95,7 +95,7 @@ class GradleScenarioTest extends Specification {
             .run()
 
         then:
-        def ex = thrown(IllegalStateException)
+        def ex = thrown(InvalidScenarioConfigurationException)
         ex.message == "No scenario steps provided. Use withSteps {}"
     }
 }

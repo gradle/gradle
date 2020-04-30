@@ -38,15 +38,18 @@ import java.util.function.Supplier;
 @Incubating
 public interface BuildCacheScenario extends GradleScenario {
 
+    /**
+     * Build cache scenario steps.
+     *
+     * @since 6.5
+     */
+    @Incubating
     interface Steps {
         String CLEAN_BUILD = "clean-build";
         String FROM_CACHE_BUILD = "from-cache-build";
         String FROM_CACHE_RELOCATED_BUILD = "from-cache-relocated-build";
     }
 
-    /**
-     *
-     */
     static BuildCacheScenario create() {
         return new DefaultBuildCacheScenario();
     }

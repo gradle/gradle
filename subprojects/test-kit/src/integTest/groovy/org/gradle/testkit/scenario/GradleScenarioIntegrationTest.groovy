@@ -16,88 +16,67 @@
 
 package org.gradle.testkit.scenario
 
-import org.gradle.testkit.runner.BaseGradleRunnerIntegrationTest
 import org.gradle.testkit.runner.TaskOutcome
 import org.gradle.testkit.runner.UnexpectedBuildFailure
-import org.gradle.testkit.runner.fixtures.GradleRunnerScenario
+import org.gradle.testkit.runner.UnexpectedBuildSuccess
 
 
-@GradleRunnerScenario
-class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
+class GradleScenarioIntegrationTest extends AbstractGradleScenarioIntegrationTest {
 
-    def "can create and run a scenario of several steps"() {
+    def "can create and run single step scenario on empty build with default tasks"() {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory {
-                runner().withArguments("-Dorg.gradle.unsafe.instant-execution=true")
-            }
-            .withBaseDirectory(testDirectory.file("scenario-base-dir"))
-            .withWorkspace { root ->
-                new File(root, "settings.gradle") << "rootProject.name = 'test'"
-                new File(root, "build.gradle") << '''
-                    plugins {
-                        id("java-library")
-                    }
-                '''
-                new File(root, "src/main/java/Foo.java").tap {
-                    parentFile.mkdirs()
-                    text = 'public class Foo {}'
-                }
-            }
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
+            .withWorkspace(emptyBuildWorkspace)
             .withSteps { steps ->
-
-                steps.named("store")
-                    .withArguments("assemble")
-                    .withResult {
-                        assert it.task(":compileJava").outcome == TaskOutcome.SUCCESS
-                    }
-
-                steps.named("load-up-to-date")
-                    .withArguments("assemble")
-                    .withResult {
-                        assert it.task(":compileJava").outcome == TaskOutcome.UP_TO_DATE
-                    }
-
-                steps.named("load-incremental")
-                    .withWorkspaceAction { root ->
-                        new File(root, "src/main/java/Foo.java").text = '''
-                            public class Foo {
-                                public void foo() {}
-                            }
-                        '''
-                    }
-                    .withArguments("assemble")
-                    .withResult {
-                        assert it.task(":compileJava").outcome == TaskOutcome.SUCCESS
-                    }
-
-                steps.named("clean")
-                    .withArguments("clean")
-
-                steps.named("load-clean")
-                    .withArguments("assemble")
-                    .withResult {
-                        assert it.task(":compileJava").outcome == TaskOutcome.SUCCESS
-                    }
+                steps.named("single")
             }
 
         when:
         def result = scenario.run()
 
         then:
-        result.ofStep("store").task(":compileJava").outcome == TaskOutcome.SUCCESS
-        result.ofStep("load-up-to-date").task(":compileJava").outcome == TaskOutcome.UP_TO_DATE
-        result.ofStep("load-clean").task(":compileJava").outcome == TaskOutcome.SUCCESS
+        result.ofStep("single").task(":help").outcome == TaskOutcome.SUCCESS
     }
 
-    def "step failure stops scenario"() {
+    def "can create and run a multi-step scenario"() {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory { runner() }
-            .withBaseDirectory(testDirectory.file("scenario-base"))
-            .withWorkspace { new File(it, 'settings.gradle') << 'rootProject.name = "test"' }
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
+            .withWorkspace(emptyBuildWorkspace)
+            .withSteps { steps ->
+
+                steps.named("first")
+                    .withResult { result ->
+                        assert result.task(":help").outcome == TaskOutcome.SUCCESS
+                    }
+
+                steps.named("second")
+                    .withResult { result ->
+                        assert result.task(":help").outcome == TaskOutcome.SUCCESS
+                    }
+            }
+
+
+        when:
+        def result = scenario.run()
+
+        then:
+        result.ofStep("first").task(":help").outcome == TaskOutcome.SUCCESS
+        result.ofStep("second").task(":help").outcome == TaskOutcome.SUCCESS
+    }
+
+    def "unexpected step failure stops scenario"() {
+
+        given:
+        def scenario = GradleScenario.create()
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
+            .withWorkspace(emptyBuildWorkspace)
             .withSteps { steps ->
 
                 steps.named("first")
@@ -111,17 +90,50 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
         scenario.run()
 
         then:
-        def ex = thrown(UnexpectedBuildFailure)
+        def ex = thrown(UnexpectedScenarioStepFailure)
+        ex.step == "second"
         ex.buildResult.output.contains("Task 'doesNotExists' not found in root project 'test'.")
+
+        and:
+        ex.cause instanceof UnexpectedBuildFailure
+    }
+
+    def "unexpected step success stops scenario run"() {
+
+        given:
+        def scenario = GradleScenario.create()
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
+            .withWorkspace(emptyBuildWorkspace)
+            .withSteps { steps ->
+
+                steps.named("first")
+                    .withArguments("help")
+
+                steps.named("second")
+                    .withArguments("help")
+                    .withFailure()
+            }
+
+        when:
+        scenario.run()
+
+        then:
+        def ex = thrown(UnexpectedScenarioStepSuccess)
+        ex.step == "second"
+        ex.buildResult.task(":help").outcome == TaskOutcome.SUCCESS
+
+        and:
+        ex.cause instanceof UnexpectedBuildSuccess
     }
 
     def "expected step failure does not stop scenario"() {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory { runner() }
-            .withBaseDirectory(testDirectory.file("scenario-base"))
-            .withWorkspace { new File(it, 'settings.gradle') << 'rootProject.name = "test"' }
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
+            .withWorkspace(emptyBuildWorkspace)
             .withSteps { steps ->
 
                 steps.named("first")
@@ -149,8 +161,8 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory { runner() }
-            .withBaseDirectory(testDirectory.file("scenario-base"))
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
             .withWorkspace { root ->
                 new File(root, 'settings.gradle') << 'rootProject.name = "test"'
                 new File(root, 'build.gradle') << 'println("projectDir=\${projectDir}")'
@@ -177,8 +189,8 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory { runner() }
-            .withBaseDirectory(testDirectory.file("scenario-base"))
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
             .withWorkspace { root ->
                 new File(root, 'settings.gradle') << 'rootProject.name = "test"'
                 new File(root, 'build.gradle') << '''
@@ -215,8 +227,8 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory { runner() }
-            .withBaseDirectory(testDirectory.file("scenario-base"))
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
             .withWorkspace { root ->
                 new File(root, 'settings.gradle') << 'rootProject.name = "test"'
                 new File(root, 'build.gradle') << '''
@@ -260,8 +272,8 @@ class GradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationTest {
 
         given:
         def scenario = GradleScenario.create()
-            .withRunnerFactory { runner() }
-            .withBaseDirectory(testDirectory.file("scenario-base"))
+            .withRunnerFactory(underTestRunnerFactory)
+            .withBaseDirectory(underTestBaseDirectory)
             .withWorkspace { root ->
                 new File(root, 'settings.gradle') << 'rootProject.name = "test"'
                 new File(root, 'build.gradle') << '''

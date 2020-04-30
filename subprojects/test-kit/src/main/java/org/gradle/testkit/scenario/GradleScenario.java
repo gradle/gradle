@@ -47,5 +47,14 @@ public interface GradleScenario {
 
     GradleScenario withSteps(Action<GradleScenarioSteps> steps);
 
-    ScenarioResult run();
+    /**
+     * Runs the scenario, executing all steps.
+     *
+     * @return the scenario result
+     * @throws InvalidScenarioConfigurationException if the configuration of this scenario is invalid
+     * @throws UnexpectedScenarioStepFailure if a step unexpectedly fails
+     * @throws UnexpectedScenarioStepSuccess if a step unexpectedly succeeds
+     */
+    ScenarioResult run()
+        throws InvalidScenarioConfigurationException, UnexpectedScenarioStepFailure, UnexpectedScenarioStepSuccess;
 }

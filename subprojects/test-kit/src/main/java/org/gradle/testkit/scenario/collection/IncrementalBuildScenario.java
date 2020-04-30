@@ -39,6 +39,12 @@ import java.util.function.Supplier;
 @Incubating
 public interface IncrementalBuildScenario extends GradleScenario {
 
+    /**
+     * Incremental build scenario steps.
+     *
+     * @since 6.5
+     */
+    @Incubating
     interface Steps {
         String CLEAN_BUILD = "clean-build";
         String UP_TO_DATE_BUILD = "up-to-date-build";

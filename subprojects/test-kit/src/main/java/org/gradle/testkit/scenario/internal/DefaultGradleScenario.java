@@ -19,9 +19,14 @@ package org.gradle.testkit.scenario.internal;
 import org.gradle.api.Action;
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.GradleRunner;
+import org.gradle.testkit.runner.UnexpectedBuildFailure;
+import org.gradle.testkit.runner.UnexpectedBuildSuccess;
 import org.gradle.testkit.scenario.GradleScenario;
 import org.gradle.testkit.scenario.GradleScenarioSteps;
+import org.gradle.testkit.scenario.InvalidScenarioConfigurationException;
 import org.gradle.testkit.scenario.ScenarioResult;
+import org.gradle.testkit.scenario.UnexpectedScenarioStepFailure;
+import org.gradle.testkit.scenario.UnexpectedScenarioStepSuccess;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -94,19 +99,19 @@ public class DefaultGradleScenario implements GradleScenario {
 
     private void validateScenario() {
         if (runnerFactory == null) {
-            throw new IllegalStateException("No Gradle runner factory provided. Use withRunnerFactory(Supplier<GradleRunner>)");
+            throw new InvalidScenarioConfigurationException("No Gradle runner factory provided. Use withRunnerFactory(Supplier<GradleRunner>)");
         }
         if (baseDirectory == null) {
-            throw new IllegalStateException("No base directory provided. Use withBaseDirectory(File)");
+            throw new InvalidScenarioConfigurationException("No base directory provided. Use withBaseDirectory(File)");
         }
         if (baseDirectory.isFile()) {
-            throw new IllegalArgumentException("Provided base directory '" + baseDirectory + "' exists and is a file");
+            throw new InvalidScenarioConfigurationException("Provided base directory '" + baseDirectory + "' exists and is a file");
         }
         if (isNonEmptyDirectory(baseDirectory)) {
-            throw new IllegalArgumentException("Provided base directory '" + baseDirectory + "' is a non-empty directory");
+            throw new InvalidScenarioConfigurationException("Provided base directory '" + baseDirectory + "' is a non-empty directory");
         }
         if (stepsBuilders.isEmpty()) {
-            throw new IllegalStateException("No scenario steps provided. Use withSteps {}");
+            throw new InvalidScenarioConfigurationException("No scenario steps provided. Use withSteps {}");
         }
     }
 
@@ -153,12 +158,42 @@ public class DefaultGradleScenario implements GradleScenario {
 
         BuildResult result;
         if (step.expectsFailure()) {
-            result = runner.buildAndFail();
-            step.consumeFailure(result);
+            result = buildAndFail(step, runner);
         } else {
-            result = runner.build();
-            step.consumeResult(result);
+            result = build(step, runner);
         }
         return result;
+    }
+
+    private BuildResult build(DefaultGradleScenarioStep step, GradleRunner runner) {
+        try {
+            BuildResult result = runner.build();
+            step.consumeResult(result);
+            return result;
+        } catch (UnexpectedBuildFailure ex) {
+            throw new UnexpectedScenarioStepFailure(
+                step.getName(),
+                createDiagnosticMessage(step, "failure"),
+                ex
+            );
+        }
+    }
+
+    private BuildResult buildAndFail(DefaultGradleScenarioStep step, GradleRunner runner) {
+        try {
+            BuildResult result = runner.buildAndFail();
+            step.consumeFailure(result);
+            return result;
+        } catch (UnexpectedBuildSuccess ex) {
+            throw new UnexpectedScenarioStepSuccess(
+                step.getName(),
+                createDiagnosticMessage(step, "success"),
+                ex
+            );
+        }
+    }
+
+    private String createDiagnosticMessage(DefaultGradleScenarioStep step, String outcome) {
+        return "Unexpected scenario step '" + step.getName() + "' " + outcome;
     }
 }

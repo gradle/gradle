@@ -25,12 +25,12 @@ class IncrementalBuildScenarioIntegrationTest extends AbstractGradleScenarioInte
 
         given:
         def scenario = IncrementalBuildScenario.create()
-            .withRunnerFactory { runner().withArguments("-Dheader=CONSTANT").forwardOutput() }
+            .withRunnerFactory(underTestRunnerFactory)
             .withBaseDirectory(underTestBaseDirectory)
             .withWorkspace(underTestWorkspace)
             .withTaskPaths(underTestTaskPath)
             .withInputChangeWorkspaceAction { root ->
-                new File(root, 'input.txt') << 'CHANGED'
+                new File(root, underTestTaskInputFilePath) << 'CHANGED'
             }
 
         when:
@@ -46,12 +46,14 @@ class IncrementalBuildScenarioIntegrationTest extends AbstractGradleScenarioInte
 
         given:
         def scenario = IncrementalBuildScenario.create()
-            .withRunnerFactory { runner().withArguments("-Dheader=ORIGINAL").forwardOutput() }
+            .withRunnerFactory {
+                runner().withArguments("-D$underTestTaskInputSystemPropertyName=ORIGINAL").forwardOutput()
+            }
             .withBaseDirectory(underTestBaseDirectory)
             .withWorkspace(underTestWorkspace)
             .withTaskPaths(underTestTaskPath)
             .withInputChangeRunnerAction { runner ->
-                runner.withArguments(runner.arguments + "-Dheader=CHANGED")
+                runner.withArguments(runner.arguments + "-D$underTestTaskInputSystemPropertyName=CHANGED".toString())
             }
 
         when:
@@ -61,5 +63,31 @@ class IncrementalBuildScenarioIntegrationTest extends AbstractGradleScenarioInte
         result.ofStep(IncrementalBuildScenario.Steps.CLEAN_BUILD)
         result.ofStep(IncrementalBuildScenario.Steps.UP_TO_DATE_BUILD)
         result.ofStep(IncrementalBuildScenario.Steps.INCREMENTAL_BUILD)
+    }
+
+    def "incremental build step fails when input not annotated properly"() {
+
+        given:
+        def scenario = IncrementalBuildScenario.create()
+            .withRunnerFactory {
+                runner().withArguments("-D$underTestTaskInputSystemPropertyName=ORIGINAL").forwardOutput()
+            }
+            .withBaseDirectory(underTestBaseDirectory)
+            .withWorkspace { root ->
+                underTestWorkspace.execute(root)
+                def buildFile = new File(root, 'build.gradle')
+                buildFile.text = buildFile.text.replaceAll("@Input\n", "\n")
+            }
+            .withTaskPaths(underTestTaskPath)
+            .withInputChangeRunnerAction { runner ->
+                runner.withArguments(runner.arguments + "-D$underTestTaskInputSystemPropertyName=CHANGED".toString())
+            }
+
+        when:
+        scenario.run()
+
+        then:
+        def ex = thrown(AssertionError)
+        ex.message == "Step '${IncrementalBuildScenario.Steps.INCREMENTAL_BUILD}': expected task ':underTest' to be SUCCESS but was UP_TO_DATE"
     }
 }
