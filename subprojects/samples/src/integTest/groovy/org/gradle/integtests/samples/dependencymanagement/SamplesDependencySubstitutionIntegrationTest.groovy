@@ -30,7 +30,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
     Sample sample = new Sample(testDirectoryProvider)
 
     @Unroll
-    @UsesSample("dependencyManagement/customizingResolution/conditionalSubstitutionRule")
+    @UsesSample("dependencyManagement/customizingResolution-conditionalSubstitutionRule")
     @ToBeFixedForInstantExecution(because = "sample uses system property")
     def "can run sample with all external dependencies with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
@@ -51,7 +51,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
     }
 
     @Unroll
-    @UsesSample("dependencyManagement/customizingResolution/conditionalSubstitutionRule")
+    @UsesSample("dependencyManagement/customizingResolution-conditionalSubstitutionRule")
     @ToBeFixedForInstantExecution(because = "sample uses system property")
     def "can run sample with some internal projects with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))

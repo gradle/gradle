@@ -132,8 +132,8 @@ Using the following setup, you can pass the key identifier, secret key (in ascii
 environment variables respectively:
 
 ====
-include::sample[dir="snippets/signing/in-memory/groovy-subkey",files="build.gradle[tags=signing]"]
-include::sample[dir="snippets/signing/in-memory/kotlin-subkey",files="build.gradle.kts[tags=signing]"]
+include::sample[dir="snippets/signing/in-memory-subkey/groovy",files="build.gradle[tags=signing]"]
+include::sample[dir="snippets/signing/in-memory-subkey/kotlin",files="build.gradle.kts[tags=signing]"]
 ====
 
 [[sec:subkeys]]

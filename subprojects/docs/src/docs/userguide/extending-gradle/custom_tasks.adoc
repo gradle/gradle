@@ -89,8 +89,8 @@ Now we will move our task to a standalone project, so we can publish it and shar
 
 .A build for a custom task
 ====
-include::sample[dir="snippets/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
-include::sample[dir="snippets/customExternalTask/kotlin/task",files="build.gradle.kts[tags=external-task-build]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/task",files="build.gradle[tags=external-task-build]"]
+include::sample[dir="snippets/base/customExternalTask/kotlin/task",files="build.gradle.kts[tags=external-task-build]"]
 ====
 
 
@@ -101,7 +101,7 @@ We just follow the convention for where the source for the task class should go.
 [source.multi-language-sample,groovy]
 .src/main/groovy/org/gradle/GreetingTask.groovy
 ----
-include::{snippetsPath}/customExternalTask/groovy/task/src/main/groovy/org/gradle/GreetingTask.groovy[]
+include::{snippetsPath}/base/customExternalTask/groovy/task/src/main/groovy/org/gradle/GreetingTask.groovy[]
 ----
 
 [[sec:using_your_task_class_in_another_project]]
@@ -111,8 +111,8 @@ To use a task class in a build script, you need to add the class to the build sc
 
 .Using a custom task in another project
 ====
-include::sample[dir="snippets/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
-include::sample[dir="snippets/customExternalTask/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
+include::sample[dir="snippets/base/customExternalTask/groovy/consumer",files="build.gradle[tags=use-task]"]
+include::sample[dir="snippets/base/customExternalTask/kotlin/consumer",files="build.gradle.kts[tags=use-task]"]
 ====
 
 [[sec:writing_tests_for_your_task_class]]
@@ -125,7 +125,7 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,groovy]
 .src/test/groovy/org/gradle/GreetingTaskTest.groovy
 ----
-include::{snippetsPath}/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
+include::{snippetsPath}/base/customExternalTask/groovy/task/src/test/groovy/org/gradle/GreetingTaskTest.groovy[tag=test-task]
 ----
 
 [[incremental_tasks]]
@@ -351,7 +351,7 @@ Let's have a look at an example to illustrate the functionality. The custom task
 [source.multi-language-sample,java]
 .UrlVerify.java
 ----
-include::{snippetsPath}/tasks/commandLineOption/stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
+include::{snippetsPath}/tasks/commandLineOption-stringOption/groovy/buildSrc/src/main/java/UrlVerify.java[tag=custom-task-implementation]
 ----
 
 All options declared for a task can be <<#sec:listing_task_options,rendered as console output>> by running the `help` task and the `--task` option.
@@ -369,14 +369,14 @@ Getting back to the previous example, the build script creates a task instance o
 
 .Using a command line option
 ====
-include::sample[dir="snippets/tasks/commandLineOption/stringOption/groovy",files="build.gradle[tags=task]"]
-include::sample[dir="snippets/tasks/commandLineOption/stringOption/kotlin",files="build.gradle.kts[tags=task]"]
+include::sample[dir="snippets/tasks/commandLineOption-stringOption/groovy",files="build.gradle[tags=task]"]
+include::sample[dir="snippets/tasks/commandLineOption-stringOption/kotlin",files="build.gradle.kts[tags=task]"]
 ====
 
 .Output of **`gradle -q verifyUrl --url=http://www.google.com/`**
 ----
 > gradle -q verifyUrl --url=http://www.google.com/
-include::{snippetsPath}/tasks/commandLineOption/stringOption/taskCommandLineOption.out[]
+include::{snippetsPath}/tasks/commandLineOption-stringOption/taskCommandLineOption.out[]
 ----
 
 [[sec:supported_task_option_data_types]]
@@ -413,7 +413,7 @@ This example demonstrates the use of multiple options for a single task. The tas
 [source.multi-language-sample,java]
 .UrlProcess.java
 ----
-include::{snippetsPath}/tasks/commandLineOption/optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
+include::{snippetsPath}/tasks/commandLineOption-optionValues/groovy/buildSrc/src/main/java/UrlProcess.java[tag=custom-task-implementation]
 ----
 
 [[sec:listing_task_options]]
@@ -426,7 +426,7 @@ Command line options using the annotations link:{javadocPath}/org/gradle/api/tas
 .Output of **`gradle -q help --task processUrl`**
 ----
 > gradle -q help --task processUrl
-include::{snippetsPath}/tasks/commandLineOption/optionValues/helpTaskOptions.out[]
+include::{snippetsPath}/tasks/commandLineOption-optionValues/helpTaskOptions.out[]
 ----
 
 === Limitations

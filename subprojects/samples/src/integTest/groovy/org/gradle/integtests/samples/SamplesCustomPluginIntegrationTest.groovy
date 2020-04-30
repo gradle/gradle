@@ -28,7 +28,7 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @Unroll
-    @UsesSample("customPlugin")
+    @UsesSample("plugins/customPlugin")
     def "can test plugin and task implementation with #dsl dsl"() {
         when:
         TestFile dslDir = sample.dir.file("$dsl/plugin")
@@ -44,7 +44,7 @@ class SamplesCustomPluginIntegrationTest extends AbstractSampleIntegrationTest {
 
     @ToBeFixedForInstantExecution
     @Unroll
-    @UsesSample("customPlugin")
+    @UsesSample("plugins/customPlugin")
     def "can publish and use plugin and test implementations for #producerName producer and #dsl dsl"() {
         given:
         TestFile dslDir = sample.dir.file(dsl)

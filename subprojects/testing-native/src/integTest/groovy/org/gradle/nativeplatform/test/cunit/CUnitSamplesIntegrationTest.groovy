@@ -36,7 +36,7 @@ class CUnitSamplesIntegrationTest extends AbstractInstalledToolChainIntegrationS
     @Rule public final Sample cunit = sample(temporaryFolder, 'cunit')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
+        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
     @ToBeFixedForInstantExecution(because = ":components")

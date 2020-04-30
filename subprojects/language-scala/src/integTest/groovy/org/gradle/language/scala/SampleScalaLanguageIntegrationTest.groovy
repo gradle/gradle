@@ -38,13 +38,13 @@ class SampleScalaLanguageIntegrationTest extends AbstractIntegrationSpec {
 
     def "can build scala based jvm component"() {
         setup:
-        executer.inDirectory(sample.dir)
+        executer.inDirectory(sample.dir.file('groovy'))
 
         when:
         succeeds("assemble")
 
         then:
-        new JarTestFixture(sample.dir.file("build/jars/main/jar/main.jar")).hasDescendants(
+        new JarTestFixture(sample.dir.file("groovy/build/jars/main/jar/main.jar")).hasDescendants(
                 "org/gradle/samples/HelloWorld.class",
                 "org/gradle/samples/HelloWorld\$.class",
                 "org/gradle/samples/Greeter.class",
