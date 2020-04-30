@@ -32,7 +32,6 @@ import org.gradle.internal.reflect.JavaReflectionUtil
 import org.gradle.internal.service.ServiceRegistry
 import java.io.IOException
 import java.lang.reflect.Field
-import java.util.function.Supplier
 import kotlin.reflect.KClass
 
 
@@ -77,9 +76,6 @@ class BeanPropertyReader(
 
     private
     fun setterFor(field: Field): ReadContext.(Any, Any?) -> Unit = when (val type = field.type) {
-        Supplier::class.java -> { bean, value ->
-            field.set(bean, Supplier { value })
-        }
         Function0::class.java -> { bean, value ->
             field.set(bean, { value })
         }

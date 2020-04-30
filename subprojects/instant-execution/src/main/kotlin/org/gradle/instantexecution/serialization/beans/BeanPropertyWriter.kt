@@ -29,7 +29,6 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
-import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
@@ -63,7 +62,6 @@ class BeanPropertyWriter(
     fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
         is Closure<*> -> fieldValue
         // TODO - do not eagerly evaluate these types
-        is Supplier<*> -> fieldValue.get()
         is Function0<*> -> fieldValue.invoke()
         is Lazy<*> -> fieldValue.value
         else -> fieldValue ?: conventionalValueOf(bean, fieldName)
