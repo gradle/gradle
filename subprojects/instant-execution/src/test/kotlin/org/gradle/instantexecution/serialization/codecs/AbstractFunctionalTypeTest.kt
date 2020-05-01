@@ -23,7 +23,7 @@ import org.hamcrest.MatcherAssert.assertThat
 abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
 
     protected
-    fun <T : Any> assertDeferredExecutionOf(deferred: T, force: T.() -> Any?) {
+    fun <T : Any> assertDeferredEvaluationOf(deferred: T, force: T.() -> Any?) {
         Runtime.value = "before"
         val value = roundtrip(deferred)
 

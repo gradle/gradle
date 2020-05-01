@@ -22,22 +22,22 @@ import org.junit.Test
 class FunctionCodecTest : AbstractFunctionalTypeTest() {
 
     @Test
-    fun `defers execution of Function objects`() {
-        assertDeferredExecutionOf(function()) {
+    fun `defers evaluation of Function objects`() {
+        assertDeferredEvaluationOf(function()) {
             invoke()
         }
     }
 
     @Test
-    fun `defers execution of dynamic Function fields`() {
-        assertDeferredExecutionOf(BeanOf(function())) {
+    fun `defers evaluation of dynamic Function fields`() {
+        assertDeferredEvaluationOf(BeanOf(function())) {
             value()
         }
     }
 
     @Test
-    fun `defers execution of static Function fields`() {
-        assertDeferredExecutionOf(FunctionBean(function())) {
+    fun `defers evaluation of static Function fields`() {
+        assertDeferredEvaluationOf(FunctionBean(function())) {
             value()
         }
     }

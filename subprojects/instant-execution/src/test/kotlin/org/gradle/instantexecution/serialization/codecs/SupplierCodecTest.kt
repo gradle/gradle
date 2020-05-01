@@ -23,22 +23,22 @@ import java.util.function.Supplier
 class SupplierCodecTest : AbstractFunctionalTypeTest() {
 
     @Test
-    fun `defers execution of Supplier objects`() {
-        assertDeferredExecutionOf(supplier()) {
+    fun `defers evaluation of Supplier objects`() {
+        assertDeferredEvaluationOf(supplier()) {
             get()
         }
     }
 
     @Test
-    fun `defers execution of dynamic Supplier fields`() {
-        assertDeferredExecutionOf(BeanOf(supplier())) {
+    fun `defers evaluation of dynamic Supplier fields`() {
+        assertDeferredEvaluationOf(BeanOf(supplier())) {
             value.get()
         }
     }
 
     @Test
-    fun `defers execution of static Supplier fields`() {
-        assertDeferredExecutionOf(SupplierBean(supplier())) {
+    fun `defers evaluation of static Supplier fields`() {
+        assertDeferredEvaluationOf(SupplierBean(supplier())) {
             value.get()
         }
     }

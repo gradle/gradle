@@ -23,22 +23,22 @@ import java.util.concurrent.Callable
 class CallableCodecTest : AbstractFunctionalTypeTest() {
 
     @Test
-    fun `defers execution of Callable objects`() {
-        assertDeferredExecutionOf(callable()) {
+    fun `defers evaluation of Callable objects`() {
+        assertDeferredEvaluationOf(callable()) {
             call()
         }
     }
 
     @Test
-    fun `defers execution of dynamic Callable fields`() {
-        assertDeferredExecutionOf(BeanOf(callable())) {
+    fun `defers evaluation of dynamic Callable fields`() {
+        assertDeferredEvaluationOf(BeanOf(callable())) {
             value.call()
         }
     }
 
     @Test
-    fun `defers execution of static Callable fields`() {
-        assertDeferredExecutionOf(CallableBean(callable())) {
+    fun `defers evaluation of static Callable fields`() {
+        assertDeferredEvaluationOf(CallableBean(callable())) {
             value.call()
         }
     }
