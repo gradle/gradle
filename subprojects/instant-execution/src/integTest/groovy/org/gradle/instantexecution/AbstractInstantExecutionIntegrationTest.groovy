@@ -31,7 +31,15 @@ class AbstractInstantExecutionIntegrationTest extends AbstractIntegrationSpec {
     protected InstantExecutionProblemsFixture problems
 
     def setup() {
+        // Verify that the previous test cleaned up state correctly
+        assert System.getProperty(SystemProperties.isEnabled) == null
         problems = new InstantExecutionProblemsFixture(executer, testDirectory)
+    }
+
+    @Override
+    def cleanup() {
+        // Verify that the test (or fixtures) has cleaned up state correctly
+        assert System.getProperty(SystemProperties.isEnabled) == null
     }
 
     void buildKotlinFile(@Language("kotlin") String script) {

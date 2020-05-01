@@ -27,7 +27,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         buildFile << """
             plugins {
                 id("java")
-            }    
+            }
         """
 
         when:
@@ -39,6 +39,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
     }
 
     ExecutionResult runWithInstantExecutionViaToolingApi(String... tasks) {
+        // TODO - move this to a GradleExecuter implementation
         def output = new ByteArrayOutputStream()
         def error = new ByteArrayOutputStream()
         def context = new IntegrationTestBuildContext()
@@ -62,6 +63,9 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
                 .run()
         } finally {
             connection.close()
+            if (GradleContextualExecuter.embedded) {
+                System.clearProperty(SystemProperties.isEnabled)
+            }
         }
         result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return result
