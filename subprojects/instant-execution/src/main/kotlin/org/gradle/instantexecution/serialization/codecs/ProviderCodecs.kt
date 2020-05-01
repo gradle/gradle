@@ -128,9 +128,9 @@ class
 BuildServiceProviderCodec(private val serviceRegistry: BuildServiceRegistryInternal) : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         encodePreservingSharedIdentityOf(value) {
-            writeString(value.getName())
-            writeClass(value.getImplementationType())
-            write(value.getParameters())
+            writeString(value.name)
+            writeClass(value.implementationType)
+            write(value.parameters)
             writeInt(serviceRegistry.forService(value).maxUsages)
         }
     }

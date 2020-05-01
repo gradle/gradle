@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.instantexecution.InstantExecutionError
@@ -29,8 +28,6 @@ import org.gradle.instantexecution.serialization.IsolateContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.logPropertyInfo
 import java.io.IOException
-import java.util.concurrent.Callable
-import java.util.function.Supplier
 
 
 class BeanPropertyWriter(
@@ -47,7 +44,8 @@ class BeanPropertyWriter(
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
-            val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
+            val originalFieldValue = field.get(bean)
+            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
             }
@@ -58,17 +56,6 @@ class BeanPropertyWriter(
     private
     fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
         conventionMapping.getConventionValue<Any?>(null, fieldName, false)
-    }
-
-    private
-    fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
-        is Closure<*> -> fieldValue
-        // TODO - do not eagerly evaluate these types
-        is Callable<*> -> fieldValue.call()
-        is Supplier<*> -> fieldValue.get()
-        is Function0<*> -> fieldValue.invoke()
-        is Lazy<*> -> fieldValue.value
-        else -> fieldValue ?: conventionalValueOf(bean, fieldName)
     }
 }
 
@@ -87,7 +74,10 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
         } catch (passThrough: InstantExecutionProblemsException) {
             throw passThrough
         } catch (error: Exception) {
-            throw InstantExecutionError(propertyErrorMessage(value), error.maybeUnwrapInvocationTargetException())
+            throw InstantExecutionError(
+                propertyErrorMessage(value),
+                error.maybeUnwrapInvocationTargetException()
+            )
         }
         logPropertyInfo("serialize", value)
     }
@@ -96,7 +86,9 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 
 private
 fun IsolateContext.propertyErrorMessage(value: Any?) =
-    "${propertyDescriptionFor(trace)}: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'"
+    "${propertyDescriptionFor(trace)}: error writing value of type '${
+    value?.let { unpackedTypeNameOf(it) } ?: "null"
+    }'"
 
 
 private
