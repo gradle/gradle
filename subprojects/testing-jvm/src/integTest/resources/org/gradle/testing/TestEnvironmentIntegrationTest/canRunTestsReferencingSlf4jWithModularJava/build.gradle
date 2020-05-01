@@ -16,8 +16,10 @@ dependencies {
 
 compileTestJava {
     def args = ["--module-path", compileTestJava.classpath.asPath,
+                "--add-modules", "slf4j.api",
                 "--add-modules", "junit",
-                "--add-reads", "org.gradle.example=junit"]
+                "--add-reads", "org.gradle.example=junit",
+                "--add-reads", "org.gradle.example=slf4j.api"]
     options.compilerArgs = args
     classpath = files()
 }
