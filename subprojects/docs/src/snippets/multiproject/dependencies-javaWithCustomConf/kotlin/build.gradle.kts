@@ -25,7 +25,7 @@ project(":services:personService") {
     dependencies {
         "implementation"(project(":shared"))
         "implementation"(project(path = ":api", configuration = "spi"))
-        "testImplementation"("junit:junit:4.12")
+        "testImplementation"("junit:junit:4.13")
         "testImplementation"(project(":api"))
     }
 }

@@ -21,7 +21,7 @@ import org.gradle.internal.operations.trace.BuildOperationRecord
 
 import static org.hamcrest.CoreMatchers.notNullValue
 import static org.hamcrest.CoreMatchers.nullValue
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 
 class InstantExecutionBuildOperationsFixture {

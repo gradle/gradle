@@ -78,32 +78,39 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
     fun checkInitScriptsAreUpToDate(
         previous: List<InstantExecutionCacheFingerprint.InputFile>,
         current: List<File>
-    ): InvalidationReason? {
-        val upToDateCount = current.zip(previous).count { (initScript, fingerprint) ->
-            isUpToDate(initScript, fingerprint.hash)
-        }
-        if (upToDateCount == previous.size) {
-            val added = current.size - upToDateCount
-            return when {
-                added == 1 -> "init script '${displayNameOf(current[upToDateCount])}' has been added"
-                added > 1 -> "init script '${displayNameOf(current[upToDateCount])}' and ${added - 1} more have been added"
-                else -> null
+    ): InvalidationReason? =
+        when (val upToDatePrefix = countUpToDatePrefixOf(previous, current)) {
+            previous.size -> {
+                val added = current.size - upToDatePrefix
+                when {
+                    added == 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' has been added"
+                    added > 1 -> "init script '${displayNameOf(current[upToDatePrefix])}' and ${added - 1} more have been added"
+                    else -> null
+                }
+            }
+            current.size -> {
+                val removed = previous.size - upToDatePrefix
+                when {
+                    removed == 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' has been removed"
+                    removed > 1 -> "init script '${displayNameOf(previous[upToDatePrefix].file)}' and ${removed - 1} more have been removed"
+                    else -> null
+                }
+            }
+            else -> {
+                when (val modifiedScript = current[upToDatePrefix]) {
+                    previous[upToDatePrefix].file -> "init script '${displayNameOf(modifiedScript)}' has changed"
+                    else -> "content of ${ordinal(upToDatePrefix + 1)} init script, '${displayNameOf(modifiedScript)}', has changed"
+                }
             }
         }
-        if (upToDateCount == current.size) {
-            val removed = previous.size - upToDateCount
-            return when {
-                removed == 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' has been removed"
-                removed > 1 -> "init script '${displayNameOf(previous[upToDateCount].file)}' and ${removed - 1} more have been removed"
-                else -> null
-            }
-        }
-        val modifiedScript = current[upToDateCount]
-        if (modifiedScript == previous[upToDateCount].file) {
-            return "init script '${displayNameOf(modifiedScript)}' has changed"
-        }
-        return "content of ${ordinal(upToDateCount + 1)} init script, '${displayNameOf(modifiedScript)}', has changed"
-    }
+
+    private
+    fun countUpToDatePrefixOf(
+        previous: List<InstantExecutionCacheFingerprint.InputFile>,
+        current: List<File>
+    ): Int = current.zip(previous)
+        .takeWhile { (initScript, fingerprint) -> isUpToDate(initScript, fingerprint.hash) }
+        .count()
 
     private
     fun checkFingerprintValueIsUpToDate(obtainedValue: ObtainedValue): InvalidationReason? {

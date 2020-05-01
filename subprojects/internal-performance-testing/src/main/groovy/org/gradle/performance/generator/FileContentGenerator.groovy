@@ -204,7 +204,7 @@ abstract class FileContentGenerator {
             <dependencies>
                 ${config.externalApiDependencies.collect { convertToPomDependency(it) }.join()}
                 ${config.externalImplementationDependencies.collect { convertToPomDependency(it) }.join()}
-                ${convertToPomDependency('junit:junit:4.12', 'test')}
+                ${convertToPomDependency('junit:junit:4.13', 'test')}
                 ${subProjectDependencies}
             </dependencies>
             """
@@ -431,7 +431,7 @@ abstract class FileContentGenerator {
         def block = """
                     ${config.externalApiDependencies.collect { directDependencyDeclaration(hasParent ? api : implementation, it) }.join("\n            ")}
                     ${config.externalImplementationDependencies.collect { directDependencyDeclaration(implementation, it) }.join("\n            ")}
-                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.12')}
+                    ${directDependencyDeclaration(testImplementation, config.useTestNG ? 'org.testng:testng:6.4' : 'junit:junit:4.13')}
 
                     $subProjectDependencies
         """

@@ -31,7 +31,7 @@ class IvyPublishJavaIntegTest extends AbstractIvyPublishIntegTest {
                api "commons-collections:commons-collections:3.2.2"
                compileOnly "javax.servlet:servlet-api:2.5"
                runtimeOnly "commons-io:commons-io:1.4"
-               testImplementation "junit:junit:4.12"
+               testImplementation "junit:junit:4.13"
            }
 """
     }

@@ -40,7 +40,7 @@ class CrossCompilationIntegrationTest extends AbstractIntegrationSpec {
                 jcenter()
             }
             dependencies {
-                testImplementation("junit:junit:4.12")
+                testImplementation("junit:junit:4.13")
             }
             java {
                 sourceCompatibility = JavaVersion.${version.name()}

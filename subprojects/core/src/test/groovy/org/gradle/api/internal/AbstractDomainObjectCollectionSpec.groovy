@@ -38,7 +38,7 @@ import spock.lang.Unroll
 import static org.gradle.util.Matchers.hasMessage
 import static org.gradle.util.WrapUtil.toList
 import static org.hamcrest.CoreMatchers.startsWith
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assume.assumeTrue
 
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {

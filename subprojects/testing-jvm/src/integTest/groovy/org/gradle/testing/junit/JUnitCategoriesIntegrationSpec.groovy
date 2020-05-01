@@ -80,7 +80,7 @@ apply plugin: 'java'
 ${mavenCentralRepository()}
 
 dependencies {
-    testImplementation "junit:junit:4.12"
+    testImplementation "junit:junit:4.13"
     testImplementation "org.powermock:powermock-api-mockito:1.6.5"
     testImplementation "org.powermock:powermock-module-junit4:1.6.5"
 }

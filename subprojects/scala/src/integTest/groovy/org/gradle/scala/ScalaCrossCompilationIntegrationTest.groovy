@@ -86,7 +86,7 @@ class ScalaThing { }
     def "can compile source and run JUnit tests using target Java version"() {
         given:
         buildFile << """
-dependencies { testImplementation 'junit:junit:4.12' }
+dependencies { testImplementation 'junit:junit:4.13' }
 """
 
         file("src/test/scala/ThingTest.scala") << """

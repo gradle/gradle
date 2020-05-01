@@ -50,7 +50,7 @@ repositories({ println "in a closure" })
 // tag::closureDelegates[]
 dependencies {
     assert delegate == project.dependencies
-    testImplementation('junit:junit:4.12')
-    delegate.testImplementation('junit:junit:4.12')
+    testImplementation('junit:junit:4.13')
+    delegate.testImplementation('junit:junit:4.13')
 }
 // end::closureDelegates[]

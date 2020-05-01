@@ -126,7 +126,7 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
     static String junitDependency() {
         """
             dependencies {
-                testImplementation 'junit:junit:4.12'
+                testImplementation 'junit:junit:4.13'
             }
         """
     }
@@ -135,13 +135,13 @@ class CompositeBuildContinueOnMultipleFailuresIntegrationTest extends AbstractCo
         """
             import org.junit.Test;
             import static org.junit.Assert.assertTrue;
-            
+
             public class $className {
                 @Test
                 public void testSuccess() {
                     assertTrue(true);
                 }
-            
+
                 @Test
                 public void testFailure() {
                     throw new RuntimeException("Failure!");

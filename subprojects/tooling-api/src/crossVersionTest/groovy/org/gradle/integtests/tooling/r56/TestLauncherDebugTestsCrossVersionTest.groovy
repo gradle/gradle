@@ -35,7 +35,7 @@ class TestLauncherDebugTestsCrossVersionTest extends ToolingApiSpecification {
         buildFile << """
             plugins { id 'java-library' }
             ${mavenCentralRepository()}
-            dependencies { testCompile 'junit:junit:4.12' }
+            dependencies { testCompile 'junit:junit:4.13' }
         """
         file('src/test/java/example/MyTest.java').text = """
             package example;

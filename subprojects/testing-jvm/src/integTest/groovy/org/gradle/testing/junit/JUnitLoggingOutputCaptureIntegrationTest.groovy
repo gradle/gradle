@@ -21,12 +21,14 @@ import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.integtests.fixtures.TargetCoverage
 import org.gradle.testing.fixture.JUnitMultiVersionIntegrationSpec
 
-import static org.gradle.testing.fixture.JUnitCoverage.*
+import static org.gradle.testing.fixture.JUnitCoverage.JUNIT_4_LATEST
+import static org.gradle.testing.fixture.JUnitCoverage.JUPITER
+import static org.gradle.testing.fixture.JUnitCoverage.VINTAGE
 import static org.hamcrest.CoreMatchers.containsString
 import static org.hamcrest.CoreMatchers.is
 
 // https://github.com/junit-team/junit5/issues/1285
-@TargetCoverage({ JUNIT_4_LATEST + emptyIfJava7(JUPITER, VINTAGE) })
+@TargetCoverage({ JUNIT_4_LATEST + [JUPITER, VINTAGE] })
 class JUnitLoggingOutputCaptureIntegrationTest extends JUnitMultiVersionIntegrationSpec {
     def setup() {
         buildFile << """
@@ -97,14 +99,14 @@ public class OkTest {
         outputContains """Test class OkTest -> class loaded
 Test class OkTest -> before class out
 Test class OkTest -> before class err
-Test class OkTest -> test constructed
+Test anotherOk(OkTest) -> test constructed
 Test anotherOk(OkTest) -> before out
 Test anotherOk(OkTest) -> before err
 Test anotherOk(OkTest) -> ok out
 Test anotherOk(OkTest) -> ok err
 Test anotherOk(OkTest) -> after out
 Test anotherOk(OkTest) -> after err
-Test class OkTest -> test constructed
+Test ok(OkTest) -> test constructed
 Test ok(OkTest) -> before out
 Test ok(OkTest) -> before err
 Test ok(OkTest) -> test out: \u03b1</html>
@@ -119,7 +121,8 @@ Test class OkTest -> after class err
 
         def xmlReport = new JUnitXmlTestExecutionResult(testDirectory)
         def classResult = xmlReport.testClass("OkTest")
-        classResult.assertTestCaseStdout("ok", is("""before out
+        classResult.assertTestCaseStdout("ok", is("""test constructed
+before out
 test out: \u03b1</html>
 after out
 """))
@@ -129,8 +132,6 @@ after err
 """))
         classResult.assertStdout(is("""class loaded
 before class out
-test constructed
-test constructed
 after class out
 """))
         classResult.assertStderr(is("""before class err

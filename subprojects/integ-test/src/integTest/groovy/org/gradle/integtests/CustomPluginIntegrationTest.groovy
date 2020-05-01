@@ -162,7 +162,7 @@ ${mavenCentralRepository()}
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 """
 
@@ -203,7 +203,7 @@ ${mavenCentralRepository()}
 dependencies {
     implementation gradleApi()
     implementation localGroovy()
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
 }
 """
 

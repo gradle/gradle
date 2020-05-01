@@ -24,7 +24,7 @@ repositories {
 
 // tag::test_dependency[]
 dependencies {
-    testImplementation 'junit:junit:4.12'
+    testImplementation 'junit:junit:4.13'
     testImplementation project(':producer')
 }
 // end::test_dependency[]

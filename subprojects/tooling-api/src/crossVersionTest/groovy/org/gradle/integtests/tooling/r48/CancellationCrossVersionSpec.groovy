@@ -48,6 +48,6 @@ class CancellationCrossVersionSpec extends CancellationSpec {
         }
 
         then:
-        configureWasCancelled(resultHandler, "Could not run phased build action using Gradle")
+        configureWasCancelled(resultHandler, "Could not run phased build action using")
     }
 }

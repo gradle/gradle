@@ -33,7 +33,7 @@ import static org.gradle.util.WrapUtil.toList
 import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.core.IsInstanceOf.instanceOf
-import static org.junit.Assert.assertThat
+import static org.hamcrest.MatcherAssert.assertThat
 
 class AbstractFileCollectionTest extends FileCollectionSpec {
     final TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class)

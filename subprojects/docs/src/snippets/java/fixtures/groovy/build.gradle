@@ -30,8 +30,8 @@ repositories {
 // tag::consumer_dependencies[]
 dependencies {
     implementation(project(":lib"))
-    
-    testImplementation 'junit:junit:4.12'
+
+    testImplementation 'junit:junit:4.13'
     testImplementation(testFixtures(project(":lib")))
 }
 // end::consumer_dependencies[]

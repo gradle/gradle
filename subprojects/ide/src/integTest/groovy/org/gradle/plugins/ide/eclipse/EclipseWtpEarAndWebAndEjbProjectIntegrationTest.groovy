@@ -45,7 +45,7 @@ project(':web') {
 
     dependencies {
         providedCompile 'javax.servlet:javax.servlet-api:3.1.0'
-        testImplementation "junit:junit:4.12"
+        testImplementation "junit:junit:4.13"
     }
 }
 project(':java') {
@@ -55,7 +55,7 @@ project(':java') {
         implementation 'com.google.guava:guava:18.0'
         implementation files('foo')
         implementation 'javax.servlet:javax.servlet-api:3.1.0'
-        testImplementation "junit:junit:4.12"
+        testImplementation "junit:junit:4.13"
     }
 }
 """

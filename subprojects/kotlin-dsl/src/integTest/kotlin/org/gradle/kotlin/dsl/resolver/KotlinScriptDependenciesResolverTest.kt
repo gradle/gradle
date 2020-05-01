@@ -29,7 +29,7 @@ import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.Matcher
 
 import org.junit.Assert.assertSame
-import org.junit.Assert.assertThat
+import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test

@@ -85,7 +85,7 @@ class JUnitCategoriesCoverageIntegrationSpec extends JUnitMultiVersionIntegratio
 
         then:
         def expectedTestClasses = ['org.gradle.NestedTestsWithCategories$TagOnMethodNoParam', 'org.gradle.NestedTestsWithCategories$TagOnMethod']
-        if (isVintage() || !(version in ['4.10', '4.11', '4.12'])) {
+        if (isVintage() || !(version in ['4.10', '4.11', '4.12', '4.13'])) {
             expectedTestClasses << 'org.gradle.NestedTestsWithCategories$TagOnClass'
         }
         DefaultTestExecutionResult result = new DefaultTestExecutionResult(testDirectory)

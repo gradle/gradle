@@ -157,7 +157,7 @@ class ProjectBuilderCrossVersionIntegrationTest extends MultiVersionIntegrationS
             dependencies {
                 ${forOldGradle? 'compile' : 'implementation'} gradleApi()
                 ${forOldGradle? 'compile' : 'implementation'} 'org.gradle:hello:1.0'
-                ${forOldGradle? 'testCompile' : 'testImplementation'} 'junit:junit:4.12'
+                ${forOldGradle? 'testCompile' : 'testImplementation'} 'junit:junit:4.13'
             }
 
             repositories {

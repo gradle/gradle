@@ -70,7 +70,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         project1module.parsedIvy.configurations.keySet() == ['default', 'compile', 'runtime', 'javadocElements', 'sourcesElements'] as Set
         project1module.parsedIvy.description.text() == "The first project"
-        project1module.parsedIvy.assertDependsOn("junit:junit:4.12@runtime", "org.gradle.sample:project2:1.0@runtime")
+        project1module.parsedIvy.assertDependsOn("junit:junit:4.13@runtime", "org.gradle.sample:project2:1.0@runtime")
 
         and:
         project2module.assertPublished()

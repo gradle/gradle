@@ -44,6 +44,6 @@ class TestLauncherCancellationCrossVersionSpec extends CancellationSpec {
         }
 
         then:
-        buildWasCancelled(resultHandler, 'Could not execute tests using Gradle')
+        buildWasCancelled(resultHandler, 'Could not execute tests using')
     }
 }

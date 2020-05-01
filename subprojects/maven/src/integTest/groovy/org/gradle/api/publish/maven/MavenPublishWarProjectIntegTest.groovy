@@ -39,7 +39,7 @@ class MavenPublishWarProjectIntegTest extends AbstractMavenPublishIntegTest {
             dependencies {
                 implementation "commons-collections:commons-collections:3.2.2"
                 runtimeOnly "commons-io:commons-io:1.4"
-                testRuntimeOnly "junit:junit:4.12"
+                testRuntimeOnly "junit:junit:4.13"
             }
 
             publishing {

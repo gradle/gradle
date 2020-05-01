@@ -69,7 +69,7 @@ class TestOutputCrossVersionSpec extends ToolingApiSpecification {
         buildFile << """
             apply plugin: 'java'
             ${mavenCentralRepository()}
-            dependencies.testCompile 'junit:junit:4.12'
+            dependencies.testCompile 'junit:junit:4.13'
             test.ignoreFailures = true
         """
         file("src/test/java/example/MyTest.java") << """

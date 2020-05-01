@@ -12,7 +12,7 @@ val smokeTest by configurations.creating {
 }
 
 dependencies {
-    testImplementation("junit:junit:4.12")
+    testImplementation("junit:junit:4.13")
     smokeTest("org.apache.httpcomponents:httpclient:4.5.5")
 }
 // end::configuration-definition[]

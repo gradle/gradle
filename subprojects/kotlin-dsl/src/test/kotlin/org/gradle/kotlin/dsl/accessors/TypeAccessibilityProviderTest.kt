@@ -1,10 +1,11 @@
 package org.gradle.kotlin.dsl.accessors
 
+import org.junit.Assert.assertTrue
 import org.gradle.internal.classpath.ClassPath
 
 import org.hamcrest.CoreMatchers.*
+import org.hamcrest.MatcherAssert.assertThat
 
-import org.junit.Assert.*
 import org.junit.Test
 
 

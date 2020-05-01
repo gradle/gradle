@@ -48,4 +48,6 @@ public interface ConsumerConnection extends Stoppable {
     void runTests(TestExecutionRequest testExecutionRequest, ConsumerOperationParameters operationParameters);
 
     void notifyDaemonsAboutChangedPaths(List<String> changedPaths, ConsumerOperationParameters operationParameters);
+
+    void stopWhenIdle(ConsumerOperationParameters operationParameters);
 }

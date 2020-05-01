@@ -616,9 +616,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
                 ResolvableDependenciesInternal incoming = (ResolvableDependenciesInternal) getIncoming();
                 performPreResolveActions(incoming);
-                cachedResolverResults = new DefaultResolverResults();
-                resolver.resolveGraph(DefaultConfiguration.this, cachedResolverResults);
+                DefaultResolverResults results = new DefaultResolverResults();
+                resolver.resolveGraph(DefaultConfiguration.this, results);
                 dependenciesModified = false;
+                cachedResolverResults = results;
                 resolvedState = GRAPH_RESOLVED;
 
                 // Mark all affected configurations as observed
