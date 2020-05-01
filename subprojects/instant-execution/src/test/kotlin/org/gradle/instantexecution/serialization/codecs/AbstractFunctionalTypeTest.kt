@@ -34,6 +34,18 @@ abstract class AbstractFunctionalTypeTest : AbstractUserTypeCodecTest() {
         )
     }
 
+    protected
+    fun <T : Any> assertEagerEvaluationOf(eager: T, extract: T.() -> Any?) {
+        Runtime.value = "before"
+        val value = roundtrip(eager)
+
+        Runtime.value = "after"
+        assertThat(
+            extract(value),
+            equalTo("before")
+        )
+    }
+
     object Runtime {
         private
         val local = ThreadLocal<Any?>()

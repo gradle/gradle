@@ -44,19 +44,13 @@ class BeanPropertyWriter(
         for (relevantField in relevantFields) {
             val field = relevantField.field
             val fieldName = field.name
-            val fieldValue = valueOrConvention(field.get(bean), bean, fieldName)
+            val originalFieldValue = field.get(bean)
+            val fieldValue = originalFieldValue ?: conventionalValueOf(bean, fieldName)
             relevantField.unsupportedFieldType?.let {
                 reportUnsupportedFieldType(it, "serialize", field.name, fieldValue)
             }
             writeNextProperty(fieldName, fieldValue, PropertyKind.Field)
         }
-    }
-
-    private
-    fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
-        // TODO - do not eagerly evaluate these types
-        is Lazy<*> -> fieldValue.value
-        else -> fieldValue ?: conventionalValueOf(bean, fieldName)
     }
 
     private
