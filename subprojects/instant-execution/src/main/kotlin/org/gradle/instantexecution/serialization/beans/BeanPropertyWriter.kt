@@ -53,15 +53,15 @@ class BeanPropertyWriter(
     }
 
     private
-    fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
-        conventionMapping.getConventionValue<Any?>(null, fieldName, false)
-    }
-
-    private
     fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
         // TODO - do not eagerly evaluate these types
         is Lazy<*> -> fieldValue.value
         else -> fieldValue ?: conventionalValueOf(bean, fieldName)
+    }
+
+    private
+    fun conventionalValueOf(bean: Any, fieldName: String): Any? = (bean as? IConventionAware)?.run {
+        conventionMapping.getConventionValue<Any?>(null, fieldName, false)
     }
 }
 
@@ -80,7 +80,10 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
         } catch (passThrough: InstantExecutionProblemsException) {
             throw passThrough
         } catch (error: Exception) {
-            throw InstantExecutionError(propertyErrorMessage(value), error.maybeUnwrapInvocationTargetException())
+            throw InstantExecutionError(
+                propertyErrorMessage(value),
+                error.maybeUnwrapInvocationTargetException()
+            )
         }
         logPropertyInfo("serialize", value)
     }
@@ -89,7 +92,9 @@ suspend fun WriteContext.writeNextProperty(name: String, value: Any?, kind: Prop
 
 private
 fun IsolateContext.propertyErrorMessage(value: Any?) =
-    "${propertyDescriptionFor(trace)}: error writing value of type '${value?.let { unpackedTypeNameOf(it) } ?: "null"}'"
+    "${propertyDescriptionFor(trace)}: error writing value of type '${
+    value?.let { unpackedTypeNameOf(it) } ?: "null"
+    }'"
 
 
 private
