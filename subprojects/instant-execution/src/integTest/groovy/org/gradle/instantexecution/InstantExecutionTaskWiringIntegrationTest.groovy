@@ -18,6 +18,7 @@ package org.gradle.instantexecution
 
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import spock.lang.Unroll
 
 class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecutionIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
@@ -124,12 +125,16 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         result.assertTasksSkipped(":producer", ":transformer")
     }
 
-    def "task input property can consume the mapped output of another task connected via project property"() {
+    @Unroll
+    def "task input property can consume the mapped output of another task connected via project property with #description"() {
         taskTypeWithInputFileProperty()
         taskTypeWithIntInputProperty()
 
         buildFile << """
             def output = objects.property(Integer)
+            output.with {
+                $propertyConfig
+            }
             task producer(type: InputFileTask) {
                 inFile = file("in.txt")
                 outFile = layout.buildDirectory.file("out.txt")
@@ -176,6 +181,11 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         then:
         instantExecution.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
+
+        where:
+        description         | propertyConfig
+        "default behaviour" | ""
+        "finalize on read"  | "it.finalizeValueOnRead()"
     }
 
     def "task input collection property can consume the mapped output of another task"() {
