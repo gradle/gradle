@@ -96,7 +96,7 @@ class ScalaDocIntegrationTest extends AbstractIntegrationSpec implements Directo
 
         then:
         //Whole line would look like: [DEBUG] [org.gradle.workers.internal.WorkerDaemonStarter] Starting Gradle worker daemon with fork options DaemonForkOptions{executable=/path/to/java, minHeapSize=null, maxHeapSize=234M, jvmArgs=[], keepAliveMode=DAEMON}
-        result.output.contains("maxHeapSize=234M")
+        outputContains("maxHeapSize=234M")
     }
 
     private TestFile writeSourceFile() {
