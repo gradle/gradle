@@ -16,7 +16,6 @@
 
 package org.gradle.instantexecution.serialization.beans
 
-import groovy.lang.Closure
 import org.gradle.api.internal.GeneratedSubclasses
 import org.gradle.api.internal.IConventionAware
 import org.gradle.instantexecution.InstantExecutionError
@@ -60,7 +59,6 @@ class BeanPropertyWriter(
 
     private
     fun valueOrConvention(fieldValue: Any?, bean: Any, fieldName: String): Any? = when (fieldValue) {
-        is Closure<*> -> fieldValue
         // TODO - do not eagerly evaluate these types
         is Lazy<*> -> fieldValue.value
         else -> fieldValue ?: conventionalValueOf(bean, fieldName)
