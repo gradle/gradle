@@ -32,6 +32,7 @@ class SystemPropertyAccessListener(
     val whitelistedProperties = setOf(
         "os.name",
         "os.version",
+        "os.arch",
         "java.version",
         "java.vm.version",
         "java.runtime.version",

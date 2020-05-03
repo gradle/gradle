@@ -20,6 +20,7 @@ package org.gradle.instantexecution.inputs.undeclared
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import spock.lang.Unroll
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     def "reports build logic reading a system property via the Java API"() {
@@ -39,7 +40,8 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         failure.assertThatCause(containsNormalizedString("Read system property 'CI' from 'build_"))
     }
 
-    def "plugin can use standard properties without declaring access"() {
+    @Unroll
+    def "plugin can use standard property #prop without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};
@@ -72,6 +74,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         prop << [
             "os.name",
             "os.version",
+            "os.arch",
             "java.version",
             "java.vm.version",
             "java.specification.version",
