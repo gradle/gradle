@@ -214,16 +214,16 @@ The format can be activated by enabling the matching <<feature_lifecycle#feature
 
 .Single lock file per project activation
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFileperProject/groovy",files="settings.gradle[]"]
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFileperProject/kotlin",files="settings.gradle.kts[]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="settings.gradle[]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="settings.gradle.kts[]"]
 ====
 
 Then with the following dependency declaration and locked configurations:
 
 .Explicit locking
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFileperProject/groovy",files="build.gradle[tags=locking-explicit]"]
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFileperProject/kotlin",files="build.gradle.kts[tags=locking-explicit]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-explicit]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-explicit]"]
 ====
 
 The lockfile will have the following content:
@@ -231,7 +231,7 @@ The lockfile will have the following content:
 [listing]
 .gradle.lockfile
 ----
-include::{snippetsPath}/dependencyManagement/dependencyLocking-lockingSingleFileperProject/groovy/gradle.lockfile[]
+include::{snippetsPath}/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy/gradle.lockfile[]
 ----
 
 * Each line still represents a single dependency in the `group:artifact:version` notation
@@ -252,8 +252,8 @@ One trivial example in the JVM ecosystem is the Scala version that is often foun
 
 .Changing the lock file name
 ====
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFileperProject/groovy",files="build.gradle[tags=locking-file-name]"]
-include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFileperProject/kotlin",files="build.gradle.kts[tags=locking-file-name]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/groovy",files="build.gradle[tags=locking-file-name]"]
+include::sample[dir="snippets/dependencyManagement/dependencyLocking-lockingSingleFilePerProject/kotlin",files="build.gradle.kts[tags=locking-file-name]"]
 ====
 
 [[locking_limitations]]
