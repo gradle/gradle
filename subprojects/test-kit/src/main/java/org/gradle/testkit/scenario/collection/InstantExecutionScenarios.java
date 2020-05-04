@@ -81,6 +81,7 @@ public interface InstantExecutionScenarios {
      *
      * @since 6.5
      */
+    @Incubating
     interface CacheInvalidation extends GradleScenario {
 
         /**
@@ -88,6 +89,7 @@ public interface InstantExecutionScenarios {
          *
          * @since 6.5
          */
+        @Incubating
         interface Steps {
             String STORE = "store";
             String LOAD = "load";
