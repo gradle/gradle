@@ -28,7 +28,7 @@ import org.gradle.testkit.scenario.internal.DefaultGradleScenario;
 import java.io.File;
 import java.util.function.Supplier;
 
-import static org.gradle.testkit.scenario.collection.internal.GradleScenarioUtilInternal.assertTaskOutcomes;
+import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.assertTaskOutcomes;
 
 
 public class DefaultIncrementalBuildScenario extends DefaultGradleScenario implements IncrementalBuildScenario {

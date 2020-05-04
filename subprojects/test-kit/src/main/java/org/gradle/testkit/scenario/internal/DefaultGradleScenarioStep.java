@@ -25,9 +25,10 @@ import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.function.Supplier;
+
+import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.appendArguments;
 
 
 public class DefaultGradleScenarioStep implements GradleScenarioStep {
@@ -57,11 +58,7 @@ public class DefaultGradleScenarioStep implements GradleScenarioStep {
 
     @Override
     public GradleScenarioStep withArguments(String... arguments) {
-        return withRunnerAction(runner -> {
-            List<String> args = new ArrayList<>(runner.getArguments());
-            args.addAll(Arrays.asList(arguments));
-            runner.withArguments(args);
-        });
+        return withRunnerAction(runner -> appendArguments(runner, arguments));
     }
 
     @Override

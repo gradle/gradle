@@ -27,10 +27,10 @@ import org.gradle.testkit.scenario.collection.internal.DefaultIncrementalBuildSc
 
 import javax.annotation.Nullable;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
+
+import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.appendArguments;
 
 
 /**
@@ -119,11 +119,7 @@ public interface InstantExecutionScenarios {
     }
 
     static Action<GradleRunner> getEnableInstantExecution() {
-        return runner -> {
-            List<String> args = new ArrayList<>(runner.getArguments());
-            args.add("-Dorg.gradle.unsafe.instant-execution=true");
-            runner.withArguments(args);
-        };
+        return runner -> appendArguments(runner, "-Dorg.gradle.unsafe.instant-execution=true");
     }
 
     static BiConsumer<String, BuildResult> getAssertStepStored() {

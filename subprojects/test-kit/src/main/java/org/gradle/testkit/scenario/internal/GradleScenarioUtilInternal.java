@@ -14,16 +14,32 @@
  * limitations under the License.
  */
 
-package org.gradle.testkit.scenario.collection.internal;
+package org.gradle.testkit.scenario.internal;
 
 import org.gradle.testkit.runner.BuildResult;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.GradleRunner;
 import org.gradle.testkit.runner.TaskOutcome;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
 
-class GradleScenarioUtilInternal {
 
-    static void assertTaskOutcomes(String step, String[] taskPaths, BuildResult result, TaskOutcome outcome) {
+public class GradleScenarioUtilInternal {
+
+    public static void appendArguments(GradleRunner runner, String... arguments) {
+        appendArguments(runner, Arrays.asList(arguments));
+    }
+
+    public static void appendArguments(GradleRunner runner, Collection<String> arguments) {
+        List<String> args = new ArrayList<>(runner.getArguments());
+        args.addAll(arguments);
+        runner.withArguments(args);
+    }
+
+    public static void assertTaskOutcomes(String step, String[] taskPaths, BuildResult result, TaskOutcome outcome) {
         for (String taskPath : taskPaths) {
             BuildTask task = result.task(taskPath);
             assert task != null
@@ -31,5 +47,8 @@ class GradleScenarioUtilInternal {
             assert task.getOutcome() == outcome
                 : "Step '" + step + "': expected task '" + taskPath + "' to be " + outcome + " but was " + task.getOutcome();
         }
+    }
+
+    private GradleScenarioUtilInternal() {
     }
 }

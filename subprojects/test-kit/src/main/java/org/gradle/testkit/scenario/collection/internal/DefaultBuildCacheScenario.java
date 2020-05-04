@@ -25,11 +25,10 @@ import org.gradle.testkit.scenario.collection.BuildCacheScenario;
 import org.gradle.testkit.scenario.internal.DefaultGradleScenario;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Supplier;
 
-import static org.gradle.testkit.scenario.collection.internal.GradleScenarioUtilInternal.assertTaskOutcomes;
+import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.appendArguments;
+import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.assertTaskOutcomes;
 
 
 public class DefaultBuildCacheScenario extends DefaultGradleScenario implements BuildCacheScenario {
@@ -53,11 +52,12 @@ public class DefaultBuildCacheScenario extends DefaultGradleScenario implements 
     public ScenarioResult run() {
 
         Action<GradleRunner> isolatedBuildCache = runner -> {
-            List<String> args = new ArrayList<>(runner.getArguments());
-            args.add("--build-cache");
-            args.add("-g");
-            args.add(new File(baseDirectory, "gradle-user-home").getAbsolutePath());
-            runner.withArguments(args);
+            appendArguments(
+                runner,
+                "--build-cache",
+                "-g",
+                new File(baseDirectory, "gradle-user-home").getAbsolutePath()
+            );
         };
 
         withSteps(steps -> {
