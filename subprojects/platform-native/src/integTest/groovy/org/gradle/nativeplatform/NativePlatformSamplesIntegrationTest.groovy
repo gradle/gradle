@@ -44,7 +44,7 @@ class NativePlatformSamplesIntegrationTest extends AbstractInstalledToolChainInt
     @Rule public final Sample customCheck = sample(testDirectoryProvider, "custom-check")
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
+        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
     @ToBeFixedForInstantExecution

@@ -35,7 +35,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
     @Rule public final Sample googleTest = sample(temporaryFolder, 'google-test')
 
     private static Sample sample(TestDirectoryProvider testDirectoryProvider, String name) {
-        return new Sample(testDirectoryProvider, "native-binaries/${name}", name)
+        return new Sample(testDirectoryProvider, "native-binaries/${name}/groovy", name)
     }
 
     @ToBeFixedForInstantExecution

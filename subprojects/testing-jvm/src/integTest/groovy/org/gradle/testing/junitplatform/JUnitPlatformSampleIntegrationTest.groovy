@@ -26,7 +26,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
     @Rule
     public final Sample sample = new Sample(testDirectoryProvider)
 
-    @UsesSample('testing/junitplatform/jupiter/groovy')
+    @UsesSample('testing/junitplatform-jupiter/groovy')
     def 'jupiter sample test'() {
         given:
         sample sample
@@ -43,7 +43,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
             .assertTestSkipped('disabled')
     }
 
-    @UsesSample('testing/junitplatform/mix/groovy')
+    @UsesSample('testing/junitplatform-mix/groovy')
     def 'mix JUnit3/4/5'() {
         given:
         sample sample
@@ -60,7 +60,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
             .testClass('org.gradle.junitplatform.JupiterTest').assertTestCount(1, 0, 0)
     }
 
-    @UsesSample('testing/junitplatform/engine/groovy')
+    @UsesSample('testing/junitplatform-engine/groovy')
     def 'engine sample test'() {
         given:
         sample sample
@@ -74,7 +74,7 @@ class JUnitPlatformSampleIntegrationTest extends AbstractSampleIntegrationTest {
             .testClass('org.gradle.junitplatform.JUnit4Test').assertTestCount(1, 0, 0)
     }
 
-    @UsesSample('testing/junitplatform/tagging/groovy')
+    @UsesSample('testing/junitplatform-tagging/groovy')
     def 'tagging sample test'() {
         given:
         sample sample

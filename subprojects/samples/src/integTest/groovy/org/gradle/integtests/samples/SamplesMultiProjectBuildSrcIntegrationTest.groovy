@@ -24,10 +24,10 @@ class SamplesMultiProjectBuildSrcIntegrationTest extends AbstractIntegrationSpec
 
   @Rule public final Sample sample = new Sample(temporaryFolder)
 
-  @UsesSample("multiProjectBuildSrc")
+  @UsesSample("multiproject/multiProjectBuildSrc")
   def "plugins from buildSrc subprojects are available"() {
     given:
-    inDirectory "multiProjectBuildSrc"
+    inDirectory sample.dir.file('groovy')
 
     when:
     run "showPlugins"

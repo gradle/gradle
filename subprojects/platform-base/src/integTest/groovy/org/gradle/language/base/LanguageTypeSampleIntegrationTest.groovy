@@ -27,10 +27,10 @@ import org.junit.Rule
 @UnsupportedWithInstantExecution(because = "software model")
 class LanguageTypeSampleIntegrationTest extends AbstractIntegrationSpec {
     @Rule
-    Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType")
+    Sample languageTypeSample = new Sample(temporaryFolder, "customModel/languageType/groovy")
 
     def setup() {
-        //  customModel/languageType sample contains buildSrc, which needs global init script to make mirror work
+        //  customModel/languageType/groovy sample contains buildSrc, which needs global init script to make mirror work
         executer.withGlobalRepositoryMirrors()
     }
 

@@ -31,7 +31,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
 
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
-    @UsesSample('toolingApi/eclipse')
+    @UsesSample('toolingApi/eclipse/groovy')
     @ToBeFixedForInstantExecution
     def "can use tooling API to build Eclipse model"() {
         tweakProject()
@@ -56,7 +56,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         outputContains("Welcome to Gradle")
     }
 
-    @UsesSample('toolingApi/idea')
+    @UsesSample('toolingApi/idea/groovy')
     @ToBeFixedForInstantExecution
     def "can use tooling API to build IDEA model"() {
         tweakProject()
@@ -68,7 +68,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         noExceptionThrown()
     }
 
-    @UsesSample('toolingApi/model')
+    @UsesSample('toolingApi/model/groovy')
     @ToBeFixedForInstantExecution
     def "can use tooling API to build general model"() {
         tweakProject()
@@ -81,7 +81,7 @@ class SamplesToolingApiIntegrationTest extends AbstractIntegrationSpec {
         outputContains("    build")
     }
 
-    @UsesSample('toolingApi/customModel')
+    @UsesSample('toolingApi/customModel/groovy')
     @ToBeFixedForInstantExecution
     def "can use tooling API to register custom model"() {
         tweakPluginProject(sample.dir.file('plugin'))
