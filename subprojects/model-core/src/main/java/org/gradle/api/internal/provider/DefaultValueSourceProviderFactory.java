@@ -101,14 +101,18 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     @Override
     @NotNull
-    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(Class<? extends ValueSource<T, P>> valueSourceType, Class<P> parametersType, P parameters) {
+    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        @Nullable Class<P> parametersType,
+        @Nullable P parameters
+    ) {
         return new ValueSourceProvider<>(valueSourceType, parametersType, parameters);
     }
 
     @NotNull
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        Class<P> parametersType,
+        @Nullable Class<P> parametersType,
         @Nullable P isolatedParameters
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -165,7 +169,11 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     public class ConfigurationTimeValueSourceProvider<T, P extends ValueSourceParameters> extends ValueSourceProvider<T, P> {
 
-        public ConfigurationTimeValueSourceProvider(Class<? extends ValueSource<T, P>> valueSourceType, Class<P> parametersType, P parameters) {
+        public ConfigurationTimeValueSourceProvider(
+            Class<? extends ValueSource<T, P>> valueSourceType,
+            @Nullable Class<P> parametersType,
+            @Nullable P parameters
+        ) {
             super(valueSourceType, parametersType, parameters);
         }
 
@@ -182,7 +190,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
 
         private final Class<? extends ValueSource<T, P>> valueSourceType;
+        @Nullable
         private final Class<P> parametersType;
+        @Nullable
         private final P parameters;
 
         @Nullable
@@ -190,8 +200,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         public ValueSourceProvider(
             Class<? extends ValueSource<T, P>> valueSourceType,
-            Class<P> parametersType,
-            P parameters
+            @Nullable Class<P> parametersType,
+            @Nullable P parameters
         ) {
             this.valueSourceType = valueSourceType;
             this.parametersType = parametersType;
@@ -200,17 +210,19 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Override
         public Provider<T> forUseAtConfigurationTime() {
-            return new ConfigurationTimeValueSourceProvider(valueSourceType, parametersType, parameters);
+            return new ConfigurationTimeValueSourceProvider<>(valueSourceType, parametersType, parameters);
         }
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
             return valueSourceType;
         }
 
+        @Nullable
         public Class<P> getParametersType() {
             return parametersType;
         }
 
+        @Nullable
         public P getParameters() {
             return parameters;
         }
@@ -249,7 +261,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
                     vetoValueCalculationAtConfigurationTime();
 
                     // TODO - add more information to exception
-                    value = Try.ofFailable(() -> obtainValueFromSource());
+                    value = Try.ofFailable(this::obtainValueFromSource);
 
                     onValueObtained();
                 }

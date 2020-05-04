@@ -181,7 +181,7 @@ ValueSourceProviderCodec(
         encodePreservingSharedIdentityOf(value) {
             value.run {
                 writeClass(valueSourceType)
-                writeClass(parametersType)
+                writeClass(parametersType as Class<*>)
                 write(parameters)
             }
         }
