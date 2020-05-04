@@ -30,7 +30,9 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type STRING_TYPE = Type.getType(String.class);
     private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
 
+    private static final String RETURN_STRING_FROM_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_STRING_FROM_STRING_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.getType(CallSiteArray.class));
     private static final String RETURN_VOID_FROM_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.VOID_TYPE, Type.getType(CallSiteArray.class));
 
@@ -42,7 +44,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
-        hasher.putInt(1); // decoration format
+        hasher.putInt(2); // decoration format
     }
 
     @Override
@@ -99,15 +101,23 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
 
         @Override
         public void visitMethodInsn(int opcode, String owner, String name, String descriptor, boolean isInterface) {
-            if (opcode == Opcodes.INVOKESTATIC && owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty") && descriptor.equals(Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE))) {
-                // TODO - load the class literal instead of class name
-                visitLdcInsn(Type.getObjectType(className).getClassName());
-                super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING, false);
-                return;
-            }
-            if (opcode == Opcodes.INVOKESTATIC && owner.equals(className) && name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
-                super.visitMethodInsn(Opcodes.INVOKESTATIC, className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, false);
-                return;
+            if (opcode == Opcodes.INVOKESTATIC) {
+                if (owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty") && descriptor.equals(RETURN_STRING_FROM_STRING)) {
+                    // TODO - load the class literal instead of class name
+                    visitLdcInsn(Type.getObjectType(className).getClassName());
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING, false);
+                    return;
+                }
+                if (owner.equals(SYSTEM_TYPE.getInternalName()) && name.equals("getProperty") && descriptor.equals(RETURN_STRING_FROM_STRING_STRING)) {
+                    // TODO - load the class literal instead of class name
+                    visitLdcInsn(Type.getObjectType(className).getClassName());
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperty", RETURN_STRING_FROM_STRING_STRING_STRING, false);
+                    return;
+                }
+                if (owner.equals(className) && name.equals(CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, false);
+                    return;
+                }
             }
             super.visitMethodInsn(opcode, owner, name, descriptor, isInterface);
         }

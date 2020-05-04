@@ -32,24 +32,34 @@ trait JavaPluginImplementation {
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    String ci = System.getProperty("CI");
-                    System.out.println("apply CI = " + ci);
-                    System.out.println("apply CI2 = " + System.getProperty("CI2"));
+                    String value = System.getProperty("GET_PROPERTY");
+                    System.out.println("apply GET_PROPERTY = " + value);
 
-                    // Lambda
-                    Runnable r = () -> {
-                        System.out.println("apply CI3 = " + System.getProperty("CI3"));
-                    };
-                    r.run();
+                    value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default");
+                    System.out.println("apply GET_PROPERTY_OR_DEFAULT = " + value);
+
+                    // Inside a lambda body
+                    lambda("apply").run();
 
                     project.getTasks().register("thing", t -> {
                         t.doLast(new Action<Task>() {
                             public void execute(Task t) {
-                                String ci2 = System.getProperty("CI");
-                                System.out.println("task CI = " + ci2);
+                                String value = System.getProperty("GET_PROPERTY");
+                                System.out.println("task GET_PROPERTY = " + value);
+
+                                value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default");
+                                System.out.println("task GET_PROPERTY_OR_DEFAULT = " + value);
+
+                                lambda("task").run();
                             }
                         });
                     });
+                }
+
+                static Runnable lambda(String location) {
+                    return () -> {
+                        System.out.println(location + " LAMBDA = " + System.getProperty("LAMBDA"));
+                    };
                 }
             }
         """

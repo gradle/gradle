@@ -20,14 +20,7 @@ class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUnd
     @Override
     void buildLogicApplication() {
         def script = file("plugin.gradle.kts")
-        script << """
-            println("apply CI = " + System.getProperty("CI"))
-            tasks.register("thing") {
-                doLast {
-                    println("task CI = " + System.getProperty("CI"))
-                }
-            }
-        """
+        kotlinDsl(script)
         buildFile << """
             apply from: "plugin.gradle.kts"
         """

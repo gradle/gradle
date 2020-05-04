@@ -21,11 +21,13 @@ class UndeclaredBuildInputsDynamicGroovyBuildScriptBlockIntegrationTest extends 
     void buildLogicApplication() {
         buildFile << """
             buildscript {
-                println("apply CI = " + System.getProperty("CI"))
+                println("apply GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
+                println("apply GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
             }
             tasks.register("thing") {
                 doLast {
-                    println("task CI = " + System.getProperty("CI"))
+                    println("task GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
+                    println("task GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
                 }
             }
         """

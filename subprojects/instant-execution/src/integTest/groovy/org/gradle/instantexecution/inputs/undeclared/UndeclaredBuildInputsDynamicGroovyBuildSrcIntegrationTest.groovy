@@ -18,9 +18,13 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsDynamicGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
+    List<String> getAdditionalProperties() {
+        return ["INSTANCE", "CLOSURE"]
+    }
+
+    @Override
     void buildLogicApplication() {
         dynamicGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"))
-
         buildFile << """
             apply plugin: SneakyPlugin
         """

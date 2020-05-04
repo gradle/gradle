@@ -20,15 +20,7 @@ class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends Abst
     @Override
     void buildLogicApplication() {
         def script = file("plugin.gradle")
-        script << """
-            println("apply CI = " + System.getProperty("CI"))
-            tasks.register("thing") {
-                doLast {
-                    println("task CI = " + System.getProperty("CI"))
-                }
-            }
-        """
-
+        groovyDsl(script)
         buildFile << """
             apply from: "plugin.gradle"
         """

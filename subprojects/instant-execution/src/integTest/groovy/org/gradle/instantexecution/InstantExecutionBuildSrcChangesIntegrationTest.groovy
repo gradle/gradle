@@ -86,9 +86,15 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
             import org.gradle.api.provider.*
 
-            abstract class IsCi : ValueSource<String, ValueSourceParameters.None> {
-                // TODO - need a solution for this case: can value source impls access the environment?
-                override fun obtain(): String? = System.getProperty("test_is_ci", null)
+            interface Params: ValueSourceParameters {
+                val value: Property<String>
+            }
+
+            abstract class IsCi : ValueSource<String, Params> {
+                override fun obtain(): String? = parameters.value.orNull
+            }
+            val ciProvider = providers.of(IsCi::class.java) {
+                parameters.value.set(providers.systemProperty("test_is_ci"))
             }
 
             val isCi = $inputExpression
@@ -139,7 +145,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
 
         where:
         inputName             | inputExpression                          | inputArgument
-        'custom value source' | 'providers.of(IsCi::class) {}'           | '-Dtest_is_ci=true'
+        'custom value source' | 'ciProvider'                             | '-Dtest_is_ci=true'
         'system property'     | 'providers.systemProperty("test_is_ci")' | '-Dtest_is_ci=true'
         'Gradle property'     | 'providers.gradleProperty("test_is_ci")' | '-Ptest_is_ci=true'
         'gradle.properties'   | 'providers.gradleProperty("test_is_ci")' | ''

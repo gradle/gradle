@@ -28,22 +28,43 @@ trait KotlinPluginImplementation {
 
             class SneakyPlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    val ci = System.getProperty("CI")
-                    println("apply CI = " + ci)
-                    println("apply CI2 = \${System.getProperty("CI2")}")
+                    var value = System.getProperty("GET_PROPERTY")
+                    println("apply GET_PROPERTY = " + value)
 
-                    // Function
+                    value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
+                    println("apply GET_PROPERTY_OR_DEFAULT = " + value)
+
+                    // Call from a function body
                     val f = { p: String ->
-                        println("apply \$p = " + System.getProperty(p))
+                        println("\$p FUNCTION = " + System.getProperty("FUNCTION"))
                     }
-                    f("CI3")
+                    f("apply")
 
                     project.tasks.register("thing") {
                         doLast {
-                            val ci2 = System.getProperty("CI")
-                            println("task CI = " + ci2)
+                            var value = System.getProperty("GET_PROPERTY")
+                            println("task GET_PROPERTY = " + value)
+
+                            value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
+                            println("task GET_PROPERTY_OR_DEFAULT = " + value)
+
+                            f("task")
                         }
                     }
+                }
+            }
+        """
+    }
+
+    void kotlinDsl(TestFile sourceFile) {
+        sourceFile << """
+            println("apply GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
+            println("apply GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+
+            tasks.register("thing") {
+                doLast {
+                    println("task GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
+                    println("task GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
                 }
             }
         """

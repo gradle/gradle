@@ -52,6 +52,13 @@ public class Instrumented {
         return value;
     }
 
+    // Called by generated code.
+    public static String systemProperty(String key, String defaultValue, String consumer) {
+        String value = System.getProperty(key, defaultValue);
+        LISTENER.get().systemPropertyQueried(key, value, consumer);
+        return value;
+    }
+
     public interface Listener {
         /**
          * @param consumer The name of the class that is reading the property value
@@ -65,11 +72,20 @@ public class Instrumented {
         }
 
         @Override
-        public Object call(Object receiver, Object arg1) throws Throwable {
+        public Object call(Object receiver, Object arg) throws Throwable {
             if (receiver.equals(System.class)) {
-                return systemProperty((String) arg1, array.owner.getName());
+                return systemProperty((String) arg, array.owner.getName());
             } else {
-                return super.call(receiver, arg1);
+                return super.call(receiver, arg);
+            }
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(System.class)) {
+                return systemProperty((String) arg1, (String) arg2, array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
             }
         }
     }

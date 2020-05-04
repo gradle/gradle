@@ -20,11 +20,13 @@ class UndeclaredBuildInputsKotlinSettingsScriptIntegrationTest extends AbstractU
     @Override
     void buildLogicApplication() {
         settingsKotlinFile << """
-            println("apply CI = " + System.getProperty("CI"))
+            println("apply GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
+            println("apply GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
             gradle.rootProject {
                 tasks.register("thing") {
                     doLast {
-                        println("task CI = " + System.getProperty("CI"))
+                        println("task GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
+                        println("task GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
                     }
                 }
             }

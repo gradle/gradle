@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.KotlinDslTestUtil
 
 class UndeclaredBuildInputsKotlinBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
+    List<String> getAdditionalProperties() {
+        return ["FUNCTION"]
+    }
+
+    @Override
     void buildLogicApplication() {
         file("buildSrc/build.gradle.kts").text = KotlinDslTestUtil.kotlinDslBuildSrcScript
         kotlinPlugin(file("buildSrc/src/main/kotlin/SneakyPlugin.kt"))

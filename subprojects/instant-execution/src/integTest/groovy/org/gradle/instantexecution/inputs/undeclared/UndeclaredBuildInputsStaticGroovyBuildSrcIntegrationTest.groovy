@@ -16,45 +16,15 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
-import groovy.transform.CompileStatic
-import org.gradle.api.Plugin
-import org.gradle.api.Project
+class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
+    @Override
+    List<String> getAdditionalProperties() {
+        return ["INSTANCE", "CLOSURE"]
+    }
 
-class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest {
     @Override
     void buildLogicApplication() {
-        file("buildSrc/src/main/groovy/SneakyPlugin.groovy") << """
-            import ${Project.name}
-            import ${Plugin.name}
-            import ${CompileStatic.name}
-
-            @CompileStatic
-            class SneakyPlugin implements Plugin<Project> {
-                public void apply(Project project) {
-                    // Static method call
-                    def ci = System.getProperty("CI")
-                    println("apply CI = " + ci)
-
-                    // Instance call
-                    def sys = System
-                    println("apply CI2 = " + sys.getProperty("CI2"))
-
-                    // Call from closure
-                    def cl = { String p ->
-                        println("apply \$p = " + sys.getProperty(p))
-                    }
-                    cl("CI3")
-
-                    project.tasks.register("thing") { t ->
-                        t.doLast {
-                            def ci2 = System.getProperty("CI")
-                            println("task CI = " + ci2)
-                        }
-                    }
-                }
-            }
-        """
-
+        staticGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"))
         buildFile << """
             apply plugin: SneakyPlugin
         """
