@@ -34,7 +34,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         def configured = false
 
         when:
-        def provider = createProviderOf(EchoValueSource) {
+        createProviderOf(EchoValueSource) {
             configured = true
         }
 
@@ -64,16 +64,51 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         'display' | EchoValueSourceWithDisplayName | 'echo(42)'
     }
 
-    def "provider forUseAtConfigurationTime"() {
+    def "provider forUseAtConfigurationTime succeeds at configuration time"() {
 
         given:
         configurationTimeBarrier.atConfigurationTime >> true
         def provider = createProviderOf(EchoValueSource) {
             it.parameters.value.set('42')
-        }.forUseAtConfigurationTime()
+        }
+        def configTimeProvider = provider.forUseAtConfigurationTime()
 
         expect:
-        provider.get() == '42'
+        configTimeProvider.get() == '42'
+
+        when: "asking original provider for the value after it has been obtained"
+        provider.get()
+
+        then: "it still fails at configuration time"
+        thrown(IllegalStateException)
+    }
+
+    @Unroll
+    def "providers forUseAtConfigurationTime obtain value only once at #time time"() {
+
+        given:
+        configurationTimeBarrier.atConfigurationTime >> atConfigurationTime
+        def provider = createProviderOf(EchoValueSource) {
+            it.parameters.value.set('42')
+        }
+        def configTimeProvider1 = provider.forUseAtConfigurationTime()
+        def configTimeProvider2 = provider.forUseAtConfigurationTime()
+        def executionTimeProvider = atConfigurationTime ? provider.forUseAtConfigurationTime() : provider
+        def obtainedValueCount = 0
+        valueSourceProviderFactory.addListener {
+            obtainedValueCount += 1
+        }
+
+        expect:
+        configTimeProvider1.get() == '42'
+        configTimeProvider2.get() == '42'
+        executionTimeProvider.get() == '42'
+        obtainedValueCount == 1
+
+        where:
+        time            | atConfigurationTime
+        'configuration' | true
+        'execution'     | false
     }
 
     def "listener is notified when value is obtained"() {
@@ -133,6 +168,7 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
     }
 
     def "parameterless value source parameters cannot be configured"() {
+
         when:
         createProviderOf(NoParameters) {
             it.parameters {}
