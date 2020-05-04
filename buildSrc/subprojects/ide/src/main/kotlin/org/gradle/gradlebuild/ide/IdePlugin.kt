@@ -52,14 +52,15 @@ limitations under the License."""
 open class IdePlugin : Plugin<Project> {
 
     override fun apply(project: Project): Unit = project.run {
-        if (providers.systemProperty("idea.active").getOrElse("false").toBoolean()) {
-            configureIdeaForRootProject()
-        }
+        configureIdeaForRootProject()
     }
 
     private
     fun Project.configureIdeaForRootProject() {
         apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
+        tasks.named("idea") {
+            doFirst { throw RuntimeException("To import in IntelliJ, please follow the instructions here: https://github.com/gradle/gradle/blob/master/CONTRIBUTING.md#intellij") }
+        }
         with(the<IdeaModel>()) {
             module {
                 excludeDirs = setOf(intTestHomeDir)
