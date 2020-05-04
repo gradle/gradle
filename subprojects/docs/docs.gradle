@@ -469,6 +469,16 @@ samples {
                 from(templates.projectInfoPlugin)
             }
         }
+
+        credentialsForExternalToolViaStdin {
+            sampleDirectory = samplesRoot.dir("user-input/pass-credentials-to-external-tool-via-stdin")
+            displayName = "Supply credentials to external tool via stdin"
+            description = "Pass credentials to an external tool using project properties."
+            category = "User input"
+            common {
+                from(sampleDirectory.dir("common"))
+            }
+        }
     }
 }
 

@@ -1,0 +1,11 @@
+def login = tasks.register('login', Exec) {
+    standardInput = new ByteArrayInputStream("$username\n$password".getBytes())
+    commandLine = ['sh', 'login.sh']
+}
+
+tasks.register('doAuthenticated') {
+    dependsOn(login)
+    doLast {
+        println 'doAuthenticated'
+    }
+}
