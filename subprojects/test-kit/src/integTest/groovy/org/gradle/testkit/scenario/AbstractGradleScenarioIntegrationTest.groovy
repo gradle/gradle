@@ -73,6 +73,10 @@ class AbstractGradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationT
                 }
             }
 
+            println(providers.systemProperty("$underTestBuildLogicInputSystemPropertyName").getOrElse("UNSET_SYS_PROP"))
+            println(providers.environmentVariable("$underTestBuildLogicInputEnvironmentVariableName").getOrElse("UNSET_ENV_VAR"))
+            println(providers.fileContents(layout.projectDirectory.file("$underTestBuildLogicInputFileName")).asText.getOrElse("UNSET_FILE"))
+
             tasks.register("underTest", UnderTestTask) {
                 header.set(providers.systemProperty("$underTestTaskInputSystemPropertyName").orElse("CONSTANT"))
                 inputFile.set(layout.projectDirectory.file("$underTestTaskInputFilePath"))
@@ -88,6 +92,18 @@ class AbstractGradleScenarioIntegrationTest extends BaseGradleRunnerIntegrationT
 
     protected static String getUnderTestTaskInputFilePath() {
         return "input.txt"
+    }
+
+    protected static String getUnderTestBuildLogicInputSystemPropertyName() {
+        return "bliSysProp"
+    }
+
+    protected static String getUnderTestBuildLogicInputEnvironmentVariableName() {
+        return "bliEnvVar"
+    }
+
+    protected static String getUnderTestBuildLogicInputFileName() {
+        return "bliFile"
     }
 
     protected static Action<File> getEmptyBuildWorkspace() {
