@@ -81,8 +81,8 @@ This example demonstrates how to declare various named and custom URL repositori
 
 .Declaring multiple repositories
 ====
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-multiplerepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
-include::sample[dir="snippets/dependencyManagement/declaringRepositories-multiplerepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/groovy",files="build.gradle[tags=multiple-repositories]"]
+include::sample[dir="snippets/dependencyManagement/declaringRepositories-multipleRepositories/kotlin",files="build.gradle.kts[tags=multiple-repositories]"]
 ====
 
 [NOTE]
