@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
+@UsedByScanPlugin("test-distribution")
 public interface TestExecuter<T extends TestExecutionSpec> {
     void execute(T testExecutionSpec, TestResultProcessor testResultProcessor);
 

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.properties;
 
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.Provider;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 import javax.annotation.Nullable;
 import java.util.concurrent.Callable;
@@ -25,6 +26,7 @@ import java.util.concurrent.Callable;
 /**
  * A supplier of a property value. The property value may not necessarily be final and may change over time.
  */
+@UsedByScanPlugin("test-distribution")
 public interface PropertyValue extends Callable<Object> {
     /**
      * The value of the underlying property, replacing an empty provider by {@literal null}.
@@ -34,6 +36,7 @@ public interface PropertyValue extends Callable<Object> {
      */
     @Nullable
     @Override
+    @UsedByScanPlugin("test-distribution")
     Object call();
 
     /**

@@ -17,10 +17,12 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestOutputEvent;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A processor for test results. Implementations are not required to be thread-safe.
  */
+@UsedByScanPlugin("test-distribution")
 public interface TestResultProcessor {
     /**
      * Notifies this processor that a test has started execution.

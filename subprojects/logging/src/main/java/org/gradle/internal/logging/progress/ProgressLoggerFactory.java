@@ -17,10 +17,12 @@
 package org.gradle.internal.logging.progress;
 
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Thread-safe, however the progress logger instances created are not.
  */
+@UsedByScanPlugin("test-distribution")
 public interface ProgressLoggerFactory {
     /**
      * Creates a new long-running operation which has not been started.

@@ -16,9 +16,12 @@
 
 package org.gradle.initialization;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 /**
  * Propagates notification that the build should be cancelled.
  */
+@UsedByScanPlugin("test-distribution")
 public interface BuildCancellationToken {
 
     boolean isCancellationRequested();

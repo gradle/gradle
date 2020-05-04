@@ -15,19 +15,24 @@
  */
 package org.gradle.internal.operations;
 
+import org.gradle.internal.scan.UsedByScanPlugin;
+
 import javax.annotation.Nullable;
 
+@UsedByScanPlugin("test-distribution")
 public class CurrentBuildOperationRef {
 
     private static final CurrentBuildOperationRef INSTANCE = new CurrentBuildOperationRef();
 
     private final ThreadLocal<BuildOperationRef> ref = new ThreadLocal<BuildOperationRef>();
 
+    @UsedByScanPlugin("test-distribution")
     public static CurrentBuildOperationRef instance() {
         return INSTANCE;
     }
 
     @Nullable
+    @UsedByScanPlugin("test-distribution")
     public BuildOperationRef get() {
         return ref.get();
     }
@@ -44,6 +49,7 @@ public class CurrentBuildOperationRef {
         return operationState == null ? null : operationState.getParentId();
     }
 
+    @UsedByScanPlugin("test-distribution")
     public void set(@Nullable BuildOperationRef state) {
         if (state == null) {
             ref.remove();
@@ -52,6 +58,7 @@ public class CurrentBuildOperationRef {
         }
     }
 
+    @UsedByScanPlugin("test-distribution")
     public void clear() {
         ref.remove();
     }
