@@ -65,7 +65,7 @@ class GradleScenarioTest extends Specification {
 
         then:
         def ex = thrown(InvalidScenarioConfigurationException)
-        normaliseFileSeparators(ex.message) == "Provided base directory '$baseDir' exists and is a file"
+        normaliseFileSeparators(ex.message) == normaliseFileSeparators("Provided base directory '$baseDir' exists and is a file")
     }
 
     def "reasonable error message when provided base directory is an existing non-empty directory"() {
@@ -83,7 +83,7 @@ class GradleScenarioTest extends Specification {
 
         then:
         def ex = thrown(InvalidScenarioConfigurationException)
-        normaliseFileSeparators(ex.message) == "Provided base directory '$baseDir' is a non-empty directory"
+        normaliseFileSeparators(ex.message) == normaliseFileSeparators("Provided base directory '$baseDir' is a non-empty directory")
     }
 
     def "reasonable error message when no steps provided"() {
