@@ -12,9 +12,9 @@ else
     read password
 fi
 
-if [ "$username" == "secret-user" -a "$password" == "secret-password" ] ; then
+if [ "$username" = "secret-user" ] && [ "$password" = "secret-password" ] ; then
     echo "Welcome, $username!"
-elif [ "$username" == "secret-properties-user" -a "$password" == "secret-properties-password" ] ; then
+elif [ "$username" = "secret-properties-user" ] && [ "$password" = "secret-properties-password" ] ; then
     echo "Welcome, $username!"
 else
     echo "Bad credentials!"
