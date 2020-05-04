@@ -40,6 +40,7 @@ import java.util.function.Supplier;
 public class DefaultGradleScenario implements GradleScenario {
 
     protected File baseDirectory;
+    private final List<Action<File>> baseDirectoryActions = new ArrayList<>();
     private Action<File> workspaceBuilder;
     private Supplier<GradleRunner> runnerFactory;
     private final List<Action<GradleRunner>> runnerActions = new ArrayList<>();
@@ -49,6 +50,10 @@ public class DefaultGradleScenario implements GradleScenario {
     public GradleScenario withBaseDirectory(File baseDirectory) {
         this.baseDirectory = baseDirectory;
         return this;
+    }
+
+    protected void withBaseDirectoryAction(Action<File> baseDirectoryAction) {
+        this.baseDirectoryActions.add(baseDirectoryAction);
     }
 
     @Override
@@ -79,6 +84,8 @@ public class DefaultGradleScenario implements GradleScenario {
     public ScenarioResult run() {
 
         validateScenario();
+
+        prepareBaseDirectory();
 
         File workspaceDirectory = createInitialWorkspace(baseDirectory);
 
@@ -118,6 +125,13 @@ public class DefaultGradleScenario implements GradleScenario {
     private boolean isNonEmptyDirectory(File file) {
         //noinspection ConstantConditions
         return file.isDirectory() && file.list().length > 0;
+    }
+
+    private void prepareBaseDirectory() {
+        GFileUtils.mkdirs(baseDirectory);
+        for (Action<File> baseDirectoryAction : baseDirectoryActions) {
+            baseDirectoryAction.execute(baseDirectory);
+        }
     }
 
     private File createInitialWorkspace(File baseDirectory) {

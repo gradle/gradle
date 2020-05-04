@@ -23,6 +23,7 @@ import org.gradle.testkit.scenario.GradleScenarioSteps;
 import org.gradle.testkit.scenario.ScenarioResult;
 import org.gradle.testkit.scenario.collection.BuildCacheScenario;
 import org.gradle.testkit.scenario.internal.DefaultGradleScenario;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.util.function.Supplier;
@@ -51,14 +52,7 @@ public class DefaultBuildCacheScenario extends DefaultGradleScenario implements 
     @Override
     public ScenarioResult run() {
 
-        Action<GradleRunner> isolatedBuildCache = runner -> {
-            appendArguments(
-                runner,
-                "--build-cache",
-                "-g",
-                new File(baseDirectory, "gradle-user-home").getAbsolutePath()
-            );
-        };
+        Action<GradleRunner> isolatedBuildCache = isolateLocalBuildCache();
 
         withSteps(steps -> {
 
@@ -84,6 +78,31 @@ public class DefaultBuildCacheScenario extends DefaultGradleScenario implements 
         });
 
         return super.run();
+    }
+
+    private Action<GradleRunner> isolateLocalBuildCache() {
+
+        File scenarioFilesDir = new File(baseDirectory, "build-cache-scenario");
+        File localBuildCacheInitScript = new File(scenarioFilesDir, "local-cache.init.gradle");
+        withBaseDirectoryAction(baseDirectory -> {
+            File localBuildCacheDir = new File(scenarioFilesDir, "local-cache");
+            String localBuildCacheInitScriptContent = "\n" +
+                "settingsEvaluated { settings ->\n" +
+                "  settings.buildCache {\n" +
+                "    local {\n" +
+                "      directory('" + localBuildCacheDir.getAbsolutePath() + "')\n" +
+                "    }\n" +
+                "  }\n" +
+                "}\n";
+            GFileUtils.writeFile(localBuildCacheInitScriptContent, localBuildCacheInitScript);
+        });
+
+        return runner -> appendArguments(
+            runner,
+            "--build-cache",
+            "-I",
+            localBuildCacheInitScript.getAbsolutePath()
+        );
     }
 
     @Override
