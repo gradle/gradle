@@ -100,17 +100,17 @@ public class FileMetadataAccessorBenchmark {
 
     @Benchmark
     public void stat_missing_file(Blackhole bh) throws IOException {
-        bh.consume(getAccessor(accessorClassName).stat(missingPath));
+        bh.consume(getAccessor(accessorClassName).stat(missing));
     }
 
     @Benchmark
     public void stat_directory(Blackhole bh) throws IOException {
-        bh.consume(getAccessor(accessorClassName).stat(directoryPath));
+        bh.consume(getAccessor(accessorClassName).stat(directory));
     }
 
     @Benchmark
     public void stat_existing(Blackhole bh) throws IOException {
-        bh.consume(getAccessor(accessorClassName).stat(realFilePath));
+        bh.consume(getAccessor(accessorClassName).stat(realFile));
     }
 
     private static class NioFileMetadataAccessor implements FileMetadataAccessor {
