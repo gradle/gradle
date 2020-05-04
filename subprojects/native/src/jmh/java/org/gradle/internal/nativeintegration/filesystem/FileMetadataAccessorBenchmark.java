@@ -17,10 +17,11 @@ package org.gradle.internal.nativeintegration.filesystem;
 
 import com.google.common.collect.ImmutableMap;
 import net.rubygrapefruit.platform.file.Files;
+import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
-import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor;
+import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.NativePlatformBackedFileMetadataAccessor;
 import org.openjdk.jmh.annotations.Benchmark;
@@ -113,10 +114,16 @@ public class FileMetadataAccessorBenchmark {
         bh.consume(getAccessor(accessorClassName).stat(realFile));
     }
 
-    private static class NioFileMetadataAccessor implements FileMetadataAccessor {
+    private static class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
 
         @Override
         public FileMetadataSnapshot stat(File f) {
+            if (!f.exists()) {
+                // This is really not cool, but we cannot rely on `readAttributes` because it will
+                // THROW AN EXCEPTION if the file is missing, which is really incredibly slow just
+                // to determine if a file exists or not.
+                return DefaultFileMetadata.missing();
+            }
             try {
                 BasicFileAttributes bfa = java.nio.file.Files.readAttributes(f.toPath(), BasicFileAttributes.class);
                 if (bfa.isDirectory()) {
@@ -124,21 +131,20 @@ public class FileMetadataAccessorBenchmark {
                 }
                 return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
             } catch (IOException e) {
-                return DefaultFileMetadata.missing();
+                throw UncheckedException.throwAsUncheckedException(e);
             }
         }
 
         @Override
         public FileMetadataSnapshot stat(Path path) throws IOException {
-            try {
-                BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
-                if (bfa.isDirectory()) {
-                    return DefaultFileMetadata.directory();
-                }
-                return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
-            } catch (IOException e) {
+            if (!java.nio.file.Files.exists(path)) {
                 return DefaultFileMetadata.missing();
             }
+            BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
+            if (bfa.isDirectory()) {
+                return DefaultFileMetadata.directory();
+            }
+            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
         }
     }
 }
