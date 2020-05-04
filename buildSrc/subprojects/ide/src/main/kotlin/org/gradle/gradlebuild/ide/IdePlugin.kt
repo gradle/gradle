@@ -15,19 +15,15 @@
  */
 package org.gradle.gradlebuild.ide
 
-import accessors.base
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.Plugin
 import org.gradle.api.PolymorphicDomainObjectContainer
 import org.gradle.api.Project
 import org.gradle.api.plugins.ExtensionAware
-import org.gradle.gradlebuild.PublicApi
-import org.gradle.gradlebuild.docs.DecorateReleaseNotes
 import org.gradle.kotlin.dsl.*
 import org.gradle.plugins.ide.idea.model.IdeaModel
 import org.gradle.plugins.ide.idea.model.IdeaProject
 import org.jetbrains.gradle.ext.CopyrightConfiguration
-import org.jetbrains.gradle.ext.JUnit
 import org.jetbrains.gradle.ext.ProjectSettings
 import org.jetbrains.gradle.ext.Remote
 import org.jetbrains.gradle.ext.RunConfiguration
@@ -63,7 +59,6 @@ open class IdePlugin : Plugin<Project> {
 
     private
     fun Project.configureIdeaForRootProject() {
-        val rootProject = this
         apply(plugin = "org.jetbrains.gradle.plugin.idea-ext")
         with(the<IdeaModel>()) {
             module {
@@ -72,7 +67,7 @@ open class IdePlugin : Plugin<Project> {
             project {
                 settings {
                     configureCopyright()
-                    configureRunConfigurations(rootProject)
+                    configureRunConfigurations()
                     doNotDetectFrameworks("android", "web")
                 }
             }
@@ -93,7 +88,7 @@ open class IdePlugin : Plugin<Project> {
     }
 
     private
-    fun ProjectSettings.configureRunConfigurations(rootProject: Project) {
+    fun ProjectSettings.configureRunConfigurations() {
         runConfigurations {
             create<Remote>("Remote debug port 5005") {
                 mode = Remote.RemoteMode.ATTACH
@@ -102,61 +97,8 @@ open class IdePlugin : Plugin<Project> {
                 host = "localhost"
                 port = 5005
             }
-            create<JUnit>("defaults") {
-                defaults = true
-                envs = mapOf("LANG" to rootProject.lang)
-                lateSetJunitVmParameters(rootProject)
-            }
         }
     }
-
-    private
-    fun JUnit.lateSetJunitVmParameters(rootProject: Project) {
-        // TODO This is configured late: it reads provider values because 'JUnit.vmParameters' expects a plain String
-        rootProject.docsProject().afterEvaluate {
-            val releaseNotes: DecorateReleaseNotes by rootProject.docsProject().tasks
-
-            val releaseNotesFile = releaseNotes.destinationFile.get().asFile
-            val gradleUserHomeDir = rootProject.intTestHomeDir.absolutePath
-            val distsDir = rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName).get().asFile.absolutePath
-            val daemoRegistryDir = rootProject.layout.buildDirectory.dir("daemon").get().asFile.absolutePath
-            val libsRepo = rootProject.layout.buildDirectory.dir("repo").get().asFile.absolutePath
-
-            val vmParameterList = mutableListOf(
-                "-ea",
-                "-Dorg.gradle.docs.releasenotes.rendered=$releaseNotesFile",
-                "-DintegTest.gradleHomeDir=\$MODULE_DIR\$/build/integ test",
-                "-DintegTest.gradleUserHomeDir=$gradleUserHomeDir",
-                "-DintegTest.gradleGeneratedApiJarCacheDir=\$MODULE_DIR\$/build/generatedApiJars",
-                "-DintegTest.libsRepo=$libsRepo",
-                "-Dorg.gradle.integtest.daemon.registry=$daemoRegistryDir",
-                "-DintegTest.distsDir=$distsDir",
-                "-Dorg.gradle.public.api.includes=${PublicApi.includes.joinToString(":")}",
-                "-Dorg.gradle.public.api.excludes=${PublicApi.excludes.joinToString(":")}",
-                "-Dorg.gradle.integtest.executer=embedded",
-                "-Dorg.gradle.integtest.versions=default",
-                "-Dorg.gradle.integtest.testkit.compatibility=current",
-                "-Xmx512m",
-                "--add-opens", "java.base/java.lang=ALL-UNNAMED",
-                "--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED",
-                "--add-opens", "java.base/java.lang.reflect=ALL-UNNAMED",
-                "--add-opens", "java.base/java.util=ALL-UNNAMED",
-                "--add-opens", "java.prefs/java.util.prefs=ALL-UNNAMED"
-            )
-            vmParameters = vmParameterList.joinToString(" ") {
-                if (it.contains(" ") || it.contains("\$")) "\"$it\""
-                else it
-            }
-        }
-    }
-
-    private
-    fun Project.docsProject() =
-        project(":docs")
-
-    private
-    val Project.lang: String
-        get() = providers.environmentVariable("LANG").getOrElse("en_US.UTF-8")
 
     private
     val Project.intTestHomeDir
