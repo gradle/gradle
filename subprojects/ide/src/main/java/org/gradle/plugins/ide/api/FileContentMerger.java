@@ -26,6 +26,7 @@ import org.gradle.util.ConfigureUtil;
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}
  * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
  */
+@SuppressWarnings("rawtypes")
 public class FileContentMerger {
 
     private MutableActionSet whenMerged = new MutableActionSet();
@@ -59,6 +60,7 @@ public class FileContentMerger {
      *
      * @param action The action to execute.
      */
+    @SuppressWarnings("unchecked")
     public void beforeMerged(Action<?> action) {
         beforeMerged.add(action);
     }
@@ -74,6 +76,7 @@ public class FileContentMerger {
      *
      * @param action The action to execute.
      */
+    @SuppressWarnings("unchecked")
     public void whenMerged(Action<?> action) {
         whenMerged.add(action);
     }
@@ -89,6 +92,7 @@ public class FileContentMerger {
      *
      * @param closure The closure to execute.
      */
+    @SuppressWarnings("unchecked")
     public void beforeMerged(Closure closure) {
         beforeMerged.add(ConfigureUtil.configureUsing(closure));
     }
@@ -104,6 +108,7 @@ public class FileContentMerger {
      *
      * @param closure The closure to execute.
      */
+    @SuppressWarnings("unchecked")
     public void whenMerged(Closure closure) {
         whenMerged.add(ConfigureUtil.configureUsing(closure));
     }

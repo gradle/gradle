@@ -34,9 +34,9 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.scala.ScalaBasePlugin;
 import org.gradle.api.tasks.ScalaRuntime;
+import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.language.scala.internal.DefaultScalaPlatform;
-import org.gradle.language.scala.plugins.ScalaLanguagePlugin;
 import org.gradle.plugins.ide.idea.IdeaPlugin;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
@@ -213,9 +213,8 @@ public class IdeaScalaConfigurer {
         setNodeAttribute(libraryName, "value", scalaCompilerLibrary.getName());
     }
 
-    @SuppressWarnings("unchecked")
     private static void setNodeAttribute(Node node, String key, String value) {
-        final Map<String, String> attributes = (Map<String, String>) node.attributes();
+        final Map<String, String> attributes = Cast.uncheckedCast(node.attributes());
         attributes.put(key, value);
     }
 
@@ -226,7 +225,7 @@ public class IdeaScalaConfigurer {
             public boolean apply(Project project) {
                 final boolean hasIdeaPlugin = project.getPlugins().hasPlugin(IdeaPlugin.class);
                 final boolean hasScalaPlugin = project.getPlugins().hasPlugin(ScalaBasePlugin.class);
-                final boolean hasLegacyScalaPlugin = project.getPlugins().hasPlugin(ScalaLanguagePlugin.class);
+                final boolean hasLegacyScalaPlugin = project.getPlugins().hasPlugin(org.gradle.language.scala.plugins.ScalaLanguagePlugin.class);
                 return hasIdeaPlugin && (hasScalaPlugin || hasLegacyScalaPlugin);
             }
         });

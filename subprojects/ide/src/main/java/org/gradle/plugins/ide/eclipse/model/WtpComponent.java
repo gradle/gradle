@@ -27,6 +27,7 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import static com.google.common.base.Predicates.instanceOf;
 import static com.google.common.base.Predicates.not;
@@ -111,7 +112,7 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
     protected void store(Node xml) {
         removeConfigurableDataFromXml();
         Node wbModuleNode = getWbModuleNode(xml);
-        wbModuleNode.attributes().put("deploy-name", deployName);
+        setNodeAttribute(wbModuleNode, "deploy-name", deployName);
         if (!isNullOrEmpty(contextPath)) {
             new WbProperty("context-root", contextPath).appendNode(wbModuleNode);
         }
@@ -134,6 +135,11 @@ public class WtpComponent extends XmlPersistableConfigurationObject {
         Node wbModule = XmlPersistableConfigurationObject.findFirstChildNamed(xml, "wb-module");
         Preconditions.checkNotNull(wbModule);
         return wbModule;
+    }
+
+    private static void setNodeAttribute(Node node, String key, String value) {
+        final Map<String, String> attributes = Cast.uncheckedCast(node.attributes());
+        attributes.put(key, value);
     }
 
     @Override

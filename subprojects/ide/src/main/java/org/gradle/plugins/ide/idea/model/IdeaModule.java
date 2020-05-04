@@ -579,6 +579,7 @@ public class IdeaModule {
         return ideaDependenciesProvider.provide(this);
     }
 
+    @SuppressWarnings("unchecked")
     public void mergeXmlModule(Module xmlModule) {
         iml.getBeforeMerged().execute(xmlModule);
 
