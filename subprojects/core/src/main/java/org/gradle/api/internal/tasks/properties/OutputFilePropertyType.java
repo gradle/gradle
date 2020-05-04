@@ -34,6 +34,7 @@ public enum  OutputFilePropertyType {
         this.validationAction = validationAction;
     }
 
+    @UsedByScanPlugin("test-distribution")
     public TreeType getOutputType() {
         return outputType;
     }

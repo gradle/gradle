@@ -32,6 +32,7 @@ import java.util.function.Function;
  *
  * The virtual file system needs to be informed when some state on disk changes, so it does not become out of sync with the actual file system.
  */
+@UsedByScanPlugin("test-distribution")
 public interface VirtualFileSystem {
 
     /**

@@ -38,6 +38,7 @@ public interface ProgressLoggerFactory {
      * @param loggerCategory The logger category.
      * @return The progress logger for the operation.
      */
+    @UsedByScanPlugin("test-distribution")
     ProgressLogger newOperation(Class<?> loggerCategory);
 
     /**
@@ -50,5 +51,6 @@ public interface ProgressLoggerFactory {
      */
     ProgressLogger newOperation(Class<?> loggerCategory, BuildOperationDescriptor buildOperationDescriptor);
 
+    @UsedByScanPlugin("test-distribution")
     ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
 }

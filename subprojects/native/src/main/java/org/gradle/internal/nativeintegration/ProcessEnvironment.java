@@ -25,6 +25,7 @@ import java.util.Map;
  *
  * <p>Implementations are not thread-safe.</p>
  */
+@UsedByScanPlugin("test-distribution")
 public interface ProcessEnvironment {
     /**
      * Sets the environment of this process, if possible.

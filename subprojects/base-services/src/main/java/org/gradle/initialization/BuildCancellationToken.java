@@ -31,6 +31,7 @@ public interface BuildCancellationToken {
     /**
      * @return current state of cancellation request before callback was added.
      */
+    @UsedByScanPlugin("test-distribution")
     boolean addCallback(Runnable cancellationHandler);
 
     /**
@@ -38,6 +39,7 @@ public interface BuildCancellationToken {
      *
      * @param cancellationHandler removed callback.
      */
+    @UsedByScanPlugin("test-distribution")
     void removeCallback(Runnable cancellationHandler);
 
 }
