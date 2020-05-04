@@ -41,6 +41,7 @@ import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.internal.file.Deleter;
 import org.gradle.process.internal.worker.WorkerProcessFactory;
+import org.gradle.util.RelativePathUtil;
 import org.gradle.work.ChangeType;
 import org.gradle.work.FileChange;
 import org.gradle.work.InputChanges;
@@ -51,9 +52,12 @@ import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Generates parsers from Antlr grammars.
@@ -67,6 +71,7 @@ public class AntlrTask extends SourceTask {
     private boolean traceParser;
     private boolean traceTreeWalker;
     private List<String> arguments = new ArrayList<>();
+    private Set<Pattern> includeFilesPatterns = new LinkedHashSet<>();
 
     private FileCollection antlrClasspath;
 
@@ -153,6 +158,35 @@ public class AntlrTask extends SourceTask {
     }
 
     /**
+     * Pattern of regular expressions to match antlr include files.
+     *
+     * If antlr grammar files reference include files, specify regular expressions to match these include files.
+     * If include file patterns are specified, incremental grammar-build will be disabled.
+     * Include files will not be passed as grammar source files to the antlr tool.
+     *
+     * @return The include-file patterns.
+     * @since 6.8
+     */
+    @Input
+    @Incubating
+    public Set<Pattern> getIncludeFilesPatterns() {
+        return includeFilesPatterns;
+    }
+
+    /**
+     * Pattern of regular expressions to match antlr include files.
+     *
+     * See {@link #getIncludeFilesPatterns()}
+     *
+     * @param includeFilesPatterns The include-file patterns.
+     * @since 6.8
+     */
+    @Incubating
+    public void setIncludeFilesPatterns(Set<Pattern> includeFilesPatterns) {
+        this.includeFilesPatterns = includeFilesPatterns;
+    }
+
+    /**
      * Returns the directory to generate the parser source files into.
      *
      * @return The output directory.
@@ -210,7 +244,8 @@ public class AntlrTask extends SourceTask {
     public void execute(InputChanges inputChanges) {
         Set<File> grammarFiles = new HashSet<>();
         FileCollection stableSources = getStableSources();
-        if (inputChanges.isIncremental()) {
+        Set<Pattern> includeFilePatterns = getIncludeFilesPatterns();
+        if (inputChanges.isIncremental() && includeFilePatterns.isEmpty()) {
             boolean rebuildRequired = false;
             for (FileChange fileChange : inputChanges.getFileChanges(stableSources)) {
                 if (fileChange.getFileType() == FileType.FILE) {
@@ -233,8 +268,16 @@ public class AntlrTask extends SourceTask {
             grammarFiles.addAll(stableSources.getFiles());
         }
 
+        // If `includeFilePatterns` is not empty, identify the include-files and don't pass those to the antlr tool.
+        // Matches the patterns in `includeFilePatterns` against the project-directory relative path of each source-file.
+        Set<File> processGrammarFiles = includeFilePatterns.isEmpty() ?
+            grammarFiles :
+            grammarFiles.stream()
+                .filter(f -> includeFilePatterns.stream().noneMatch(p -> p.matcher(RelativePathUtil.relativePath(getProject().getProjectDir(), f)).matches()))
+                .collect(Collectors.toSet());
+
         AntlrWorkerManager manager = new AntlrWorkerManager();
-        AntlrSpec spec = new AntlrSpecFactory().create(this, grammarFiles, sourceSetDirectories);
+        AntlrSpec spec = new AntlrSpecFactory().create(this, processGrammarFiles, sourceSetDirectories);
         File projectDir = getProjectLayout().getProjectDirectory().getAsFile();
         AntlrResult result = manager.runWorker(projectDir, getWorkerProcessBuilderFactory(), getAntlrClasspath(), spec);
         evaluate(result);

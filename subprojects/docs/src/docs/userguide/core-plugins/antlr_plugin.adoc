@@ -106,6 +106,12 @@ The source directories containing the ANTLR grammar files of this source set.
 Can set using anything <<working_with_files.adoc#sec:specifying_multiple_files, that implicitly converts to a file collection>>.
 Default value is `[__projectDir__/src/__name__/antlr]`.
 
+[[sec:antlr_include_files]]
+== ANTLR grammar include files
+
+Antlr grammar source files can include other files (e.g. via `import Parser,Lexer;`). To specify the include files, that must not be passed as grammar files to be processed by the antlr tool, specify patterns matching the include files using the `includeFilesPatterns` property, which is a set of regular expressions.
+Note: when the `includeFilesPatterns` is not empty, the antlr task will always process all source files.
+
 [[sec:controlling_the_antlr_generator_process]]
 == Controlling the ANTLR generator process
 
