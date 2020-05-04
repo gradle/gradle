@@ -16,6 +16,8 @@
 
 package org.gradle.testkit.scenario
 
+import org.gradle.testkit.runner.fixtures.CustomEnvironmentVariables
+import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.scenario.collection.IncrementalBuildScenario
 import org.gradle.testkit.scenario.collection.InstantExecutionScenarios
 
@@ -74,6 +76,8 @@ class InstantExecutionScenariosIntegrationTest extends AbstractGradleScenarioInt
         result.ofStep(InstantExecutionScenarios.CacheInvalidation.Steps.INVALIDATE)
     }
 
+    @NoDebug
+    @CustomEnvironmentVariables
     def "can run instant execution cache invalidation scenario for environment variable"() {
 
         given:
@@ -163,6 +167,7 @@ class InstantExecutionScenariosIntegrationTest extends AbstractGradleScenarioInt
         result.ofStep(IncrementalBuildScenario.Steps.INCREMENTAL_BUILD)
     }
 
+    @NoDebug // fails with classloading issue "org.apache.groovy.json.FastStringServiceFactory: org.apache.groovy.json.DefaultFastStringServiceFactory not a subtype"
     def "incremental build scenario fails if instant execution problems are found"() {
 
         given:
