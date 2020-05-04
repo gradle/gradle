@@ -183,9 +183,10 @@ class InstantExecutionTaskWiringIntegrationTest extends AbstractInstantExecution
         result.assertTasksSkipped(":producer", ":transformer")
 
         where:
-        description         | propertyConfig
-        "default behaviour" | ""
-        "finalize on read"  | "it.finalizeValueOnRead()"
+        description            | propertyConfig
+        "default behaviour"    | ""
+        "finalize on read"     | "it.finalizeValueOnRead()"
+        "disallow unsafe read" | "it.disallowUnsafeRead()"
     }
 
     def "task input collection property can consume the mapped output of another task"() {

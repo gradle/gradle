@@ -44,6 +44,10 @@ sealed class InstantExecutionCacheFingerprint {
     data class ValueSource(
         val obtainedValue: ObtainedValue
     ) : InstantExecutionCacheFingerprint()
+
+    data class UndeclaredSystemProperty(
+        val key: String
+    ) : InstantExecutionCacheFingerprint()
 }
 
 

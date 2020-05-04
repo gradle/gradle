@@ -20,10 +20,11 @@ import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class Instrumented {
-    private static final Listener NO_OP = (key, consumer) -> {
+    private static final Listener NO_OP = (key, value, consumer) -> {
     };
     private static final AtomicReference<Listener> LISTENER = new AtomicReference<>(NO_OP);
 
@@ -46,12 +47,16 @@ public class Instrumented {
 
     // Called by generated code.
     public static String systemProperty(String key, String consumer) {
-        LISTENER.get().systemPropertyQueried(key, consumer);
-        return System.getProperty(key);
+        String value = System.getProperty(key);
+        LISTENER.get().systemPropertyQueried(key, value, consumer);
+        return value;
     }
 
     public interface Listener {
-        void systemPropertyQueried(String key, String consumer);
+        /**
+         * @param consumer The name of the class that is reading the property value
+         */
+        void systemPropertyQueried(String key, @Nullable String value, String consumer);
     }
 
     private static class SystemPropertyCallSite extends AbstractCallSite {
