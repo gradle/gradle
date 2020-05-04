@@ -396,7 +396,11 @@ public class DependencyGraphBuilder {
     }
 
     private static boolean isDynamic(SelectorState selector) {
-        return selector.getVersionConstraint().isDynamic();
+        ResolvedVersionConstraint versionConstraint = selector.getVersionConstraint();
+        if (versionConstraint != null) {
+            return versionConstraint.isDynamic();
+        }
+        return false;
     }
 
     private void validateDynamicSelectors(ComponentState selected) {

@@ -36,6 +36,7 @@ public interface ResolvableSelectorState {
      * The version constraint that applies to this selector, if any.
      * Will return null for a project selector.
      */
+    @Nullable
     ResolvedVersionConstraint getVersionConstraint();
 
     /**
