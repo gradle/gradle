@@ -144,7 +144,6 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
-        beforeRead(producer, ValueConsumer.IgnoreUnsafeRead);
         ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(this.value);
         if (getProducerTask() == null) {
             return value;

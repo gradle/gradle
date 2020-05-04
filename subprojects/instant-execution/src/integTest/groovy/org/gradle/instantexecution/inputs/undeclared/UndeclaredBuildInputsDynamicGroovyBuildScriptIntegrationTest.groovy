@@ -20,22 +20,12 @@ class UndeclaredBuildInputsDynamicGroovyBuildScriptIntegrationTest extends Abstr
     @Override
     void buildLogicApplication() {
         buildFile << """
-            buildscript {
-                println("apply BUILDSCRIPT = " + System.getProperty("BUILDSCRIPT"))
+            println("apply CI = " + System.getProperty("CI"))
+            tasks.register("thing") {
+                doLast {
+                    println("task CI = " + System.getProperty("CI"))
+                }
             }
         """
-
-        dynamicGroovyPlugin(buildFile)
-
-        buildFile << """
-            apply plugin: SneakyPlugin
-            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
-        """
-    }
-
-    @Override
-    void additionalProblems() {
-        outputContains("- unknown location: read system property 'BUILDSCRIPT' from '")
-        outputContains("- unknown location: read system property 'SCRIPT' from '")
     }
 }

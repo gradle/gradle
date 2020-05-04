@@ -16,16 +16,12 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
-class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
+class UndeclaredBuildInputsKotlinBuildScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
     void buildLogicApplication() {
+        kotlinPlugin(buildKotlinFile)
         buildKotlinFile << """
-            println("apply CI = " + System.getProperty("CI"))
-            tasks.register("thing") {
-                doLast {
-                    println("task CI = " + System.getProperty("CI"))
-                }
-            }
+            plugins.apply(SneakyPlugin::class.java)
         """
     }
 }

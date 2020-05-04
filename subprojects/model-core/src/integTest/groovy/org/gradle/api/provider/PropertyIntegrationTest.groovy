@@ -531,7 +531,6 @@ project.extensions.create("some", SomeExtension)
         'prop5' | 'fileProperty()'      | 'RegularFile' | ''
     }
 
-    @ToBeFixedForInstantExecution
     @IgnoreIf({ GradleContextualExecuter.parallel })
     @Issue("https://github.com/gradle/gradle/issues/12811")
     def "multiple tasks can have property values calculated from a shared finalize on read property instance with value derived from dependency resolution"() {
@@ -587,7 +586,6 @@ project.extensions.create("some", SomeExtension)
         file("consumer/build/consumer2.txt").text == "producer"
     }
 
-    @ToBeFixedForInstantExecution
     @Issue("https://github.com/gradle/gradle/issues/12969")
     @IgnoreIf({ GradleContextualExecuter.parallel })
     def "task can have property value derived from dependency resolution result when another task has input files derived from same result"() {

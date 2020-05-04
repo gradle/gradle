@@ -20,19 +20,16 @@ class UndeclaredBuildInputsKotlinScriptPluginIntegrationTest extends AbstractUnd
     @Override
     void buildLogicApplication() {
         def script = file("plugin.gradle.kts")
-        kotlinPlugin(script)
         script << """
-            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
-
-            plugins.apply(SneakyPlugin::class.java)
+            println("apply CI = " + System.getProperty("CI"))
+            tasks.register("thing") {
+                doLast {
+                    println("task CI = " + System.getProperty("CI"))
+                }
+            }
         """
         buildFile << """
             apply from: "plugin.gradle.kts"
         """
-    }
-
-    @Override
-    void additionalProblems() {
-        outputContains("- unknown location: read system property 'SCRIPT' from '")
     }
 }

@@ -16,13 +16,8 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.integtests.fixtures.executer.AbstractGradleExecuter
 import org.gradle.util.ToBeImplemented
-
-import javax.annotation.Nullable
-
 import spock.lang.Ignore
-
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
@@ -39,11 +34,9 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
     }
 
     def "can enable instant execution from the client jvm"() {
-
         setup:
-        AbstractGradleExecuter.propagateSystemProperty(SystemProperties.isEnabled)
-        def previousProp = System.getProperty(SystemProperties.isEnabled)
-        System.setProperty(SystemProperties.isEnabled, "true")
+        executer.withCommandLineGradleOpts(INSTANT_EXECUTION_PROPERTY)
+        executer.requireGradleDistribution()
 
         and:
         def fixture = newInstantExecutionFixture()
@@ -53,22 +46,12 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         then:
         fixture.assertStateStored()
-
-        cleanup:
-        setOrClearProperty(SystemProperties.isEnabled, previousProp)
-        AbstractGradleExecuter.doNotPropagateSystemProperty(SystemProperties.isEnabled)
     }
 
     @Ignore
     @ToBeImplemented
     def "can enable instant execution from gradle.properties"() {
         setup:
-        def previousProp = System.getProperty(SystemProperties.isEnabled)
-        if (GradleContextualExecuter.isEmbedded()) {
-            System.clearProperty(SystemProperties.isEnabled)
-        }
-
-        and:
         file('gradle.properties') << """
             systemProp.${SystemProperties.isEnabled}=true
         """
@@ -81,16 +64,5 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
 
         then: 'instant execution is enabled'
         fixture.assertStateStored()
-
-        cleanup:
-        setOrClearProperty(SystemProperties.isEnabled, previousProp)
-    }
-
-    private static void setOrClearProperty(String name, @Nullable String value) {
-        if (value != null) {
-            System.setProperty(name, value)
-        } else {
-            System.clearProperty(name)
-        }
     }
 }
