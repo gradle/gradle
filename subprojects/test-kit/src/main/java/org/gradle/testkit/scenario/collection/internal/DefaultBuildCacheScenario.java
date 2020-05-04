@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 
 import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.appendArguments;
 import static org.gradle.testkit.scenario.internal.GradleScenarioUtilInternal.assertTaskOutcomes;
+import static org.gradle.util.TextUtil.normaliseFileSeparators;
 
 
 public class DefaultBuildCacheScenario extends DefaultGradleScenario implements BuildCacheScenario {
@@ -90,7 +91,7 @@ public class DefaultBuildCacheScenario extends DefaultGradleScenario implements 
                 "settingsEvaluated { settings ->\n" +
                 "  settings.buildCache {\n" +
                 "    local {\n" +
-                "      directory('" + localBuildCacheDir.getAbsolutePath() + "')\n" +
+                "      directory('" + normaliseFileSeparators(localBuildCacheDir.getAbsolutePath()) + "')\n" +
                 "    }\n" +
                 "  }\n" +
                 "}\n";
