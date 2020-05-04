@@ -23,14 +23,16 @@ import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 import spock.lang.Unroll
 
 class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    def "reports build logic reading a system property via the Java API"() {
+    @Unroll
+    def "reports build logic reading a system property set #mechanism.description via the Java API"() {
         buildFile << """
             // not declared
             System.getProperty("CI")
         """
 
         when:
-        instantFails()
+        mechanism.setup(this)
+        instantFails(*mechanism.gradleArgs)
 
         then:
         // TODO - use problems fixture, however build script class is generated
@@ -38,10 +40,54 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
         failure.assertHasFileName("Build file '${buildFile.absolutePath}'")
         failure.assertHasLineNumber(3)
         failure.assertThatCause(containsNormalizedString("Read system property 'CI' from 'build_"))
+
+        where:
+        mechanism << SystemPropertyInjection.all("CI", "false")
     }
 
     @Unroll
-    def "plugin can use standard property #prop without declaring access"() {
+    def "build logic can read system property with no value without declaring access"() {
+        file("buildSrc/src/main/java/SneakyPlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+
+            public class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("CI = " + System.getProperty("CI"));
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: SneakyPlugin
+        """
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantRun()
+
+        then:
+        outputContains("CI = null")
+
+        when:
+        instantRun()
+
+        then:
+        fixture.assertStateLoaded()
+        noExceptionThrown()
+
+        when:
+        mechanism.setup(this)
+        instantFails(*mechanism.gradleArgs)
+
+        then:
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
+
+        where:
+        mechanism << SystemPropertyInjection.all("CI", "false")
+    }
+
+    @Unroll
+    def "build logic can read standard system property #prop without declaring access"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};

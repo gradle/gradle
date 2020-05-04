@@ -23,28 +23,42 @@ import org.gradle.instantexecution.problems.PropertyTrace
 import org.gradle.instantexecution.problems.StructuredMessage
 import org.gradle.instantexecution.serialization.Workarounds
 import org.gradle.internal.classpath.Instrumented
+import org.gradle.internal.event.ListenerManager
+
+
+private
+val whitelistedProperties = setOf(
+    "os.name",
+    "os.version",
+    "os.arch",
+    "java.version",
+    "java.vm.version",
+    "java.runtime.version",
+    "java.specification.version",
+    "java.home",
+    "line.separator",
+    "user.name",
+    "user.home"
+)
 
 
 class SystemPropertyAccessListener(
-    private val problems: InstantExecutionProblems
+    private val problems: InstantExecutionProblems,
+    listenerManager: ListenerManager
 ) : Instrumented.Listener {
     private
-    val whitelistedProperties = setOf(
-        "os.name",
-        "os.version",
-        "os.arch",
-        "java.version",
-        "java.vm.version",
-        "java.runtime.version",
-        "java.specification.version",
-        "java.home",
-        "line.separator",
-        "user.name",
-        "user.home"
-    )
+    val broadcast = listenerManager.getBroadcaster(UndeclaredBuildInputListener::class.java)
+    private
+    val nullProperties = mutableSetOf<String>()
 
-    override fun systemPropertyQueried(key: String, consumer: String) {
+    override fun systemPropertyQueried(key: String, value: String?, consumer: String) {
         if (whitelistedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
+            return
+        }
+        if (value == null) {
+            if (nullProperties.add(key)) {
+                broadcast.systemPropertyRead(key)
+            }
             return
         }
         val message = StructuredMessage.build {

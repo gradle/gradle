@@ -69,12 +69,12 @@ class DefaultInstantExecution internal constructor(
     private val host: Host,
     private val startParameter: InstantExecutionStartParameter,
     private val problems: InstantExecutionProblems,
+    private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
     private val beanConstructors: BeanConstructors,
     private val gradlePropertiesController: GradlePropertiesController
 ) : InstantExecution {
-
     interface Host {
 
         val currentBuild: VintageGradleBuild
@@ -133,7 +133,7 @@ class DefaultInstantExecution internal constructor(
         if (!isInstantExecutionEnabled) return
 
         startCollectingCacheFingerprint()
-        Instrumented.setListener(SystemPropertyAccessListener(problems))
+        Instrumented.setListener(systemPropertyListener)
     }
 
     override fun saveScheduledWork() {

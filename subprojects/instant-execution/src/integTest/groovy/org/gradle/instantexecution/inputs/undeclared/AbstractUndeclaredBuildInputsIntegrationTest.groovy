@@ -21,44 +21,41 @@ import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
     abstract void buildLogicApplication()
 
-    void additionalProblems() {
-    }
-
     def "reports undeclared use of system property prior to task execution from plugin"() {
         buildLogicApplication()
         def fixture = newInstantExecutionFixture()
 
         when:
-        run("thing")
+        run("thing", "-DCI=true")
 
         then:
-        outputContains("apply CI = null")
-        outputContains("apply CI2 = null")
-        outputContains("apply CI3 = null")
-        outputContains("task CI = null")
+        outputContains("apply CI = true")
+        outputContains("task CI = true")
+
+        when:
+        instantFails("thing", "-DCI=true")
+
+        then:
+        // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
 
         when:
         problems.withDoNotFailOnProblems()
-        instantRun("thing")
+        instantRun("thing", "-DCI=true")
 
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
         outputContains("- unknown location: read system property 'CI' from '")
-        outputContains("- unknown location: read system property 'CI2' from '")
-        outputContains("- unknown location: read system property 'CI3' from '")
-        additionalProblems()
-        outputContains("apply CI = null")
-        outputContains("apply CI2 = null")
-        outputContains("apply CI3 = null")
-        outputContains("task CI = null")
+        outputContains("apply CI = true")
+        outputContains("task CI = true")
 
         when:
-        instantRun("thing", "-DCI=true")
+        instantRun("thing", "-DCI=false")
 
         then:
-        fixture.assertStateLoaded() // undeclared properties are not considered build inputs
+        fixture.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
         problems.assertResultHasProblems(result)
-        outputContains("task CI = true")
+        outputContains("task CI = false")
     }
 }

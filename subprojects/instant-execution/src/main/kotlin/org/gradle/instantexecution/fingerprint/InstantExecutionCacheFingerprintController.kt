@@ -27,6 +27,7 @@ import org.gradle.instantexecution.extensions.serviceOf
 import org.gradle.instantexecution.initialization.InstantExecutionStartParameter
 import org.gradle.instantexecution.serialization.DefaultWriteContext
 import org.gradle.instantexecution.serialization.ReadContext
+import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.fingerprint.impl.AbsolutePathFileCollectionFingerprinter
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.vfs.VirtualFileSystem
@@ -46,7 +47,8 @@ class InstantExecutionCacheFingerprintController internal constructor(
     private val valueSourceProviderFactory: ValueSourceProviderFactory,
     private val virtualFileSystem: VirtualFileSystem,
     private val fileCollectionFingerprinter: AbsolutePathFileCollectionFingerprinter,
-    private val listenerManager: BuildTreeListenerManager
+    private val listenerManager: ListenerManager,
+    private val buildTreeListenerManager: BuildTreeListenerManager
 ) {
 
     private
@@ -126,14 +128,15 @@ class InstantExecutionCacheFingerprintController internal constructor(
 
     private
     fun addListener(listener: InstantExecutionCacheFingerprintWriter) {
-        listenerManager.service.addListener(listener)
+        listenerManager.addListener(listener)
+        buildTreeListenerManager.service.addListener(listener)
         taskInputsListeners.addListener(listener)
     }
 
     private
     fun removeListener(listener: InstantExecutionCacheFingerprintWriter) {
         taskInputsListeners.removeListener(listener)
-        listenerManager.service.removeListener(listener)
+        buildTreeListenerManager.service.removeListener(listener)
     }
 
     private

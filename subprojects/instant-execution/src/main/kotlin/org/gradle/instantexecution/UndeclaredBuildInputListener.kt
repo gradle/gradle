@@ -14,18 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.inputs.undeclared
+package org.gradle.instantexecution
 
-class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
-    @Override
-    void buildLogicApplication() {
-        buildKotlinFile << """
-            println("apply CI = " + System.getProperty("CI"))
-            tasks.register("thing") {
-                doLast {
-                    println("task CI = " + System.getProperty("CI"))
-                }
-            }
-        """
-    }
+
+interface UndeclaredBuildInputListener {
+    fun systemPropertyRead(key: String)
 }

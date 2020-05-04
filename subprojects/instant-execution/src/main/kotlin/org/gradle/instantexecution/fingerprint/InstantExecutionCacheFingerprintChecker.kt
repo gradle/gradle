@@ -69,6 +69,11 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
                         return reason
                     }
                 }
+                is InstantExecutionCacheFingerprint.UndeclaredSystemProperty -> input.run {
+                    if (isDefined(key)) {
+                        return "system property '$key' has changed"
+                    }
+                }
                 else -> throw IllegalStateException("Unexpected instant execution cache fingerprint: $input")
             }
         }
@@ -119,6 +124,11 @@ class InstantExecutionCacheFingerprintChecker(private val host: Host) {
             return buildLogicInputHasChanged(valueSource)
         }
         return null
+    }
+
+    private
+    fun isDefined(key: String): Boolean {
+        return System.getProperty(key) != null
     }
 
     private

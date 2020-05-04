@@ -31,7 +31,7 @@ class SamplesDependencySubstitutionIntegrationTest extends AbstractIntegrationSp
 
     @Unroll
     @UsesSample("dependencyManagement/customizingResolution/conditionalSubstitutionRule")
-    @ToBeFixedForInstantExecution(because = "sample uses system property")
+    @ToBeFixedForInstantExecution(because = "sample uses system property", iterationMatchers = ".*kotlin dsl.*")
     def "can run sample with all external dependencies with #dsl dsl" () {
         executer.inDirectory(sample.dir.file(dsl))
 

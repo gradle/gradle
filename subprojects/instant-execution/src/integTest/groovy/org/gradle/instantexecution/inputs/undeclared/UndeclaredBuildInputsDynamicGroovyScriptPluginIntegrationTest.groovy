@@ -20,20 +20,17 @@ class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends Abst
     @Override
     void buildLogicApplication() {
         def script = file("plugin.gradle")
-        dynamicGroovyPlugin(script)
-
         script << """
-            apply plugin: SneakyPlugin
-            println("apply SCRIPT = " + System.getProperty("SCRIPT"))
+            println("apply CI = " + System.getProperty("CI"))
+            tasks.register("thing") {
+                doLast {
+                    println("task CI = " + System.getProperty("CI"))
+                }
+            }
         """
 
         buildFile << """
             apply from: "plugin.gradle"
         """
-    }
-
-    @Override
-    void additionalProblems() {
-        outputContains("- unknown location: read system property 'SCRIPT' from '")
     }
 }
