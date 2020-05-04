@@ -466,7 +466,7 @@ samples {
             description = "Pass command-line arguments to a custom task."
             category = "Build organization"
             common {
-                from(templates.projectInfoPlugin)
+                from(sampleDirectory.dir("common"))
             }
         }
     }
