@@ -33,6 +33,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nullable;
+import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.FileSystemLoopException;
@@ -42,6 +43,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Optional;
@@ -65,10 +68,30 @@ public class DirectorySnapshotter {
         try {
             Path rootPath = Paths.get(absolutePath);
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
-            Files.walkFileTree(rootPath, EnumSet.of(FileVisitOption.FOLLOW_LINKS), Integer.MAX_VALUE, visitor);
+            Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, visitor);
             return visitor.getResult();
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", absolutePath), e);
+        }
+    }
+
+    private static class SymbolicLinkMapping {
+        private final String source;
+        private final String target;
+
+        private SymbolicLinkMapping(String source, String target) {
+            this.source = source;
+            this.target = target;
+        }
+
+        Optional<String> remapPath(String absolutePath) {
+            if (absolutePath.equals(target)) {
+                return Optional.of(source);
+            }
+            if (absolutePath.startsWith(target) && absolutePath.charAt(target.length()) == File.separatorChar) {
+                return Optional.of(source + File.separatorChar + absolutePath.substring(target.length() + 1));
+            }
+            return Optional.empty();
         }
     }
 
@@ -152,6 +175,7 @@ public class DirectorySnapshotter {
         private final FileHasher hasher;
         private final Interner<String> stringInterner;
         private final DefaultExcludes defaultExcludes;
+        private final Deque<SymbolicLinkMapping> symbolicLinkMappings = new ArrayDeque<>();
 
         public PathVisitor(
             @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
@@ -173,7 +197,7 @@ public class DirectorySnapshotter {
             String fileName = getFilename(dir);
             String internedName = intern(fileName);
             if (builder.isRoot() || shouldVisit(dir, internedName, true, builder.getRelativePath())) {
-                builder.preVisitDirectory(intern(dir.toString()), internedName);
+                builder.preVisitDirectory(intern(remapAbsolutePath(dir)), internedName);
                 return FileVisitResult.CONTINUE;
             } else {
                 return FileVisitResult.SKIP_SUBTREE;
@@ -188,25 +212,64 @@ public class DirectorySnapshotter {
 
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
-            String internedName = intern(file.getFileName().toString());
-            if (shouldVisit(file, internedName, false, builder.getRelativePath())) {
-                builder.visitFile(snapshotFile(file, internedName, attrs));
+            if (attrs.isSymbolicLink()) {
+                BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
+                if (targetAttributes.isDirectory()) {
+                    try {
+                        // TODO: Detect cycles
+                        Path targetDir = file.toRealPath();
+                        symbolicLinkMappings.addFirst(new SymbolicLinkMapping(file.toString(), targetDir.toString()));
+                        Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, this);
+                        symbolicLinkMappings.removeFirst();
+                    } catch (IOException e) {
+                        throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", file), e);
+                    }
+                } else {
+                    visitResolvedFile(file, targetAttributes, AccessType.VIA_SYMLINK);
+                }
+            } else {
+                visitResolvedFile(file, attrs, AccessType.DIRECT);
             }
             return FileVisitResult.CONTINUE;
         }
 
-        private CompleteFileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs) {
-            String internedAbsoluteFilePath = intern(absoluteFilePath.toString());
+        private String remapAbsolutePath(Path dir) {
+            String targetAbsolutePath = dir.toString();
+            return symbolicLinkMappings.stream()
+                .map(mapping -> mapping.remapPath(targetAbsolutePath))
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .findFirst()
+                .orElse(targetAbsolutePath);
+        }
+
+        private void visitResolvedFile(Path file, BasicFileAttributes targetAttributes, AccessType accessType) {
+            String internedName = intern(file.getFileName().toString());
+            if (shouldVisit(file, internedName, false, builder.getRelativePath())) {
+                builder.visitFile(snapshotFile(file, internedName, targetAttributes, accessType));
+            }
+        }
+
+        private BasicFileAttributes readAttributesOfSymlinkTarget(Path symlink, BasicFileAttributes symlinkAttributes) {
+            try {
+                return Files.readAttributes(symlink, BasicFileAttributes.class);
+            } catch (IOException ioe) {
+                return symlinkAttributes;
+            }
+        }
+
+        private CompleteFileSystemLocationSnapshot snapshotFile(Path absoluteFilePath, String internedName, BasicFileAttributes attrs, AccessType accessType) {
+            String internedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
                     HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
                     FileMetadata metadata = FileMetadata.from(attrs);
-                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata, AccessType.DIRECT);
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata, accessType);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
             }
-            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName, AccessType.DIRECT);
+            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName, accessType);
         }
 
         /** unlistable directories (and maybe some locked files) will stop here */
@@ -235,7 +298,10 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            builder.postVisitDirectory(AccessType.DIRECT);
+            AccessType accessType = (!symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString()))
+                ? AccessType.VIA_SYMLINK
+                : AccessType.DIRECT;
+            builder.postVisitDirectory(accessType);
             return FileVisitResult.CONTINUE;
         }
 
