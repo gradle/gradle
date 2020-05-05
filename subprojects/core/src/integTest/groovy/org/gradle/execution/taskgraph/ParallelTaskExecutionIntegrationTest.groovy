@@ -17,7 +17,6 @@
 package org.gradle.execution.taskgraph
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
@@ -198,7 +197,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "the number of tasks executed in parallel is limited by the number of parallel threads"() {
         given:
         withParallelThreads(2)
