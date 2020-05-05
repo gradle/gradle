@@ -18,7 +18,7 @@ package org.gradle.internal.nativeintegration.filesystem.jdk7;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
@@ -42,11 +42,11 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
         try {
             BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
             if (bfa.isDirectory()) {
-                return DefaultFileMetadata.directory();
+                return DefaultFileMetadataSnapshot.directory();
             }
-            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+            return new DefaultFileMetadataSnapshot(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
         } catch (IOException e) {
-            return DefaultFileMetadata.missing();
+            return DefaultFileMetadataSnapshot.missing();
         }
     }
 }

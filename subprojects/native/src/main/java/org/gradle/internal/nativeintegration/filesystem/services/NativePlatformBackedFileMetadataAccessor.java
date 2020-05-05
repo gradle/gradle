@@ -19,7 +19,7 @@ package org.gradle.internal.nativeintegration.filesystem.services;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
@@ -38,11 +38,11 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
         FileInfo stat = files.stat(f, true);
         switch (stat.getType()) {
             case File:
-                return DefaultFileMetadata.file(stat.getLastModifiedTime(), stat.getSize());
+                return DefaultFileMetadataSnapshot.file(stat.getLastModifiedTime(), stat.getSize());
             case Directory:
-                return DefaultFileMetadata.directory();
+                return DefaultFileMetadataSnapshot.directory();
             case Missing:
-                return DefaultFileMetadata.missing();
+                return DefaultFileMetadataSnapshot.missing();
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }

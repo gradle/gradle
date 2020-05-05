@@ -18,7 +18,7 @@ package org.gradle.internal.fingerprint.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.internal.file.FileType
-import org.gradle.internal.file.impl.DefaultFileMetadata
+import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot
 import org.gradle.internal.hash.FileHasher
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
@@ -135,7 +135,7 @@ class FileSystemSnapshotBuilderTest extends Specification {
         builder.build() == FileSystemSnapshot.EMPTY
     }
 
-    private static DefaultFileMetadata fileMetadata() {
-        new DefaultFileMetadata(FileType.RegularFile, 0, 5)
+    private static DefaultFileMetadataSnapshot fileMetadata() {
+        new DefaultFileMetadataSnapshot(FileType.RegularFile, 0, 5)
     }
 }
