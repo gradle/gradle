@@ -5,7 +5,7 @@ This sample shows how credentials can be passed to an external tool that normall
 Let's pretend that we have to log in to some system before performing some operation.
 This could be some external system that requires authentication before allowing us to upload some artifacts.
 
-NOTE: this sample assumes that the external tool that requires interactive login does not support any form of non-interactive login.
+TIP: This sample assumes that the external tool that requires interactive login does not support any form of non-interactive login.
 In reality, many tools provide options to authenticate without prompting the user for input.
 Command-line arguments can be passed to the Exec task using the `args` property.
 
