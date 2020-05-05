@@ -52,7 +52,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         """
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "no task is re-executed when inputs are unchanged"() {
         when:
         withBuildCache().run "jar"
@@ -68,7 +67,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":compileJava"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "JavaExec")
     def "outputs are correctly loaded from cache"() {
         buildFile << """
             apply plugin: "application"
@@ -80,7 +79,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         withBuildCache().run "run"
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "tasks get cached when source code changes back to previous state"() {
         expect:
         withBuildCache().run "jar" assertTaskNotSkipped ":compileJava" assertTaskNotSkipped ":jar"
@@ -122,7 +120,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":compileJava"
     }
 
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """
@@ -155,7 +153,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":customTask"
     }
 
-    @ToBeFixedForInstantExecution
     def "credentials can be specified via DSL"() {
         httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile << """
@@ -183,7 +180,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
-    @ToBeFixedForInstantExecution
     def "credentials can be specified via URL"() {
         httpBuildCacheServer.withBasicAuth("user", 'pass%:-0]#')
         settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", 'pass%:-0]#'))
@@ -225,7 +221,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
-    @ToBeFixedForInstantExecution
     def "can use a self-signed certificate with allowUntrusted"() {
         def keyStore = TestKeyStore.init(file('ssl-keystore'))
         keyStore.enableSslWithServerCert(httpBuildCacheServer)
@@ -247,7 +242,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped(":compileJava")
     }
 
-    @ToBeFixedForInstantExecution
     def "produces deprecation warning when using plain HTTP"() {
         httpBuildCacheServer.useHostname()
         settingsFile.text = useHttpBuildCache(httpBuildCacheServer.uri)
