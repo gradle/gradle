@@ -42,6 +42,8 @@ $ ORG_GRADLE_PROJECT_username=secret-user ORG_GRADLE_PROJECT_password=secret-pas
 ====
 include::sample[dir="groovy",files="gradle.properties[]"]
 ====
+This way the sensitive data can be kept outside of the project sources - `gradle.properties` can reside in the user's `~/.gradle` directory.
+The values are also not echoed anywhere this way.
 For more information about using Gradle properties, see link:{userManualPath}/build_environment.html#sec:gradle_configuration_properties[Gradle Properties user manual chapter].
 
 The output with correct credentials will be:
