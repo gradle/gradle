@@ -16,12 +16,19 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
+import spock.lang.Ignore
+
 class UndeclaredBuildInputsKotlinBuildScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
-    void buildLogicApplication() {
-        kotlinPlugin(buildKotlinFile)
+    void buildLogicApplication(SystemPropertyRead read) {
+        kotlinPlugin(buildKotlinFile, read)
         buildKotlinFile << """
             plugins.apply(SneakyPlugin::class.java)
         """
+    }
+
+    @Ignore
+    def "can reference methods from kotlin function"() {
+        expect: false
     }
 }

@@ -17,20 +17,22 @@
 package org.gradle.instantexecution.inputs.undeclared
 
 import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
+import spock.lang.Unroll
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    abstract void buildLogicApplication()
+    abstract void buildLogicApplication(SystemPropertyRead read)
 
-    def "reports undeclared use of system property prior to task execution from plugin"() {
-        buildLogicApplication()
+    @Unroll
+    def "reports undeclared system property read using #propertyRead.kotlinExpression prior to task execution from plugin"() {
+        buildLogicApplication(propertyRead)
         def fixture = newInstantExecutionFixture()
 
         when:
         run("thing", "-DCI=true")
 
         then:
-        outputContains("apply CI = true")
-        outputContains("task CI = true")
+        outputContains("apply = true")
+        outputContains("task = true")
 
         when:
         instantFails("thing", "-DCI=true")
@@ -47,8 +49,8 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
         outputContains("- unknown location: read system property 'CI' from '")
-        outputContains("apply CI = true")
-        outputContains("task CI = true")
+        outputContains("apply = true")
+        outputContains("task = true")
 
         when:
         instantRun("thing", "-DCI=false")
@@ -56,6 +58,13 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         then:
         fixture.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
         problems.assertResultHasProblems(result)
-        outputContains("task CI = false")
+        outputContains("task = false")
+
+        where:
+        propertyRead << [
+            SystemPropertyRead.systemGetProperty("CI"),
+            SystemPropertyRead.systemGetPropertyWithDefault("CI", "default"),
+            SystemPropertyRead.systemGetProperties("CI")
+        ]
     }
 }

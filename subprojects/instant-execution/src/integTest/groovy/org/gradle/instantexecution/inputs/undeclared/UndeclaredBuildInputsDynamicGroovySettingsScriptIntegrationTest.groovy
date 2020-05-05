@@ -18,13 +18,13 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsDynamicGroovySettingsScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
-    void buildLogicApplication() {
+    void buildLogicApplication(SystemPropertyRead read) {
         settingsFile << """
-            println("apply CI = " + System.getProperty("CI"))
+            println("apply = " + ${read.groovyExpression})
             gradle.rootProject {
                 tasks.register("thing") {
                     doLast {
-                        println("task CI = " + System.getProperty("CI"))
+                        println("task = " + ${read.groovyExpression})
                     }
                 }
             }

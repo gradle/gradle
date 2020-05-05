@@ -16,36 +16,87 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
+import groovy.transform.CompileStatic
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 
 trait GroovyPluginImplementation {
-    void dynamicGroovyPlugin(TestFile sourceFile) {
+    void groovyDsl(TestFile sourceFile, SystemPropertyRead read) {
+        sourceFile << """
+            println("apply = " + ${read.groovyExpression})
+            tasks.register("thing") {
+                doLast {
+                    println("task = " + ${read.groovyExpression})
+                }
+            }
+        """
+    }
+
+    void dynamicGroovyPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
 
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    // Static method call
-                    def ci = System.getProperty("CI")
-                    println("apply CI = " + ci)
+                    def value = ${read.groovyExpression}
+                    println("apply = " + value)
 
                     // Instance call
                     def sys = System
-                    println("apply CI2 = " + sys.getProperty("CI2"))
+                    println("apply INSTANCE = " + sys.getProperty("INSTANCE"))
 
                     // Call from closure
                     def cl = { p ->
-                        println("apply \$p = " + sys.getProperty(p))
+                        println("\$p CLOSURE = " + sys.getProperty("CLOSURE"))
                     }
-                    cl("CI3")
+                    cl("apply")
 
                     project.tasks.register("thing") { t ->
                         t.doLast {
-                            def ci2 = System.getProperty("CI")
-                            println("task CI = " + ci2)
+                            value = ${read.groovyExpression}
+                            println("task = " + value)
+
+                            println("task INSTANCE = " + sys.getProperty("INSTANCE"))
+
+                            cl("task")
+                        }
+                    }
+                }
+            }
+        """
+    }
+
+    void staticGroovyPlugin(TestFile sourceFile, SystemPropertyRead read) {
+        sourceFile << """
+            import ${Project.name}
+            import ${Plugin.name}
+
+            @${CompileStatic.name}
+            class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    def value = ${read.groovyExpression}
+                    println("apply = " + value)
+
+                    // Instance call
+                    def sys = System
+                    println("apply INSTANCE = " + sys.getProperty("INSTANCE"))
+
+                    // Call from closure
+                    def cl = { p ->
+                        println("\$p CLOSURE = " + sys.getProperty("CLOSURE"))
+                    }
+                    cl("apply")
+
+                    project.tasks.register("thing") { t ->
+                        t.doLast {
+                            value = ${read.groovyExpression}
+                            println("task = " + value)
+
+                            println("task INSTANCE = " + sys.getProperty("INSTANCE"))
+
+                            cl("task")
                         }
                     }
                 }
