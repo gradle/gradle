@@ -650,7 +650,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         thrown(CircularReferenceException)
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "produces a sensible error when a task declares both outputs and destroys"() {
         buildFile << """
             task a {
@@ -668,7 +667,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables")
     def "produces a sensible error when a task declares both inputs and destroys"() {
         buildFile << """
             task a {
@@ -686,7 +684,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.destroyables and Task.localState")
     def "produces a sensible error when a task declares both local state and destroys"() {
         buildFile << """
             task a {
