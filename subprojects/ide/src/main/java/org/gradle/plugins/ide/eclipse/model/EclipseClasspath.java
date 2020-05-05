@@ -306,7 +306,6 @@ public class EclipseClasspath {
      * <p>
      * See {@link EclipseProject} for an example.
      */
-    @SuppressWarnings("rawtypes")
     public void file(Closure closure) {
         ConfigureUtil.configure(closure, file);
     }

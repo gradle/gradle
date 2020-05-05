@@ -59,7 +59,6 @@ public class IdeaWorkspace {
      * <p>
      * For example see docs for {@link IdeaWorkspace}
      */
-    @SuppressWarnings("rawtypes")
     public void iws(Closure closure) {
         configure(closure, iws);
     }

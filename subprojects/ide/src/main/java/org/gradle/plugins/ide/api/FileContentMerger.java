@@ -26,7 +26,6 @@ import org.gradle.util.ConfigureUtil;
  * For examples see docs for {@link org.gradle.plugins.ide.eclipse.model.EclipseProject}
  * or {@link org.gradle.plugins.ide.idea.model.IdeaProject} and others.
  */
-@SuppressWarnings("rawtypes")
 public class FileContentMerger {
 
     private MutableActionSet whenMerged = new MutableActionSet();
