@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
@@ -35,20 +36,28 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
     @Override
     public FileMetadataSnapshot stat(File f) {
         try {
-            FileInfo stat = files.stat(f, true);
+            FileInfo stat = files.stat(f, false);
+            AccessType accessType = stat.getType() == FileInfo.Type.Symlink ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
+            if (accessType == AccessType.VIA_SYMLINK) {
+                try {
+                    stat = files.stat(f, true);
+                } catch (NativeException e) {
+                    return DefaultFileMetadataSnapshot.missing(AccessType.VIA_SYMLINK);
+                }
+            }
             switch (stat.getType()) {
                 case File:
-                    return DefaultFileMetadataSnapshot.file(stat.getLastModifiedTime(), stat.getSize());
+                    return DefaultFileMetadataSnapshot.file(stat.getLastModifiedTime(), stat.getSize(), accessType);
                 case Directory:
-                    return DefaultFileMetadataSnapshot.directory();
+                    return DefaultFileMetadataSnapshot.directory(accessType);
                 case Missing:
                 case Other:
-                    return DefaultFileMetadataSnapshot.missing();
+                    return DefaultFileMetadataSnapshot.missing(accessType);
                 default:
                     throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
             }
         } catch (NativeException e) {
-            return DefaultFileMetadataSnapshot.missing();
+            return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
         }
     }
 }

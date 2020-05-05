@@ -20,28 +20,46 @@ import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 
 public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
-    private static final FileMetadataSnapshot DIR = new DefaultFileMetadataSnapshot(FileType.Directory, 0, 0);
-    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadataSnapshot(FileType.Missing, 0, 0);
+    private static final FileMetadataSnapshot DIR = new DefaultFileMetadataSnapshot(FileType.Directory, 0, 0, AccessType.DIRECT);
+    private static final FileMetadataSnapshot DIR_ACCESSED_VIA_SYMLINK = new DefaultFileMetadataSnapshot(FileType.Directory, 0, 0, AccessType.VIA_SYMLINK);
+    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadataSnapshot(FileType.Missing, 0, 0, AccessType.DIRECT);
+    private static final FileMetadataSnapshot BROKEN_SYMLINK = new DefaultFileMetadataSnapshot(FileType.Missing, 0, 0, AccessType.VIA_SYMLINK);
     private final FileType type;
     private final long lastModified;
     private final long length;
+    private final AccessType accessType;
 
-    private DefaultFileMetadataSnapshot(FileType type, long lastModified, long length) {
+    private DefaultFileMetadataSnapshot(FileType type, long lastModified, long length, AccessType accessType) {
         this.type = type;
         this.lastModified = lastModified;
         this.length = length;
+        this.accessType = accessType;
     }
 
-    public static FileMetadataSnapshot file(long lastModified, long length) {
-        return new DefaultFileMetadataSnapshot(FileType.RegularFile, lastModified, length);
+    public static FileMetadataSnapshot file(long lastModified, long length, AccessType accessType) {
+        return new DefaultFileMetadataSnapshot(FileType.RegularFile, lastModified, length, accessType);
     }
 
-    public static FileMetadataSnapshot directory() {
-        return DIR;
+    public static FileMetadataSnapshot directory(AccessType accessType) {
+        switch (accessType) {
+            case DIRECT:
+                return DIR;
+            case VIA_SYMLINK:
+                return DIR_ACCESSED_VIA_SYMLINK;
+            default:
+                throw new AssertionError();
+        }
     }
 
-    public static FileMetadataSnapshot missing() {
-        return MISSING;
+    public static FileMetadataSnapshot missing(AccessType accessType) {
+        switch (accessType) {
+            case DIRECT:
+                return MISSING;
+            case VIA_SYMLINK:
+                return BROKEN_SYMLINK;
+            default:
+                throw new AssertionError();
+        }
     }
 
     @Override
@@ -58,4 +76,10 @@ public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
     public long getLength() {
         return length;
     }
+
+    @Override
+    public AccessType getAccessType() {
+        return accessType;
+    }
+
 }
