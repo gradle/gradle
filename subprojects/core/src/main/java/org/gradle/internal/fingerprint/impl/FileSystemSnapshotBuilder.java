@@ -54,7 +54,7 @@ public class FileSystemSnapshotBuilder {
     public void addFile(File file, String[] segments, String fileName, FileMetadataSnapshot metadataSnapshot) {
         checkNoRootFileSnapshot("another root file", file);
         HashCode contentHash = fileHasher.hash(file, metadataSnapshot.getLength(), metadataSnapshot.getLastModified());
-        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, FileMetadata.from(metadataSnapshot), AccessType.DIRECT);
+        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, FileMetadata.from(metadataSnapshot), metadataSnapshot.getAccessType());
         if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
         } else {
@@ -92,7 +92,7 @@ public class FileSystemSnapshotBuilder {
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
         builder.preVisitDirectory(rootPath, rootName);
         rootDirectoryBuilder.accept(rootPath, builder);
-        builder.postVisitDirectory();
+        builder.postVisitDirectory(AccessType.DIRECT);
         return Preconditions.checkNotNull(builder.getResult());
     }
 
@@ -145,7 +145,7 @@ public class FileSystemSnapshotBuilder {
                 String dirPath = stringInterner.intern(directoryPath + File.separatorChar + dirName);
                 builder.preVisitDirectory(dirPath, dirName);
                 entry.getValue().accept(dirPath, builder);
-                builder.postVisitDirectory();
+                builder.postVisitDirectory(AccessType.DIRECT);
             }
             for (RegularFileSnapshot fileSnapshot : files.values()) {
                 builder.visitFile(fileSnapshot);

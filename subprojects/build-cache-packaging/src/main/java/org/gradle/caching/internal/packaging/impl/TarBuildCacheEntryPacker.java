@@ -281,7 +281,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             boolean isDir = entry.isDirectory();
             int directoriesLeft = parser.nextPath(entry.getName(), isDir);
             for (int i = 0; i < directoriesLeft; i++) {
-                builder.postVisitDirectory();
+                builder.postVisitDirectory(AccessType.DIRECT);
             }
             if (parser.getDepth() == 0) {
                 break;
@@ -302,7 +302,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
         }
 
         for (int i = 0; i < parser.getDepth(); i++) {
-            builder.postVisitDirectory();
+            builder.postVisitDirectory(AccessType.DIRECT);
         }
 
         snapshots.put(treeName, builder.getResult());

@@ -168,7 +168,7 @@ public class OutputFilterUtil {
         public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
             treeDepth--;
             boolean isOutputDir = predicate.test(directorySnapshot, isRoot());
-            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir);
+            boolean includedDir = merkleBuilder.postVisitDirectory(isOutputDir, directorySnapshot.getAccessType());
             if (!includedDir) {
                 currentRootFiltered = true;
                 hasBeenFiltered = true;

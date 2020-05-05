@@ -71,14 +71,14 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
 
     @Override
     public void postVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-        postVisitDirectory(true);
+        postVisitDirectory(true, directorySnapshot.getAccessType());
     }
 
-    public void postVisitDirectory() {
-        postVisitDirectory(true);
+    public void postVisitDirectory(AccessType accessType) {
+        postVisitDirectory(true, accessType);
     }
 
-    public boolean postVisitDirectory(boolean includeEmpty) {
+    public boolean postVisitDirectory(boolean includeEmpty, AccessType accessType) {
         String name = relativePathSegmentsTracker.leave();
         List<CompleteFileSystemLocationSnapshot> children = levelHolder.removeLast();
         String absolutePath = directoryAbsolutePaths.removeLast();
@@ -94,7 +94,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
-        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash(), AccessType.DIRECT);
+        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash(), accessType);
         List<CompleteFileSystemLocationSnapshot> siblings = levelHolder.peekLast();
         if (siblings != null) {
             siblings.add(directorySnapshot);

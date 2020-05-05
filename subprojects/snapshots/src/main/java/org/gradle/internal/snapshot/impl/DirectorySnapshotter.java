@@ -235,7 +235,7 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            builder.postVisitDirectory();
+            builder.postVisitDirectory(AccessType.DIRECT);
             return FileVisitResult.CONTINUE;
         }
 
