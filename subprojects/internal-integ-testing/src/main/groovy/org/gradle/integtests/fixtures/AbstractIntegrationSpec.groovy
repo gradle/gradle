@@ -25,6 +25,7 @@ import org.gradle.integtests.fixtures.executer.GradleBackedArtifactBuilder
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
+import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
@@ -340,7 +341,7 @@ class AbstractIntegrationSpec extends Specification {
     }
 
     ArtifactBuilder artifactBuilder() {
-        def executer = distribution.executer(temporaryFolder, getBuildContext())
+        def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
         executer.withGradleUserHomeDir(this.executer.getGradleUserHomeDir())
         for (int i = 1; ; i++) {
             def dir = getTestDirectory().file("artifacts-$i")
