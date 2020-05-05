@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +32,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
-    abstract long lastModified(File file)
+    abstract boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
 
     def "stats missing file"() {
         def file = tmpDir.file("missing")
@@ -50,7 +51,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(file)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        sameLastModified(stat, file)
         stat.length == 3
     }
 
@@ -74,7 +75,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(link)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        sameLastModified(stat, file)
         stat.length == 3
     }
 }

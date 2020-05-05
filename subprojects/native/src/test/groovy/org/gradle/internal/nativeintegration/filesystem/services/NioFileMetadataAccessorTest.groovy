@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor
 import org.gradle.util.UsesNativeServices
@@ -31,7 +32,11 @@ class NioFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     }
 
     @Override
-    long lastModified(File file) {
+    boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
+        return metadataSnapshot.lastModified == lastModified(file)
+    }
+
+    private static long lastModified(File file) {
         return Files.getFileAttributeView(file.toPath(), BasicFileAttributeView, LinkOption.NOFOLLOW_LINKS).readAttributes().lastModifiedTime().toMillis()
     }
 }
