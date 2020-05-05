@@ -176,6 +176,7 @@ public class DirectorySnapshotter {
         private final Interner<String> stringInterner;
         private final DefaultExcludes defaultExcludes;
         private final Deque<SymbolicLinkMapping> symbolicLinkMappings = new ArrayDeque<>();
+        private final Deque<String> parentDirectories = new ArrayDeque<>();
 
         public PathVisitor(
             @Nullable SnapshottingFilter.DirectoryWalkerPredicate predicate,
@@ -198,6 +199,7 @@ public class DirectorySnapshotter {
             String internedName = intern(fileName);
             if (builder.isRoot() || shouldVisit(dir, internedName, true, builder.getRelativePath())) {
                 builder.preVisitDirectory(intern(remapAbsolutePath(dir)), internedName);
+                parentDirectories.addFirst(dir.toString());
                 return FileVisitResult.CONTINUE;
             } else {
                 return FileVisitResult.SKIP_SUBTREE;
@@ -216,9 +218,12 @@ public class DirectorySnapshotter {
                 BasicFileAttributes targetAttributes = readAttributesOfSymlinkTarget(file, attrs);
                 if (targetAttributes.isDirectory()) {
                     try {
-                        // TODO: Detect cycles
                         Path targetDir = file.toRealPath();
-                        symbolicLinkMappings.addFirst(new SymbolicLinkMapping(file.toString(), targetDir.toString()));
+                        String targetDirString = targetDir.toString();
+                        if (introducesCycle(targetDirString)) {
+                            return FileVisitResult.CONTINUE;
+                        }
+                        symbolicLinkMappings.addFirst(new SymbolicLinkMapping(file.toString(), targetDirString));
                         Files.walkFileTree(targetDir, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, this);
                         symbolicLinkMappings.removeFirst();
                     } catch (IOException e) {
@@ -231,6 +236,15 @@ public class DirectorySnapshotter {
                 visitResolvedFile(file, attrs, AccessType.DIRECT);
             }
             return FileVisitResult.CONTINUE;
+        }
+
+        private boolean introducesCycle(String targetDirString) {
+            for (String parentDirectory : parentDirectories) {
+                if (parentDirectory.equals(targetDirString)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         private String remapAbsolutePath(Path dir) {
@@ -302,6 +316,7 @@ public class DirectorySnapshotter {
                 ? AccessType.VIA_SYMLINK
                 : AccessType.DIRECT;
             builder.postVisitDirectory(accessType);
+            parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;
         }
 

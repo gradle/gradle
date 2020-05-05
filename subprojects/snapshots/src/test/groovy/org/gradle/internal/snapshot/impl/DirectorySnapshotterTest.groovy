@@ -20,6 +20,7 @@ import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.tasks.util.PatternSet
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
 import org.gradle.internal.fingerprint.impl.PatternSetSnapshottingFilter
 import org.gradle.internal.hash.TestFileHasher
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
@@ -166,6 +167,7 @@ class DirectorySnapshotterTest extends Specification {
         snapshot.children.size == 1
         def brokenSymlinkSnapshot = snapshot.children[0]
         brokenSymlinkSnapshot.class == MissingFileSnapshot
+        brokenSymlinkSnapshot.accessType == AccessType.VIA_SYMLINK
 
         when:
         rootDir.file("linkTarget").createFile() // unbreak my heart
@@ -173,6 +175,7 @@ class DirectorySnapshotterTest extends Specification {
         snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
         snapshot.children*.class == [RegularFileSnapshot, RegularFileSnapshot]
+        snapshot.children*.accessType == [AccessType.VIA_SYMLINK, AccessType.DIRECT]
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -186,6 +189,7 @@ class DirectorySnapshotterTest extends Specification {
         snapshot.children.size == 1
         def dirSnapshot = snapshot.children[0]
         dirSnapshot.class == CompleteDirectorySnapshot
+        dirSnapshot.accessType == AccessType.DIRECT
         dirSnapshot.children == []
     }
 
@@ -203,6 +207,7 @@ class DirectorySnapshotterTest extends Specification {
         then:
         snapshot.children.size == 3
         snapshot.children.every { it.class == MissingFileSnapshot }
+        snapshot.children.every { it.accessType == AccessType.VIA_SYMLINK }
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -225,6 +230,7 @@ class DirectorySnapshotterTest extends Specification {
             unreadableDirectory: MissingFileSnapshot,
             unreadableFile: MissingFileSnapshot
         ]
+        snapshot.children.every { it.accessType == AccessType.DIRECT }
 
         cleanup:
         rootDir.listFiles()*.makeReadable()
@@ -244,6 +250,7 @@ class DirectorySnapshotterTest extends Specification {
         snapshot.children.collectEntries { [it.name, it.class] } == [
             testPipe: MissingFileSnapshot
         ]
+        snapshot.children.every { it.accessType == AccessType.DIRECT }
 
         cleanup:
         pipe.delete()
