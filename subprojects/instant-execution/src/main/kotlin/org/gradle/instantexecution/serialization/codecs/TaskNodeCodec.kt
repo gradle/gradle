@@ -25,6 +25,8 @@ import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.tasks.TaskDestroyablesInternal
+import org.gradle.api.internal.tasks.TaskLocalStateInternal
 import org.gradle.api.internal.tasks.properties.InputFilePropertyType
 import org.gradle.api.internal.tasks.properties.InputParameterUtils
 import org.gradle.api.internal.tasks.properties.OutputFilePropertyType
@@ -89,6 +91,8 @@ class TaskNodeCodec(
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
+                writeDestroyablesOf(task)
+                writeLocalStateOf(task)
             }
             writeRegisteredServicesOf(task)
         }
@@ -107,6 +111,8 @@ class TaskNodeCodec(
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)
+                readDestroyablesOf(task)
+                readLocalStateOf(task)
             }
             readRegisteredServicesOf(task)
         }
@@ -141,6 +147,30 @@ class TaskNodeCodec(
     suspend fun ReadContext.readRegisteredServicesOf(task: TaskInternal) {
         readCollection {
             task.usesService(readNonNull())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeDestroyablesOf(task: TaskInternal) {
+        writeCollection((task.destroyables as TaskDestroyablesInternal).registeredPaths)
+    }
+
+    private
+    suspend fun ReadContext.readDestroyablesOf(task: TaskInternal) {
+        readCollection {
+            task.destroyables.register(readNonNull())
+        }
+    }
+
+    private
+    suspend fun WriteContext.writeLocalStateOf(task: TaskInternal) {
+        writeCollection((task.localState as TaskLocalStateInternal).registeredPaths)
+    }
+
+    private
+    suspend fun ReadContext.readLocalStateOf(task: TaskInternal) {
+        readCollection {
+            task.localState.register(readNonNull())
         }
     }
 
