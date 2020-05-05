@@ -76,7 +76,7 @@ public abstract class TaskNode extends Node {
         return shouldSuccessors;
     }
 
-    protected void addMustSuccessor(TaskNode toNode) {
+    public void addMustSuccessor(TaskNode toNode) {
         mustSuccessors.add(toNode);
         toNode.mustPredecessors.add(this);
     }
