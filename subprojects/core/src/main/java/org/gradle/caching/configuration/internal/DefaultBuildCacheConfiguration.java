@@ -39,7 +39,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
 
     private final Instantiator instantiator;
 
-    private final DirectoryBuildCache local;
+    private DirectoryBuildCache local;
     private BuildCache remote;
 
     private final Set<BuildCacheServiceRegistration> registrations;
@@ -53,6 +53,11 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     @Override
     public DirectoryBuildCache getLocal() {
         return local;
+    }
+
+    @Override
+    public void setLocal(DirectoryBuildCache local) {
+        this.local = local;
     }
 
     @Override
