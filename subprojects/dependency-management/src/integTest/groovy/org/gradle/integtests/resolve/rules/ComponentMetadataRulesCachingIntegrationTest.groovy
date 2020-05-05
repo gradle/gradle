@@ -470,4 +470,54 @@ class CachedRule implements ComponentMetadataRule {
         outputContains('Modified cached rule executed')
 
     }
+
+    def 'having a rule triggered on missing metadata does not cause cache collision'() {
+        file('deps/projectA-1.0.jar').createFile()
+        file('deps/projectB-1.0.jar').createFile()
+
+        def cachedRule = file('buildSrc/src/main/groovy/rule/CachedRule.groovy')
+        cachedRule.text = """
+package rule
+
+import org.gradle.api.artifacts.ComponentMetadataRule
+import org.gradle.api.artifacts.CacheableRule
+import org.gradle.api.artifacts.ComponentMetadataContext
+
+@CacheableRule
+class CachedRule implements ComponentMetadataRule {
+
+    void execute(ComponentMetadataContext context) {
+        println 'Cached rule executed'
+    }
+}
+"""
+
+        buildFile << """
+import rule.CachedRule
+
+repositories.clear()
+
+repositories {
+    flatDir {
+        dirs 'deps'
+    }
+}
+
+dependencies {
+    conf 'org.test:projectB:1.0'
+    components {
+        all(CachedRule)
+    }
+}
+"""
+
+        when:
+        succeeds 'resolve'
+
+        then:
+        outputContains("""
+Cached rule executed
+Cached rule executed""")
+        Arrays.asList(file('libs').listFiles()).sort() == [file('libs/projectA-1.0.jar'), file('libs/projectB-1.0.jar')]
+    }
 }
