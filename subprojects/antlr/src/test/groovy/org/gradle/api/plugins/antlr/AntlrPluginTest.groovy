@@ -17,11 +17,58 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.api.Action
+import org.gradle.api.file.SourceDirectorySet
+import org.gradle.api.plugins.antlr.internal.AntlrSpecFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
 
 import static org.gradle.api.reflect.TypeOf.typeOf
 
 class AntlrPluginTest extends AbstractProjectBuilderSpec {
+
+    def additionalAntlrDirectory() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        project.file('src/antlr/foo/bar').mkdirs()
+        project.file('src/antlr/foo/bar/SomeGrammar.g').text = ''
+        project.file('src/main/antlr/bar/baz').mkdirs()
+        project.file('src/main/antlr/bar/baz/MoreGrammar.g').text = ''
+
+        def main = project.sourceSets.main
+        main.antlr.srcDir 'src/antlr'
+
+        def antlrTask = project.tasks.getByName('generateGrammarSource') as AntlrTask
+
+        def spec = new AntlrSpecFactory().create(antlrTask, antlrTask.stableSources.files, main.antlr as SourceDirectorySet)
+        def expect = new LinkedHashMap()
+        expect.put(project.file('src/main/antlr'), [project.file('src/main/antlr/bar/baz/MoreGrammar.g')] as Set)
+        expect.put(project.file('src/antlr'), [project.file('src/antlr/foo/bar/SomeGrammar.g')] as Set)
+
+        then:
+        main.antlr.srcDirs == [project.file('src/main/antlr'), project.file('src/antlr')] as Set
+        spec.filesPerInputDirectory == expect
+    }
+
+    def differentAntlrDirectory() {
+        when:
+        project.pluginManager.apply(AntlrPlugin)
+
+        project.file('src/antlr/foo/bar').mkdirs()
+        project.file('src/antlr/foo/bar/SomeGrammar.g').text = ''
+
+        def main = project.sourceSets.main
+        main.antlr.srcDirs = ['src/antlr']
+
+        def antlrTask = project.tasks.getByName('generateGrammarSource') as AntlrTask
+
+        def spec = new AntlrSpecFactory().create(antlrTask, antlrTask.stableSources.files, main.antlr as SourceDirectorySet)
+        def expect = new LinkedHashMap()
+        expect.put(project.file('src/antlr'), [project.file('src/antlr/foo/bar/SomeGrammar.g')] as Set)
+
+        then:
+        main.antlr.srcDirs == [project.file('src/antlr')] as Set
+        spec.filesPerInputDirectory == expect
+    }
 
     def addsAntlrPropertiesToEachSourceSet() {
         when:

@@ -20,7 +20,10 @@ import com.google.common.collect.Lists;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public class AntlrSpec implements Serializable {
@@ -68,5 +71,18 @@ public class AntlrSpec implements Serializable {
 
     public Set<File> getInputDirectories() {
         return inputDirectories;
+    }
+
+    public Map<File, Set<File>> getFilesPerInputDirectory() {
+        Map<File, Set<File>> filesPerDir = new LinkedHashMap<>();
+        for (File grammarFile : grammarFiles) {
+            for (File inputDirectory : inputDirectories) {
+                if (grammarFile.toPath().startsWith(inputDirectory.toPath())) {
+                    filesPerDir.computeIfAbsent(inputDirectory, k -> new LinkedHashSet<>()).add(grammarFile);
+                    break;
+                }
+            }
+        }
+        return filesPerDir;
     }
 }

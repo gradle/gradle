@@ -36,6 +36,8 @@ import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
 
@@ -133,11 +135,14 @@ public class AntlrExecuter implements RequestHandler<AntlrSpec, AntlrResult> {
                 numErrors += invoke(spec.asArgumentsWithFiles(), null);
             } else {
                 boolean onWindows = OperatingSystem.current().isWindows();
-                for (File inputDirectory : spec.getInputDirectories()) {
+                for (Map.Entry<File, Set<File>> fileSetEntry : spec.getFilesPerInputDirectory().entrySet()) {
+                    File inputDirectory = fileSetEntry.getKey();
+                    Set<File> grammarFiles = fileSetEntry.getValue();
+
                     final List<String> arguments = spec.getArguments();
                     arguments.add("-o");
                     arguments.add(spec.getOutputDirectory().getAbsolutePath());
-                    for (File grammarFile : spec.getGrammarFiles()) {
+                    for (File grammarFile : grammarFiles) {
                         String relativeGrammarFilePath = RelativePathUtil.relativePath(inputDirectory, grammarFile);
                         if (onWindows) {
                             relativeGrammarFilePath = relativeGrammarFilePath.replace('/', File.separatorChar);
