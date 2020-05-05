@@ -19,7 +19,6 @@ import com.google.common.collect.ImmutableMap;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
@@ -129,7 +128,7 @@ public class FileMetadataAccessorBenchmark {
                 if (bfa.isDirectory()) {
                     return DefaultFileMetadataSnapshot.directory();
                 }
-                return new DefaultFileMetadataSnapshot(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+                return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
@@ -144,7 +143,7 @@ public class FileMetadataAccessorBenchmark {
             if (bfa.isDirectory()) {
                 return DefaultFileMetadataSnapshot.directory();
             }
-            return new DefaultFileMetadataSnapshot(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+            return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
         }
     }
 }

@@ -26,7 +26,7 @@ public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
     private final long lastModified;
     private final long length;
 
-    public DefaultFileMetadataSnapshot(FileType type, long lastModified, long length) {
+    private DefaultFileMetadataSnapshot(FileType type, long lastModified, long length) {
         this.type = type;
         this.lastModified = lastModified;
         this.length = length;

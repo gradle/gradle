@@ -20,7 +20,6 @@ import com.google.common.collect.Interner;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.hash.FileHasher;
@@ -54,8 +53,7 @@ public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapsho
                     fileDetails.getFile(),
                     fileDetails.getRelativePath().getSegments(),
                     fileDetails.getName(),
-                    new DefaultFileMetadataSnapshot(
-                        FileType.RegularFile,
+                    DefaultFileMetadataSnapshot.file(
                         fileDetails.getLastModified(),
                         fileDetails.getSize()
                     )
