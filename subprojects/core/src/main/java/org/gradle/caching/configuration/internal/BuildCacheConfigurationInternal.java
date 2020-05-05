@@ -21,6 +21,8 @@ import org.gradle.caching.configuration.BuildCache;
 import org.gradle.caching.configuration.BuildCacheConfiguration;
 import org.gradle.caching.local.DirectoryBuildCache;
 
+import javax.annotation.Nullable;
+
 public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration {
     /**
      * Finds a build cache implementation factory class for the given configuration type.
@@ -31,4 +33,9 @@ public interface BuildCacheConfigurationInternal extends BuildCacheConfiguration
      * Replaces local directory build cache.
      */
     void setLocal(DirectoryBuildCache local);
+
+    /**
+     * Replaces remote build cache.
+     */
+    void setRemote(@Nullable BuildCache remote);
 }

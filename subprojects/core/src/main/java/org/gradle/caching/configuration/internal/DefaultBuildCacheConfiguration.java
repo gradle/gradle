@@ -31,6 +31,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import java.util.List;
 import java.util.Set;
 
@@ -95,6 +96,11 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
     @Override
     public BuildCache getRemote() {
         return remote;
+    }
+
+    @Override
+    public void setRemote(@Nullable BuildCache remote) {
+        this.remote = remote;
     }
 
     @Override

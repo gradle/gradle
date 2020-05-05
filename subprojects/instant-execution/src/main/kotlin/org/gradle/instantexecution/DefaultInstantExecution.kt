@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
+import org.gradle.caching.configuration.BuildCache
 import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.GradlePropertiesController
@@ -361,7 +362,10 @@ class DefaultInstantExecution internal constructor(
             if (gradle.includedBuilds.isNotEmpty()) {
                 logNotImplemented("included builds")
             }
-            write(gradle.settings.buildCache.local)
+            gradle.settings.buildCache.let { buildCache ->
+                write(buildCache.local)
+                write(buildCache.remote)
+            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             writeCollection(eventListenerRegistry.subscriptions)
             val buildOutputCleanupRegistry = service<BuildOutputCleanupRegistry>()
@@ -372,7 +376,10 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultReadContext.readGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
-            (gradle.settings.buildCache as BuildCacheConfigurationInternal).local = readNonNull()
+            (gradle.settings.buildCache as BuildCacheConfigurationInternal).let { buildCache ->
+                buildCache.local = readNonNull()
+                buildCache.remote = read() as BuildCache?
+            }
             val eventListenerRegistry = service<BuildEventListenerRegistryInternal>()
             readCollection {
                 val provider = readNonNull<Provider<OperationCompletionListener>>()
