@@ -382,7 +382,6 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.mustRunAfter")
     def "explicit ordering relationships are honored even if it violates destroys/creates/consumes relationships"() {
         given:
         withParallelThreads(2)
