@@ -26,10 +26,12 @@ public class TestCompleteEvent {
     private final long endTime;
     private final TestResult.ResultType resultType;
 
+    @UsedByScanPlugin("test-distribution")
     public TestCompleteEvent(long endTime) {
         this(endTime, null);
     }
 
+    @UsedByScanPlugin("test-distribution")
     public TestCompleteEvent(long endTime, TestResult.ResultType resultType) {
         this.endTime = endTime;
         this.resultType = resultType;

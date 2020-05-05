@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,17 +22,17 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * Documents that the type or method is referenced by the build scan plugin,
- * and therefore changes need to be carefully managed.
+ * Documents that the type or method is <em>not</em> referenced by the build scan plugin,
+ * and therefore can be changed or removed without breaking it.
  *
- * @since 4.0
+ * @since 5.1
  */
 @Retention(RetentionPolicy.SOURCE)
-@Target({ElementType.METHOD, ElementType.TYPE, ElementType.FIELD})
-public @interface UsedByScanPlugin {
+@Target({ElementType.METHOD, ElementType.TYPE})
+public @interface NotUsedByScanPlugin {
 
     /**
-     * Any clarifying comments about how it is used.
+     * Any clarifying comments about why it isn't used by the build scan plugin or how it is used instead.
      */
     String value() default "";
 

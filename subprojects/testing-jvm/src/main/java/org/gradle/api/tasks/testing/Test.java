@@ -67,6 +67,7 @@ import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.UnsupportedJavaRuntimeException;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.scan.UsedByScanPlugin;
 import org.gradle.internal.time.Clock;
 import org.gradle.internal.work.WorkerLeaseRegistry;
 import org.gradle.process.CommandLineArgumentProvider;
@@ -1108,6 +1109,7 @@ public class Test extends AbstractTestTask implements JavaForkOptions, PatternFi
      *
      * @since 4.2
      */
+    @UsedByScanPlugin("test-distribution")
     void setTestExecuter(TestExecuter<JvmTestExecutionSpec> testExecuter) {
         this.testExecuter = testExecuter;
     }

@@ -17,10 +17,12 @@
 package org.gradle.internal.logging.progress;
 
 import org.gradle.internal.operations.BuildOperationDescriptor;
+import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * Thread-safe, however the progress logger instances created are not.
  */
+@UsedByScanPlugin("test-distribution")
 public interface ProgressLoggerFactory {
     /**
      * Creates a new long-running operation which has not been started.
@@ -36,6 +38,7 @@ public interface ProgressLoggerFactory {
      * @param loggerCategory The logger category.
      * @return The progress logger for the operation.
      */
+    @UsedByScanPlugin("test-distribution")
     ProgressLogger newOperation(Class<?> loggerCategory);
 
     /**
@@ -48,5 +51,6 @@ public interface ProgressLoggerFactory {
      */
     ProgressLogger newOperation(Class<?> loggerCategory, BuildOperationDescriptor buildOperationDescriptor);
 
+    @UsedByScanPlugin("test-distribution")
     ProgressLogger newOperation(Class<?> loggerClass, ProgressLogger parent);
 }

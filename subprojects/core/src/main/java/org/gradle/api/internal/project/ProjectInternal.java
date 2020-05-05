@@ -85,6 +85,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
     DynamicObject getInheritedScope();
 
     @Override
+    @UsedByScanPlugin("test-distribution")
     GradleInternal getGradle();
 
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
