@@ -28,7 +28,7 @@ class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegration
     @Rule public final Sample sample = new Sample(temporaryFolder)
 
     @Unroll
-    @UsesSample("customExternalTask")
+    @UsesSample("base/customExternalTask")
     def "can test task implementation with #dsl dsl"() {
         when:
         TestFile dslDir = sample.dir.file("$dsl/task")
@@ -44,7 +44,7 @@ class SamplesCustomExternalTaskIntegrationTest extends AbstractSampleIntegration
 
     @ToBeFixedForInstantExecution
     @Unroll
-    @UsesSample("customExternalTask")
+    @UsesSample("base/customExternalTask")
     def "can publish and use task implementations for #dsl dsl"() {
         given:
         TestFile dslDir = sample.dir.file(dsl)

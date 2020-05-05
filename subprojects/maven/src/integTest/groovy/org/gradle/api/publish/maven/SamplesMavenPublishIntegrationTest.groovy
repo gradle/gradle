@@ -130,15 +130,15 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         project1sample.assertPublishedAsJavaModule()
-        verifyPomFile(project1sample, "output/project1.pom.xml")
+        verifyPomFile(project1sample, dsl, "output/project1.pom.xml")
 
         and:
         project2api.assertPublishedAsJavaModule()
-        verifyPomFile(project2api, "output/project2-api.pom.xml")
+        verifyPomFile(project2api, dsl, "output/project2-api.pom.xml")
 
         and:
         project2impl.assertPublishedAsJavaModule()
-        verifyPomFile(project2impl, "output/project2-impl.pom.xml")
+        verifyPomFile(project2impl, dsl, "output/project2-impl.pom.xml")
 
         where:
         dsl << ['groovy', 'kotlin']
@@ -252,13 +252,13 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @ToBeFixedForInstantExecution
     def pomGeneration() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file('groovy'))
 
         when:
         succeeds "generatePomFileForMavenCustomPublication"
 
         then:
-        def pom = sampleProject.dir.file("build/generated-pom.xml").assertExists()
+        def pom = sampleProject.dir.file("groovy/build/generated-pom.xml").assertExists()
         def parsedPom = new org.gradle.test.fixtures.maven.MavenPom(pom)
         parsedPom.name == "Example"
     }
@@ -291,9 +291,9 @@ class SamplesMavenPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    private void verifyPomFile(MavenFileModule module, String outputFileName) {
+    private void verifyPomFile(MavenFileModule module, String dsl, String outputFileName) {
         def actualPomXmlText = module.pomFile.text.replaceFirst('publication="\\d+"', 'publication="«PUBLICATION-TIME-STAMP»"').trim()
-        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file(outputFileName))
+        assert actualPomXmlText == getExpectedPomOutput(sampleProject.dir.file("$dsl/$outputFileName"))
     }
 
     String getExpectedPomOutput(File outputFile) {

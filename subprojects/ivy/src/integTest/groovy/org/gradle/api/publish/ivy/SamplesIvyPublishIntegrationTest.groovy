@@ -118,7 +118,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         dsl << ['groovy', 'kotlin']
     }
 
-    @UsesSample("ivy-publish/conditional-publishing")
+    @UsesSample("ivy-publish/conditional-publishing/groovy")
     @ToBeFixedForInstantExecution
     def conditionalPublishing() {
         given:
@@ -149,7 +149,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @ToBeFixedForInstantExecution
     def shorthandPublishToExternalRepository() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file('groovy'))
 
         when:
         succeeds "publishToExternalRepository"
@@ -164,7 +164,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
     @ToBeFixedForInstantExecution
     def shorthandPublishToInternalRepository() {
         given:
-        sample sampleProject
+        inDirectory(sampleProject.dir.file('groovy'))
 
         when:
         succeeds "publishToInternalRepository"
@@ -175,7 +175,7 @@ class SamplesIvyPublishIntegrationTest extends AbstractSampleIntegrationTest {
         notExecuted ":publishBinaryPublicationToExternalRepository", ":publishBinaryAndSourcesPublicationToExternalRepository"
     }
 
-    @UsesSample("ivy-publish/publish-artifact")
+    @UsesSample("ivy-publish/publish-artifact/groovy")
     @ToBeFixedForInstantExecution
     def publishesRpmArtifact() {
         given:

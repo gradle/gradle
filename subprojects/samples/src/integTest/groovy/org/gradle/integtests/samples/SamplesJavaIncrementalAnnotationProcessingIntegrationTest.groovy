@@ -26,11 +26,11 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
     def "isolating annotation processors are incremental"() {
         given:
-        CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("/user/build/classes"))
+        CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("groovy/user/build/classes"))
         outputs.snapshot { compile() }
 
         when:
-        processing.dir.file("/user/src/main/java/Entity1.java").text = """
+        processing.dir.file("groovy/user/src/main/java/Entity1.java").text = """
         @Entity
         public class Entity1 {
             public void hasChanged() {}
@@ -44,11 +44,11 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
 
     def "aggregating annotation processors are incremental"() {
         given:
-        CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("/user/build/classes"))
+        CompilationOutputsFixture outputs = new CompilationOutputsFixture(processing.dir.file("groovy/user/build/classes"))
         outputs.snapshot { compile() }
 
         when:
-        processing.dir.file("/user/src/main/java/Service1.java").text = """
+        processing.dir.file("groovy/user/src/main/java/Service1.java").text = """
         @Service
         public class Service1 {
             public void hasChanged() {}
@@ -61,7 +61,7 @@ class SamplesJavaIncrementalAnnotationProcessingIntegrationTest extends Abstract
     }
 
     def compile() {
-        sample processing
+        inDirectory(processing.dir.file('groovy'))
         succeeds("compileJava")
     }
 }

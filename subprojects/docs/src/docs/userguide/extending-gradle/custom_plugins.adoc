@@ -171,8 +171,8 @@ Here is a simple build script for the project.
 
 .A build for a custom plugin
 ====
-include::sample[dir="snippets/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/javaGradlePlugin",files="build.gradle[tags=use-and-configure-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/javaGradlePlugin",files="build.gradle.kts[tags=use-and-configure-plugin]"]
 ====
 
 [[sec:creating_a_plugin_id]]
@@ -216,8 +216,8 @@ The following example shows how you might do this when the plugin has been publi
 
 .Using a custom plugin in another project
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-plugin];build.gradle.kts[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-plugin];build.gradle[tags=use-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-plugin];build.gradle.kts[tags=use-plugin]"]
 ====
 
 ==== Note for plugins published without `java-gradle-plugin`
@@ -226,8 +226,8 @@ In this case, the recommended way to resolve the plugin in another project is to
 
 .Resolution strategy for plugins without Plugin Marker Artifact
 ====
-include::sample[dir="snippets/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
-include::sample[dir="snippets/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/groovy/consumer",files="settings.gradle[tags=use-legacy-plugin]"]
+include::sample[dir="snippets/plugins/customPlugin/kotlin/consumer",files="settings.gradle.kts[tags=use-legacy-plugin]"]
 ====
 
 [[sec:precompiled_plugins]]
@@ -274,8 +274,8 @@ First, you need a `buildSrc/build.gradle.kts` file that applies the `kotlin-dsl`
 
 .Enabling precompiled script plugins
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/build.gradle[tags=apply]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="buildSrc/build.gradle.kts[tags=apply]"]
 ====
 
 [.multi-language-text.lang-groovy]
@@ -292,8 +292,8 @@ Next, create a new `java-library-convention.gradle.kts` file in the `buildSrc/sr
 
 .Creating a simple script plugin
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="buildSrc/src/main/groovy/java-library-convention.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="buildSrc/src/main/kotlin/java-library-convention.gradle.kts[]"]
 ====
 
 This script plugin simply applies the Java Library and Checkstyle Plugins and configures them.
@@ -303,22 +303,22 @@ Finally, apply the script plugin to the root project as follows:
 
 .Applying the precompiled script plugin to the main project
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/groovy",files="build.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/inBuildSrc/kotlin",files="build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/groovy",files="build.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-inBuildSrc/kotlin",files="build.gradle.kts[]"]
 ====
 
 === Applying external plugins in precompiled script plugins
 In order to apply an external plugin in a precompiled script plugin,
 it has to be added to the plugin project's implementation classpath in the plugin's build file.
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/build.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/build.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/build.gradle.kts[]"]
 ====
 
 It can then be applied in the precompiled script plugin.
 ====
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
-include::sample[dir="snippets/plugins/precompiledScriptPlugins/externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/groovy",files="buildSrc/src/main/groovy/my-plugin.gradle[]"]
+include::sample[dir="snippets/plugins/precompiledScriptPlugins-externalPlugins/kotlin",files="buildSrc/src/main/kotlin/my-plugin.gradle.kts[]"]
 ====
 
 The plugin version in this case is defined in the dependency declaration.
@@ -335,7 +335,7 @@ You can use the link:{javadocPath}/org/gradle/testfixtures/ProjectBuilder.html[P
 [source.multi-language-sample,java]
 .src/test/java/org/gradle/GreetingPluginTest.java
 ----
-include::{snippetsPath}/customPlugin/groovy/plugin/src/test/java/org/gradle/GreetingPluginTest.java[tag=test-plugin]
+include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/test/java/org/gradle/GreetingPluginTest.java[tag=test-plugin]
 ----
 
 == More details
@@ -358,7 +358,7 @@ The answer is - you need to provide a properties file in the JAR's `META-INF/gra
 [source,properties]
 .src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties
 ----
-include::{snippetsPath}/customPlugin/groovy/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
+include::{snippetsPath}/plugins/customPlugin/groovy/plugin/src/main/resources/META-INF/gradle-plugins/org.samples.greeting.properties[]
 ----
 
 Notice that the properties filename matches the plugin id and is placed in the resources folder, and that the `implementation-class` property identifies the link:{javadocPath}/org/gradle/api/Plugin.html[Plugin] implementation class.
