@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo Enter userame:
+echo Enter username:
 read username
 echo Enter password:
 if [ -t 0 ] ; then # if connected to a terminal, do not echo the password input
