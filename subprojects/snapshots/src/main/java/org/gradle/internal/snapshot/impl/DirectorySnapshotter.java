@@ -171,7 +171,7 @@ public class DirectorySnapshotter {
         public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) {
             String fileName = getFilename(dir);
             String internedName = intern(fileName);
-            if (builder.isRoot() || shouldVisit(dir, internedName, true, attrs, builder.getRelativePath())) {
+            if (builder.isRoot() || shouldVisit(dir, internedName, true, builder.getRelativePath())) {
                 builder.preVisitDirectory(intern(dir.toString()), internedName);
                 return FileVisitResult.CONTINUE;
             } else {
@@ -188,7 +188,7 @@ public class DirectorySnapshotter {
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) {
             String internedName = intern(file.getFileName().toString());
-            if (shouldVisit(file, internedName, false, attrs, builder.getRelativePath())) {
+            if (shouldVisit(file, internedName, false, builder.getRelativePath())) {
                 builder.visitFile(snapshotFile(file, internedName, attrs));
             }
             return FileVisitResult.CONTINUE;
@@ -217,7 +217,7 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 String internedName = intern(file.getFileName().toString());
                 boolean isDirectory = Files.isDirectory(file);
-                if (shouldVisit(file, internedName, isDirectory, null, builder.getRelativePath())) {
+                if (shouldVisit(file, internedName, isDirectory, builder.getRelativePath())) {
                     LOGGER.info("Could not read file path '{}'.", file);
                     String internedAbsolutePath = intern(file.toString());
                     builder.visitFile(new MissingFileSnapshot(internedAbsolutePath, internedName));
@@ -251,7 +251,7 @@ public class DirectorySnapshotter {
          * based on the directory/file excludes or the provided filtering predicate.
          * Excludes won't mark this walk as `filtered`, only if the `predicate` rejects any entry.
          **/
-        private boolean shouldVisit(Path path, String internedName, boolean isDirectory, @Nullable BasicFileAttributes attrs, Iterable<String> relativePath) {
+        private boolean shouldVisit(Path path, String internedName, boolean isDirectory, Iterable<String> relativePath) {
             if (isDirectory) {
                 if (defaultExcludes.excludeDir(internedName)) {
                     return false;
