@@ -107,7 +107,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":clean"
     }
 
-    @ToBeFixedForInstantExecution
     def "cacheable task with cache disabled doesn't get cached"() {
         buildFile << """
             compileJava.outputs.cacheIf { false }
@@ -132,7 +131,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
                 @OutputFile outputFile
 
                 @TaskAction copy() {
-                    project.mkdir outputFile.parentFile
+                    outputFile.parentFile.mkdirs()
                     outputFile.text = inputFile.text
                 }
             }
@@ -156,6 +155,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         skipped ":customTask"
     }
 
+    @ToBeFixedForInstantExecution
     def "credentials can be specified via DSL"() {
         httpBuildCacheServer.withBasicAuth("user", "pass")
         settingsFile << """
@@ -183,6 +183,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
+    @ToBeFixedForInstantExecution
     def "credentials can be specified via URL"() {
         httpBuildCacheServer.withBasicAuth("user", 'pass%:-0]#')
         settingsFile.text = useHttpBuildCache(getUrlWithCredentials("user", 'pass%:-0]#'))
@@ -224,6 +225,7 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         httpBuildCacheServer.authenticationAttempts == ['Basic'] as Set
     }
 
+    @ToBeFixedForInstantExecution
     def "can use a self-signed certificate with allowUntrusted"() {
         def keyStore = TestKeyStore.init(file('ssl-keystore'))
         keyStore.enableSslWithServerCert(httpBuildCacheServer)
