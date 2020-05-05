@@ -243,7 +243,7 @@ public class DefaultConfigurationMetadata extends AbstractConfigurationMetadata 
 
     public class Builder {
         private String name = DefaultConfigurationMetadata.this.getName();
-        private DependencyFilter dependencyFilter = DefaultConfigurationMetadata.this.dependencyFilter;
+        private DependencyFilter dependencyFilter = DependencyFilter.ALL;
         private CapabilitiesMetadata capabilities;
         private ImmutableAttributes attributes;
         private ImmutableList<? extends ModuleComponentArtifactMetadata> artifacts;
