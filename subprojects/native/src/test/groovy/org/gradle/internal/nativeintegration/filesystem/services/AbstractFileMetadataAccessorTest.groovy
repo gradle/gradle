@@ -135,4 +135,20 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.lastModified == 0
         stat.length == 0
     }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats a symlink cycle"() {
+        def first = tmpDir.file("first")
+        def second = tmpDir.file("second")
+        def third = tmpDir.file("third")
+        first.createLink(second)
+        second.createLink(third)
+        third.createLink(first)
+
+        expect:
+        def stat = accessor.stat(first)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
 }
