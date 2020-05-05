@@ -93,6 +93,7 @@ public class DefaultBuildCacheConfiguration implements BuildCacheConfigurationIn
         configuration.execute(local);
     }
 
+    @Nullable
     @Override
     public BuildCache getRemote() {
         return remote;
