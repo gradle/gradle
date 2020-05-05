@@ -23,7 +23,7 @@ import org.gradle.api.Task
 import org.gradle.test.fixtures.file.TestFile
 
 trait JavaPluginImplementation {
-    void javaPlugin(TestFile sourceFile) {
+    void javaPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Action.name};
             import ${Project.name};
@@ -32,24 +32,37 @@ trait JavaPluginImplementation {
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    String value = System.getProperty("GET_PROPERTY");
-                    System.out.println("apply GET_PROPERTY = " + value);
+                    String value = ${read.javaExpression};
+                    System.out.println("apply = " + value);
 
-                    value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default");
-                    System.out.println("apply GET_PROPERTY_OR_DEFAULT = " + value);
+                    project.getTasks().register("thing", t -> {
+                        t.doLast(new Action<Task>() {
+                            public void execute(Task t) {
+                                String value = ${read.javaExpression};
+                                System.out.println("task = " + value);
+                            }
+                        });
+                    });
+                }
+            }
+        """
+    }
 
+    void javaLambdaPlugin(TestFile sourceFile, SystemPropertyRead read) {
+        sourceFile << """
+            import ${Action.name};
+            import ${Project.name};
+            import ${Plugin.name};
+            import ${Task.name};
+
+            public class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
                     // Inside a lambda body
                     lambda("apply").run();
 
                     project.getTasks().register("thing", t -> {
                         t.doLast(new Action<Task>() {
                             public void execute(Task t) {
-                                String value = System.getProperty("GET_PROPERTY");
-                                System.out.println("task GET_PROPERTY = " + value);
-
-                                value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default");
-                                System.out.println("task GET_PROPERTY_OR_DEFAULT = " + value);
-
                                 lambda("task").run();
                             }
                         });
@@ -58,7 +71,7 @@ trait JavaPluginImplementation {
 
                 static Runnable lambda(String location) {
                     return () -> {
-                        System.out.println(location + " LAMBDA = " + System.getProperty("LAMBDA"));
+                        System.out.println(location + " = " + ${read.javaExpression});
                     };
                 }
             }

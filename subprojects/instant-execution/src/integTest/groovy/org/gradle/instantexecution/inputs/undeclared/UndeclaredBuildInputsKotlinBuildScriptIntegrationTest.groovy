@@ -18,7 +18,7 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
-    void buildLogicApplication() {
-        kotlinDsl(buildKotlinFile)
+    void buildLogicApplication(SystemPropertyRead read) {
+        kotlinDsl(buildKotlinFile, read)
     }
 }

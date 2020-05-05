@@ -18,7 +18,7 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsDynamicGroovyBuildScriptIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
-    void buildLogicApplication() {
-        groovyDsl(buildFile)
+    void buildLogicApplication(SystemPropertyRead read) {
+        groovyDsl(buildFile, read)
     }
 }

@@ -22,32 +22,26 @@ import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 
 trait GroovyPluginImplementation {
-    void groovyDsl(TestFile sourceFile) {
+    void groovyDsl(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
-            println("apply GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
-            println("apply GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+            println("apply = " + ${read.groovyExpression})
             tasks.register("thing") {
                 doLast {
-                    println("task GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
-                    println("task GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+                    println("task = " + ${read.groovyExpression})
                 }
             }
         """
     }
 
-    void dynamicGroovyPlugin(TestFile sourceFile) {
+    void dynamicGroovyPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
 
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    // Static method call
-                    def value = System.getProperty("GET_PROPERTY")
-                    println("apply GET_PROPERTY = " + value)
-
-                    value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
-                    println("apply GET_PROPERTY_OR_DEFAULT = " + value)
+                    def value = ${read.groovyExpression}
+                    println("apply = " + value)
 
                     // Instance call
                     def sys = System
@@ -61,11 +55,8 @@ trait GroovyPluginImplementation {
 
                     project.tasks.register("thing") { t ->
                         t.doLast {
-                            value = System.getProperty("GET_PROPERTY")
-                            println("task GET_PROPERTY = " + value)
-
-                            value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
-                            println("task GET_PROPERTY_OR_DEFAULT = " + value)
+                            value = ${read.groovyExpression}
+                            println("task = " + value)
 
                             println("task INSTANCE = " + sys.getProperty("INSTANCE"))
 
@@ -77,7 +68,7 @@ trait GroovyPluginImplementation {
         """
     }
 
-    void staticGroovyPlugin(TestFile sourceFile) {
+    void staticGroovyPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
@@ -85,12 +76,8 @@ trait GroovyPluginImplementation {
             @${CompileStatic.name}
             class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    // Static method call
-                    def value = System.getProperty("GET_PROPERTY")
-                    println("apply GET_PROPERTY = " + value)
-
-                    value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
-                    println("apply GET_PROPERTY_OR_DEFAULT = " + value)
+                    def value = ${read.groovyExpression}
+                    println("apply = " + value)
 
                     // Instance call
                     def sys = System
@@ -104,11 +91,8 @@ trait GroovyPluginImplementation {
 
                     project.tasks.register("thing") { t ->
                         t.doLast {
-                            value = System.getProperty("GET_PROPERTY")
-                            println("task GET_PROPERTY = " + value)
-
-                            value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
-                            println("task GET_PROPERTY_OR_DEFAULT = " + value)
+                            value = ${read.groovyExpression}
+                            println("task = " + value)
 
                             println("task INSTANCE = " + sys.getProperty("INSTANCE"))
 

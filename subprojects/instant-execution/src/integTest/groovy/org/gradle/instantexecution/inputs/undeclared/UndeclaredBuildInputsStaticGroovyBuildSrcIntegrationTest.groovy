@@ -16,17 +16,24 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
+import spock.lang.Ignore
+
 class UndeclaredBuildInputsStaticGroovyBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
     @Override
-    List<String> getAdditionalProperties() {
-        return ["INSTANCE", "CLOSURE"]
-    }
-
-    @Override
-    void buildLogicApplication() {
-        staticGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"))
+    void buildLogicApplication(SystemPropertyRead read) {
+        staticGroovyPlugin(file("buildSrc/src/main/groovy/SneakyPlugin.groovy"), read)
         buildFile << """
             apply plugin: SneakyPlugin
         """
+    }
+
+    @Ignore
+    def "can reference static methods via instance variables"() {
+        expect: false
+    }
+
+    @Ignore
+    def "can reference methods from groovy closure"() {
+        expect: false
     }
 }

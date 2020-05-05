@@ -20,51 +20,51 @@ import org.gradle.instantexecution.AbstractInstantExecutionIntegrationTest
 import spock.lang.Unroll
 
 abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionIntegrationTest {
-    abstract void buildLogicApplication()
-
-    List<String> getAdditionalProperties() {
-        return []
-    }
+    abstract void buildLogicApplication(SystemPropertyRead read)
 
     @Unroll
-    def "reports undeclared use of system property #property prior to task execution from plugin"() {
-        buildLogicApplication()
+    def "reports undeclared system property read using #propertyRead.kotlinExpression prior to task execution from plugin"() {
+        buildLogicApplication(propertyRead)
         def fixture = newInstantExecutionFixture()
 
         when:
-        run("thing", "-D${property}=true")
+        run("thing", "-DCI=true")
 
         then:
-        outputContains("apply ${property} = true")
-        outputContains("task ${property} = true")
+        outputContains("apply = true")
+        outputContains("task = true")
 
         when:
-        instantFails("thing", "-D${property}=true")
+        instantFails("thing", "-DCI=true")
 
         then:
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property '${property}' from '"))
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
 
         when:
         problems.withDoNotFailOnProblems()
-        instantRun("thing", "-D${property}=true")
+        instantRun("thing", "-DCI=true")
 
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
-        outputContains("- unknown location: read system property '${property}' from '")
-        outputContains("apply ${property} = true")
-        outputContains("task ${property} = true")
+        outputContains("- unknown location: read system property 'CI' from '")
+        outputContains("apply = true")
+        outputContains("task = true")
 
         when:
-        instantRun("thing", "-D${property}=false")
+        instantRun("thing", "-DCI=false")
 
         then:
         fixture.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
         problems.assertResultHasProblems(result)
-        outputContains("task ${property} = false")
+        outputContains("task = false")
 
         where:
-        property << ["GET_PROPERTY", "GET_PROPERTY_OR_DEFAULT"] + additionalProperties
+        propertyRead << [
+            SystemPropertyRead.systemGetProperty("CI"),
+            SystemPropertyRead.systemGetPropertyWithDefault("CI", "default"),
+            SystemPropertyRead.systemGetProperties("CI")
+        ]
     }
 }

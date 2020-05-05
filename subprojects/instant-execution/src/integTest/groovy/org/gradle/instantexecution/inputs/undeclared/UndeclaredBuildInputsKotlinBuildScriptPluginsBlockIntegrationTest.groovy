@@ -18,16 +18,14 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsKotlinBuildScriptPluginsBlockIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements KotlinPluginImplementation {
     @Override
-    void buildLogicApplication() {
+    void buildLogicApplication(SystemPropertyRead read) {
         buildKotlinFile << """
             plugins {
-                println("apply GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
-                println("apply GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+                println("apply = " + ${read.kotlinExpression})
             }
             tasks.register("thing") {
                 doLast {
-                    println("task GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
-                    println("task GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+                    println("task = " + ${read.kotlinExpression})
                 }
             }
         """

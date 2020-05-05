@@ -51,14 +51,9 @@ class UndeclaredBuildInputsTestKitInjectedJavaPluginIntegrationTest extends Abst
     }
 
     @Override
-    List<String> getAdditionalProperties() {
-        return ["LAMBDA"]
-    }
-
-    @Override
-    void buildLogicApplication() {
+    void buildLogicApplication(SystemPropertyRead read) {
         def builder = artifactBuilder()
-        javaPlugin(builder.sourceFile("SneakyPlugin.java"))
+        javaPlugin(builder.sourceFile("SneakyPlugin.java"), read)
         builder.resourceFile("META-INF/gradle-plugins/sneaky.properties") << """
 implementation-class: SneakyPlugin
         """

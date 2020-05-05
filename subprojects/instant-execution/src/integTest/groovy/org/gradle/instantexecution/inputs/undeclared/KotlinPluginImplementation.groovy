@@ -21,18 +21,15 @@ import org.gradle.api.Project
 import org.gradle.test.fixtures.file.TestFile
 
 trait KotlinPluginImplementation {
-    void kotlinPlugin(TestFile sourceFile) {
+    void kotlinPlugin(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
             import ${Project.name}
             import ${Plugin.name}
 
             class SneakyPlugin: Plugin<Project> {
                 override fun apply(project: Project) {
-                    var value = System.getProperty("GET_PROPERTY")
-                    println("apply GET_PROPERTY = " + value)
-
-                    value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
-                    println("apply GET_PROPERTY_OR_DEFAULT = " + value)
+                    var value = ${read.kotlinExpression}
+                    println("apply = " + value)
 
                     // Call from a function body
                     val f = { p: String ->
@@ -42,11 +39,8 @@ trait KotlinPluginImplementation {
 
                     project.tasks.register("thing") {
                         doLast {
-                            var value = System.getProperty("GET_PROPERTY")
-                            println("task GET_PROPERTY = " + value)
-
-                            value = System.getProperty("GET_PROPERTY_OR_DEFAULT", "default")
-                            println("task GET_PROPERTY_OR_DEFAULT = " + value)
+                            var value = ${read.kotlinExpression}
+                            println("task = " + value)
 
                             f("task")
                         }
@@ -56,15 +50,13 @@ trait KotlinPluginImplementation {
         """
     }
 
-    void kotlinDsl(TestFile sourceFile) {
+    void kotlinDsl(TestFile sourceFile, SystemPropertyRead read) {
         sourceFile << """
-            println("apply GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
-            println("apply GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+            println("apply = " + ${read.kotlinExpression})
 
             tasks.register("thing") {
                 doLast {
-                    println("task GET_PROPERTY = " + System.getProperty("GET_PROPERTY"))
-                    println("task GET_PROPERTY_OR_DEFAULT = " + System.getProperty("GET_PROPERTY_OR_DEFAULT", "default"))
+                    println("task = " + ${read.kotlinExpression})
                 }
             }
         """

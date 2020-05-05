@@ -18,13 +18,8 @@ package org.gradle.instantexecution.inputs.undeclared
 
 class UndeclaredBuildInputsJavaBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     @Override
-    List<String> getAdditionalProperties() {
-        return ["LAMBDA"]
-    }
-
-    @Override
-    void buildLogicApplication() {
-        javaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"))
+    void buildLogicApplication(SystemPropertyRead read) {
+        javaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"), read)
         buildFile << """
             apply plugin: SneakyPlugin
         """

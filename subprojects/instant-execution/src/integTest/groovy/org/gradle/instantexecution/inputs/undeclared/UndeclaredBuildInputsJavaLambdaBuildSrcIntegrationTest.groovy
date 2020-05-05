@@ -16,13 +16,12 @@
 
 package org.gradle.instantexecution.inputs.undeclared
 
-class UndeclaredBuildInputsDynamicGroovyScriptPluginIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements GroovyPluginImplementation {
+class UndeclaredBuildInputsJavaLambdaBuildSrcIntegrationTest extends AbstractUndeclaredBuildInputsIntegrationTest implements JavaPluginImplementation {
     @Override
     void buildLogicApplication(SystemPropertyRead read) {
-        def script = file("plugin.gradle")
-        groovyDsl(script, read)
+        javaLambdaPlugin(file("buildSrc/src/main/java/SneakyPlugin.java"), read)
         buildFile << """
-            apply from: "plugin.gradle"
+            apply plugin: SneakyPlugin
         """
     }
 }
