@@ -78,4 +78,20 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         sameLastModified(stat, file)
         stat.length == 3
     }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink pointing to symlink pointing to file"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+        def link = tmpDir.file("link")
+        link.createLink(file)
+        def linkToLink = tmpDir.file("linkToLink")
+        linkToLink.createLink(link)
+
+        expect:
+        def stat = accessor.stat(linkToLink)
+        stat.type == FileType.RegularFile
+        sameLastModified(stat, file)
+        stat.length == 3
+    }
 }
