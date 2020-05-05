@@ -18,7 +18,9 @@ package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractPolyglotIntegrationSpec
 import org.gradle.integtests.fixtures.resolve.ResolveTestFixture
+import spock.lang.Ignore
 
+@Ignore
 class MultiProjectDerivationStrategyIntegTest extends AbstractPolyglotIntegrationSpec {
 
     def "different projects can use different variant derivation strategies without leaking to each other"() {
