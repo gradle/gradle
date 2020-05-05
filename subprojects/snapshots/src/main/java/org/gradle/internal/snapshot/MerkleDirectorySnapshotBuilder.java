@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
@@ -93,7 +94,7 @@ public class MerkleDirectorySnapshotBuilder implements FileSystemSnapshotVisitor
             hasher.putString(child.getName());
             hasher.putHash(child.getHash());
         }
-        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash());
+        CompleteDirectorySnapshot directorySnapshot = new CompleteDirectorySnapshot(absolutePath, name, children, hasher.hash(), AccessType.DIRECT);
         List<CompleteFileSystemLocationSnapshot> siblings = levelHolder.peekLast();
         if (siblings != null) {
             siblings.add(directorySnapshot);

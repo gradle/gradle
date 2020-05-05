@@ -27,6 +27,7 @@ import org.gradle.caching.internal.origin.OriginMetadataFactory
 import org.gradle.caching.internal.origin.OriginReader
 import org.gradle.caching.internal.origin.OriginWriter
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
 import org.gradle.internal.file.TreeType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
@@ -69,9 +70,9 @@ class DefaultBuildCacheCommandFactoryTest extends Specification {
         )
         def load = commandFactory.createLoad(key, entity)
 
-        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), new FileMetadata(15, 234))
+        def outputFileSnapshot = new RegularFileSnapshot(outputFile.absolutePath, outputFile.name, HashCode.fromInt(234), new FileMetadata(15, 234), AccessType.DIRECT)
         def fileSnapshots = ImmutableMap.of(
-            "outputDir", new CompleteDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), new FileMetadata(46, 123))), HashCode.fromInt(456)),
+            "outputDir", new CompleteDirectorySnapshot(outputDir.getAbsolutePath(), outputDir.name, ImmutableList.of(new RegularFileSnapshot(outputDirFile.getAbsolutePath(), outputDirFile.name, HashCode.fromInt(123), new FileMetadata(46, 123), AccessType.DIRECT)), HashCode.fromInt(456), AccessType.DIRECT),
             "outputFile", outputFileSnapshot)
 
         when:

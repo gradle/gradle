@@ -19,6 +19,7 @@ package org.gradle.internal.fingerprint.impl;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Interner;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.FileMetadata;
@@ -53,7 +54,7 @@ public class FileSystemSnapshotBuilder {
     public void addFile(File file, String[] segments, String fileName, FileMetadataSnapshot metadataSnapshot) {
         checkNoRootFileSnapshot("another root file", file);
         HashCode contentHash = fileHasher.hash(file, metadataSnapshot.getLength(), metadataSnapshot.getLastModified());
-        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, FileMetadata.from(metadataSnapshot));
+        RegularFileSnapshot fileSnapshot = new RegularFileSnapshot(stringInterner.intern(file.getAbsolutePath()), fileName, contentHash, FileMetadata.from(metadataSnapshot), AccessType.DIRECT);
         if (segments.length == 0) {
             rootFileSnapshot = fileSnapshot;
         } else {

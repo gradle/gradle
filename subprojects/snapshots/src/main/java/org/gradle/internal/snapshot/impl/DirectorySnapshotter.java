@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
@@ -200,12 +201,12 @@ public class DirectorySnapshotter {
                 try {
                     HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
                     FileMetadata metadata = FileMetadata.from(attrs);
-                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata);
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata, AccessType.DIRECT);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
             }
-            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName);
+            return new MissingFileSnapshot(internedAbsoluteFilePath, internedName, AccessType.DIRECT);
         }
 
         /** unlistable directories (and maybe some locked files) will stop here */
@@ -220,7 +221,7 @@ public class DirectorySnapshotter {
                 if (shouldVisit(file, internedName, isDirectory, builder.getRelativePath())) {
                     LOGGER.info("Could not read file path '{}'.", file);
                     String internedAbsolutePath = intern(file.toString());
-                    builder.visitFile(new MissingFileSnapshot(internedAbsolutePath, internedName));
+                    builder.visitFile(new MissingFileSnapshot(internedAbsolutePath, internedName, AccessType.DIRECT));
                 }
             }
             return FileVisitResult.CONTINUE;

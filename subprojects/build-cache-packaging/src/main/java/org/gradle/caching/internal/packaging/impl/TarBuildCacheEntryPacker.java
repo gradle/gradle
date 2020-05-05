@@ -31,6 +31,7 @@ import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginReader;
 import org.gradle.caching.internal.origin.OriginWriter;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.TreeType;
 import org.gradle.internal.hash.HashCode;
@@ -260,7 +261,7 @@ public class TarBuildCacheEntryPacker implements BuildCacheEntryPacker {
             chmodUnpackedFile(entry, file);
             String internedAbsolutePath = stringInterner.intern(file.getAbsolutePath());
             String internedFileName = stringInterner.intern(fileName);
-            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, new FileMetadata(output.getCount(), file.lastModified()));
+            return new RegularFileSnapshot(internedAbsolutePath, internedFileName, hash, new FileMetadata(output.getCount(), file.lastModified()), AccessType.DIRECT);
         }
     }
 

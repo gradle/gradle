@@ -18,6 +18,7 @@ package org.gradle.internal.vfs.impl
 
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.AbstractIncompleteSnapshotWithChildren
@@ -443,12 +444,12 @@ class DefaultSnapshotHierarchyTest extends Specification {
         Assume.assumeTrue("Root is only defined for the file separator '/'", File.separator == '/')
 
         when:
-        def set = EMPTY.store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111)), diffListener)
+        def set = EMPTY.store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1), AccessType.DIRECT)], HashCode.fromInt(1111), AccessType.DIRECT), diffListener)
         then:
         set.getMetadata("/root.txt").get().type == FileType.RegularFile
 
         when:
-        set = set.invalidate("/root.txt", diffListener).store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(2222)), diffListener)
+        set = set.invalidate("/root.txt", diffListener).store("/", new CompleteDirectorySnapshot("/", "", [new RegularFileSnapshot("/base.txt", "base.txt", HashCode.fromInt(1234), new FileMetadata(1, 1), AccessType.DIRECT)], HashCode.fromInt(2222), AccessType.DIRECT), diffListener)
         then:
         set.getMetadata("/base.txt").get().type == FileType.RegularFile
     }
@@ -608,13 +609,13 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static CompleteDirectorySnapshot rootDirectorySnapshot() {
         new CompleteDirectorySnapshot("/", "", [
-            new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1)),
-            new RegularFileSnapshot("/other.txt", "other.txt", HashCode.fromInt(4321), new FileMetadata(5, 28))
-        ], HashCode.fromInt(1111))
+            new RegularFileSnapshot("/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1), AccessType.DIRECT),
+            new RegularFileSnapshot("/other.txt", "other.txt", HashCode.fromInt(4321), new FileMetadata(5, 28), AccessType.DIRECT)
+        ], HashCode.fromInt(1111), AccessType.DIRECT)
     }
 
     private static CompleteDirectorySnapshot directorySnapshotForPath(String absolutePath) {
-        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1))], HashCode.fromInt(1111))
+        new CompleteDirectorySnapshot(absolutePath, PathUtil.getFileName(absolutePath), [new RegularFileSnapshot("${absolutePath}/root.txt", "root.txt", HashCode.fromInt(1234), new FileMetadata(1, 1), AccessType.DIRECT)], HashCode.fromInt(1111), AccessType.DIRECT)
     }
 
     private CompleteFileSystemLocationSnapshot snapshotDir(File dir) {
@@ -623,9 +624,9 @@ class DefaultSnapshotHierarchyTest extends Specification {
 
     private static CompleteFileSystemLocationSnapshot snapshotFile(File file) {
         if (!file.exists()) {
-            return new MissingFileSnapshot(file.absolutePath, file.name)
+            return new MissingFileSnapshot(file.absolutePath, file.name, AccessType.DIRECT)
         }
-        return new RegularFileSnapshot(file.absolutePath, file.name, TestFiles.fileHasher().hash(file), FileMetadata.from(TestFiles.fileSystem().stat(file)))
+        return new RegularFileSnapshot(file.absolutePath, file.name, TestFiles.fileHasher().hash(file), FileMetadata.from(TestFiles.fileSystem().stat(file)), AccessType.DIRECT)
     }
 
     static HashCode hashFile(File file) {
