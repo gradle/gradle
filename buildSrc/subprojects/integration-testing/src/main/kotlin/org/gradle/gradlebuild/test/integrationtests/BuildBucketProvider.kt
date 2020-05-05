@@ -97,7 +97,13 @@ class CrossVersionBucketProvider(private val onlyTestGradleVersion: String) : Bu
 class IncludeTestClassProvider(private val includeTestClasses: Map<String, List<String>>) : BuildBucketProvider {
     override fun configureTest(testTask: Test, sourceSet: SourceSet, testType: TestType) {
         testTask.filter.isFailOnNoMatchingTests = false
-        includeTestClasses[sourceSet.name]?.apply { testTask.filter.includePatterns.addAll(this) }
+        val classesForSourceSet = includeTestClasses[sourceSet.name]
+        if (classesForSourceSet == null) {
+            // No classes included, disable
+            testTask.enabled = false
+        } else {
+            testTask.filter.includePatterns.addAll(classesForSourceSet)
+        }
     }
 }
 
