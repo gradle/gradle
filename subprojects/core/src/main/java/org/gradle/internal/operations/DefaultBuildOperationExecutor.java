@@ -34,6 +34,8 @@ import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.internal.time.Clock;
 import org.gradle.util.CollectionUtils;
 import org.slf4j.Logger;
@@ -45,7 +47,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 
-//TODO move to base-services once the ProgressLogger dependency is removed
+@ServiceScope(Scopes.BuildSession)
 public class DefaultBuildOperationExecutor implements BuildOperationExecutor, Stoppable, ParallelismConfigurationListener {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildOperationExecutor.class);
     private static final String LINE_SEPARATOR = SystemProperties.getInstance().getLineSeparator();
