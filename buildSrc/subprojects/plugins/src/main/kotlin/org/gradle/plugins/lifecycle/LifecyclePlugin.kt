@@ -32,29 +32,40 @@ class LifecyclePlugin : Plugin<Project> {
 
     private
     val compileAllBuild = "compileAllBuild"
+
     private
     val sanityCheck = "sanityCheck"
 
     private
     val quickTest = "quickTest"
+
     private
     val platformTest = "platformTest"
+
     private
     val quickFeedbackCrossVersionTest = "quickFeedbackCrossVersionTest"
+
     private
     val allVersionsCrossVersionTest = "allVersionsCrossVersionTest"
+
     private
     val allVersionsIntegMultiVersionTest = "allVersionsIntegMultiVersionTest"
+
     private
     val parallelTest = "parallelTest"
+
     private
     val noDaemonTest = "noDaemonTest"
+
     private
     val instantTest = "instantTest"
+
     private
     val vfsRetentionTest = "vfsRetentionTest"
+
     private
     val soakTest = "soakTest"
+
     private
     val forceRealizeDependencyManagementTest = "forceRealizeDependencyManagementTest"
 
@@ -163,6 +174,7 @@ class LifecyclePlugin : Plugin<Project> {
                 ":distributions:integTest", ":docs:check", ":docs:checkSamples")
         }
     }
+
     /**
      * Task that are called by the (currently separate) promotion build running on CI.
      */
@@ -312,4 +324,5 @@ class LifecyclePlugin : Plugin<Project> {
 
     private
     fun Project.isRequestedTask(taskName: String) = gradle.startParameter.taskNames.contains(taskName)
+        || gradle.startParameter.taskNames.any { it.contains(":$taskName") }
 }
