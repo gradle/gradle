@@ -44,8 +44,10 @@ public class OutputFilterUtil {
 
     public static ImmutableList<FileSystemSnapshot> filterOutputSnapshotBeforeExecution(FileCollectionFingerprint afterLastExecutionFingerprint, FileSystemSnapshot beforeExecutionOutputSnapshot) {
         Map<String, FileSystemLocationFingerprint> fingerprints = afterLastExecutionFingerprint.getFingerprints();
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) -> (!isRoot || snapshot.getType() != FileType.Missing)
-            && fingerprints.containsKey(snapshot.getAbsolutePath()));
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((snapshot, isRoot) ->
+            (!isRoot || snapshot.getType() != FileType.Missing)
+                && fingerprints.containsKey(snapshot.getAbsolutePath())
+        );
         beforeExecutionOutputSnapshot.accept(filteringVisitor);
         return filteringVisitor.getNewRoots();
     }
@@ -60,7 +62,9 @@ public class OutputFilterUtil {
             ? afterLastExecutionFingerprint.getFingerprints()
             : ImmutableMap.of();
 
-        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) -> isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot));
+        SnapshotFilteringVisitor filteringVisitor = new SnapshotFilteringVisitor((afterExecutionSnapshot, isRoot) ->
+            isOutputEntry(afterLastExecutionFingerprints, beforeExecutionSnapshots, afterExecutionSnapshot, isRoot)
+        );
         afterExecutionOutputSnapshot.accept(filteringVisitor);
 
         // Are all file snapshots after execution accounted for as new entries?
