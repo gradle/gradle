@@ -433,7 +433,6 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     @Issue("https://github.com/gradle/gradle/issues/9586")
     def "change in case of input folder will sync properly"() {
         given:
