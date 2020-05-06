@@ -28,10 +28,6 @@ class FallbackFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest 
 
     @Override
     boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
-        return metadataSnapshot.lastModified == lastModified(file)
-    }
-
-    private static long lastModified(File file) {
-        return file.lastModified()
+        return metadataSnapshot.lastModified == file.lastModified()
     }
 }
