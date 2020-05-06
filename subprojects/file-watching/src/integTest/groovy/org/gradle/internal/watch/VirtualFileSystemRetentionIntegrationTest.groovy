@@ -29,7 +29,6 @@ import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
 
-import static org.gradle.integtests.fixtures.ToBeFixedForInstantExecution.Skip.FLAKY
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
@@ -416,16 +415,17 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         outputFile.assertDoesNotExist()
     }
 
-    @ToBeFixedForInstantExecution(because = "https://github.com/gradle/instant-execution/issues/165")
     def "detects when stale outputs are removed"() {
         buildFile << """
             apply plugin: 'base'
 
             task producer {
-                inputs.files("input.txt")
-                outputs.file("build/output.txt")
+                def inputTxt = file("input.txt")
+                def outputTxt = file("build/output.txt")
+                inputs.files(inputTxt)
+                outputs.file(outputTxt)
                 doLast {
-                    file("build/output.txt").text = file("input.txt").text
+                    outputTxt.text = inputTxt.text
                 }
             }
         """
@@ -525,7 +525,6 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         executedAndNotSkipped(":jar")
     }
 
-    @ToBeFixedForInstantExecution(skip = FLAKY, because = "https://github.com/gradle/instant-execution/issues/213")
     def "detects when local state is removed"() {
         buildFile << """
             plugins {
