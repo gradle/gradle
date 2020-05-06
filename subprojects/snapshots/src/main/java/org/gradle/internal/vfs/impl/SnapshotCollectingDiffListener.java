@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl;
 
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemNode;
 import org.gradle.internal.snapshot.SnapshotHierarchy;
@@ -42,7 +43,7 @@ public class SnapshotCollectingDiffListener implements SnapshotHierarchy.NodeDif
 
     private void extractRootSnapshots(FileSystemNode rootNode, Consumer<CompleteFileSystemLocationSnapshot> consumer) {
         rootNode.accept(snapshot -> {
-            if (watchFilter.test(snapshot.getAbsolutePath())) {
+            if (snapshot.getAccessType() == AccessType.DIRECT && watchFilter.test(snapshot.getAbsolutePath())) {
                 consumer.accept(snapshot);
             }
         });
