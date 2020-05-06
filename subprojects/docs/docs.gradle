@@ -69,6 +69,8 @@ dependencies {
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
     testImplementation libraries.commons_httpclient.coordinates
     testImplementation "org.apache.httpcomponents:httpmime:${libraries.commons_httpclient.version}"
+    docsTestImplementation "${libraries.junit5_vintage.coordinates}:${libraries.junit5_vintage.version}"
+    docsTestImplementation "${libraries.junit.coordinates}:${libraries.junit.version}"
 }
 
 configurations.testImplementation {
