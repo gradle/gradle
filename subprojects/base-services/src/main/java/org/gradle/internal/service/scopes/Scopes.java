@@ -16,24 +16,9 @@
 
 package org.gradle.internal.service.scopes;
 
-import java.lang.annotation.Inherited;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-
-/**
- * Attached to a service interface to indicate its scope in the
- * {@link PluginServiceRegistry Gradle service registry}.
- */
-@Retention(RetentionPolicy.RUNTIME)
-@Inherited
-public @interface ServiceScope {
-
-    Value value();
-
-    enum Value {
-        Global,
-        UserHome,
-        BuildTree,
-        Build
-    }
+public enum Scopes {
+    Global,
+    UserHome,
+    BuildTree,
+    Build
 }

@@ -18,6 +18,7 @@ package org.gradle.internal.classpath;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.archive.ZipCopyAction;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GFileUtils;
 
@@ -32,7 +33,7 @@ import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
-@ServiceScope(ServiceScope.Value.UserHome)
+@ServiceScope(Scopes.UserHome)
 public class ClasspathBuilder {
     private static final int BUFFER_SIZE = 8192;
 
