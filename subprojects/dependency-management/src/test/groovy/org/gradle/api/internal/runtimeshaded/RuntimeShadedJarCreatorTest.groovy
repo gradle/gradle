@@ -130,27 +130,42 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/',
                 'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
+                'net/',
+                'net/rubygrapefruit/',
+                'net/rubygrapefruit/platform/',
                 'net/rubygrapefruit/platform/osx-i386/',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
                 'org/gradle/reporting/',
                 'org/gradle/reporting/report.js',
+                'org/joda/',
+                'org/joda/time/',
+                'org/joda/time/tz/',
+                'org/joda/time/tz/data/',
                 'org/joda/time/tz/data/Africa/',
                 'org/joda/time/tz/data/Africa/Abidjan',
+                'org/gradle/internal/',
+                'org/gradle/internal/impldep/',
+                'org/gradle/internal/impldep/org/',
+                'org/gradle/internal/impldep/org/joda/',
+                'org/gradle/internal/impldep/org/joda/time/',
+                'org/gradle/internal/impldep/org/joda/time/tz/',
+                'org/gradle/internal/impldep/org/joda/time/tz/data/',
                 'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/',
                 'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/Abidjan',
                 'org/gradle/MyAClass.class',
                 'org/gradle/MyBClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/',
                 'META-INF/services/',
                 'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
                 'META-INF/services/org.gradle.internal.other.Service',
-                'META-INF/',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "a31b58b3c4e0e2f29f80f4e6884fc3ed"
+        outputJar.md5Hash == "dee78866d881612695b2875ef948d5d5"
     }
 
     def "excludes module-info.class from jar"() {
@@ -175,6 +190,7 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/',
                 'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
@@ -370,8 +386,8 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         handleAsJarFile(relocatedJar) { JarFile jar ->
             assert jar.entries().toList().size() ==
-                noRelocationResources.size() + 2 +
-                (duplicateResources.size() + 1) * 2 +
+                noRelocationResources.size() + 7 +
+                duplicateResources.size() * 2 + 13 +
                 onlyRelocatedResources.size() +
                 generatedFiles.size() + 1
             noRelocationResources.each { resourceName ->
