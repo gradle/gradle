@@ -163,6 +163,23 @@ class ParallelTaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "tasks that should run after are chosen last when there are more tasks than workers"() {
+        given:
+        withParallelThreads(2)
+
+        when:
+        buildFile << """
+            aPing.shouldRunAfter bPing, cPing
+        """
+
+        then:
+        2.times {
+            blockingServer.expectConcurrent(":bPing", ":cPing")
+            blockingServer.expectConcurrent(":aPing")
+            run ":aPing", ":bPing", ":cPing"
+        }
+    }
+
     def "two tasks that are dependencies of another task are executed in parallel"() {
         given:
         withParallelThreads(2)
