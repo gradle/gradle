@@ -77,4 +77,6 @@ classycle {
 tasks.named<Test>("test").configure {
     exclude("org/gradle/api/internal/tasks/testing/junit/ATestClass*.*")
     exclude("org/gradle/api/internal/tasks/testing/junit/ABroken*TestClass*.*")
+    exclude("org/gradle/api/internal/tasks/testing/junit/ATestSetUpWithBrokenSetUp*.*")
+    exclude("org/gradle/api/internal/tasks/testing/testng/ATestNGFactoryClass*.*")
 }

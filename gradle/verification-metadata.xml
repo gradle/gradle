@@ -116,6 +116,7 @@
          </trusted-key>
          <trusted-key id="feb9209f2f2f3f4664841e55ac107b386692dadd" group="com.amazonaws"/>
          <trusted-key id="ff6e2c001948c5f2f38b0cc385911f425ec61b51">
+            <trusting group="junit"/>
             <trusting group="^org[.]junit($|([.].*))" regex="true"/>
             <trusting group="org.junit.platform"/>
             <trusting group="org.apiguardian"/>
