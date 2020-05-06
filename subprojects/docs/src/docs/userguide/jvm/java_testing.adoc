@@ -213,7 +213,7 @@ include::sample[dir="snippets/java/customDirs/kotlin",files="build.gradle.kts[ta
 .Output of **`gradle -q showDirs`**
 ----
 > gradle -q showDirs
-include::{snippetsPath}/java/customDirs/javaCustomReportDirs.out[]
+include::{snippetsPath}/java/customDirs/tests/javaCustomReportDirs.out
 ----
 
 Follow the link to the convention properties for more details.
@@ -637,7 +637,7 @@ It's worth noting that if the external project is _not_ publishing Gradle Module
 .Output of **`gradle dependencyInsight --configuration functionalTestClasspath --dependency gson`**
 ----
 > gradle dependencyInsight --configuration functionalTestClasspath --dependency gson
-include::{snippetsPath}/java/fixtures/dependencyInsight.out[]
+include::{snippetsPath}/java/fixtures/tests/dependencyInsight.out
 ----
 
 The error message mentions the missing `com.google.code.gson:gson-test-fixtures` capability, which is indeed not defined for this library.
