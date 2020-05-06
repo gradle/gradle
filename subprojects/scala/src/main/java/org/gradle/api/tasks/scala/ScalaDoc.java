@@ -57,9 +57,8 @@ public class ScalaDoc extends SourceTask {
     private String title;
     private final Property<String> maxMemory;
 
-    @Inject
-    public ScalaDoc(ObjectFactory objectFactory) {
-        this.maxMemory = objectFactory.property(String.class);
+    public ScalaDoc() {
+        this.maxMemory = getObjectFactory().property(String.class);
     }
 
     @Inject
@@ -69,6 +68,11 @@ public class ScalaDoc extends SourceTask {
 
     @Inject
     public WorkerExecutor getWorkerExecutor() {
+        throw new UnsupportedOperationException();
+    }
+
+    @Inject
+    public ObjectFactory getObjectFactory() {
         throw new UnsupportedOperationException();
     }
 
