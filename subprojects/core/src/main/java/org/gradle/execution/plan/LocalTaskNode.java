@@ -151,7 +151,7 @@ public class LocalTaskNode extends TaskNode {
     }
 
     private void addFinalizerNode(TaskNode finalizerNode) {
-        addFinalizer(finalizerNode);
+        finalizerNode.addFinalizingSuccessor(this);
         if (!finalizerNode.isInKnownState()) {
             finalizerNode.mustNotRun();
         }

@@ -29,7 +29,6 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy and different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks are scheduled as expected (#requestedTasks)'() {
         given:
         setupProject()
@@ -133,7 +132,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks are executed as expected in parallel builds'() {
         setupMultipleProjects()
         executer.beforeExecute {
@@ -147,7 +145,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizers for finalizers are executed when finalized is executed'() {
         buildFile << """
             task a {
@@ -166,7 +163,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks are executed after their dependencies'() {
         buildFile << """
             task a {
@@ -210,7 +206,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer task can be used by multiple tasks that depend on one another'() {
         buildFile << """
             task a {
@@ -231,7 +226,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/5415")
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizers are executed after the last task to be finalized'() {
         settingsFile << """
             include "a"
