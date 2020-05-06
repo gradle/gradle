@@ -62,6 +62,7 @@ class InitBuildSpec extends Specification {
         projectLayoutRegistry.default >> projectSetupDescriptor
         projectLayoutRegistry.getLanguagesFor(ComponentType.BASIC) >> [Language.NONE]
         projectLayoutRegistry.get(ComponentType.BASIC, Language.NONE) >> projectSetupDescriptor
+        projectLayoutRegistry.componentTypes >> [ComponentType.BASIC]
         projectSetupDescriptor.componentType >> ComponentType.BASIC
         projectSetupDescriptor.dsls >> [GROOVY]
         projectSetupDescriptor.defaultDsl >> GROOVY
