@@ -15,7 +15,6 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
@@ -152,7 +151,6 @@ public class ScalaDoc extends SourceTask {
      * Ex. 512m, 1G
      * @since 6.5
      */
-    @Incubating
     @Internal
     public Property<String> getMaxMemory() {
         return maxMemory;
