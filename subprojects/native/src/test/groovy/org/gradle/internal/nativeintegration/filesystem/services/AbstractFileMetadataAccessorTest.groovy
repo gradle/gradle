@@ -80,6 +80,32 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
     }
 
     @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink to directory"() {
+        def dir = tmpDir.createDir("dir")
+        def link = tmpDir.file("link")
+        link.createLink(dir)
+
+        expect:
+        def stat = accessor.stat(link)
+        stat.type == FileType.Directory
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats broken symlink"() {
+        def file = tmpDir.file("file")
+        def link = tmpDir.file("link")
+        link.createLink(file)
+
+        expect:
+        def stat = accessor.stat(link)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
     def "stats symlink pointing to symlink pointing to file"() {
         def file = tmpDir.file("file")
         file.text = "123"
@@ -93,5 +119,20 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.RegularFile
         sameLastModified(stat, file)
         stat.length == 3
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink pointing to broken symlink"() {
+        def file = tmpDir.file("file")
+        def link = tmpDir.file("link")
+        link.createLink(file)
+        def linkToLink = tmpDir.file("linkToBrokenLink")
+        linkToLink.createLink(link)
+
+        expect:
+        def stat = accessor.stat(linkToLink)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
     }
 }
