@@ -130,20 +130,27 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
+                'net/rubygrapefruit/platform/osx-i386/',
                 'net/rubygrapefruit/platform/osx-i386/libnative-platform.dylib',
+                'org/gradle/reporting/',
                 'org/gradle/reporting/report.js',
+                'org/joda/time/tz/data/Africa/',
                 'org/joda/time/tz/data/Africa/Abidjan',
+                'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/',
                 'org/gradle/internal/impldep/org/joda/time/tz/data/Africa/Abidjan',
                 'org/gradle/MyAClass.class',
                 'org/gradle/MyBClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/services/',
                 'META-INF/services/org.gradle.internal.service.scopes.PluginServiceRegistry',
                 'META-INF/services/org.gradle.internal.other.Service',
+                'META-INF/',
                 'META-INF/.gradle-runtime-shaded']
         }
-        outputJar.md5Hash == "84791783853fcd2c66437a674c219bbe"
+        outputJar.md5Hash == "a31b58b3c4e0e2f29f80f4e6884fc3ed"
     }
 
     def "excludes module-info.class from jar"() {
@@ -168,9 +175,11 @@ org.gradle.api.internal.tasks.CompileServices
         handleAsJarFile(outputJar) { JarFile file ->
             List<JarEntry> entries = file.entries() as List
             assert entries*.name == [
+                'org/gradle/',
                 'org/gradle/MyClass.class',
                 'org/gradle/MySecondClass.class',
                 'org/gradle/MyFirstClass.class',
+                'META-INF/',
                 'META-INF/.gradle-runtime-shaded']
         }
     }
@@ -361,10 +370,10 @@ org.gradle.api.internal.tasks.CompileServices"""
 
         handleAsJarFile(relocatedJar) { JarFile jar ->
             assert jar.entries().toList().size() ==
-                noRelocationResources.size() +
-                duplicateResources.size() * 2 +
+                noRelocationResources.size() + 2 +
+                (duplicateResources.size() + 1) * 2 +
                 onlyRelocatedResources.size() +
-                generatedFiles.size()
+                generatedFiles.size() + 1
             noRelocationResources.each { resourceName ->
                 assert jar.getEntry(resourceName)
             }

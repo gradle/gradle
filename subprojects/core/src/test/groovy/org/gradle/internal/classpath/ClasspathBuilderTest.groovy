@@ -35,6 +35,7 @@ class ClasspathBuilderTest extends Specification {
         then:
         def zip = new ZipTestFixture(file)
         zip.hasDescendants()
+        zip.hasDirs()
     }
 
     def "can construct jar with entries"() {
@@ -49,5 +50,22 @@ class ClasspathBuilderTest extends Specification {
         then:
         def zip = new ZipTestFixture(file)
         zip.hasDescendants("a.class", "dir/b.class")
+        zip.hasDirs("dir")
+    }
+
+    def "can construct jar with multiple entries in directory"() {
+        def file = tmpDir.file("thing.zip")
+
+        when:
+        builder.jar(file) {
+            it.put("a.class", "bytes".bytes)
+            it.put("dir/b.class", "bytes".bytes)
+            it.put("dir/c.class", "bytes".bytes)
+        }
+
+        then:
+        def zip = new ZipTestFixture(file)
+        zip.hasDescendants("a.class", "dir/b.class", "dir/c.class")
+        zip.hasDirs("dir")
     }
 }
