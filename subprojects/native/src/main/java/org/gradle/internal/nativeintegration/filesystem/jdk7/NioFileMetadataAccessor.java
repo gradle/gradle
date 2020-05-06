@@ -27,21 +27,11 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
-public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
+public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File f) {
-        if (!f.exists()) {
-            // This is really not cool, but we cannot rely on `readAttributes` because it will
-            // THROW AN EXCEPTION if the file is missing, which is really incredibly slow just
-            // to determine if a file exists or not.
-            return DefaultFileMetadata.missing();
-        }
         try {
-            BasicFileAttributes bfa = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-            if (bfa.isDirectory()) {
-                return DefaultFileMetadata.directory();
-            }
-            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+            return stat(f.toPath());
         } catch (IOException e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }
@@ -49,13 +39,14 @@ public class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
 
     @Override
     public FileMetadataSnapshot stat(Path path) throws IOException {
-        if (!Files.exists(path)) {
+        try {
+            BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
+            if (bfa.isDirectory()) {
+                return DefaultFileMetadata.directory();
+            }
+            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+        } catch (IOException e) {
             return DefaultFileMetadata.missing();
         }
-        BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
-        if (bfa.isDirectory()) {
-            return DefaultFileMetadata.directory();
-        }
-        return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
     }
 }

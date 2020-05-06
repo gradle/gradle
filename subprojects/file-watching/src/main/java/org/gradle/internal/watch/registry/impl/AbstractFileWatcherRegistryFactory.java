@@ -41,6 +41,7 @@ public abstract class AbstractFileWatcherRegistryFactory implements FileWatcherR
                 fileEvents
             );
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new RuntimeException(e);
         }
     }

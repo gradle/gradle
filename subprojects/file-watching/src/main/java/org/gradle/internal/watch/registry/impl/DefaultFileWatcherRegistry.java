@@ -99,6 +99,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                     }
                 }
             } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
                 // stop thread
             }
         });
@@ -142,6 +143,7 @@ public class DefaultFileWatcherRegistry implements FileWatcherRegistry {
                 throw new RuntimeException("Watcher did not terminate withing 5 seconds");
             }
         } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
             throw new InterruptedIOException("Awaiting termination of watcher was interrupted");
         } finally {
             consumeEvents = false;

@@ -17,7 +17,7 @@
 package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
-import org.gradle.internal.nativeintegration.filesystem.jdk7.Jdk7FileMetadataAccessor
+import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor
 import org.gradle.util.UsesNativeServices
 
 import java.nio.file.Files
@@ -25,9 +25,9 @@ import java.nio.file.LinkOption
 import java.nio.file.attribute.BasicFileAttributeView
 
 @UsesNativeServices
-class Jdk7FileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
+class NioFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     FileMetadataAccessor getAccessor() {
-        new Jdk7FileMetadataAccessor()
+        new NioFileMetadataAccessor()
     }
 
     @Override
