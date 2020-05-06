@@ -64,6 +64,9 @@ dependencies {
 
     testImplementation project(":baseServices")
     testImplementation project(":core")
+    docsTestImplementation(project(":internalIntegTesting")) {
+        exclude module : 'groovy-all' // otherwise we get groovy.lang.GroovyRuntimeException: Conflicting module versions. Module [groovy-all is loaded in version 2.5.10 and you are trying to load version 2.5.11
+    }
     testImplementation testLibraries.jsoup
     testImplementation("org.gebish:geb-spock:2.2")
     testImplementation('org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2')
@@ -95,6 +98,110 @@ tasks.named("stageDocs") {
         into("samples")
     }
 }
+
+tasks.withType(org.gradle.docs.samples.internal.tasks.GenerateTestSource) { t ->
+    doLast {
+        File f = t.outputDirectory.file("org/gradle/docs/samples/ExemplarExternalSamplesFunctionalTest.java").get().asFile
+        f.text = """//CHECKSTYLE:OFF
+package org.gradle.docs.samples;
+
+import org.gradle.integtests.fixtures.FailOnDeprecationSampleModifier;
+import org.gradle.integtests.fixtures.executer.MoreMemorySampleModifier;
+import org.gradle.integtests.fixtures.logging.ArtifactResolutionOmittingOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.DependencyInsightOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.NativeComponentReportOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.SampleOutputNormalizer;
+import org.gradle.integtests.fixtures.logging.PlayComponentReportOutputNormalizer;
+import org.gradle.integtests.fixtures.mirror.SetMirrorsSampleModifier;
+import org.gradle.samples.test.normalizer.FileSeparatorOutputNormalizer;
+import org.gradle.samples.test.normalizer.JavaObjectSerializationOutputNormalizer;
+import org.gradle.samples.test.normalizer.GradleOutputNormalizer;
+import org.gradle.samples.test.runner.GradleSamplesRunner;
+import org.gradle.samples.test.runner.SampleModifiers;
+import org.gradle.samples.test.runner.SamplesOutputNormalizers;
+import org.gradle.samples.test.runner.SamplesRoot;
+import org.junit.runner.RunWith;
+
+@RunWith(GradleSamplesRunner.class)
+@SamplesOutputNormalizers({
+    SampleOutputNormalizer.class,
+    JavaObjectSerializationOutputNormalizer.class,
+    FileSeparatorOutputNormalizer.class,
+    GradleOutputNormalizer.class,
+    ArtifactResolutionOmittingOutputNormalizer.class,
+    NativeComponentReportOutputNormalizer.class,
+    PlayComponentReportOutputNormalizer.class,
+    DependencyInsightOutputNormalizer.class
+})
+@SampleModifiers({
+    SetMirrorsSampleModifier.class,
+    MoreMemorySampleModifier.class,
+    FailOnDeprecationSampleModifier.class
+})
+public class ExemplarExternalSamplesFunctionalTest {}
+"""
+    }
+}
+
+// iterate through each snippets and record their names and locations
+FileFilter directoriesOnly = { it.directory }
+Map<String, File> snippets = file('src/snippets').listFiles(directoriesOnly)*.listFiles(directoriesOnly).flatten().collectEntries { File snippetDir -> [snippetId(snippetDir), snippetDir] }
+
+String snippetId(File snippetLocation) {
+    String snippetName = snippetLocation.name.tokenize("-")*.capitalize().join("")
+    String categoryName = snippetLocation.parentFile.name.tokenize("-")*.capitalize().join("")
+    "$categoryName$snippetName"
+}
+
+// TODO (donat) snippets should be executed on multiple platforms on CI
+// TODO (donat) snippets should be executed in reasonable buckets
+// TODO (donat) investigate ignored snippets
+// TODO (donat) readme file should be generated for snippets
+// TODO (donat) verify the content of the samples index
+
+List ignoredSnippets = [
+    snippetId(file('src/snippets/bestPractices/logicDuringConfiguration-dont')), // negative sanity check fails (= build succeeds) for Kotlin variant
+    snippetId(file('src/snippets/tutorial/archiveContent')), // seems like a legit failure
+    snippetId(file('src/snippets/groovy/crossCompilation')), // compilation error
+    snippetId(file('src/snippets/java/crossCompilation')), // compilation error, missing compiler locally
+    snippetId(file('src/snippets/java-library/multiproject')), // seems legit; `mainClassName` should be placed within the application { } block
+    snippetId(file('src/snippets/kotlinDsl/androidBuild')), // plugin [id: 'com.android.application', version: '3.2.0', apply: false] was not found: Gradle Central Plugin Repository
+    snippetId(file('src/snippets/mavenMigration/importBom')), // compilation failure
+    snippetId(file('src/snippets/plugins/readOnlyManagedProperty')), // seems legit: Could not get unknown property 'Download' for root project 'managedProperty' of type Project.
+    snippetId(file('src/snippets/tasks/customTaskUsingConvention')), // seems legit: Could not set unknown property 'greeting' for root project 'custom-task-using-convention' of Project.
+    snippetId(file('src/snippets/java-feature-variant/incompatible-variants')), // seems legit: dependency resolution fails
+    snippetId(file('src/snippets/kotlinDsl/androidSingleBuild')), // seems legit: java.lang.NoClassDefFoundError: Could not initialize class org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSetKt
+    snippetId(file('src/snippets/initScripts/customLogger')), // seems legit: Smart cast to 'Throwable' is impossible, because 'result.failure' is a property that has open or custom getter
+    snippetId(file('src/snippets/artifacts/maven')), // emits deprecation warning
+    snippetId(file('src/snippets/base/customExternalTask')), // emits deprecation warning
+    snippetId(file('src/snippets/base/distribution')), // emits deprecation warning
+    snippetId(file('src/snippets/compositeBuilds/basic')), // emits deprecation warning
+    snippetId(file('src/snippets/compositeBuilds/declared-substitution')), // emits deprecation warning
+    snippetId(file('src/snippets/compositeBuilds/plugin-dev')), // emits deprecation warning
+    snippetId(file('src/snippets/dependencyManagement/managingTransitiveDependencies-forceForDependency')), // emits deprecation warning
+    snippetId(file('src/snippets/java-feature-variant/requiring-features-external')), // emits deprecation warning
+    snippetId(file('src/snippets/jvmComponents/scala')), // emits deprecation warning
+    snippetId(file('src/snippets/kotlinDsl/multiProjectBuild')), // emits deprecation warning
+    snippetId(file('src/snippets/maven/pomGeneration')), // emits deprecation warning
+    snippetId(file('src/snippets/maven/quickstart')), // emits deprecation warning
+    snippetId(file('src/snippets/multiproject/flat')), // emits deprecation warning
+    snippetId(file('src/snippets/multiproject/flatWithNoDefaultMaster')), // emits deprecation warning
+    snippetId(file('src/snippets/play/advanced')), // emits deprecation warning
+    snippetId(file('src/snippets/play/basic')), // emits deprecation warning
+    snippetId(file('src/snippets/play/multiproject')), // emits deprecation warning
+    snippetId(file('src/snippets/plugins/consuming')), // emits deprecation warning
+    snippetId(file('src/snippets/plugins/customPlugin')), // emits deprecation warning
+    snippetId(file('src/snippets/plugins/multiproject')), // emits deprecation warning
+    snippetId(file('src/snippets/plugins/pluginVersions')), // emits deprecation warning
+    snippetId(file('src/snippets/plugins/resolutionRules')), // emits deprecation warning
+    snippetId(file('src/snippets/signing/maven')), // emits deprecation warning
+    snippetId(file('src/snippets/toolingApi/customModel')), // emits deprecation warning
+    snippetId(file('src/snippets/tutorial/selectProject')) // emits deprecation warning
+]
+snippets.removeAll { ignoredSnippets.contains(it.key) }
+
+// default text for snippets that don't documentation
+File defaultReadme = file('src/snippets/default-readme.adoc')
 
 samples {
     templates {
@@ -201,154 +308,28 @@ samples {
         }
     }
 
+    snippets.each { String id, File location ->
+        publishedSamples.create(id) {
+            // set readme for snippet
+            File readmeLocation = new File(location, "README.adoc")
+            if (!readmeLocation.exists()) {
+                readmeLocation = defaultReadme
+            }
+
+            description = "Snippet from $location.name"
+            category = "Other"
+            sampleDirectory = location
+            readmeFile = readmeLocation
+            promoted = false
+
+            File common = new File(location, 'common')
+            if (common.exists()) {
+                commonContent.from(common)
+            }
+        }
+    }
+
     publishedSamples {
-        androidApplication {
-            description = "Build a simple Android application."
-            category = "Android"
-            common {
-                from(templates.javaAndroidApplication)
-            }
-        }
-        springBootWebApplication {
-            description = "Build a simple Spring Boot application."
-            category = "Spring"
-            common {
-                from(templates.springBootWebApplication)
-            }
-        }
-
-        jvmMultiProjectWithAdditionalTestTypes {
-            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-additional-test-types")
-            displayName = "Using additional test types"
-            description = "Add an additional test type (e.g. integration tests) to a project."
-            category = "Java"
-
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5IntegrationTestForApplication)
-
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaJunit5TestForListLibrary)
-                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
-
-                from(templates.javaUtilitiesLibraryAsSubproject)
-            }
-        }
-        javaApplication {
-            sampleDirectory = samplesRoot.dir("java/application")
-            description = "Build a Java application."
-            category = "Java"
-            common {
-                from(templates.javaApplication)
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
-            }
-        }
-        javaLibrary {
-            sampleDirectory = samplesRoot.dir("java/library")
-            description = "Build a Java library."
-            category = "Java"
-            common {
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
-            }
-        }
-        javaMultiProjectWithSpockTests {
-            sampleDirectory = samplesRoot.dir("java/multi-project-with-spock-tests")
-            displayName = "Testing with Spock"
-            description = "Test a Java application and library with link:https://github.com/spockframework/spock[Spock]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.groovySpockTestForApplication)
-                from(templates.groovySpockTestForListLibrary)
-            }
-        }
-        javaMultiProjectWithJUnit5Tests {
-            sampleDirectory = samplesRoot.dir("java/multi-project-with-junit-5-tests")
-            displayName = "Testing with JUnit5"
-            description = "Test a Java application and library with link:https://junit.org/junit5[JUnit5]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5TestForListLibrary)
-            }
-        }
-        javaModulesMultiProject {
-            sampleDirectory = samplesRoot.dir("java/modules-multi-project")
-            displayName = "Java Modules"
-            description = "Build Java Modules and a modular Java application."
-            category = "Java Modules"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaModuleInfoForListLibrary)
-                from(templates.javaModuleInfoForUtilitiesLibrary)
-                from(templates.javaModuleInfoForApplication)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5TestForListLibrary)
-            }
-        }
-        javaModulesMultiProjectWithIntegrationTests {
-            sampleDirectory = samplesRoot.dir("java/modules-multi-project-with-integration-tests")
-            displayName = "Java Modules with Blackbox Tests"
-            description = "Build Java Modules with blackbox integration tests."
-            category = "Java Modules"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaModuleInfoForListLibrary)
-                from(templates.javaModuleInfoForUtilitiesLibrary)
-                from(templates.javaModuleInfoForApplication)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5TestForListLibrary)
-
-                from(templates.javaJunit5IntegrationTestForApplication)
-                from(templates.javaJunit5ModuleInfoForApplication)
-                from(templates.javaJunit5IntegrationTestForUtilitiesLibrary)
-                from(templates.javaJunit5ModuleInfoForUtilitiesLibrary)
-            }
-        }
-        javaModulesWithTransform {
-            sampleDirectory = samplesRoot.dir("java/modules-with-transform")
-            displayName = "Java Modules with Legacy Libraries"
-            description = "Build a modular Java application that integrates legacy libraries."
-            category = "Java Modules"
-            common {
-                from(templates.buildSrcPluginJavaModuleTransform)
-            }
-        }
-        jvmMultiProjectWithCodeCoverage {
-            sampleDirectory = samplesRoot.dir("java/jvm-multi-project-with-code-coverage")
-            displayName = "Reporting code coverage with JaCoCo"
-            description = "Report code coverage on a multi-module project using link:https://www.jacoco.org/jacoco/[JaCoCo]."
-            category = "Java"
-            common {
-                from(templates.javaApplicationAsSubproject)
-                from(templates.javaListLibraryAsSubproject)
-                from(templates.javaUtilitiesLibraryAsSubproject)
-                from(templates.javaJunit5TestForApplication)
-                from(templates.javaJunit5TestForListLibrary)
-            }
-        }
-        javaLibraryPublishing {
-            sampleDirectory = samplesRoot.dir("java/library-publishing")
-            description = "Publish a Java library to a binary repository."
-            category = "Java"
-            common {
-                from(templates.javaListLibrary)
-                from(templates.javaUtilitiesLibrary)
-            }
-        }
-
         kotlinApplication {
             sampleDirectory = samplesRoot.dir("kotlin/application")
             description = "Build a Kotlin application."
@@ -470,6 +451,7 @@ samples {
             common {
                 from(sampleDirectory.dir("common"))
             }
+            // TODO (donat) sanity checks probably don't do anything for samples located one level down in the gradle/kotlin directories
         }
     }
 }

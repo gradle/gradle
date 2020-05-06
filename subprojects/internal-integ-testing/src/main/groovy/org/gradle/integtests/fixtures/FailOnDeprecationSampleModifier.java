@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests.samples;
+package org.gradle.integtests.fixtures;
 
 import org.gradle.samples.model.Command;
 import org.gradle.samples.model.Sample;
