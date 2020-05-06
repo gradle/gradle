@@ -25,7 +25,6 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
-import org.gradle.caching.configuration.internal.BuildCacheConfigurationInternal
 import org.gradle.execution.plan.Node
 import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
@@ -376,7 +375,7 @@ class DefaultInstantExecution internal constructor(
     private
     suspend fun DefaultReadContext.readGradleState(gradle: GradleInternal) {
         withGradleIsolate(gradle) {
-            (gradle.settings.buildCache as BuildCacheConfigurationInternal).let { buildCache ->
+            gradle.settings.buildCache.let { buildCache ->
                 buildCache.local = readNonNull()
                 buildCache.remote = read() as BuildCache?
             }
