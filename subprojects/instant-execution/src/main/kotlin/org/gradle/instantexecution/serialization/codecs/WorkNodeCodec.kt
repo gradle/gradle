@@ -24,6 +24,7 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readCollection
+import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 
@@ -91,7 +92,7 @@ class WorkNodeCodec(
     private
     suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node {
         val id = readSmallInt()
-        val node = read() as Node
+        val node = readNonNull<Node>()
         readSuccessors(nodesById) {
             node.addDependencySuccessor(it)
         }
