@@ -45,7 +45,7 @@ abstract class SystemPropertyRead {
         }
     }
 
-    static SystemPropertyRead systemGetProperties(String name) {
+    static SystemPropertyRead systemGetPropertiesGet(String name) {
         return new SystemPropertyRead() {
             @Override
             String getJavaExpression() {
@@ -60,6 +60,44 @@ abstract class SystemPropertyRead {
             @Override
             String getKotlinExpression() {
                 return "System.getProperties()[\"$name\"]"
+            }
+        }
+    }
+
+    static SystemPropertyRead systemGetPropertiesGetProperty(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "(String)System.getProperties().getProperty(\"$name\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "System.properties.getProperty(\"$name\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperties().getProperty(\"$name\")"
+            }
+        }
+    }
+
+    static SystemPropertyRead systemGetPropertiesGetPropertyWithDefault(String name, String defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "(String)System.getProperties().getProperty(\"$name\", \"$defaultValue\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "System.properties.getProperty(\"$name\", \"$defaultValue\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperties().getProperty(\"$name\", \"$defaultValue\")"
             }
         }
     }

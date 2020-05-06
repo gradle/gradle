@@ -23,7 +23,7 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
     abstract void buildLogicApplication(SystemPropertyRead read)
 
     @Unroll
-    def "reports undeclared system property read using #propertyRead.kotlinExpression prior to task execution from plugin"() {
+    def "reports undeclared system property read using #propertyRead.groovyExpression prior to task execution from plugin"() {
         buildLogicApplication(propertyRead)
         def fixture = newInstantExecutionFixture()
 
@@ -64,7 +64,9 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         propertyRead << [
             SystemPropertyRead.systemGetProperty("CI"),
             SystemPropertyRead.systemGetPropertyWithDefault("CI", "default"),
-            SystemPropertyRead.systemGetProperties("CI")
+            SystemPropertyRead.systemGetPropertiesGet("CI"),
+            SystemPropertyRead.systemGetPropertiesGetProperty("CI"),
+            SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default")
         ]
     }
 }
