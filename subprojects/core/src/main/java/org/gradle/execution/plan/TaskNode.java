@@ -86,7 +86,7 @@ public abstract class TaskNode extends Node {
         finalized.finalizers.add(this);
     }
 
-    protected void addShouldSuccessor(Node toNode) {
+    public void addShouldSuccessor(Node toNode) {
         shouldSuccessors.add(toNode);
     }
 
