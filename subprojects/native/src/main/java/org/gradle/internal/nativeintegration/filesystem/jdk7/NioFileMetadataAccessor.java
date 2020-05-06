@@ -26,6 +26,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
+@SuppressWarnings("Since15")
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File f) {
@@ -42,6 +43,9 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
             BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
             if (bfa.isDirectory()) {
                 return DefaultFileMetadataSnapshot.directory();
+            }
+            if (bfa.isOther()) {
+                return DefaultFileMetadataSnapshot.missing();
             }
             return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
         } catch (IOException e) {

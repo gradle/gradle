@@ -151,4 +151,16 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.lastModified == 0
         stat.length == 0
     }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "stats named pipes"() {
+        def pipe = tmpDir.file("testPipe").createNamedPipe()
+
+        when:
+        def stat = accessor.stat(pipe)
+        then:
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
 }

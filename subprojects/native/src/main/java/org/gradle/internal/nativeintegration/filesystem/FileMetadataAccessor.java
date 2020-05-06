@@ -22,7 +22,25 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+@SuppressWarnings("Since15")
 public interface FileMetadataAccessor {
+    /**
+     * Takes a file metadata snapshot of a {@link File}.
+     * <p>
+     * If the type of the file cannot be determined, or is
+     * neither {@link org.gradle.internal.file.FileType#RegularFile}
+     * nor {@link org.gradle.internal.file.FileType#Directory},
+     * then the file type of the returned snapshot is of type
+     * {@link org.gradle.internal.file.FileType#Missing}.
+     * <p>
+     * Such cases include:
+     * <ul>
+     *     <li>actual missing files</li>
+     *     <li>broken symlinks</li>
+     *     <li>circular symlinks</li>
+     *     <li>named pipes</li>
+     * </ul>
+     */
     FileMetadataSnapshot stat(File f);
     FileMetadataSnapshot stat(Path path) throws IOException;
 }

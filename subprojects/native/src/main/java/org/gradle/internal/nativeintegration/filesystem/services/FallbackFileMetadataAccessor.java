@@ -24,6 +24,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 
+@SuppressWarnings("Since15")
 public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File f) {
@@ -33,7 +34,10 @@ public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
         if (f.isDirectory()) {
             return DefaultFileMetadataSnapshot.directory();
         }
-        return DefaultFileMetadataSnapshot.file(f.lastModified(), f.length());
+        if (f.isFile()) {
+            return DefaultFileMetadataSnapshot.file(f.lastModified(), f.length());
+        }
+        return DefaultFileMetadataSnapshot.missing();
     }
 
     @Override
