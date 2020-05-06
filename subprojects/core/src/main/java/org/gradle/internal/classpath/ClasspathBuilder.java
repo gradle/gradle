@@ -21,11 +21,14 @@ import org.gradle.api.internal.file.archive.ZipCopyAction;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.GFileUtils;
 
+import javax.annotation.Nullable;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -69,6 +72,7 @@ public class ClasspathBuilder {
 
     private static class ZipEntryBuilder implements EntryBuilder {
         private final ZipOutputStream outputStream;
+        private final Set<String> dirs = new HashSet<>();
 
         public ZipEntryBuilder(ZipOutputStream outputStream) {
             this.outputStream = outputStream;
@@ -76,10 +80,26 @@ public class ClasspathBuilder {
 
         @Override
         public void put(String name, byte[] content) throws IOException {
+            String dir = dir(name);
+            if (dir != null && dirs.add(dir)) {
+                ZipEntry zipEntry = newZipEntryWithFixedTime(dir);
+                outputStream.putNextEntry(zipEntry);
+                outputStream.closeEntry();
+            }
             ZipEntry zipEntry = newZipEntryWithFixedTime(name);
             outputStream.putNextEntry(zipEntry);
             outputStream.write(content);
             outputStream.closeEntry();
+        }
+
+        @Nullable
+        String dir(String name) {
+            int pos = name.lastIndexOf('/');
+            if (pos >= 0) {
+                return name.substring(0, pos + 1);
+            } else {
+                return null;
+            }
         }
 
         private ZipEntry newZipEntryWithFixedTime(String name) {
