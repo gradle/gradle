@@ -21,10 +21,7 @@ import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 
-@SuppressWarnings("Since15")
 public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File f) {
@@ -38,10 +35,5 @@ public class FallbackFileMetadataAccessor implements FileMetadataAccessor {
             return DefaultFileMetadataSnapshot.file(f.lastModified(), f.length());
         }
         return DefaultFileMetadataSnapshot.missing();
-    }
-
-    @Override
-    public FileMetadataSnapshot stat(Path path) throws IOException {
-        return stat(path.toFile());
     }
 }

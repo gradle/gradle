@@ -19,10 +19,7 @@ package org.gradle.internal.nativeintegration.filesystem;
 import org.gradle.internal.file.FileMetadataSnapshot;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 
-@SuppressWarnings("Since15")
 public interface FileMetadataAccessor {
     /**
      * Takes a file metadata snapshot of a {@link File}.
@@ -42,5 +39,4 @@ public interface FileMetadataAccessor {
      * </ul>
      */
     FileMetadataSnapshot stat(File f);
-    FileMetadataSnapshot stat(Path path) throws IOException;
 }

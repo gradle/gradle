@@ -42,6 +42,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Map;
 import java.util.UUID;
 
+@SuppressWarnings("Since15")
 @Threads(2)
 @Warmup(iterations = 5)
 @Measurement(iterations = 5)
@@ -93,28 +94,26 @@ public class FileMetadataAccessorBenchmark {
         realFile.delete();
     }
 
-    @SuppressWarnings("unchecked")
     private FileMetadataAccessor getAccessor(String name) {
         return ACCESSORS.get(name);
     }
 
     @Benchmark
-    public void stat_missing_file(Blackhole bh) throws IOException {
+    public void stat_missing_file(Blackhole bh) {
         bh.consume(getAccessor(accessorClassName).stat(missing));
     }
 
     @Benchmark
-    public void stat_directory(Blackhole bh) throws IOException {
+    public void stat_directory(Blackhole bh) {
         bh.consume(getAccessor(accessorClassName).stat(directory));
     }
 
     @Benchmark
-    public void stat_existing(Blackhole bh) throws IOException {
+    public void stat_existing(Blackhole bh) {
         bh.consume(getAccessor(accessorClassName).stat(realFile));
     }
 
     private static class Jdk7FileMetadataAccessor implements FileMetadataAccessor {
-
         @Override
         public FileMetadataSnapshot stat(File f) {
             if (!f.exists()) {
@@ -132,18 +131,6 @@ public class FileMetadataAccessorBenchmark {
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }
-        }
-
-        @Override
-        public FileMetadataSnapshot stat(Path path) throws IOException {
-            if (!java.nio.file.Files.exists(path)) {
-                return DefaultFileMetadataSnapshot.missing();
-            }
-            BasicFileAttributes bfa = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class);
-            if (bfa.isDirectory()) {
-                return DefaultFileMetadataSnapshot.directory();
-            }
-            return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
         }
     }
 }
