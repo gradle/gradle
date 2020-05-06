@@ -48,7 +48,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
-        hasher.putInt(3); // decoration format, increment this when making changes
+        hasher.putInt(4); // decoration format, increment this when making changes
     }
 
     @Override

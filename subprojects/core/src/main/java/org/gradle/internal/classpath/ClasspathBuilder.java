@@ -80,21 +80,29 @@ public class ClasspathBuilder {
 
         @Override
         public void put(String name, byte[] content) throws IOException {
-            String dir = dir(name);
-            if (dir != null && dirs.add(dir)) {
-                ZipEntry zipEntry = newZipEntryWithFixedTime(dir);
-                outputStream.putNextEntry(zipEntry);
-                outputStream.closeEntry();
-            }
+            maybeAddParent(name);
             ZipEntry zipEntry = newZipEntryWithFixedTime(name);
             outputStream.putNextEntry(zipEntry);
             outputStream.write(content);
             outputStream.closeEntry();
         }
 
+        private void maybeAddParent(String name) throws IOException {
+            String dir = dir(name);
+            if (dir != null && dirs.add(dir)) {
+                maybeAddParent(dir);
+                ZipEntry zipEntry = newZipEntryWithFixedTime(dir);
+                outputStream.putNextEntry(zipEntry);
+                outputStream.closeEntry();
+            }
+        }
+
         @Nullable
         String dir(String name) {
             int pos = name.lastIndexOf('/');
+            if (pos == name.length() - 1) {
+                pos = name.lastIndexOf('/', pos - 1);
+            }
             if (pos >= 0) {
                 return name.substring(0, pos + 1);
             } else {
