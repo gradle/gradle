@@ -480,7 +480,7 @@ samples {
 // we want to verify that the samples work with the Gradle distribution being built.
 tasks.named('docsTest').configure() { task ->
     task.dependsOn(tasks.named('intTestImage'))
-    // TODO we usen absolute path here which makes the task not cacheable
+    // TODO we use an absolute path here which makes the task not cacheable
     task.systemProperty("integTest.gradleHomeDir", new File(project.buildDir, "integ test").absolutePath)
 }
 
