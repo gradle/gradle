@@ -7,6 +7,7 @@ We would like to thank the following community contributors to this release of G
 [fransflippo](https://github.com/fransflippo),
 [Victor Turansky](https://github.com/turansky),
 [Gregor Dschung](https://github.com/chkpnt),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
 and [Erhard Pointl](https://github.com/epeee).
 <!-- 
 Include only their name, impactful features should be called out separately below.
