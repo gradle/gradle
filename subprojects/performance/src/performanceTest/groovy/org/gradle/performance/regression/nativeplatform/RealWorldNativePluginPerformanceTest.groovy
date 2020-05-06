@@ -27,7 +27,7 @@ import spock.lang.Unroll
 class RealWorldNativePluginPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     def setup() {
-        runner.targetVersions = ["6.5-branch-wolfs_vfs_use_native_platform_stat-20200506082440+0000"]
+        runner.targetVersions = ["6.5-20200506110523+0000"]
         runner.minimumBaseVersion = "4.0"
     }
 
