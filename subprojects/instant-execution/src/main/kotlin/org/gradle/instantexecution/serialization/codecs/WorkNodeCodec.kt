@@ -73,7 +73,7 @@ class WorkNodeCodec(
             // Already visited
             return
         }
-        for (successor in node.allSuccessors) {
+        for (successor in node.dependencySuccessors) {
             writeNode(successor, nodesById)
         }
         val id = nodesById.size
