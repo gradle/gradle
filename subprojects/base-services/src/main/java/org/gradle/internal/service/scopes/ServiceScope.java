@@ -21,8 +21,11 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 
 /**
- * Attached to a service interface to indicate its scope in the
- * {@link PluginServiceRegistry Gradle service registry}.
+ * Attached to a service interface to indicate in which scope it is defined in.
+ * Services are lifecycled with their scope, and stopped/closed when the scope is closed.
+ *
+ * Services are visible to other services in the same scope and descendent scopes.
+ * Services are not visible to services in ancestor scopes.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Inherited

@@ -14,14 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.instantexecution.problems
+package org.gradle.internal.service.scopes;
 
-import org.gradle.internal.service.scopes.EventScope
-import org.gradle.internal.service.scopes.Scopes
+import java.lang.annotation.Inherited;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
 
-
-@EventScope(Scopes.BuildTree)
-interface ProblemsListener {
-
-    fun onProblem(problem: PropertyProblem)
+/**
+ * Attached to a listener interface to indicate which scope its events are generated in.
+ *
+ * Events generated in a particular scope are visible to listeners in the same scope and ancestor scopes.
+ * Events are not visible to listeners in descendent scopes.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface EventScope {
+    Scopes value();
 }

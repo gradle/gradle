@@ -55,12 +55,13 @@ import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseRegistry
 
 class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     def cancellationToken = Mock(BuildCancellationToken)
-    def listenerManager = new DefaultListenerManager()
+    def listenerManager = new DefaultListenerManager(Scopes.Build)
     def graphListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class)
     def taskExecutionListeners = listenerManager.createAnonymousBroadcaster(TaskExecutionListener.class)
     def nodeExecutor = Mock(NodeExecutor)

@@ -17,10 +17,13 @@
 package org.gradle.internal.concurrent;
 
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
 /**
  * A listener that is notified when the parallelism configuration changes.
  */
+@EventScope(Scopes.Global)
 public interface ParallelismConfigurationListener {
     /**
      * Called when the parallelism configuration is changed during the build lifecycle.

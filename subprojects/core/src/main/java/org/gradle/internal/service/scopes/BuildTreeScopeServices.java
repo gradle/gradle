@@ -41,6 +41,10 @@ public class BuildTreeScopeServices extends DefaultServiceRegistry {
         });
     }
 
+    protected ListenerManager createListenerManager(ListenerManager parent) {
+        return parent.createChild(Scopes.BuildTree);
+    }
+
     protected ExceptionAnalyser createExceptionAnalyser(ListenerManager listenerManager, LoggingConfiguration loggingConfiguration) {
         ExceptionAnalyser exceptionAnalyser = new MultipleBuildFailuresExceptionAnalyser(new DefaultExceptionAnalyser(listenerManager));
         if (loggingConfiguration.getShowStacktrace() != ShowStacktrace.ALWAYS_FULL) {

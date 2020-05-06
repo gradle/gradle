@@ -17,10 +17,13 @@
 package org.gradle.internal.concurrent;
 
 import org.gradle.concurrent.ParallelismConfiguration;
+import org.gradle.internal.service.scopes.Scopes;
+import org.gradle.internal.service.scopes.ServiceScope;
 
 /**
  * Maintains information about max workers that can be accessed from any scope
  */
+@ServiceScope(Scopes.Global)
 public interface ParallelismConfigurationManager {
     /**
      * Get the current parallelism configuration.
