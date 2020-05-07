@@ -94,7 +94,7 @@ class InstantExecutionBuildSrcChangesIntegrationTest extends AbstractInstantExec
                 override fun obtain(): String? = parameters.value.orNull
             }
             val ciProvider = providers.of(IsCi::class.java) {
-                parameters.value.set(providers.systemProperty("test_is_ci"))
+                parameters.value.set(providers.systemProperty("test_is_ci").forUseAtConfigurationTime())
             }
 
             val isCi = ${inputExpression}.forUseAtConfigurationTime()
