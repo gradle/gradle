@@ -109,7 +109,13 @@ class StatisticBasedGradleBuildBucketProvider(private val model: CIBuildModel, t
         val validSubprojects = model.subprojects.getSubprojectsFor(testCoverage, stage)
 
         // Build project not found, don't split into buckets
-        val subProjectToClassTimes: Map<String, List<TestClassTime>> = determineSubProjectClassTimes(testCoverage, buildProjectClassTimes) ?: return validSubprojects
+        val subProjectToClassTimes: MutableMap<String, List<TestClassTime>> = determineSubProjectClassTimes(testCoverage, buildProjectClassTimes)?.toMutableMap() ?: return validSubprojects
+
+        validSubprojects.forEach {
+            if (!subProjectToClassTimes.containsKey(it.name)) {
+                subProjectToClassTimes[it.name] = emptyList()
+            }
+        }
 
         val subProjectTestClassTimes: List<SubprojectTestClassTime> = subProjectToClassTimes
             .entries
