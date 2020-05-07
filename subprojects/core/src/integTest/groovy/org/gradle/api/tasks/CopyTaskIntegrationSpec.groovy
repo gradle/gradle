@@ -1975,7 +1975,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         given:
         buildScript '''
             task (copy, type:Copy) {
-               caseSensitive = providers.systemProperty('case-sensitive').present
+               caseSensitive = providers.systemProperty('case-sensitive').forUseAtConfigurationTime().present
                from 'src'
                into 'dest'
                include '**/sub/**'
@@ -2109,7 +2109,7 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
         buildScript """
             task (copy, type:Copy) {
                from ('src') {
-                  def newValue = providers.systemProperty('new-value').present
+                  def newValue = providers.systemProperty('new-value').forUseAtConfigurationTime().present
                   $property = newValue ? $newValue : $oldValue
                }
                into 'dest'

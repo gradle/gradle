@@ -45,8 +45,8 @@ public interface ValueSourceProviderFactory {
 
     <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        Class<P> parametersType,
-        P parameters
+        @Nullable Class<P> parametersType,
+        @Nullable P parameters
     );
 
     interface Listener {

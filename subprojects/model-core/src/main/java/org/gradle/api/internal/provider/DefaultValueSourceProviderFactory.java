@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.internal.properties.GradleProperties;
@@ -44,18 +45,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
     private final GradleProperties gradleProperties;
+    private final ConfigurationTimeBarrier configurationTimeBarrier;
     private final AnonymousListenerBroadcast<Listener> broadcaster;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
     private final InstanceGenerator paramsInstantiator;
     private final InstanceGenerator specInstantiator;
 
     public DefaultValueSourceProviderFactory(
+        ConfigurationTimeBarrier configurationTimeBarrier,
         ListenerManager listenerManager,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         GradleProperties gradleProperties,
         ServiceLookup services
     ) {
+        this.configurationTimeBarrier = configurationTimeBarrier;
         this.broadcaster = listenerManager.createAnonymousBroadcaster(ValueSourceProviderFactory.Listener.class);
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
@@ -67,7 +71,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     @Override
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
-
         try {
             Class<P> parametersType = extractParametersTypeOf(valueSourceType);
             P parameters = parametersType != null
@@ -97,14 +100,21 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     @Override
     @NotNull
-    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(Class<? extends ValueSource<T, P>> valueSourceType, Class<P> parametersType, P parameters) {
-        return new ValueSourceProvider<>(valueSourceType, parametersType, parameters);
+    public <T, P extends ValueSourceParameters> Provider<T> instantiateValueSourceProvider(
+        Class<? extends ValueSource<T, P>> valueSourceType,
+        @Nullable Class<P> parametersType,
+        @Nullable P parameters
+    ) {
+        return new NonConfigurationTimeProvider<>(
+            configurationTimeBarrier,
+            new LazilyObtainedValue<>(valueSourceType, parametersType, parameters)
+        );
     }
 
     @NotNull
     public <T, P extends ValueSourceParameters> ValueSource<T, P> instantiateValueSource(
         Class<? extends ValueSource<T, P>> valueSourceType,
-        Class<P> parametersType,
+        @Nullable Class<P> parametersType,
         @Nullable P isolatedParameters
     ) {
         DefaultServiceRegistry services = new DefaultServiceRegistry();
@@ -130,6 +140,16 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
             parameters
         ));
         configureAction.execute(valueSourceSpec);
+    }
+
+    @Nullable
+    private <P extends ValueSourceParameters> P isolateParameters(P parameters) {
+        // TODO - consider if should hold the project lock to do the isolation
+        return isolatableFactory.isolate(parameters).isolate();
+    }
+
+    private <T, P extends ValueSourceParameters> void valueObtained(DefaultObtainedValue<T, P> obtainedValue) {
+        broadcaster.getSource().valueObtained(obtainedValue);
     }
 
     private String couldNotCreateProviderOf(Class<?> valueSourceType) {
@@ -159,41 +179,86 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    public class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
+    private static class NonConfigurationTimeProvider<T, P extends ValueSourceParameters>
+        extends ValueSourceProvider<T, P> {
 
-        private final Class<? extends ValueSource<T, P>> valueSourceType;
-        private final Class<P> parametersType;
-        private final P parameters;
+        private ConfigurationTimeBarrier configurationTimeBarrier;
 
-        @Nullable
-        private Try<T> value = null;
+        public NonConfigurationTimeProvider(ConfigurationTimeBarrier configurationTimeBarrier, LazilyObtainedValue<T, P> value) {
+            super(value);
+            this.configurationTimeBarrier = configurationTimeBarrier;
+        }
 
-        public ValueSourceProvider(
-            Class<? extends ValueSource<T, P>> valueSourceType,
-            Class<P> parametersType,
-            P parameters
-        ) {
-            this.valueSourceType = valueSourceType;
-            this.parametersType = parametersType;
-            this.parameters = parameters;
+        @Override
+        protected void vetoAtConfigurationTime() {
+            if (configurationTimeBarrier.isAtConfigurationTime()) {
+                throw new IllegalStateException(cannotObtainValueAtConfigurationTime());
+            }
+        }
+
+        @Override
+        public Provider<T> forUseAtConfigurationTime() {
+            return new ConfigurationTimeProvider<>(value);
+        }
+
+        private String cannotObtainValueAtConfigurationTime() {
+            TreeFormatter message = new TreeFormatter();
+            message.node("Cannot obtain value from provider of ");
+            if (Describable.class.isAssignableFrom(value.sourceType)) {
+                message.append(((Describable) value.source()).getDisplayName());
+            } else {
+                message.appendType(value.sourceType);
+            }
+            return message
+                .append(" at configuration time.")
+                .node("Use a provider returned by 'forUseAtConfigurationTime()' instead.")
+                .toString();
+        }
+    }
+
+    private static class ConfigurationTimeProvider<T, P extends ValueSourceParameters>
+        extends ValueSourceProvider<T, P> {
+
+        public ConfigurationTimeProvider(LazilyObtainedValue<T, P> value) {
+            super(value);
+        }
+
+        @Override
+        protected void vetoAtConfigurationTime() {
+        }
+
+        @Override
+        public Provider<T> forUseAtConfigurationTime() {
+            return this;
+        }
+    }
+
+    public abstract static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
+
+        protected final LazilyObtainedValue<T, P> value;
+
+        public ValueSourceProvider(LazilyObtainedValue<T, P> value) {
+            this.value = value;
         }
 
         public Class<? extends ValueSource<T, P>> getValueSourceType() {
-            return valueSourceType;
+            return value.sourceType;
         }
 
+        @Nullable
         public Class<P> getParametersType() {
-            return parametersType;
+            return value.parametersType;
         }
 
+        @Nullable
         public P getParameters() {
-            return parameters;
+            return value.parameters;
         }
 
         @Override
         public ValueProducer getProducer() {
             // For now, assume value is never calculated from a task output
-            if (value != null) {
+            if (value.hasBeenObtained()) {
                 return ValueProducer.unknown();
             } else {
                 return ValueProducer.externalValue();
@@ -207,7 +272,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
         @Nullable
         public Try<T> getObtainedValueOrNull() {
-            return value;
+            return value.value;
         }
 
         @Nullable
@@ -217,50 +282,81 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         @Override
-        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
-            synchronized (this) {
-                if (value == null) {
-
-                    // TODO - add more information to exception
-                    value = Try.ofFailable(() -> obtainValueFromSource());
-
-                    onValueObtained();
-                }
-                return Value.ofNullable(value.get());
-            }
-        }
-
-        @Override
         public ExecutionTimeValue<T> calculateExecutionTimeValue() {
-            if (value != null) {
-                return ExecutionTimeValue.ofNullable(value.get());
+            if (value.hasBeenObtained()) {
+                return ExecutionTimeValue.ofNullable(value.obtain().get());
             } else {
                 return ExecutionTimeValue.changingValue(this);
             }
         }
 
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            vetoAtConfigurationTime();
+            return Value.ofNullable(value.obtain().get());
+        }
+
+        protected abstract void vetoAtConfigurationTime();
+    }
+
+    private class LazilyObtainedValue<T, P extends ValueSourceParameters> {
+
+        public final Class<? extends ValueSource<T, P>> sourceType;
+
         @Nullable
-        private T obtainValueFromSource() {
+        public final Class<P> parametersType;
+
+        @Nullable
+        public final P parameters;
+
+        @Nullable
+        private volatile Try<T> value = null;
+
+        private LazilyObtainedValue(
+            Class<? extends ValueSource<T, P>> sourceType,
+            @Nullable Class<P> parametersType,
+            @Nullable P parameters
+        ) {
+            this.sourceType = sourceType;
+            this.parametersType = parametersType;
+            this.parameters = parameters;
+        }
+
+        public boolean hasBeenObtained() {
+            return value != null;
+        }
+
+        public Try<T> obtain() {
+            boolean obtainedValue = false;
+            synchronized (this) {
+                if (value == null) {
+                    // TODO - add more information to exception
+                    value = Try.ofFailable(() -> source().obtain());
+                    obtainedValue = true;
+                }
+            }
+            if (obtainedValue) {
+                valueObtained(obtainedValue());
+            }
+            return value;
+        }
+
+        @NotNull
+        private ValueSource<T, P> source() {
             return instantiateValueSource(
-                valueSourceType,
+                sourceType,
                 parametersType,
-                isolateParameters()
-            ).obtain();
+                isolateParameters(parameters)
+            );
         }
 
-        private P isolateParameters() {
-            // TODO - consider if should hold the project lock to do the isolation
-            return isolatableFactory.isolate(parameters).isolate();
-        }
-
-        private void onValueObtained() {
-            broadcaster.getSource().valueObtained(
-                new DefaultObtainedValue<>(
-                    value,
-                    valueSourceType,
-                    parametersType,
-                    parameters
-                )
+        @NotNull
+        private DefaultObtainedValue<T, P> obtainedValue() {
+            return new DefaultObtainedValue<>(
+                value,
+                sourceType,
+                parametersType,
+                parameters
             );
         }
     }

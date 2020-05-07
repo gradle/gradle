@@ -34,7 +34,9 @@ abstract class ValueSourceBasedSpec extends Specification {
         null,
         TestUtil.managedFactoryRegistry()
     )
+    def configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
     def valueSourceProviderFactory = new DefaultValueSourceProviderFactory(
+        configurationTimeBarrier,
         listenerManager,
         TestUtil.instantiatorFactory(),
         isolatableFactory,
