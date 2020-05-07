@@ -23,6 +23,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.options.Option;
@@ -38,7 +39,6 @@ import org.gradle.buildinit.plugins.internal.modifiers.Language;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import javax.annotation.Nullable;
-import javax.inject.Inject;
 import java.util.Collection;
 import java.util.List;
 
@@ -59,10 +59,14 @@ public class InitBuild extends DefaultTask {
     private UserInputHandler inputHandler;
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
 
-    @Inject
-    public InitBuild(ProviderFactory providerFactory, ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        this.providerFactory = providerFactory;
-        this.projectLayoutRegistry = projectLayoutRegistry;
+    public InitBuild() {
+        this.providerFactory = getProject().getProviders();
+        this.projectLayoutRegistry = getServices().get(ProjectLayoutSetupRegistry.class);
+    }
+
+    @Internal
+    public ProjectLayoutSetupRegistry getProjectLayoutRegistry() {
+        return projectLayoutRegistry;
     }
 
     /**
@@ -126,98 +130,17 @@ public class InitBuild extends DefaultTask {
 
     @TaskAction
     public void setupProjectLayout() {
-        this.inputHandler = getServices().get(UserInputHandler.class); // can't inject in constructor - instant execution breaks
+        this.inputHandler = getServices().get(UserInputHandler.class);
 
-        BuildInitializer initDescriptor = determineBuildType();
-        BuildInitDsl dsl = determineDsl(initDescriptor);
-        BuildInitTestFramework testFramework = determineTestFramework(initDescriptor);
-        String projectName = determineProjectName(initDescriptor);
-        String packageName = determinePackageName(initDescriptor, projectName);
+        BuildInitializer initDescriptor = provideBuildType().get();
+        BuildInitDsl dsl = provideDsl(initDescriptor).get();
+        BuildInitTestFramework testFramework = provideTestFramework(initDescriptor).getOrNull();
+        String projectName = provideProjectName(initDescriptor).get();
+        String packageName = providePackageName(initDescriptor, projectName).get();
 
         initDescriptor.generate(new InitSettings(projectName, dsl, packageName, testFramework));
 
         initDescriptor.getFurtherReading().ifPresent(link -> getLogger().lifecycle("Get more help with your project: {}", link));
-    }
-
-    private BuildInitializer determineBuildType() {
-        return type.map(t -> projectLayoutRegistry.get(t)).orElse(providerFactory.provider(() -> {
-            BuildConverter converter = projectLayoutRegistry.getBuildConverter();
-            if (converter.canApplyToCurrentDirectory()) {
-                if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
-                    return converter;
-                }
-            }
-
-            ComponentType componentType = provideInteractive("Select type of project to generate", projectLayoutRegistry.getComponentTypes(), projectLayoutRegistry.getDefault().getComponentType()).get();
-            List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
-            if (languages.size() == 1) {
-                return projectLayoutRegistry.get(componentType, languages.get(0));
-            }
-
-            if (!languages.contains(Language.JAVA)) {
-                // Not yet implemented
-                throw new UnsupportedOperationException();
-            }
-            Language language = provideInteractive("Select implementation language", languages, Language.JAVA).get();
-            return projectLayoutRegistry.get(componentType, language);
-        })).get();
-    }
-
-    private BuildInitDsl determineDsl(BuildInitializer initDescriptor) {
-        return dsl.map(dslName -> {
-            BuildInitDsl buildInitDsl = BuildInitDsl.fromName(dslName);
-            if (!initDescriptor.getDsls().contains(buildInitDsl)) {
-                throw new GradleException("The requested DSL '" + buildInitDsl.getId() + "' is not supported for '" + initDescriptor.getId() + "' build type");
-            }
-            return buildInitDsl;
-        }).orElse(provideInteractive("Select build script DSL", initDescriptor.getDsls(), initDescriptor.getDefaultDsl()))
-            .getOrElse(BuildInitDsl.fromName(getDsl()));
-    }
-
-    private BuildInitTestFramework determineTestFramework(BuildInitializer initDescriptor) {
-        return testFramework.map(frameworkName -> {
-            BuildInitTestFramework buildInitTestFramework = BuildInitTestFramework.fromName(frameworkName);
-            if (buildInitTestFramework != BuildInitTestFramework.NONE && initDescriptor.getTestFrameworks().contains(buildInitTestFramework)) {
-                return buildInitTestFramework;
-            }
-
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
-            formatter.startChildren();
-            for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
-                formatter.node("'" + framework.getId() + "'");
-            }
-            formatter.endChildren();
-            throw new GradleException(formatter.toString());
-        }).orElse(provideInteractive("Select test framework", initDescriptor.getTestFrameworks(), initDescriptor.getDefaultTestFramework()))
-            .getOrNull();
-    }
-
-    private String determineProjectName(BuildInitializer initDescriptor) {
-        if (!initDescriptor.supportsProjectName() && projectName.isPresent()) {
-            throw new GradleException("Project name is not supported for '" + initDescriptor.getId() + "' build type.");
-        }
-        return projectName.orElse(provideInteractive("Project name", getProjectName())).get();
-    }
-
-    private String determinePackageName(BuildInitializer initDescriptor, String projectName) {
-        if (!initDescriptor.supportsPackage() && packageName.isPresent()) {
-            throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
-        }
-        return packageName.orElse(provideInteractive("Source package", toPackageName(projectName))).get();
-    }
-
-    private Provider<String> provideInteractive(String prompt, String defaultValue) {
-        return providerFactory.provider(() -> inputHandler.askQuestion(prompt, defaultValue));
-    }
-
-    private <T> Provider<T> provideInteractive(String prompt, Collection<T> options, T defaultValue) {
-        return providerFactory.provider(() -> {
-            if (options.size() > 1) {
-                return inputHandler.selectOption(prompt, options, defaultValue);
-            }
-            return defaultValue;
-        });
     }
 
     @Option(option = "type", description = "Set the type of project to generate.")
@@ -291,6 +214,88 @@ public class InitBuild extends DefaultTask {
 
     void setProjectLayoutRegistry(ProjectLayoutSetupRegistry projectLayoutRegistry) {
         this.projectLayoutRegistry = projectLayoutRegistry;
+    }
+
+    private Provider<BuildInitializer> provideBuildType() {
+        return type.map(t -> projectLayoutRegistry.get(t)).orElse(providerFactory.provider(() -> {
+            BuildConverter converter = projectLayoutRegistry.getBuildConverter();
+            if (converter.canApplyToCurrentDirectory()) {
+                if (inputHandler.askYesNoQuestion("Found a " + converter.getSourceBuildDescription() + " build. Generate a Gradle build from this?", true)) {
+                    return converter;
+                }
+            }
+
+            ComponentType componentType = selectInteractive("Select type of project to generate",
+                projectLayoutRegistry.getComponentTypes(), projectLayoutRegistry.getDefault().getComponentType());
+            List<Language> languages = projectLayoutRegistry.getLanguagesFor(componentType);
+            if (languages.size() != 1 && !languages.contains(Language.JAVA)) {
+                // Not yet implemented
+                throw new UnsupportedOperationException();
+            }
+            Language language = selectInteractive("Select implementation language", languages, Language.JAVA);
+            return projectLayoutRegistry.get(componentType, language);
+        }));
+    }
+
+    private Provider<BuildInitDsl> provideDsl(BuildInitializer initDescriptor) {
+        return dsl.map(dslName -> {
+            BuildInitDsl buildInitDsl = BuildInitDsl.fromName(dslName);
+            if (!initDescriptor.getDsls().contains(buildInitDsl)) {
+                throw new GradleException("The requested DSL '" + buildInitDsl.getId() + "' is not supported for '" + initDescriptor.getId() + "' build type");
+            }
+            return buildInitDsl;
+        }).orElse(provideInteractive("Select build script DSL", initDescriptor.getDsls(), initDescriptor.getDefaultDsl()))
+            .orElse(providerFactory.provider(() -> BuildInitDsl.fromName(getDsl())));
+    }
+
+    private Provider<BuildInitTestFramework> provideTestFramework(BuildInitializer initDescriptor) {
+        return testFramework.map(frameworkName -> {
+            BuildInitTestFramework buildInitTestFramework = BuildInitTestFramework.fromName(frameworkName);
+            if (buildInitTestFramework != BuildInitTestFramework.NONE && initDescriptor.getTestFrameworks().contains(buildInitTestFramework)) {
+                return buildInitTestFramework;
+            }
+
+            TreeFormatter formatter = new TreeFormatter();
+            formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
+            formatter.startChildren();
+            for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks()) {
+                formatter.node("'" + framework.getId() + "'");
+            }
+            formatter.endChildren();
+            throw new GradleException(formatter.toString());
+        }).orElse(provideInteractive("Select test framework", initDescriptor.getTestFrameworks(), initDescriptor.getDefaultTestFramework()));
+    }
+
+    private Provider<String> provideProjectName(BuildInitializer initDescriptor) {
+        if (!initDescriptor.supportsProjectName() && projectName.isPresent()) {
+            throw new GradleException("Project name is not supported for '" + initDescriptor.getId() + "' build type.");
+        }
+        return projectName.orElse(provideInteractive("Project name", getProjectName()));
+    }
+
+    private Provider<String> providePackageName(BuildInitializer initDescriptor, String projectName) {
+        if (!initDescriptor.supportsPackage() && packageName.isPresent()) {
+            throw new GradleException("Package name is not supported for '" + initDescriptor.getId() + "' build type.");
+        }
+        return packageName.orElse(provideInteractive("Source package", toPackageName(projectName)));
+    }
+
+    private Provider<String> provideInteractive(String prompt, String defaultValue) {
+        return providerFactory.provider(() -> inputHandler.askQuestion(prompt, defaultValue));
+    }
+
+    private <T> Provider<T> provideInteractive(String prompt, Collection<T> options, T defaultValue) {
+        return providerFactory.provider(() -> selectInteractive(prompt, options, defaultValue));
+    }
+
+    private <T> T selectInteractive(String prompt, Collection<T> options, T defaultValue) {
+        if (options.size() == 1) {
+            return options.iterator().next();
+        }
+        if (options.size() > 1) {
+            return inputHandler.selectOption(prompt, options, defaultValue);
+        }
+        return defaultValue;
     }
 
     private String detectType() {
