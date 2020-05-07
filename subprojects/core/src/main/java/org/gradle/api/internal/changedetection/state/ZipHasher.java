@@ -44,6 +44,7 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -244,7 +245,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     private HashCode hashProperties(byte[] entryBytes) throws IOException {
         Hasher hasher = Hashing.newHasher();
         Properties properties = new Properties();
-        properties.load(new ByteArrayInputStream(entryBytes));
+        properties.load(new InputStreamReader(new ByteArrayInputStream(entryBytes), new PropertyResourceBundleCharsetBackport(false)));
         Map<String, String> entries = Maps.fromProperties(properties);
         entries
             .entrySet()

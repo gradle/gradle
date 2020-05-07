@@ -36,7 +36,7 @@ class ZipHasherTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
     ResourceEntryFilter manifestResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
-    ResourceEntryFilter propertyResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by"))
+    ResourceEntryFilter propertyResourceFilter = new IgnoringResourceEntryFilter(ImmutableSet.copyOf("created-by", "पशुपतिरपि"))
     ZipHasher zipHasher = new ZipHasher(new RuntimeClasspathResourceHasher(), ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING)
     ZipHasher ignoringZipHasher = new ZipHasher(new RuntimeClasspathResourceHasher(), ResourceFilter.FILTER_NOTHING, manifestResourceFilter, propertyResourceFilter)
 
@@ -238,6 +238,35 @@ class ZipHasherTest extends Specification {
 
         def jarfile2 = tmpDir.file("test2.jar")
         createJarWithBuildInfo(jarfile2, ["created-by": "1.8.0_232-b15 (Azul Systems, Inc.)", "foo": "true"], "Build information 1.1")
+
+        def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
+        def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
+
+        expect:
+        hash1 == hash2
+    }
+
+    def "manifest properties may be UTF-8"() {
+        given:
+        def jarfile = tmpDir.file("test.jar")
+        def manifest = new Manifest()
+        def attributes = manifest.getMainAttributes()
+        attributes.put(Attributes.Name.MANIFEST_VERSION, "1.0")
+
+        def jarOutput = new JarOutputStream(jarfile.newOutputStream(), manifest);
+        def jarEntry = new JarEntry("META-INF/build-info.properties")
+        jarOutput.putNextEntry(jarEntry)
+        new PrintWriter(jarOutput).withWriter {
+            it.write("""
+created-by=1.8.0_232-b15 (Azul Systems, Inc.)
+पशुपतिरपि=Some random Sanskrit as a key that's ignored
+तान्यहानि=Some more random Sanskrit that's not ignored
+""")
+        }
+        jarOutput.close()
+
+        def jarfile2 = tmpDir.file("test2.jar")
+        createJarWithBuildInfo(jarfile2, ["created-by": "1.8.0_232-b15 (Azul Systems, Inc.)", "तान्यहानि" : "Some more random Sanskrit that's not ignored"])
 
         def hash1 = ignoringZipHasher.hash(snapshot(jarfile))
         def hash2 = ignoringZipHasher.hash(snapshot(jarfile2))
