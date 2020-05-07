@@ -28,7 +28,8 @@ public class FeaturePreviews {
     public enum Feature {
         GRADLE_METADATA(false),
         GROOVY_COMPILATION_AVOIDANCE(true),
-        ONE_LOCKFILE_PER_PROJECT(true);
+        ONE_LOCKFILE_PER_PROJECT(true),
+        DEPENDENCY_VERSION_SORTING(true);
 
         public static Feature withName(String name) {
             try {

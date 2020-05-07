@@ -18,13 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
 import org.gradle.api.internal.FeaturePreviews
 
-class DefaultVersionComparatorTest extends AbstractDefaultVersionComparatorTest {
+class DefaultVersionComparatorWithUpdateKeywordsTest extends AbstractDefaultVersionComparatorTest {
 
     def setup() {
-        comparator = new DefaultVersionComparator(new FeaturePreviews())
+        def previews = new FeaturePreviews()
+        previews.enableFeature(FeaturePreviews.Feature.DEPENDENCY_VERSION_SORTING)
+        comparator = new DefaultVersionComparator(previews)
     }
 
-    def 'does not consider snapshot, ga or sp special'() {
+    def "extends special qualifier treatment to snapshot, ga and sp"() {
         expect:
         compare(smaller, larger) < 0
         compare(larger, smaller) > 0
@@ -32,12 +34,14 @@ class DefaultVersionComparatorTest extends AbstractDefaultVersionComparatorTest 
         compare(larger, larger) == 0
 
         where:
-        smaller | larger
-        "1.0-snapshot" | "1.0-rc"
+        smaller        | larger
+        "1.0-rc"       | "1.0-snapshot"
         "1.0-snapshot" | "1.0-release"
-        "1.0-sp1"      | "1.0-release-1"
+        "1.0-release"  | "1.0-sp1"
         "1.0-snapshot" | "1.0-final"
-        "1.0-ga"       | "1.0-snapshot"
-
+        "1.0-snapshot" | "1.0-ga"
+        "1.0-sp"       | "1.0"
+        "1.0-sp1"      | "1.0"
     }
+
 }
