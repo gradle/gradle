@@ -5,7 +5,7 @@ plugins {
 defaultTasks 'run'
 
 // tag::run[]
-task run {
+tasks.register('run') {
     dependsOn gradle.includedBuild('my-app').task(':run')
 }
 // end::run[]
