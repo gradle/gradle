@@ -64,8 +64,11 @@ public class Instrumented {
 
     // Called by generated code.
     public static String systemProperty(String key, String defaultValue, String consumer) {
-        String value = System.getProperty(key, defaultValue);
+        String value = System.getProperty(key);
         LISTENER.get().systemPropertyQueried(key, value, consumer);
+        if (value == null) {
+            return defaultValue;
+        }
         return value;
     }
 
@@ -133,11 +136,6 @@ public class Instrumented {
         @Override
         public Set<Map.Entry<Object, Object>> entrySet() {
             return delegate.entrySet();
-        }
-
-        @Override
-        public Object getOrDefault(Object key, Object defaultValue) {
-            return delegate.getOrDefault(key, defaultValue);
         }
 
         @Override
@@ -239,9 +237,17 @@ public class Instrumented {
 
         @Override
         public String getProperty(String key, String defaultValue) {
-            String value = delegate.getProperty(key, defaultValue);
+            String value = delegate.getProperty(key);
             LISTENER.get().systemPropertyQueried(key, value, consumer);
+            if (value == null) {
+                return defaultValue;
+            }
             return value;
+        }
+
+        @Override
+        public Object getOrDefault(Object key, Object defaultValue) {
+            return getProperty((String) key, (String) defaultValue);
         }
 
         @Override

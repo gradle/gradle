@@ -46,7 +46,7 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
     }
 
     @Unroll
-    def "build logic can read system property with no value without declaring access"() {
+    def "build logic can read system property with no value without declaring access and fails when value set using #mechanism.description"() {
         file("buildSrc/src/main/java/SneakyPlugin.java") << """
             import ${Project.name};
             import ${Plugin.name};
@@ -84,6 +84,48 @@ class UndeclaredBuildInputsIntegrationTest extends AbstractInstantExecutionInteg
 
         where:
         mechanism << SystemPropertyInjection.all("CI", "false")
+    }
+
+    def "build logic can read system property with a default without declaring access"() {
+        file("buildSrc/src/main/java/SneakyPlugin.java") << """
+            import ${Project.name};
+            import ${Plugin.name};
+
+            public class SneakyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    System.out.println("CI = " + System.getProperty("CI", "false"));
+                }
+            }
+        """
+        buildFile << """
+            apply plugin: SneakyPlugin
+        """
+        def fixture = newInstantExecutionFixture()
+
+        when:
+        instantRun()
+
+        then:
+        outputContains("CI = false")
+
+        when:
+        instantRun()
+
+        then:
+        fixture.assertStateLoaded()
+        noExceptionThrown()
+
+        when:
+        instantFails("-DCI=false") // use the default value
+
+        then:
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
+
+        when:
+        instantFails("-DCI=true")
+
+        then:
+        failure.assertThatDescription(containsNormalizedString("- unknown location: read system property 'CI' from '"))
     }
 
     @Unroll
