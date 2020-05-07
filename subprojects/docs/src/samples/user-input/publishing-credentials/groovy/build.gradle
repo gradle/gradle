@@ -1,0 +1,49 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+version = '1.0.2'
+group = 'com.example'
+
+def MAVEN_USERNAME_PROPERTY = 'mavenUser'
+def MAVEN_PASSWORD_PROPERTY = 'mavenPassword'
+def mavenUser = project.providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
+def mavenPassword = project.providers.gradleProperty(MAVEN_PASSWORD_PROPERTY)
+
+publishing {
+    publications {
+        library(MavenPublication) {
+            from components.java
+        }
+    }
+    repositories {
+        maven {
+            name = 'mySecure'
+            url = uri(com.example.MavenHttpRepository.address())
+            credentials {
+                username = mavenUser.orNull
+                password = mavenPassword.orNull
+            }
+        }
+    }
+}
+
+tasks.named('publishLibraryPublicationToMySecureRepository') {
+    doFirst {
+        if (!mavenUser.present || !mavenPassword.present) {
+            throw new GradleException(String.format("Publishing requires '%s' and '%s' properties",
+                MAVEN_USERNAME_PROPERTY, MAVEN_PASSWORD_PROPERTY))
+        }
+    }
+}
+
+tasks.named('publishLibraryPublicationToMySecureRepository') {
+    doFirst {
+        com.example.MavenHttpRepository.start()
+    }
+    doLast {
+        com.example.MavenHttpRepository.stop()
+    }
+}
+

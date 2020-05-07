@@ -8,7 +8,6 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GFileUtils;
 
 import java.io.IOException;
 import java.nio.file.Files;

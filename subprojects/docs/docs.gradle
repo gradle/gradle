@@ -469,6 +469,17 @@ samples {
                 from(sampleDirectory.dir("common"))
             }
         }
+
+        publishingCredentials {
+            sampleDirectory = samplesRoot.dir("user-input/publishing-credentials")
+            description = "Provide credentials to a publishing task."
+            category = "User input"
+            common {
+                from(sampleDirectory.dir("common"))
+                from(templates.javaListLibrary)
+                from(templates.javaUtilitiesLibrary)
+            }
+        }
     }
 }
 
