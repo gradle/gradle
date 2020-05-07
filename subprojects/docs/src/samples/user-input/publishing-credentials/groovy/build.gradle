@@ -6,6 +6,7 @@ plugins {
 version = '1.0.2'
 group = 'com.example'
 
+// tag::publication[]
 def MAVEN_USERNAME_PROPERTY = 'mavenUser'
 def MAVEN_PASSWORD_PROPERTY = 'mavenPassword'
 def mavenUser = project.providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
@@ -20,7 +21,7 @@ publishing {
     repositories {
         maven {
             name = 'mySecure'
-            url = uri(com.example.MavenHttpRepository.address())
+            url = uri(com.example.MavenRepositoryStub.address())
             credentials {
                 username = mavenUser.orNull
                 password = mavenPassword.orNull
@@ -28,7 +29,9 @@ publishing {
         }
     }
 }
+// end::publication[]
 
+// tag::validation[]
 tasks.named('publishLibraryPublicationToMySecureRepository') {
     doFirst {
         if (!mavenUser.present || !mavenPassword.present) {
@@ -37,13 +40,14 @@ tasks.named('publishLibraryPublicationToMySecureRepository') {
         }
     }
 }
+// end::validation[]
 
 tasks.named('publishLibraryPublicationToMySecureRepository') {
     doFirst {
-        com.example.MavenHttpRepository.start()
+        com.example.MavenRepositoryStub.start()
     }
     doLast {
-        com.example.MavenHttpRepository.stop()
+        com.example.MavenRepositoryStub.stop()
     }
 }
 
