@@ -40,6 +40,8 @@ class FunctionalTest(
     if (name.contains("(instantExecution)")) {
         requirements {
             doesNotContain("teamcity.agent.name", "ec2")
+            // US region agents have name "EC2-XXX"
+            doesNotContain("teamcity.agent.name", "EC2")
         }
     }
 
