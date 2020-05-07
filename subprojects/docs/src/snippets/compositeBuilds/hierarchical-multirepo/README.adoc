@@ -1,20 +1,21 @@
-# Using composite builds in a hierarchical multirepo project
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+= Using composite builds in a hierarchical multirepo project
 
 This sample demonstrates how composite builds can be used to develop a hierarchical project that is composed from different Git repositories. Instead of Gradle subprojects in a multiproject build, this example uses separate Gradle builds included into a composite.
 
 In addition to the benefits of a multirepo architecture, using a Gradle composite build in this way allows a developer to easily choose which modules to develop as source dependencies and which to integrate via a binary repository.
 
-### Running `multirepo-app` with dependencies from included builds
+== Running `multirepo-app` with dependencies from included builds
 
-In the first instance, all of the required dependencies are present as builds in the `modules` directory. In a real-world example, these could well be clones of different Git repositories. 
+In the first instance, all of the required dependencies are present as builds in the `modules` directory. In a real-world example, these could well be clones of different Git repositories.
 
 In order to avoid hard-coding the included builds to load, the `settings.gradle` file in `multirepo-app` loads each of these builds dynamically:
 
-```
-file('modules').listFiles().each { File moduleBuild ->
-    includeBuild moduleBuild
-}
-```
+====
+include::sample[dir="groovy",files="settings.gradle[tags=include_builds]"]
+include::sample[dir="kotlin",files="settings.gradle.kts[tags=include_builds]"]
+====
 
 When the `multirepo-app` build is executed, these module builds are used to generate the dependent artifacts:
 
@@ -28,8 +29,6 @@ And the 'dependencies' report shows the dependency substitution in action:
 gradle dependencies --configuration runtimeClasspath
 ```
 
->>>
-
 ```
 runtimeClasspath - Runtime classpath of source set 'main'.
 +--- org.sample:number-utils:1.0 -> project :number-utils
@@ -37,11 +36,11 @@ runtimeClasspath - Runtime classpath of source set 'main'.
      \--- org.apache.commons:commons-lang3:3.4
 ```
 
-### Switching to use binary dependency
+== Switching to use binary dependency
 
 As long as the modules are available in a binary repository, the `multirepo-app` build will continue to work even if you don't have some modules available locally. In this case Gradle will use a binary dependency downloaded from a repository instead.
 
-#### Preparing the binary repository
+=== Preparing the binary repository
 
 To demonstrate this functionality, we first need to publish each module to a binary repository. In this case we use a local file repository for this purpose:
 
@@ -51,13 +50,12 @@ gradle :publishDeps
 
 The `publishDeps` creates and uploads the artifacts for each included build. It is defined in `multirepo-app` as follows:
 
-```
-task publishDeps {
-    dependsOn gradle.includedBuilds*.task(':publishIvyPublicationToIvyRepository')
-}
-```
+====
+include::sample[dir="groovy",files="build.gradle[tags=publishDeps]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=publishDeps]"]
+====
 
-#### Removing the local module source
+=== Removing the local module source
 
 With module artifacts available in a repository, we can now remove the module sources from the build. Since the composite is configured to automatically load available modules, this is as easy as deleting one or more module directories.
 
@@ -74,8 +72,6 @@ The 'dependencies' report shows the dependency substitution in action:
 gradle dependencies --configuration runtimeClasspath
 ```
 
->>>
-
 ```
 runtimeClasspath - Runtime classpath of source set 'main'.
 +--- org.sample:number-utils:1.0 -> project :number-utils
@@ -83,7 +79,7 @@ runtimeClasspath - Runtime classpath of source set 'main'.
      \--- org.apache.commons:commons-lang3:3.4
 ```
 
-### Including an external library as a submodule
+== Including an external library as a submodule
 
 The power of this configuration can be demonstrated by adding the external 'commons-lang' build directly to the composite.
 

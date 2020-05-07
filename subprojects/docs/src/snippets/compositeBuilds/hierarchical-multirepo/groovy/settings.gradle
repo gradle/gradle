@@ -1,5 +1,6 @@
 rootProject.name = 'multirepo-app'
-
+// tag::include_builds[]
 file('modules').listFiles().each { File moduleBuild ->
     includeBuild moduleBuild
 }
+// end::include_builds[]

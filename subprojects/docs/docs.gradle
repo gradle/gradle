@@ -507,7 +507,6 @@ samples {
             sampleDirectory = file("src/snippets/compositeBuilds/hierarchical-multirepo")
             description = "Using composite builds in a hierarchical multirepo project"
             category = "Build organization"
-            readmeFile = file("src/snippets/compositeBuilds/hierarchical-multirepo/README.md")
         }
 
         compositeBuildsPluginDevelopment {
