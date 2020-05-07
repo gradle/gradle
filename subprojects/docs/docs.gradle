@@ -519,3 +519,7 @@ configurations {
         outgoing.artifact(file("src/docs/README"))
     }
 }
+
+tasks.register('integTest') {
+    dependsOn(tasks.named('docsTest'))
+}
