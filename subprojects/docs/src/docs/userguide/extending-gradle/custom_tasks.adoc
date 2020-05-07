@@ -525,6 +525,8 @@ include::sample[dir="snippets/workerApi/workerDaemon/kotlin",files="build.gradle
 
 When a unit of work for a Worker Daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists. If so, it will send the unit of work to the idle daemon, marking it as busy. If not, it will start a new daemon. When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions-org.gradle.api.Action-[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
 
+By default, a worker daemon starts with a maximum heap of 512MB. This can be changed by adjusting the workers fork options.
+
 executable::
 A daemon is considered compatible only if it uses the same java executable.
 classpath::

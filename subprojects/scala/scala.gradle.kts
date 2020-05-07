@@ -35,6 +35,7 @@ dependencies {
     implementation(project(":plugins"))
     implementation(project(":reporting"))
     implementation(project(":dependencyManagement"))
+    implementation(project(":processServices"))
 
     implementation(library("groovy"))
     implementation(library("guava"))
@@ -42,7 +43,6 @@ dependencies {
 
     testImplementation(project(":baseServicesGroovy"))
     testImplementation(project(":files"))
-    testImplementation(project(":processServices"))
     testImplementation(project(":resources"))
     testImplementation(library("slf4j_api"))
     testImplementation(library("commons_io"))
