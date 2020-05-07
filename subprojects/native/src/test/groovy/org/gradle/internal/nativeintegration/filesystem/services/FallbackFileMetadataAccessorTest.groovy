@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.util.UsesNativeServices
 
@@ -26,7 +27,7 @@ class FallbackFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest 
     }
 
     @Override
-    long lastModified(File file) {
-        return file.lastModified()
+    boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
+        return metadataSnapshot.lastModified == file.lastModified()
     }
 }

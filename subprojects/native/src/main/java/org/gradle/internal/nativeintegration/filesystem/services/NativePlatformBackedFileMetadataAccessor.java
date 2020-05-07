@@ -16,15 +16,14 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 
 public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAccessor {
     private final Files files;
@@ -35,21 +34,21 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
 
     @Override
     public FileMetadataSnapshot stat(File f) {
-        FileInfo stat = files.stat(f, true);
-        switch (stat.getType()) {
-            case File:
-                return DefaultFileMetadata.file(stat.getLastModifiedTime(), stat.getSize());
-            case Directory:
-                return DefaultFileMetadata.directory();
-            case Missing:
-                return DefaultFileMetadata.missing();
-            default:
-                throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
+        try {
+            FileInfo stat = files.stat(f, true);
+            switch (stat.getType()) {
+                case File:
+                    return DefaultFileMetadataSnapshot.file(stat.getLastModifiedTime(), stat.getSize());
+                case Directory:
+                    return DefaultFileMetadataSnapshot.directory();
+                case Missing:
+                case Other:
+                    return DefaultFileMetadataSnapshot.missing();
+                default:
+                    throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
+            }
+        } catch (NativeException e) {
+            return DefaultFileMetadataSnapshot.missing();
         }
-    }
-
-    @Override
-    public FileMetadataSnapshot stat(Path path) throws IOException {
-        return stat(path.toFile());
     }
 }

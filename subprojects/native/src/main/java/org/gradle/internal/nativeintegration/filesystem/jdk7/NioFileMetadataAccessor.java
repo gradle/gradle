@@ -15,38 +15,30 @@
  */
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
-import org.gradle.internal.file.FileType;
-import org.gradle.internal.file.impl.DefaultFileMetadata;
+import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
+@SuppressWarnings("Since15")
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File f) {
         try {
-            return stat(f.toPath());
-        } catch (IOException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-    }
-
-    @Override
-    public FileMetadataSnapshot stat(Path path) throws IOException {
-        try {
-            BasicFileAttributes bfa = Files.readAttributes(path, BasicFileAttributes.class);
+            BasicFileAttributes bfa = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
             if (bfa.isDirectory()) {
-                return DefaultFileMetadata.directory();
+                return DefaultFileMetadataSnapshot.directory();
             }
-            return new DefaultFileMetadata(FileType.RegularFile, bfa.lastModifiedTime().toMillis(), bfa.size());
+            if (bfa.isOther()) {
+                return DefaultFileMetadataSnapshot.missing();
+            }
+            return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
         } catch (IOException e) {
-            return DefaultFileMetadata.missing();
+            return DefaultFileMetadataSnapshot.missing();
         }
     }
 }

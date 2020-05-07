@@ -155,22 +155,54 @@ class DirectorySnapshotterTest extends Specification {
         ] as Set
     }
 
-    @Requires(TestPrecondition.FILE_PERMISSIONS)
+    @Requires(TestPrecondition.SYMLINKS)
     def "broken symlinks are snapshotted as missing"() {
         def rootDir = tmpDir.createDir("root")
         rootDir.file('brokenSymlink').createLink("linkTarget")
         assert rootDir.listFiles()*.exists() == [false]
         when:
-        def brokenSymlinkSnapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
-        brokenSymlinkSnapshot.children*.class == [MissingFileSnapshot]
+        snapshot.children.size == 1
+        def brokenSymlinkSnapshot = snapshot.children[0]
+        brokenSymlinkSnapshot.class == MissingFileSnapshot
 
         when:
         rootDir.file("linkTarget").createFile() // unbreak my heart
         and:
-        def unbrokenSymlinkSnapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
         then:
-        unbrokenSymlinkSnapshot.children*.class == [RegularFileSnapshot, RegularFileSnapshot]
+        snapshot.children*.class == [RegularFileSnapshot, RegularFileSnapshot]
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "can snapshot a directory with cycles introduced via symlinks"() {
+        def rootDir = tmpDir.createDir("root")
+        def dir = rootDir.file("dir").createDir()
+        dir.file('subdir').createLink(dir)
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        then:
+        snapshot.children.size == 1
+        def dirSnapshot = snapshot.children[0]
+        dirSnapshot.class == CompleteDirectorySnapshot
+        dirSnapshot.children == []
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "can snapshot a directory with symlink cycle inside"() {
+        def rootDir = tmpDir.createDir("root")
+        def first = rootDir.file("first")
+        def second = rootDir.file("second")
+        def third = rootDir.file("third")
+        first.createLink(second)
+        second.createLink(third)
+        third.createLink(first)
+        when:
+        def snapshot = directorySnapshotter.snapshot(rootDir.absolutePath, null, new AtomicBoolean(false))
+        then:
+        snapshot.children.size == 3
+        snapshot.children.every { it.class == MissingFileSnapshot }
     }
 
     @Requires(TestPrecondition.FILE_PERMISSIONS)
@@ -188,11 +220,12 @@ class DirectorySnapshotterTest extends Specification {
         then:
         assert snapshot instanceof CompleteDirectorySnapshot
         snapshot.children.collectEntries { [it.name, it.class] } == [
-            readableFile: RegularFileSnapshot,
             readableDirectory: CompleteDirectorySnapshot,
-            unreadableFile: MissingFileSnapshot,
-            unreadableDirectory: MissingFileSnapshot
+            readableFile: RegularFileSnapshot,
+            unreadableDirectory: MissingFileSnapshot,
+            unreadableFile: MissingFileSnapshot
         ]
+
         cleanup:
         rootDir.listFiles()*.makeReadable()
     }

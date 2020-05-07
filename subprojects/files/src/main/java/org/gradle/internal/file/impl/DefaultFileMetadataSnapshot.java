@@ -19,21 +19,21 @@ package org.gradle.internal.file.impl;
 import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileType;
 
-public class DefaultFileMetadata implements FileMetadataSnapshot {
-    private static final FileMetadataSnapshot DIR = new DefaultFileMetadata(FileType.Directory, 0, 0);
-    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadata(FileType.Missing, 0, 0);
+public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
+    private static final FileMetadataSnapshot DIR = new DefaultFileMetadataSnapshot(FileType.Directory, 0, 0);
+    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadataSnapshot(FileType.Missing, 0, 0);
     private final FileType type;
     private final long lastModified;
     private final long length;
 
-    public DefaultFileMetadata(FileType type, long lastModified, long length) {
+    private DefaultFileMetadataSnapshot(FileType type, long lastModified, long length) {
         this.type = type;
         this.lastModified = lastModified;
         this.length = length;
     }
 
     public static FileMetadataSnapshot file(long lastModified, long length) {
-        return new DefaultFileMetadata(FileType.RegularFile, lastModified, length);
+        return new DefaultFileMetadataSnapshot(FileType.RegularFile, lastModified, length);
     }
 
     public static FileMetadataSnapshot directory() {

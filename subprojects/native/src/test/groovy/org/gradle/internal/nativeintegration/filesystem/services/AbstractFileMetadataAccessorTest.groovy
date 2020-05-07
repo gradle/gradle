@@ -16,6 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
+import org.gradle.internal.file.FileMetadataSnapshot
 import org.gradle.internal.file.FileType
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -31,7 +32,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
-    abstract long lastModified(File file)
+    abstract boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
 
     def "stats missing file"() {
         def file = tmpDir.file("missing")
@@ -50,7 +51,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(file)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        sameLastModified(stat, file)
         stat.length == 3
     }
 
@@ -74,7 +75,92 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(link)
         stat.type == FileType.RegularFile
-        stat.lastModified == lastModified(file)
+        sameLastModified(stat, file)
         stat.length == 3
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink to directory"() {
+        def dir = tmpDir.createDir("dir")
+        def link = tmpDir.file("link")
+        link.createLink(dir)
+
+        expect:
+        def stat = accessor.stat(link)
+        stat.type == FileType.Directory
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats broken symlink"() {
+        def file = tmpDir.file("file")
+        def link = tmpDir.file("link")
+        link.createLink(file)
+
+        expect:
+        def stat = accessor.stat(link)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink pointing to symlink pointing to file"() {
+        def file = tmpDir.file("file")
+        file.text = "123"
+        def link = tmpDir.file("link")
+        link.createLink(file)
+        def linkToLink = tmpDir.file("linkToLink")
+        linkToLink.createLink(link)
+
+        expect:
+        def stat = accessor.stat(linkToLink)
+        stat.type == FileType.RegularFile
+        sameLastModified(stat, file)
+        stat.length == 3
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats symlink pointing to broken symlink"() {
+        def file = tmpDir.file("file")
+        def link = tmpDir.file("link")
+        link.createLink(file)
+        def linkToLink = tmpDir.file("linkToBrokenLink")
+        linkToLink.createLink(link)
+
+        expect:
+        def stat = accessor.stat(linkToLink)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.SYMLINKS)
+    def "stats a symlink cycle"() {
+        def first = tmpDir.file("first")
+        def second = tmpDir.file("second")
+        def third = tmpDir.file("third")
+        first.createLink(second)
+        second.createLink(third)
+        third.createLink(first)
+
+        expect:
+        def stat = accessor.stat(first)
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
+    }
+
+    @Requires(TestPrecondition.UNIX_DERIVATIVE)
+    def "stats named pipes"() {
+        def pipe = tmpDir.file("testPipe").createNamedPipe()
+
+        when:
+        def stat = accessor.stat(pipe)
+        then:
+        stat.type == FileType.Missing
+        stat.lastModified == 0
+        stat.length == 0
     }
 }
