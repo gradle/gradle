@@ -501,7 +501,6 @@ samples {
             sampleDirectory = file("src/snippets/compositeBuilds/declared-substitution")
             description = "Declaring the dependencies substituted by an included build"
             category = "Build organization"
-            readmeFile = file("src/snippets/compositeBuilds/declared-substitution/README.md")
         }
 
         compositeBuildsHierarchicalMultiRepo {
