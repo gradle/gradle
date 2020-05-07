@@ -26,6 +26,9 @@ import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
 public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapshotter {
 
     private final FileHasher hasher;
@@ -57,7 +60,7 @@ public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapsho
                     DefaultFileMetadataSnapshot.file(
                         fileDetails.getLastModified(),
                         fileDetails.getSize(),
-                        AccessType.DIRECT
+                        Files.isSymbolicLink(Paths.get(fileDetails.getPath())) ? AccessType.VIA_SYMLINK : AccessType.DIRECT
                     )
                 );
             }

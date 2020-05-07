@@ -28,6 +28,9 @@ import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
 
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -72,12 +75,12 @@ public class FileSystemSnapshotBuilder {
     private DirectoryBuilder getOrCreateRootDir(File dir, String[] segments) {
         if (rootDirectoryBuilder == null) {
             rootDirectoryBuilder = new DirectoryBuilder();
-            File rootDir = dir;
+            Path rootDir = dir.toPath();
             for (String ignored : segments) {
-                rootDir = rootDir.getParentFile();
+                rootDir = rootDir.getParent();
             }
-            rootPath = stringInterner.intern(rootDir.getAbsolutePath());
-            rootName = stringInterner.intern(rootDir.getName());
+            rootPath = stringInterner.intern(rootDir.toAbsolutePath().toString());
+            rootName = stringInterner.intern(rootDir.getFileName().toString());
         }
         return rootDirectoryBuilder;
     }
@@ -92,7 +95,7 @@ public class FileSystemSnapshotBuilder {
         MerkleDirectorySnapshotBuilder builder = MerkleDirectorySnapshotBuilder.sortingRequired();
         builder.preVisitDirectory(rootPath, rootName);
         rootDirectoryBuilder.accept(rootPath, builder);
-        builder.postVisitDirectory(AccessType.DIRECT);
+        builder.postVisitDirectory(determineAccessTypeForLocation(rootPath));
         return Preconditions.checkNotNull(builder.getResult());
     }
 
@@ -145,11 +148,15 @@ public class FileSystemSnapshotBuilder {
                 String dirPath = stringInterner.intern(directoryPath + File.separatorChar + dirName);
                 builder.preVisitDirectory(dirPath, dirName);
                 entry.getValue().accept(dirPath, builder);
-                builder.postVisitDirectory(AccessType.DIRECT);
+                builder.postVisitDirectory(determineAccessTypeForLocation(dirPath));
             }
             for (RegularFileSnapshot fileSnapshot : files.values()) {
                 builder.visitFile(fileSnapshot);
             }
         }
+    }
+
+    private static AccessType determineAccessTypeForLocation(String absolutePath) {
+        return Files.isSymbolicLink(Paths.get(absolutePath)) ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
     }
 }

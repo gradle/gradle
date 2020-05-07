@@ -29,6 +29,7 @@ import org.gradle.internal.snapshot.FileSystemSnapshotVisitor
 import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshottingFilter
+import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -41,6 +42,7 @@ import java.nio.file.Paths
 import java.util.concurrent.atomic.AtomicBoolean
 
 @UsesNativeServices
+@CleanupTestDirectory(fieldName = "tmpDir")
 class DirectorySnapshotterTest extends Specification {
     @Rule
     public final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
