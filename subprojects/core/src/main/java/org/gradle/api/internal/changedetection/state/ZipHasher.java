@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.compress.utils.Lists;
 import org.gradle.api.internal.file.archive.FileZipInput;
@@ -215,37 +216,44 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
     }
 
     private void hashManifestAttributes(Attributes attributes, String name, Hasher hasher) {
-        List<MapEntry> entries = attributes
+        Map<String, String> entries = attributes
             .entrySet()
             .stream()
-            .map(MapEntry::new)
-            .map(MapEntry::withLowercaseKey)
-            .filter(entry -> !attributeResourceFilter.shouldBeIgnored(entry.key))
-            .sorted()
+            .collect(Collectors.toMap(
+                entry -> entry.getKey().toString().toLowerCase(Locale.ROOT),
+                entry -> (String) entry.getValue()
+            ));
+        List<Map.Entry<String, String>> normalizedEntries = entries.
+            entrySet()
+            .stream()
+            .filter(entry -> !attributeResourceFilter.shouldBeIgnored(entry.getKey()))
+            .sorted(Map.Entry.comparingByKey())
             .collect(Collectors.toList());
+
         // Short-circuiting when there's no matching entries allows empty manifest sections to be ignored
         // that allows an manifest without those sections to hash identically to the one with effectively empty sections
-        if (!entries.isEmpty()) {
+        if (!normalizedEntries.isEmpty()) {
             hasher.putString(name);
-            for (MapEntry entry : entries) {
-                hasher.putString(entry.key);
-                hasher.putString(entry.value);
+            for (Map.Entry<String, String> entry : normalizedEntries) {
+                hasher.putString(entry.getKey());
+                hasher.putString(entry.getValue());
             }
         }
     }
 
-    private @Nullable HashCode hashProperties(byte[] entryBytes) throws IOException {
+    private HashCode hashProperties(byte[] entryBytes) throws IOException {
         Hasher hasher = Hashing.newHasher();
         Properties properties = new Properties();
         properties.load(new ByteArrayInputStream(entryBytes));
-        properties.entrySet()
+        Map<String, String> entries = Maps.fromProperties(properties);
+        entries
+            .entrySet()
             .stream()
-            .map(MapEntry::new)
-            .filter(entry -> !propertyResourceFilter.shouldBeIgnored(entry.key))
+            .filter(entry -> !propertyResourceFilter.shouldBeIgnored(entry.getKey()))
             .sorted()
-            .forEach( entry -> {
-                hasher.putString(entry.key);
-                hasher.putString(entry.value);
+            .forEach(entry -> {
+                hasher.putString(entry.getKey());
+                hasher.putString(entry.getValue());
             });
         return hasher.hash();
     }
@@ -267,35 +275,8 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
         }
     }
 
-    private static class MapEntry implements Factory<String[]>, Comparable<MapEntry> {
-        private final String key;
-        private final String value;
-
-        public MapEntry(Map.Entry<Object, Object> entry) {
-            this(String.valueOf(entry.getKey()), String.valueOf(entry.getValue()));
-        }
-
-        private MapEntry(String key, String value) {
-            this.key = key;
-            this.value = value;
-        }
-
-        public MapEntry withLowercaseKey() {
-            return new MapEntry(key.toLowerCase(Locale.ROOT), value);
-        }
-
-        @Override
-        public String[] create() {
-            return new String[]{key};
-        }
-
-        @Override
-        public int compareTo(MapEntry o) {
-            return key.compareTo(o.key);
-        }
-    }
-
     private interface ByteContentHasher {
-        @Nullable HashCode hash(byte[] bytes) throws IOException;
+        @Nullable
+        HashCode hash(byte[] bytes) throws IOException;
     }
 }

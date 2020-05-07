@@ -27,8 +27,8 @@ public class IgnoringResourceEntryFilter implements ResourceEntryFilter {
     }
 
     @Override
-    public boolean shouldBeIgnored(String value) {
-        return ignores.contains(value);
+    public boolean shouldBeIgnored(String entry) {
+        return ignores.contains(entry);
     }
 
     @Override

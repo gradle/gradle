@@ -24,7 +24,7 @@ import org.gradle.internal.hash.Hasher;
 public interface ResourceEntryFilter extends ConfigurableNormalizer {
     ResourceEntryFilter FILTER_NOTHING = new ResourceEntryFilter() {
         @Override
-        public boolean shouldBeIgnored(String value) {
+        public boolean shouldBeIgnored(String entry) {
             return false;
         }
 
@@ -34,5 +34,5 @@ public interface ResourceEntryFilter extends ConfigurableNormalizer {
         }
     };
 
-    boolean shouldBeIgnored(String value);
+    boolean shouldBeIgnored(String entry);
 }
