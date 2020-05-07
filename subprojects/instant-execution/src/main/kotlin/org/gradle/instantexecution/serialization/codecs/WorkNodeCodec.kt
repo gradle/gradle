@@ -78,11 +78,11 @@ class WorkNodeCodec(
             writeNode(successor, nodesById)
         }
         when (node) {
-           is TaskNode -> {
-               for (successor in node.mustSuccessors) {
-                   writeNode(successor, nodesById)
-               }
-           }
+            is TaskNode -> {
+                for (successor in node.mustSuccessors) {
+                    writeNode(successor, nodesById)
+                }
+            }
         }
         val id = nodesById.size
         writeSmallInt(id)
