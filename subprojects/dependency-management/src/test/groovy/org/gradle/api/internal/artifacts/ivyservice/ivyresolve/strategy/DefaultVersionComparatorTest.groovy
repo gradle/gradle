@@ -61,8 +61,10 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0.A"     | "1.0.b"
         "1.0-alpha" | "1.0-beta"
         "1.0-ALPHA" | "1.0-BETA"
+        "1.0-ALPHA" | "1.0-alpha"
         "1.0.alpha" | "1.0.b"
         "alpha"     | "beta"
+        "1.0-a"     | "1.0-alpha"
     }
 
     def "considers parts that are digits as larger than parts that are not"() {
@@ -73,10 +75,11 @@ class DefaultVersionComparatorTest extends Specification {
         compare(larger, larger) == 0
 
         where:
-        smaller     | larger
-        "1.0-alpha" | "1.0.1"
-        "a.b.c"     | "a.b.123"
-        "a"         | "123"
+        smaller             | larger
+        "1.0-alpha"         | "1.0.1"
+        "a.b.c"             | "a.b.123"
+        "a"                 | "123"
+        "1.0.0-alpha.beta"  | "1.0.0-alpha.1"
     }
 
     def "considers a trailing part that contains no digits as smaller"() {
@@ -135,10 +138,15 @@ class DefaultVersionComparatorTest extends Specification {
         "1.0-a"        | "1.0-release"
         "1.0-a"        | "1.0-final"
 
-        "1.0-dev"      | "1.0-SNAPSHOT"
-        "1.0-SNAPSHOT" | "1.0-rc"
-        "1.0-SNAPSHOT" | "1.0-release"
-        "1.0-SNAPSHOT" | "1.0-final"
+        "1.0-dev"      | "1.0-snapshot"
+        "1.0-patch"    | "1.0-release"
+
+        // Upcoming changes
+        "1.0-snapshot" | "1.0-rc"
+        "1.0-snapshot" | "1.0-release"
+        "1.0-sp1"      | "1.0-release-1"
+        "1.0-snapshot" | "1.0-final"
+        "1.0-ga"       | "1.0-snapshot"
     }
 
     def "compares identical versions equal"() {
