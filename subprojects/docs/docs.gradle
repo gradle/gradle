@@ -491,6 +491,36 @@ samples {
             category = "Build organization"
         }
 
+        compositeBuildsBasics {
+            sampleDirectory = file("src/snippets/compositeBuilds/basic")
+            description = "Defining and using a composite build"
+            category = "Build organization"
+            readmeFile = file("src/snippets/compositeBuilds/basic/README.md")
+        }
+
+        compositeBuildsDeclaredSubstitutions {
+            sampleDirectory = file("src/snippets/compositeBuilds/declared-substitution")
+            description = "Declaring the dependencies substituted by an included build"
+            category = "Build organization"
+            readmeFile = file("src/snippets/compositeBuilds/declared-substitution/README.md")
+        }
+
+        compositeBuildsHierarchicalMultiRepo {
+            sampleDirectory = file("src/snippets/compositeBuilds/hierarchical-multirepo")
+            description = "Using composite builds in a hierarchical multirepo project"
+            category = "Build organization"
+            readmeFile = file("src/snippets/compositeBuilds/hierarchical-multirepo/README.md")
+        }
+
+        compositeBuildsPluginDevelopment {
+            sampleDirectory = file("src/snippets/compositeBuilds/plugin-dev")
+            description = "Composite build to develop a Gradle plugin"
+            category = "Build organization"
+            readmeFile = file("src/snippets/compositeBuilds/plugin-dev/README.md")
+        }
+    }
+}
+
         credentialsForExternalToolViaStdin {
             sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
             displayName = "Supply credentials to external tool"
