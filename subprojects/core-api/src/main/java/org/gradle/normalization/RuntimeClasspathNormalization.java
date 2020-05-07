@@ -17,6 +17,7 @@
 package org.gradle.normalization;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
@@ -36,5 +37,6 @@ public interface RuntimeClasspathNormalization extends InputNormalization {
      *
      * @since 6.5
      */
+    @Incubating
     void metaInf(Action<? super MetaInfNormalization> configuration);
 }
