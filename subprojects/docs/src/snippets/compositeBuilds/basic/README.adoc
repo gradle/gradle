@@ -1,17 +1,17 @@
-# Defining and using a composite build
+NOTE: You can open this sample inside an IDE using the https://www.jetbrains.com/help/idea/gradle.html#gradle_import_project_start[IntelliJ native importer] or https://projects.eclipse.org/projects/tools.buildship[Eclipse Buildship].
+
+= Defining and using a composite build
 
 This sample shows how 2 Gradle builds that are normally developed separately and combined using binary integration can be wired together into a composite build with source integration. The `my-utils` multiproject build produces 2 different java libraries, and the `my-app` build produces an executable using functions from those libraries.
 
 Note that the `my-app` build does not have direct dependencies on `my-utils`. Instead, it declares module dependencies on the libraries produced by `my-utils`:
 
-```
-dependencies {
-    implementation "org.sample:number-utils:1.0"
-    implementation "org.sample:string-utils:1.0"
-}
-```
+====
+include::sample[dir="groovy",files="my-app/build.gradle[tags=app_dependencies]"]
+include::sample[dir="kotlin",files="my-app/build.gradle.kts[tags=app_dependencies]"]
+====
 
-### Using command-line composite build
+== Using command-line composite build
 
 When using a composite build, no shared repository is required for the builds, and no changes need to be made to the build scripts.
 
@@ -23,11 +23,11 @@ cd my-app
 gradle --include-build ../my-utils run
 ```
 
-Using *dependency substitution*, the module dependencies on the util libraries are replaced by project dependencies on `my-utils`.
+Using _dependency substitution_, the module dependencies on the util libraries are replaced by project dependencies on `my-utils`.
 
-### Converting `my-app` to a composite build
+== Converting `my-app` to a composite build
 
-It's possible to make the above arrangement persistent, by making `my-app` a composite build that includes `my-utils`. 
+It's possible to make the above arrangement persistent, by making `my-app` a composite build that includes `my-utils`.
 
 ```
 cd my-app
@@ -39,24 +39,21 @@ With this configuration, the module dependencies from `my-app` to `my-utils` wil
 
 While simple, this approach has the downside of modifying the `my-app` build.
 
-### Using separate composite build
+== Using separate composite build
 
 It is also possible to create a separate composite build that includes both the `my-app` and `my-utils` builds.
 
-```
-rootProject.name='my-composite'
-
-includeBuild '../my-app'
-includeBuild '../my-utils'
-```
+====
+include::sample[dir="groovy/composite",files="settings.gradle[]"]
+include::sample[dir="kotlin/composite",files="settings.gradle.kts[]"]
+====
 
 Note that it is not yet possible to execute tasks in an included build from the command line. Instead, the build user must create delegating tasks in the composite.
 
-```
-task run {
-    dependsOn gradle.includedBuild('my-app').task(':run')
-}
-```
+====
+include::sample[dir="groovy/composite",files="build.gradle[tags=run]"]
+include::sample[dir="kotlin/composite",files="build.gradle.kts[tags=run]"]
+====
 
 ```
 cd composite
