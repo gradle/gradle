@@ -38,12 +38,12 @@ import org.gradle.internal.resolve.result.ResourceAwareResolveResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nullable;
 import javax.inject.Inject;
 import java.util.List;
 
 public class DefaultArtifactMetadataSource extends AbstractMetadataSource<MutableModuleComponentResolveMetadata> {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExternalResourceResolver.class);
-    private static final HashCode MISSING = Hashing.md5().hashString("");
     private final MutableModuleMetadataFactory<? extends MutableModuleComponentResolveMetadata> mutableModuleMetadataFactory;
     private final String artifactType;
     private final String artifactExtension;
@@ -61,12 +61,18 @@ public class DefaultArtifactMetadataSource extends AbstractMetadataSource<Mutabl
         if (metaDataFromDefaultArtifact != null) {
             LOGGER.debug("Found artifact but no meta-data for module '{}' in repository '{}', using default meta-data.", moduleComponentIdentifier, repositoryName);
             metaDataFromDefaultArtifact.getSources()
-                .add(new ModuleDescriptorHashModuleSource(MISSING, false));
+                .add(new ModuleDescriptorHashModuleSource(getDescriptorHash(moduleComponentIdentifier), false));
             return metaDataFromDefaultArtifact;
         }
         return null;
     }
 
+    private HashCode getDescriptorHash(ModuleComponentIdentifier moduleComponentIdentifier) {
+        // For empty metadata, we use a hash based on the identifier
+        return Hashing.md5().hashString(moduleComponentIdentifier.toString());
+    }
+
+    @Nullable
     private MutableModuleComponentResolveMetadata createMetaDataFromDependencyArtifact(ModuleComponentIdentifier moduleComponentIdentifier, ComponentOverrideMetadata overrideMetadata, ExternalResourceArtifactResolver artifactResolver, ResourceAwareResolveResult result) {
         List<IvyArtifactName> artifactNames = getArtifactNames(moduleComponentIdentifier, overrideMetadata);
         for (IvyArtifactName artifact : artifactNames) {
