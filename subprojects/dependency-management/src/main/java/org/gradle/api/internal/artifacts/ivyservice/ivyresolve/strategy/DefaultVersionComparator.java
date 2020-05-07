@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy;
 
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.Versioned;
 
 import java.util.Comparator;
@@ -25,6 +26,11 @@ import java.util.Comparator;
  */
 public class DefaultVersionComparator implements VersionComparator {
     private final Comparator<Version> baseComparator = new StaticVersionComparator();
+    private final FeaturePreviews featurePreviews;
+
+    public DefaultVersionComparator(FeaturePreviews featurePreviews) {
+        this.featurePreviews = featurePreviews;
+    }
 
     @Override
     public int compare(Versioned element1, Versioned element2) {

@@ -15,12 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy
 
+import org.gradle.api.internal.FeaturePreviews
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.VersionInfo
 import spock.lang.Specification
 
 class DefaultVersionComparatorTest extends Specification {
     def versionParser = new VersionParser()
-    def comparator = new DefaultVersionComparator()
+    def comparator = new DefaultVersionComparator(new FeaturePreviews())
 
     def compare(String s1, String s2) {
         return comparator.compare(new VersionInfo(versionParser.transform(s1)), new VersionInfo(versionParser.transform(s2)))

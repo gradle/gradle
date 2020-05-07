@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.transform.InputArtifact;
 import org.gradle.api.artifacts.transform.InputArtifactDependencies;
+import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.dsl.dependencies.PlatformSupport;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyContextManager;
 import org.gradle.api.internal.artifacts.ivyservice.IvyContextManager;
@@ -82,10 +83,6 @@ class DependencyManagementGlobalScopeServices {
 
     ExcludeRuleConverter createExcludeRuleConverter(ImmutableModuleIdentifierFactory moduleIdentifierFactory) {
         return new DefaultExcludeRuleConverter(moduleIdentifierFactory);
-    }
-
-    VersionComparator createVersionComparator() {
-        return new DefaultVersionComparator();
     }
 
     ExternalModuleIvyDependencyDescriptorFactory createExternalModuleDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter) {
