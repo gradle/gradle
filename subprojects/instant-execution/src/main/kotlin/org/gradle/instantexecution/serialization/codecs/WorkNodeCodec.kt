@@ -94,6 +94,7 @@ class WorkNodeCodec(
         writeSuccessorReferences(node.dependencySuccessors, scheduledNodeIds)
         when (node) {
             is TaskNode -> {
+                writeSuccessorReferences(node.shouldSuccessors, scheduledNodeIds)
                 writeSuccessorReferences(node.mustSuccessors, scheduledNodeIds)
                 writeSuccessorReferences(node.finalizingSuccessors, scheduledNodeIds)
             }
@@ -107,6 +108,9 @@ class WorkNodeCodec(
         }
         when (node) {
             is TaskNode -> {
+                readSuccessorReferences(nodesById) {
+                    node.addShouldSuccessor(it)
+                }
                 readSuccessorReferences(nodesById) {
                     require(it is TaskNode)
                     node.addMustSuccessor(it)
