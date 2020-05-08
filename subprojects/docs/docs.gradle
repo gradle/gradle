@@ -491,15 +491,15 @@ tasks.named("docsTest") {
 
     filter {
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-application_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-library_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-multi-project-with-spock-tests_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
     }
 
     if (!buildJvms.testJvm.get().javaVersion.java11Compatible) {
         filter {
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.precompiled-script-plugin*.sample' // Files.readString() is used
             excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Groovy-multiproject_groovy_sanityCheck.sample' // Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
-            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-application_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
-            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-library_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
-            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-multi-project-with-spock-tests_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
         }
     }
 
