@@ -504,6 +504,6 @@ configurations {
     }
 }
 
-tasks.named('integTest') {
+tasks.named('platformTest') {
     dependsOn(tasks.named('docsTest'))
 }
