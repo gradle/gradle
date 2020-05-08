@@ -16,13 +16,16 @@
 
 package org.gradle.internal.classpath;
 
+import com.google.common.collect.AbstractIterator;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
 
 import javax.annotation.Nullable;
+import java.util.AbstractSet;
 import java.util.Collection;
 import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
@@ -81,7 +84,7 @@ public class Instrumented {
         /**
          * @param consumer The name of the class that is reading the property value
          */
-        void systemPropertyQueried(String key, @Nullable String value, String consumer);
+        void systemPropertyQueried(String key, @Nullable Object value, String consumer);
     }
 
     private static class DecoratingProperties extends Properties {
@@ -135,12 +138,15 @@ public class Instrumented {
 
         @Override
         public Set<Map.Entry<Object, Object>> entrySet() {
-            return delegate.entrySet();
+            return new DecoratingEntrySet(delegate.entrySet(), consumer);
         }
 
         @Override
         public void forEach(BiConsumer<? super Object, ? super Object> action) {
-            delegate.forEach(action);
+            delegate.forEach((k, v) -> {
+                LISTENER.get().systemPropertyQueried((String) k, v, consumer);
+                action.accept(k, v);
+            });
         }
 
         @Override
@@ -253,6 +259,37 @@ public class Instrumented {
         @Override
         public Object get(Object key) {
             return getProperty((String) key);
+        }
+    }
+
+    private static class DecoratingEntrySet extends AbstractSet<Map.Entry<Object, Object>> {
+        private final Set<Map.Entry<Object, Object>> delegate;
+        private final String consumer;
+
+        public DecoratingEntrySet(Set<Map.Entry<Object, Object>> delegate, String consumer) {
+            this.delegate = delegate;
+            this.consumer = consumer;
+        }
+
+        @Override
+        public Iterator<Map.Entry<Object, Object>> iterator() {
+            Iterator<Map.Entry<Object, Object>> iterator = delegate.iterator();
+            return new AbstractIterator<Map.Entry<Object, Object>>() {
+                @Override
+                protected Map.Entry<Object, Object> computeNext() {
+                    if (!iterator.hasNext()) {
+                        return endOfData();
+                    }
+                    Map.Entry<Object, Object> entry = iterator.next();
+                    LISTENER.get().systemPropertyQueried((String) entry.getKey(), entry.getValue(), consumer);
+                    return entry;
+                }
+            };
+        }
+
+        @Override
+        public int size() {
+            return delegate.size();
         }
     }
 

@@ -66,7 +66,8 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
             SystemPropertyRead.systemGetPropertyWithDefault("CI", "default"),
             SystemPropertyRead.systemGetPropertiesGet("CI"),
             SystemPropertyRead.systemGetPropertiesGetProperty("CI"),
-            SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default")
+            SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default"),
+            SystemPropertyRead.systemGetPropertiesFilterEntries("CI")
         ]
     }
 }

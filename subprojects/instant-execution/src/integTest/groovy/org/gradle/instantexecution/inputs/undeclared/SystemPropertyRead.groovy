@@ -101,4 +101,23 @@ abstract class SystemPropertyRead {
             }
         }
     }
+
+    static SystemPropertyRead systemGetPropertiesFilterEntries(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "(String)System.getProperties().entrySet().stream().filter(e -> e.getKey().equals(\"$name\")).findFirst().get().getValue()";
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "System.properties.entrySet().find { it.key == '$name'}.value"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperties().entries.filter { it.key == \"$name\" }.first().value"
+            }
+        }
+    }
 }

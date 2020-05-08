@@ -86,4 +86,25 @@ class InstrumentedTest extends Specification {
         1 * listener.systemPropertyQueried("not-set", null, "consumer")
         0 * listener._
     }
+
+    def "notifies listener when system properties map is iterated"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        System.setProperty("prop", "value")
+
+        when:
+        Instrumented.systemProperties("consumer").entrySet().forEach { e ->
+        }
+
+        then:
+        1 * listener.systemPropertyQueried("prop", "value", "consumer")
+
+        when:
+        Instrumented.systemProperties("consumer").forEach { k, v ->
+        }
+
+        then:
+        1 * listener.systemPropertyQueried("prop", "value", "consumer")
+    }
 }
