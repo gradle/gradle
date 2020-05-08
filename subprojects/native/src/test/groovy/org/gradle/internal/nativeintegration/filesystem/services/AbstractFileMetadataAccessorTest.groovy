@@ -36,10 +36,10 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
-    abstract boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
+    abstract void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
 
-    boolean sameAccessType(FileMetadataSnapshot metadataSnapshot, AccessType accessType) {
-        metadataSnapshot.accessType == accessType
+    void assertSameAccessType(FileMetadataSnapshot metadataSnapshot, AccessType accessType) {
+        assert metadataSnapshot.accessType == accessType
     }
 
     def "stats missing file"() {
@@ -50,7 +50,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, DIRECT)
+        assertSameAccessType(stat, DIRECT)
     }
 
     def "stats regular file"() {
@@ -60,9 +60,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(file)
         stat.type == FileType.RegularFile
-        sameLastModified(stat, file)
+        assertSameLastModified(stat, file)
         stat.length == 3
-        sameAccessType(stat, DIRECT)
+        assertSameAccessType(stat, DIRECT)
     }
 
     def "stats directory"() {
@@ -73,7 +73,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Directory
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, DIRECT)
+        assertSameAccessType(stat, DIRECT)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -86,9 +86,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(link)
         stat.type == FileType.RegularFile
-        sameLastModified(stat, file)
+        assertSameLastModified(stat, file)
         stat.length == 3
-        sameAccessType(stat, VIA_SYMLINK)
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -102,7 +102,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Directory
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, VIA_SYMLINK)
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -116,7 +116,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, VIA_SYMLINK)
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -131,9 +131,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(linkToLink)
         stat.type == FileType.RegularFile
-        sameLastModified(stat, file)
+        assertSameLastModified(stat, file)
         stat.length == 3
-        sameAccessType(stat, VIA_SYMLINK)
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -149,7 +149,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, VIA_SYMLINK)
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -166,7 +166,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, VIA_SYMLINK)
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
@@ -179,6 +179,6 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
-        sameAccessType(stat, DIRECT)
+        assertSameAccessType(stat, DIRECT)
     }
 }

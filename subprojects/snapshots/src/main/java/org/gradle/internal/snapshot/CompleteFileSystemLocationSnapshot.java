@@ -68,5 +68,8 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
      */
     boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other);
 
+    /**
+     * How this snapshot was accessed.
+     */
     FileMetadataSnapshot.AccessType getAccessType();
 }

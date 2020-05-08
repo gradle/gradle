@@ -53,6 +53,7 @@ import java.util.function.Predicate;
 
 public class DirectorySnapshotter {
     private static final Logger LOGGER = LoggerFactory.getLogger(DirectorySnapshotter.class);
+    private static final EnumSet<FileVisitOption> DONT_FOLLOW_SYMLINKS = EnumSet.noneOf(FileVisitOption.class);
 
     private final FileHasher hasher;
     private final Interner<String> stringInterner;
@@ -68,7 +69,7 @@ public class DirectorySnapshotter {
         try {
             Path rootPath = Paths.get(absolutePath);
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes);
-            Files.walkFileTree(rootPath, EnumSet.noneOf(FileVisitOption.class), Integer.MAX_VALUE, visitor);
+            Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
             return visitor.getResult();
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not list contents of directory '%s'.", absolutePath), e);
@@ -239,12 +240,7 @@ public class DirectorySnapshotter {
         }
 
         private boolean introducesCycle(String targetDirString) {
-            for (String parentDirectory : parentDirectories) {
-                if (parentDirectory.equals(targetDirString)) {
-                    return true;
-                }
-            }
-            return false;
+            return parentDirectories.contains(targetDirString);
         }
 
         private String remapAbsolutePath(Path dir) {
