@@ -58,6 +58,15 @@ public interface FileMetadataSnapshot {
         /**
          * The path pointed to a symlink pointing to the file with the metadata.
          */
-        VIA_SYMLINK
+        VIA_SYMLINK;
+
+        /**
+         * Factory method for returning the access type based on a boolean.
+         */
+        public static AccessType viaSymlink(boolean viaSymlink) {
+            return viaSymlink
+                ? VIA_SYMLINK
+                : DIRECT;
+        }
     }
 }

@@ -157,6 +157,6 @@ public class FileSystemSnapshotBuilder {
     }
 
     private static AccessType determineAccessTypeForLocation(String absolutePath) {
-        return Files.isSymbolicLink(Paths.get(absolutePath)) ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
+        return AccessType.viaSymlink(Files.isSymbolicLink(Paths.get(absolutePath)));
     }
 }

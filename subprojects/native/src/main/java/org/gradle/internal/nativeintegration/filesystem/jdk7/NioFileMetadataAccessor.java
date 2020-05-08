@@ -38,7 +38,7 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
         } catch (IOException e) {
             return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
         }
-        AccessType accessType = attributes.isSymbolicLink() ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
+        AccessType accessType = AccessType.viaSymlink(attributes.isSymbolicLink());
         if (accessType == AccessType.VIA_SYMLINK) {
             try {
                 attributes = Files.readAttributes(path, BasicFileAttributes.class);

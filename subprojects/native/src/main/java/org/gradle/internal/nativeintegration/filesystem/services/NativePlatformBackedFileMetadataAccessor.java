@@ -41,7 +41,7 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
         } catch (NativeException e) {
             return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
         }
-        AccessType accessType = stat.getType() == FileInfo.Type.Symlink ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
+        AccessType accessType = AccessType.viaSymlink(stat.getType() == FileInfo.Type.Symlink);
         if (accessType == AccessType.VIA_SYMLINK) {
             try {
                 stat = files.stat(f, true);

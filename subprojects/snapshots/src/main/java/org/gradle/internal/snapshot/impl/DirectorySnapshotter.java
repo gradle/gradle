@@ -308,9 +308,9 @@ public class DirectorySnapshotter {
             if (isNotFileSystemLoopException(exc)) {
                 throw new UncheckedIOException(String.format("Could not read directory path '%s'.", dir), exc);
             }
-            AccessType accessType = (!symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString()))
-                ? AccessType.VIA_SYMLINK
-                : AccessType.DIRECT;
+            AccessType accessType = AccessType.viaSymlink(
+                !symbolicLinkMappings.isEmpty() && symbolicLinkMappings.getFirst().target.equals(dir.toString())
+            );
             builder.postVisitDirectory(accessType);
             parentDirectories.removeFirst();
             return FileVisitResult.CONTINUE;

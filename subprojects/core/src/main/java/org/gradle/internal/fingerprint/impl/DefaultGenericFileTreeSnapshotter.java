@@ -60,7 +60,7 @@ public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapsho
                     DefaultFileMetadataSnapshot.file(
                         fileDetails.getLastModified(),
                         fileDetails.getSize(),
-                        Files.isSymbolicLink(Paths.get(fileDetails.getPath())) ? AccessType.VIA_SYMLINK : AccessType.DIRECT
+                        AccessType.viaSymlink(Files.isSymbolicLink(Paths.get(fileDetails.getPath())))
                     )
                 );
             }
