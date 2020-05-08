@@ -48,9 +48,8 @@ class DefaultTaskDestroyablesTest extends Specification {
 
     def "empty destroys by default"() {
         expect:
-        taskDestroys.registeredPaths != null
-        taskDestroys.registeredPaths.isEmpty()
-        taskDestroys.registeredFiles == null
+        taskDestroys.registeredFiles != null
+        taskDestroys.registeredFiles.isEmpty()
     }
 
     def "can declare a file that a task destroys"() {
@@ -58,7 +57,6 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register("a")
 
         then:
-        taskDestroys.registeredPaths == ["a"]
         taskDestroys.registeredFiles.singleFile == testDir.file("a")
     }
 
@@ -67,7 +65,6 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register("a", "b")
 
         then:
-        taskDestroys.registeredPaths == ["a", "b"]
         taskDestroys.registeredFiles.files == [testDir.file("a"), testDir.file("b")] as Set
     }
 
@@ -79,7 +76,6 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register(fileCollection)
 
         then:
-        taskDestroys.registeredPaths == [fileCollection]
         taskDestroys.registeredFiles.files == files
     }
 
@@ -89,7 +85,6 @@ class DefaultTaskDestroyablesTest extends Specification {
         taskDestroys.register(closure)
 
         then:
-        taskDestroys.registeredPaths == [closure]
         taskDestroys.registeredFiles.singleFile == testDir.file("a")
     }
 }

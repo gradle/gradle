@@ -154,7 +154,7 @@ class TaskNodeCodec(
     private
     suspend fun WriteContext.writeDestroyablesOf(task: TaskInternal) {
         val destroyables = (task.destroyables as TaskDestroyablesInternal).registeredFiles
-        if (destroyables == null) {
+        if (destroyables.isEmpty) {
             writeBoolean(false)
         } else {
             writeBoolean(true)
@@ -172,7 +172,7 @@ class TaskNodeCodec(
     private
     suspend fun WriteContext.writeLocalStateOf(task: TaskInternal) {
         val localState = (task.localState as TaskLocalStateInternal).registeredFiles
-        if (localState == null) {
+        if (localState.isEmpty) {
             writeBoolean(false)
         } else {
             writeBoolean(true)

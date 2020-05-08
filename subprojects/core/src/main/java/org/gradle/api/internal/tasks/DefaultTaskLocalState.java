@@ -20,8 +20,8 @@ import com.google.common.collect.Lists;
 import org.gradle.api.NonNullApi;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
+import org.gradle.api.internal.tasks.properties.PropertyVisitor;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
@@ -44,15 +44,14 @@ public class DefaultTaskLocalState implements TaskLocalStateInternal {
     }
 
     @Override
-    public Collection<Object> getRegisteredPaths() {
-        return registeredPaths;
+    public void visitRegisteredProperties(PropertyVisitor visitor) {
+        for (Object registeredPath : registeredPaths) {
+            visitor.visitLocalStateProperty(registeredPath);
+        }
     }
 
     @Override
     public FileCollection getRegisteredFiles() {
-        if (registeredPaths.isEmpty()) {
-            return null;
-        }
         return fileCollectionFactory.resolving("localState", registeredPaths);
     }
 }
