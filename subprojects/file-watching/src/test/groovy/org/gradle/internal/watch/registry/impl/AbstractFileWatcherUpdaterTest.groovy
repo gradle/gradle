@@ -19,8 +19,8 @@ package org.gradle.internal.watch.registry.impl
 import net.rubygrapefruit.platform.file.FileWatcher
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.snapshot.CaseSensitivity
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot
@@ -130,7 +130,7 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     static RegularFileSnapshot snapshotRegularFile(File regularFile) {
         def attributes = Files.readAttributes(regularFile.toPath(), BasicFileAttributes)
-        new RegularFileSnapshot(regularFile.absolutePath, regularFile.name, TestFiles.fileHasher().hash(regularFile), DefaultFileMetadataSnapshot.file(attributes.lastModifiedTime().toMillis(), attributes.size(), AccessType.DIRECT))
+        new RegularFileSnapshot(regularFile.absolutePath, regularFile.name, TestFiles.fileHasher().hash(regularFile), DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), AccessType.DIRECT))
     }
 
     static boolean equalIgnoringOrder(Object actual, Collection<?> expected) {

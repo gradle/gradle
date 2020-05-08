@@ -17,9 +17,9 @@
 package org.gradle.internal.file;
 
 /**
- * An immutable snapshot of the metadata of a file.
+ * The metadata of a file.
  */
-public interface FileMetadataSnapshot {
+public interface FileMetadata {
     FileType getType();
 
     /**

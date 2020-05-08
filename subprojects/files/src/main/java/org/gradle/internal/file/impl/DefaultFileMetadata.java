@@ -16,31 +16,31 @@
 
 package org.gradle.internal.file.impl;
 
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 
-public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
-    private static final FileMetadataSnapshot DIR = new DefaultFileMetadataSnapshot(FileType.Directory, 0, 0, AccessType.DIRECT);
-    private static final FileMetadataSnapshot DIR_ACCESSED_VIA_SYMLINK = new DefaultFileMetadataSnapshot(FileType.Directory, 0, 0, AccessType.VIA_SYMLINK);
-    private static final FileMetadataSnapshot MISSING = new DefaultFileMetadataSnapshot(FileType.Missing, 0, 0, AccessType.DIRECT);
-    private static final FileMetadataSnapshot BROKEN_SYMLINK = new DefaultFileMetadataSnapshot(FileType.Missing, 0, 0, AccessType.VIA_SYMLINK);
+public class DefaultFileMetadata implements FileMetadata {
+    private static final FileMetadata DIR = new DefaultFileMetadata(FileType.Directory, 0, 0, AccessType.DIRECT);
+    private static final FileMetadata DIR_ACCESSED_VIA_SYMLINK = new DefaultFileMetadata(FileType.Directory, 0, 0, AccessType.VIA_SYMLINK);
+    private static final FileMetadata MISSING = new DefaultFileMetadata(FileType.Missing, 0, 0, AccessType.DIRECT);
+    private static final FileMetadata BROKEN_SYMLINK = new DefaultFileMetadata(FileType.Missing, 0, 0, AccessType.VIA_SYMLINK);
     private final FileType type;
     private final long lastModified;
     private final long length;
     private final AccessType accessType;
 
-    private DefaultFileMetadataSnapshot(FileType type, long lastModified, long length, AccessType accessType) {
+    private DefaultFileMetadata(FileType type, long lastModified, long length, AccessType accessType) {
         this.type = type;
         this.lastModified = lastModified;
         this.length = length;
         this.accessType = accessType;
     }
 
-    public static FileMetadataSnapshot file(long lastModified, long length, AccessType accessType) {
-        return new DefaultFileMetadataSnapshot(FileType.RegularFile, lastModified, length, accessType);
+    public static FileMetadata file(long lastModified, long length, AccessType accessType) {
+        return new DefaultFileMetadata(FileType.RegularFile, lastModified, length, accessType);
     }
 
-    public static FileMetadataSnapshot directory(AccessType accessType) {
+    public static FileMetadata directory(AccessType accessType) {
         switch (accessType) {
             case DIRECT:
                 return DIR;
@@ -51,7 +51,7 @@ public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
         }
     }
 
-    public static FileMetadataSnapshot missing(AccessType accessType) {
+    public static FileMetadata missing(AccessType accessType) {
         switch (accessType) {
             case DIRECT:
                 return MISSING;
@@ -90,7 +90,7 @@ public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
         if (o == null || getClass() != o.getClass()) {
             return false;
         }
-        DefaultFileMetadataSnapshot that = (DefaultFileMetadataSnapshot) o;
+        DefaultFileMetadata that = (DefaultFileMetadata) o;
         return type == that.type &&
             length == that.length &&
             lastModified == that.lastModified &&

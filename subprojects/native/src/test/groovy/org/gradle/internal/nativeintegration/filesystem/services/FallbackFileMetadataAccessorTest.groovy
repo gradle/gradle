@@ -16,11 +16,11 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
-import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.util.UsesNativeServices
 
-import static org.gradle.internal.file.FileMetadataSnapshot.AccessType.DIRECT
+import static org.gradle.internal.file.FileMetadata.AccessType.DIRECT
 
 @UsesNativeServices
 class FallbackFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
@@ -29,13 +29,13 @@ class FallbackFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest 
     }
 
     @Override
-    void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
-        assert metadataSnapshot.lastModified == file.lastModified()
+    void assertSameLastModified(FileMetadata fileMetadata, File file) {
+        assert fileMetadata.lastModified == file.lastModified()
     }
 
     @Override
-    void assertSameAccessType(FileMetadataSnapshot metadataSnapshot, FileMetadataSnapshot.AccessType accessType) {
+    void assertSameAccessType(FileMetadata fileMetadata, FileMetadata.AccessType accessType) {
         // Via the old Java API, it is impossible to decide whether a location is a symbolic link or not.
-        assert metadataSnapshot.accessType == DIRECT
+        assert fileMetadata.accessType == DIRECT
     }
 }

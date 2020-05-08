@@ -17,8 +17,8 @@
 package org.gradle.internal.fingerprint.overlap.impl
 
 import com.google.common.collect.ImmutableSortedMap
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.impl.AbsolutePathFingerprintingStrategy
 import org.gradle.internal.hash.HashCode
@@ -41,7 +41,7 @@ class DefaultOverlappingOutputDetectorTest extends Specification {
     }
 
     def "detects overlap when there is one"() {
-        def staleFileAddedBetweenExecutions = new RegularFileSnapshot("/absolute/path", "path", HashCode.fromInt(1234), DefaultFileMetadataSnapshot.file(0, 0, AccessType.DIRECT))
+        def staleFileAddedBetweenExecutions = new RegularFileSnapshot("/absolute/path", "path", HashCode.fromInt(1234), DefaultFileMetadata.file(0, 0, AccessType.DIRECT))
         def outputFilesAfterPreviousExecution = ImmutableSortedMap.<String, FileCollectionFingerprint>of(
             "output", AbsolutePathFingerprintingStrategy.INCLUDE_MISSING.emptyFingerprint
         )

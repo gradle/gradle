@@ -16,8 +16,8 @@
 
 package org.gradle.internal.watch.vfs.impl
 
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
-import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.Hashing
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot
 import org.gradle.internal.snapshot.PathUtil
@@ -81,7 +81,7 @@ class WatchRootUtilTest extends Specification {
     }
 
     private static RegularFileSnapshot fileSnapshot(String absolutePath) {
-        new RegularFileSnapshot(absolutePath, absolutePath.substring(absolutePath.lastIndexOf('/') + 1), Hashing.md5().hashString(absolutePath), DefaultFileMetadataSnapshot.file(1, 1, AccessType.DIRECT))
+        new RegularFileSnapshot(absolutePath, absolutePath.substring(absolutePath.lastIndexOf('/') + 1), Hashing.md5().hashString(absolutePath), DefaultFileMetadata.file(1, 1, AccessType.DIRECT))
     }
 
     private static CompleteDirectorySnapshot directorySnapshot(String absolutePath) {

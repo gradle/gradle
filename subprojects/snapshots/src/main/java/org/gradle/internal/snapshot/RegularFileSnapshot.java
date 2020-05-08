@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot;
 
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.hash.HashCode;
 
@@ -29,9 +29,9 @@ import java.util.Optional;
  */
 public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnapshot {
     private final HashCode contentHash;
-    private final FileMetadataSnapshot metadata;
+    private final FileMetadata metadata;
 
-    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadataSnapshot metadata) {
+    public RegularFileSnapshot(String absolutePath, String name, HashCode contentHash, FileMetadata metadata) {
         super(absolutePath, name, metadata.getAccessType());
         this.contentHash = contentHash;
         this.metadata = metadata;
@@ -48,7 +48,7 @@ public class RegularFileSnapshot extends AbstractCompleteFileSystemLocationSnaps
     }
 
     // Used by the Maven caching client. Do not remove
-    public FileMetadataSnapshot getMetadata() {
+    public FileMetadata getMetadata() {
         return metadata;
     }
 
