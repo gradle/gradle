@@ -353,7 +353,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "finalizer task is not executed if the finalized task does not run"() {
         buildFile << """
     task a {
@@ -473,7 +472,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue("GRADLE-3575")
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "honours task ordering with finalizers on finalizers"() {
         buildFile << """
             task a() {
@@ -560,7 +558,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue("gradle/gradle#783")
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "executes finalizer task as soon as possible after finalized task"() {
         buildFile << """
             project(":a") {
@@ -593,7 +590,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue(["gradle/gradle#769", "gradle/gradle#841"])
-    @ToBeFixedForInstantExecution(because = "different task ordering", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
         buildFile << """

@@ -74,15 +74,8 @@ class WorkNodeCodec(
             // Already visited
             return
         }
-        for (successor in node.dependencySuccessors) {
+        for (successor in successorsOf(node)) {
             writeNode(successor, nodesById)
-        }
-        when (node) {
-            is TaskNode -> {
-                for (successor in node.mustSuccessors) {
-                    writeNode(successor, nodesById)
-                }
-            }
         }
         val id = nodesById.size
         write(node)
@@ -91,9 +84,21 @@ class WorkNodeCodec(
         when (node) {
             is TaskNode -> {
                 writeSuccessors(nodesById, node.mustSuccessors)
+                writeSuccessors(nodesById, node.finalizingSuccessors)
             }
         }
         nodesById[node] = id
+    }
+
+    private
+    fun successorsOf(node: Node): Sequence<Node> = sequence {
+        yieldAll(node.dependencySuccessors)
+        when (node) {
+            is TaskNode -> {
+                yieldAll(node.mustSuccessors)
+                yieldAll(node.finalizingSuccessors)
+            }
+        }
     }
 
     private
@@ -108,6 +113,10 @@ class WorkNodeCodec(
                 readSuccessors(nodesById) {
                     require(it is TaskNode)
                     node.addMustSuccessor(it)
+                }
+                readSuccessors(nodesById) {
+                    require(it is TaskNode)
+                    node.addFinalizingSuccessor(it)
                 }
             }
         }

@@ -81,12 +81,12 @@ public abstract class TaskNode extends Node {
         toNode.mustPredecessors.add(this);
     }
 
-    protected void addFinalizingSuccessor(TaskNode finalized) {
+    public void addFinalizingSuccessor(TaskNode finalized) {
         finalizingSuccessors.add(finalized);
+        finalized.finalizers.add(this);
     }
 
-    protected void addFinalizer(TaskNode finalizerNode) {
-        finalizers.add(finalizerNode);
+    public void addFinalizer(TaskNode finalizerNode) {
         finalizerNode.addFinalizingSuccessor(this);
     }
 
