@@ -79,7 +79,7 @@ class WorkNodeCodec(
             return
         }
 
-        writeSuccessorNodesOf(node, scheduledNodeIds, visitedNodes)
+        writeScheduledSuccessorsOf(node, scheduledNodeIds, visitedNodes)
 
         val nodeId = scheduledNodeIds.getValue(node)
         writeSmallInt(nodeId)
@@ -99,13 +99,15 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun WriteContext.writeSuccessorNodesOf(
+    suspend fun WriteContext.writeScheduledSuccessorsOf(
         node: Node,
         scheduledNodeIds: Map<Node, Int>,
         visitedNodes: MutableSet<Node>
     ) {
-        for (successor in node.allSuccessors.asSequence().filter(scheduledNodeIds::containsKey)) {
-            writeNode(successor, scheduledNodeIds, visitedNodes)
+        for (successor in node.allSuccessors) {
+            if (successor in scheduledNodeIds) {
+                writeNode(successor, scheduledNodeIds, visitedNodes)
+            }
         }
     }
 
