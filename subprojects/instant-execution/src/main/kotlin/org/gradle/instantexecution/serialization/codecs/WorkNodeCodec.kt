@@ -55,7 +55,6 @@ class WorkNodeCodec(
         for (node in nodes) {
             writeNode(node, scheduledNodeIds, visitedNodes)
         }
-        writeLong(0xdeadbeef)
     }
 
     private
@@ -66,7 +65,6 @@ class WorkNodeCodec(
         for (i in 0 until count) {
             nodes.add(readNode(nodesById))
         }
-        require(readLong() == 0xdeadbeef)
         return nodes
     }
 
