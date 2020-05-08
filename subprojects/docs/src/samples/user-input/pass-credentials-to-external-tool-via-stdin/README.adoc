@@ -13,7 +13,7 @@ To demonstrate the concept, we will fake the authentication using a bash script 
 ====
 include::sample[dir="groovy",files="login.sh[]"]
 ====
-It has two sets of hardcoded username/password pairs that will result in successful login.
+It has a hardcoded username/password pair that will result in successful login.
 The script can be executed without Gradle - it will mimic a tool that requires an interactive login.
 
 Gradle build file registers two tasks - one performs a login and the other one depends on the login having succeeded:
@@ -39,9 +39,18 @@ $ ORG_GRADLE_PROJECT_username=secret-user ORG_GRADLE_PROJECT_password=secret-pas
 ----
 =====
  * by setting the properties in `gradle.properties` file:
-====
-include::sample[dir="groovy",files="gradle.properties[]"]
-====
+=====
+----
+username=secret-user
+password=secret-password
+----
+=====
+and running
+=====
+----
+$ ./gradlew doAuthenticated
+----
+=====
 This way the sensitive data can be kept outside of the project sources - `gradle.properties` can reside in the user's `~/.gradle` directory.
 The values are also not echoed anywhere this way.
 For more information about using Gradle properties, see link:{userManualPath}/build_environment.html#sec:gradle_configuration_properties[Gradle Properties user manual chapter].
