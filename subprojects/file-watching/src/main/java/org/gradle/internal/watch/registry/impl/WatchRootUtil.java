@@ -79,6 +79,9 @@ public class WatchRootUtil {
             default:
                 throw new AssertionError();
         }
+        if (ancestorToWatch == null) {
+            return ImmutableList.of(path);
+        }
         return snapshot.getType() == FileType.Directory
             ? ImmutableList.of(ancestorToWatch, path)
             : ImmutableList.of(ancestorToWatch);
