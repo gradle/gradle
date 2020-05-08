@@ -264,6 +264,8 @@ public class DirectorySnapshotter {
             try {
                 return Files.readAttributes(symlink, BasicFileAttributes.class);
             } catch (IOException ioe) {
+                // We emulate the behavior of `Files.walkFileTree(Path, EnumSet.of(FileVisitOption.FOLLOW_LINKS), PathVisitor)`,
+                // and return the attributes of the symlink if we can't read the attributes of the target of the symlink.
                 return symlinkAttributes;
             }
         }
