@@ -22,7 +22,7 @@ import org.gradle.util.TextUtil
 
 @Requires(TestPrecondition.WINDOWS)
 class SubstIntegrationTest extends AbstractIntegrationSpec {
-    def "up to date check works from filesystem's root - intput folder to output file"() {
+    def "up to date check works from filesystem's root - input folder to output file"() {
         def drive = 'X:'
         def root = substRoot(drive)
 
@@ -58,7 +58,7 @@ class SubstIntegrationTest extends AbstractIntegrationSpec {
         cleanupSubst(drive)
     }
 
-    def "up to date check works from filesystem's root - intput file to output folder copy"() {
+    def "up to date check works from filesystem's root - input file to output folder copy"() {
         def drive = 'Y:'
         substRoot(drive)
 
