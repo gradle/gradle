@@ -34,7 +34,7 @@ public class NioFileMetadataAccessor implements FileMetadataAccessor {
         Path path = file.toPath();
         BasicFileAttributes attributes;
         try {
-            attributes = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
+            attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         } catch (IOException e) {
             return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
         }

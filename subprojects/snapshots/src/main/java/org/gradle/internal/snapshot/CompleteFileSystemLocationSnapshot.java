@@ -69,7 +69,7 @@ public interface CompleteFileSystemLocationSnapshot extends FileSystemSnapshot, 
     boolean isContentAndMetadataUpToDate(CompleteFileSystemLocationSnapshot other);
 
     /**
-     * How this snapshot was accessed.
+     * Whether the file system location represented by this snapshot is a symlink or not.
      */
     FileMetadataSnapshot.AccessType getAccessType();
 }
