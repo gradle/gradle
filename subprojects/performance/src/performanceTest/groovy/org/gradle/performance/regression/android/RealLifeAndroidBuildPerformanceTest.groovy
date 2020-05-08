@@ -37,7 +37,7 @@ class RealLifeAndroidBuildPerformanceTest extends AbstractCrossVersionGradleProf
 
     def setup() {
         runner.args = [AndroidGradlePluginVersions.OVERRIDE_VERSION_CHECK]
-        runner.targetVersions = ["6.5-milestone-1"]
+        runner.targetVersions = ["6.5-20200507025059+0000"]
         // AGP 3.6 requires 5.6.1+
         // The enterprise plugin requires Gradle 6.0
         runner.minimumBaseVersion = "6.0"
