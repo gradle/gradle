@@ -17,6 +17,7 @@
 package org.gradle.api.internal.changedetection.state
 
 import org.gradle.api.internal.file.archive.ZipEntry
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.internal.snapshot.FileMetadata
@@ -28,7 +29,7 @@ class CachingResourceHasherTest extends Specification {
     def delegate = Mock(ResourceHasher)
     def path = "some"
     def relativePath = ["relative", "path"]
-    private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), new FileMetadata(3456, 456))
+    private RegularFileSnapshot snapshot = new RegularFileSnapshot(path, "path", HashCode.fromInt(456), new FileMetadata(3456, 456), AccessType.DIRECT)
     def cachingHasher = new CachingResourceHasher(delegate, new DefaultResourceSnapshotterCacheService(new InMemoryIndexedCache(new HashCodeSerializer())))
 
     def "returns result from delegate"() {

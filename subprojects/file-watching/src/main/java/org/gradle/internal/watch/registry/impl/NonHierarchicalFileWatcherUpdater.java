@@ -21,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Multiset;
 import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileWatcher;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.snapshot.CompleteDirectorySnapshot;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 import org.gradle.internal.snapshot.FileSystemSnapshotVisitor;
@@ -138,16 +139,17 @@ public class NonHierarchicalFileWatcherUpdater implements FileWatcherUpdater {
 
         public OnlyVisitSubDirectories(Consumer<String> subDirectoryConsumer) {
             this.subDirectoryConsumer = subDirectoryConsumer;
-            root = true;
+            this.root = true;
         }
 
         @Override
         public boolean preVisitDirectory(CompleteDirectorySnapshot directorySnapshot) {
-            if (!root) {
+            boolean directoryAccessedDirectly = directorySnapshot.getAccessType() == AccessType.DIRECT;
+            if (!root && directoryAccessedDirectly) {
                 subDirectoryConsumer.accept(directorySnapshot.getAbsolutePath());
             }
             root = false;
-            return true;
+            return directoryAccessedDirectly;
         }
 
         @Override

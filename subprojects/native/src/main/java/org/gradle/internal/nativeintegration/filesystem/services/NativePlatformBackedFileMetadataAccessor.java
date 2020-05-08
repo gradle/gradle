@@ -20,6 +20,7 @@ import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
@@ -34,21 +35,30 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
 
     @Override
     public FileMetadataSnapshot stat(File f) {
+        FileInfo stat;
         try {
-            FileInfo stat = files.stat(f, true);
-            switch (stat.getType()) {
-                case File:
-                    return DefaultFileMetadataSnapshot.file(stat.getLastModifiedTime(), stat.getSize());
-                case Directory:
-                    return DefaultFileMetadataSnapshot.directory();
-                case Missing:
-                case Other:
-                    return DefaultFileMetadataSnapshot.missing();
-                default:
-                    throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
-            }
+            stat = files.stat(f, false);
         } catch (NativeException e) {
-            return DefaultFileMetadataSnapshot.missing();
+            return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
+        }
+        AccessType accessType = AccessType.viaSymlink(stat.getType() == FileInfo.Type.Symlink);
+        if (accessType == AccessType.VIA_SYMLINK) {
+            try {
+                stat = files.stat(f, true);
+            } catch (NativeException e) {
+                return DefaultFileMetadataSnapshot.missing(AccessType.VIA_SYMLINK);
+            }
+        }
+        switch (stat.getType()) {
+            case File:
+                return DefaultFileMetadataSnapshot.file(stat.getLastModifiedTime(), stat.getSize(), accessType);
+            case Directory:
+                return DefaultFileMetadataSnapshot.directory(accessType);
+            case Missing:
+            case Other:
+                return DefaultFileMetadataSnapshot.missing(accessType);
+            default:
+                throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }
     }
 }

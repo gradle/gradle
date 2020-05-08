@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableMap;
 import net.rubygrapefruit.platform.file.Files;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.services.FallbackFileMetadataAccessor;
@@ -120,14 +121,14 @@ public class FileMetadataAccessorBenchmark {
                 // This is really not cool, but we cannot rely on `readAttributes` because it will
                 // THROW AN EXCEPTION if the file is missing, which is really incredibly slow just
                 // to determine if a file exists or not.
-                return DefaultFileMetadataSnapshot.missing();
+                return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
             }
             try {
                 BasicFileAttributes bfa = java.nio.file.Files.readAttributes(f.toPath(), BasicFileAttributes.class);
                 if (bfa.isDirectory()) {
-                    return DefaultFileMetadataSnapshot.directory();
+                    return DefaultFileMetadataSnapshot.directory(AccessType.DIRECT);
                 }
-                return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
+                return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size(), AccessType.DIRECT);
             } catch (IOException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
             }

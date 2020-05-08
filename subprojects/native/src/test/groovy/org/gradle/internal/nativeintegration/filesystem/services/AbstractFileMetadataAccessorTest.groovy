@@ -17,6 +17,7 @@
 package org.gradle.internal.nativeintegration.filesystem.services
 
 import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -26,13 +27,20 @@ import org.gradle.util.UsesNativeServices
 import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.internal.file.FileMetadataSnapshot.AccessType.DIRECT
+import static org.gradle.internal.file.FileMetadataSnapshot.AccessType.VIA_SYMLINK
+
 @UsesNativeServices
 abstract class AbstractFileMetadataAccessorTest extends Specification {
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     abstract FileMetadataAccessor getAccessor()
 
-    abstract boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
+    abstract void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file)
+
+    void assertSameAccessType(FileMetadataSnapshot metadataSnapshot, AccessType accessType) {
+        assert metadataSnapshot.accessType == accessType
+    }
 
     def "stats missing file"() {
         def file = tmpDir.file("missing")
@@ -42,6 +50,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, DIRECT)
     }
 
     def "stats regular file"() {
@@ -51,8 +60,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(file)
         stat.type == FileType.RegularFile
-        sameLastModified(stat, file)
+        assertSameLastModified(stat, file)
         stat.length == 3
+        assertSameAccessType(stat, DIRECT)
     }
 
     def "stats directory"() {
@@ -63,6 +73,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Directory
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, DIRECT)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -75,8 +86,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(link)
         stat.type == FileType.RegularFile
-        sameLastModified(stat, file)
+        assertSameLastModified(stat, file)
         stat.length == 3
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -90,6 +102,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Directory
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -103,6 +116,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -117,8 +131,9 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         expect:
         def stat = accessor.stat(linkToLink)
         stat.type == FileType.RegularFile
-        sameLastModified(stat, file)
+        assertSameLastModified(stat, file)
         stat.length == 3
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -134,6 +149,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.SYMLINKS)
@@ -150,6 +166,7 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, VIA_SYMLINK)
     }
 
     @Requires(TestPrecondition.UNIX_DERIVATIVE)
@@ -162,5 +179,6 @@ abstract class AbstractFileMetadataAccessorTest extends Specification {
         stat.type == FileType.Missing
         stat.lastModified == 0
         stat.length == 0
+        assertSameAccessType(stat, DIRECT)
     }
 }

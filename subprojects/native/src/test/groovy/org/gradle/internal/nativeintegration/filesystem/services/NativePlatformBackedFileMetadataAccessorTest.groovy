@@ -36,8 +36,8 @@ class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataA
     }
 
     @Override
-    boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
-        return maybeRoundLastModified(metadataSnapshot.lastModified) == maybeRoundLastModified(lastModifiedViaJavaNio(file))
+    void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
+        assert maybeRoundLastModified(metadataSnapshot.lastModified) == maybeRoundLastModified(lastModifiedViaJavaNio(file))
     }
 
     private static maybeRoundLastModified(long lastModified) {

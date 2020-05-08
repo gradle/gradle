@@ -16,29 +16,42 @@
 package org.gradle.internal.nativeintegration.filesystem.jdk7;
 
 import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.nio.file.attribute.BasicFileAttributes;
 
 @SuppressWarnings("Since15")
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
-    public FileMetadataSnapshot stat(File f) {
+    public FileMetadataSnapshot stat(File file) {
+        Path path = file.toPath();
+        BasicFileAttributes attributes;
         try {
-            BasicFileAttributes bfa = Files.readAttributes(f.toPath(), BasicFileAttributes.class);
-            if (bfa.isDirectory()) {
-                return DefaultFileMetadataSnapshot.directory();
-            }
-            if (bfa.isOther()) {
-                return DefaultFileMetadataSnapshot.missing();
-            }
-            return DefaultFileMetadataSnapshot.file(bfa.lastModifiedTime().toMillis(), bfa.size());
+            attributes = Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         } catch (IOException e) {
-            return DefaultFileMetadataSnapshot.missing();
+            return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
         }
+        AccessType accessType = AccessType.viaSymlink(attributes.isSymbolicLink());
+        if (accessType == AccessType.VIA_SYMLINK) {
+            try {
+                attributes = Files.readAttributes(path, BasicFileAttributes.class);
+            } catch (IOException e) {
+                return DefaultFileMetadataSnapshot.missing(AccessType.VIA_SYMLINK);
+            }
+        }
+        if (attributes.isDirectory()) {
+            return DefaultFileMetadataSnapshot.directory(accessType);
+        }
+        if (attributes.isOther()) {
+            return DefaultFileMetadataSnapshot.missing(accessType);
+        }
+        return DefaultFileMetadataSnapshot.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
     }
 }

@@ -32,8 +32,8 @@ class NioFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     }
 
     @Override
-    boolean sameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
-        return metadataSnapshot.lastModified == lastModified(file)
+    void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
+        assert metadataSnapshot.lastModified == lastModified(file)
     }
 
     private static long lastModified(File file) {

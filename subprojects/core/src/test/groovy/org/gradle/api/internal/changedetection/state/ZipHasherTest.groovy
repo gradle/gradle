@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection.state
 
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.snapshot.FileMetadata
 import org.gradle.internal.snapshot.RegularFileSnapshot
@@ -74,6 +75,6 @@ class ZipHasherTest extends Specification {
     }
 
     private static RegularFileSnapshot snapshot(TestFile file) {
-        new RegularFileSnapshot(file.path, file.name, HashCode.fromInt(0), new FileMetadata(0, 0))
+        new RegularFileSnapshot(file.path, file.name, HashCode.fromInt(0), new FileMetadata(0, 0), AccessType.DIRECT)
     }
 }

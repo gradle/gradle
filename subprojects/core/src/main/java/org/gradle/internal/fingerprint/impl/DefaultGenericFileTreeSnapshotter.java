@@ -20,10 +20,14 @@ import com.google.common.collect.Interner;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.file.FileTreeInternal;
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.fingerprint.GenericFileTreeSnapshotter;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
+
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapshotter {
 
@@ -55,7 +59,8 @@ public class DefaultGenericFileTreeSnapshotter implements GenericFileTreeSnapsho
                     fileDetails.getName(),
                     DefaultFileMetadataSnapshot.file(
                         fileDetails.getLastModified(),
-                        fileDetails.getSize()
+                        fileDetails.getSize(),
+                        AccessType.viaSymlink(Files.isSymbolicLink(Paths.get(fileDetails.getPath())))
                     )
                 );
             }
