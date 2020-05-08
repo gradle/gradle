@@ -1,7 +1,6 @@
 def login = tasks.register('login', Exec) {
     def USERNAME_PROPERTY = 'username'
     def PASSWORD_PROPERTY = 'password'
-    def providers = project.getProviders()
     def username = providers.gradleProperty(USERNAME_PROPERTY)
     def password = providers.gradleProperty(PASSWORD_PROPERTY)
 

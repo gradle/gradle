@@ -1,7 +1,6 @@
 val login = tasks.register<Exec>("login") {
     val USERNAME_PROPERTY = "username"
     val PASSWORD_PROPERTY = "password"
-    val providers = project.getProviders()
     val username = providers.gradleProperty(USERNAME_PROPERTY)
     val password = providers.gradleProperty(PASSWORD_PROPERTY)
 
