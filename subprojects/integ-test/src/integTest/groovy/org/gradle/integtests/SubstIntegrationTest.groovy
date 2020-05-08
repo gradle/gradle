@@ -16,13 +16,11 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.ToBeFixedForVfsRetention
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.gradle.util.TextUtil
 
 @Requires(TestPrecondition.WINDOWS)
-@ToBeFixedForVfsRetention(because = "https://github.com/gradle/gradle/issues/12135")
 class SubstIntegrationTest extends AbstractIntegrationSpec {
     def "up to date check works from filesystem's root - intput folder to output file"() {
         def drive = 'X:'
