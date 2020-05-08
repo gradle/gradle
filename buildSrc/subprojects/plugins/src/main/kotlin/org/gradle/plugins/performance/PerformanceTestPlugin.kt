@@ -59,8 +59,6 @@ object Config {
     const val performanceTestResultsJson = "perf-results.json"
 
     const val teamCityUrl = "https://builds.gradle.org/"
-
-    const val adhocTestDbUrl = "jdbc:h2:./build/database"
 }
 
 
@@ -249,7 +247,6 @@ class PerformanceTestPlugin : Plugin<Project> {
         create("fullPerformanceTest")
 
         create("performanceAdhocTest") {
-            addDatabaseParameters(mapOf(PropertyNames.dbUrl to Config.adhocTestDbUrl))
             performanceReporter = createPerformanceReporter()
             channel = "adhoc"
             outputs.doNotCacheIf("Is adhoc performance test") { true }
