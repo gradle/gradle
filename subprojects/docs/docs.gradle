@@ -504,7 +504,6 @@ configurations {
     }
 }
 
-// TODO (donat) if we introduce integration tests in this subproject (e.g. samples tests are moved here) then remove the special handling in GenerateSubprojectsInfoPlugin
-tasks.register('integTest') {
+tasks.named('integTest') {
     dependsOn(tasks.named('docsTest'))
 }
