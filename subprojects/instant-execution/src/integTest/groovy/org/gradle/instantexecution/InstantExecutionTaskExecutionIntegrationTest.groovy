@@ -51,6 +51,26 @@ class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecut
         result.assertTasksNotSkipped(":never")
     }
 
+    def "shouldRunAfter doesn't imply dependency"() {
+        given:
+        buildFile << '''
+            task a
+            task b { shouldRunAfter a }
+        '''
+
+        when:
+        instantRun 'b'
+
+        then:
+        result.assertTasksExecuted ':b'
+
+        when:
+        instantRun 'b'
+
+        then:
+        result.assertTasksExecuted ':b'
+    }
+
     def "mustRunAfter doesn't imply dependency"() {
         given:
         buildFile << '''
@@ -69,5 +89,25 @@ class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecut
 
         then:
         result.assertTasksExecuted ':b'
+    }
+
+    def "finalizedBy implies dependency"() {
+        given:
+        buildFile << '''
+            task a
+            task b { finalizedBy a }
+        '''
+
+        when:
+        instantRun 'b'
+
+        then:
+        result.assertTasksExecuted ':b', ':a'
+
+        when:
+        instantRun 'b'
+
+        then:
+        result.assertTasksExecuted ':b', ':a'
     }
 }
