@@ -31,26 +31,27 @@ import java.nio.file.attribute.BasicFileAttributes;
 public class NioFileMetadataAccessor implements FileMetadataAccessor {
     @Override
     public FileMetadataSnapshot stat(File file) {
+        Path path = file.toPath();
+        BasicFileAttributes attributes;
         try {
-            Path path = file.toPath();
-            BasicFileAttributes attributes = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
-            AccessType accessType = attributes.isSymbolicLink() ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
-            if (accessType == AccessType.VIA_SYMLINK) {
-                try {
-                    attributes = Files.readAttributes(path, BasicFileAttributes.class);
-                } catch (IOException e) {
-                    return DefaultFileMetadataSnapshot.missing(AccessType.VIA_SYMLINK);
-                }
-            }
-            if (attributes.isDirectory()) {
-                return DefaultFileMetadataSnapshot.directory(accessType);
-            }
-            if (attributes.isOther()) {
-                return DefaultFileMetadataSnapshot.missing(accessType);
-            }
-            return DefaultFileMetadataSnapshot.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
+            attributes = java.nio.file.Files.readAttributes(path, BasicFileAttributes.class, LinkOption.NOFOLLOW_LINKS);
         } catch (IOException e) {
             return DefaultFileMetadataSnapshot.missing(AccessType.DIRECT);
         }
+        AccessType accessType = attributes.isSymbolicLink() ? AccessType.VIA_SYMLINK : AccessType.DIRECT;
+        if (accessType == AccessType.VIA_SYMLINK) {
+            try {
+                attributes = Files.readAttributes(path, BasicFileAttributes.class);
+            } catch (IOException e) {
+                return DefaultFileMetadataSnapshot.missing(AccessType.VIA_SYMLINK);
+            }
+        }
+        if (attributes.isDirectory()) {
+            return DefaultFileMetadataSnapshot.directory(accessType);
+        }
+        if (attributes.isOther()) {
+            return DefaultFileMetadataSnapshot.missing(accessType);
+        }
+        return DefaultFileMetadataSnapshot.file(attributes.lastModifiedTime().toMillis(), attributes.size(), accessType);
     }
 }
