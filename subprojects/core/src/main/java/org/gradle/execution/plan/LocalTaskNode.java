@@ -174,7 +174,6 @@ public class LocalTaskNode extends TaskNode {
     }
 
     @Override
-    @SuppressWarnings("NullableProblems")
     public int compareTo(Node other) {
         if (getClass() != other.getClass()) {
             return getClass().getName().compareTo(other.getClass().getName());
@@ -212,7 +211,12 @@ public class LocalTaskNode extends TaskNode {
                             filePropertyType,
                             fileCollectionFactory,
                             true,
-                            outputFilePropertySpec -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, outputFilePropertySpec.getPropertyFiles()))
+                            outputFilePropertySpec -> {
+                                File outputLocation = outputFilePropertySpec.getOutputFile();
+                                if (outputLocation != null) {
+                                    mutations.outputPaths.add(canonicalizePath(outputLocation, canonicalizedFileCache));
+                                }
+                            }
                         )
                     );
                     mutations.hasOutputs = true;
