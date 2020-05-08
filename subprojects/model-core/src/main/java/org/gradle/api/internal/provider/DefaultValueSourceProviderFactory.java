@@ -161,7 +161,9 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     }
 
     @NonExtensible
-    public abstract static class DefaultValueSourceSpec<P extends ValueSourceParameters> implements ValueSourceSpec<P> {
+    public abstract static class DefaultValueSourceSpec<P extends ValueSourceParameters>
+        implements ValueSourceSpec<P> {
+
         private final P parameters;
 
         public DefaultValueSourceSpec(P parameters) {
@@ -233,7 +235,8 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
     }
 
-    public abstract static class ValueSourceProvider<T, P extends ValueSourceParameters> extends AbstractMinimalProvider<T> {
+    public abstract static class ValueSourceProvider<T, P extends ValueSourceParameters>
+        extends AbstractMinimalProvider<T> {
 
         protected final LazilyObtainedValue<T, P> value;
 
@@ -327,18 +330,22 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         }
 
         public Try<T> obtain() {
-            boolean obtainedValue = false;
+            if (obtainValueForThe1stTime()) {
+                valueObtained(obtainedValue());
+            }
+            return value;
+        }
+
+        private boolean obtainValueForThe1stTime() {
+            boolean valueWasObtained = false;
             synchronized (this) {
                 if (value == null) {
                     // TODO - add more information to exception
                     value = Try.ofFailable(() -> source().obtain());
-                    obtainedValue = true;
+                    valueWasObtained = true;
                 }
             }
-            if (obtainedValue) {
-                valueObtained(obtainedValue());
-            }
-            return value;
+            return valueWasObtained;
         }
 
         @NotNull
