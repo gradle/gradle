@@ -485,7 +485,7 @@ tasks.named("docsTest") {
     // Do not execute Java Module tests on JVM < 9
     if (!buildJvms.testJvm.get().javaVersion.java9Compatible) {
         filter {
-            excludeTestsMatching "org.gradle.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
+            excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
         }
     }
 }
