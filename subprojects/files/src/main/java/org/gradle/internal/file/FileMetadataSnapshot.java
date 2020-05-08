@@ -45,6 +45,7 @@ public interface FileMetadataSnapshot {
          * The path pointed to the file directly.
          */
         DIRECT,
+
         /**
          * The path pointed to a symlink pointing to the file with the metadata.
          */
