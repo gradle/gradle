@@ -171,13 +171,19 @@ class TaskNodeCodec(
 
     private
     suspend fun WriteContext.writeLocalStateOf(task: TaskInternal) {
-        writeCollection((task.localState as TaskLocalStateInternal).registeredPaths)
+        val localState = (task.localState as TaskLocalStateInternal).registeredFiles
+        if (localState == null) {
+            writeBoolean(false)
+        } else {
+            writeBoolean(true)
+            write(localState)
+        }
     }
 
     private
     suspend fun ReadContext.readLocalStateOf(task: TaskInternal) {
-        readCollection {
-            task.localState.register(readNonNull())
+        if (readBoolean()) {
+            task.localState.register(readNonNull<FileCollection>())
         }
     }
 
