@@ -264,6 +264,9 @@ samples {
         }
     }
 
+    // default text for snippets that don't documentation
+    File defaultReadme = file('src/snippets/default-readme.adoc')
+
     snippets.each { String id, File location ->
         publishedSamples.create(id) {
             // set readme for snippet
