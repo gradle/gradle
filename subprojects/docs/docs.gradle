@@ -488,6 +488,14 @@ tasks.named("docsTest") {
             excludeTestsMatching "org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.java-modules-*.sample"
         }
     }
+
+    if (!buildJvms.testJvm.get().javaVersion.java11Compatible) {
+        filter {
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.precompiled-script-plugin*.sample' // Files.readString() is used
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Groovy-multiproject_groovy_sanityCheck.sample' // Gradle build daemon disappeared unexpectedly (it may have been killed or may have crashed)
+            excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
+        }
+    }
 }
 
 // Publications for the docs subproject:
