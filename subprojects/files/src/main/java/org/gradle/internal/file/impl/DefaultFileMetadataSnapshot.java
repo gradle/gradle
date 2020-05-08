@@ -82,4 +82,27 @@ public class DefaultFileMetadataSnapshot implements FileMetadataSnapshot {
         return accessType;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+        DefaultFileMetadataSnapshot that = (DefaultFileMetadataSnapshot) o;
+        return type == that.type &&
+            length == that.length &&
+            lastModified == that.lastModified &&
+            accessType == that.accessType;
+    }
+
+    @Override
+    public int hashCode() {
+        int result = type.hashCode();
+        result = 31 * result + (int) (lastModified ^ (lastModified >>> 32));
+        result = 31 * result + (int) (length ^ (length >>> 32));
+        result = 31 * result + accessType.hashCode();
+        return result;
+    }
 }

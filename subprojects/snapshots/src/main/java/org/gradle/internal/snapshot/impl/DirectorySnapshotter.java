@@ -20,11 +20,12 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Lists;
+import org.gradle.internal.file.FileMetadataSnapshot;
 import org.gradle.internal.file.FileMetadataSnapshot.AccessType;
+import org.gradle.internal.file.impl.DefaultFileMetadataSnapshot;
 import org.gradle.internal.hash.FileHasher;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.MerkleDirectorySnapshotBuilder;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -274,9 +275,9 @@ public class DirectorySnapshotter {
             String internedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
-                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), attrs.size(), attrs.lastModifiedTime().toMillis());
-                    FileMetadata metadata = FileMetadata.from(attrs);
-                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata, accessType);
+                    FileMetadataSnapshot metadata = DefaultFileMetadataSnapshot.file(attrs.lastModifiedTime().toMillis(), attrs.size(), accessType);
+                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), metadata.getLength(), metadata.getLastModified());
+                    return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);
                 }
