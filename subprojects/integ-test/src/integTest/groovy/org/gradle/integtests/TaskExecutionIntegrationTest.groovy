@@ -173,7 +173,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def excludesTasksWhenExcludePatternSpecified() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -206,7 +205,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def "unqualified exclude task name does not exclude tasks from parent projects"() {
         settingsFile << "include 'sub'"
         buildFile << """
@@ -224,7 +222,6 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def 'can use camel-case matching to exclude tasks'() {
         buildFile << """
 task someDep
@@ -239,7 +236,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
-    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def 'can combine exclude task filters'() {
         buildFile << """
 task someDep
@@ -256,7 +252,6 @@ task someTask(dependsOn: [someDep, someOtherDep])
     }
 
     @Issue(["https://issues.gradle.org/browse/GRADLE-3031", "https://issues.gradle.org/browse/GRADLE-2974"])
-    @ToBeFixedForInstantExecution(because = "excluding tasks is broken")
     def 'excluding a task that is a dependency of multiple tasks'() {
         settingsFile << "include 'sub'"
         buildFile << """
