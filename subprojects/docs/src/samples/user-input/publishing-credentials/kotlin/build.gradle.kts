@@ -9,8 +9,8 @@ group = "com.example"
 // tag::publication[]
 val MAVEN_USERNAME_PROPERTY = "mavenUser"
 val MAVEN_PASSWORD_PROPERTY = "mavenPassword"
-val mavenUser = project.getProviders().gradleProperty(MAVEN_USERNAME_PROPERTY)
-val mavenPassword = project.getProviders().gradleProperty(MAVEN_PASSWORD_PROPERTY)
+val mavenUser = providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
+val mavenPassword = providers.gradleProperty(MAVEN_PASSWORD_PROPERTY)
 
 publishing {
     publications {
