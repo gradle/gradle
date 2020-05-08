@@ -50,10 +50,9 @@ class WorkNodeCodec(
     private
     suspend fun WriteContext.writeNodes(nodes: List<Node>) {
         val scheduledNodeIds = nodes.asSequence().mapIndexed { index, node -> node to index }.toMap()
-        val visitedNodes = mutableSetOf<Node>()
         writeSmallInt(nodes.size)
         for (node in nodes) {
-            writeNode(node, scheduledNodeIds, visitedNodes)
+            writeNode(node, scheduledNodeIds)
         }
     }
 
@@ -71,16 +70,8 @@ class WorkNodeCodec(
     private
     suspend fun WriteContext.writeNode(
         node: Node,
-        scheduledNodeIds: Map<Node, Int>,
-        visitedNodes: MutableSet<Node>
+        scheduledNodeIds: Map<Node, Int>
     ) {
-        if (!visitedNodes.add(node)) {
-            // Already visited
-            return
-        }
-
-        writeScheduledSuccessorsOf(node, scheduledNodeIds, visitedNodes)
-
         val nodeId = scheduledNodeIds.getValue(node)
         writeSmallInt(nodeId)
         write(node)
@@ -96,19 +87,6 @@ class WorkNodeCodec(
         node.dependenciesProcessed()
         nodesById[nodeId] = node
         return node
-    }
-
-    private
-    suspend fun WriteContext.writeScheduledSuccessorsOf(
-        node: Node,
-        scheduledNodeIds: Map<Node, Int>,
-        visitedNodes: MutableSet<Node>
-    ) {
-        for (successor in node.allSuccessors) {
-            if (successor in scheduledNodeIds) {
-                writeNode(successor, scheduledNodeIds, visitedNodes)
-            }
-        }
     }
 
     private
