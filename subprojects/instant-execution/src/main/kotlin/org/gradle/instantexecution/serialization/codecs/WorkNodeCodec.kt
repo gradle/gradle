@@ -24,7 +24,6 @@ import org.gradle.instantexecution.serialization.IsolateOwner
 import org.gradle.instantexecution.serialization.ReadContext
 import org.gradle.instantexecution.serialization.WriteContext
 import org.gradle.instantexecution.serialization.readCollection
-import org.gradle.instantexecution.serialization.readNonNull
 import org.gradle.instantexecution.serialization.withIsolate
 import org.gradle.instantexecution.serialization.writeCollection
 
@@ -54,6 +53,7 @@ class WorkNodeCodec(
         for (node in nodes) {
             writeNode(node, nodesById)
         }
+        write(null)
     }
 
     private
@@ -61,8 +61,8 @@ class WorkNodeCodec(
         val count = readSmallInt()
         val nodesById = HashMap<Int, Node>(count)
         val nodes = ArrayList<Node>(count)
-        for (i in 0 until count) {
-            val node = readNode(nodesById)
+        while (true) {
+            val node = readNode(nodesById) ?: break
             nodes.add(node)
         }
         return nodes
@@ -85,8 +85,8 @@ class WorkNodeCodec(
             }
         }
         val id = nodesById.size
-        writeSmallInt(id)
         write(node)
+        writeSmallInt(id)
         writeSuccessors(nodesById, node.dependencySuccessors)
         when (node) {
             is TaskNode -> {
@@ -97,9 +97,9 @@ class WorkNodeCodec(
     }
 
     private
-    suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node {
+    suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node? {
+        val node = read() as Node? ?: return null
         val id = readSmallInt()
-        val node = readNonNull<Node>()
         readSuccessors(nodesById) {
             node.addDependencySuccessor(it)
         }
