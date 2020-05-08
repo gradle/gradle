@@ -454,7 +454,10 @@ tasks.named("docsTest") {
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Scala-cross-compilation_groovy_sanityCheck.sample' // There is no java executable in /Library/Java/JavaVirtualMachines/1.6.0.jdk/Contents/Home/bin. Expression: executable.exists()
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-application_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-library_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-library_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-library-publishing_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.groovy-multi-project-with-spock-tests_*.sample' // java.lang.NoClassDefFoundError: Could not initialize class org.codehaus.groovy.vmplugin.v7.Java7
+        excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Signing-conditional_kotlin_conditionalSigning.sample' // build.gradle.kts:1:1: Cannot access implicit script receiver class 'org.gradle.api.Project'.
         // fails locally
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Artifacts-maven_*.sample' // // emits deprecation warning
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Base-custom-external-task_*.sample' // emits deprecation warning
