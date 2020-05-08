@@ -44,7 +44,6 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks work with task excluding (#excludedTask)'() {
         setupProject()
         executer.beforeExecute {
@@ -76,7 +75,7 @@ class FinalizerTaskIntegrationTest extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.finalizedBy", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
+    @ToBeFixedForInstantExecution(because = "--continue", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     void 'finalizer tasks work with --continue (#requestedTasks, #failingTask)'() {
         setupProject()
         executer.beforeExecute {
