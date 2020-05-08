@@ -17,13 +17,19 @@
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.file.FileCollectionInternal
+import org.gradle.api.internal.file.TestFiles
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.UsesNativeServices
+import org.junit.Rule
 import spock.lang.Specification
 
 import java.util.concurrent.Callable
 
 @UsesNativeServices
 class DefaultTaskDestroyablesTest extends Specification {
+
+    @Rule
+    public TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     TaskMutator taskMutator = Stub(TaskMutator) {
         mutate(_, _) >> { String method, Object action ->
@@ -35,12 +41,16 @@ class DefaultTaskDestroyablesTest extends Specification {
         }
     }
 
-    TaskDestroyablesInternal taskDestroys = new DefaultTaskDestroyables(taskMutator)
+    TaskDestroyablesInternal taskDestroys = new DefaultTaskDestroyables(
+        taskMutator,
+        TestFiles.fileCollectionFactory(testDir.testDirectory)
+    )
 
     def "empty destroys by default"() {
         expect:
         taskDestroys.registeredPaths != null
         taskDestroys.registeredPaths.isEmpty()
+        taskDestroys.registeredFiles == null
     }
 
     def "can declare a file that a task destroys"() {
@@ -49,6 +59,7 @@ class DefaultTaskDestroyablesTest extends Specification {
 
         then:
         taskDestroys.registeredPaths == ["a"]
+        taskDestroys.registeredFiles.singleFile == testDir.file("a")
     }
 
     def "can declare multiple files that a task destroys"() {
@@ -57,10 +68,11 @@ class DefaultTaskDestroyablesTest extends Specification {
 
         then:
         taskDestroys.registeredPaths == ["a", "b"]
+        taskDestroys.registeredFiles.files == [testDir.file("a"), testDir.file("b")] as Set
     }
 
     def "can declare a file collection that a task destroys"() {
-        def files = [new File('a'), new File('b')] as Set
+        def files = [testDir.file('a'), testDir.file('b')] as Set
         def fileCollection = [getFiles: { files }] as FileCollectionInternal
 
         when:
@@ -68,6 +80,7 @@ class DefaultTaskDestroyablesTest extends Specification {
 
         then:
         taskDestroys.registeredPaths == [fileCollection]
+        taskDestroys.registeredFiles.files == files
     }
 
     def "can declare a file that a task destroys using a closure"() {
@@ -77,5 +90,6 @@ class DefaultTaskDestroyablesTest extends Specification {
 
         then:
         taskDestroys.registeredPaths == [closure]
+        taskDestroys.registeredFiles.singleFile == testDir.file("a")
     }
 }
