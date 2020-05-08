@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Maps;
 import com.google.common.io.ByteStreams;
 import org.apache.commons.compress.utils.Lists;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.file.archive.FileZipInput;
 import org.gradle.api.internal.file.archive.StreamZipInput;
 import org.gradle.api.internal.file.archive.ZipEntry;
@@ -114,7 +115,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             Hasher hasher = Hashing.newHasher();
             FingerprintHashingStrategy.SORT.appendToHasher(hasher, fingerprints);
             return hasher.hash();
-        } catch (Exception e) {
+        } catch (IOException | UncheckedIOException e) {
             return hashMalformedZip(zipFileSnapshot, e);
         }
     }
@@ -171,7 +172,7 @@ public class ZipHasher implements RegularFileHasher, ConfigurableNormalizer {
             if (hash != null) {
                 fingerprints.add(new DefaultFileSystemLocationFingerprint(fullName, FileType.RegularFile, hash));
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             LOGGER.warn("Could not load fingerprint " + rootParentName + ". Falling back to regular fingerprinting", e);
             ZipEntry manifestZipEntry = new ZipEntry() {
                 @Override
