@@ -222,7 +222,7 @@ public class LocalTaskNode extends TaskNode {
                 public void visitLocalStateProperty(final Object value) {
                     withDeadlockHandling(
                         taskNode,
-                        "a local state property", "local state properties",
+                        "a local state", "local state properties",
                         () -> mutations.outputPaths.addAll(canonicalizedPaths(canonicalizedFileCache, fileCollectionFactory.resolving(value))));
                     mutations.hasLocalState = true;
                 }
