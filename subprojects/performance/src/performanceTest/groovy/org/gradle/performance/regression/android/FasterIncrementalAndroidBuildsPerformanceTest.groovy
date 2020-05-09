@@ -16,6 +16,7 @@
 
 package org.gradle.performance.regression.android
 
+import org.gradle.initialization.StartParameterBuildOptions.InstantExecutionOption
 import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.internal.scan.config.fixtures.GradleEnterprisePluginSettingsFixture
 import org.gradle.internal.service.scopes.VirtualFileSystemServices
@@ -23,7 +24,6 @@ import org.gradle.performance.AbstractCrossBuildPerformanceTest
 import org.gradle.performance.categories.PerformanceExperiment
 import org.gradle.performance.fixture.BuildExperimentSpec
 import org.gradle.performance.fixture.GradleBuildExperimentSpec
-import org.gradle.performance.regression.java.JavaInstantExecutionPerformanceTest
 import org.gradle.profiler.BuildMutator
 import org.gradle.profiler.InvocationSettings
 import org.gradle.profiler.ScenarioContext
@@ -135,7 +135,7 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     }
 
     enum Optimization {
-        INSTANT_EXECUTION(JavaInstantExecutionPerformanceTest.INSTANT_EXECUTION_ENABLED_PROPERTY),
+        INSTANT_EXECUTION(InstantExecutionOption.PROPERTY_NAME),
         VFS_RETENTION(VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY)
 
         Optimization(String systemProperty) {
