@@ -63,9 +63,6 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
                 .run()
         } finally {
             connection.close()
-            if (GradleContextualExecuter.embedded) {
-                System.clearProperty(SystemProperties.isEnabled)
-            }
         }
         result = OutputScrapingExecutionResult.from(output.toString(), error.toString())
         return result
