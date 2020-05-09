@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+Checkstyle ends with 1 errors.
+<checkstyle version="8.28">
+<file name="/Users/zhb/Projects/gradle/subprojects/core-api/src/main/java/org/gradle/api/Project.java">
+<error line="52" column="8" severity="error" message="Unused import - java.util.concurrent.ConcurrentHashMap." source="com.puppycrawl.tools.checkstyle.checks.imports.UnusedImportsCheck"/>
+</file>
+</checkstyle>
+

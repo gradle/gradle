@@ -1,0 +1,33 @@
+name: SanityCheck
+
+on: [pull_request, push]
+
+jobs:
+    test:
+        runs-on: ubuntu-latest
+        steps:
+            - uses: actions/checkout@v2
+            - uses: joschi/setup-jdk@v1
+              with:
+                java-version: 'openjdk11'
+            - name: Cache node modules
+              uses: actions/cache@v1
+              env:
+                cache-name: cache-gradle-user-home
+              with:
+                path: ~/.gradle
+                key: ${{ runner.os }}-${{ env.cache-name }}-${{ hashFiles('**/*.gradle') }}-${{ hashFiles('**/*.gradle.kts') }}
+                restore-keys: |
+                  ${{ runner.os }}-${{ env.cache-name }}-
+                  ${{ runner.os }}-
+            - name: Show Gradle version
+              run: ./gradlew --version
+            - name: Increase inotify
+              run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+            - name: Run reviewdog
+              env:
+                REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  cat test-checkstyle-output.xml | reviewdog -f=checkstyle -reporter=github-pr-check
+
+

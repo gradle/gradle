@@ -29,6 +29,9 @@ import java.util.concurrent.Callable
 
 class QuickCheckPlugin : Plugin<Project> {
     override fun apply(project: Project) {
+        project.repositories {
+            mavenCentral()
+        }
         project.tasks.register<QuickCheckTask>("quickCheck")
     }
 }
@@ -78,6 +81,8 @@ enum class Check(private val extension: String) {
                 args("-c")
                 args("config/checkstyle/checkstyle.xml")
                 filesToBeChecked.forEach { args(it) }
+                args("-f")
+                args("xml")
                 jvmArgs("-Dconfig_loc=config/checkstyle")
                 classpath = project.configurations["quickCheck"]
                 systemProperty("config_location", "config/checkstyle")
