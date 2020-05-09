@@ -33,21 +33,6 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         fixture.assertStateStored()
     }
 
-    def "can enable instant execution from the client jvm"() {
-        setup:
-        executer.withCommandLineGradleOpts(INSTANT_EXECUTION_PROPERTY)
-        executer.requireGradleDistribution()
-
-        and:
-        def fixture = newInstantExecutionFixture()
-
-        when:
-        run 'help'
-
-        then:
-        fixture.assertStateStored()
-    }
-
     @Ignore
     @ToBeImplemented
     def "can enable instant execution from gradle.properties"() {
