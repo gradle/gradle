@@ -32,12 +32,14 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         run 'help', argument
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
 
         when:
         run 'help', argument
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateLoaded()
 
         where:
@@ -58,12 +60,14 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         run 'help'
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
 
         when:
         run 'help'
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateLoaded()
     }
 
@@ -80,12 +84,18 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         run 'help'
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateStored()
 
         when:
         run 'help'
 
         then:
+        outputContainsIncubatingFeatureUsage()
         fixture.assertStateLoaded()
+    }
+
+    private void outputContainsIncubatingFeatureUsage() {
+        outputContains("Instant execution is an incubating feature.")
     }
 }

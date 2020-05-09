@@ -35,7 +35,7 @@ class InstantExecutionToolingApiInvocationIntegrationTest extends AbstractInstan
         runWithInstantExecutionViaToolingApi("assemble")
 
         then:
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing instant execution cache.")
     }
 
     ExecutionResult runWithInstantExecutionViaToolingApi(String... tasks) {

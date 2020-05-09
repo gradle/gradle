@@ -71,7 +71,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
         when:
         instantRun "help"
         def secondRunOutput = removeVfsLogOutput(result.normalizedOutput)
-            .replaceAll(/Reusing instant execution cache. This is not guaranteed to work in any way.\n/, '')
+            .replaceAll(/Reusing instant execution cache.\n/, '')
 
         then:
         firstRunOutput == secondRunOutput
@@ -208,7 +208,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing instant execution cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
@@ -230,7 +230,7 @@ class InstantExecutionIntegrationTest extends AbstractInstantExecutionIntegratio
 
         then:
         instantExecution.assertStateLoaded()
-        outputContains("Reusing instant execution cache. This is not guaranteed to work in any way.")
+        outputContains("Reusing instant execution cache.")
         outputDoesNotContain("running build script")
         outputDoesNotContain("create task")
         outputDoesNotContain("configure task")
