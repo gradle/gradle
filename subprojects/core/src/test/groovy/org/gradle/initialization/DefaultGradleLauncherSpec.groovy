@@ -35,6 +35,7 @@ import spock.lang.Specification
 import static org.gradle.util.Path.path
 
 class DefaultGradleLauncherSpec extends Specification {
+    def environmentPreparerMock = Mock(EnvironmentPreparer)
     def settingsPreparerMock = Mock(SettingsPreparer)
     def taskExecutionPreparerMock = Mock(TaskExecutionPreparer)
     def taskGraphMock = Mock(TaskExecutionGraphInternal)
@@ -69,12 +70,13 @@ class DefaultGradleLauncherSpec extends Specification {
     DefaultGradleLauncher launcher() {
         return new DefaultGradleLauncher(gradleMock, buildConfigurerMock, exceptionAnalyserMock, buildBroadcaster,
             buildCompletionListener, buildFinishedListener, buildExecuter, buildServices, [otherService], includedBuildControllers,
-            settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
+            environmentPreparerMock, settingsPreparerMock, taskExecutionPreparerMock, instantExecution, buildSourceBuilder)
     }
 
     void testRunTasks() {
         when:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
@@ -90,6 +92,7 @@ class DefaultGradleLauncherSpec extends Specification {
         when:
         isNestedBuild()
 
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
@@ -104,6 +107,7 @@ class DefaultGradleLauncherSpec extends Specification {
     void testGetBuildAnalysis() {
         when:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
@@ -122,6 +126,7 @@ class DefaultGradleLauncherSpec extends Specification {
     void testNotifiesListenerOfBuildAnalysisStages() {
         when:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectBuildListenerCallbacks()
 
@@ -138,6 +143,7 @@ class DefaultGradleLauncherSpec extends Specification {
     void testNotifiesListenerOfBuildStages() {
         when:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
@@ -184,6 +190,7 @@ class DefaultGradleLauncherSpec extends Specification {
     void testNotifiesListenerOnBuildCompleteWithFailure() {
         given:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure)
@@ -207,6 +214,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         given:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure, failure2)
@@ -228,6 +236,7 @@ class DefaultGradleLauncherSpec extends Specification {
     void testTransformsBuildFinishedListenerFailure() {
         given:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRun()
@@ -256,6 +265,7 @@ class DefaultGradleLauncherSpec extends Specification {
 
         given:
         isRootBuild()
+        expectEnvironmentBuilt()
         expectSettingsBuilt()
         expectTaskGraphBuilt()
         expectTasksRunWithFailure(failure, failure2)
@@ -297,6 +307,10 @@ class DefaultGradleLauncherSpec extends Specification {
     private void isRootBuild() {
         _ * gradleMock.parent >> null
         _ * gradleMock.contextualize(_) >> { it[0] }
+    }
+
+    private void expectEnvironmentBuilt() {
+        1 * environmentPreparerMock.prepareEnvironment(gradleMock)
     }
 
     private void expectSettingsBuilt() {

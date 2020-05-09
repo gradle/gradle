@@ -22,7 +22,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.initialization.layout.BuildLayout
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.internal.FileUtils
 import org.gradle.internal.service.ServiceRegistry
@@ -33,14 +32,13 @@ class DefaultSettingsLoaderTest extends Specification {
 
     def gradle = Mock(GradleInternal)
     def settings = Mock(SettingsInternal)
-    def buildLayout = new BuildLayout(null, FileUtils.canonicalize(new File("someDir")), null)
-    def buildLayoutFactory = Mock(BuildLayoutFactory)
+    def settingsDir = FileUtils.canonicalize(new File("someDir"))
+    def settingsLocation = new SettingsLocation(settingsDir, new File(settingsDir, "settings.gradle"))
     def settingsScript = Mock(ScriptSource)
     def startParameter = new StartParameterInternal()
     def classLoaderScope = Mock(ClassLoaderScope)
     def settingsProcessor = Mock(SettingsProcessor)
-    def gradlePropertiesController = Mock(GradlePropertiesController)
-    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, buildLayoutFactory, gradlePropertiesController)
+    def settingsHandler = new DefaultSettingsLoader(settingsProcessor, Mock(BuildLayoutFactory))
 
     void findAndLoadSettingsWithExistingSettings() {
         when:
@@ -49,21 +47,20 @@ class DefaultSettingsLoaderTest extends Specification {
             getPath() >> ":"
         }
         def services = Mock(ServiceRegistry)
-        startParameter.setCurrentDir(buildLayout.settingsDir)
+        startParameter.setCurrentDir(settingsDir)
 
         settings.getProjectRegistry() >> projectRegistry
         projectRegistry.getAllProjects() >> Collections.singleton(projectDescriptor)
-        projectDescriptor.getProjectDir() >> buildLayout.settingsDir
-        projectDescriptor.getBuildFile() >> new File(buildLayout.settingsDir, "build.gradle")
+        projectDescriptor.getProjectDir() >> settingsDir
+        projectDescriptor.getBuildFile() >> new File(settingsDir, "build.gradle")
         gradle.getStartParameter() >> startParameter
         gradle.getServices() >> services
         gradle.getIdentityPath() >> Path.ROOT
-        buildLayoutFactory.getLayoutFor(_) >> buildLayout
+        gradle.getSettingsLocation() >> settingsLocation
         gradle.getClassLoaderScope() >> classLoaderScope
-        1 * settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter) >> settings
+        1 * settingsProcessor.process(gradle, settingsLocation, classLoaderScope, startParameter) >> settings
         1 * settings.settingsScript >> settingsScript
         1 * settingsScript.displayName >> "foo"
-        1 * gradlePropertiesController.loadGradlePropertiesFrom(buildLayout.settingsDir)
 
         then:
         settingsHandler.findAndLoadSettings(gradle).is(settings)

@@ -149,6 +149,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
             serviceRegistry,
             servicesToStop,
             includedBuildControllers,
+            gradle.getServices().get(EnvironmentPreparer.class),
             settingsPreparer,
             taskExecutionPreparer,
             gradle.getServices().get(InstantExecution.class),

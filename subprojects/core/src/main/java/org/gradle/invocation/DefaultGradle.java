@@ -47,6 +47,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
+import org.gradle.initialization.SettingsLocation;
 import org.gradle.internal.InternalBuildAdapter;
 import org.gradle.internal.MutableActionSet;
 import org.gradle.internal.build.BuildState;
@@ -78,6 +79,7 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
     private final ListenerBroadcast<BuildListener> buildListenerBroadcast;
     private final ListenerBroadcast<ProjectEvaluationListener> projectEvaluationListenerBroadcast;
     private final CrossProjectConfigurator crossProjectConfigurator;
+    private SettingsLocation settingsLocation;
     private Collection<IncludedBuild> includedBuilds;
     private MutableActionSet<Project> rootProjectActions = new MutableActionSet<Project>();
     private boolean projectsLoaded;
@@ -191,6 +193,19 @@ public abstract class DefaultGradle extends AbstractPluginAware implements Gradl
         }
 
         this.baseProjectClassLoaderScope = classLoaderScope;
+    }
+
+    @Override
+    public SettingsLocation getSettingsLocation() throws IllegalStateException {
+        if (settingsLocation == null) {
+            throw new IllegalStateException("The settings location is not yet available for " + this + ".");
+        }
+        return settingsLocation;
+    }
+
+    @Override
+    public void setSettingsLocation(SettingsLocation settingsLocation) {
+        this.settingsLocation = settingsLocation;
     }
 
     @Override

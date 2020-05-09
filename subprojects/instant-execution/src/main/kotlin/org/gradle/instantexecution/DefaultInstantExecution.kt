@@ -26,7 +26,6 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.provider.Provider
 import org.gradle.caching.configuration.BuildCache
 import org.gradle.execution.plan.Node
-import org.gradle.initialization.GradlePropertiesController
 import org.gradle.initialization.InstantExecution
 import org.gradle.instantexecution.coroutines.runToCompletion
 import org.gradle.instantexecution.extensions.unsafeLazy
@@ -74,8 +73,7 @@ class DefaultInstantExecution internal constructor(
     private val systemPropertyListener: SystemPropertyAccessListener,
     private val scopeRegistryListener: InstantExecutionClassLoaderScopeRegistryListener,
     private val cacheFingerprintController: InstantExecutionCacheFingerprintController,
-    private val beanConstructors: BeanConstructors,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val beanConstructors: BeanConstructors
 ) : InstantExecution {
     interface Host {
 
@@ -267,13 +265,7 @@ class DefaultInstantExecution internal constructor(
         }
 
     private
-    fun checkFingerprint(): InvalidationReason? {
-        loadGradleProperties()
-        return checkInstantExecutionFingerprintFile()
-    }
-
-    private
-    fun checkInstantExecutionFingerprintFile(): InvalidationReason? =
+    fun checkFingerprint(): InvalidationReason? =
         withReadContextFor(instantExecutionFingerprintFile) {
             withHostIsolate {
                 cacheFingerprintController.run {
@@ -281,13 +273,6 @@ class DefaultInstantExecution internal constructor(
                 }
             }
         }
-
-    private
-    fun loadGradleProperties() {
-        gradlePropertiesController.loadGradlePropertiesFrom(
-            startParameter.settingsDirectory
-        )
-    }
 
     private
     fun invalidateInstantExecutionState() {

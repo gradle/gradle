@@ -23,6 +23,7 @@ import org.gradle.api.internal.plugins.PluginAwareInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.initialization.SettingsLocation;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.scan.UsedByScanPlugin;
@@ -71,6 +72,22 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      * Returns the broadcaster for {@link ProjectEvaluationListener} events for this build
      */
     ProjectEvaluationListener getProjectEvaluationBroadcaster();
+
+    /**
+     * The settings location for this build.
+     *
+     * @return the settings location for this build
+     * @throws IllegalStateException when the build is not loaded yet, see {@link #setSettingsLocation(SettingsLocation)}
+     */
+    SettingsLocation getSettingsLocation() throws IllegalStateException;
+
+    /**
+     * Called by the launcher after the settings location is loaded.
+     * Until the location is loaded, {@link #getSettingsLocation()} will throw {@link IllegalStateException}.
+     *
+     * @param settingsLocation The settings location for this build.
+     */
+    void setSettingsLocation(SettingsLocation settingsLocation);
 
     /**
      * The settings for this build.

@@ -39,7 +39,7 @@ import java.util.Set;
 
 public class DefaultGradleLauncher implements GradleLauncher {
     private enum Stage {
-        LoadSettings, Configure, TaskGraph, RunTasks() {
+        LoadEnvironment, LoadSettings, Configure, TaskGraph, RunTasks() {
             @Override
             String getDisplayName() {
                 return "Build";
@@ -61,6 +61,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     private final List<?> servicesToStop;
     private final IncludedBuildControllers includedBuildControllers;
     private final GradleInternal gradle;
+    private final EnvironmentPreparer environmentPreparer;
     private final InstantExecution instantExecution;
     private final SettingsPreparer settingsPreparer;
     private final TaskExecutionPreparer taskExecutionPreparer;
@@ -78,6 +79,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
                                  BuildScopeServices buildServices,
                                  List<?> servicesToStop,
                                  IncludedBuildControllers includedBuildControllers,
+                                 EnvironmentPreparer environmentPreparer,
                                  SettingsPreparer settingsPreparer,
                                  TaskExecutionPreparer taskExecutionPreparer,
                                  InstantExecution instantExecution,
@@ -92,6 +94,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         this.buildServices = buildServices;
         this.servicesToStop = servicesToStop;
         this.includedBuildControllers = includedBuildControllers;
+        this.environmentPreparer = environmentPreparer;
         this.instantExecution = instantExecution;
         this.settingsPreparer = settingsPreparer;
         this.taskExecutionPreparer = taskExecutionPreparer;
@@ -130,10 +133,11 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
     private void doBuildStages(Stage upTo) {
         Preconditions.checkArgument(
-            upTo != Stage.Finished,
-            "Stage.Finished is not supported by doBuildStages."
+            upTo != Stage.LoadEnvironment && upTo != Stage.Finished,
+            "Stage." + upTo + " is not supported by doBuildStages."
         );
         try {
+            prepareEnvironment();
             if (upTo == Stage.RunTasks && instantExecution.canExecuteInstantaneously()) {
                 doInstantExecution();
             } else {
@@ -145,7 +149,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doClassicBuildStages(Stage upTo) {
-        if (stage == null) {
+        if (stage == Stage.LoadEnvironment) {
             instantExecution.prepareForBuildLogicExecution();
         }
         prepareSettings();
@@ -165,7 +169,6 @@ public class DefaultGradleLauncher implements GradleLauncher {
     }
 
     private void doInstantExecution() {
-        buildListener.buildStarted(gradle);
         instantExecution.loadScheduledWork();
         stage = Stage.TaskGraph;
         runWork();
@@ -201,12 +204,17 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
-    private void prepareSettings() {
+    private void prepareEnvironment() {
         if (stage == null) {
             buildListener.buildStarted(gradle);
+            environmentPreparer.prepareEnvironment(gradle);
+            stage = Stage.LoadEnvironment;
+        }
+    }
 
+    private void prepareSettings() {
+        if (stage == Stage.LoadEnvironment) {
             settingsPreparer.prepareSettings(gradle);
-
             stage = Stage.LoadSettings;
         }
     }

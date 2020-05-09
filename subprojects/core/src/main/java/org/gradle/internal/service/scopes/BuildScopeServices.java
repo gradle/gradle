@@ -126,6 +126,7 @@ import org.gradle.initialization.DefaultGradlePropertiesController;
 import org.gradle.initialization.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.DefaultSettingsLoaderFactory;
+import org.gradle.initialization.DefaultEnvironmentPreparer;
 import org.gradle.initialization.DefaultSettingsPreparer;
 import org.gradle.initialization.GradlePropertiesController;
 import org.gradle.initialization.IGradlePropertiesLoader;
@@ -141,6 +142,7 @@ import org.gradle.initialization.ScriptEvaluatingSettingsProcessor;
 import org.gradle.initialization.SettingsEvaluatedCallbackFiringSettingsProcessor;
 import org.gradle.initialization.SettingsFactory;
 import org.gradle.initialization.SettingsLoaderFactory;
+import org.gradle.initialization.EnvironmentPreparer;
 import org.gradle.initialization.SettingsPreparer;
 import org.gradle.initialization.SettingsProcessor;
 import org.gradle.initialization.buildsrc.BuildSourceBuilder;
@@ -392,14 +394,20 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(CompileOperationFactory.class));
     }
 
+    protected EnvironmentPreparer createEnvironmentPreparer(
+        BuildLayoutFactory buildLayoutFactory,
+        GradlePropertiesController gradlePropertiesController
+    ) {
+        return new DefaultEnvironmentPreparer(buildLayoutFactory, gradlePropertiesController);
+    }
+
     protected SettingsLoaderFactory createSettingsLoaderFactory(
         SettingsProcessor settingsProcessor,
         BuildStateRegistry buildRegistry,
         ProjectStateRegistry projectRegistry,
         PublicBuildPath publicBuildPath,
         Instantiator instantiator,
-        BuildLayoutFactory buildLayoutFactory,
-        GradlePropertiesController gradlePropertiesController
+        BuildLayoutFactory buildLayoutFactory
     ) {
         return new DefaultSettingsLoaderFactory(
             settingsProcessor,
@@ -407,8 +415,7 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             projectRegistry,
             publicBuildPath,
             instantiator,
-            buildLayoutFactory,
-            gradlePropertiesController
+            buildLayoutFactory
         );
     }
 

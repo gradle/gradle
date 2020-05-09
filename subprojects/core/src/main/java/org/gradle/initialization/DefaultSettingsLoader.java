@@ -34,26 +34,22 @@ import org.gradle.util.Path;
  */
 public class DefaultSettingsLoader implements SettingsLoader {
     public static final String BUILD_SRC_PROJECT_PATH = ":" + SettingsInternal.BUILD_SRC;
-    private SettingsProcessor settingsProcessor;
+    private final SettingsProcessor settingsProcessor;
     private final BuildLayoutFactory buildLayoutFactory;
-    private final GradlePropertiesController gradlePropertiesController;
 
     public DefaultSettingsLoader(
         SettingsProcessor settingsProcessor,
-        BuildLayoutFactory buildLayoutFactory,
-        GradlePropertiesController gradlePropertiesController
+        BuildLayoutFactory buildLayoutFactory
     ) {
         this.settingsProcessor = settingsProcessor;
         this.buildLayoutFactory = buildLayoutFactory;
-        this.gradlePropertiesController = gradlePropertiesController;
     }
 
     @Override
     public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
 
-        SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(startParameter));
-        loadGradlePropertiesFrom(settingsLocation);
+        SettingsLocation settingsLocation = gradle.getSettingsLocation();
 
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, startParameter, settingsLocation, gradle.getClassLoaderScope());
         ProjectSpec spec = ProjectSpecs.forStartParameter(startParameter, settings);
@@ -63,12 +59,6 @@ public class DefaultSettingsLoader implements SettingsLoader {
 
         setDefaultProject(spec, settings);
         return settings;
-    }
-
-    private void loadGradlePropertiesFrom(SettingsLocation settingsLocation) {
-        gradlePropertiesController.loadGradlePropertiesFrom(
-            settingsLocation.getSettingsDir()
-        );
     }
 
     private boolean useEmptySettings(ProjectSpec spec, SettingsInternal loadedSettings, StartParameter startParameter) {
@@ -92,6 +82,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
         StartParameter noSearchParameter = startParameter.newInstance();
         ((StartParameterInternal) noSearchParameter).useEmptySettingsWithoutDeprecationWarning();
         BuildLayout layout = buildLayoutFactory.getLayoutFor(new BuildLayoutConfiguration(noSearchParameter));
+        gradle.setSettingsLocation(layout);
         SettingsInternal settings = findSettingsAndLoadIfAppropriate(gradle, noSearchParameter, layout, classLoaderScope);
 
         // Set explicit build file, if required

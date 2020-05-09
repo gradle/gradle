@@ -50,9 +50,6 @@ class InstantExecutionStartParameter(
     val recreateCache: Boolean
         get() = systemPropertyFlag(SystemProperties.recreateCache)
 
-    val settingsDirectory: File
-        get() = buildLayout.settingsDir
-
     val rootDirectory: File
         get() = buildLayout.rootDirectory
 
