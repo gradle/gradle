@@ -1,4 +1,4 @@
-name: SanityCheck
+name: ReviewDog
 
 on: [pull_request, push]
 
@@ -24,6 +24,8 @@ jobs:
               run: ./gradlew --version
             - name: Increase inotify
               run: echo fs.inotify.max_user_watches=524288 | sudo tee -a /etc/sysctl.conf && sudo sysctl -p
+            - name: Install reviewdog
+              run: curl -sfL https://raw.githubusercontent.com/reviewdog/reviewdog/master/install.sh | sh -s
             - name: Run reviewdog
               env:
                 REVIEWDOG_GITHUB_API_TOKEN: ${{ secrets.GITHUB_TOKEN }}
