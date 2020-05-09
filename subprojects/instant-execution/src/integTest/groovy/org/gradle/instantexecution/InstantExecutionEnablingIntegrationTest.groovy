@@ -16,38 +16,76 @@
 
 package org.gradle.instantexecution
 
-import org.gradle.util.ToBeImplemented
-import spock.lang.Ignore
+import org.gradle.initialization.StartParameterBuildOptions.InstantExecutionOption
+import spock.lang.Unroll
+
 
 class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIntegrationTest {
 
-    def "can enable instant execution from the command line"() {
+    @Unroll
+    def "can enable with a command line #origin"() {
 
         given:
         def fixture = newInstantExecutionFixture()
 
         when:
-        run 'help', "-D${SystemProperties.isEnabled}=true"
+        run 'help', argument
 
         then:
         fixture.assertStateStored()
+
+        when:
+        run 'help', argument
+
+        then:
+        fixture.assertStateLoaded()
+
+        where:
+        origin            | argument
+        "long option"     | INSTANT_EXECUTION_OPTION
+        "system property" | "-D${InstantExecutionOption.PROPERTY_NAME}=true"
     }
 
-    @Ignore
-    @ToBeImplemented
-    def "can enable instant execution from gradle.properties"() {
-        setup:
-        file('gradle.properties') << """
-            systemProp.${SystemProperties.isEnabled}=true
-        """
+    def "can enable with a property in root directory gradle.properties"() {
 
-        and:
+        given:
         def fixture = newInstantExecutionFixture()
+        file('gradle.properties') << """
+            ${InstantExecutionOption.PROPERTY_NAME}=true
+        """
 
         when:
         run 'help'
 
-        then: 'instant execution is enabled'
+        then:
         fixture.assertStateStored()
+
+        when:
+        run 'help'
+
+        then:
+        fixture.assertStateLoaded()
+    }
+
+    def "can enable with a property in gradle user home gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+        executer.requireOwnGradleUserHomeDir()
+        executer.gradleUserHomeDir.file('gradle.properties') << """
+            ${InstantExecutionOption.PROPERTY_NAME}=true
+        """
+
+        when:
+        run 'help'
+
+        then:
+        fixture.assertStateStored()
+
+        when:
+        run 'help'
+
+        then:
+        fixture.assertStateLoaded()
     }
 }
