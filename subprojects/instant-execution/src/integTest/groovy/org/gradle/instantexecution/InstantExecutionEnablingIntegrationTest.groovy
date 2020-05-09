@@ -95,6 +95,27 @@ class InstantExecutionEnablingIntegrationTest extends AbstractInstantExecutionIn
         fixture.assertStateLoaded()
     }
 
+    @Unroll
+    def "can disable with a command line #origin when enabled in gradle.properties"() {
+
+        given:
+        def fixture = newInstantExecutionFixture()
+        file('gradle.properties') << """
+            ${InstantExecutionOption.PROPERTY_NAME}=true
+        """
+
+        when:
+        run 'help', argument
+
+        then:
+        fixture.assertNoInstantExecution()
+
+        where:
+        origin            | argument
+        "long option"     | "--no-${InstantExecutionOption.LONG_OPTION}"
+        "system property" | "-D${InstantExecutionOption.PROPERTY_NAME}=false"
+    }
+
     private void outputContainsIncubatingFeatureUsage() {
         outputContains("Instant execution is an incubating feature.")
     }
