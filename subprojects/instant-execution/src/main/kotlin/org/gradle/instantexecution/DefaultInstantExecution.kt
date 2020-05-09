@@ -176,9 +176,7 @@ class DefaultInstantExecution internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
-            withReadContextFor(instantExecutionStateFile) {
-                decodeScheduledWork()
-            }
+            readInstantExecutionState()
         }
     }
 
@@ -194,6 +192,17 @@ class DefaultInstantExecution internal constructor(
         service<ProjectStateRegistry>().withLenientState {
             withWriteContextFor(instantExecutionStateFile) {
                 encodeScheduledWork()
+                writeInt(0x1ecac8e)
+            }
+        }
+    }
+
+    private
+    fun readInstantExecutionState() {
+        withReadContextFor(instantExecutionStateFile) {
+            decodeScheduledWork()
+            require(readInt() == 0x1ecac8e) {
+                "corrupt state file"
             }
         }
     }
