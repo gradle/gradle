@@ -46,7 +46,7 @@ public class DefaultSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
+    public SettingsInternal loadSettings(GradleInternal gradle) {
         StartParameter startParameter = gradle.getStartParameter();
 
         SettingsLocation settingsLocation = gradle.getSettingsLocation();

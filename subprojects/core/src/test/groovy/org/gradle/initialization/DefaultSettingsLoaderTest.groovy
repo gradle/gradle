@@ -40,7 +40,7 @@ class DefaultSettingsLoaderTest extends Specification {
     def settingsProcessor = Mock(SettingsProcessor)
     def settingsHandler = new DefaultSettingsLoader(settingsProcessor, Mock(BuildLayoutFactory))
 
-    void findAndLoadSettingsWithExistingSettings() {
+    void loadSettingsWithExistingSettings() {
         when:
         def projectRegistry = Mock(ProjectRegistry)
         def projectDescriptor = Mock(DefaultProjectDescriptor) {
@@ -63,7 +63,7 @@ class DefaultSettingsLoaderTest extends Specification {
         1 * settingsScript.displayName >> "foo"
 
         then:
-        settingsHandler.findAndLoadSettings(gradle).is(settings)
+        settingsHandler.loadSettings(gradle).is(settings)
     }
 
 }

@@ -31,8 +31,8 @@ class SettingsAttachingSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+    public SettingsInternal loadSettings(GradleInternal gradle) {
+        SettingsInternal settings = delegate.loadSettings(gradle);
         gradle.setSettings(settings);
         projectRegistry.registerProjects(gradle.getServices().get(BuildState.class));
         return settings;

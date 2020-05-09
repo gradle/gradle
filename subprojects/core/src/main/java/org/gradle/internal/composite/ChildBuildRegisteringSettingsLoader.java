@@ -48,8 +48,8 @@ public class ChildBuildRegisteringSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+    public SettingsInternal loadSettings(GradleInternal gradle) {
+        SettingsInternal settings = delegate.loadSettings(gradle);
 
         // Add included builds defined in settings
         List<IncludedBuildSpec> includedBuilds = settings.getIncludedBuilds();

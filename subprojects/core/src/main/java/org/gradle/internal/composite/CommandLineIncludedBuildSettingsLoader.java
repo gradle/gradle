@@ -30,8 +30,8 @@ public class CommandLineIncludedBuildSettingsLoader implements SettingsLoader {
     }
 
     @Override
-    public SettingsInternal findAndLoadSettings(GradleInternal gradle) {
-        SettingsInternal settings = delegate.findAndLoadSettings(gradle);
+    public SettingsInternal loadSettings(GradleInternal gradle) {
+        SettingsInternal settings = delegate.loadSettings(gradle);
 
         // Add all included builds from the command-line
         for (File rootDir : gradle.getStartParameter().getIncludedBuilds()) {
