@@ -31,7 +31,7 @@ class InstantExecutionStartParameter(
 ) {
 
     val isEnabled: Boolean by unsafeLazy {
-        systemPropertyFlag(SystemProperties.isEnabled)
+        startParameter.isInstantExecutionEnabled
     }
 
     val isQuiet: Boolean

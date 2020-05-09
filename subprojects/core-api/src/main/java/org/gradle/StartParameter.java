@@ -91,6 +91,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private boolean refreshDependencies;
     private boolean buildCacheEnabled;
     private boolean buildCacheDebugLogging;
+    private boolean instantExecution;
     private boolean configureOnDemand;
     private boolean continuous;
     private List<File> includedBuilds = new ArrayList<>();
@@ -250,6 +251,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
         p.refreshDependencies = refreshDependencies;
         p.setParallelProjectExecutionEnabled(isParallelProjectExecutionEnabled());
         p.buildCacheEnabled = buildCacheEnabled;
+        p.instantExecution = instantExecution;
         p.configureOnDemand = configureOnDemand;
         p.setMaxWorkerCount(getMaxWorkerCount());
         p.systemPropertiesArgs = new HashMap<>(systemPropertiesArgs);
@@ -715,6 +717,26 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      */
     public void setBuildCacheDebugLogging(boolean buildCacheDebugLogging) {
         this.buildCacheDebugLogging = buildCacheDebugLogging;
+    }
+
+    /**
+     * Returns true if instant execution is enabled.
+     *
+     * @since 6.5
+     */
+    @Incubating
+    public boolean isInstantExecutionEnabled() {
+        return this.instantExecution;
+    }
+
+    /**
+     * Enables/disables instant execution.
+     *
+     * @since 6.5
+     */
+    @Incubating
+    public void setInstantExecutionEnabled(boolean instantExecution) {
+        this.instantExecution = instantExecution;
     }
 
     /**

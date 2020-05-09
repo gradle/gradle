@@ -44,7 +44,7 @@ public class StartParameterBuildOptions {
     private static List<BuildOption<StartParameterInternal>> options;
 
     static {
-        List<BuildOption<StartParameterInternal>> options = new ArrayList<BuildOption<StartParameterInternal>>();
+        List<BuildOption<StartParameterInternal>> options = new ArrayList<>();
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
         options.add(new ProfileOption());
@@ -69,6 +69,7 @@ public class StartParameterBuildOptions {
         options.add(new DependencyLockingUpdateOption());
         options.add(new RefreshKeysOption());
         options.add(new ExportKeysOption());
+        options.add(new InstantExecutionOption());
         StartParameterBuildOptions.options = Collections.unmodifiableList(options);
     }
 
@@ -406,6 +407,25 @@ public class StartParameterBuildOptions {
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setExportKeys(true);
+        }
+    }
+
+    public static class InstantExecutionOption extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.unsafe.instant-execution";
+        public static final String LONG_OPTION = "instant-execution";
+
+        public InstantExecutionOption() {
+            super(PROPERTY_NAME, BooleanCommandLineOptionConfiguration.create(
+                LONG_OPTION,
+                "Enables instant execution. Gradle will try to reuse the build configuration from previous builds.",
+                "Disables instant execution."
+            ));
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setInstantExecutionEnabled(value);
         }
     }
 }
