@@ -88,6 +88,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
     static final String BAD_IMPL_CLASS_WARNING_MESSAGE = "%s: A valid plugin descriptor was found for %s but the implementation class %s was not found in the jar.";
     static final String INVALID_DESCRIPTOR_WARNING_MESSAGE = "%s: A plugin descriptor was found for %s but it was invalid.";
     static final String NO_DESCRIPTOR_WARNING_MESSAGE = "%s: No valid plugin descriptors were found in META-INF/" + GRADLE_PLUGINS + "";
+    static final String DISABLE_NO_DESCRIPTOR_WARNING_MESSAGE_PROPERTY = "systemProp.org.gradle.plugin.disablenodescriptorwarning"
     static final String DECLARED_PLUGIN_MISSING_MESSAGE = "%s: Could not find plugin descriptor of %s at META-INF/" + GRADLE_PLUGINS + "/%s.properties";
     static final String DECLARATION_MISSING_ID_MESSAGE = "Missing id for %s";
     static final String DECLARATION_MISSING_IMPLEMENTATION_MESSAGE = "Missing implementationClass for %s";
@@ -291,7 +292,7 @@ public class JavaGradlePluginPlugin implements Plugin<Project> {
 
         @Override
         public void execute(Task task) {
-            if (descriptors == null || descriptors.isEmpty()) {
+            if ((descriptors == null || descriptors.isEmpty()) && ! Boolean.getBoolean(DISABLE_NO_DESCRIPTOR_WARNING_MESSAGE_PROPERTY)) {
                 LOGGER.warn(String.format(NO_DESCRIPTOR_WARNING_MESSAGE, task.getPath()));
             } else {
                 Set<String> pluginFileNames = Sets.newHashSet();
