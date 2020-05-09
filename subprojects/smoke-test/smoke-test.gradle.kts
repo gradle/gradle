@@ -46,6 +46,7 @@ dependencies {
     smokeTestImplementation(project(":launcher"))
     smokeTestImplementation(project(":persistentCache"))
     smokeTestImplementation(project(":jvmServices"))
+    smokeTestImplementation(project(":buildOption"))
     smokeTestImplementation(library("commons_io"))
     smokeTestImplementation(library("jgit"))
     smokeTestImplementation(library("gradleProfiler")) {

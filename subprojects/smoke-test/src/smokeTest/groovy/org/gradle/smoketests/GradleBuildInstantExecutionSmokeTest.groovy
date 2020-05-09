@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.JavaVersion
 import org.gradle.api.specs.Spec
+import org.gradle.initialization.StartParameterBuildOptions.InstantExecutionOption
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
@@ -99,7 +100,7 @@ class GradleBuildInstantExecutionSmokeTest extends AbstractSmokeTest {
 
     private void instantRun(String... tasks) {
         result = run(
-            "-Dorg.gradle.unsafe.instant-execution=true",
+            "--${InstantExecutionOption.LONG_OPTION}",
             "-Dorg.gradle.unsafe.instant-execution.fail-on-problems=false", // TODO remove
             *tasks
         )
