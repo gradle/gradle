@@ -130,6 +130,39 @@ abstract class SystemPropertyRead {
         }
     }
 
+    static SystemPropertyRead integerGetIntegerWithPrimitiveDefault(String name, int defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getGroovyExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue)"
+            }
+        }
+    }
+
+    static SystemPropertyRead integerGetIntegerWithIntegerDefault(String name, int defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Integer.getInteger(\"$name\", new Integer($defaultValue))"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue as Integer)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue)"
+            }
+        }
+    }
+
     static SystemPropertyRead longGetLong(String name) {
         return new SystemPropertyRead() {
             @Override
@@ -145,6 +178,44 @@ abstract class SystemPropertyRead {
             @Override
             String getKotlinExpression() {
                 return "System.getProperty(\"$name\")?.toLong()"
+            }
+        }
+    }
+
+    static SystemPropertyRead longGetLongWithPrimitiveDefault(String name, long defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Long.getLong(\"$name\", $defaultValue)"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Long.getLong(\"$name\", $defaultValue as long)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\", \"$defaultValue\")?.toLong()"
+            }
+        }
+    }
+
+    static SystemPropertyRead longGetLongWithLongDefault(String name, long defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Long.getLong(\"$name\", new Long($defaultValue))"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Long.getLong(\"$name\", $defaultValue as Long)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\", \"$defaultValue\")?.toLong()"
             }
         }
     }

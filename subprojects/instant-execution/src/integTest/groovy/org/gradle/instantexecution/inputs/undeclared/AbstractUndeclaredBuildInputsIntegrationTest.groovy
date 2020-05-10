@@ -69,7 +69,11 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default") | "true" | "false"
         SystemPropertyRead.systemGetPropertiesFilterEntries("CI")                     | "true" | "false"
         SystemPropertyRead.integerGetInteger("CI")                                    | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithPrimitiveDefault("CI", 123)           | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithIntegerDefault("CI", 123)             | "12"   | "45"
         SystemPropertyRead.longGetLong("CI")                                          | "12"   | "45"
+        SystemPropertyRead.longGetLongWithPrimitiveDefault("CI", 123)                 | "12"   | "45"
+        SystemPropertyRead.longGetLongWithLongDefault("CI", 123)                      | "12"   | "45"
         SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
     }
 }

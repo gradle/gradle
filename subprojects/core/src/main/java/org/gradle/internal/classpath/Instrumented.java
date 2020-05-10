@@ -20,6 +20,7 @@ import com.google.common.collect.AbstractIterator;
 import org.codehaus.groovy.runtime.callsite.AbstractCallSite;
 import org.codehaus.groovy.runtime.callsite.CallSite;
 import org.codehaus.groovy.runtime.callsite.CallSiteArray;
+import org.codehaus.groovy.runtime.wrappers.Wrapper;
 
 import javax.annotation.Nullable;
 import java.util.AbstractSet;
@@ -91,15 +92,46 @@ public class Instrumented {
     }
 
     // Called by generated code.
+    public static Integer getInteger(String key, int defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Integer.getInteger(key, defaultValue);
+    }
+
+    // Called by generated code.
+    public static Integer getInteger(String key, Integer defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Integer.getInteger(key, defaultValue);
+    }
+
+    // Called by generated code.
     public static Long getLong(String key, String consumer) {
         LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
         return Long.getLong(key);
     }
 
     // Called by generated code.
+    public static Long getLong(String key, long defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Long.getLong(key, defaultValue);
+    }
+
+    // Called by generated code.
+    public static Long getLong(String key, Long defaultValue, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Long.getLong(key, defaultValue);
+    }
+
+    // Called by generated code.
     public static boolean getBoolean(String key, String consumer) {
         LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
         return Boolean.getBoolean(key);
+    }
+
+    private static Object unwrap(Object obj) {
+        if (obj instanceof Wrapper) {
+            return ((Wrapper) obj).unwrap();
+        }
+        return obj;
     }
 
     public interface Listener {
@@ -326,6 +358,15 @@ public class Instrumented {
                 return super.call(receiver, arg);
             }
         }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(Integer.class)) {
+                return getInteger((String) arg1, (Integer) unwrap(arg2), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
+            }
+        }
     }
 
     private static class LongSystemPropertyCallSite extends AbstractCallSite {
@@ -339,6 +380,15 @@ public class Instrumented {
                 return getLong((String) arg, array.owner.getName());
             } else {
                 return super.call(receiver, arg);
+            }
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg1, Object arg2) throws Throwable {
+            if (receiver.equals(Long.class)) {
+                return getLong((String) arg1, (Long) unwrap(arg2), array.owner.getName());
+            } else {
+                return super.call(receiver, arg1, arg2);
             }
         }
     }

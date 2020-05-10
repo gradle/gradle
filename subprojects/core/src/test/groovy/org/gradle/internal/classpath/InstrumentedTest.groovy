@@ -97,6 +97,27 @@ class InstrumentedTest extends Specification {
         0 * listener._
     }
 
+    def "notifies listener when default value for integer system property is used"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        when:
+        def result = Instrumented.getInteger("prop", 123 as int, "consumer")
+
+        then:
+        result == 123
+        1 * listener.systemPropertyQueried("prop", null, "consumer")
+        0 * listener._
+
+        when:
+        result = Instrumented.getInteger("prop", 123 as Integer, "consumer")
+
+        then:
+        result == 123
+        1 * listener.systemPropertyQueried("prop", null, "consumer")
+        0 * listener._
+    }
+
     def "notifies listener when long system property is used"() {
         def listener = Mock(Instrumented.Listener)
         Instrumented.setListener(listener)
@@ -111,12 +132,43 @@ class InstrumentedTest extends Specification {
         1 * listener.systemPropertyQueried("prop", "123", "consumer")
         0 * listener._
 
+        System.setProperty("prop", "not a long")
+
+        when:
+        result = Instrumented.getLong("prop", "consumer")
+
+        then:
+        result == null
+        1 * listener.systemPropertyQueried("prop", "not a long", "consumer")
+        0 * listener._
+
         when:
         result = Instrumented.getLong("not-set", "consumer")
 
         then:
         result == null
         1 * listener.systemPropertyQueried("not-set", null, "consumer")
+        0 * listener._
+    }
+
+    def "notifies listener when default value for long system property is used"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        when:
+        def result = Instrumented.getLong("prop", 123 as long, "consumer")
+
+        then:
+        result == 123
+        1 * listener.systemPropertyQueried("prop", null, "consumer")
+        0 * listener._
+
+        when:
+        result = Instrumented.getLong("prop", 123 as Long, "consumer")
+
+        then:
+        result == 123
+        1 * listener.systemPropertyQueried("prop", null, "consumer")
         0 * listener._
     }
 
