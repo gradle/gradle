@@ -120,4 +120,51 @@ abstract class SystemPropertyRead {
             }
         }
     }
+
+    static SystemPropertyRead integerGetInteger(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getKotlinExpression() {
+                return "Integer.getInteger(\"$name\")"
+            }
+        }
+    }
+
+    static SystemPropertyRead longGetLong(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Long.getLong(\"$name\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Long.getLong(\"$name\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\")?.toLong()"
+            }
+        }
+    }
+
+    static SystemPropertyRead booleanGetBoolean(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Boolean.getBoolean(\"$name\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Boolean.getBoolean(\"$name\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\")?.toBoolean()"
+            }
+        }
+    }
 }

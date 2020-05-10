@@ -31,10 +31,19 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     private static final Type SYSTEM_TYPE = Type.getType(System.class);
     private static final Type STRING_TYPE = Type.getType(String.class);
     private static final Type INSTRUMENTED_TYPE = Type.getType(Instrumented.class);
+    private static final Type INTEGER_TYPE = Type.getType(Integer.class);
+    private static final Type LONG_TYPE = Type.getType(Long.class);
+    private static final Type BOOLEAN_TYPE = Type.getType(Boolean.class);
 
     private static final String RETURN_STRING_FROM_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_STRING_FROM_STRING_STRING_STRING = Type.getMethodDescriptor(STRING_TYPE, STRING_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING = Type.getMethodDescriptor(INTEGER_TYPE, STRING_TYPE);
+    private static final String RETURN_INTEGER_FROM_STRING_STRING = Type.getMethodDescriptor(INTEGER_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_LONG_FROM_STRING = Type.getMethodDescriptor(LONG_TYPE, STRING_TYPE);
+    private static final String RETURN_LONG_FROM_STRING_STRING = Type.getMethodDescriptor(LONG_TYPE, STRING_TYPE, STRING_TYPE);
+    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING = Type.getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE);
+    private static final String RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING = Type.getMethodDescriptor(Type.BOOLEAN_TYPE, STRING_TYPE, STRING_TYPE);
     private static final String RETURN_PROPERTIES = Type.getMethodDescriptor(Type.getType(Properties.class));
     private static final String RETURN_PROPERTIES_FROM_STRING = Type.getMethodDescriptor(Type.getType(Properties.class), STRING_TYPE);
     private static final String RETURN_CALL_SITE_ARRAY = Type.getMethodDescriptor(Type.getType(CallSiteArray.class));
@@ -48,7 +57,7 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
     @Override
     public void applyConfigurationTo(Hasher hasher) {
         hasher.putString(InstrumentingTransformer.class.getSimpleName());
-        hasher.putInt(4); // decoration format, increment this when making changes
+        hasher.putInt(5); // decoration format, increment this when making changes
     }
 
     @Override
@@ -126,6 +135,21 @@ class InstrumentingTransformer implements CachedClasspathTransformer.Transform {
                         super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "systemProperties", RETURN_PROPERTIES_FROM_STRING, false);
                         return;
                     }
+                } else if (owner.equals(INTEGER_TYPE.getInternalName()) && name.equals("getInteger") && descriptor.equals(RETURN_INTEGER_FROM_STRING)) {
+                    // TODO - load the class literal instead of class name
+                    visitLdcInsn(Type.getObjectType(className).getClassName());
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "getInteger", RETURN_INTEGER_FROM_STRING_STRING, false);
+                    return;
+                } else if (owner.equals(LONG_TYPE.getInternalName()) && name.equals("getLong") && descriptor.equals(RETURN_LONG_FROM_STRING)) {
+                    // TODO - load the class literal instead of class name
+                    visitLdcInsn(Type.getObjectType(className).getClassName());
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "getLong", RETURN_LONG_FROM_STRING_STRING, false);
+                    return;
+                } else if (owner.equals(BOOLEAN_TYPE.getInternalName()) && name.equals("getBoolean") && descriptor.equals(RETURN_PRIMITIVE_BOOLEAN_FROM_STRING)) {
+                    // TODO - load the class literal instead of class name
+                    visitLdcInsn(Type.getObjectType(className).getClassName());
+                    super.visitMethodInsn(Opcodes.INVOKESTATIC, INSTRUMENTED_TYPE.getInternalName(), "getBoolean", RETURN_PRIMITIVE_BOOLEAN_FROM_STRING_STRING, false);
+                    return;
                 } else if (owner.equals(className) && name.equals(CREATE_CALL_SITE_ARRAY_METHOD) && descriptor.equals(RETURN_CALL_SITE_ARRAY)) {
                     super.visitMethodInsn(Opcodes.INVOKESTATIC, className, INSTRUMENTED_CALL_SITE_METHOD, RETURN_CALL_SITE_ARRAY, false);
                     return;

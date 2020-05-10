@@ -54,19 +54,23 @@ public class Instrumented {
                 array.array[callSite.getIndex()] = new SystemPropertyCallSite(callSite);
             } else if (callSite.getName().equals("properties")) {
                 array.array[callSite.getIndex()] = new SystemPropertiesCallSite(callSite);
+            } else if (callSite.getName().equals("getInteger")) {
+                array.array[callSite.getIndex()] = new IntegerSystemPropertyCallSite(callSite);
+            } else if (callSite.getName().equals("getLong")) {
+                array.array[callSite.getIndex()] = new LongSystemPropertyCallSite(callSite);
+            } else if (callSite.getName().equals("getBoolean")) {
+                array.array[callSite.getIndex()] = new BooleanSystemPropertyCallSite(callSite);
             }
         }
     }
 
     // Called by generated code.
     public static String systemProperty(String key, String consumer) {
-        String value = System.getProperty(key);
-        LISTENER.get().systemPropertyQueried(key, value, consumer);
-        return value;
+        return systemProperty(key, null, consumer);
     }
 
     // Called by generated code.
-    public static String systemProperty(String key, String defaultValue, String consumer) {
+    public static String systemProperty(String key, @Nullable String defaultValue, String consumer) {
         String value = System.getProperty(key);
         LISTENER.get().systemPropertyQueried(key, value, consumer);
         if (value == null) {
@@ -78,6 +82,24 @@ public class Instrumented {
     // Called by generated code.
     public static Properties systemProperties(String consumer) {
         return new DecoratingProperties(System.getProperties(), consumer);
+    }
+
+    // Called by generated code.
+    public static Integer getInteger(String key, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Integer.getInteger(key);
+    }
+
+    // Called by generated code.
+    public static Long getLong(String key, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Long.getLong(key);
+    }
+
+    // Called by generated code.
+    public static boolean getBoolean(String key, String consumer) {
+        LISTENER.get().systemPropertyQueried(key, System.getProperty(key), consumer);
+        return Boolean.getBoolean(key);
     }
 
     public interface Listener {
@@ -236,9 +258,7 @@ public class Instrumented {
 
         @Override
         public String getProperty(String key) {
-            String value = delegate.getProperty(key);
-            LISTENER.get().systemPropertyQueried(key, value, consumer);
-            return value;
+            return getProperty(key, null);
         }
 
         @Override
@@ -290,6 +310,51 @@ public class Instrumented {
         @Override
         public int size() {
             return delegate.size();
+        }
+    }
+
+    private static class IntegerSystemPropertyCallSite extends AbstractCallSite {
+        public IntegerSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver.equals(Integer.class)) {
+                return getInteger((String) arg, array.owner.getName());
+            } else {
+                return super.call(receiver, arg);
+            }
+        }
+    }
+
+    private static class LongSystemPropertyCallSite extends AbstractCallSite {
+        public LongSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver.equals(Long.class)) {
+                return getLong((String) arg, array.owner.getName());
+            } else {
+                return super.call(receiver, arg);
+            }
+        }
+    }
+
+    private static class BooleanSystemPropertyCallSite extends AbstractCallSite {
+        public BooleanSystemPropertyCallSite(CallSite callSite) {
+            super(callSite);
+        }
+
+        @Override
+        public Object call(Object receiver, Object arg) throws Throwable {
+            if (receiver.equals(Boolean.class)) {
+                return getBoolean((String) arg, array.owner.getName());
+            } else {
+                return super.call(receiver, arg);
+            }
         }
     }
 

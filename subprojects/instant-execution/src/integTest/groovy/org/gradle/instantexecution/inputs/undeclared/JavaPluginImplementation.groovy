@@ -32,13 +32,13 @@ trait JavaPluginImplementation {
 
             public class SneakyPlugin implements Plugin<Project> {
                 public void apply(Project project) {
-                    String value = ${read.javaExpression};
+                    Object value = ${read.javaExpression};
                     System.out.println("apply = " + value);
 
                     project.getTasks().register("thing", t -> {
                         t.doLast(new Action<Task>() {
                             public void execute(Task t) {
-                                String value = ${read.javaExpression};
+                                Object value = ${read.javaExpression};
                                 System.out.println("task = " + value);
                             }
                         });

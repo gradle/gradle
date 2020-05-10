@@ -28,6 +28,29 @@ class InstrumentedTest extends Specification {
         Instrumented.discardListener()
     }
 
+    def "notifies listener when system property is used"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        System.setProperty("prop", "value")
+
+        when:
+        def result = Instrumented.systemProperty("prop", "consumer")
+
+        then:
+        result == "value"
+        1 * listener.systemPropertyQueried("prop", "value", "consumer")
+        0 * listener._
+
+        when:
+        result = Instrumented.systemProperty("not-set", "consumer")
+
+        then:
+        result == null
+        1 * listener.systemPropertyQueried("not-set", null, "consumer")
+        0 * listener._
+    }
+
     def "notifies listener when default value for system property is used"() {
         def listener = Mock(Instrumented.Listener)
         Instrumented.setListener(listener)
@@ -37,6 +60,85 @@ class InstrumentedTest extends Specification {
 
         then:
         result == "default"
+        1 * listener.systemPropertyQueried("not-set", null, "consumer")
+        0 * listener._
+    }
+
+    def "notifies listener when integer system property is used"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        System.setProperty("prop", "123")
+
+        when:
+        def result = Instrumented.getInteger("prop", "consumer")
+
+        then:
+        result == 123
+        1 * listener.systemPropertyQueried("prop", "123", "consumer")
+        0 * listener._
+
+        System.setProperty("prop", "not an int")
+
+        when:
+        result = Instrumented.getInteger("prop", "consumer")
+
+        then:
+        result == null
+        1 * listener.systemPropertyQueried("prop", "not an int", "consumer")
+        0 * listener._
+
+        when:
+        result = Instrumented.getInteger("not-set", "consumer")
+
+        then:
+        result == null
+        1 * listener.systemPropertyQueried("not-set", null, "consumer")
+        0 * listener._
+    }
+
+    def "notifies listener when long system property is used"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        System.setProperty("prop", "123")
+
+        when:
+        def result = Instrumented.getLong("prop", "consumer")
+
+        then:
+        result == 123
+        1 * listener.systemPropertyQueried("prop", "123", "consumer")
+        0 * listener._
+
+        when:
+        result = Instrumented.getLong("not-set", "consumer")
+
+        then:
+        result == null
+        1 * listener.systemPropertyQueried("not-set", null, "consumer")
+        0 * listener._
+    }
+
+    def "notifies listener when boolean system property is used"() {
+        def listener = Mock(Instrumented.Listener)
+        Instrumented.setListener(listener)
+
+        System.setProperty("prop", "true")
+
+        when:
+        def result = Instrumented.getBoolean("prop", "consumer")
+
+        then:
+        result
+        1 * listener.systemPropertyQueried("prop", "true", "consumer")
+        0 * listener._
+
+        when:
+        result = Instrumented.getBoolean("not-set", "consumer")
+
+        then:
+        !result
         1 * listener.systemPropertyQueried("not-set", null, "consumer")
         0 * listener._
     }
