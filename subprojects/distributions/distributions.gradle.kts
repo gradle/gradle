@@ -34,7 +34,7 @@ tasks.withType<AbstractArchiveTask>().configureEach {
     destinationDirectory.set(rootProject.layout.buildDirectory.dir(rootProject.base.distsDirName))
 }
 
-tasks.named("clean").configure {
+tasks.clean {
     delete(tasks.withType<AbstractArchiveTask>())
 }
 
