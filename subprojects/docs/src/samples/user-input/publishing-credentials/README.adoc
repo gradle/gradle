@@ -9,14 +9,19 @@ include::sample[dir="groovy",files="buildSrc/src/main/java/com/example/MavenRepo
 ====
 
 This project has some sample Java code to be compiled and published as a Java library.
-Gradle build file registers a publication to a maven repository that requires authentication.
-Authentication credentials are declared to be provided by Gradle properties:
+Gradle build file registers a publication to a maven repository:
 ====
 include::sample[dir="groovy",files="build.gradle[tags=publication]"]
 include::sample[dir="kotlin",files="build.gradle.kts[tags=publication]"]
 ====
 
-Credentials can be passed to the publish task in multiple ways now:
+Authentication credentials are configured and validated only if the publication task is going to be invoked in the current build:
+====
+include::sample[dir="groovy",files="build.gradle[tags=credentials]"]
+include::sample[dir="kotlin",files="build.gradle.kts[tags=credentials]"]
+====
+
+Credential values are declared to be Gradle properties and can be passed to the publish task in multiple ways:
 
 * via command-line properties:
 =====
@@ -47,9 +52,3 @@ This way the sensitive data can be kept outside of the project sources - `gradle
 The values are also not echoed anywhere this way.
 For more information about using Gradle properties, see link:{userManualPath}/build_environment.html#sec:gradle_configuration_properties[Gradle Properties user manual chapter].
 
-We have also added validation to the concrete publishing task so that a friendly failure message is displayed when required credentials are not supplied:
-====
-include::sample[dir="groovy",files="build.gradle[tags=validation]"]
-include::sample[dir="kotlin",files="build.gradle.kts[tags=validation]"]
-====
-This validation will only be performed when the publish task is executed.
