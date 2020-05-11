@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.UsesSample
 import org.junit.Rule
+import spock.lang.Ignore
 import spock.lang.Unroll
 
 class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
@@ -33,25 +34,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         requireGradleDistribution()
     }
 
-    @Unroll
-    @UsesSample('compositeBuilds/hierarchical-multirepo')
-    @ToBeFixedForInstantExecution
-    def "can run app in hierarchical composite with #dsl dsl"() {
-        given:
-        executer.withRepositoryMirrors()
-
-        when:
-        executer.inDirectory(sample.dir.file("$dsl"))
-        succeeds(':run')
-
-        then:
-        executed ":number-utils:jar", ":string-utils:jar", ":run"
-        outputContains("The answer is 42")
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
+    @Ignore('TODO (donat) cannot convert to exemplar test; needs multiple steps')
     @Unroll
     @UsesSample('compositeBuilds/hierarchical-multirepo')
     @ToBeFixedForInstantExecution
@@ -89,6 +72,7 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         dsl << ['groovy', 'kotlin']
     }
 
+    @Ignore('TODO (donat) with Exemplar test coverage we loose the check for checking the case when the plugin implementation changes')
     @Unroll
     @UsesSample('compositeBuilds/plugin-dev')
     @ToBeFixedForInstantExecution
