@@ -36,25 +36,6 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
     @Unroll
     @UsesSample('compositeBuilds/basic')
     @ToBeFixedForInstantExecution
-    def "can run app with command-line composite with #dsl dsl"() {
-        given:
-        executer.withRepositoryMirrors()
-
-        when:
-        executer.inDirectory(sample.dir.file("$dsl/my-app")).withArguments("--include-build", "../my-utils")
-        succeeds(':run')
-
-        then:
-        executed ":my-utils:number-utils:jar", ":my-utils:string-utils:jar", ":run"
-        outputContains("The answer is 42")
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @Unroll
-    @UsesSample('compositeBuilds/basic')
-    @ToBeFixedForInstantExecution
     def "can run app when modified to be a composite with #dsl dsl"() {
         given:
         executer.withRepositoryMirrors()
