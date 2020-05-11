@@ -20,7 +20,7 @@ import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.MutableReference
 import org.gradle.internal.file.FileException
-import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.file.FileType
 import org.gradle.internal.file.Stat
 import org.gradle.internal.hash.FileHasher
@@ -112,7 +112,7 @@ abstract class AbstractVirtualFileSystemTest extends Specification {
         }
 
         @Override
-        FileMetadataSnapshot stat(File f) throws FileException {
+        FileMetadata stat(File f) throws FileException {
             checkIfAllowed()
             return delegate.stat(f)
         }

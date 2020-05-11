@@ -16,7 +16,7 @@
 
 package org.gradle.internal.snapshot
 
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.file.FileType
 import org.gradle.internal.hash.HashCode
 import spock.lang.Unroll

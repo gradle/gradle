@@ -17,7 +17,7 @@ package org.gradle.language.nativeplatform.internal.incremental
 
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.cache.PersistentStateCache
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
+import org.gradle.internal.file.FileMetadata.AccessType
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.snapshot.MissingFileSnapshot

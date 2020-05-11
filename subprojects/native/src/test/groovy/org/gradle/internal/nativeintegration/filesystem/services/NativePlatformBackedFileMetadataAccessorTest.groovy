@@ -19,7 +19,7 @@ package org.gradle.internal.nativeintegration.filesystem.services
 import net.rubygrapefruit.platform.Native
 import net.rubygrapefruit.platform.file.Files
 import org.gradle.api.JavaVersion
-import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.util.UsesNativeServices
@@ -36,8 +36,8 @@ class NativePlatformBackedFileMetadataAccessorTest extends AbstractFileMetadataA
     }
 
     @Override
-    void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
-        assert maybeRoundLastModified(metadataSnapshot.lastModified) == maybeRoundLastModified(lastModifiedViaJavaNio(file))
+    void assertSameLastModified(FileMetadata fileMetadata, File file) {
+        assert maybeRoundLastModified(fileMetadata.lastModified) == maybeRoundLastModified(lastModifiedViaJavaNio(file))
     }
 
     private static maybeRoundLastModified(long lastModified) {
