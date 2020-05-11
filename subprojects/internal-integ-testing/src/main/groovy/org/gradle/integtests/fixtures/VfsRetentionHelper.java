@@ -16,8 +16,9 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.initialization.StartParameterBuildOptions;
+
 import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_DROP_PROPERTY;
-import static org.gradle.internal.service.scopes.VirtualFileSystemServices.VFS_RETENTION_ENABLED_PROPERTY;
 
 public class VfsRetentionHelper {
 
@@ -28,11 +29,11 @@ public class VfsRetentionHelper {
     }
 
     public static String getEnableVfsRetentionArgument() {
-        return systemProperty(VFS_RETENTION_ENABLED_PROPERTY, true);
+        return "--" + StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION;
     }
 
     public static String getDisableVfsRetentionArgument() {
-        return systemProperty(VFS_RETENTION_ENABLED_PROPERTY, false);
+        return "--no-" + StartParameterBuildOptions.WatchFileSystemOption.LONG_OPTION;
     }
 
     public static String getDropVfsArgument() {

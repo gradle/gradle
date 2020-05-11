@@ -44,7 +44,7 @@ public class StartParameterBuildOptions {
     private static List<BuildOption<StartParameterInternal>> options;
 
     static {
-        List<BuildOption<StartParameterInternal>> options = new ArrayList<BuildOption<StartParameterInternal>>();
+        List<BuildOption<StartParameterInternal>> options = new ArrayList<>();
         options.add(new ProjectCacheDirOption());
         options.add(new RerunTasksOption());
         options.add(new ProfileOption());
@@ -62,6 +62,7 @@ public class StartParameterBuildOptions {
         options.add(new ConfigureOnDemandOption());
         options.add(new BuildCacheOption());
         options.add(new BuildCacheDebugLoggingOption());
+        options.add(new WatchFileSystemOption());
         options.add(new BuildScanOption());
         options.add(new DependencyLockingWriteOption());
         options.add(new DependencyVerificationWriteOption());
@@ -288,6 +289,22 @@ public class StartParameterBuildOptions {
         }
     }
 
+    public static class WatchFileSystemOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "watch-fs";
+
+        public WatchFileSystemOption() {
+            super("org.gradle.unsafe.watch-fs", BooleanCommandLineOptionConfiguration.create(
+                LONG_OPTION,
+                "Enables watching the file system for changes so that in-memory state of the file system can be re-used for the next build.",
+                "Disables retaining the in-memory state of the file system can be re-used for the next build."
+            ));
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
+            startParameter.setWatchFileSystem(true);
+        }
+    }
     public static class BuildScanOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "scan";
 

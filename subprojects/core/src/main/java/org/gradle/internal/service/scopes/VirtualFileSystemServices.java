@@ -192,7 +192,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
                 watchingAwareVirtualFileSystem,
-                startParameter -> isRetentionEnabled(startParameter.getSystemPropertiesArgs()),
+                StartParameter::isWatchFileSystem,
                 startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
                 startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
             ));
