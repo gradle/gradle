@@ -50,7 +50,7 @@ import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.regex.Pattern;
 
-import static org.gradle.api.internal.lambdas.Lambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.

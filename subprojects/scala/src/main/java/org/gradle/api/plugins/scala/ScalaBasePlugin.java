@@ -62,7 +62,7 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 import static org.gradle.api.attributes.Usage.USAGE_ATTRIBUTE;
-import static org.gradle.api.internal.lambdas.Lambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * <p>A {@link Plugin} which compiles and tests Scala sources.</p>

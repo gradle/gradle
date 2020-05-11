@@ -29,7 +29,7 @@ import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
-import static org.gradle.api.internal.lambdas.Lambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public abstract class DefaultSourceSet implements SourceSet {

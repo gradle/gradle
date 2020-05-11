@@ -19,7 +19,7 @@ package org.gradle.api.internal.tasks.compile;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.compile.CompileOptions;
 
-import static org.gradle.api.internal.lambdas.Lambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 public class CompilerForkUtils {
     public static void doNotCacheIfForkingViaExecutable(final CompileOptions compileOptions, TaskOutputs outputs) {

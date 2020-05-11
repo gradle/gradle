@@ -43,7 +43,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.util.concurrent.Callable;
 
-import static org.gradle.api.internal.lambdas.Lambdas.spec;
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Extends {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy

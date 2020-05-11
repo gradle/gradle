@@ -26,7 +26,7 @@ import java.io.Serializable;
  *
  * The methods on this class are meant to be statically imported.
  */
-public class Lambdas {
+public class SerializableLambdas {
 
     public static <T> Spec<T> spec(SerializableSpec<T> spec) {
         return spec;
@@ -36,12 +36,18 @@ public class Lambdas {
         return action;
     }
 
+    /**
+     * A {@link Serializable} version of {@link Spec}.
+     */
     public interface SerializableSpec<T> extends Spec<T>, Serializable {
     }
 
+    /**
+     * A {@link Serializable} version of {@link Action}.
+     */
     public interface SerializableAction<T> extends Action<T>, Serializable {
     }
 
-    private Lambdas() {
+    private SerializableLambdas() {
     }
 }
