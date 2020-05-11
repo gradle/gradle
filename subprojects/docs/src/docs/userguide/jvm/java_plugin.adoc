@@ -547,7 +547,7 @@ Gradle supports incremental compilation for two common categories of annotation 
 Please consult the information below to decide which category fits your processor.
 
 You can then register your processor for incremental compilation using a file in the processor's META-INF directory.
-The format is one line per processor, with the fully qualified name of the processor class and its category separated by a comma.
+The format is one line per processor, with the fully qualified name of the processor class and its case-insensitive category separated by a comma.
 
 === Example: Registering incremental annotation processors
 
