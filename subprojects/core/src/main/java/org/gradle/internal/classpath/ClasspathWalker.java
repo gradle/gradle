@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.archive.ZipInput;
 import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
+import org.gradle.internal.service.scopes.Scopes;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.io.File;
@@ -34,7 +35,7 @@ import java.util.Comparator;
 /**
  * Allows the classes and resources of a classpath element such as a jar or directory to be visited.
  */
-@ServiceScope(ServiceScope.Value.UserHome)
+@ServiceScope(Scopes.UserHome)
 public class ClasspathWalker {
     private final Stat stat;
 

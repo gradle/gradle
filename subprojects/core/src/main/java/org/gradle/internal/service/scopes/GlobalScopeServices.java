@@ -56,7 +56,6 @@ import org.gradle.initialization.ClassLoaderScopeListeners;
 import org.gradle.initialization.DefaultClassLoaderRegistry;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultJdkToolsInitializer;
-import org.gradle.initialization.DefaultParallelismConfigurationManager;
 import org.gradle.initialization.FlatClassLoaderRegistry;
 import org.gradle.initialization.JdkToolsInitializer;
 import org.gradle.initialization.LegacyTypesSupport;
@@ -65,7 +64,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.DefaultClassLoaderFactory;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.environment.GradleBuildEnvironment;
 import org.gradle.internal.event.ListenerManager;
@@ -268,10 +266,6 @@ public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 
     TaskInputsListeners createTaskInputsListener(ListenerManager listenerManager) {
         return new DefaultTaskInputsListeners(listenerManager);
-    }
-
-    ParallelismConfigurationManager createMaxWorkersManager(ListenerManager listenerManager) {
-        return new DefaultParallelismConfigurationManager(listenerManager);
     }
 
     @Override

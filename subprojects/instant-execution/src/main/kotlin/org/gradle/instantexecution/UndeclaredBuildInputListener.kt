@@ -16,7 +16,11 @@
 
 package org.gradle.instantexecution
 
+import org.gradle.internal.service.scopes.EventScope
+import org.gradle.internal.service.scopes.Scopes
 
+
+@EventScope(Scopes.Build)
 interface UndeclaredBuildInputListener {
     /**
      * Called when an undeclared system property read happens for a system property with no value.

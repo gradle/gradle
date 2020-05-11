@@ -25,6 +25,7 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException
 import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.logging.events.LogLevelChangeEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.service.scopes.Scopes
 import org.gradle.process.internal.ExecException
 import org.gradle.process.internal.health.memory.MBeanOsMemoryInfo
 import org.gradle.process.internal.health.memory.MemoryManager
@@ -38,7 +39,8 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     def loggingManager = Stub(LoggingManagerInternal)
     def memoryManager = Mock(MemoryManager)
 
-    @Subject manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
+    @Subject
+        manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
 
     def "does not reserve idle client when no clients"() {
         expect:
@@ -142,11 +144,11 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
 
         and:
         e.causes.size() == 2
-        e.causes.collect { it.message }.sort() == [ "FAILED1!", "FAILED2!"]
+        e.causes.collect { it.message }.sort() == ["FAILED1!", "FAILED2!"]
     }
 
     def "can stop session-scoped clients"() {
-        listenerManager = new DefaultListenerManager()
+        listenerManager = new DefaultListenerManager(Scopes.BuildSession)
         manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
@@ -165,7 +167,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
     }
 
     def "Stopping session-scoped clients does not stop other clients"() {
-        listenerManager = new DefaultListenerManager()
+        listenerManager = new DefaultListenerManager(Scopes.BuildSession)
         manager = new WorkerDaemonClientsManager(starter, listenerManager, loggingManager, memoryManager, new MBeanOsMemoryInfo())
         def client1 = Mock(WorkerDaemonClient)
         def client2 = Mock(WorkerDaemonClient)
@@ -210,7 +212,7 @@ class WorkerDaemonClientsManagerTest extends ConcurrentSpecification {
             getLogLevel() >> LogLevel.INFO
         }
         starter.startDaemon(options, _) >> client
-        loggingManager.addOutputEventListener(_) >> { args  -> listener = args[0] }
+        loggingManager.addOutputEventListener(_) >> { args -> listener = args[0] }
         loggingManager.getLevel() >> LogLevel.INFO
 
         when:

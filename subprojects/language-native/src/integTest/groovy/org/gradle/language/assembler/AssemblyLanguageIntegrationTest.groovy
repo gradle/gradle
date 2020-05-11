@@ -31,7 +31,6 @@ class AssemblyLanguageIntegrationTest extends AbstractNativeLanguageIntegrationT
 
     HelloWorldApp helloWorldApp = new AssemblerWithCHelloWorldApp(toolChain)
 
-    @ToBeFixedForInstantExecution
     def "build fails when assemble fails"() {
         given:
         buildFile << """

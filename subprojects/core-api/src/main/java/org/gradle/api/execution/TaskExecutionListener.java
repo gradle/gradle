@@ -18,12 +18,15 @@ package org.gradle.api.execution;
 
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
 /**
  * <p>A {@code TaskExecutionListener} is notified of the execution of the tasks in a build.</p>
  *
  * <p>You can add a {@code TaskExecutionListener} to a build using {@link org.gradle.api.execution.TaskExecutionGraph#addTaskExecutionListener}
  */
+@EventScope(Scopes.Build)
 public interface TaskExecutionListener {
     /**
      * This method is called immediately before a task is executed.

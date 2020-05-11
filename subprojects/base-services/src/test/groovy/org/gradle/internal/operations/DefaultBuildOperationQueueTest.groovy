@@ -17,7 +17,7 @@
 package org.gradle.internal.operations
 
 import org.gradle.api.GradleException
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
+import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.WorkerLeaseService
@@ -32,6 +32,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     public static final String LOG_LOCATION = "<log location>"
     abstract static class TestBuildOperation implements RunnableBuildOperation {
         BuildOperationDescriptor.Builder description() { BuildOperationDescriptor.displayName(toString()) }
+
         String toString() { getClass().simpleName }
     }
 
@@ -61,7 +62,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     WorkerLeaseService workerRegistry
 
     void setupQueue(int threads) {
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new ParallelismConfigurationManagerFixture(true, threads)) {};
+        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), new DefaultParallelismConfiguration(true, threads)) {}
         operationQueue = new DefaultBuildOperationQueue(workerRegistry, Executors.newFixedThreadPool(threads), new SimpleWorker())
     }
 
@@ -116,7 +117,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         operations.each { operation ->
             operationQueue.add(operation)
         }
-        def failureCount = operations.findAll({it instanceof Failure}).size()
+        def failureCount = operations.findAll({ it instanceof Failure }).size()
 
         when:
         operationQueue.waitForCompletion()
@@ -129,14 +130,14 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         where:
         [operations, threads] << [
-                [[new Success(), new Success(), new Failure()],
-                 [new Success(), new Failure(), new Success()],
-                 [new Failure(), new Success(), new Success()],
-                 [new Failure(), new Failure(), new Failure()],
-                 [new Failure(), new Failure(), new Success()],
-                 [new Failure(), new Success(), new Failure()],
-                 [new Success(), new Failure(), new Failure()]],
-                [1, 4, 10]].combinations()
+            [[new Success(), new Success(), new Failure()],
+             [new Success(), new Failure(), new Success()],
+             [new Failure(), new Success(), new Success()],
+             [new Failure(), new Failure(), new Failure()],
+             [new Failure(), new Failure(), new Success()],
+             [new Failure(), new Success(), new Failure()],
+             [new Success(), new Failure(), new Failure()]],
+            [1, 4, 10]].combinations()
     }
 
     def "when log location is set value is propagated in exceptions"() {
@@ -156,7 +157,7 @@ class DefaultBuildOperationQueueTest extends Specification {
     }
 
     @Unroll
-    def "when queue is canceled, unstarted operations do not execute (#runs runs, #threads threads)" () {
+    def "when queue is canceled, unstarted operations do not execute (#runs runs, #threads threads)"() {
         def expectedInvocations = threads <= runs ? threads : runs
         CountDownLatch startedLatch = new CountDownLatch(expectedInvocations)
         CountDownLatch releaseLatch = new CountDownLatch(1)

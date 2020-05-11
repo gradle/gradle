@@ -118,7 +118,7 @@ public class BasicGlobalScopeServices {
     }
 
     ListenerManager createListenerManager() {
-        return new DefaultListenerManager();
+        return new DefaultListenerManager(Scopes.Global);
     }
 }
 
