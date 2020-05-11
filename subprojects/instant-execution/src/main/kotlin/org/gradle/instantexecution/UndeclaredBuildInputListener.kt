@@ -18,5 +18,8 @@ package org.gradle.instantexecution
 
 
 interface UndeclaredBuildInputListener {
+    /**
+     * Called when an undeclared system property read happens for a system property with no value.
+     */
     fun systemPropertyRead(key: String)
 }

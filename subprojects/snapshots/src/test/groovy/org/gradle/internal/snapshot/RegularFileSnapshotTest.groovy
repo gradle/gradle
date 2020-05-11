@@ -16,12 +16,13 @@
 
 package org.gradle.internal.snapshot
 
-import org.gradle.internal.file.FileMetadataSnapshot.AccessType
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.file.impl.DefaultFileMetadata
 import org.gradle.internal.hash.HashCode
 
 class RegularFileSnapshotTest extends AbstractCompleteSnapshotWithoutChildrenTest {
     @Override
     protected CompleteFileSystemLocationSnapshot createInitialRootNode(String absolutePath) {
-        return new RegularFileSnapshot(absolutePath, PathUtil.getFileName(absolutePath), HashCode.fromInt(1235), new FileMetadata(1, 2), AccessType.DIRECT)
+        return new RegularFileSnapshot(absolutePath, PathUtil.getFileName(absolutePath), HashCode.fromInt(1235), DefaultFileMetadata.file(1, 2, AccessType.DIRECT))
     }
 }

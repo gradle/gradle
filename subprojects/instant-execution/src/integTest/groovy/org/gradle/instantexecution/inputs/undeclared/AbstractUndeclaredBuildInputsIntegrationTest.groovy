@@ -28,14 +28,14 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
         def fixture = newInstantExecutionFixture()
 
         when:
-        run("thing", "-DCI=true")
+        run("thing", "-DCI=$value")
 
         then:
-        outputContains("apply = true")
-        outputContains("task = true")
+        outputContains("apply = $value")
+        outputContains("task = $value")
 
         when:
-        instantFails("thing", "-DCI=true")
+        instantFails("thing", "-DCI=$value")
 
         then:
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
@@ -43,30 +43,37 @@ abstract class AbstractUndeclaredBuildInputsIntegrationTest extends AbstractInst
 
         when:
         problems.withDoNotFailOnProblems()
-        instantRun("thing", "-DCI=true")
+        instantRun("thing", "-DCI=$value")
 
         then:
         fixture.assertStateStored()
         // TODO - use problems fixture, need to be able to tweak the problem matching as build script class name is included in the message and this is generated
         outputContains("- unknown location: read system property 'CI' from '")
-        outputContains("apply = true")
-        outputContains("task = true")
+        outputContains("apply = $value")
+        outputContains("task = $value")
 
         when:
-        instantRun("thing", "-DCI=false")
+        instantRun("thing", "-DCI=$newValue")
 
         then:
         fixture.assertStateLoaded() // undeclared properties are not considered build inputs, but probably should be
         problems.assertResultHasProblems(result)
-        outputContains("task = false")
+        outputContains("task = $newValue")
 
         where:
-        propertyRead << [
-            SystemPropertyRead.systemGetProperty("CI"),
-            SystemPropertyRead.systemGetPropertyWithDefault("CI", "default"),
-            SystemPropertyRead.systemGetPropertiesGet("CI"),
-            SystemPropertyRead.systemGetPropertiesGetProperty("CI"),
-            SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default")
-        ]
+        propertyRead                                                                  | value  | newValue
+        SystemPropertyRead.systemGetProperty("CI")                                    | "true" | "false"
+        SystemPropertyRead.systemGetPropertyWithDefault("CI", "default")              | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGet("CI")                               | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGetProperty("CI")                       | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesGetPropertyWithDefault("CI", "default") | "true" | "false"
+        SystemPropertyRead.systemGetPropertiesFilterEntries("CI")                     | "true" | "false"
+        SystemPropertyRead.integerGetInteger("CI")                                    | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithPrimitiveDefault("CI", 123)           | "12"   | "45"
+        SystemPropertyRead.integerGetIntegerWithIntegerDefault("CI", 123)             | "12"   | "45"
+        SystemPropertyRead.longGetLong("CI")                                          | "12"   | "45"
+        SystemPropertyRead.longGetLongWithPrimitiveDefault("CI", 123)                 | "12"   | "45"
+        SystemPropertyRead.longGetLongWithLongDefault("CI", 123)                      | "12"   | "45"
+        SystemPropertyRead.booleanGetBoolean("CI")                                    | "true" | "false"
     }
 }

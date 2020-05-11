@@ -16,7 +16,7 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services
 
-import org.gradle.internal.file.FileMetadataSnapshot
+import org.gradle.internal.file.FileMetadata
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor
 import org.gradle.internal.nativeintegration.filesystem.jdk7.NioFileMetadataAccessor
 import org.gradle.util.UsesNativeServices
@@ -32,8 +32,8 @@ class NioFileMetadataAccessorTest extends AbstractFileMetadataAccessorTest {
     }
 
     @Override
-    void assertSameLastModified(FileMetadataSnapshot metadataSnapshot, File file) {
-        assert metadataSnapshot.lastModified == lastModified(file)
+    void assertSameLastModified(FileMetadata fileMetadata, File file) {
+        assert fileMetadata.lastModified == lastModified(file)
     }
 
     private static long lastModified(File file) {
