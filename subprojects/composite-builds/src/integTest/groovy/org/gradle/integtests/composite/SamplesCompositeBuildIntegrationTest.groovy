@@ -116,35 +116,4 @@ class SamplesCompositeBuildIntegrationTest extends AbstractIntegrationSpec {
         where:
         dsl << ['groovy', 'kotlin']
     }
-
-    @Unroll
-    @UsesSample('compositeBuilds/declared-substitution')
-    @ToBeFixedForInstantExecution
-    def "can include build with declared substitution with #dsl dsl"() {
-        given:
-        def myAppDir = sample.dir.file("$dsl/my-app")
-
-        when:
-        executer.inDirectory(myAppDir)
-            .withArguments("--settings-file", "settings-without-declared-substitution.$extension")
-        fails(':run')
-
-        then:
-        failure.assertHasDescription("Could not determine the dependencies of task ':run'.")
-        failure.assertHasCause("Could not resolve all task dependencies for configuration ':runtimeClasspath'.")
-        failure.assertHasCause("Cannot resolve external dependency org.sample:number-utils:1.0 because no repositories are defined.")
-
-        when:
-        executer.inDirectory(myAppDir)
-        succeeds(':run')
-
-        then:
-        executed ":anonymous-library:jar", ":run"
-        outputContains("The answer is 42")
-
-        where:
-        dsl      | extension
-        'groovy' | 'gradle'
-        'kotlin' | 'gradle.kts'
-    }
 }
