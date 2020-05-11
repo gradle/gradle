@@ -17,7 +17,6 @@
 package org.gradle.internal.watch.registry.impl;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.internal.file.FileType;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
 
 import java.nio.file.Files;
@@ -70,22 +69,19 @@ public class WatchRootUtil {
         Path ancestorToWatch;
         switch (snapshot.getType()) {
             case RegularFile:
+                return ImmutableList.of(path.getParent());
             case Directory:
                 ancestorToWatch = path.getParent();
-                break;
+                // If the path already is the root (e.g. C:\ on Windows),
+                // then we can't watch its parent.
+                return ancestorToWatch == null
+                    ? ImmutableList.of(path)
+                    : ImmutableList.of(ancestorToWatch, path);
             case Missing:
-                ancestorToWatch = findFirstExistingAncestor(path);
-                break;
+                return ImmutableList.of(findFirstExistingAncestor(path));
             default:
                 throw new AssertionError();
         }
-        if (ancestorToWatch == null) {
-            return ImmutableList.of(path);
-        }
-        return snapshot.getType() == FileType.Directory
-            ? ImmutableList.of(ancestorToWatch, path)
-            : ImmutableList.of(ancestorToWatch);
-
     }
 
     private static Path findFirstExistingAncestor(Path path) {
