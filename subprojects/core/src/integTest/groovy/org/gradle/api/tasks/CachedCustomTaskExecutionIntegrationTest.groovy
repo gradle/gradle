@@ -131,7 +131,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         """
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "cacheable task with cache disabled doesn't get cached"() {
         configureCacheForBuildSrc()
         file("input.txt") << "data"
@@ -169,7 +168,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executedAndNotSkipped ":customTask"
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "cacheable task with multiple outputs declared via runtime API with matching cardinality get cached"() {
         buildFile << """
             task customTask {
@@ -262,7 +260,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         executedAndNotSkipped ":customTask"
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """
@@ -303,7 +300,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         taskIsNotCached ':adHocTask'
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "ad hoc tasks are cached when explicitly requested"() {
         given:
         file("input.txt") << "data"
@@ -477,7 +473,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "missing #type output from runtime API is not cached"() {
         given:
         file("input.txt") << "data"
@@ -570,7 +565,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
         type << ["OutputFile", "OutputDirectory"]
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "empty output directory is cached properly"() {
         given:
         buildFile << """
@@ -805,7 +799,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Issue("https://github.com/gradle/gradle/issues/3043")
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "URL-quoted characters in file names are handled properly"() {
         def weirdOutputPath = 'build/bad&dir/bad! Dezső %20.txt'
         def expectedOutput = file(weirdOutputPath)
@@ -836,7 +829,6 @@ class CachedCustomTaskExecutionIntegrationTest extends AbstractIntegrationSpec i
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     def "local state declared via #api API is destroyed when task is loaded from cache"() {
         def localStateFile = file("local-state.json")
         buildFile << defineTaskWithLocalState(useRuntimeApi)
