@@ -30,8 +30,7 @@ gradle.taskGraph.whenReady { taskGraph ->
         def mavenUser = providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
         def mavenPassword = providers.gradleProperty(MAVEN_PASSWORD_PROPERTY)
         if (!mavenUser.present || !mavenPassword.present) {
-            throw new GradleException(String.format("Publishing requires '%s' and '%s' properties",
-                MAVEN_USERNAME_PROPERTY, MAVEN_PASSWORD_PROPERTY))
+            throw new GradleException("Publishing requires '$MAVEN_USERNAME_PROPERTY' and '$MAVEN_PASSWORD_PROPERTY' properties")
         }
         publishing.repositories.named('mySecure') {
             credentials {
