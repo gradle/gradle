@@ -29,7 +29,7 @@ gradle.taskGraph.whenReady {
         val MAVEN_PASSWORD_PROPERTY = "mavenPassword"
         val mavenUser = providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
         val mavenPassword = providers.gradleProperty(MAVEN_PASSWORD_PROPERTY)
-        if (!mavenUser.isPresent() || !mavenPassword.isPresent()) {
+        if (!mavenUser.isPresent || !mavenPassword.isPresent) {
             throw GradleException(String.format("Publishing requires '%s' and '%s' properties",
                 MAVEN_USERNAME_PROPERTY, MAVEN_PASSWORD_PROPERTY))
         }
