@@ -24,7 +24,7 @@ publishing {
 
 // tag::credentials[]
 gradle.taskGraph.whenReady {
-    if (allTasks.any { it.getName() == "publishLibraryPublicationToMySecureRepository" }) {
+    if (allTasks.any { it.name == "publishLibraryPublicationToMySecureRepository" }) {
         val MAVEN_USERNAME_PROPERTY = "mavenUser"
         val MAVEN_PASSWORD_PROPERTY = "mavenPassword"
         val mavenUser = providers.gradleProperty(MAVEN_USERNAME_PROPERTY)
@@ -51,4 +51,3 @@ tasks.named("publishLibraryPublicationToMySecureRepository") {
         com.example.MavenRepositoryStub.stop()
     }
 }
-
