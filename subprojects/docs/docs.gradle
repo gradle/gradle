@@ -522,5 +522,5 @@ configurations {
 }
 
 tasks.named('platformTest') {
-    dependsOn(tasks.named('docsTest'))
+    dependsOn(tasks.named('checkSamples'))
 }
