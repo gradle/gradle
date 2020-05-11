@@ -33,7 +33,7 @@ gradle.taskGraph.whenReady {
             throw GradleException(String.format("Publishing requires '%s' and '%s' properties",
                 MAVEN_USERNAME_PROPERTY, MAVEN_PASSWORD_PROPERTY))
         }
-        publishing.repositories.named("mySecure", MavenArtifactRepository::class).configure {
+        publishing.repositories.named<MavenArtifactRepository>("mySecure") {
             credentials {
                 username = mavenUser.get()
                 password = mavenPassword.get()
