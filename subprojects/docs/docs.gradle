@@ -153,11 +153,7 @@ String snippetId(File snippetLocation) {
     "$categoryName$snippetName"
 }
 
-// TODO (donat) snippets should be executed on multiple platforms on CI
-// TODO (donat) snippets should be executed in reasonable buckets
-// TODO (donat) investigate ignored snippets
 // TODO (donat) readme file should be generated for snippets
-// TODO (donat) verify the content of the samples index
 
 samples {
     templates {
@@ -448,6 +444,7 @@ tasks.named("docsTest") {
         }
     }
 
+    // TODO (donat) investigate ignored snippets
     filter {
         // fails on CI
         excludeTestsMatching 'org.gradle.docs.samples.ExemplarExternalSamplesFunctionalTest.Best-practices-logic-during-configuration-dont_*.sample' // negative sanity check fails (= build succeeds) for Kotlin variant
