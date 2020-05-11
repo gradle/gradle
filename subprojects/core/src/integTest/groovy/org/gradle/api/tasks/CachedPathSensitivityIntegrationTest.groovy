@@ -43,7 +43,6 @@ class CachedPathSensitivityIntegrationTest extends AbstractPathSensitivityIntegr
         return "FROM-CACHE"
     }
 
-    @ToBeFixedForInstantExecution
     def "single #pathSensitivity input file loaded from cache can be used as input"() {
         file("src/data/input.txt").text = "data"
 
