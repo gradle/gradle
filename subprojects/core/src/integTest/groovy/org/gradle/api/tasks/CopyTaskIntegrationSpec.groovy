@@ -2168,12 +2168,10 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     @Unroll
-    @ToBeFixedForInstantExecution(iterationMatchers = [
-        ".*eachFile\\(.*\\).*",
-        ".*expand\\(Map\\).*",
-        ".*filter\\(.*\\).*",
-        ".*rename\\(.*\\).*",
-    ])
+    @ToBeFixedForInstantExecution(
+        because = "eachFile, expand, filter and rename",
+        skip = ToBeFixedForInstantExecution.Skip.FLAKY
+    )
     def "task output caching is disabled when #description is used"() {
         file("src.txt").createFile()
         buildFile << """
