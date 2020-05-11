@@ -564,9 +564,9 @@ and return its true type at runtime using the link:{javaApi}/javax/annotation/pr
 === Example: Registering incremental annotation processors dynamically
 
 [source,java,indent=0]
-.processor/src/main/java/ServiceRegistryProcessor.java
+.processor/src/main/java/org/gradle/ServiceRegistryProcessor.java
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=options-of-dynamic-processor]
 ----
 
 Both categories have the following limitations:
@@ -589,9 +589,9 @@ For instance an `EntityProcessor` could create a `<TypeName>Repository` for each
 === Example: An isolated annotation processor
 
 [source,java,indent=0]
-.processor/src/main/java/EntityProcessor.java
+.processor/src/main/java/org/gradle/EntityProcessor.java
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/EntityProcessor.java[tag=isolating-annotation-processor]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/EntityProcessor.java[tag=isolating-annotation-processor]
 ----
 
 "Isolating" processors have the following limitations:
@@ -616,9 +616,9 @@ For instance, a `ServiceRegistryProcessor` could create a single `ServiceRegistr
 === Example: An aggregating annotation processor
 
 [source,java,indent=0]
-.processor/src/main/java/ServiceRegistryProcessor.java
+.processor/src/main/java/org/gradle/ServiceRegistryProcessor.java
 ----
-include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
+include::{snippetsPath}/java/incrementalAnnotationProcessing/groovy/processor/src/main/java/org/gradle/ServiceRegistryProcessor.java[tag=aggregating-annotation-processor]
 ----
 
 "Aggregating" processors have the following limitations:
