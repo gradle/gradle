@@ -153,8 +153,6 @@ String snippetId(File snippetLocation) {
     "$categoryName$snippetName"
 }
 
-// TODO (donat) readme file should be generated for snippets
-
 samples {
     templates {
         javaAndroidApplication
@@ -260,21 +258,18 @@ samples {
         }
     }
 
-    // default text for snippets that don't documentation
-    File defaultReadme = file('src/snippets/default-readme.adoc')
-
     snippets.each { String id, File location ->
         publishedSamples.create(id) {
-            // set readme for snippet
-            File readmeLocation = new File(location, "README.adoc")
-            if (!readmeLocation.exists()) {
-                readmeLocation = defaultReadme
+            File readme = new File(location, "README.adoc")
+            if (readme.exists()) {
+                readmeFile = readme
+            } else {
+                readmeFile = file('src/main/resources/default-readme.adoc')
             }
 
             description = "Snippet from $location.name"
             category = "Other"
             sampleDirectory = location
-            readmeFile = readmeLocation
             promoted = false
 
             File common = new File(location, 'common')
