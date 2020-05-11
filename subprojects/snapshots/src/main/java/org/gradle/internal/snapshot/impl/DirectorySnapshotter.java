@@ -275,8 +275,10 @@ public class DirectorySnapshotter {
             String internedAbsoluteFilePath = intern(remapAbsolutePath(absoluteFilePath));
             if (attrs.isRegularFile()) {
                 try {
-                    FileMetadata metadata = DefaultFileMetadata.file(attrs.lastModifiedTime().toMillis(), attrs.size(), accessType);
-                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), metadata.getLength(), metadata.getLastModified());
+                    long lastModified = attrs.lastModifiedTime().toMillis();
+                    long fileLength = attrs.size();
+                    FileMetadata metadata = DefaultFileMetadata.file(lastModified, fileLength, accessType);
+                    HashCode hash = hasher.hash(absoluteFilePath.toFile(), fileLength, lastModified);
                     return new RegularFileSnapshot(internedAbsoluteFilePath, internedName, hash, metadata);
                 } catch (UncheckedIOException e) {
                     LOGGER.info("Could not read file path '{}'.", absoluteFilePath, e);

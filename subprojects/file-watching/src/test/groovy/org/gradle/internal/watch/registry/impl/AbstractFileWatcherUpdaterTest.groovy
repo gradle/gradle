@@ -130,7 +130,12 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
 
     static RegularFileSnapshot snapshotRegularFile(File regularFile) {
         def attributes = Files.readAttributes(regularFile.toPath(), BasicFileAttributes)
-        new RegularFileSnapshot(regularFile.absolutePath, regularFile.name, TestFiles.fileHasher().hash(regularFile), DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), AccessType.DIRECT))
+        new RegularFileSnapshot(
+            regularFile.absolutePath,
+            regularFile.name,
+            TestFiles.fileHasher().hash(regularFile),
+            DefaultFileMetadata.file(attributes.lastModifiedTime().toMillis(), attributes.size(), AccessType.DIRECT)
+        )
     }
 
     static boolean equalIgnoringOrder(Object actual, Collection<?> expected) {
