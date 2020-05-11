@@ -1,6 +1,6 @@
 plugins {
-    id("java-library")
-    id("maven-publish")
+    `java-library`
+    `maven-publish`
 }
 
 version = "1.0.2"
