@@ -6,8 +6,7 @@ val login = tasks.register<Exec>("login") {
 
     doFirst {
         if (!username.isPresent() || !password.isPresent()) {
-            throw GradleException(String.format("login task requires '%s' and '%s' properties",
-                USERNAME_PROPERTY, PASSWORD_PROPERTY))
+            throw GradleException("login task requires '$USERNAME_PROPERTY' and '$PASSWORD_PROPERTY' properties")
         }
     }
 
