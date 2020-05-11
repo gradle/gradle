@@ -17,6 +17,8 @@
 package org.gradle.internal.watch.registry.impl
 
 import net.rubygrapefruit.platform.file.FileWatcher
+import org.gradle.internal.file.FileMetadataSnapshot.AccessType
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 
 class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
@@ -123,5 +125,29 @@ class HierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest 
         then:
         1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
         0 * _
+    }
+
+    def "starts watching closer parent when missing file is created"() {
+        def rootDir = file("root").createDir()
+        def missingFile = rootDir.file("a/b/c/missing.txt")
+
+        when:
+        addSnapshot(missingFileSnapshot(missingFile))
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [rootDir]) })
+        0 * _
+
+        when:
+        missingFile.createFile()
+        addSnapshot(snapshotRegularFile(missingFile))
+        then:
+        1 * watcher.stopWatching({ equalIgnoringOrder(it, [rootDir]) })
+        then:
+        1 * watcher.startWatching({ equalIgnoringOrder(it, [missingFile.parentFile]) })
+        0 * _
+    }
+
+    MissingFileSnapshot missingFileSnapshot(File location) {
+        new MissingFileSnapshot(location.getAbsolutePath(), AccessType.DIRECT)
     }
 }
