@@ -584,6 +584,7 @@ task someTask(dependsOn: [someDep, someOtherDep])
         }
     }
 
+    @ToBeFixedForInstantExecution(because = "execution order differs most likely due to parallelism", skip = ToBeFixedForInstantExecution.Skip.FLAKY)
     @Issue(["gradle/gradle#769", "gradle/gradle#841"])
     def "execution succeed in presence of long dependency chain"() {
         def count = 9000
