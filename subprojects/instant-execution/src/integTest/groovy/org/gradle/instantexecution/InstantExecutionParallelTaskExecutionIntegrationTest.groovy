@@ -148,12 +148,21 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
             }
         """
 
-        expect:
+        expect: "unrequested finalizer dependencies not to run in parallel"
         2.times {
             [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
                 server.expectConcurrent(it)
             }
-            instantRun ":finalized:task"
+            instantRun ":finalized:task", "--parallel"
+        }
+
+        and: "requested finalizer dependencies to run in parallel"
+        2.times {
+            server.expectConcurrent(":finalized:dep", ":finalizer:dep")
+            [":finalized:task", ":finalizer:task"].each {
+                server.expectConcurrent(it)
+            }
+            instantRun ":finalizer:dep", ":finalized:task", "--parallel"
         }
     }
 
@@ -180,12 +189,25 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
             }
         """
 
-        expect:
+        expect: "unrequested finalizer dependencies not to run in parallel"
         2.times {
             ["finalizedDep", "finalized", "finalizerDep", "finalizer"].each {
                 server.expectConcurrent(it)
             }
             instantRun "finalized"
         }
+
+        and: "requested finalizer dependencies to run in parallel"
+        ["finalizerDep", "finalizedDep", "finalized", "finalizer"].each {
+            // vintage build always executes tasks from the same project sequentially
+            server.expectConcurrent(it)
+        }
+        instantRun "finalizerDep", "finalized"
+
+        server.expectConcurrent("finalizerDep", "finalizedDep")
+        ["finalized", "finalizer"].each {
+            server.expectConcurrent(it)
+        }
+        instantRun "finalizerDep", "finalized"
     }
 }
