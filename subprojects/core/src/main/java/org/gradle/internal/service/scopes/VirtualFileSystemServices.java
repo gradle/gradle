@@ -122,13 +122,9 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
-    public static boolean isPartialInvalidationEnabled(Map<String, String> systemPropertiesArgs) {
-        return isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, systemPropertiesArgs)
-            || isRetentionEnabled(systemPropertiesArgs);
-    }
-
-    public static boolean isRetentionEnabled(Map<String, String> systemPropertiesArgs) {
-        return isSystemPropertyEnabled(VFS_RETENTION_ENABLED_PROPERTY, systemPropertiesArgs);
+    public static boolean isPartialInvalidationEnabled(StartParameter startParameter) {
+        return startParameter.isWatchFileSystem()
+            || isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs());
     }
 
     private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
@@ -277,7 +273,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 additiveCacheLocations,
                 gradleUserHomeVirtualFileSystem,
                 buildSessionsScopedVirtualFileSystem,
-                () -> isRetentionEnabled(startParameter.getSystemPropertiesArgs())
+                startParameter::isWatchFileSystem
             );
 
             listenerManager.addListener(new RootBuildLifecycleListener() {
