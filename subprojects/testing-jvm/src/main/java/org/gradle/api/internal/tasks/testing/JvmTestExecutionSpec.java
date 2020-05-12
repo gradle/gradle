@@ -42,7 +42,7 @@ public class JvmTestExecutionSpec implements TestExecutionSpec {
     private final Set<String> previousFailedTestClasses;
 
     /**
-     * Required by test-retry-gradle-plugin
+     * Required by test-retry-gradle-plugin <= 1.1.3
      */
     public JvmTestExecutionSpec(TestFramework testFramework, Iterable<? extends File> classpath, FileTree candidateClassFiles, boolean scanForTestClasses, FileCollection testClassesDirs, String path, Path identityPath, long forkEvery, JavaForkOptions javaForkOptions, int maxParallelForks, Set<String> previousFailedTestClasses) {
         this(testFramework, classpath, Collections.<File>emptyList(), candidateClassFiles, scanForTestClasses, testClassesDirs, path, identityPath, forkEvery, javaForkOptions, maxParallelForks, previousFailedTestClasses);
