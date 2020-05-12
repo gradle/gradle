@@ -302,7 +302,7 @@ public class StartParameterBuildOptions {
 
         @Override
         public void applyTo(boolean value, StartParameterInternal startParameter, Origin origin) {
-            startParameter.setWatchFileSystem(true);
+            startParameter.setWatchFileSystem(value);
         }
     }
     public static class BuildScanOption extends BooleanBuildOption<StartParameterInternal> {
