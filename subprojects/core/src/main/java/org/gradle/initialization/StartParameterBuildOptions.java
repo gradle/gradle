@@ -295,8 +295,8 @@ public class StartParameterBuildOptions {
         public WatchFileSystemOption() {
             super("org.gradle.unsafe.watch-fs", BooleanCommandLineOptionConfiguration.create(
                 LONG_OPTION,
-                "Enables watching the file system for changes so that in-memory state of the file system can be re-used for the next build.",
-                "Disables retaining the in-memory state of the file system can be re-used for the next build."
+                "Enables watching the file system for changes, allowing data about the file system to be re-used for the next build.",
+                "Disables re-using data about the file system for the next build."
             ));
         }
 
