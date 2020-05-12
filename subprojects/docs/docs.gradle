@@ -473,9 +473,9 @@ samples {
         }
 
         publishingCredentials {
-            sampleDirectory = samplesRoot.dir("user-input/publishing-credentials")
+            sampleDirectory = samplesRoot.dir("credentials-handling/publishing-credentials")
             description = "Provide credentials to a publishing task."
-            category = "User input"
+            category = "Credentials handling"
             common {
                 from(sampleDirectory.dir("common"))
                 from(templates.javaListLibrary)
