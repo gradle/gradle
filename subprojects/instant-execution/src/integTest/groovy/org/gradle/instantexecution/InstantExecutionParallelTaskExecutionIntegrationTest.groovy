@@ -27,7 +27,7 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
 
     // Don't run in parallel mode, as the expectation for the setup build are incorrect and running in parallel
     // does not really make any difference to the coverage
-    @IgnoreIf({ GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "runs tasks in different projects in parallel by default"() {
         server.start()
 
@@ -75,7 +75,7 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
     // Don't run in parallel mode, as the expectation for the setup build are incorrect
     // It could potentially be worth running this in parallel mode to demonstrate the difference between
     // parallel and instant execution
-    @IgnoreIf({ GradleContextualExecuter.parallel})
+    @IgnoreIf({ GradleContextualExecuter.parallel })
     def "runs tasks in same project in parallel by default"() {
         server.start()
 
