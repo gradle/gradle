@@ -169,14 +169,14 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
                     ${server.callFromBuildUsingExpression("name")}
                 }
             }
-            task finalizerDep(type: SlowTask)
-            task finalizer(type: SlowTask) {
-                dependsOn finalizerDep
+            tasks.create('finalizerDep', SlowTask)
+            tasks.create('finalizer', SlowTask) {
+                dependsOn 'finalizerDep'
             }
-            task finalizedDep(type: SlowTask)
-            task finalized(type: SlowTask) {
-                finalizedBy finalizer
-                dependsOn finalizedDep
+            tasks.create('finalizedDep', SlowTask)
+            tasks.create('finalized', SlowTask) {
+                finalizedBy 'finalizer'
+                dependsOn 'finalizedDep'
             }
         """
 
