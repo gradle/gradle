@@ -606,7 +606,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
         when:
         inDirectory(settingsDir)
-        run("thing")
+        withRetention().run("thing")
         then:
         executed ":sub:thing"
 
