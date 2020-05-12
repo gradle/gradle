@@ -79,14 +79,13 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
     private void buildSpecForSupportedOptimizations(IncrementalAndroidTestProject testProject, @DelegatesTo(GradleBuildExperimentSpec.GradleBuilder) Closure scenarioConfiguration) {
         supportedOptimizations(testProject).each {name, Set<Optimization> enabledOptimizations ->
             runner.buildSpec {
-                passChangedFile(delegate, testProject)
                 invocation.args(*enabledOptimizations*.argument)
                 testProject.configureForLatestAgpVersionOfMinor(delegate, AGP_TARGET_VERSION)
                 displayName(name)
 
-                final Closure clonedClosure = scenarioConfiguration.clone() as Closure;
-                clonedClosure.setResolveStrategy(Closure.DELEGATE_FIRST);
-                clonedClosure.setDelegate(delegate);
+                final Closure clonedClosure = scenarioConfiguration.clone() as Closure
+                clonedClosure.setResolveStrategy(Closure.DELEGATE_FIRST)
+                clonedClosure.setDelegate(delegate)
                 clonedClosure.call()
             }
         }
@@ -128,10 +127,6 @@ class FasterIncrementalAndroidBuildsPerformanceTest extends AbstractCrossBuildPe
                 new ClearProjectCacheMutator(invocationSettings.projectDir, AbstractCleanupMutator.CleanupSchedule.SCENARIO)
             }
         }
-    }
-
-    static void passChangedFile(GradleBuildExperimentSpec.GradleBuilder builder, IncrementalAndroidTestProject testProject) {
-        builder.invocation.args("-D${VirtualFileSystemServices.VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY}=${testProject.pathToChange}")
     }
 
     enum Optimization {

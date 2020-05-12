@@ -332,11 +332,11 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         result = handle.waitForFinish()
     }
 
-    def "incubating message is shown for retention"() {
+    def "incubating message is shown for watching the file system"() {
         buildFile << """
             apply plugin: "java"
         """
-        def incubatingMessage = "Virtual file system retention is an incubating feature"
+        def incubatingMessage = "Watching the file system is an incubating feature"
 
         when:
         withRetention().run("assemble")

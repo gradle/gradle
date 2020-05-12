@@ -108,14 +108,6 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
     public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
 
     /**
-     * When retention is enabled, this system property can be used to pass a comma-separated
-     * list of file paths that have changed since the last build.
-     *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
-     */
-    public static final String VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY = "org.gradle.unsafe.vfs.changes";
-
-    /**
      * When retention is enabled, this system property can be used to invalidate the entire VFS.
      *
      * @see #VFS_RETENTION_ENABLED_PROPERTY
@@ -188,9 +180,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
                 watchingAwareVirtualFileSystem,
-                StartParameter::isWatchFileSystem,
-                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs()),
-                startParameter -> getSystemProperty(VFS_CHANGES_SINCE_LAST_BUILD_PROPERTY, startParameter.getSystemPropertiesArgs())
+                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs())
             ));
             return watchingAwareVirtualFileSystem;
         }
