@@ -75,24 +75,34 @@ class WorkNodeCodec(
         val nodeId = scheduledNodeIds.getValue(node)
         writeSmallInt(nodeId)
         write(node)
-        writeBoolean(node.isRequired) // entry nodes are required
-
         writeSuccessorReferencesOf(node, scheduledNodeIds)
+        writeExecutionStateOf(node)
     }
 
     private
     suspend fun ReadContext.readNode(nodesById: MutableMap<Int, Node>): Node {
         val nodeId = readSmallInt()
         val node = readNonNull<Node>()
-        val isRequired = readBoolean()
         readSuccessorReferencesOf(node, nodesById)
+        readExecutionStateOf(node)
+        nodesById[nodeId] = node
+        return node
+    }
+
+    private
+    fun WriteContext.writeExecutionStateOf(node: Node) {
+        // entry nodes are required, finalizer nodes and their dependencies are not
+        writeBoolean(node.isRequired)
+    }
+
+    private
+    fun ReadContext.readExecutionStateOf(node: Node) {
+        val isRequired = readBoolean()
         when {
             isRequired -> node.require()
             else -> node.mustNotRun() // finalizer nodes and their dependencies
         }
         node.dependenciesProcessed()
-        nodesById[nodeId] = node
-        return node
     }
 
     private
