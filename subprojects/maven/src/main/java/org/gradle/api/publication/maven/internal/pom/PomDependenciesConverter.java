@@ -22,5 +22,5 @@ import java.util.List;
 import java.util.Set;
 
 public interface PomDependenciesConverter {
-    public List<?> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
+    List<?> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
 }
