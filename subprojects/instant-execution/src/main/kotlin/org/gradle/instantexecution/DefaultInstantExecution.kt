@@ -147,22 +147,12 @@ class DefaultInstantExecution internal constructor(
             return
         }
 
-        stopCollectingCacheFingerprint()
         Instrumented.discardListener()
+        stopCollectingCacheFingerprint()
 
         buildOperationExecutor.withStoreOperation {
-
             try {
-
-                instantExecutionStateFile.createParentDirectories()
-
-                service<ProjectStateRegistry>().withLenientState {
-                    withWriteContextFor(instantExecutionStateFile) {
-                        encodeScheduledWork()
-                    }
-                }
-
-                writeInstantExecutionCacheFingerprint()
+                writeInstantExecutionFiles()
             } catch (error: InstantExecutionError) {
                 // Invalidate unusable state on errors
                 invalidateInstantExecutionState()
@@ -186,8 +176,33 @@ class DefaultInstantExecution internal constructor(
         scopeRegistryListener.dispose()
 
         buildOperationExecutor.withLoadOperation {
-            withReadContextFor(instantExecutionStateFile) {
-                decodeScheduledWork()
+            readInstantExecutionState()
+        }
+    }
+
+    private
+    fun writeInstantExecutionFiles() {
+        instantExecutionStateFile.createParentDirectories()
+        writeInstantExecutionState()
+        writeInstantExecutionCacheFingerprint()
+    }
+
+    private
+    fun writeInstantExecutionState() {
+        service<ProjectStateRegistry>().withLenientState {
+            withWriteContextFor(instantExecutionStateFile) {
+                encodeScheduledWork()
+                writeInt(0x1ecac8e)
+            }
+        }
+    }
+
+    private
+    fun readInstantExecutionState() {
+        withReadContextFor(instantExecutionStateFile) {
+            decodeScheduledWork()
+            require(readInt() == 0x1ecac8e) {
+                "corrupt state file"
             }
         }
     }

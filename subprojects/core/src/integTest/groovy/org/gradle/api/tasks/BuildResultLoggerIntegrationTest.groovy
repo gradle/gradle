@@ -18,7 +18,6 @@ package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 
 class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture {
     def setup() {
@@ -60,7 +59,6 @@ class BuildResultLoggerIntegrationTest extends AbstractIntegrationSpec implement
         output.contains "2 actionable tasks: 1 executed, 1 up-to-date"
     }
 
-    @ToBeFixedForInstantExecution
     def "cached task outcome statistics are reported"() {
         when:
         withBuildCache().run "adHocTask", "executedTask"

@@ -16,13 +16,27 @@
 
 package org.gradle.internal.nativeintegration.filesystem;
 
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 
 public interface FileMetadataAccessor {
-    FileMetadataSnapshot stat(File f);
-    FileMetadataSnapshot stat(Path path) throws IOException;
+    /**
+     * Gets the file metadata of a {@link File}.
+     * <p>
+     * If the type of the file cannot be determined, or is
+     * neither {@link org.gradle.internal.file.FileType#RegularFile}
+     * nor {@link org.gradle.internal.file.FileType#Directory},
+     * then the file type of the file metadata is of type
+     * {@link org.gradle.internal.file.FileType#Missing}.
+     * <p>
+     * Such cases include:
+     * <ul>
+     *     <li>actual missing files</li>
+     *     <li>broken symlinks</li>
+     *     <li>circular symlinks</li>
+     *     <li>named pipes</li>
+     * </ul>
+     */
+    FileMetadata stat(File f);
 }

@@ -43,6 +43,7 @@ import static org.gradle.test.fixtures.server.http.MavenHttpPluginRepository.PLU
  *   - e.g. change in Gradle that breaks the Gradle build
  */
 @Issue('https://github.com/gradle/gradle-private/issues/1313')
+@Category(SlowPerformanceRegressionTest)
 class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalPerformanceTest {
 
     static List<String> extraGradleBuildArguments() {
@@ -53,12 +54,11 @@ class GradleInceptionPerformanceTest extends AbstractCrossVersionGradleInternalP
     }
 
     def setup() {
-        def targetVersion = "6.2-rc-1"
+        def targetVersion = "6.5-20200509220030+0000"
         runner.targetVersions = [targetVersion]
         runner.minimumBaseVersion = GradleVersion.version(targetVersion).baseVersion.version
     }
 
-    @Category(SlowPerformanceRegressionTest)
     @Unroll
     def "buildSrc api change in #testProject comparing gradle"() {
         given:

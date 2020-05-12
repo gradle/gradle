@@ -45,7 +45,7 @@ abstract class SystemPropertyRead {
         }
     }
 
-    static SystemPropertyRead systemGetProperties(String name) {
+    static SystemPropertyRead systemGetPropertiesGet(String name) {
         return new SystemPropertyRead() {
             @Override
             String getJavaExpression() {
@@ -60,6 +60,181 @@ abstract class SystemPropertyRead {
             @Override
             String getKotlinExpression() {
                 return "System.getProperties()[\"$name\"]"
+            }
+        }
+    }
+
+    static SystemPropertyRead systemGetPropertiesGetProperty(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "(String)System.getProperties().getProperty(\"$name\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "System.properties.getProperty(\"$name\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperties().getProperty(\"$name\")"
+            }
+        }
+    }
+
+    static SystemPropertyRead systemGetPropertiesGetPropertyWithDefault(String name, String defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "(String)System.getProperties().getProperty(\"$name\", \"$defaultValue\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "System.properties.getProperty(\"$name\", \"$defaultValue\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperties().getProperty(\"$name\", \"$defaultValue\")"
+            }
+        }
+    }
+
+    static SystemPropertyRead systemGetPropertiesFilterEntries(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "(String)System.getProperties().entrySet().stream().filter(e -> e.getKey().equals(\"$name\")).findFirst().get().getValue()";
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "System.properties.entrySet().find { it.key == '$name'}.value"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperties().entries.filter { it.key == \"$name\" }.first().value"
+            }
+        }
+    }
+
+    static SystemPropertyRead integerGetInteger(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getKotlinExpression() {
+                return "Integer.getInteger(\"$name\")"
+            }
+        }
+    }
+
+    static SystemPropertyRead integerGetIntegerWithPrimitiveDefault(String name, int defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getGroovyExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue)"
+            }
+        }
+    }
+
+    static SystemPropertyRead integerGetIntegerWithIntegerDefault(String name, int defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Integer.getInteger(\"$name\", new Integer($defaultValue))"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue as Integer)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "Integer.getInteger(\"$name\", $defaultValue)"
+            }
+        }
+    }
+
+    static SystemPropertyRead longGetLong(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Long.getLong(\"$name\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Long.getLong(\"$name\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\")?.toLong()"
+            }
+        }
+    }
+
+    static SystemPropertyRead longGetLongWithPrimitiveDefault(String name, long defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Long.getLong(\"$name\", $defaultValue)"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Long.getLong(\"$name\", $defaultValue as long)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\", \"$defaultValue\")?.toLong()"
+            }
+        }
+    }
+
+    static SystemPropertyRead longGetLongWithLongDefault(String name, long defaultValue) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Long.getLong(\"$name\", new Long($defaultValue))"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Long.getLong(\"$name\", $defaultValue as Long)"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\", \"$defaultValue\")?.toLong()"
+            }
+        }
+    }
+
+    static SystemPropertyRead booleanGetBoolean(String name) {
+        return new SystemPropertyRead() {
+            @Override
+            String getJavaExpression() {
+                return "Boolean.getBoolean(\"$name\")"
+            }
+
+            @Override
+            String getGroovyExpression() {
+                return "Boolean.getBoolean(\"$name\")"
+            }
+
+            @Override
+            String getKotlinExpression() {
+                return "System.getProperty(\"$name\")?.toBoolean()"
             }
         }
     }

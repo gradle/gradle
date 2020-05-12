@@ -19,7 +19,7 @@ import com.google.common.base.Charsets;
 import com.google.common.io.Files;
 import org.apache.commons.io.FileUtils;
 import org.gradle.internal.file.FileException;
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeAccessor;
 import org.gradle.internal.nativeintegration.filesystem.FileModeMutator;
@@ -78,7 +78,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     @Override
-    public FileMetadataSnapshot stat(File f) throws FileException {
+    public FileMetadata stat(File f) throws FileException {
         return metadata.stat(f);
     }
 

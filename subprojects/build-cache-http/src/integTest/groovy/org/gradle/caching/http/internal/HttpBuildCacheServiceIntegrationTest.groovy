@@ -120,7 +120,6 @@ class HttpBuildCacheServiceIntegrationTest extends AbstractIntegrationSpec imple
         executedAndNotSkipped ":compileJava"
     }
 
-    @ToBeFixedForInstantExecution(because = "Task.cacheIf")
     def "non-cacheable task with cache enabled gets cached"() {
         file("input.txt") << "data"
         buildFile << """

@@ -16,15 +16,15 @@
 
 package org.gradle.internal.nativeintegration.filesystem.services;
 
+import net.rubygrapefruit.platform.NativeException;
 import net.rubygrapefruit.platform.file.FileInfo;
 import net.rubygrapefruit.platform.file.Files;
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.impl.DefaultFileMetadata;
 import org.gradle.internal.nativeintegration.filesystem.FileMetadataAccessor;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
 
 public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAccessor {
     private final Files files;
@@ -34,22 +34,31 @@ public class NativePlatformBackedFileMetadataAccessor implements FileMetadataAcc
     }
 
     @Override
-    public FileMetadataSnapshot stat(File f) {
-        FileInfo stat = files.stat(f, true);
+    public FileMetadata stat(File f) {
+        FileInfo stat;
+        try {
+            stat = files.stat(f, false);
+        } catch (NativeException e) {
+            return DefaultFileMetadata.missing(AccessType.DIRECT);
+        }
+        AccessType accessType = AccessType.viaSymlink(stat.getType() == FileInfo.Type.Symlink);
+        if (accessType == AccessType.VIA_SYMLINK) {
+            try {
+                stat = files.stat(f, true);
+            } catch (NativeException e) {
+                return DefaultFileMetadata.missing(AccessType.VIA_SYMLINK);
+            }
+        }
         switch (stat.getType()) {
             case File:
-                return DefaultFileMetadata.file(stat.getLastModifiedTime(), stat.getSize());
+                return DefaultFileMetadata.file(stat.getLastModifiedTime(), stat.getSize(), accessType);
             case Directory:
-                return DefaultFileMetadata.directory();
+                return DefaultFileMetadata.directory(accessType);
             case Missing:
-                return DefaultFileMetadata.missing();
+            case Other:
+                return DefaultFileMetadata.missing(accessType);
             default:
                 throw new IllegalArgumentException("Unrecognised file type: " + stat.getType());
         }
-    }
-
-    @Override
-    public FileMetadataSnapshot stat(Path path) throws IOException {
-        return stat(path.toFile());
     }
 }

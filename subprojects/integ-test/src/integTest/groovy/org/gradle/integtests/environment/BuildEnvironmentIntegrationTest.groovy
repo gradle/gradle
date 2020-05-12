@@ -123,7 +123,7 @@ assert classesDir.directory
 
     def "system properties should be made available to build"() {
         file('build.gradle') << """
-            println('prop1=' + providers.systemProperty('prop1').get())
+            println('prop1=' + providers.systemProperty('prop1').forUseAtConfigurationTime().get())
             task show {
                 doLast {
                     println('prop1=' + System.getProperty('prop1'))
@@ -136,7 +136,7 @@ assert classesDir.directory
             """
         } else {
             buildFile << """
-                println('prop2=' + providers.systemProperty('prop2').orNull)
+                println('prop2=' + providers.systemProperty('prop2').forUseAtConfigurationTime().orNull)
             """
         }
 
@@ -198,7 +198,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
 
         file('build.gradle') << """
             assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx52m')
-            println('prop1=' + providers.systemProperty('prop1').get())
+            println('prop1=' + providers.systemProperty('prop1').forUseAtConfigurationTime().get())
             task show {
                 doLast {
                     println('prop1=' + System.getProperty('prop1'))
@@ -211,7 +211,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
             """
         } else {
             buildFile << """
-                println('prop2=' + providers.systemProperty('prop2').orNull)
+                println('prop2=' + providers.systemProperty('prop2').forUseAtConfigurationTime().orNull)
             """
         }
 

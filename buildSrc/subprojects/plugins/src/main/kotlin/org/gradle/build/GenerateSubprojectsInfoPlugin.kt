@@ -46,7 +46,7 @@ open class GenerateSubprojectsInfoTask : DefaultTask() {
         return GradleSubproject(subprojectDir.name,
             subprojectDir.name.kebabToCamel(),
             subprojectDir.hasDescendantDir("src/test"),
-            subprojectDir.hasDescendantDir("src/integTest"),
+            if (subprojectDir.name == "docs") true else subprojectDir.hasDescendantDir("src/integTest"),
             subprojectDir.hasDescendantDir("src/crossVersionTest"))
     }
 }

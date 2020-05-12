@@ -51,7 +51,7 @@ class SystemPropertyAccessListener(
     private
     val nullProperties = mutableSetOf<String>()
 
-    override fun systemPropertyQueried(key: String, value: String?, consumer: String) {
+    override fun systemPropertyQueried(key: String, value: Any?, consumer: String) {
         if (whitelistedProperties.contains(key) || Workarounds.canReadSystemProperty(consumer)) {
             return
         }

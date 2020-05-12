@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2020 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,18 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.concurrent;
+package org.gradle.internal.service.scopes;
 
-import org.gradle.concurrent.ParallelismConfiguration;
-
-/**
- * A listener that is notified when the parallelism configuration changes.
- */
-public interface ParallelismConfigurationListener {
-    /**
-     * Called when the parallelism configuration is changed during the build lifecycle.
-     *
-     * @param parallelismConfiguration - the new parallelism configuration
-     */
-    void onParallelismConfigurationChange(ParallelismConfiguration parallelismConfiguration);
+public enum Scopes {
+    Global,
+    UserHome,
+    BuildSession,
+    BuildTree,
+    Build
 }

@@ -20,8 +20,10 @@ import org.gradle.language.AbstractNativeDependenciesIntegrationTest
 import org.gradle.language.swift.SwiftTaskNames
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
+import spock.lang.Ignore
 
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
+@Ignore
 class XCTestDependenciesIntegrationTest extends AbstractNativeDependenciesIntegrationTest implements SwiftTaskNames {
     @Override
     protected void makeComponentWithLibrary() {

@@ -28,6 +28,7 @@ import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 /**
@@ -36,6 +37,7 @@ import java.util.List;
  */
 public interface MetadataSource<S extends MutableModuleComponentResolveMetadata> {
 
+    @Nullable
     S create(String repositoryName,
              ComponentResolvers componentResolvers,
              ModuleComponentIdentifier moduleComponentIdentifier,

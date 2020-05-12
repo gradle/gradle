@@ -24,10 +24,11 @@ import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.junit.Assume
 import spock.lang.Unroll
 
-import static org.gradle.nativeplatform.MachineArchitecture.*
+import static org.gradle.nativeplatform.MachineArchitecture.X86
+import static org.gradle.nativeplatform.MachineArchitecture.X86_64
 
 abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledToolChainIntegrationSpec implements LanguageTaskNames {
-    @ToBeFixedForInstantExecution
+    @ToBeFixedForInstantExecution(bottomSpecs = ['CppUnitTestWithApplicationIntegrationTest', 'CppUnitTestWithoutComponentIntegrationTest', 'CppUnitTestWithLibraryIntegrationTest'])
     def "does nothing when no source files are present"() {
         given:
         makeSingleProject()
@@ -80,11 +81,11 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         assertTestCasesRan()
 
         where:
-        task            | expectedArchitecture  | expectedLifecycleTasks
-        "test"          | X86_64                | [":test"]
-        "check"         | X86_64                | [":test", ":check"]
-        "build"         | X86_64                | [":test", ":check", ":build", getTasksToAssembleComponentUnderTest(X86_64), ":assemble"]
-        "runTestX86"    | X86                   | [":runTestX86"]
+        task         | expectedArchitecture | expectedLifecycleTasks
+        "test"       | X86_64               | [":test"]
+        "check"      | X86_64               | [":test", ":check"]
+        "build"      | X86_64               | [":test", ":check", ":build", getTasksToAssembleComponentUnderTest(X86_64), ":assemble"]
+        "runTestX86" | X86                  | [":runTestX86"]
     }
 
     @Unroll
@@ -107,10 +108,10 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         assertTestCasesRan()
 
         where:
-        task            | expectedArchitecture  | expectedLifecycleTasks
-        "test"          | X86_64                | [":test"]
-        "check"         | X86_64                | [":test", ":check"]
-        "build"         | X86_64                | [":test", ":check", ":build", getTasksToAssembleComponentUnderTest(X86_64), ":assemble"]
+        task    | expectedArchitecture | expectedLifecycleTasks
+        "test"  | X86_64               | [":test"]
+        "check" | X86_64               | [":test", ":check"]
+        "build" | X86_64               | [":test", ":check", ":build", getTasksToAssembleComponentUnderTest(X86_64), ":assemble"]
     }
 
     @Unroll
@@ -129,10 +130,10 @@ abstract class AbstractNativeUnitTestIntegrationTest extends AbstractInstalledTo
         assertTestCasesRan()
 
         where:
-        task            | expectedLifecycleTasks
-        "test"          | [":test"]
-        "check"         | [":test", ":check"]
-        "build"         | [":test", ":check", ":build", tasksToAssembleComponentUnderTest, ":assemble"]
+        task    | expectedLifecycleTasks
+        "test"  | [":test"]
+        "check" | [":test", ":check"]
+        "build" | [":test", ":check", ":build", tasksToAssembleComponentUnderTest, ":assemble"]
     }
 
     @Unroll

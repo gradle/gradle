@@ -19,7 +19,10 @@ package org.gradle.internal.logging.progress;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.service.scopes.EventScope;
+import org.gradle.internal.service.scopes.Scopes;
 
+@EventScope(Scopes.Global)
 public interface ProgressListener {
     void started(ProgressStartEvent event);
 

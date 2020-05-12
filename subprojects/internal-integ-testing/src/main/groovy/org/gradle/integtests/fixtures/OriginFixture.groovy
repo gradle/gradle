@@ -75,7 +75,7 @@ class OriginFixture extends UserInitScriptExecuterFixture {
                         } else {
                             assert executionTime == null
                         }
-                        origins[buildOperation.details.task.identityPath] = entry
+                        origins[buildOperation.details.task.getIdentityPath()] = entry
                     }
                 }
 

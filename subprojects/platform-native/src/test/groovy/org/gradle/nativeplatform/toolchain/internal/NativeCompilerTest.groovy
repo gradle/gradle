@@ -21,8 +21,6 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.DefaultParallelismConfiguration
 import org.gradle.internal.concurrent.GradleThread
-import org.gradle.internal.concurrent.ParallelismConfigurationManager
-import org.gradle.internal.concurrent.ParallelismConfigurationManagerFixture
 import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationListener
 import org.gradle.internal.operations.DefaultBuildOperationExecutor
@@ -42,17 +40,20 @@ import spock.lang.Unroll
 import java.util.concurrent.Executor
 
 abstract class NativeCompilerTest extends Specification {
-    @Rule final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    final TestNameTestDirectoryProvider tmpDirProvider = new TestNameTestDirectoryProvider(getClass())
 
     protected CompilerOutputFileNamingSchemeFactory compilerOutputFileNamingSchemeFactory = new CompilerOutputFileNamingSchemeFactory(TestFiles.resolver(tmpDirProvider.root))
     private static final String O_EXT = ".o"
 
     protected abstract NativeCompiler getCompiler(CommandLineToolContext invocationContext, String objectFileExtension, boolean useCommandFile)
+
     protected NativeCompiler getCompiler() {
         getCompiler(new DefaultMutableCommandLineToolContext(), O_EXT, false)
     }
 
     protected abstract Class<? extends NativeCompileSpec> getCompileSpecType()
+
     protected abstract List<String> getCompilerSpecificArguments(File includeDir, File systemIncludeDir)
 
     protected CommandLineToolInvocationWorker commandLineTool = Mock(CommandLineToolInvocationWorker)
@@ -61,9 +62,9 @@ abstract class NativeCompilerTest extends Specification {
 
     private BuildOperationListener buildOperationListener = Mock(BuildOperationListener)
     private Clock timeProvider = Mock(Clock)
-    ParallelismConfigurationManager parallelExecutionManager = new ParallelismConfigurationManagerFixture(DefaultParallelismConfiguration.DEFAULT)
+    private parallelismConfiguration = DefaultParallelismConfiguration.DEFAULT
     protected BuildOperationExecutor buildOperationExecutor = new DefaultBuildOperationExecutor(buildOperationListener, timeProvider, new NoOpProgressLoggerFactory(),
-        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelExecutionManager, new DefaultBuildOperationIdFactory())
+        new DefaultBuildOperationQueueFactory(workerLeaseService), new DefaultExecutorFactory(), parallelismConfiguration, new DefaultBuildOperationIdFactory())
 
     def setup() {
         _ * workerLeaseService.withLocks(_) >> { args ->
@@ -86,7 +87,7 @@ abstract class NativeCompilerTest extends Specification {
         def args = compiler.getSourceArgs(sourceFile)
 
         then:
-        args == [ sourceFile.absoluteFile.toString() ]
+        args == [sourceFile.absoluteFile.toString()]
     }
 
     @Unroll
@@ -125,8 +126,8 @@ abstract class NativeCompilerTest extends Specification {
         NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
             getMacros() >> [foo: "bar", empty: null]
             getAllArgs() >> ["-firstArg", "-secondArg"]
-            getIncludeRoots() >> [ includeDir ]
-            getSystemIncludeRoots() >> [ systemIncludeDir ]
+            getIncludeRoots() >> [includeDir]
+            getSystemIncludeRoots() >> [systemIncludeDir]
             getOperationLogger() >> Mock(BuildOperationLogger)
             getPrefixHeaderFile() >> null
             getPreCompiledHeaderObjectFile() >> null
@@ -148,7 +149,7 @@ abstract class NativeCompilerTest extends Specification {
         def compiler = getCompiler(invocationContext, O_EXT, withOptionsFile)
         def testDir = tmpDirProvider.testDirectory
         def objectFileDir = testDir.file("output/objects")
-        def sourceFiles = [ testDir.file("source1.ext"), testDir.file("source2.ext") ]
+        def sourceFiles = [testDir.file("source1.ext"), testDir.file("source2.ext")]
 
         when:
         def compileSpec = Stub(getCompileSpecType()) {
@@ -168,7 +169,7 @@ abstract class NativeCompilerTest extends Specification {
 
         then:
 
-        sourceFiles.each{ sourceFile ->
+        sourceFiles.each { sourceFile ->
             1 * commandLineTool.execute(_, _)
         }
         4 * timeProvider.getCurrentTime()
@@ -193,7 +194,7 @@ abstract class NativeCompilerTest extends Specification {
         def compiler = getCompiler(invocationContext, O_EXT, false)
         def testDir = tmpDirProvider.testDirectory
         def objectFileDir = testDir.file("output/objects")
-        def sourceFiles = [ testDir.file("source1.ext"), testDir.file("source2.ext") ]
+        def sourceFiles = [testDir.file("source1.ext"), testDir.file("source2.ext")]
         when:
         NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
             getObjectFileDir() >> objectFileDir
@@ -227,7 +228,7 @@ abstract class NativeCompilerTest extends Specification {
         NativeCompileSpec compileSpec = Stub(getCompileSpecType()) {
             getMacros() >> [foo: "bar", empty: null]
             getAllArgs() >> ["-firstArg", "-secondArg"]
-            getIncludeRoots() >> [ includeDir ]
+            getIncludeRoots() >> [includeDir]
             getTempDir() >> testDir
             getOperationLogger() >> Mock(BuildOperationLogger)
             getPreCompiledHeader() >> null

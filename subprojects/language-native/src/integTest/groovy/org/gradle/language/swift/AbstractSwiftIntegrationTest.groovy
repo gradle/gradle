@@ -16,7 +16,7 @@
 
 package org.gradle.language.swift
 
-import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
+
 import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.fixtures.app.SourceElement
@@ -28,7 +28,6 @@ import org.gradle.util.Matchers
 @RequiresInstalledToolChain(ToolChainRequirement.SWIFTC)
 abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegrationTest {
 
-    @ToBeFixedForInstantExecution
     def "skip assemble tasks when no source"() {
         given:
         makeSingleProject()
@@ -40,7 +39,6 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
         result.assertTasksSkipped(tasksToAssembleDevelopmentBinary, ":assemble")
     }
 
-    @ToBeFixedForInstantExecution
     def "build fails when compilation fails"() {
         given:
         makeSingleProject()
@@ -56,7 +54,6 @@ abstract class AbstractSwiftIntegrationTest extends AbstractSwiftComponentIntegr
     }
 
     // TODO Move this to AbstractSwiftComponentIntegrationTest when xcode test works properly with architecture
-    @ToBeFixedForInstantExecution
     def "can build for current machine when multiple target machines are specified"() {
         given:
         makeSingleProject()

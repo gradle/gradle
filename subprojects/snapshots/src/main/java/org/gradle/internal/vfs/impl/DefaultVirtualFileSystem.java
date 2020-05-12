@@ -18,7 +18,8 @@ package org.gradle.internal.vfs.impl;
 
 import com.google.common.collect.Interner;
 import com.google.common.util.concurrent.Striped;
-import org.gradle.internal.file.FileMetadataSnapshot;
+import org.gradle.internal.file.FileMetadata;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.hash.FileHasher;
@@ -26,7 +27,6 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.snapshot.AtomicSnapshotHierarchyReference;
 import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.internal.snapshot.CompleteFileSystemLocationSnapshot;
-import org.gradle.internal.snapshot.FileMetadata;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.MissingFileSnapshot;
 import org.gradle.internal.snapshot.RegularFileSnapshot;
@@ -78,18 +78,18 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
             })
             .orElseGet(() -> {
                 File file = new File(location);
-                FileMetadataSnapshot stat = this.stat.stat(file);
-                if (stat.getType() == FileType.Missing) {
-                    storeStatForMissingFile(location);
+                FileMetadata fileMetadata = this.stat.stat(file);
+                if (fileMetadata.getType() == FileType.Missing) {
+                    storeMetadataForMissingFile(location, fileMetadata.getAccessType());
                 }
-                if (stat.getType() != FileType.RegularFile) {
+                if (fileMetadata.getType() != FileType.RegularFile) {
                     return Optional.empty();
                 }
                 HashCode hash = producingSnapshots.guardByKey(location,
                     () -> root.get().getSnapshot(location)
                         .orElseGet(() -> {
-                            HashCode hashCode = hasher.hash(file, stat.getLength(), stat.getLastModified());
-                            RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, FileMetadata.from(stat));
+                            HashCode hashCode = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                            RegularFileSnapshot snapshot = new RegularFileSnapshot(location, file.getName(), hashCode, fileMetadata);
                             updateRoot((root, changeListener) -> root.store(snapshot.getAbsolutePath(), snapshot, changeListener));
                             return snapshot;
                         }).getHash());
@@ -98,8 +98,8 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
             .map(visitor);
     }
 
-    private void storeStatForMissingFile(String location) {
-        updateRoot((root, changeListener) -> root.store(location, new MissingFileSnapshot(location), changeListener));
+    private void storeMetadataForMissingFile(String location, AccessType accessType) {
+        updateRoot((root, changeListener) -> root.store(location, new MissingFileSnapshot(location, accessType), changeListener));
     }
 
     @Override
@@ -131,15 +131,15 @@ public class DefaultVirtualFileSystem extends AbstractVirtualFileSystem {
 
     private CompleteFileSystemLocationSnapshot snapshot(String location) {
         File file = new File(location);
-        FileMetadataSnapshot stat = this.stat.stat(file);
-        switch (stat.getType()) {
+        FileMetadata fileMetadata = this.stat.stat(file);
+        switch (fileMetadata.getType()) {
             case RegularFile:
-                HashCode hash = hasher.hash(file, stat.getLength(), stat.getLastModified());
-                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, FileMetadata.from(stat));
+                HashCode hash = hasher.hash(file, fileMetadata.getLength(), fileMetadata.getLastModified());
+                RegularFileSnapshot regularFileSnapshot = new RegularFileSnapshot(location, file.getName(), hash, fileMetadata);
                 updateRoot((root, changeListener) -> root.store(regularFileSnapshot.getAbsolutePath(), regularFileSnapshot, changeListener));
                 return regularFileSnapshot;
             case Missing:
-                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location);
+                MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(location, fileMetadata.getAccessType());
                 updateRoot((root, changeListener) -> root.store(missingFileSnapshot.getAbsolutePath(), missingFileSnapshot, changeListener));
                 return missingFileSnapshot;
             case Directory:

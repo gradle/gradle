@@ -21,17 +21,17 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
 import org.junit.Rule
 import spock.lang.IgnoreIf
 import spock.lang.Issue
-
+import spock.lang.Unroll
 
 // The whole test makes no sense if there isn't a daemon to retain the state.
 @IgnoreIf({ GradleContextualExecuter.noDaemon || GradleContextualExecuter.vfsRetention })
+@Unroll
 class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec implements DirectoryBuildCacheFixture, VfsRetentionFixture {
 
     @Rule
@@ -470,7 +470,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
             task incremental(type: IncrementalTask) {
                 sources = file("sources")
-                input = providers.systemProperty("outputDir")
+                input = providers.systemProperty("outputDir").forUseAtConfigurationTime()
                 outputDir = file("build/\${input.get()}")
             }
         """
@@ -614,7 +614,7 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
 
     @Issue("https://github.com/gradle/gradle/issues/11851")
     @Requires(TestPrecondition.SYMLINKS)
-    def "gracefully handle when watching the same path via symlinks"() {
+    def "gracefully handle when declaring the same path as an input via symlinks"() {
         def actualDir = file("actualDir").createDir()
         file("symlink1").createLink(actualDir)
         file("symlink2").createLink(actualDir)
@@ -641,9 +641,48 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         withRetention().run "myTask"
         then:
         skipped(":myTask")
-        if (OperatingSystem.current().linux) {
-            outputContains("Watching not supported, not tracking changes between builds: Unable to watch same file twice via different paths")
-        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/11851")
+    @Requires(TestPrecondition.SYMLINKS)
+    def "changes to #description are detected"() {
+        file(fileToChange).createFile()
+        file(linkSource).createLink(file(linkTarget))
+
+        buildFile << """
+            task myTask {
+                def outputFile = file("build/output.txt")
+                inputs.${inputDeclaration}
+                outputs.file(outputFile)
+
+                doLast {
+                    outputFile.text = "Hello world"
+                }
+            }
+        """
+
+        when:
+        withRetention().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        when:
+        withRetention().run "myTask"
+        then:
+        skipped(":myTask")
+
+        when:
+        file(fileToChange).text = "changed"
+        waitForChangesToBePickedUp()
+        withRetention().run "myTask"
+        then:
+        executedAndNotSkipped ":myTask"
+
+        where:
+        description                     | linkSource                     | linkTarget       | inputDeclaration        | fileToChange
+        "symlinked file"                | "symlinkedFile"                | "actualFile"     | 'file("symlinkedFile")' | "actualFile"
+        "symlinked directory"           | "symlinkedDir"                 | "actualDir"      | 'dir("symlinkedDir")'   | "actualDir/file.txt"
+        "symlink in a directory"        | "dirWithSymlink/symlinkInside" | "fileInside.txt" | 'dir("dirWithSymlink")' | "fileInside.txt"
     }
 
     // This makes sure the next Gradle run starts with a clean BuildOutputCleanupRegistry

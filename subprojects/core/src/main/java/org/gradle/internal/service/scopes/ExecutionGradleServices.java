@@ -25,11 +25,11 @@ import org.gradle.cache.PersistentCache;
 import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.caching.internal.controller.BuildCacheCommandFactory;
 import org.gradle.caching.internal.controller.BuildCacheController;
+import org.gradle.concurrent.ParallelismConfiguration;
 import org.gradle.execution.plan.DefaultPlanExecutor;
 import org.gradle.execution.plan.PlanExecutor;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.internal.concurrent.ExecutorFactory;
-import org.gradle.internal.concurrent.ParallelismConfigurationManager;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.execution.CachingResult;
 import org.gradle.internal.execution.ExecutionRequestContext;
@@ -101,19 +101,18 @@ public class ExecutionGradleServices {
     }
 
     PlanExecutor createPlanExecutor(
-        ParallelismConfigurationManager parallelismConfigurationManager,
+        ParallelismConfiguration parallelismConfiguration,
         ExecutorFactory executorFactory,
         WorkerLeaseService workerLeaseService,
         BuildCancellationToken cancellationToken,
         ResourceLockCoordinationService coordinationService) {
-        int parallelThreads = parallelismConfigurationManager.getParallelismConfiguration().getMaxWorkerCount();
+        int parallelThreads = parallelismConfiguration.getMaxWorkerCount();
         if (parallelThreads < 1) {
             throw new IllegalStateException(String.format("Cannot create executor for requested number of worker threads: %s.", parallelThreads));
         }
 
-        // TODO: Make plan executor respond to changes in parallelism configuration
         return new DefaultPlanExecutor(
-            parallelismConfigurationManager.getParallelismConfiguration(),
+            parallelismConfiguration,
             executorFactory,
             workerLeaseService,
             cancellationToken,

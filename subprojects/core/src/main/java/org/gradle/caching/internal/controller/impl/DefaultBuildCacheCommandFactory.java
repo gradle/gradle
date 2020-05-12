@@ -27,6 +27,7 @@ import org.gradle.caching.internal.controller.BuildCacheStoreCommand;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.caching.internal.origin.OriginMetadataFactory;
 import org.gradle.caching.internal.packaging.BuildCacheEntryPacker;
+import org.gradle.internal.file.FileMetadata.AccessType;
 import org.gradle.internal.file.FileType;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
@@ -124,7 +125,7 @@ public class DefaultBuildCacheCommandFactory implements BuildCacheCommandFactory
                 List<FileSystemSnapshot> roots = new ArrayList<>();
 
                 if (treeSnapshot == null) {
-                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath);
+                    MissingFileSnapshot missingFileSnapshot = new MissingFileSnapshot(internedAbsolutePath, AccessType.DIRECT);
                     virtualFileSystem.updateWithKnownSnapshot(missingFileSnapshot);
                     builder.put(treeName, fingerprintingStrategy.getEmptyFingerprint());
                     return;
