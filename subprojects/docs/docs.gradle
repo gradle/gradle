@@ -473,10 +473,10 @@ samples {
         }
 
         credentialsForExternalToolViaStdin {
-            sampleDirectory = samplesRoot.dir("user-input/pass-credentials-to-external-tool-via-stdin")
-            displayName = "Supply credentials to external tool via stdin"
-            description = "Pass credentials to an external tool using project properties."
-            category = "User input"
+            sampleDirectory = samplesRoot.dir("credentials-handling/pass-credentials-to-external-tool-via-stdin")
+            displayName = "Supply credentials to external tool"
+            description = "Pass credentials to an external tool via stdin using Gradle properties."
+            category = "Credentials handling"
             common {
                 from(sampleDirectory.dir("common"))
             }
