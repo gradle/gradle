@@ -72,7 +72,6 @@ import org.gradle.internal.service.DefaultServiceRegistry;
 import org.gradle.internal.service.scopes.VirtualFileSystemServices;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-import org.gradle.util.IncubationLogger;
 
 import java.util.List;
 
@@ -141,12 +140,6 @@ public class ProjectExecutionServices extends DefaultServiceRegistry {
             ? ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL
             : ExecuteActionsTaskExecuter.VfsInvalidationStrategy.COMPLETE;
 
-        // TODO: The incubation message should be printed in VirtualFileSystemServices.
-        //   The problem is that `RootBuildLifecycleListener.afterStart` is called to early to have the system properties from gradle.properties available
-        //   We log the message now here as a workaround.
-        if (vfsInvalidationStrategy == ExecuteActionsTaskExecuter.VfsInvalidationStrategy.PARTIAL && !startParameter.isWatchFileSystem()) {
-            IncubationLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
-        }
         TaskExecuter executer = new ExecuteActionsTaskExecuter(
             buildCacheController.isEnabled()
                 ? ExecuteActionsTaskExecuter.BuildCacheState.ENABLED

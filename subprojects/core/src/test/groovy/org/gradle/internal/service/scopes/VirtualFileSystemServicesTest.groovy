@@ -79,10 +79,7 @@ class VirtualFileSystemServicesTest extends Specification {
         _ * startParameter.isWatchFileSystem() >> watchFsEnabled
         def virtualFileSystem = Mock(WatchingAwareVirtualFileSystem)
 
-        def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(
-            virtualFileSystem,
-            { param -> false }
-        )
+        def buildLifecycleListener = new VirtualFileSystemBuildLifecycleListener(virtualFileSystem)
 
         when:
         buildLifecycleListener.afterStart(gradle)

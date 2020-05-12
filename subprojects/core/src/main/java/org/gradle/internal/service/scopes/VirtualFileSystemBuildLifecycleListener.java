@@ -24,19 +24,11 @@ import org.gradle.internal.watch.vfs.WatchingAwareVirtualFileSystem;
 import org.gradle.util.IncubationLogger;
 
 class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListener {
-    public interface StartParameterSwitch {
-        boolean isEnabled(StartParameter startParameter);
-    }
 
     private final WatchingAwareVirtualFileSystem virtualFileSystem;
-    private final StartParameterSwitch dropVfs;
 
-    public VirtualFileSystemBuildLifecycleListener(
-        WatchingAwareVirtualFileSystem virtualFileSystem,
-        StartParameterSwitch dropVfs
-    ) {
+    public VirtualFileSystemBuildLifecycleListener(WatchingAwareVirtualFileSystem virtualFileSystem) {
         this.virtualFileSystem = virtualFileSystem;
-        this.dropVfs = dropVfs;
     }
 
     @Override
@@ -45,9 +37,11 @@ class VirtualFileSystemBuildLifecycleListener implements RootBuildLifecycleListe
         boolean watchFileSystem = startParameter.isWatchFileSystem();
         if (watchFileSystem) {
             IncubationLogger.incubatingFeatureUsed("Watching the file system");
-            if (dropVfs.isEnabled(startParameter)) {
+            if (VirtualFileSystemServices.isDropVfs(startParameter)) {
                 virtualFileSystem.invalidateAll();
             }
+        } else if (VirtualFileSystemServices.isPartialInvalidationEnabled(startParameter)) {
+            IncubationLogger.incubatingFeatureUsed("Partial virtual file system invalidation");
         }
         virtualFileSystem.afterBuildStarted(watchFileSystem);
         gradle.settingsEvaluated(settings -> virtualFileSystem.updateMustWatchDirectories(ImmutableList.of(settings.getRootDir())));

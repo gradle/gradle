@@ -119,6 +119,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
             || isSystemPropertyEnabled(VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs());
     }
 
+    public static boolean isDropVfs(StartParameter startParameter) {
+        return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+    }
+
     private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
         String value = getSystemProperty(systemProperty, systemPropertiesArgs);
         return value != null && !"false".equalsIgnoreCase(value);
@@ -179,8 +183,7 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
                 ))
                 .orElse(new NonWatchingVirtualFileSystem(delegate));
             listenerManager.addListener(new VirtualFileSystemBuildLifecycleListener(
-                watchingAwareVirtualFileSystem,
-                startParameter -> isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs())
+                watchingAwareVirtualFileSystem
             ));
             return watchingAwareVirtualFileSystem;
         }
