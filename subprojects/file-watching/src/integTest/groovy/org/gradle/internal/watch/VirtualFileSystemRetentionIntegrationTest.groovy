@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.ToBeFixedForInstantExecution
 import org.gradle.integtests.fixtures.VfsRetentionFixture
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.internal.service.scopes.VirtualFileSystemServices
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.util.Requires
 import org.gradle.util.TestPrecondition
@@ -347,6 +348,21 @@ class VirtualFileSystemRetentionIntegrationTest extends AbstractIntegrationSpec 
         withoutRetention().run("assemble")
         then:
         outputDoesNotContain(incubatingMessage)
+    }
+
+    def "deprecation message is shown when using the old property to enable watching the file system"() {
+        buildFile << """
+            apply plugin: "java"
+        """
+        executer.expectDocumentedDeprecationWarning(
+            "Using the system property org.gradle.unsafe.vfs.retention to enable watching the file system has been deprecated. " +
+                "This is scheduled to be removed in Gradle 7.0. " +
+                "Use the gradle property org.gradle.unsafe.watch-fs instead. " +
+                "See https://docs.gradle.org/current/userguide/gradle_daemon.html for more details."
+        )
+
+        expect:
+        succeeds("assemble", "-D${VirtualFileSystemServices.DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY}=true")
     }
 
     def "detects when outputs are removed for tasks without sources"() {

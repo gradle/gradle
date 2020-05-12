@@ -105,12 +105,12 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
      *
      * @see #VFS_PARTIAL_INVALIDATION_ENABLED_PROPERTY
      */
-    public static final String VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
+    public static final String DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY = "org.gradle.unsafe.vfs.retention";
 
     /**
      * When retention is enabled, this system property can be used to invalidate the entire VFS.
      *
-     * @see #VFS_RETENTION_ENABLED_PROPERTY
+     * @see org.gradle.initialization.StartParameterBuildOptions.WatchFileSystemOption
      */
     public static final String VFS_DROP_PROPERTY = "org.gradle.unsafe.vfs.drop";
 
@@ -121,6 +121,10 @@ public class VirtualFileSystemServices extends AbstractPluginServiceRegistry {
 
     public static boolean isDropVfs(StartParameter startParameter) {
         return isSystemPropertyEnabled(VFS_DROP_PROPERTY, startParameter.getSystemPropertiesArgs());
+    }
+
+    public static boolean isDeprecatedVfsRetentionPropertyPresent(StartParameter startParameter) {
+        return getSystemProperty(DEPRECATED_VFS_RETENTION_ENABLED_PROPERTY, startParameter.getSystemPropertiesArgs()) != null;
     }
 
     private static boolean isSystemPropertyEnabled(String systemProperty, Map<String, String> systemPropertiesArgs) {
