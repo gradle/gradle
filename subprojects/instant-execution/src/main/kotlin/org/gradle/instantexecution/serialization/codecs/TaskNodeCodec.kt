@@ -91,6 +91,7 @@ class TaskNodeCodec(
         withTaskOf(taskType, task, userTypesCodec) {
             writeUpToDateSpec(task)
             writeCollection(task.outputs.cacheIfSpecs)
+            writeCollection(task.outputs.doNotCacheIfSpecs)
             beanStateWriterFor(task.javaClass).run {
                 writeStateOf(task)
                 writeRegisteredPropertiesOf(task, this as BeanPropertyWriter)
@@ -112,6 +113,7 @@ class TaskNodeCodec(
         withTaskOf(taskType, task, userTypesCodec) {
             readUpToDateSpec(task)
             readCollectionInto { task.outputs.cacheIfSpecs.uncheckedCast() }
+            readCollectionInto { task.outputs.doNotCacheIfSpecs.uncheckedCast() }
             beanStateReaderFor(task.javaClass).run {
                 readStateOf(task)
                 readRegisteredPropertiesOf(task)

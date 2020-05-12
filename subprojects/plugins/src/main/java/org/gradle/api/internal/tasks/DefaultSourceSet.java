@@ -19,18 +19,17 @@ import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.jvm.ClassDirectoryBinaryNamingScheme;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetOutput;
 import org.gradle.util.GUtil;
 
 import javax.annotation.Nullable;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 import static org.gradle.util.ConfigureUtil.configure;
 
 public abstract class DefaultSourceSet implements SourceSet {
@@ -64,7 +63,12 @@ public abstract class DefaultSourceSet implements SourceSet {
 
         String resourcesDisplayName = displayName + " resources";
         resources = objectFactory.sourceDirectorySet("resources", resourcesDisplayName);
-        resources.getFilter().exclude(new IsJavaSourceSpec(javaSource));
+
+        // Explicitly capture only a FileCollection in the lambda below for compatibility with instant-execution.
+        FileCollection javaSourceFiles = javaSource;
+        resources.getFilter().exclude(
+            spec(element -> javaSourceFiles.contains(element.getFile()))
+        );
 
         String allSourceDisplayName = displayName + " source";
         allSource = objectFactory.sourceDirectorySet("allsource", allSourceDisplayName);
@@ -292,18 +296,5 @@ public abstract class DefaultSourceSet implements SourceSet {
     @Override
     public SourceDirectorySet getAllSource() {
         return allSource;
-    }
-
-    private static class IsJavaSourceSpec implements Spec<FileTreeElement> {
-        private final FileCollection javaSource;
-
-        public IsJavaSourceSpec(FileCollection javaSource) {
-            this.javaSource = javaSource;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(FileTreeElement element) {
-            return javaSource.contains(element.getFile());
-        }
     }
 }
