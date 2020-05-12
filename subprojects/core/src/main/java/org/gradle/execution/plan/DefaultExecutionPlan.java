@@ -108,9 +108,10 @@ public class DefaultExecutionPlan implements ExecutionPlan {
         Deque<Node> queue = new ArrayDeque<>(nodes);
         for (Node node : nodes) {
             assert node.getDependenciesProcessed();
-            node.require();
-            node.dependenciesProcessed();
-            entryNodes.add(node);
+            assert node.isInKnownState();
+            if (node.isRequired()) {
+                entryNodes.add(node);
+            }
         }
         doAddNodes(queue);
     }

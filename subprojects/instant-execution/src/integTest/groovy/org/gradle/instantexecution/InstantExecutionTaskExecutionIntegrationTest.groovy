@@ -110,4 +110,32 @@ class InstantExecutionTaskExecutionIntegrationTest extends AbstractInstantExecut
         then:
         result.assertTasksExecuted ':b', ':a'
     }
+
+    def "finalizer task dependencies execute after finalized task"() {
+        given:
+        withMaxWorkers 2
+        buildFile << '''
+            task finalizerDep
+            task finalizer {
+                dependsOn finalizerDep
+            }
+            task finalizedDep
+            task finalized {
+                finalizedBy finalizer
+                dependsOn finalizedDep
+            }
+        '''
+
+        expect:
+        2.times {
+            instantRun 'finalized'
+            result.assertTasksExecuted ':finalizedDep', ':finalized', ':finalizerDep', ':finalizer'
+        }
+    }
+
+    void withMaxWorkers(int threadCount) {
+        executer.beforeExecute {
+            withArguments("--max-workers=$threadCount", "--parallel")
+        }
+    }
 }

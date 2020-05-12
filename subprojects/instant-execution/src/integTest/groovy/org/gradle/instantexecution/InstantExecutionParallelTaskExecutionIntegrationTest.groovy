@@ -117,4 +117,75 @@ class InstantExecutionParallelTaskExecutionIntegrationTest extends AbstractInsta
         then:
         noExceptionThrown()
     }
+
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "finalizer task dependencies from sibling project must run after finalized task dependencies"() {
+        server.start()
+
+        given:
+        settingsFile << """
+            include 'finalized', 'finalizer'
+        """
+        buildFile << """
+            class SlowTask extends DefaultTask {
+                @TaskAction
+                def go() {
+                    ${server.callFromBuildUsingExpression("path")}
+                }
+            }
+            project(':finalizer') {
+                tasks.create('dep', SlowTask)
+                tasks.create('task', SlowTask) {
+                    dependsOn 'dep'
+                }
+            }
+            project(':finalized') {
+                tasks.create('dep', SlowTask)
+                tasks.create('task', SlowTask) {
+                    finalizedBy ':finalizer:task'
+                    dependsOn 'dep'
+                }
+            }
+        """
+
+        expect:
+        2.times {
+            [":finalized:dep", ":finalized:task", ":finalizer:dep", ":finalizer:task"].each {
+                server.expectConcurrent(it)
+            }
+            instantRun ":finalized:task"
+        }
+    }
+
+    @IgnoreIf({ GradleContextualExecuter.parallel })
+    def "finalizer task dependencies must run after finalized task dependencies"() {
+        server.start()
+
+        given:
+        buildFile << """
+            class SlowTask extends DefaultTask {
+                @TaskAction
+                def go() {
+                    ${server.callFromBuildUsingExpression("name")}
+                }
+            }
+            task finalizerDep(type: SlowTask)
+            task finalizer(type: SlowTask) {
+                dependsOn finalizerDep
+            }
+            task finalizedDep(type: SlowTask)
+            task finalized(type: SlowTask) {
+                finalizedBy finalizer
+                dependsOn finalizedDep
+            }
+        """
+
+        expect:
+        2.times {
+            ["finalizedDep", "finalized", "finalizerDep", "finalizer"].each {
+                server.expectConcurrent(it)
+            }
+            instantRun "finalized"
+        }
+    }
 }
